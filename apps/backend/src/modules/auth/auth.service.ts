@@ -31,6 +31,7 @@ export class AuthService {
 
   /**
    * Authenticates user with email/password and returns JWT tokens.
+   * Uses RLS bypass because we don't have tenant context before login.
    */
   async login(
     loginDto: LoginDto,
@@ -39,67 +40,71 @@ export class AuthService {
   ): Promise<AuthResponseDto> {
     const { email, password } = loginDto;
 
-    // Find user by email (need to search across organizations for login)
-    const user = await this.prisma.user.findFirst({
-      where: {
-        email: email.toLowerCase(),
-        isActive: true,
-      },
-      include: {
-        organization: {
-          select: { isActive: true },
+    // Bypass RLS for login - we need to search across all organizations
+    return this.prisma.withBypassRLS(async () => {
+      // Find user by email
+      const user = await this.prisma.user.findFirst({
+        where: {
+          email: email.toLowerCase(),
+          isActive: true,
         },
-      },
+        include: {
+          organization: {
+            select: { isActive: true },
+          },
+        },
+      });
+
+      if (!user || !user.passwordHash) {
+        throw new UnauthorizedException('Invalid email or password');
+      }
+
+      // Check if organization is active
+      if (!user.organization.isActive) {
+        throw new UnauthorizedException('Organization is inactive');
+      }
+
+      // Verify password
+      const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
+      if (!isPasswordValid) {
+        throw new UnauthorizedException('Invalid email or password');
+      }
+
+      // Create session
+      const session = await this.createSession(
+        user.id,
+        user.organizationId,
+        userAgent,
+        ipAddress,
+      );
+
+      // Generate tokens
+      const tokens = await this.generateTokens(user, session.id);
+
+      // Update last login
+      await this.prisma.user.update({
+        where: { id: user.id },
+        data: { lastLoginAt: new Date() },
+      });
+
+      return {
+        ...tokens,
+        user: {
+          id: user.id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          role: user.role,
+          organizationId: user.organizationId,
+        },
+      };
     });
-
-    if (!user || !user.passwordHash) {
-      throw new UnauthorizedException('Invalid email or password');
-    }
-
-    // Check if organization is active
-    if (!user.organization.isActive) {
-      throw new UnauthorizedException('Organization is inactive');
-    }
-
-    // Verify password
-    const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
-    if (!isPasswordValid) {
-      throw new UnauthorizedException('Invalid email or password');
-    }
-
-    // Create session
-    const session = await this.createSession(
-      user.id,
-      user.organizationId,
-      userAgent,
-      ipAddress,
-    );
-
-    // Generate tokens
-    const tokens = await this.generateTokens(user, session.id);
-
-    // Update last login
-    await this.prisma.user.update({
-      where: { id: user.id },
-      data: { lastLoginAt: new Date() },
-    });
-
-    return {
-      ...tokens,
-      user: {
-        id: user.id,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        role: user.role,
-        organizationId: user.organizationId,
-      },
-    };
   }
 
   /**
    * Refreshes access token using a valid refresh token.
    * Implements token rotation for security.
+   * Uses RLS bypass because refresh happens without tenant context.
    */
   async refreshTokens(
     refreshToken: string,
@@ -113,54 +118,57 @@ export class AuthService {
         throw new UnauthorizedException('Invalid token type');
       }
 
-      // Find and validate session
-      const session = await this.prisma.session.findUnique({
-        where: { id: payload.sessionId },
-        include: {
-          user: {
-            include: {
-              organization: { select: { isActive: true } },
+      // Bypass RLS for token refresh
+      return this.prisma.withBypassRLS(async () => {
+        // Find and validate session
+        const session = await this.prisma.session.findUnique({
+          where: { id: payload.sessionId },
+          include: {
+            user: {
+              include: {
+                organization: { select: { isActive: true } },
+              },
             },
           },
-        },
+        });
+
+        if (!session || session.revokedAt || session.expiresAt < new Date()) {
+          throw new UnauthorizedException('Session expired or revoked');
+        }
+
+        if (!session.user.isActive || !session.user.organization.isActive) {
+          throw new UnauthorizedException('User or organization inactive');
+        }
+
+        // Revoke old session and create new one (token rotation)
+        await this.prisma.session.update({
+          where: { id: session.id },
+          data: { revokedAt: new Date() },
+        });
+
+        const newSession = await this.createSession(
+          session.userId,
+          session.organizationId,
+          userAgent,
+          ipAddress,
+          session.id, // Link to previous session
+        );
+
+        // Generate new tokens
+        const tokens = await this.generateTokens(session.user, newSession.id);
+
+        return {
+          ...tokens,
+          user: {
+            id: session.user.id,
+            email: session.user.email,
+            firstName: session.user.firstName,
+            lastName: session.user.lastName,
+            role: session.user.role,
+            organizationId: session.user.organizationId,
+          },
+        };
       });
-
-      if (!session || session.revokedAt || session.expiresAt < new Date()) {
-        throw new UnauthorizedException('Session expired or revoked');
-      }
-
-      if (!session.user.isActive || !session.user.organization.isActive) {
-        throw new UnauthorizedException('User or organization inactive');
-      }
-
-      // Revoke old session and create new one (token rotation)
-      await this.prisma.session.update({
-        where: { id: session.id },
-        data: { revokedAt: new Date() },
-      });
-
-      const newSession = await this.createSession(
-        session.userId,
-        session.organizationId,
-        userAgent,
-        ipAddress,
-        session.id, // Link to previous session
-      );
-
-      // Generate new tokens
-      const tokens = await this.generateTokens(session.user, newSession.id);
-
-      return {
-        ...tokens,
-        user: {
-          id: session.user.id,
-          email: session.user.email,
-          firstName: session.user.firstName,
-          lastName: session.user.lastName,
-          role: session.user.role,
-          organizationId: session.user.organizationId,
-        },
-      };
     } catch (error) {
       if (error instanceof UnauthorizedException) {
         throw error;

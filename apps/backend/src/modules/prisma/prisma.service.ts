@@ -21,7 +21,7 @@ export class PrismaService
    */
   async setTenantContext(organizationId: string): Promise<void> {
     await this.$executeRawUnsafe(
-      `SET LOCAL app.current_organization = '${organizationId}'`,
+      `SELECT set_config('app.current_organization', '${organizationId}', true)`,
     );
   }
 
@@ -30,5 +30,37 @@ export class PrismaService
    */
   async clearTenantContext(): Promise<void> {
     await this.$executeRawUnsafe(`RESET app.current_organization`);
+  }
+
+  /**
+   * Enables RLS bypass for system operations (auth, background jobs).
+   * Use sparingly - only for operations that legitimately need cross-tenant access.
+   */
+  async enableBypassRLS(): Promise<void> {
+    await this.$executeRawUnsafe(
+      `SELECT set_config('app.bypass_rls', 'true', true)`,
+    );
+  }
+
+  /**
+   * Disables RLS bypass after system operations complete.
+   */
+  async disableBypassRLS(): Promise<void> {
+    await this.$executeRawUnsafe(
+      `SELECT set_config('app.bypass_rls', 'false', true)`,
+    );
+  }
+
+  /**
+   * Executes a callback with RLS bypassed, then re-enables RLS.
+   * Ensures bypass is always disabled even if callback throws.
+   */
+  async withBypassRLS<T>(callback: () => Promise<T>): Promise<T> {
+    await this.enableBypassRLS();
+    try {
+      return await callback();
+    } finally {
+      await this.disableBypassRLS();
+    }
   }
 }
