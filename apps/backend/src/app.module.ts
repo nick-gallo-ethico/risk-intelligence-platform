@@ -1,6 +1,8 @@
 import { Module, MiddlewareConsumer, NestModule } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { HealthModule } from './modules/health/health.module';
+import { PrismaModule } from './modules/prisma/prisma.module';
+import { AuthModule } from './modules/auth/auth.module';
 import { TenantMiddleware } from './common/middleware/tenant.middleware';
 import configuration from './config/configuration';
 
@@ -11,6 +13,8 @@ import configuration from './config/configuration';
       load: [configuration],
       envFilePath: ['.env', '.env.local'],
     }),
+    PrismaModule,
+    AuthModule,
     HealthModule,
   ],
   controllers: [],
@@ -18,10 +22,10 @@ import configuration from './config/configuration';
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    // Apply tenant middleware to all routes except health check
+    // Apply tenant middleware to all routes except health check and auth
     consumer
       .apply(TenantMiddleware)
-      .exclude('health')
+      .exclude('health', 'api/v1/auth/(.*)')
       .forRoutes('*');
   }
 }

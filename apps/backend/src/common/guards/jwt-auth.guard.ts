@@ -1,42 +1,43 @@
 import {
   Injectable,
-  CanActivate,
   ExecutionContext,
   UnauthorizedException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
+import { AuthGuard } from '@nestjs/passport';
+import { SetMetadata } from '@nestjs/common';
 
 export const IS_PUBLIC_KEY = 'isPublic';
 
 /**
- * Guard that validates JWT tokens on protected routes.
+ * Decorator to mark a route as publicly accessible (no auth required).
  *
- * TODO (Slice 1.1): Implement full JWT validation with:
- * 1. @nestjs/passport with passport-jwt strategy
- * 2. Token validation against user session
- * 3. Token refresh handling
- *
- * For now, this is a stub that demonstrates the pattern.
+ * Usage:
+ * @Public()
+ * @Get('public-endpoint')
+ * getPublicData() {
+ *   return 'no auth needed';
+ * }
+ */
+export const Public = () => SetMetadata(IS_PUBLIC_KEY, true);
+
+/**
+ * Guard that validates JWT tokens on protected routes using Passport.
  *
  * Usage:
  * @UseGuards(JwtAuthGuard)
  * @Get('protected')
- * getProtectedData() {
- *   return 'protected data';
- * }
- *
- * Or to make a route public:
- * @Public()
- * @Get('public')
- * getPublicData() {
- *   return 'public data';
+ * getProtectedData(@CurrentUser() user: RequestUser) {
+ *   return user;
  * }
  */
 @Injectable()
-export class JwtAuthGuard implements CanActivate {
-  constructor(private reflector: Reflector) {}
+export class JwtAuthGuard extends AuthGuard('jwt') {
+  constructor(private reflector: Reflector) {
+    super();
+  }
 
-  canActivate(context: ExecutionContext): boolean {
+  canActivate(context: ExecutionContext) {
     // Check if route is marked as public
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
       context.getHandler(),
@@ -47,24 +48,14 @@ export class JwtAuthGuard implements CanActivate {
       return true;
     }
 
-    const request = context.switchToHttp().getRequest();
-    const authHeader = request.headers.authorization;
+    // Delegate to Passport JWT strategy
+    return super.canActivate(context);
+  }
 
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      throw new UnauthorizedException('Missing or invalid authorization header');
+  handleRequest(err: any, user: any, info: any) {
+    if (err || !user) {
+      throw err || new UnauthorizedException('Invalid or expired token');
     }
-
-    // TODO (Slice 1.1): Implement actual JWT verification
-    // const token = authHeader.substring(7);
-    // const payload = await this.jwtService.verifyAsync(token);
-    // request.user = payload;
-
-    return true;
+    return user;
   }
 }
-
-/**
- * Decorator to mark a route as publicly accessible (no auth required).
- */
-import { SetMetadata } from '@nestjs/common';
-export const Public = () => SetMetadata(IS_PUBLIC_KEY, true);

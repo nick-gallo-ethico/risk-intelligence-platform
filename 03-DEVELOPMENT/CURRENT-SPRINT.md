@@ -13,23 +13,26 @@
 - [x] Run database migration (`20260129213317_init`)
 - [x] Seed test data (Acme Corp org + 4 test users)
 - [x] Verify backend health endpoint works
+- [x] Create AuthModule with JWT strategy
+  - **Files created:**
+    - `src/modules/prisma/prisma.service.ts` - Database access with RLS support
+    - `src/modules/prisma/prisma.module.ts` - Global Prisma module
+    - `src/modules/auth/auth.module.ts` - Auth module wiring
+    - `src/modules/auth/auth.service.ts` - Login, refresh, logout logic
+    - `src/modules/auth/auth.controller.ts` - REST endpoints
+    - `src/modules/auth/strategies/jwt.strategy.ts` - Passport JWT validation
+    - `src/modules/auth/dto/*.ts` - Request/response DTOs
+    - `src/modules/auth/interfaces/jwt-payload.interface.ts` - Token types
+  - **Verified:** All endpoints tested and working
 
 ## In Progress
-- [ ] Create AuthModule with JWT strategy
-  - **Context:** `01-SHARED-INFRASTRUCTURE/TECH-SPEC-AUTH-MULTITENANCY.md`
-  - **Files to create:**
-    - `src/modules/auth/auth.module.ts`
-    - `src/modules/auth/auth.service.ts`
-    - `src/modules/auth/auth.controller.ts`
-    - `src/modules/auth/strategies/jwt.strategy.ts`
-    - `src/modules/auth/dto/login.dto.ts`
+- [ ] Add RLS policies to PostgreSQL
+- [ ] Update TenantMiddleware to set RLS context from JWT
 
 ## Up Next
-- [ ] Implement TenantMiddleware setting RLS variable
-- [ ] Create login endpoint with validation
-- [ ] Add RLS policies to PostgreSQL
-- [ ] Implement refresh token rotation
-- [ ] Wire up CurrentUser and TenantId decorators
+- [ ] Create protected test endpoint to verify RLS
+- [ ] Add frontend login page with API integration
+- [ ] Implement logout functionality on frontend
 
 ---
 
@@ -64,3 +67,4 @@
 |------|------|--------|
 | 2026-01-29 | Sprint initialized with Slice 1.1 | — |
 | 2026-01-29 | Infrastructure verified: Docker, DB migration, seed, backend/frontend running | — |
+| 2026-01-29 | AuthModule complete: login, refresh, logout, JWT validation | — |

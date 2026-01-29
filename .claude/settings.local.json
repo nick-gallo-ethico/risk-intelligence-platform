@@ -22,7 +22,12 @@
       "Bash(gh:*)",
       "Bash(git --version:*)",
       "Bash(git init:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nInitial scaffold: NestJS backend, Next.js frontend, Prisma schema\n\n- Monorepo structure with apps/backend, apps/frontend, packages/types\n- Core entities: Organization, User, Session with multi-tenancy support\n- Docker Compose for PostgreSQL, Redis, Elasticsearch, Mailhog\n- Health check endpoint, seed data, landing page\n- PRDs and specifications for all platform modules\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git remote add:*)",
+      "Bash(git branch:*)",
+      "Bash(git push:*)",
+      "Bash(npx tsc:*)"
     ]
   }
 }
