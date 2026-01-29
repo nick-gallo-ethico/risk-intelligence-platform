@@ -1,0 +1,33 @@
+{
+  "name": "ethico-risk-intelligence-platform",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Ethico Risk Intelligence Platform - Multi-tenant SaaS compliance management system",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev:backend & npm run dev:frontend",
+    "dev:backend": "npm run start:dev -w apps/backend",
+    "dev:frontend": "npm run dev -w apps/frontend",
+    "build": "npm run build -w apps/backend && npm run build -w apps/frontend",
+    "build:backend": "npm run build -w apps/backend",
+    "build:frontend": "npm run build -w apps/frontend",
+    "test": "npm run test -w apps/backend && npm run test -w apps/frontend",
+    "test:backend": "npm run test -w apps/backend",
+    "test:frontend": "npm run test -w apps/frontend",
+    "test:e2e": "npm run test:e2e -w apps/backend",
+    "lint": "npm run lint -w apps/backend && npm run lint -w apps/frontend",
+    "typecheck": "npm run typecheck -w apps/backend && npm run typecheck -w apps/frontend",
+    "db:migrate": "npm run db:migrate -w apps/backend",
+    "db:seed": "npm run db:seed -w apps/backend",
+    "db:studio": "npm run db:studio -w apps/backend",
+    "db:generate": "npm run db:generate -w apps/backend"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "author": "Ethico",
+  "license": "UNLICENSED"
+}

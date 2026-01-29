@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(wc:*)",
+      "Skill(superpowers:brainstorming)",
+      "Read(//c/Users/cu0718/Documents/Claude Code Projects/Ethico Website Refresh/**)",
+      "Bash(for file in 02-MODULES/*/PRD*.md)",
+      "Bash(do wc -l \"$file\")",
+      "Bash(done)",
+      "Bash(for file in 01-SHARED-INFRASTRUCTURE/*.md)",
+      "Bash(do basename \"$file\")",
+      "Bash(docker-compose up:*)",
+      "Bash(docker compose:*)",
+      "Bash(npm install:*)",
+      "Bash(docker --version:*)",
+      "Bash(docker-compose:*)",
+      "Bash(docker ps:*)",
+      "Bash(npx prisma migrate dev:*)",
+      "Bash(npx ts-node:*)",
+      "Bash(curl:*)",
+      "Bash(timeout 15 npm run start:dev:*)",
+      "Bash(gh:*)",
+      "Bash(git --version:*)",
+      "Bash(git init:*)",
+      "Bash(git add:*)"
+    ]
+  }
+}

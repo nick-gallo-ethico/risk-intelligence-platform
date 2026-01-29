@@ -1,0 +1,107 @@
+// ===========================================
+// Ethico Risk Intelligence Platform
+// Prisma Schema
+// ===========================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ===========================================
+// Core Entities
+// ===========================================
+
+/// Organization represents a tenant in the multi-tenant system.
+/// All business data is scoped to an organization via Row-Level Security.
+model Organization {
+  id         String   @id @default(uuid())
+  name       String
+  slug       String   @unique
+  settings   Json     @default("{}")
+  isActive   Boolean  @default(true) @map("is_active")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  users      User[]
+  sessions   Session[]
+
+  @@index([slug])
+  @@index([isActive])
+  @@map("organizations")
+}
+
+/// User represents an authenticated user within an organization.
+/// Users are scoped to a single organization (no cross-tenant access).
+model User {
+  id             String    @id @default(uuid())
+  organizationId String    @map("organization_id")
+  email          String
+  passwordHash   String?   @map("password_hash")
+  firstName      String    @map("first_name")
+  lastName       String    @map("last_name")
+  role           UserRole  @default(EMPLOYEE)
+  isActive       Boolean   @default(true) @map("is_active")
+  emailVerifiedAt DateTime? @map("email_verified_at")
+  lastLoginAt    DateTime? @map("last_login_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  sessions       Session[]
+
+  // Unique constraint: email must be unique within an organization
+  @@unique([organizationId, email])
+  @@index([organizationId])
+  @@index([organizationId, role])
+  @@index([organizationId, isActive])
+  @@map("users")
+}
+
+/// Session represents an active user session (for refresh token rotation).
+/// Sessions are scoped to organization for RLS compliance.
+model Session {
+  id                String    @id @default(uuid())
+  organizationId    String    @map("organization_id")
+  userId            String    @map("user_id")
+  userAgent         String?   @map("user_agent")
+  ipAddress         String?   @map("ip_address")
+  expiresAt         DateTime  @map("expires_at")
+  revokedAt         DateTime? @map("revoked_at")
+  previousSessionId String?   @map("previous_session_id")
+  createdAt         DateTime  @default(now()) @map("created_at")
+
+  // Relations
+  organization      Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user              User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([userId])
+  @@index([revokedAt])
+  @@index([expiresAt])
+  @@map("sessions")
+}
+
+// ===========================================
+// Enums
+// ===========================================
+
+enum UserRole {
+  SYSTEM_ADMIN
+  COMPLIANCE_OFFICER
+  TRIAGE_LEAD
+  INVESTIGATOR
+  POLICY_AUTHOR
+  POLICY_REVIEWER
+  DEPARTMENT_ADMIN
+  MANAGER
+  EMPLOYEE
+
+  @@map("user_role")
+}
