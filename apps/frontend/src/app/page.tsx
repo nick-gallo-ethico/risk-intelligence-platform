@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 
 export default function Home() {
@@ -13,8 +14,8 @@ export default function Home() {
         </p>
 
         <div className="flex gap-4 justify-center">
-          <Button size="lg">
-            Sign In
+          <Button size="lg" asChild>
+            <Link href="/login">Sign In</Link>
           </Button>
           <Button variant="outline" size="lg">
             Learn More
