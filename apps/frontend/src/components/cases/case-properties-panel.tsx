@@ -1,31 +1,95 @@
 'use client';
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useCallback } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
-import type { Case } from '@/types/case';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { StatusBadge } from '@/components/ui/status-badge';
+import { SeverityBadge } from '@/components/ui/severity-badge';
+import { toast } from '@/components/ui/toaster';
+import { PropertySection } from './property-section';
+import { EditableField } from './editable-field';
+import { apiClient } from '@/lib/api';
+import type { Case, CaseStatus, Severity, SourceChannel, UpdateCaseInput } from '@/types/case';
 
 interface CasePropertiesPanelProps {
   caseData: Case | null;
   isLoading: boolean;
+  onUpdate?: (updatedCase: Case) => void;
 }
 
-interface PropertyRowProps {
-  label: string;
-  value: string | null | undefined;
+const STATUS_OPTIONS = [
+  { value: 'NEW', label: 'New' },
+  { value: 'OPEN', label: 'Open' },
+  { value: 'CLOSED', label: 'Closed' },
+];
+
+const SEVERITY_OPTIONS = [
+  { value: 'LOW', label: 'Low' },
+  { value: 'MEDIUM', label: 'Medium' },
+  { value: 'HIGH', label: 'High' },
+  { value: 'CRITICAL', label: 'Critical' },
+];
+
+const SOURCE_CHANNEL_OPTIONS = [
+  { value: 'HOTLINE', label: 'Hotline' },
+  { value: 'WEB_FORM', label: 'Web Form' },
+  { value: 'PROXY', label: 'Proxy' },
+  { value: 'DIRECT_ENTRY', label: 'Direct Entry' },
+  { value: 'CHATBOT', label: 'Chatbot' },
+];
+
+function formatDate(dateString: string) {
+  return new Date(dateString).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 }
 
-function PropertyRow({ label, value }: PropertyRowProps) {
-  return (
-    <div className="flex justify-between py-2 border-b border-gray-100 last:border-0">
-      <span className="text-sm text-gray-500">{label}</span>
-      <span className="text-sm font-medium text-gray-900 text-right max-w-[60%]">
-        {value || '—'}
-      </span>
-    </div>
+function formatSourceChannel(channel: SourceChannel): string {
+  return channel
+    .toLowerCase()
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, (l) => l.toUpperCase());
+}
+
+/**
+ * Left-side Case Properties Panel with inline editing.
+ *
+ * Features:
+ * - Collapsible sections (Status & Classification, Intake, Reporter, Location, Metadata)
+ * - Inline edit for editable fields (click to edit, save on blur/Enter, cancel on Escape)
+ * - Read-only fields for reference number and timestamps
+ * - Respects reporter anonymity (hides PII when anonymous)
+ */
+export function CasePropertiesPanel({
+  caseData,
+  isLoading,
+  onUpdate,
+}: CasePropertiesPanelProps) {
+  const updateCase = useCallback(
+    async (field: keyof UpdateCaseInput, value: string | string[]) => {
+      if (!caseData) return;
+
+      try {
+        const updatedCase = await apiClient.patch<Case>(
+          `/cases/${caseData.id}`,
+          { [field]: value }
+        );
+        toast.success('Case updated successfully');
+        onUpdate?.(updatedCase);
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : 'Failed to update case';
+        toast.error(message);
+        throw error; // Re-throw to keep edit mode open
+      }
+    },
+    [caseData, onUpdate]
   );
-}
 
-export function CasePropertiesPanel({ caseData, isLoading }: CasePropertiesPanelProps) {
   if (isLoading) {
     return <CasePropertiesPanelSkeleton />;
   }
@@ -34,100 +98,167 @@ export function CasePropertiesPanel({ caseData, isLoading }: CasePropertiesPanel
     return null;
   }
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
-
   return (
     <div className="space-y-4 p-4">
-      {/* Status Section */}
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-semibold text-gray-700">
-            Status
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="pt-0">
-          <PropertyRow label="Status" value={caseData.status} />
-          <PropertyRow label="Severity" value={caseData.severity} />
-          {caseData.statusRationale && (
-            <PropertyRow label="Rationale" value={caseData.statusRationale} />
-          )}
-        </CardContent>
-      </Card>
+      {/* Status & Classification Section */}
+      <PropertySection title="Status & Classification">
+        <EditableField
+          label="Status"
+          value={caseData.status}
+          fieldType="select"
+          options={STATUS_OPTIONS}
+          onSave={(value) => updateCase('status', value as CaseStatus)}
+          renderValue={(val) =>
+            val ? <StatusBadge status={val as CaseStatus} /> : null
+          }
+        />
+        <EditableField
+          label="Severity"
+          value={caseData.severity}
+          fieldType="select"
+          options={SEVERITY_OPTIONS}
+          onSave={(value) => updateCase('severity', value as Severity)}
+          renderValue={(val) =>
+            val ? <SeverityBadge severity={val as Severity} /> : null
+          }
+        />
+        <EditableField
+          label="Severity Reason"
+          value={caseData.severityReason}
+          fieldType="text"
+          placeholder="Not specified"
+          onSave={(value) => updateCase('severityReason', value as string)}
+        />
+        <EditableField
+          label="Tags"
+          value={caseData.tags}
+          fieldType="tags"
+          placeholder="No tags"
+          onSave={(value) => updateCase('tags', value as string[])}
+        />
+      </PropertySection>
 
-      {/* Classification Section */}
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-semibold text-gray-700">
-            Classification
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="pt-0">
-          <PropertyRow label="Source" value={caseData.sourceChannel.replace(/_/g, ' ')} />
-          <PropertyRow label="Type" value={caseData.caseType} />
-          {caseData.tags && caseData.tags.length > 0 && (
-            <PropertyRow label="Tags" value={caseData.tags.join(', ')} />
-          )}
-        </CardContent>
-      </Card>
+      {/* Intake Information Section */}
+      <PropertySection title="Intake Information">
+        <EditableField
+          label="Source"
+          value={caseData.sourceChannel}
+          fieldType="select"
+          options={SOURCE_CHANNEL_OPTIONS}
+          onSave={(value) => updateCase('sourceChannel', value as SourceChannel)}
+          renderValue={(val) =>
+            val ? formatSourceChannel(val as SourceChannel) : null
+          }
+        />
+        <EditableField
+          label="Case Type"
+          value={caseData.caseType}
+          readOnly
+          onSave={async () => {}}
+        />
+        <EditableField
+          label="Intake Time"
+          value={formatDate(caseData.intakeTimestamp)}
+          readOnly
+          onSave={async () => {}}
+        />
+      </PropertySection>
 
-      {/* Reporter Section */}
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-semibold text-gray-700">
-            Reporter
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="pt-0">
-          <PropertyRow label="Type" value={caseData.reporterType} />
-          <PropertyRow
-            label="Anonymous"
-            value={caseData.reporterAnonymous ? 'Yes' : 'No'}
-          />
-          {!caseData.reporterAnonymous && (
-            <>
-              <PropertyRow label="Name" value={caseData.reporterName} />
-              <PropertyRow label="Email" value={caseData.reporterEmail} />
-              <PropertyRow label="Phone" value={caseData.reporterPhone} />
-            </>
-          )}
-        </CardContent>
-      </Card>
+      {/* Reporter Information Section */}
+      <PropertySection title="Reporter Information">
+        <EditableField
+          label="Reporter Type"
+          value={caseData.reporterType}
+          readOnly
+          onSave={async () => {}}
+        />
+        <EditableField
+          label="Anonymous"
+          value={caseData.reporterAnonymous ? 'Yes' : 'No'}
+          readOnly
+          onSave={async () => {}}
+        />
+        {!caseData.reporterAnonymous && (
+          <>
+            <EditableField
+              label="Name"
+              value={caseData.reporterName}
+              fieldType="text"
+              placeholder="Not provided"
+              onSave={(value) => updateCase('reporterName', value as string)}
+            />
+            <EditableField
+              label="Email"
+              value={caseData.reporterEmail}
+              fieldType="text"
+              placeholder="Not provided"
+              onSave={(value) => updateCase('reporterEmail', value as string)}
+            />
+            <EditableField
+              label="Phone"
+              value={caseData.reporterPhone}
+              fieldType="text"
+              placeholder="Not provided"
+              onSave={(value) => updateCase('reporterPhone', value as string)}
+            />
+          </>
+        )}
+      </PropertySection>
 
       {/* Location Section */}
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-semibold text-gray-700">
-            Location
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="pt-0">
-          <PropertyRow label="City" value={caseData.locationCity} />
-          <PropertyRow label="State" value={caseData.locationState} />
-          <PropertyRow label="Country" value={caseData.locationCountry} />
-        </CardContent>
-      </Card>
+      <PropertySection title="Location">
+        <EditableField
+          label="City"
+          value={caseData.locationCity}
+          fieldType="text"
+          placeholder="Not specified"
+          onSave={(value) => updateCase('locationCity', value as string)}
+        />
+        <EditableField
+          label="State"
+          value={caseData.locationState}
+          fieldType="text"
+          placeholder="Not specified"
+          onSave={(value) => updateCase('locationState', value as string)}
+        />
+        <EditableField
+          label="Country"
+          value={caseData.locationCountry}
+          fieldType="text"
+          placeholder="Not specified"
+          onSave={(value) => updateCase('locationCountry', value as string)}
+        />
+      </PropertySection>
 
-      {/* Metadata Section */}
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-semibold text-gray-700">
-            Metadata
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="pt-0">
-          <PropertyRow label="Created" value={formatDate(caseData.createdAt)} />
-          <PropertyRow label="Updated" value={formatDate(caseData.updatedAt)} />
-          <PropertyRow label="Intake" value={formatDate(caseData.intakeTimestamp)} />
-        </CardContent>
-      </Card>
+      {/* Metadata Section (Read-only) */}
+      <PropertySection title="Metadata">
+        <EditableField
+          label="Reference"
+          value={caseData.referenceNumber}
+          readOnly
+          onSave={async () => {}}
+        />
+        <EditableField
+          label="Created"
+          value={formatDate(caseData.createdAt)}
+          readOnly
+          onSave={async () => {}}
+        />
+        <EditableField
+          label="Updated"
+          value={formatDate(caseData.updatedAt)}
+          readOnly
+          onSave={async () => {}}
+        />
+        {caseData.createdBy && (
+          <EditableField
+            label="Created By"
+            value={`${caseData.createdBy.firstName} ${caseData.createdBy.lastName}`}
+            readOnly
+            onSave={async () => {}}
+          />
+        )}
+      </PropertySection>
     </div>
   );
 }
@@ -135,14 +266,14 @@ export function CasePropertiesPanel({ caseData, isLoading }: CasePropertiesPanel
 export function CasePropertiesPanelSkeleton() {
   return (
     <div className="space-y-4 p-4">
-      {[1, 2, 3, 4].map((section) => (
+      {[1, 2, 3, 4, 5].map((section) => (
         <Card key={section}>
           <CardHeader className="pb-2">
-            <Skeleton className="h-4 w-20" />
+            <Skeleton className="h-4 w-24" />
           </CardHeader>
-          <CardContent className="pt-0 space-y-3">
+          <CardContent className="pt-2 space-y-3">
             {[1, 2, 3].map((row) => (
-              <div key={row} className="flex justify-between">
+              <div key={row} className="flex justify-between py-2">
                 <Skeleton className="h-4 w-16" />
                 <Skeleton className="h-4 w-24" />
               </div>

@@ -92,8 +92,8 @@ describe('CaseDetailLayout', () => {
     const highBadges = screen.getAllByText('HIGH');
     expect(highBadges.length).toBeGreaterThan(0);
 
-    // Classification section - HOTLINE appears in properties
-    const hotlineTexts = screen.getAllByText('HOTLINE');
+    // Classification section - Hotline appears in properties (formatted)
+    const hotlineTexts = screen.getAllByText('Hotline');
     expect(hotlineTexts.length).toBeGreaterThan(0);
 
     // Reporter section - appears in desktop and mobile panels
