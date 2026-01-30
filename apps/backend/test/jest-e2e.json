@@ -11,5 +11,9 @@
     "^@common/(.*)$": "<rootDir>/../src/common/$1",
     "^@modules/(.*)$": "<rootDir>/../src/modules/$1",
     "^@config/(.*)$": "<rootDir>/../src/config/$1"
-  }
+  },
+  "maxWorkers": 1,
+  "globalSetup": "<rootDir>/helpers/global-setup.ts",
+  "globalTeardown": "<rootDir>/helpers/global-teardown.ts",
+  "testTimeout": 30000
 }

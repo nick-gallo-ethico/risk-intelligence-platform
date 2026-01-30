@@ -1,0 +1,131 @@
+// =============================================================================
+// ENTITY PATTERN - All Prisma models MUST follow this structure
+// =============================================================================
+//
+// This is the canonical pattern for all entities in the Risk Intelligence Platform.
+// Copy this structure when creating new entities.
+//
+// REQUIRED SECTIONS:
+// 1. Core fields (id, organizationId, timestamps)
+// 2. Business fields (specific to entity)
+// 3. AI enrichment fields (if applicable)
+// 4. Migration support fields
+// 5. Relations
+// 6. Indexes
+// =============================================================================
+
+model ExampleEntity {
+  // -------------------------------------------------------------------------
+  // SECTION 1: Core Fields (REQUIRED for ALL entities)
+  // -------------------------------------------------------------------------
+  id             String   @id @default(uuid())
+  organizationId String   // CRITICAL: Tenant isolation via RLS
+
+  // Timestamps
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Audit trail - who created/modified
+  createdById    String   // User who created this record
+  updatedById    String?  // User who last modified (null = never modified)
+
+  // -------------------------------------------------------------------------
+  // SECTION 2: Business Fields (Specific to this entity)
+  // -------------------------------------------------------------------------
+
+  // Name/title (most entities have this)
+  name           String
+
+  // Status with enum (if entity has workflow)
+  status         ExampleStatus @default(DRAFT)
+  statusRationale String?      // AI-first: Store WHY status changed
+
+  // Description/narrative context (AI needs this for summarization)
+  description    String?       // Always allow narrative context
+  notes          String?       // Additional notes field
+
+  // Business-specific fields
+  // priority       Priority?
+  // assigneeId     String?
+  // dueDate        DateTime?
+  // category       String?
+
+  // -------------------------------------------------------------------------
+  // SECTION 3: AI Enrichment Fields (for entities AI can analyze)
+  // -------------------------------------------------------------------------
+  aiSummary            String?    // AI-generated summary
+  aiSummaryGeneratedAt DateTime?  // When summary was generated
+  aiModelVersion       String?    // Which model generated it (e.g., "claude-3-opus")
+  aiConfidence         Float?     // Confidence score (0.0-1.0)
+
+  // -------------------------------------------------------------------------
+  // SECTION 4: Migration Support Fields (for data imports)
+  // -------------------------------------------------------------------------
+  sourceSystem    String?   // e.g., 'NAVEX', 'EQS', 'MANUAL', 'CSV_IMPORT'
+  sourceRecordId  String?   // Original ID in source system
+  migratedAt      DateTime? // When this record was imported
+
+  // -------------------------------------------------------------------------
+  // SECTION 5: Relations
+  // -------------------------------------------------------------------------
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  createdBy      User         @relation("CreatedExamples", fields: [createdById], references: [id])
+  updatedBy      User?        @relation("UpdatedExamples", fields: [updatedById], references: [id])
+
+  // Related entities (example)
+  // activities     ExampleActivity[]
+  // attachments    Attachment[]
+
+  // -------------------------------------------------------------------------
+  // SECTION 6: Indexes (CRITICAL for performance)
+  // -------------------------------------------------------------------------
+  @@index([organizationId])        // REQUIRED: RLS performance
+  @@index([status])                 // Common filter
+  @@index([createdAt])              // Timeline queries
+  @@index([organizationId, status]) // Combined filter
+
+  // Unique constraints (if needed)
+  // @@unique([organizationId, referenceNumber])
+}
+
+// -------------------------------------------------------------------------
+// ENUMS (define outside model)
+// -------------------------------------------------------------------------
+enum ExampleStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
+  DELETED
+}
+
+// -------------------------------------------------------------------------
+// ACTIVITY LOG Pattern (for entity-level activity tracking)
+// -------------------------------------------------------------------------
+model ExampleActivity {
+  id             String   @id @default(uuid())
+  organizationId String
+  entityId       String   // FK to ExampleEntity
+
+  // Activity details
+  action             String   // e.g., 'created', 'updated', 'status_changed'
+  actionDescription  String   // Natural language: "John changed status from DRAFT to ACTIVE"
+
+  // What changed (store as JSON)
+  changes        Json?    // { oldValue: {...}, newValue: {...} }
+
+  // Who did it
+  actorUserId    String
+  actorUserName  String   // Denormalized for display without joins
+
+  // When
+  createdAt      DateTime @default(now())
+
+  // Relations
+  entity         ExampleEntity @relation(fields: [entityId], references: [id])
+  actor          User          @relation(fields: [actorUserId], references: [id])
+  organization   Organization  @relation(fields: [organizationId], references: [id])
+
+  @@index([entityId])
+  @@index([organizationId])
+  @@index([createdAt])
+}

@@ -18,16 +18,37 @@
     "test:backend": "npm run test -w apps/backend",
     "test:frontend": "npm run test -w apps/frontend",
     "test:e2e": "npm run test:e2e -w apps/backend",
+    "test:tenant-isolation": "npm run test:tenant-isolation -w apps/backend",
     "lint": "npm run lint -w apps/backend && npm run lint -w apps/frontend",
     "typecheck": "npm run typecheck -w apps/backend && npm run typecheck -w apps/frontend",
     "db:migrate": "npm run db:migrate -w apps/backend",
     "db:seed": "npm run db:seed -w apps/backend",
     "db:studio": "npm run db:studio -w apps/backend",
-    "db:generate": "npm run db:generate -w apps/backend"
+    "db:generate": "npm run db:generate -w apps/backend",
+    "prepare": "husky",
+    "security:audit": "npm audit --audit-level=high",
+    "verify": "npm run lint && npm run typecheck && npm run test"
   },
   "engines": {
     "node": ">=20.0.0"
   },
   "author": "Ethico",
-  "license": "UNLICENSED"
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "husky": "^9.0.0",
+    "lint-staged": "^15.2.0"
+  },
+  "lint-staged": {
+    "apps/backend/**/*.ts": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "apps/frontend/**/*.{ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md}": [
+      "prettier --write"
+    ]
+  }
 }
