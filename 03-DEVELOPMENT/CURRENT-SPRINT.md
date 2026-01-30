@@ -1,42 +1,65 @@
 # Current Sprint
 
 **Focus:** Tier 1 - Foundation
-**Slice:** 1.1 Authentication & Multi-Tenancy
+**Slice:** 1.1 Authentication & Multi-Tenancy → 1.2 Core Case Flow
 **Started:** 2026-01-29
 
 ---
 
 ## Completed
+
+### Slice 1.1 - Authentication & Multi-Tenancy ✅
+
 - [x] Create Prisma schema for User, Organization, Session
-  - **Context:** `01-SHARED-INFRASTRUCTURE/CORE-DATA-MODEL.md`
-  - **Verified:** `npx prisma validate` + migration applied
 - [x] Run database migration (`20260129213317_init`)
 - [x] Seed test data (Acme Corp org + 4 test users)
 - [x] Verify backend health endpoint works
 - [x] Create AuthModule with JWT strategy
-  - **Files created:**
-    - `src/modules/prisma/prisma.service.ts` - Database access with RLS support
-    - `src/modules/prisma/prisma.module.ts` - Global Prisma module
-    - `src/modules/auth/auth.module.ts` - Auth module wiring
-    - `src/modules/auth/auth.service.ts` - Login, refresh, logout logic
-    - `src/modules/auth/auth.controller.ts` - REST endpoints
-    - `src/modules/auth/strategies/jwt.strategy.ts` - Passport JWT validation
-    - `src/modules/auth/dto/*.ts` - Request/response DTOs
-    - `src/modules/auth/interfaces/jwt-payload.interface.ts` - Token types
-  - **Verified:** All endpoints tested and working
+  - `src/modules/auth/` - Complete auth module
+  - Login, refresh, logout endpoints working
+  - JWT contains organizationId for tenant context
+- [x] Add RLS policies to PostgreSQL
+  - Migration: `20260129221829_add_rls_policies`
+  - Policies on users, sessions tables
+  - `app.current_organization` and `app.bypass_rls` settings
+- [x] Update TenantMiddleware to set RLS context from JWT
+- [x] Create frontend login page with API integration
+  - `src/app/login/page.tsx` - Login form
+  - `src/app/dashboard/page.tsx` - Protected dashboard
+  - `src/contexts/auth-context.tsx` - Auth state management
+  - `src/lib/api.ts` - Token refresh queue
+- [x] Implement logout functionality on frontend
+
+**Commits:**
+- `ca1f3b8` - Initial scaffold
+- `040228d` - feat(auth): Add complete authentication module with JWT
+- `ea153a1` - feat(security): Add PostgreSQL Row-Level Security for tenant isolation
+- `98f2c38` - feat(frontend): Add login page with auth context and token management
+
+---
 
 ## In Progress
-- [ ] Add RLS policies to PostgreSQL
-- [ ] Update TenantMiddleware to set RLS context from JWT
+
+### Slice 1.2 - Core Case Flow
+
+- [ ] **Issue #5:** Tenant isolation test infrastructure
+- [ ] **Issue #6:** Case entity Prisma schema
+- [ ] **Issue #7:** Case CRUD endpoints
+- [ ] **Issue #15:** Case list page (frontend)
+
+---
 
 ## Up Next
-- [ ] Create protected test endpoint to verify RLS
-- [ ] Add frontend login page with API integration
-- [ ] Implement logout functionality on frontend
+
+- [ ] **Issue #8-9:** Investigation entity + CRUD
+- [ ] **Issue #11:** Case activity log
+- [ ] **Issue #17-20:** Case detail page with 3-column layout
+- [ ] **Issue #25:** End-to-end smoke test
 
 ---
 
 ## Blocked
+
 (none)
 
 ---
@@ -47,11 +70,7 @@
 - Entity pattern: `CLAUDE.md` → Development Patterns section
 - Auth spec: `01-SHARED-INFRASTRUCTURE/TECH-SPEC-AUTH-MULTITENANCY.md`
 - Core data model: `01-SHARED-INFRASTRUCTURE/CORE-DATA-MODEL.md`
-
-**Notes:**
-- Building auth first - all other slices depend on this
-- RLS policies ensure tenant isolation at database level
-- JWT must include organizationId for tenant context
+- Case PRD: `02-MODULES/05-CASE-MANAGEMENT/PRD.md`
 
 **Test credentials:**
 - `admin@acme.local` / `Password123!` / SYSTEM_ADMIN
@@ -61,10 +80,20 @@
 
 ---
 
+## GitHub Issues
+
+Created from `docs/SLICE-1-ISSUES.md`:
+- See: https://github.com/nick-gallo-ethico/risk-intelligence-platform/issues
+
+---
+
 ## History
 
 | Date | What | Commit |
 |------|------|--------|
 | 2026-01-29 | Sprint initialized with Slice 1.1 | — |
-| 2026-01-29 | Infrastructure verified: Docker, DB migration, seed, backend/frontend running | — |
-| 2026-01-29 | AuthModule complete: login, refresh, logout, JWT validation | — |
+| 2026-01-29 | Infrastructure verified: Docker, DB migration, seed | — |
+| 2026-01-29 | AuthModule complete: login, refresh, logout, JWT | `040228d` |
+| 2026-01-29 | RLS policies added for tenant isolation | `ea153a1` |
+| 2026-01-29 | Frontend login page complete | `98f2c38` |
+| 2026-01-29 | Slice 1.1 COMPLETE - Starting Slice 1.2 | — |

@@ -1,6 +1,7 @@
 import {
   Controller,
   Post,
+  Get,
   Body,
   HttpCode,
   HttpStatus,
@@ -87,8 +88,7 @@ export class AuthController {
    * Returns the current authenticated user's profile.
    */
   @UseGuards(JwtAuthGuard)
-  @Post('me')
-  @HttpCode(HttpStatus.OK)
+  @Get('me')
   async me(@CurrentUser() user: RequestUser) {
     return {
       id: user.id,

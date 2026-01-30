@@ -30,6 +30,7 @@ model Organization {
   // Relations
   users      User[]
   sessions   Session[]
+  cases      Case[]
 
   @@index([slug])
   @@index([isActive])
@@ -53,8 +54,13 @@ model User {
   updatedAt      DateTime  @updatedAt @map("updated_at")
 
   // Relations
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  sessions       Session[]
+  organization        Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  sessions            Session[]
+  casesCreated        Case[]       @relation("CaseCreatedBy")
+  casesUpdated        Case[]       @relation("CaseUpdatedBy")
+  casesIntakeOperator Case[]       @relation("CaseIntakeOperator")
+  casesReleased       Case[]       @relation("CaseReleasedBy")
+  casesProxySubmitter Case[]       @relation("CaseProxySubmitter")
 
   // Unique constraint: email must be unique within an organization
   @@unique([organizationId, email])
@@ -104,4 +110,164 @@ enum UserRole {
   EMPLOYEE
 
   @@map("user_role")
+}
+
+enum CaseStatus {
+  NEW
+  OPEN
+  CLOSED
+
+  @@map("case_status")
+}
+
+enum SourceChannel {
+  HOTLINE
+  WEB_FORM
+  PROXY
+  DIRECT_ENTRY
+  CHATBOT
+
+  @@map("source_channel")
+}
+
+enum CaseType {
+  REPORT
+  RFI
+
+  @@map("case_type")
+}
+
+enum ReporterType {
+  ANONYMOUS
+  IDENTIFIED
+  PROXY
+
+  @@map("reporter_type")
+}
+
+enum ReporterRelationship {
+  EMPLOYEE
+  FORMER_EMPLOYEE
+  VENDOR
+  CONTRACTOR
+  CUSTOMER
+  WITNESS
+  OTHER
+
+  @@map("reporter_relationship")
+}
+
+enum Severity {
+  HIGH
+  MEDIUM
+  LOW
+
+  @@map("severity")
+}
+
+// ===========================================
+// Case Management Entities
+// ===========================================
+
+/// Case represents a compliance report or request for information.
+/// This is the primary container for all case-related data.
+model Case {
+  id              String   @id @default(uuid())
+  referenceNumber String   @unique @map("reference_number")
+  organizationId  String   @map("organization_id")
+
+  // Status
+  status          CaseStatus @default(NEW)
+  statusRationale String?    @map("status_rationale")
+
+  // Intake Information
+  sourceChannel   SourceChannel @map("source_channel")
+  caseType        CaseType      @default(REPORT) @map("case_type")
+  intakeTimestamp DateTime      @default(now()) @map("intake_timestamp")
+  intakeOperatorId String?      @map("intake_operator_id")
+  firstTimeCaller Boolean?      @map("first_time_caller")
+  awarenessSource String?       @map("awareness_source")
+  interpreterUsed Boolean?      @map("interpreter_used")
+
+  // Reporter Information
+  reporterType         ReporterType @default(ANONYMOUS) @map("reporter_type")
+  reporterAnonymous    Boolean      @default(true) @map("reporter_anonymous")
+  reporterName         String?      @map("reporter_name") // Encrypted
+  reporterEmail        String?      @map("reporter_email") // Encrypted
+  reporterPhone        String?      @map("reporter_phone") // Encrypted
+  reporterRelationship ReporterRelationship? @map("reporter_relationship")
+  anonymousAccessCode  String?      @map("anonymous_access_code")
+  proxySubmitterId     String?      @map("proxy_submitter_id")
+
+  // Location Information
+  locationName    String?  @map("location_name")
+  locationAddress String?  @map("location_address")
+  locationCity    String?  @map("location_city")
+  locationState   String?  @map("location_state")
+  locationZip     String?  @map("location_zip")
+  locationCountry String?  @map("location_country")
+  locationManual  Boolean? @map("location_manual")
+
+  // Report Content
+  details           String  // Full narrative (rich text)
+  summary           String? // Manual summary
+  addendum          String? // Operator notes
+  originalLanguage  String? @map("original_language")
+  translatedDetails String? @map("translated_details")
+  translationLanguage String? @map("translation_language")
+
+  // Classification
+  primaryCategoryId   String?  @map("primary_category_id")
+  secondaryCategoryId String?  @map("secondary_category_id")
+  severity            Severity @default(MEDIUM)
+  severityReason      String?  @map("severity_reason")
+  tags                String[] @default([])
+
+  // AI Enrichment
+  aiSummary             String?   @map("ai_summary")
+  aiSummaryGeneratedAt  DateTime? @map("ai_summary_generated_at")
+  aiModelVersion        String?   @map("ai_model_version")
+  aiCategorySuggestion  String?   @map("ai_category_suggestion")
+  aiSeveritySuggestion  Severity? @map("ai_severity_suggestion")
+  aiConfidenceScore     Int?      @map("ai_confidence_score")
+
+  // Custom Data (JSONB)
+  customFields    Json? @map("custom_fields")
+  customQuestions Json? @map("custom_questions")
+
+  // Migration Support
+  sourceSystem   String?   @map("source_system")
+  sourceRecordId String?   @map("source_record_id")
+  migratedAt     DateTime? @map("migrated_at")
+
+  // Metadata
+  parentCaseId String?   @map("parent_case_id")
+  isSplit      Boolean   @default(false) @map("is_split")
+  releasedAt   DateTime? @map("released_at")
+  releasedById String?   @map("released_by_id")
+  qaNotes      String?   @map("qa_notes")
+
+  // Audit
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  createdById String   @map("created_by_id")
+  updatedById String   @map("updated_by_id")
+
+  // Relations
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdBy      User         @relation("CaseCreatedBy", fields: [createdById], references: [id])
+  updatedBy      User         @relation("CaseUpdatedBy", fields: [updatedById], references: [id])
+  intakeOperator User?        @relation("CaseIntakeOperator", fields: [intakeOperatorId], references: [id])
+  releasedBy     User?        @relation("CaseReleasedBy", fields: [releasedById], references: [id])
+  proxySubmitter User?        @relation("CaseProxySubmitter", fields: [proxySubmitterId], references: [id])
+  parentCase     Case?        @relation("CaseSplits", fields: [parentCaseId], references: [id])
+  splitCases     Case[]       @relation("CaseSplits")
+
+  // Indexes for performance
+  @@index([organizationId])
+  @@index([organizationId, status])
+  @@index([organizationId, createdAt])
+  @@index([organizationId, severity])
+  @@index([referenceNumber])
+  @@map("cases")
 }
