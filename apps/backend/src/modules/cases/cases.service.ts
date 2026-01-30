@@ -94,6 +94,7 @@ export class CasesService {
 
   /**
    * Returns paginated list of cases for the current organization.
+   * Supports full-text search using PostgreSQL tsvector when search query is provided.
    */
   async findAll(
     query: CaseQueryDto,
@@ -105,6 +106,11 @@ export class CasesService {
       sortBy = "createdAt",
       sortOrder = "desc",
     } = query;
+
+    // If search query provided, use full-text search with raw SQL
+    if (query.search && query.search.trim().length > 0) {
+      return this.findAllWithFullTextSearch(query, organizationId);
+    }
 
     const where = this.buildWhereClause(query, organizationId);
 
@@ -124,6 +130,129 @@ export class CasesService {
     ]);
 
     return { data, total, limit, offset };
+  }
+
+  /**
+   * Performs full-text search on cases using PostgreSQL tsvector.
+   * Uses plainto_tsquery for natural language search and ts_rank for relevance scoring.
+   * Supports partial word matching with :* suffix.
+   * CRITICAL: Tenant isolation (organizationId filter) always applies.
+   */
+  private async findAllWithFullTextSearch(
+    query: CaseQueryDto,
+    organizationId: string,
+  ): Promise<{ data: Case[]; total: number; limit: number; offset: number }> {
+    const { limit = 20, offset = 0 } = query;
+    const searchTerm = query.search!.trim();
+
+    // Build the search query with partial matching support
+    // Convert "word1 word2" to "word1:* & word2:*" for prefix matching
+    const searchWords = searchTerm
+      .split(/\s+/)
+      .filter((word) => word.length > 0)
+      .map((word) => word.replace(/[^\w]/g, "")) // Remove special characters
+      .filter((word) => word.length > 0);
+
+    if (searchWords.length === 0) {
+      // If no valid search words, return empty result
+      return { data: [], total: 0, limit, offset };
+    }
+
+    const tsQuery = searchWords.map((word) => `${word}:*`).join(" & ");
+
+    // Build additional WHERE conditions for filters (AND logic)
+    const conditions: string[] = ["c.organization_id = $1"];
+    const params: (string | number)[] = [organizationId];
+    let paramIndex = 2;
+
+    // Enum filters
+    if (query.status) {
+      conditions.push(`c.status = $${paramIndex}`);
+      params.push(query.status);
+      paramIndex++;
+    }
+
+    if (query.severity) {
+      conditions.push(`c.severity = $${paramIndex}`);
+      params.push(query.severity);
+      paramIndex++;
+    }
+
+    if (query.sourceChannel) {
+      conditions.push(`c.source_channel = $${paramIndex}`);
+      params.push(query.sourceChannel);
+      paramIndex++;
+    }
+
+    if (query.caseType) {
+      conditions.push(`c.case_type = $${paramIndex}`);
+      params.push(query.caseType);
+      paramIndex++;
+    }
+
+    // User filters
+    if (query.createdById) {
+      conditions.push(`c.created_by_id = $${paramIndex}`);
+      params.push(query.createdById);
+      paramIndex++;
+    }
+
+    if (query.intakeOperatorId) {
+      conditions.push(`c.intake_operator_id = $${paramIndex}`);
+      params.push(query.intakeOperatorId);
+      paramIndex++;
+    }
+
+    // Date range filters
+    if (query.createdAfter) {
+      conditions.push(`c.created_at >= $${paramIndex}`);
+      params.push(query.createdAfter);
+      paramIndex++;
+    }
+
+    if (query.createdBefore) {
+      conditions.push(`c.created_at <= $${paramIndex}`);
+      params.push(query.createdBefore);
+      paramIndex++;
+    }
+
+    // Add full-text search condition
+    conditions.push(`c.search_vector @@ to_tsquery('english', $${paramIndex})`);
+    params.push(tsQuery);
+    const tsQueryParamIndex = paramIndex;
+    paramIndex++;
+
+    const whereClause = conditions.join(" AND ");
+
+    // Query for data with relevance ranking
+    const dataQuery = `
+      SELECT c.*,
+             ts_rank(c.search_vector, to_tsquery('english', $${tsQueryParamIndex})) as search_rank
+      FROM cases c
+      WHERE ${whereClause}
+      ORDER BY search_rank DESC, c.created_at DESC
+      LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
+    `;
+    params.push(limit, offset);
+
+    // Query for total count
+    const countQuery = `
+      SELECT COUNT(*) as total
+      FROM cases c
+      WHERE ${whereClause}
+    `;
+
+    const [dataResult, countResult] = await Promise.all([
+      this.prisma.$queryRawUnsafe<Case[]>(dataQuery, ...params),
+      this.prisma.$queryRawUnsafe<{ total: bigint }[]>(
+        countQuery,
+        ...params.slice(0, -2),
+      ),
+    ]);
+
+    const total = Number(countResult[0]?.total ?? 0);
+
+    return { data: dataResult, total, limit, offset };
   }
 
   /**
@@ -397,6 +526,8 @@ export class CasesService {
 
   /**
    * Builds Prisma where clause from query parameters.
+   * Note: Full-text search is handled separately in findAllWithFullTextSearch().
+   * All filters are combined with AND logic.
    */
   private buildWhereClause(
     query: CaseQueryDto,
@@ -406,6 +537,7 @@ export class CasesService {
       organizationId,
     };
 
+    // Enum filters
     if (query.status) {
       where.status = query.status;
     }
@@ -418,23 +550,32 @@ export class CasesService {
       where.sourceChannel = query.sourceChannel;
     }
 
-    if (query.search) {
-      where.OR = [
-        { referenceNumber: { contains: query.search, mode: "insensitive" } },
-        { details: { contains: query.search, mode: "insensitive" } },
-        { summary: { contains: query.search, mode: "insensitive" } },
-      ];
+    if (query.caseType) {
+      where.caseType = query.caseType;
     }
 
-    if (query.createdAfter) {
-      where.createdAt = { gte: new Date(query.createdAfter) };
+    // User filters
+    if (query.createdById) {
+      where.createdById = query.createdById;
     }
 
-    if (query.createdBefore) {
-      where.createdAt = {
-        ...(where.createdAt as Prisma.DateTimeFilter),
-        lte: new Date(query.createdBefore),
-      };
+    if (query.intakeOperatorId) {
+      where.intakeOperatorId = query.intakeOperatorId;
+    }
+
+    // Date range filters (combined into single createdAt filter)
+    if (query.createdAfter || query.createdBefore) {
+      const dateFilter: Prisma.DateTimeFilter = {};
+
+      if (query.createdAfter) {
+        dateFilter.gte = new Date(query.createdAfter);
+      }
+
+      if (query.createdBefore) {
+        dateFilter.lte = new Date(query.createdBefore);
+      }
+
+      where.createdAt = dateFilter;
     }
 
     return where;

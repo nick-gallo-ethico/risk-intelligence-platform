@@ -278,6 +278,10 @@ model Case {
   splitCases     Case[]       @relation("CaseSplits")
   investigations Investigation[] // Cases can have multiple investigations
 
+  // Full-text search vector (auto-populated by database trigger)
+  /// @db.Unsupported("tsvector")
+  searchVector  Unsupported("tsvector")?  @map("search_vector")
+
   // Indexes for performance
   @@index([organizationId])
   @@index([organizationId, status])
