@@ -313,7 +313,7 @@ Created from `docs/SLICE-1-ISSUES.md`:
 ### Slice 1.8 - File Attachments & User Management
 
 **Backend Tasks:**
-- [ ] **Task 1.8.1:** File Attachment Prisma Schema
+- [x] **Task 1.8.1:** File Attachment Prisma Schema ✅
 - [ ] **Task 1.8.2:** File Storage Service
 - [ ] **Task 1.8.3:** Attachment DTOs and Service
 - [ ] **Task 1.8.4:** Attachment Controller & Module
