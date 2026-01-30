@@ -19,6 +19,7 @@ import {
   AssignInvestigationDto,
   TransitionInvestigationDto,
   InvestigationFindingsDto,
+  CloseInvestigationDto,
 } from "./dto";
 
 /**
@@ -29,15 +30,6 @@ interface AssignmentHistoryEntry {
   primaryInvestigatorId: string | null;
   assignedAt: string; // ISO date string
   assignedById: string;
-}
-
-/**
- * Close investigation DTO for the close operation
- */
-interface CloseInvestigationDto {
-  findingsSummary: string;
-  outcome: Investigation["outcome"];
-  closureNotes?: string;
 }
 
 /**

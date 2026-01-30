@@ -4,6 +4,7 @@ import { HealthModule } from "./modules/health/health.module";
 import { PrismaModule } from "./modules/prisma/prisma.module";
 import { AuthModule } from "./modules/auth/auth.module";
 import { CasesModule } from "./modules/cases/cases.module";
+import { InvestigationsModule } from "./modules/investigations/investigations.module";
 import { ActivityModule } from "./common/activity.module";
 import { TenantMiddleware } from "./common/middleware/tenant.middleware";
 import configuration from "./config/configuration";
@@ -19,6 +20,7 @@ import configuration from "./config/configuration";
     ActivityModule,
     AuthModule,
     CasesModule,
+    InvestigationsModule,
     HealthModule,
   ],
   controllers: [],
