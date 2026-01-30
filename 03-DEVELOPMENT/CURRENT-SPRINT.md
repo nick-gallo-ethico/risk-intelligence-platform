@@ -252,6 +252,7 @@ Created from `docs/SLICE-1-ISSUES.md`:
 | 2026-01-30 | Slice 1.4 COMPLETE - Investigation backend + Case detail UI | pushed |
 | 2026-01-30 | Slice 1.5 COMPLETE - Investigation Notes & E2E Testing | pushed |
 | 2026-01-30 | Code review + SQL injection fix + Slice 1.6/1.7 planning | — |
+| 2026-01-30 | Slice 1.7 COMPLETE - E2E tests (70 total tests) | — |
 
 ---
 
@@ -287,9 +288,9 @@ Created from `docs/SLICE-1-ISSUES.md`:
 
 ---
 
-## In Progress
+## Completed
 
-### Slice 1.7 - Remaining Foundation Features
+### Slice 1.7 - Remaining Foundation Features ✅
 
 - [x] **Task 1.7.1:** PostgreSQL full-text search for cases (Issue #12) ✅
 - [x] **Task 1.7.2:** Case query filters enhancement (Issue #16) ✅
@@ -297,4 +298,31 @@ Created from `docs/SLICE-1-ISSUES.md`:
 - [x] **Task 1.7.4:** Case creation form - API integration ✅
 - [x] **Task 1.7.5:** Case list - enhanced filters UI ✅
 - [x] **Task 1.7.6:** Dashboard quick actions ✅
-- [ ] **Task 1.7.7:** E2E tests for new features
+- [x] **Task 1.7.7:** E2E tests for new features ✅
+  - Created case-creation.spec.ts (13 tests)
+  - Created search-filters.spec.ts (28 tests)
+  - Created case-new.page.ts page object
+  - Updated case-list.page.ts with filter methods
+  - Updated dashboard.page.ts with quick action methods
+  - Total E2E tests: 70 across 4 files
+
+---
+
+## In Progress
+
+### Slice 1.8 - File Attachments & User Management
+
+**Backend Tasks:**
+- [ ] **Task 1.8.1:** File Attachment Prisma Schema
+- [ ] **Task 1.8.2:** File Storage Service
+- [ ] **Task 1.8.3:** Attachment DTOs and Service
+- [ ] **Task 1.8.4:** Attachment Controller & Module
+- [ ] **Task 1.8.5:** User Management DTOs and Service
+- [ ] **Task 1.8.6:** User Management Controller & Module
+
+**Frontend Tasks:**
+- [ ] **Task 1.8.7:** File Upload Component
+- [ ] **Task 1.8.8:** User Management UI
+
+**Testing:**
+- [ ] **Task 1.8.9:** E2E Tests for Slice 1.8
