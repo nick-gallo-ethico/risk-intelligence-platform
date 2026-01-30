@@ -73,6 +73,9 @@ model User {
   investigationsCreatedBy           Investigation[] @relation("InvestigationCreatedBy")
   investigationsUpdatedBy           Investigation[] @relation("InvestigationUpdatedBy")
 
+  // Investigation note relations
+  investigationNotesAuthored        InvestigationNote[] @relation("InvestigationNoteAuthor")
+
   // Unique constraint: email must be unique within an organization
   @@unique([organizationId, email])
   @@index([organizationId])
@@ -432,6 +435,29 @@ enum SlaStatus {
 }
 
 // ===========================================
+// Investigation Note Enums
+// ===========================================
+
+enum NoteType {
+  GENERAL
+  INTERVIEW
+  EVIDENCE
+  FINDING
+  RECOMMENDATION
+  FOLLOW_UP
+
+  @@map("note_type")
+}
+
+enum NoteVisibility {
+  PRIVATE  // Author only
+  TEAM     // Assigned investigators
+  ALL      // All org users with case access
+
+  @@map("note_visibility")
+}
+
+// ===========================================
 // Investigation Entity
 // ===========================================
 
@@ -504,6 +530,9 @@ model Investigation {
   createdBy             User         @relation("InvestigationCreatedBy", fields: [createdById], references: [id])
   updatedBy             User         @relation("InvestigationUpdatedBy", fields: [updatedById], references: [id])
 
+  // Child entities
+  notes                 InvestigationNote[]
+
   // Indexes for query patterns
   @@index([organizationId])
   @@index([organizationId, caseId])
@@ -513,4 +542,61 @@ model Investigation {
   @@index([organizationId, slaStatus])
   @@unique([caseId, investigationNumber])
   @@map("investigations")
+}
+
+// ===========================================
+// Investigation Note Entity
+// ===========================================
+
+/// InvestigationNote stores rich-text notes on investigations.
+/// Notes can be general, interview records, evidence documentation, findings, recommendations, or follow-ups.
+/// organizationId is denormalized from Investigation for RLS efficiency.
+model InvestigationNote {
+  id               String   @id @default(uuid())
+  investigationId  String   @map("investigation_id")
+  organizationId   String   @map("organization_id") // Denormalized from Investigation for RLS
+
+  // Content
+  content          String   @db.VarChar(50000) // Rich text (HTML/markdown)
+  contentPlainText String?  @map("content_plain_text") // Auto-generated in service layer for search
+  noteType         NoteType @default(GENERAL) @map("note_type")
+
+  // Visibility
+  visibility       NoteVisibility @default(TEAM)
+
+  // Author
+  authorId         String   @map("author_id")
+  authorName       String   @map("author_name") // Denormalized for display performance
+
+  // Edit Tracking
+  isEdited         Boolean  @default(false) @map("is_edited")
+  editedAt         DateTime? @map("edited_at")
+  editCount        Int      @default(0) @map("edit_count")
+
+  // Attachments (JSON array: [{ id, filename, url, size, mimeType }])
+  attachments      Json     @default("[]")
+
+  // AI Enrichment
+  aiSummary             String?   @map("ai_summary")
+  aiSummaryGeneratedAt  DateTime? @map("ai_summary_generated_at")
+  aiModelVersion        String?   @map("ai_model_version")
+
+  // Migration Support
+  sourceSystem     String?   @map("source_system") // e.g., 'NAVEX', 'EQS', 'MANUAL'
+  sourceRecordId   String?   @map("source_record_id")
+  migratedAt       DateTime? @map("migrated_at")
+
+  // Audit
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  investigation    Investigation @relation(fields: [investigationId], references: [id], onDelete: Cascade)
+  author           User          @relation("InvestigationNoteAuthor", fields: [authorId], references: [id])
+
+  // Indexes for query patterns
+  @@index([organizationId, investigationId]) // Primary query pattern
+  @@index([organizationId, authorId])        // Author filtering
+  @@index([createdAt])                       // Timeline sorting
+  @@map("investigation_notes")
 }
