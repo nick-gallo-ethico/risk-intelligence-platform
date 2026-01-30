@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { randomUUID } from 'crypto';
 import { AppModule } from '../../src/app.module';
 import { PrismaService } from '../../src/modules/prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
@@ -119,11 +120,14 @@ async function seedTestOrganizations(
   try {
     const passwordHash = await bcrypt.hash('TestPassword123!', 10);
 
+    // Use UUID for guaranteed uniqueness when tests run in parallel
+    const uniqueId = randomUUID().substring(0, 8);
+
     // Create Organization A
     const orgARecord = await prisma.organization.create({
       data: {
         name: 'Test Org Alpha',
-        slug: `test-org-alpha-${Date.now()}`,
+        slug: `test-org-alpha-${uniqueId}`,
         isActive: true,
       },
     });
@@ -132,7 +136,7 @@ async function seedTestOrganizations(
     const orgBRecord = await prisma.organization.create({
       data: {
         name: 'Test Org Beta',
-        slug: `test-org-beta-${Date.now()}`,
+        slug: `test-org-beta-${uniqueId}`,
         isActive: true,
       },
     });
