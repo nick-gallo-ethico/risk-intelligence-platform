@@ -2,10 +2,11 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
-} from '@nestjs/common';
-import { Prisma, Case, CaseStatus } from '@prisma/client';
-import { PrismaService } from '../prisma/prisma.service';
-import { CreateCaseDto, UpdateCaseDto, CaseQueryDto } from './dto';
+} from "@nestjs/common";
+import { Prisma, Case, CaseStatus, AuditEntityType } from "@prisma/client";
+import { PrismaService } from "../prisma/prisma.service";
+import { ActivityService } from "../../common/services/activity.service";
+import { CreateCaseDto, UpdateCaseDto, CaseQueryDto } from "./dto";
 
 /**
  * Service for managing compliance cases.
@@ -13,7 +14,10 @@ import { CreateCaseDto, UpdateCaseDto, CaseQueryDto } from './dto';
  */
 @Injectable()
 export class CasesService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private readonly activityService: ActivityService,
+  ) {}
 
   /**
    * Creates a new case with auto-generated reference number.
@@ -73,7 +77,19 @@ export class CasesService {
       sourceRecordId: dto.sourceRecordId,
     };
 
-    return this.prisma.case.create({ data });
+    const caseRecord = await this.prisma.case.create({ data });
+
+    // Log activity with natural language description
+    await this.activityService.log({
+      entityType: AuditEntityType.CASE,
+      entityId: caseRecord.id,
+      action: "created",
+      actionDescription: `Created case ${referenceNumber}`,
+      actorUserId: userId,
+      organizationId,
+    });
+
+    return caseRecord;
   }
 
   /**
@@ -83,7 +99,12 @@ export class CasesService {
     query: CaseQueryDto,
     organizationId: string,
   ): Promise<{ data: Case[]; total: number; limit: number; offset: number }> {
-    const { limit = 20, offset = 0, sortBy = 'createdAt', sortOrder = 'desc' } = query;
+    const {
+      limit = 20,
+      offset = 0,
+      sortBy = "createdAt",
+      sortOrder = "desc",
+    } = query;
 
     const where = this.buildWhereClause(query, organizationId);
 
@@ -166,7 +187,7 @@ export class CasesService {
     organizationId: string,
   ): Promise<Case> {
     // Verify case exists and belongs to this org
-    await this.findOne(id, organizationId);
+    const existing = await this.findOne(id, organizationId);
 
     const data: Prisma.CaseUncheckedUpdateInput = {
       updatedById: userId,
@@ -175,45 +196,88 @@ export class CasesService {
     // Only set fields that are provided
     if (dto.sourceChannel !== undefined) data.sourceChannel = dto.sourceChannel;
     if (dto.caseType !== undefined) data.caseType = dto.caseType;
-    if (dto.intakeOperatorId !== undefined) data.intakeOperatorId = dto.intakeOperatorId;
-    if (dto.firstTimeCaller !== undefined) data.firstTimeCaller = dto.firstTimeCaller;
-    if (dto.awarenessSource !== undefined) data.awarenessSource = dto.awarenessSource;
-    if (dto.interpreterUsed !== undefined) data.interpreterUsed = dto.interpreterUsed;
+    if (dto.intakeOperatorId !== undefined)
+      data.intakeOperatorId = dto.intakeOperatorId;
+    if (dto.firstTimeCaller !== undefined)
+      data.firstTimeCaller = dto.firstTimeCaller;
+    if (dto.awarenessSource !== undefined)
+      data.awarenessSource = dto.awarenessSource;
+    if (dto.interpreterUsed !== undefined)
+      data.interpreterUsed = dto.interpreterUsed;
     if (dto.reporterType !== undefined) data.reporterType = dto.reporterType;
-    if (dto.reporterAnonymous !== undefined) data.reporterAnonymous = dto.reporterAnonymous;
+    if (dto.reporterAnonymous !== undefined)
+      data.reporterAnonymous = dto.reporterAnonymous;
     if (dto.reporterName !== undefined) data.reporterName = dto.reporterName;
     if (dto.reporterEmail !== undefined) data.reporterEmail = dto.reporterEmail;
     if (dto.reporterPhone !== undefined) data.reporterPhone = dto.reporterPhone;
-    if (dto.reporterRelationship !== undefined) data.reporterRelationship = dto.reporterRelationship;
-    if (dto.proxySubmitterId !== undefined) data.proxySubmitterId = dto.proxySubmitterId;
+    if (dto.reporterRelationship !== undefined)
+      data.reporterRelationship = dto.reporterRelationship;
+    if (dto.proxySubmitterId !== undefined)
+      data.proxySubmitterId = dto.proxySubmitterId;
     if (dto.locationName !== undefined) data.locationName = dto.locationName;
-    if (dto.locationAddress !== undefined) data.locationAddress = dto.locationAddress;
+    if (dto.locationAddress !== undefined)
+      data.locationAddress = dto.locationAddress;
     if (dto.locationCity !== undefined) data.locationCity = dto.locationCity;
     if (dto.locationState !== undefined) data.locationState = dto.locationState;
     if (dto.locationZip !== undefined) data.locationZip = dto.locationZip;
-    if (dto.locationCountry !== undefined) data.locationCountry = dto.locationCountry;
-    if (dto.locationManual !== undefined) data.locationManual = dto.locationManual;
+    if (dto.locationCountry !== undefined)
+      data.locationCountry = dto.locationCountry;
+    if (dto.locationManual !== undefined)
+      data.locationManual = dto.locationManual;
     if (dto.details !== undefined) data.details = dto.details;
     if (dto.summary !== undefined) data.summary = dto.summary;
     if (dto.addendum !== undefined) data.addendum = dto.addendum;
-    if (dto.originalLanguage !== undefined) data.originalLanguage = dto.originalLanguage;
-    if (dto.primaryCategoryId !== undefined) data.primaryCategoryId = dto.primaryCategoryId;
-    if (dto.secondaryCategoryId !== undefined) data.secondaryCategoryId = dto.secondaryCategoryId;
+    if (dto.originalLanguage !== undefined)
+      data.originalLanguage = dto.originalLanguage;
+    if (dto.primaryCategoryId !== undefined)
+      data.primaryCategoryId = dto.primaryCategoryId;
+    if (dto.secondaryCategoryId !== undefined)
+      data.secondaryCategoryId = dto.secondaryCategoryId;
     if (dto.severity !== undefined) data.severity = dto.severity;
-    if (dto.severityReason !== undefined) data.severityReason = dto.severityReason;
+    if (dto.severityReason !== undefined)
+      data.severityReason = dto.severityReason;
     if (dto.tags !== undefined) data.tags = dto.tags;
-    if (dto.customFields !== undefined) data.customFields = dto.customFields as Prisma.InputJsonValue;
-    if (dto.customQuestions !== undefined) data.customQuestions = dto.customQuestions as Prisma.InputJsonValue;
+    if (dto.customFields !== undefined)
+      data.customFields = dto.customFields as Prisma.InputJsonValue;
+    if (dto.customQuestions !== undefined)
+      data.customQuestions = dto.customQuestions as Prisma.InputJsonValue;
     if (dto.sourceSystem !== undefined) data.sourceSystem = dto.sourceSystem;
-    if (dto.sourceRecordId !== undefined) data.sourceRecordId = dto.sourceRecordId;
+    if (dto.sourceRecordId !== undefined)
+      data.sourceRecordId = dto.sourceRecordId;
     if (dto.status !== undefined) data.status = dto.status;
-    if (dto.statusRationale !== undefined) data.statusRationale = dto.statusRationale;
+    if (dto.statusRationale !== undefined)
+      data.statusRationale = dto.statusRationale;
     if (dto.qaNotes !== undefined) data.qaNotes = dto.qaNotes;
 
-    return this.prisma.case.update({
+    const updated = await this.prisma.case.update({
       where: { id },
       data,
     });
+
+    // Build description of changed fields
+    const changedFields = Object.keys(dto).filter(
+      (key) => dto[key as keyof UpdateCaseDto] !== undefined,
+    );
+    const description =
+      changedFields.length > 0
+        ? `Updated ${changedFields.join(", ")} on case ${existing.referenceNumber}`
+        : `Updated case ${existing.referenceNumber}`;
+
+    // Log activity
+    await this.activityService.log({
+      entityType: AuditEntityType.CASE,
+      entityId: id,
+      action: "updated",
+      actionDescription: description,
+      actorUserId: userId,
+      organizationId,
+      changes: {
+        oldValue: { fields: changedFields },
+        newValue: { ...dto },
+      },
+    });
+
+    return updated;
   }
 
   /**
@@ -232,7 +296,9 @@ export class CasesService {
     // Validate status transition
     this.validateStatusTransition(existing.status, status);
 
-    return this.prisma.case.update({
+    const oldStatus = existing.status;
+
+    const updated = await this.prisma.case.update({
       where: { id },
       data: {
         status,
@@ -240,6 +306,22 @@ export class CasesService {
         updatedById: userId,
       },
     });
+
+    // Log status change with natural language description
+    await this.activityService.log({
+      entityType: AuditEntityType.CASE,
+      entityId: id,
+      action: "status_changed",
+      actionDescription: `Changed status from ${oldStatus} to ${status} on case ${existing.referenceNumber}`,
+      actorUserId: userId,
+      organizationId,
+      changes: {
+        oldValue: { status: oldStatus },
+        newValue: { status, rationale },
+      },
+    });
+
+    return updated;
   }
 
   /**
@@ -252,14 +334,45 @@ export class CasesService {
     userId: string,
     organizationId: string,
   ): Promise<Case> {
-    return this.updateStatus(id, CaseStatus.CLOSED, rationale, userId, organizationId);
+    // Verify case exists
+    const existing = await this.findOne(id, organizationId);
+
+    // Validate status transition
+    this.validateStatusTransition(existing.status, CaseStatus.CLOSED);
+
+    const updated = await this.prisma.case.update({
+      where: { id },
+      data: {
+        status: CaseStatus.CLOSED,
+        statusRationale: rationale,
+        updatedById: userId,
+      },
+    });
+
+    // Log close action with natural language description
+    await this.activityService.log({
+      entityType: AuditEntityType.CASE,
+      entityId: id,
+      action: "closed",
+      actionDescription: `Closed case ${existing.referenceNumber}`,
+      actorUserId: userId,
+      organizationId,
+      changes: {
+        oldValue: { status: existing.status },
+        newValue: { status: CaseStatus.CLOSED, rationale },
+      },
+    });
+
+    return updated;
   }
 
   /**
    * Generates next reference number for organization.
    * Format: ETH-YYYY-NNNNN
    */
-  private async generateReferenceNumber(organizationId: string): Promise<string> {
+  private async generateReferenceNumber(
+    organizationId: string,
+  ): Promise<string> {
     const year = new Date().getFullYear();
     const prefix = `ETH-${year}-`;
 
@@ -269,17 +382,17 @@ export class CasesService {
         organizationId,
         referenceNumber: { startsWith: prefix },
       },
-      orderBy: { referenceNumber: 'desc' },
+      orderBy: { referenceNumber: "desc" },
       select: { referenceNumber: true },
     });
 
     let nextNumber = 1;
     if (lastCase) {
-      const lastNumber = parseInt(lastCase.referenceNumber.split('-')[2], 10);
+      const lastNumber = parseInt(lastCase.referenceNumber.split("-")[2], 10);
       nextNumber = lastNumber + 1;
     }
 
-    return `${prefix}${nextNumber.toString().padStart(5, '0')}`;
+    return `${prefix}${nextNumber.toString().padStart(5, "0")}`;
   }
 
   /**
@@ -307,9 +420,9 @@ export class CasesService {
 
     if (query.search) {
       where.OR = [
-        { referenceNumber: { contains: query.search, mode: 'insensitive' } },
-        { details: { contains: query.search, mode: 'insensitive' } },
-        { summary: { contains: query.search, mode: 'insensitive' } },
+        { referenceNumber: { contains: query.search, mode: "insensitive" } },
+        { details: { contains: query.search, mode: "insensitive" } },
+        { summary: { contains: query.search, mode: "insensitive" } },
       ];
     }
 
@@ -330,7 +443,10 @@ export class CasesService {
   /**
    * Validates status transitions.
    */
-  private validateStatusTransition(current: CaseStatus, next: CaseStatus): void {
+  private validateStatusTransition(
+    current: CaseStatus,
+    next: CaseStatus,
+  ): void {
     if (current === next) {
       throw new BadRequestException(`Case is already in ${current} status`);
     }
