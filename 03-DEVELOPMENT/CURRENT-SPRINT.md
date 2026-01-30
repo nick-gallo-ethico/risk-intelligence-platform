@@ -38,9 +38,9 @@
 
 ---
 
-## In Progress
+## Completed
 
-### Slice 1.2 - Core Case Flow
+### Slice 1.2 - Core Case Flow ✅
 
 - [x] **Issue #5:** Tenant isolation test infrastructure ✅
   - `test/helpers/test-setup.ts` - Creates 2 test orgs with real JWT tokens
@@ -54,15 +54,26 @@
   - Auto-generated reference numbers (ETH-YYYY-NNNNN)
   - Pagination, filtering, search support
   - All endpoints tenant-isolated via organizationId
-- [ ] **Issue #15:** Case list page (frontend)
+- [x] **Issue #15:** Case list page (frontend) ✅
+  - `/cases` route with paginated table
+  - Filter by status, severity, search text
+  - Navigation from Dashboard card click
+  - shadcn/ui components: Table, Badge, Select
+
+---
+
+## In Progress
+
+### Slice 1.3 - Investigation & Activity
+
+- [ ] **Issue #8-9:** Investigation entity + CRUD
+- [ ] **Issue #11:** Case activity log
+- [ ] **Issue #17-20:** Case detail page with 3-column layout
 
 ---
 
 ## Up Next
 
-- [ ] **Issue #8-9:** Investigation entity + CRUD
-- [ ] **Issue #11:** Case activity log
-- [ ] **Issue #17-20:** Case detail page with 3-column layout
 - [ ] **Issue #25:** End-to-end smoke test
 
 ---
@@ -108,3 +119,4 @@ Created from `docs/SLICE-1-ISSUES.md`:
 | 2026-01-29 | Slice 1.1 COMPLETE - Starting Slice 1.2 | — |
 | 2026-01-30 | Case entity schema + tenant isolation tests | `3ede126` |
 | 2026-01-30 | Case CRUD endpoints (create, list, get, update, close) | `f9b3ce2` |
+| 2026-01-30 | Case list page (frontend) with filters | `d0d9482` |
