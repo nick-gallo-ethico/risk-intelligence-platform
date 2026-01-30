@@ -293,7 +293,7 @@ Created from `docs/SLICE-1-ISSUES.md`:
 
 - [x] **Task 1.7.1:** PostgreSQL full-text search for cases (Issue #12) ✅
 - [x] **Task 1.7.2:** Case query filters enhancement (Issue #16) ✅
-- [ ] **Task 1.7.3:** Case creation form - basic structure (Issue #23)
+- [x] **Task 1.7.3:** Case creation form - basic structure (Issue #23) ✅
 - [ ] **Task 1.7.4:** Case creation form - API integration
 - [ ] **Task 1.7.5:** Case list - enhanced filters UI
 - [ ] **Task 1.7.6:** Dashboard quick actions

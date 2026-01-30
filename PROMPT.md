@@ -6,7 +6,7 @@ You are the **Ralph Loop Coordinator** for the Risk Intelligence Platform projec
 
 **Completed Slices:** 1.1, 1.2, 1.3, 1.4, 1.5, 1.6
 **Current Slice:** 1.7 - Remaining Foundation Features
-**Current Task:** 1.7.3 (ready to start)
+**Current Task:** 1.7.4 (ready to start)
 
 ## Recent Accomplishments
 
@@ -18,6 +18,7 @@ You are the **Ralph Loop Coordinator** for the Risk Intelligence Platform projec
 ### Slice 1.7 Progress
 - Task 1.7.1: PostgreSQL full-text search ✅ COMPLETE
 - Task 1.7.2: Case query filters enhancement ✅ COMPLETE
+- Task 1.7.3: Case creation form - basic structure ✅ COMPLETE
 
 ## Your Responsibilities
 
@@ -33,72 +34,77 @@ You are the **Ralph Loop Coordinator** for the Risk Intelligence Platform projec
 3. **Task Sequence for Slice 1.7:**
    - [x] 1.7.1 - PostgreSQL full-text search (DONE)
    - [x] 1.7.2 - Case query filters enhancement (DONE)
-   - [ ] 1.7.3 - Case creation form - basic structure (READY)
-   - [ ] 1.7.4 - Case creation form - API integration
+   - [x] 1.7.3 - Case creation form - basic structure (DONE)
+   - [ ] 1.7.4 - Case creation form - API integration (READY)
    - [ ] 1.7.5 - Case list - enhanced filters UI
    - [ ] 1.7.6 - Dashboard quick actions
    - [ ] 1.7.7 - E2E tests for new features
 
 ## Next Task to Execute
 
-### Task 1.7.3: Case Creation Form - Basic Structure
+### Task 1.7.4: Case Creation Form - API Integration
 
 **GitHub Issue:** #23
-**Estimate:** 2 hours
+**Estimate:** 1 hour
 
 **Input Files:**
-- `docs/SLICE-1-ISSUES.md` - Issue #23 requirements
-- `apps/frontend/src/app/cases/[id]/page.tsx` - Case detail patterns
-- `apps/frontend/src/components/ui/` - shadcn/ui components
-- `apps/frontend/src/lib/api.ts` - API client
-- `apps/backend/src/modules/cases/dto/create-case.dto.ts` - Required fields
+- `apps/frontend/src/lib/api.ts` - Existing API client
+- `apps/frontend/src/components/cases/case-creation-form.tsx` - Form from 1.7.3
+- `apps/backend/src/modules/cases/dto/create-case.dto.ts` - DTO definition
 
-**Task:** Build the case creation form page with multi-section layout.
+**Task:** Complete API integration for the case creation form.
 
-Create /cases/new route with multi-section form:
+**1. Create API client function for case creation:**
+- POST /api/v1/cases
+- Handle validation errors (400)
+- Handle auth errors (401)
+- Return created case data
 
-**Section 1: Basic Information**
-- Source Channel: Select (DIRECT_ENTRY, WEB_FORM, etc.)
-- Case Type: Select (ETHICS_CONCERN, POLICY_VIOLATION, etc.)
-- Severity: Select (LOW, MEDIUM, HIGH, CRITICAL)
+**2. Integrate with react-query or SWR for:**
+- Mutation handling
+- Loading state
+- Error state
+- Success callback
 
-**Section 2: Details**
-- Summary: Textarea (max 500 chars)
-- Details: Rich text editor (use Tiptap from 1.5.7)
-- Category: Select (from API or hardcoded for now)
+**3. Add success handling:**
+- Show success toast with reference number
+- Redirect to /cases/:id
+- Clear form state
 
-**Section 3: Reporter Information (optional)**
-- Reporter Type: Select (EMPLOYEE, THIRD_PARTY, ANONYMOUS)
-- Reporter Name: Input (optional)
-- Reporter Email: Input (optional, validate format)
-- Reporter Phone: Input (optional)
+**4. Add error handling:**
+- Show error toast with message
+- Map API validation errors to form fields
+- Keep form state on error
 
-**Section 4: Location**
-- Incident Country: Select (country list)
-- Incident Region: Input (optional)
-- Incident Location: Input (optional)
+**5. Add "Save Draft" functionality (localStorage):**
+- Auto-save every 30 seconds
+- Restore draft on page load
+- Clear draft on successful submit
+- Show "Draft saved" indicator
 
-**Form Features:**
-- Client-side validation with react-hook-form + zod
-- Show validation errors inline
-- Disable submit until required fields filled
-- Loading state on submit
-- Error toast on failure
-- Redirect to case detail on success
-
-**Layout:**
-- Use Card components for sections
-- Responsive: single column on mobile, 2 columns on desktop
-- Sticky "Create Case" button at bottom
+**API payload should match CreateCaseDto:**
+```typescript
+interface CreateCasePayload {
+  sourceChannel: SourceChannel;
+  caseType: CaseType;
+  severity: Severity;
+  summary: string;
+  details: string;
+  category?: string;
+  reporterType?: ReporterType;
+  reporterName?: string;
+  reporterEmail?: string;
+  reporterPhone?: string;
+  incidentCountry?: string;
+  incidentRegion?: string;
+  incidentLocation?: string;
+}
+```
 
 **Output Files:**
-- `apps/frontend/src/app/cases/new/page.tsx`
-- `apps/frontend/src/components/cases/case-creation-form.tsx`
-- `apps/frontend/src/components/cases/form-sections/basic-info-section.tsx`
-- `apps/frontend/src/components/cases/form-sections/details-section.tsx`
-- `apps/frontend/src/components/cases/form-sections/reporter-section.tsx`
-- `apps/frontend/src/components/cases/form-sections/location-section.tsx`
-- `apps/frontend/src/lib/validations/case-schema.ts` (zod schema)
+- `apps/frontend/src/lib/cases-api.ts` (add createCase function)
+- Update `apps/frontend/src/components/cases/case-creation-form.tsx`
+- `apps/frontend/src/hooks/use-case-form-draft.ts` (draft persistence hook)
 
 **Verification:**
 ```bash
@@ -107,13 +113,13 @@ cd apps/frontend && npm run lint
 ```
 
 Manual verification:
-1. Navigate to /cases/new
-2. Verify all form sections render
-3. Test validation (submit with empty required fields)
-4. Fill form and submit
-5. Verify redirect to case detail
+1. Fill and submit form
+2. Verify case created in backend
+3. Verify redirect to new case
+4. Test draft save/restore
+5. Test validation error display
 
-**When Complete:** Reply **TASK 1.7.3 COMPLETE**
+**When Complete:** Reply **TASK 1.7.4 COMPLETE**
 
 ---
 
@@ -122,6 +128,7 @@ Manual verification:
 1. Read the task file to get next task details
 2. Update PROMPT.md with next task (use same format)
 3. Update CURRENT-SPRINT.md to mark task complete
-4. Reply with confirmation and next task number
+4. Commit changes following git best practices
+5. Reply with confirmation and next task number
 
 Start by confirming you understand the current state, then wait for task completion signals.
