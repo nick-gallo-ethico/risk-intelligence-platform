@@ -52,7 +52,7 @@ import { AuditEntityType } from "@prisma/client";
 
 @ApiTags("Activity")
 @ApiBearerAuth()
-@Controller("api/v1/activity")
+@Controller("activity")
 @UseGuards(JwtAuthGuard, TenantGuard) // REQUIRED: Protect ALL routes
 export class ActivityController {
   private readonly logger = new Logger(ActivityController.name);
