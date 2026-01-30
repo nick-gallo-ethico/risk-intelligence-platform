@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/auth-context';
 import { casesApi } from '@/lib/cases-api';
+import { useCaseFilters } from '@/hooks/use-case-filters';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -15,14 +16,9 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
+import { CaseListFilters } from '@/components/cases/case-list-filters';
+import { FilterChips } from '@/components/cases/filter-chips';
+import { Pagination } from '@/components/cases/pagination';
 import type { Case, CaseStatus, Severity, CaseQueryParams } from '@/types/case';
 
 const STATUS_COLORS: Record<CaseStatus, string> = {
@@ -38,21 +34,16 @@ const SEVERITY_COLORS: Record<Severity, string> = {
   CRITICAL: 'bg-red-100 text-red-800',
 };
 
-export default function CasesPage() {
+function CasesContent() {
   const router = useRouter();
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
+  const { filters, updateFilters, clearAllFilters, clearFilter, hasActiveFilters } =
+    useCaseFilters();
 
   const [cases, setCases] = useState<Case[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  // Filters
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [severityFilter, setSeverityFilter] = useState<string>('all');
-  const [search, setSearch] = useState('');
-  const [page, setPage] = useState(0);
-  const limit = 20;
 
   const fetchCases = useCallback(async () => {
     setLoading(true);
@@ -60,20 +51,39 @@ export default function CasesPage() {
 
     try {
       const params: CaseQueryParams = {
-        limit,
-        offset: page * limit,
-        sortBy: 'createdAt',
-        sortOrder: 'desc',
+        limit: filters.pageSize,
+        offset: filters.page * filters.pageSize,
+        sortBy: filters.sortBy,
+        sortOrder: filters.sortOrder,
       };
 
-      if (statusFilter !== 'all') {
-        params.status = statusFilter as CaseStatus;
+      // Multi-select filters
+      if (filters.statuses.length > 0) {
+        params.status = filters.statuses;
       }
-      if (severityFilter !== 'all') {
-        params.severity = severityFilter as Severity;
+      if (filters.severities.length > 0) {
+        params.severity = filters.severities;
       }
-      if (search.trim()) {
-        params.search = search.trim();
+
+      // Single-select filters
+      if (filters.sourceChannel) {
+        params.sourceChannel = filters.sourceChannel;
+      }
+      if (filters.caseType) {
+        params.caseType = filters.caseType;
+      }
+
+      // Date range
+      if (filters.dateFrom) {
+        params.createdAfter = filters.dateFrom;
+      }
+      if (filters.dateTo) {
+        params.createdBefore = filters.dateTo;
+      }
+
+      // Search
+      if (filters.search.trim()) {
+        params.search = filters.search.trim();
       }
 
       const response = await casesApi.list(params);
@@ -85,7 +95,7 @@ export default function CasesPage() {
     } finally {
       setLoading(false);
     }
-  }, [page, statusFilter, severityFilter, search]);
+  }, [filters]);
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -109,12 +119,6 @@ export default function CasesPage() {
     });
   };
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    setPage(0);
-    fetchCases();
-  };
-
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -126,8 +130,6 @@ export default function CasesPage() {
   if (!isAuthenticated || !user) {
     return null;
   }
-
-  const totalPages = Math.ceil(total / limit);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -163,71 +165,42 @@ export default function CasesPage() {
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Cases</h1>
             <p className="text-gray-600 mt-1">
-              {total} total cases in your organization
+              Manage and track compliance cases
             </p>
           </div>
-          <Button onClick={() => router.push('/cases/new')}>
-            + New Case
-          </Button>
+          <Button onClick={() => router.push('/cases/new')}>+ New Case</Button>
         </div>
 
         {/* Filters */}
-        <Card className="mb-6">
+        <Card className="mb-4">
           <CardContent className="pt-6">
-            <form onSubmit={handleSearch} className="flex gap-4 flex-wrap">
-              <div className="flex-1 min-w-[200px]">
-                <Input
-                  placeholder="Search by reference, details, summary..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                />
-              </div>
-              <Select
-                value={statusFilter}
-                onValueChange={(value) => {
-                  setStatusFilter(value);
-                  setPage(0);
-                }}
-              >
-                <SelectTrigger className="w-[150px]">
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Statuses</SelectItem>
-                  <SelectItem value="NEW">New</SelectItem>
-                  <SelectItem value="OPEN">Open</SelectItem>
-                  <SelectItem value="CLOSED">Closed</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select
-                value={severityFilter}
-                onValueChange={(value) => {
-                  setSeverityFilter(value);
-                  setPage(0);
-                }}
-              >
-                <SelectTrigger className="w-[150px]">
-                  <SelectValue placeholder="Severity" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Severities</SelectItem>
-                  <SelectItem value="LOW">Low</SelectItem>
-                  <SelectItem value="MEDIUM">Medium</SelectItem>
-                  <SelectItem value="HIGH">High</SelectItem>
-                  <SelectItem value="CRITICAL">Critical</SelectItem>
-                </SelectContent>
-              </Select>
-              <Button type="submit" variant="outline">
-                Search
-              </Button>
-            </form>
+            <CaseListFilters filters={filters} onUpdateFilters={updateFilters} />
           </CardContent>
         </Card>
+
+        {/* Active filters */}
+        {hasActiveFilters && (
+          <div className="mb-4">
+            <FilterChips
+              filters={filters}
+              onClearFilter={clearFilter}
+              onClearAll={clearAllFilters}
+              totalResults={total}
+            />
+          </div>
+        )}
 
         {/* Cases Table */}
         <Card>
           <CardHeader>
-            <CardTitle>Recent Cases</CardTitle>
+            <CardTitle className="flex items-center justify-between">
+              <span>Cases</span>
+              {!hasActiveFilters && (
+                <span className="text-sm font-normal text-muted-foreground">
+                  {total} total
+                </span>
+              )}
+            </CardTitle>
           </CardHeader>
           <CardContent>
             {error && (
@@ -242,7 +215,9 @@ export default function CasesPage() {
               </div>
             ) : cases.length === 0 ? (
               <div className="text-center py-8 text-gray-500">
-                No cases found. Create your first case to get started.
+                {hasActiveFilters
+                  ? 'No cases match your filters.'
+                  : 'No cases found. Create your first case to get started.'}
               </div>
             ) : (
               <>
@@ -315,37 +290,32 @@ export default function CasesPage() {
                 </Table>
 
                 {/* Pagination */}
-                {totalPages > 1 && (
-                  <div className="flex items-center justify-between mt-4 pt-4 border-t">
-                    <p className="text-sm text-gray-600">
-                      Showing {page * limit + 1} to{' '}
-                      {Math.min((page + 1) * limit, total)} of {total} cases
-                    </p>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        disabled={page === 0}
-                        onClick={() => setPage((p) => p - 1)}
-                      >
-                        Previous
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        disabled={page >= totalPages - 1}
-                        onClick={() => setPage((p) => p + 1)}
-                      >
-                        Next
-                      </Button>
-                    </div>
-                  </div>
-                )}
+                <Pagination
+                  page={filters.page}
+                  pageSize={filters.pageSize}
+                  total={total}
+                  onPageChange={(page) => updateFilters({ page })}
+                  onPageSizeChange={(pageSize) => updateFilters({ pageSize })}
+                />
               </>
             )}
           </CardContent>
         </Card>
       </main>
     </div>
+  );
+}
+
+export default function CasesPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-gray-500">Loading...</div>
+        </div>
+      }
+    >
+      <CasesContent />
+    </Suspense>
   );
 }
