@@ -6,7 +6,7 @@ You are the **Ralph Loop Coordinator** for the Risk Intelligence Platform projec
 
 **Completed Slices:** 1.1, 1.2, 1.3, 1.4, 1.5, 1.6
 **Current Slice:** 1.7 - Remaining Foundation Features
-**Current Task:** 1.7.6 (ready to start)
+**Current Task:** 1.7.7 (ready to start)
 
 ## Recent Accomplishments
 
@@ -21,6 +21,7 @@ You are the **Ralph Loop Coordinator** for the Risk Intelligence Platform projec
 - Task 1.7.3: Case creation form - basic structure ✅ COMPLETE
 - Task 1.7.4: Case creation form - API integration ✅ COMPLETE
 - Task 1.7.5: Case list - enhanced filters UI ✅ COMPLETE
+- Task 1.7.6: Dashboard quick actions ✅ COMPLETE
 
 ## Your Responsibilities
 
@@ -39,72 +40,83 @@ You are the **Ralph Loop Coordinator** for the Risk Intelligence Platform projec
    - [x] 1.7.3 - Case creation form - basic structure (DONE)
    - [x] 1.7.4 - Case creation form - API integration (DONE)
    - [x] 1.7.5 - Case list - enhanced filters UI (DONE)
-   - [ ] 1.7.6 - Dashboard quick actions (READY)
-   - [ ] 1.7.7 - E2E tests for new features
+   - [x] 1.7.6 - Dashboard quick actions (DONE)
+   - [ ] 1.7.7 - E2E tests for new features (READY)
 
 ## Next Task to Execute
 
-### Task 1.7.6: Dashboard Quick Actions
+### Task 1.7.7: E2E Tests for New Features
 
-**Estimate:** 1 hour
+**Estimate:** 1.5 hours
 
 **Input Files:**
-- `apps/frontend/src/app/dashboard/page.tsx` - Current dashboard
-- `apps/frontend/src/components/ui/` - shadcn/ui components
+- `apps/frontend/e2e/tests/smoke.spec.ts` - Existing tests
+- `apps/frontend/e2e/pages/` - Page objects
 
-**Task:** Add quick action buttons and stats to dashboard.
+**Task:** Add E2E tests for the new features in Slice 1.7.
 
-**1. Quick Actions section:**
-- "Create Case" button (links to /cases/new)
-- "My Open Cases" button (filtered view)
-- "Recent Activity" link
+**Test Scenarios:**
 
-**2. Stats cards row:**
-- Total Cases (this month)
-- Open Cases
-- In Progress
-- Average Resolution Time (days)
+**1. Case Creation Form:**
+- Navigate to /cases/new
+- Fill all required fields
+- Submit form
+- Verify redirect to case detail
+- Verify reference number generated
+- Test validation errors
 
-**3. Recent Cases table:**
-- Show 5 most recent cases
-- Quick status badge
-- Click to navigate to detail
+**2. Full-Text Search:**
+- Create case with specific text
+- Navigate to case list
+- Search for that text
+- Verify case appears in results
+- Search for non-existent text
+- Verify no results
 
-**4. My Assignments section:**
-- Cases/investigations assigned to current user
-- Due date indicators
-- Quick status update
+**3. Filters:**
+- Apply status filter
+- Verify filtered results
+- Apply date range filter
+- Verify filtered results
+- Clear filters
+- Verify all cases shown
 
-**API endpoints to use:**
-- GET /api/v1/cases?limit=5&sortBy=createdAt&sortOrder=desc (recent)
-- GET /api/v1/cases?assignedToId=me (assignments)
-- Stats can be derived from list response metadata
-
-**Layout:**
-- Cards for stats
-- Table for recent cases
-- List for assignments
+**4. Dashboard:**
+- Navigate to dashboard
+- Verify stats load
+- Click "Create Case"
+- Verify navigation to /cases/new
+- Click recent case
+- Verify navigation to case detail
 
 **Output Files:**
-- Update `apps/frontend/src/app/dashboard/page.tsx`
-- `apps/frontend/src/components/dashboard/stats-cards.tsx`
-- `apps/frontend/src/components/dashboard/recent-cases.tsx`
-- `apps/frontend/src/components/dashboard/my-assignments.tsx`
-- `apps/frontend/src/components/dashboard/quick-actions.tsx`
+- `apps/frontend/e2e/tests/case-creation.spec.ts`
+- `apps/frontend/e2e/tests/search-filters.spec.ts`
+- `apps/frontend/e2e/pages/case-new.page.ts`
+- Update `apps/frontend/e2e/pages/case-list.page.ts` (add filter methods)
 
 **Verification:**
 ```bash
-cd apps/frontend && npm run typecheck
-cd apps/frontend && npm run lint
+cd apps/frontend && npm run e2e
 ```
 
-Manual verification:
-1. Dashboard loads with all sections
-2. Stats display correctly
-3. Recent cases clickable
-4. Quick actions work
+**Stop Condition:**
+- All E2E tests pass
+- New features covered
+- OR document blockers
 
-**When Complete:** Reply **TASK 1.7.6 COMPLETE**
+**When Complete:** Reply **TASK 1.7.7 COMPLETE**
+
+---
+
+## Slice 1.7 Completion
+
+This is the **FINAL TASK** of Slice 1.7. Upon completion:
+1. Mark Slice 1.7 as complete in CURRENT-SPRINT.md
+2. Update PROMPT.md to prepare for Slice 1.8
+3. Commit and push all changes
+
+**Next Slice:** 1.8 - File Attachments & User Management
 
 ---
 

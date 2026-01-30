@@ -296,5 +296,5 @@ Created from `docs/SLICE-1-ISSUES.md`:
 - [x] **Task 1.7.3:** Case creation form - basic structure (Issue #23) ✅
 - [x] **Task 1.7.4:** Case creation form - API integration ✅
 - [x] **Task 1.7.5:** Case list - enhanced filters UI ✅
-- [ ] **Task 1.7.6:** Dashboard quick actions
+- [x] **Task 1.7.6:** Dashboard quick actions ✅
 - [ ] **Task 1.7.7:** E2E tests for new features
