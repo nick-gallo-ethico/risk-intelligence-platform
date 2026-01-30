@@ -67,9 +67,10 @@ export interface CaseListResponse {
 export interface CaseQueryParams {
   limit?: number;
   offset?: number;
-  status?: CaseStatus;
-  severity?: Severity;
+  status?: CaseStatus | CaseStatus[];
+  severity?: Severity | Severity[];
   sourceChannel?: SourceChannel;
+  caseType?: CaseType;
   search?: string;
   createdAfter?: string;
   createdBefore?: string;

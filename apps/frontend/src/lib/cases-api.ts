@@ -19,7 +19,14 @@ export const casesApi = {
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
         if (value !== undefined && value !== null && value !== '') {
-          searchParams.append(key, String(value));
+          // Handle array values (e.g., status=NEW,OPEN)
+          if (Array.isArray(value)) {
+            if (value.length > 0) {
+              searchParams.append(key, value.join(','));
+            }
+          } else {
+            searchParams.append(key, String(value));
+          }
         }
       });
     }

@@ -1,27 +1,61 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/auth-context';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { casesApi } from '@/lib/cases-api';
+import {
+  QuickActions,
+  StatsCards,
+  RecentCases,
+  MyAssignments,
+} from '@/components/dashboard';
+import type { Case } from '@/types/case';
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { user, isAuthenticated, isLoading, logout } = useAuth();
+  const { user, isAuthenticated, isLoading: authLoading, logout } = useAuth();
+  const [cases, setCases] = useState<Case[]>([]);
+  const [isLoadingCases, setIsLoadingCases] = useState(true);
 
   useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
+    if (!authLoading && !isAuthenticated) {
       router.push('/login');
     }
-  }, [isLoading, isAuthenticated, router]);
+  }, [authLoading, isAuthenticated, router]);
+
+  // Fetch cases for dashboard
+  useEffect(() => {
+    async function fetchCases() {
+      if (!isAuthenticated) return;
+
+      try {
+        setIsLoadingCases(true);
+        // Fetch recent cases (larger limit to have enough data for stats)
+        const response = await casesApi.list({
+          limit: 100,
+          sortBy: 'createdAt',
+          sortOrder: 'desc',
+        });
+        setCases(response.data);
+      } catch (error) {
+        console.error('Failed to fetch cases:', error);
+      } finally {
+        setIsLoadingCases(false);
+      }
+    }
+
+    fetchCases();
+  }, [isAuthenticated]);
 
   const handleLogout = async () => {
     await logout();
     router.push('/login');
   };
 
-  if (isLoading) {
+  if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-gray-500">Loading...</div>
@@ -73,59 +107,34 @@ export default function DashboardPage() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card
-            className="cursor-pointer hover:shadow-md transition-shadow"
-            onClick={() => router.push('/cases')}
-          >
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-500">
-                Open Cases
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">12</div>
-              <p className="text-xs text-gray-500 mt-1">3 require attention</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-500">
-                Pending Disclosures
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">7</div>
-              <p className="text-xs text-gray-500 mt-1">2 awaiting review</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-500">
-                Policy Attestations
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold">94%</div>
-              <p className="text-xs text-gray-500 mt-1">6% outstanding</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-500">
-                Risk Score
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-green-600">Low</div>
-              <p className="text-xs text-gray-500 mt-1">Based on 47 factors</p>
-            </CardContent>
-          </Card>
+        {/* Quick Actions */}
+        <div className="mb-6">
+          <QuickActions />
         </div>
 
+        {/* Stats Cards */}
+        <div className="mb-8">
+          <StatsCards cases={cases} isLoading={isLoadingCases} />
+        </div>
+
+        {/* Main Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+          {/* Recent Cases - Takes 2 columns */}
+          <div className="lg:col-span-2">
+            <RecentCases cases={cases} isLoading={isLoadingCases} />
+          </div>
+
+          {/* My Assignments - Takes 1 column */}
+          <div>
+            <MyAssignments
+              cases={cases}
+              currentUserId={user.id}
+              isLoading={isLoadingCases}
+            />
+          </div>
+        </div>
+
+        {/* Profile Section */}
         <Card>
           <CardHeader>
             <CardTitle>Your Profile</CardTitle>
