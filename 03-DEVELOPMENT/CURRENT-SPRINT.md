@@ -62,19 +62,146 @@
 
 ---
 
-## In Progress
+## Completed
 
-### Slice 1.3 - Investigation & Activity
+### Slice 1.3 - Core Entities & Activity Logging ✅
 
-- [ ] **Issue #8-9:** Investigation entity + CRUD
-- [ ] **Issue #11:** Case activity log
-- [ ] **Issue #17-20:** Case detail page with 3-column layout
+- [x] **Task 1.3.1:** AuditLog entity with Prisma schema ✅
+  - AuditLog model with entityType, entityId, action, changes JSON
+  - Natural language `actionDescription` field for AI-first design
+- [x] **Task 1.3.2:** AuditLog RLS policies ✅
+  - Row-Level Security on audit_log table
+  - Tenant isolation enforced at database level
+- [x] **Task 1.3.3:** Activity Service DTOs ✅
+  - CreateActivityDto, ActivityQueryDto, ActivityResponseDto
+  - Validation decorators and Swagger documentation
+- [x] **Task 1.3.4:** Natural Language Description Generator ✅
+  - ActivityDescriptionGenerator service
+  - Template-based descriptions for all entity actions
+- [x] **Task 1.3.5:** Unified ActivityService implementation ✅
+  - `log()` method for recording activities
+  - `getEntityTimeline()` for retrieving activity history
+  - Full tenant isolation
+- [x] **Task 1.3.6:** Activity Controller & Module ✅
+  - GET `/api/v1/activity` - List activities with filters
+  - GET `/api/v1/activity/entity/:type/:id` - Entity timeline
+  - ActivityModule as global module
+- [x] **Task 1.3.7:** Activity Timeline E2E Tests ✅
+  - Tenant isolation tests for activity logs
+  - Timeline retrieval tests
+- [x] **Task 1.3.8:** Integrate ActivityService with Case Module ✅
+  - CaseService now uses unified ActivityService
+  - Natural language descriptions for all case mutations
+  - Full test suite passing
 
 ---
 
-## Up Next
+## Completed
 
-- [ ] **Issue #25:** End-to-end smoke test
+### Slice 1.4 - Investigation & Case Detail UI ✅
+
+**Backend (Tasks 1.4.1-1.4.6):**
+- [x] **Task 1.4.1:** Investigation Prisma Schema ✅
+  - Investigation model with status workflow, assignments, findings
+  - Enums: InvestigationStatus, InvestigationType, InvestigationDepartment, InvestigationOutcome, SlaStatus
+- [x] **Task 1.4.2:** Investigation RLS Policies ✅
+  - Row-Level Security on investigations table
+  - Tenant isolation enforced at database level
+- [x] **Task 1.4.3:** Investigation DTOs ✅
+  - CreateInvestigationDto, UpdateInvestigationDto, AssignInvestigationDto
+  - TransitionInvestigationDto, InvestigationFindingsDto, InvestigationQueryDto
+- [x] **Task 1.4.4:** Investigation Service ✅
+  - Full CRUD with status workflow validation
+  - Assignment history tracking
+  - Findings and closure workflow
+- [x] **Task 1.4.5:** Investigation Controller & Module ✅
+  - Nested routes: POST/GET /api/v1/cases/:caseId/investigations
+  - Standalone routes: GET/PATCH/POST /api/v1/investigations/:id/*
+- [x] **Task 1.4.6:** Investigation E2E Tests ✅
+  - Tenant isolation tests
+  - Status transition tests
+  - Assignment workflow tests
+
+**Frontend (Tasks 1.4.7-1.4.10):**
+- [x] **Task 1.4.7:** Case Detail 3-Column Layout ✅
+  - HubSpot-style layout with resizable panels
+  - Left: Properties, Center: Activity, Right: Investigations
+- [x] **Task 1.4.8:** Case Properties Panel ✅
+  - Collapsible sections (Status, Intake, Reporter, Location)
+  - Inline editing with PATCH API
+  - Status and Severity badges
+- [x] **Task 1.4.9:** Activity Timeline Component ✅
+  - Vertical timeline with date grouping
+  - Activity type icons and natural language descriptions
+  - Filter tabs (All, Notes, Status Changes, Files)
+- [x] **Task 1.4.10:** Investigation Panel ✅
+  - Investigation cards with status badges and SLA indicators
+  - Create Investigation dialog
+  - Expandable card details
+
+---
+
+## Completed
+
+### Slice 1.5 - Investigation Notes & E2E Testing ✅
+
+- [x] **Task 1.5.1:** InvestigationNote Prisma Schema ✅
+  - InvestigationNote model with all required fields
+  - Enums: NoteType, NoteVisibility
+  - Relations to Investigation and User
+  - Indexes for query patterns
+  - Commit: `4e68f41`
+- [x] **Task 1.5.2:** InvestigationNote RLS Policies ✅
+  - RLS policies for tenant isolation on investigation_notes table
+  - SELECT, INSERT, UPDATE, DELETE policies
+  - Bypass support for admin operations
+- [x] **Task 1.5.3:** InvestigationNote DTOs ✅
+  - Create, Update, Query, Response DTOs
+  - AttachmentDto for file references
+  - Full validation decorators
+- [x] **Task 1.5.4:** InvestigationNote Service ✅
+  - Full CRUD with activity logging
+  - Visibility filtering (PRIVATE/TEAM/ALL)
+  - HTML sanitization and plain text extraction
+  - Edit tracking (isEdited, editCount)
+- [x] **Task 1.5.5:** InvestigationNote Controller & Module ✅
+  - All 5 REST endpoints implemented
+  - Nested under /api/v1/investigations/:id/notes
+  - Module registered in AppModule
+- [x] **Task 1.5.6:** InvestigationNote E2E Tests ✅
+  - Tenant isolation tests
+  - CRUD operation tests
+  - Visibility filtering tests
+  - Permission enforcement tests
+- [x] **Task 1.5.7:** Rich Text Note Editor (Frontend) ✅
+  - Tiptap-based rich text editor
+  - Toolbar with formatting options
+  - Character count with limits
+  - Draft auto-save hook
+- [x] **Task 1.5.8:** Investigation Detail Modal (Frontend) ✅
+  - Slide-over panel with tabs
+  - Notes timeline with CRUD
+  - Add Note modal with rich text
+  - Integration with case detail page
+- [x] **Task 1.5.9:** E2E Smoke Test with Playwright ✅
+  - Playwright test infrastructure with Page Object pattern
+  - Smoke tests: login, dashboard, cases list, case detail, investigations
+  - Tenant isolation tests: cross-org access prevention, session security
+  - Test fixtures for authentication
+
+---
+
+## Completed
+
+### Issue #25 - Backend E2E Smoke Tests ✅
+
+- [x] **Issue #25:** End-to-end smoke tests for backend
+  - Auth flow tests (login, JWT tokens, refresh, logout)
+  - Case management flow tests
+  - Investigation flow tests
+  - Tenant isolation tests (critical)
+  - Activity timeline tests
+  - Commit: `9015921`
 
 ---
 
@@ -120,3 +247,7 @@ Created from `docs/SLICE-1-ISSUES.md`:
 | 2026-01-30 | Case entity schema + tenant isolation tests | `3ede126` |
 | 2026-01-30 | Case CRUD endpoints (create, list, get, update, close) | `f9b3ce2` |
 | 2026-01-30 | Case list page (frontend) with filters | `d0d9482` |
+| 2026-01-30 | Slice 1.2 COMPLETE - Starting Slice 1.3 | — |
+| 2026-01-30 | Slice 1.3 COMPLETE - Activity logging infrastructure | pushed |
+| 2026-01-30 | Slice 1.4 COMPLETE - Investigation backend + Case detail UI | pushed |
+| 2026-01-30 | Slice 1.5 COMPLETE - Investigation Notes & E2E Testing | pushed |
