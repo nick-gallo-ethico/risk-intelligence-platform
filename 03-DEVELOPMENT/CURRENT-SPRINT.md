@@ -251,3 +251,50 @@ Created from `docs/SLICE-1-ISSUES.md`:
 | 2026-01-30 | Slice 1.3 COMPLETE - Activity logging infrastructure | pushed |
 | 2026-01-30 | Slice 1.4 COMPLETE - Investigation backend + Case detail UI | pushed |
 | 2026-01-30 | Slice 1.5 COMPLETE - Investigation Notes & E2E Testing | pushed |
+| 2026-01-30 | Code review + SQL injection fix + Slice 1.6/1.7 planning | — |
+
+---
+
+## Completed
+
+### Slice 1.6 - Code Quality & Security Fixes ✅
+
+- [x] **Task 1.6.1:** Add TenantGuard to all controllers ✅
+  - TenantGuard validates organizationId presence
+  - Applied to all protected controllers
+- [x] **Task 1.6.2:** Add @TenantId decorator to controllers ✅
+  - Consistent tenant context extraction
+  - Replace user.organizationId pattern
+- [x] **Task 1.6.3:** Create ChangeStatusDto for status endpoints ✅
+  - Proper validation for status changes
+  - Required rationale field
+- [x] **Task 1.6.4:** Add RolesGuard and role decorators ✅
+  - Role-based access control enforcement
+  - @Roles() decorators on endpoints
+- [x] **Task 1.6.5:** Add Swagger decorators to controllers ✅
+  - Full API documentation
+  - @ApiProperty on DTOs
+- [x] **Task 1.6.6:** Fix E2E test failures - Activity endpoint ✅
+  - Debug activity timeline tests
+  - Fix cascading test failures
+- [x] **Task 1.6.7:** SQL injection fix verified
+  - Parameterized query in tenant middleware
+  - Security audit passed
+- [x] **Task 1.6.8:** Fix critical security issues from code review ✅
+  - SQL injection in PrismaService.setTenantContext
+  - Hardcoded JWT secret fallback
+  - RLS bypass methods using $executeRawUnsafe
+
+---
+
+## In Progress
+
+### Slice 1.7 - Remaining Foundation Features
+
+- [x] **Task 1.7.1:** PostgreSQL full-text search for cases (Issue #12) ✅
+- [x] **Task 1.7.2:** Case query filters enhancement (Issue #16) ✅
+- [ ] **Task 1.7.3:** Case creation form - basic structure (Issue #23)
+- [ ] **Task 1.7.4:** Case creation form - API integration
+- [ ] **Task 1.7.5:** Case list - enhanced filters UI
+- [ ] **Task 1.7.6:** Dashboard quick actions
+- [ ] **Task 1.7.7:** E2E tests for new features

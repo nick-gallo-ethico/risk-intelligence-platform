@@ -256,6 +256,44 @@ Combine if: Tasks are just boilerplate steps of the same feature
 | `00-PLATFORM/UI-UX-DESIGN-SYSTEM.md` | Platform-wide UI/UX patterns, navigation, components |
 | `00-PLATFORM/PROFESSIONAL-SERVICES-SPEC.md` | Implementation process, migration, training, go-live |
 
+## Development Resources (AI/Ralph Loop)
+
+| Document | Purpose |
+|----------|---------|
+| `03-DEVELOPMENT/SECURITY-GUARDRAILS.md` | **MANDATORY** security requirements for all code |
+| `03-DEVELOPMENT/RALPH-TASKS-SLICE-1.2.md` | Ralph-ready task breakdown for current slice |
+| `03-DEVELOPMENT/CURRENT-SPRINT.md` | Active sprint status and progress |
+| `03-DEVELOPMENT/TASK-LOG.md` | Append-only log of completed tasks |
+| `03-DEVELOPMENT/BLOCKERS.md` | Active blockers needing human input |
+| `apps/backend/examples/README.md` | Index of reference implementations |
+| `apps/backend/examples/entity-pattern.prisma` | **FOLLOW THIS** for Prisma models |
+| `apps/backend/examples/service-pattern.ts` | **FOLLOW THIS** for NestJS services |
+| `apps/backend/examples/controller-pattern.ts` | **FOLLOW THIS** for NestJS controllers |
+| `apps/backend/examples/dto-pattern.ts` | **FOLLOW THIS** for DTOs with validation |
+| `apps/backend/examples/test-pattern.spec.ts` | **FOLLOW THIS** for unit tests |
+| `apps/backend/examples/e2e-test-pattern.spec.ts` | **FOLLOW THIS** for E2E tests |
+
+## Verification Commands
+
+Before marking any task complete, run these commands:
+
+```bash
+# All must pass
+npm run lint                          # ESLint
+npm run typecheck                     # TypeScript
+npm run test                          # Unit tests
+npm run test:e2e                      # E2E tests
+npm run test:tenant-isolation         # Security: tenant isolation
+npm audit --audit-level=high          # Security: dependencies
+```
+
+## Pre-Commit Hooks
+
+Husky is configured with pre-commit hooks that automatically run:
+- lint-staged (ESLint + Prettier on staged files)
+- TypeScript type checking
+- Security audit (critical only)
+
 ## AI-First Architecture (CRITICAL)
 
 This platform is designed as **AI-first from the ground up**. This affects every schema, feature, and data structure.
@@ -440,6 +478,70 @@ await this.activityService.log({
   organizationId: orgId,
 });
 ```
+
+## Git Workflow Best Practices
+
+### Commit Frequency
+
+**Principle: Commit at logical completion points, not at arbitrary intervals.**
+
+- Commit after each completed task (e.g., "TASK 1.7.1 COMPLETE")
+- Commit after each slice is complete
+- Commit when switching context or ending a session
+- Never leave a day's work uncommitted
+
+### Commit Message Format
+
+```
+<type>(<scope>): <description>
+
+[optional body with details]
+
+Co-Authored-By: Claude <noreply@anthropic.com>
+```
+
+**Types:** `feat`, `fix`, `refactor`, `test`, `docs`, `chore`, `security`
+**Scopes:** `backend`, `frontend`, `prisma`, `auth`, `cases`, `investigations`, etc.
+
+**Examples:**
+```
+feat(backend): Task 1.7.1 - Add PostgreSQL full-text search for cases
+fix(security): Task 1.6.8 - Fix SQL injection in PrismaService
+test(backend): Add tenant isolation E2E tests
+docs: Add Slice 1.8 task breakdown
+```
+
+### What to Commit Together
+
+| Commit Type | Include | Exclude |
+|-------------|---------|---------|
+| Feature task | All files for that feature | Unrelated changes |
+| Security fix | Fix + tests | Unrelated refactoring |
+| Documentation | Related docs only | Code changes |
+| Slice completion | Slice task file updates | Next slice planning |
+
+### Pre-Commit Verification
+
+Before every commit, run:
+```bash
+npm run lint
+npm run typecheck
+npm run test
+npm audit --audit-level=high
+```
+
+### Push Frequency
+
+- Push after completing each slice
+- Push at end of each working session
+- Push before any context switch
+- **Never leave unpushed commits overnight**
+
+### Branch Strategy
+
+- `main` - production-ready code, always deployable
+- Feature branches optional for large features (3+ tasks)
+- All Ralph Loop tasks commit directly to main (continuous integration)
 
 ## Development Checklist
 
