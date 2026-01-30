@@ -47,6 +47,13 @@ export default function DashboardPage() {
               </span>
             </div>
             <div className="flex items-center space-x-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => router.push('/cases')}
+              >
+                Cases
+              </Button>
               <span className="text-sm text-gray-600">
                 {user.firstName} {user.lastName}
               </span>
@@ -67,7 +74,10 @@ export default function DashboardPage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <Card>
+          <Card
+            className="cursor-pointer hover:shadow-md transition-shadow"
+            onClick={() => router.push('/cases')}
+          >
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-gray-500">
                 Open Cases
