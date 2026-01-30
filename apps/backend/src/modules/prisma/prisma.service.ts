@@ -1,5 +1,5 @@
-import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
-import { PrismaClient } from '@prisma/client';
+import { Injectable, OnModuleInit, OnModuleDestroy } from "@nestjs/common";
+import { PrismaClient } from "@prisma/client";
 
 @Injectable()
 export class PrismaService
@@ -20,16 +20,15 @@ export class PrismaService
    * all queries are scoped to the correct organization.
    */
   async setTenantContext(organizationId: string): Promise<void> {
-    await this.$executeRawUnsafe(
-      `SELECT set_config('app.current_organization', '${organizationId}', true)`,
-    );
+    await this
+      .$executeRaw`SELECT set_config('app.current_organization', ${organizationId}, true)`;
   }
 
   /**
    * Clears the tenant context. Called at the end of requests.
    */
   async clearTenantContext(): Promise<void> {
-    await this.$executeRawUnsafe(`RESET app.current_organization`);
+    await this.$executeRaw`RESET app.current_organization`;
   }
 
   /**
@@ -37,18 +36,14 @@ export class PrismaService
    * Use sparingly - only for operations that legitimately need cross-tenant access.
    */
   async enableBypassRLS(): Promise<void> {
-    await this.$executeRawUnsafe(
-      `SELECT set_config('app.bypass_rls', 'true', true)`,
-    );
+    await this.$executeRaw`SELECT set_config('app.bypass_rls', 'true', true)`;
   }
 
   /**
    * Disables RLS bypass after system operations complete.
    */
   async disableBypassRLS(): Promise<void> {
-    await this.$executeRawUnsafe(
-      `SELECT set_config('app.bypass_rls', 'false', true)`,
-    );
+    await this.$executeRaw`SELECT set_config('app.bypass_rls', 'false', true)`;
   }
 
   /**

@@ -7,16 +7,28 @@ import {
   HttpStatus,
   Req,
   UseGuards,
-} from '@nestjs/common';
-import { Request } from 'express';
-import { AuthService } from './auth.service';
-import { LoginDto, AuthResponseDto, RefreshTokenDto } from './dto';
-import { Public } from '../../common/guards/jwt-auth.guard';
-import { JwtAuthGuard } from '../../common/guards';
-import { CurrentUser } from '../../common/decorators';
-import { RequestUser } from './interfaces/jwt-payload.interface';
+} from "@nestjs/common";
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from "@nestjs/swagger";
+import { Request } from "express";
+import { AuthService } from "./auth.service";
+import {
+  LoginDto,
+  AuthResponseDto,
+  RefreshTokenDto,
+  UserProfileDto,
+} from "./dto";
+import { Public } from "../../common/guards/jwt-auth.guard";
+import { JwtAuthGuard } from "../../common/guards";
+import { CurrentUser } from "../../common/decorators";
+import { RequestUser } from "./interfaces/jwt-payload.interface";
 
-@Controller('auth')
+@ApiTags("Auth")
+@Controller("auth")
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
@@ -25,15 +37,27 @@ export class AuthController {
    * Authenticates user with email/password and returns JWT tokens.
    */
   @Public()
-  @Post('login')
+  @Post("login")
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: "User login",
+    description:
+      "Authenticates user with email/password and returns JWT tokens",
+  })
+  @ApiResponse({
+    status: 200,
+    description: "Login successful",
+    type: AuthResponseDto,
+  })
+  @ApiResponse({ status: 400, description: "Invalid credentials" })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
   async login(
     @Body() loginDto: LoginDto,
     @Req() req: Request,
   ): Promise<AuthResponseDto> {
-    const userAgent = req.headers['user-agent'];
+    const userAgent = req.headers["user-agent"];
     const ipAddress =
-      req.ip || req.headers['x-forwarded-for']?.toString() || 'unknown';
+      req.ip || req.headers["x-forwarded-for"]?.toString() || "unknown";
 
     return this.authService.login(loginDto, userAgent, ipAddress);
   }
@@ -44,15 +68,26 @@ export class AuthController {
    * Implements token rotation - old refresh token is invalidated.
    */
   @Public()
-  @Post('refresh')
+  @Post("refresh")
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: "Refresh tokens",
+    description:
+      "Refreshes access token using refresh token. Implements token rotation - old refresh token is invalidated.",
+  })
+  @ApiResponse({
+    status: 200,
+    description: "Tokens refreshed successfully",
+    type: AuthResponseDto,
+  })
+  @ApiResponse({ status: 401, description: "Invalid or expired refresh token" })
   async refresh(
     @Body() refreshDto: RefreshTokenDto,
     @Req() req: Request,
   ): Promise<AuthResponseDto> {
-    const userAgent = req.headers['user-agent'];
+    const userAgent = req.headers["user-agent"];
     const ipAddress =
-      req.ip || req.headers['x-forwarded-for']?.toString() || 'unknown';
+      req.ip || req.headers["x-forwarded-for"]?.toString() || "unknown";
 
     return this.authService.refreshTokens(
       refreshDto.refreshToken,
@@ -66,8 +101,15 @@ export class AuthController {
    * Revokes the current session (single device logout).
    */
   @UseGuards(JwtAuthGuard)
-  @Post('logout')
+  @Post("logout")
   @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiBearerAuth("JWT")
+  @ApiOperation({
+    summary: "Logout",
+    description: "Revokes the current session (single device logout)",
+  })
+  @ApiResponse({ status: 204, description: "Logged out successfully" })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
   async logout(@CurrentUser() user: RequestUser): Promise<void> {
     await this.authService.revokeSession(user.sessionId);
   }
@@ -77,8 +119,15 @@ export class AuthController {
    * Revokes all sessions for the current user (logout from all devices).
    */
   @UseGuards(JwtAuthGuard)
-  @Post('logout-all')
+  @Post("logout-all")
   @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiBearerAuth("JWT")
+  @ApiOperation({
+    summary: "Logout from all devices",
+    description: "Revokes all sessions for the current user",
+  })
+  @ApiResponse({ status: 204, description: "All sessions revoked" })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
   async logoutAll(@CurrentUser() user: RequestUser): Promise<void> {
     await this.authService.revokeAllSessions(user.id);
   }
@@ -88,8 +137,19 @@ export class AuthController {
    * Returns the current authenticated user's profile.
    */
   @UseGuards(JwtAuthGuard)
-  @Get('me')
-  async me(@CurrentUser() user: RequestUser) {
+  @Get("me")
+  @ApiBearerAuth("JWT")
+  @ApiOperation({
+    summary: "Get current user profile",
+    description: "Returns the current authenticated user's profile",
+  })
+  @ApiResponse({
+    status: 200,
+    description: "User profile",
+    type: UserProfileDto,
+  })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  async me(@CurrentUser() user: RequestUser): Promise<UserProfileDto> {
     return {
       id: user.id,
       email: user.email,

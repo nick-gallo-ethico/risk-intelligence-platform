@@ -1,6 +1,6 @@
 import {
-  IsString,
   IsEnum,
+  IsString,
   IsNotEmpty,
   MinLength,
   MaxLength,
@@ -9,10 +9,13 @@ import { ApiProperty } from "@nestjs/swagger";
 import { InvestigationStatus } from "@prisma/client";
 
 /**
- * DTO for transitioning investigation status.
+ * DTO for changing investigation status.
  * Requires a rationale for audit trail purposes.
+ *
+ * Note: This is functionally similar to TransitionInvestigationDto but with
+ * proper Swagger documentation. Consider using this for new endpoints.
  */
-export class TransitionInvestigationDto {
+export class ChangeInvestigationStatusDto {
   @ApiProperty({
     description: "New status for the investigation",
     enum: InvestigationStatus,
@@ -24,13 +27,13 @@ export class TransitionInvestigationDto {
   @ApiProperty({
     description: "Reason for the status change (required for audit trail)",
     minLength: 10,
-    maxLength: 1000,
+    maxLength: 500,
     example:
-      "Transitioning to in-progress as investigator has been assigned and started work.",
+      "Moving to in-progress as investigator has started gathering evidence.",
   })
   @IsString()
   @IsNotEmpty()
   @MinLength(10)
-  @MaxLength(1000)
+  @MaxLength(500)
   rationale: string;
 }

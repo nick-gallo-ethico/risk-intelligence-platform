@@ -1,15 +1,15 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { PassportStrategy } from '@nestjs/passport';
-import { ExtractJwt, Strategy } from 'passport-jwt';
-import { PrismaService } from '../../prisma/prisma.service';
+import { Injectable, UnauthorizedException } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { PassportStrategy } from "@nestjs/passport";
+import { ExtractJwt, Strategy } from "passport-jwt";
+import { PrismaService } from "../../prisma/prisma.service";
 import {
   AccessTokenPayload,
   RequestUser,
-} from '../interfaces/jwt-payload.interface';
+} from "../interfaces/jwt-payload.interface";
 
 @Injectable()
-export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
+export class JwtStrategy extends PassportStrategy(Strategy, "jwt") {
   constructor(
     private configService: ConfigService,
     private prisma: PrismaService,
@@ -17,7 +17,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: configService.get<string>('jwt.secret'),
+      secretOrKey: configService.get<string>("jwt.secret"),
     });
   }
 
@@ -28,8 +28,8 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
    */
   async validate(payload: AccessTokenPayload): Promise<RequestUser> {
     // Verify this is an access token, not a refresh token
-    if (payload.type !== 'access') {
-      throw new UnauthorizedException('Invalid token type');
+    if (payload.type !== "access") {
+      throw new UnauthorizedException("Invalid token type");
     }
 
     // Bypass RLS for token validation - middleware will set proper context after
@@ -49,12 +49,12 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
       });
 
       if (!user || !user.isActive) {
-        throw new UnauthorizedException('User not found or inactive');
+        throw new UnauthorizedException("User not found or inactive");
       }
 
       // Verify user's organization matches token (defense in depth)
       if (user.organizationId !== payload.organizationId) {
-        throw new UnauthorizedException('Organization mismatch');
+        throw new UnauthorizedException("Organization mismatch");
       }
 
       // Verify session is still valid (not revoked)
@@ -64,7 +64,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
       });
 
       if (!session || session.revokedAt || session.expiresAt < new Date()) {
-        throw new UnauthorizedException('Session expired or revoked');
+        throw new UnauthorizedException("Session expired or revoked");
       }
 
       return {

@@ -43,8 +43,13 @@ import {
   InvestigationNoteResponseDto,
   InvestigationNoteListResponseDto,
 } from "./dto";
-import { JwtAuthGuard } from "../../common/guards";
-import { CurrentUser } from "../../common/decorators";
+import { JwtAuthGuard, TenantGuard, RolesGuard } from "../../common/guards";
+import {
+  CurrentUser,
+  TenantId,
+  Roles,
+  UserRole,
+} from "../../common/decorators";
 import { RequestUser } from "../auth/interfaces/jwt-payload.interface";
 
 /**
@@ -54,7 +59,7 @@ import { RequestUser } from "../auth/interfaces/jwt-payload.interface";
 @ApiTags("Investigation Notes")
 @ApiBearerAuth()
 @Controller("investigations/:investigationId/notes")
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, TenantGuard)
 export class InvestigationNotesController {
   private readonly logger = new Logger(InvestigationNotesController.name);
 
@@ -65,6 +70,12 @@ export class InvestigationNotesController {
    * Creates a new note for an investigation.
    */
   @Post()
+  @Roles(
+    UserRole.INVESTIGATOR,
+    UserRole.COMPLIANCE_OFFICER,
+    UserRole.SYSTEM_ADMIN,
+  )
+  @UseGuards(RolesGuard)
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: "Create a note for an investigation" })
   @ApiParam({ name: "investigationId", description: "Investigation UUID" })
@@ -80,6 +91,7 @@ export class InvestigationNotesController {
     @Param("investigationId", ParseUUIDPipe) investigationId: string,
     @Body() dto: CreateInvestigationNoteDto,
     @CurrentUser() user: RequestUser,
+    @TenantId() organizationId: string,
   ): Promise<InvestigationNoteResponseDto> {
     this.logger.debug(
       `Creating note for investigation ${investigationId} by user ${user.id}`,
@@ -88,7 +100,7 @@ export class InvestigationNotesController {
       dto,
       investigationId,
       user.id,
-      user.organizationId,
+      organizationId,
     );
   }
 
@@ -111,13 +123,14 @@ export class InvestigationNotesController {
     @Param("investigationId", ParseUUIDPipe) investigationId: string,
     @Query() query: InvestigationNoteQueryDto,
     @CurrentUser() user: RequestUser,
+    @TenantId() organizationId: string,
   ): Promise<InvestigationNoteListResponseDto> {
     return this.notesService.findAllForInvestigation(
       investigationId,
       query,
       user.id,
       user.role,
-      user.organizationId,
+      organizationId,
     );
   }
 
@@ -141,14 +154,10 @@ export class InvestigationNotesController {
     @Param("investigationId", ParseUUIDPipe) investigationId: string,
     @Param("id", ParseUUIDPipe) id: string,
     @CurrentUser() user: RequestUser,
+    @TenantId() organizationId: string,
   ): Promise<InvestigationNoteResponseDto> {
     // The service will verify the note belongs to this investigation
-    return this.notesService.findOne(
-      id,
-      user.id,
-      user.role,
-      user.organizationId,
-    );
+    return this.notesService.findOne(id, user.id, user.role, organizationId);
   }
 
   /**
@@ -157,6 +166,12 @@ export class InvestigationNotesController {
    * Only the author or COMPLIANCE_OFFICER+ can update notes.
    */
   @Patch(":id")
+  @Roles(
+    UserRole.INVESTIGATOR,
+    UserRole.COMPLIANCE_OFFICER,
+    UserRole.SYSTEM_ADMIN,
+  )
+  @UseGuards(RolesGuard)
   @ApiOperation({ summary: "Update a note" })
   @ApiParam({ name: "investigationId", description: "Investigation UUID" })
   @ApiParam({ name: "id", description: "Note UUID" })
@@ -174,6 +189,7 @@ export class InvestigationNotesController {
     @Param("id", ParseUUIDPipe) id: string,
     @Body() dto: UpdateInvestigationNoteDto,
     @CurrentUser() user: RequestUser,
+    @TenantId() organizationId: string,
   ): Promise<InvestigationNoteResponseDto> {
     this.logger.debug(`Updating note ${id} by user ${user.id}`);
     return this.notesService.update(
@@ -181,7 +197,7 @@ export class InvestigationNotesController {
       dto,
       user.id,
       user.role,
-      user.organizationId,
+      organizationId,
     );
   }
 
@@ -191,6 +207,8 @@ export class InvestigationNotesController {
    * Only the author or COMPLIANCE_OFFICER+ can delete notes.
    */
   @Delete(":id")
+  @Roles(UserRole.COMPLIANCE_OFFICER, UserRole.SYSTEM_ADMIN)
+  @UseGuards(RolesGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: "Delete a note" })
   @ApiParam({ name: "investigationId", description: "Investigation UUID" })
@@ -203,13 +221,9 @@ export class InvestigationNotesController {
     @Param("investigationId", ParseUUIDPipe) investigationId: string,
     @Param("id", ParseUUIDPipe) id: string,
     @CurrentUser() user: RequestUser,
+    @TenantId() organizationId: string,
   ): Promise<void> {
     this.logger.debug(`Deleting note ${id} by user ${user.id}`);
-    return this.notesService.delete(
-      id,
-      user.id,
-      user.role,
-      user.organizationId,
-    );
+    return this.notesService.delete(id, user.id, user.role, organizationId);
   }
 }

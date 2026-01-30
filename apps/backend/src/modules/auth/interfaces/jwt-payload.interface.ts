@@ -1,4 +1,4 @@
-import { UserRole } from '@prisma/client';
+import { UserRole } from "@prisma/client";
 
 /**
  * Access token payload - short-lived (15 minutes)
@@ -10,7 +10,7 @@ export interface AccessTokenPayload {
   organizationId: string; // Tenant ID (CRITICAL for RLS)
   role: UserRole;
   sessionId: string;
-  type: 'access';
+  type: "access";
   iat?: number;
   exp?: number;
 }
@@ -23,7 +23,7 @@ export interface RefreshTokenPayload {
   sub: string; // User ID
   organizationId: string;
   sessionId: string;
-  type: 'refresh';
+  type: "refresh";
   iat?: number;
   exp?: number;
 }

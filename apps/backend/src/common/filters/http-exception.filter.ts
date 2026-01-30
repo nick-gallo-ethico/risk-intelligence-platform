@@ -5,8 +5,8 @@ import {
   HttpException,
   HttpStatus,
   Logger,
-} from '@nestjs/common';
-import { Request, Response } from 'express';
+} from "@nestjs/common";
+import { Request, Response } from "express";
 
 interface ErrorResponse {
   statusCode: number;
@@ -48,9 +48,10 @@ export class HttpExceptionFilter implements ExceptionFilter {
       status = exception.getStatus();
       const exceptionResponse = exception.getResponse();
 
-      if (typeof exceptionResponse === 'object' && exceptionResponse !== null) {
+      if (typeof exceptionResponse === "object" && exceptionResponse !== null) {
         const responseObj = exceptionResponse as Record<string, unknown>;
-        message = (responseObj.message as string | string[]) || exception.message;
+        message =
+          (responseObj.message as string | string[]) || exception.message;
         error = (responseObj.error as string) || exception.name;
       } else {
         message = exception.message;
@@ -58,15 +59,18 @@ export class HttpExceptionFilter implements ExceptionFilter {
       }
     } else if (exception instanceof Error) {
       status = HttpStatus.INTERNAL_SERVER_ERROR;
-      message = 'Internal server error';
-      error = 'Internal Server Error';
+      message = "Internal server error";
+      error = "Internal Server Error";
 
       // Log the full error for debugging (but don't expose to client)
-      this.logger.error(`Unhandled exception: ${exception.message}`, exception.stack);
+      this.logger.error(
+        `Unhandled exception: ${exception.message}`,
+        exception.stack,
+      );
     } else {
       status = HttpStatus.INTERNAL_SERVER_ERROR;
-      message = 'Internal server error';
-      error = 'Internal Server Error';
+      message = "Internal server error";
+      error = "Internal Server Error";
     }
 
     const errorResponse: ErrorResponse = {
@@ -79,7 +83,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
     };
 
     // Add request ID if available (for log correlation)
-    const requestId = request.headers['x-request-id'] as string;
+    const requestId = request.headers["x-request-id"] as string;
     if (requestId) {
       errorResponse.requestId = requestId;
     }

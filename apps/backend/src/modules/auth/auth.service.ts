@@ -2,16 +2,16 @@ import {
   Injectable,
   UnauthorizedException,
   BadRequestException,
-} from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { JwtService } from '@nestjs/jwt';
-import * as bcrypt from 'bcrypt';
-import { PrismaService } from '../prisma/prisma.service';
-import { LoginDto, AuthResponseDto, AuthUserDto } from './dto';
+} from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { JwtService } from "@nestjs/jwt";
+import * as bcrypt from "bcrypt";
+import { PrismaService } from "../prisma/prisma.service";
+import { LoginDto, AuthResponseDto, AuthUserDto } from "./dto";
 import {
   AccessTokenPayload,
   RefreshTokenPayload,
-} from './interfaces/jwt-payload.interface';
+} from "./interfaces/jwt-payload.interface";
 
 @Injectable()
 export class AuthService {
@@ -24,9 +24,9 @@ export class AuthService {
     private configService: ConfigService,
   ) {
     this.accessTokenExpiry =
-      this.configService.get<string>('jwt.accessTokenExpiry') ?? '15m';
+      this.configService.get<string>("jwt.accessTokenExpiry") ?? "15m";
     this.refreshTokenExpiry =
-      this.configService.get<string>('jwt.refreshTokenExpiry') ?? '7d';
+      this.configService.get<string>("jwt.refreshTokenExpiry") ?? "7d";
   }
 
   /**
@@ -56,18 +56,18 @@ export class AuthService {
       });
 
       if (!user || !user.passwordHash) {
-        throw new UnauthorizedException('Invalid email or password');
+        throw new UnauthorizedException("Invalid email or password");
       }
 
       // Check if organization is active
       if (!user.organization.isActive) {
-        throw new UnauthorizedException('Organization is inactive');
+        throw new UnauthorizedException("Organization is inactive");
       }
 
       // Verify password
       const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
       if (!isPasswordValid) {
-        throw new UnauthorizedException('Invalid email or password');
+        throw new UnauthorizedException("Invalid email or password");
       }
 
       // Create session
@@ -114,8 +114,8 @@ export class AuthService {
     try {
       const payload = this.jwtService.verify<RefreshTokenPayload>(refreshToken);
 
-      if (payload.type !== 'refresh') {
-        throw new UnauthorizedException('Invalid token type');
+      if (payload.type !== "refresh") {
+        throw new UnauthorizedException("Invalid token type");
       }
 
       // Bypass RLS for token refresh
@@ -133,11 +133,11 @@ export class AuthService {
         });
 
         if (!session || session.revokedAt || session.expiresAt < new Date()) {
-          throw new UnauthorizedException('Session expired or revoked');
+          throw new UnauthorizedException("Session expired or revoked");
         }
 
         if (!session.user.isActive || !session.user.organization.isActive) {
-          throw new UnauthorizedException('User or organization inactive');
+          throw new UnauthorizedException("User or organization inactive");
         }
 
         // Revoke old session and create new one (token rotation)
@@ -173,7 +173,7 @@ export class AuthService {
       if (error instanceof UnauthorizedException) {
         throw error;
       }
-      throw new UnauthorizedException('Invalid refresh token');
+      throw new UnauthorizedException("Invalid refresh token");
     }
   }
 
@@ -243,14 +243,14 @@ export class AuthService {
       organizationId: user.organizationId,
       role: user.role as any,
       sessionId,
-      type: 'access',
+      type: "access",
     };
 
     const refreshPayload: RefreshTokenPayload = {
       sub: user.id,
       organizationId: user.organizationId,
       sessionId,
-      type: 'refresh',
+      type: "refresh",
     };
 
     const [accessToken, refreshToken] = await Promise.all([
@@ -279,13 +279,13 @@ export class AuthService {
     const unit = match[2];
 
     switch (unit) {
-      case 's':
+      case "s":
         return value;
-      case 'm':
+      case "m":
         return value * 60;
-      case 'h':
+      case "h":
         return value * 3600;
-      case 'd':
+      case "d":
         return value * 86400;
       default:
         return 900;

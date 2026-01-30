@@ -14,11 +14,29 @@ import {
   ParseIntPipe,
   DefaultValuePipe,
 } from "@nestjs/common";
-import { Case, CaseStatus, AuditEntityType } from "@prisma/client";
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+  ApiParam,
+  ApiQuery,
+} from "@nestjs/swagger";
+import { Case, AuditEntityType } from "@prisma/client";
 import { CasesService } from "./cases.service";
-import { CreateCaseDto, UpdateCaseDto, CaseQueryDto } from "./dto";
-import { JwtAuthGuard } from "../../common/guards";
-import { CurrentUser } from "../../common/decorators";
+import {
+  CreateCaseDto,
+  UpdateCaseDto,
+  CaseQueryDto,
+  ChangeCaseStatusDto,
+} from "./dto";
+import { JwtAuthGuard, TenantGuard, RolesGuard } from "../../common/guards";
+import {
+  CurrentUser,
+  TenantId,
+  Roles,
+  UserRole,
+} from "../../common/decorators";
 import { RequestUser } from "../auth/interfaces/jwt-payload.interface";
 import { ActivityService } from "../../common/services/activity.service";
 import { ActivityListResponseDto } from "../../common/dto";
@@ -27,8 +45,10 @@ import { ActivityListResponseDto } from "../../common/dto";
  * REST API controller for case management.
  * All endpoints require authentication and are scoped to user's organization.
  */
+@ApiTags("Cases")
+@ApiBearerAuth("JWT")
 @Controller("cases")
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, TenantGuard)
 export class CasesController {
   constructor(
     private readonly casesService: CasesService,
@@ -40,12 +60,30 @@ export class CasesController {
    * Creates a new case.
    */
   @Post()
+  @Roles(
+    UserRole.COMPLIANCE_OFFICER,
+    UserRole.INVESTIGATOR,
+    UserRole.SYSTEM_ADMIN,
+  )
+  @UseGuards(RolesGuard)
   @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({
+    summary: "Create a new case",
+    description: "Creates a new compliance case with intake information",
+  })
+  @ApiResponse({ status: 201, description: "Case created successfully" })
+  @ApiResponse({ status: 400, description: "Validation error" })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  @ApiResponse({
+    status: 403,
+    description: "Forbidden - insufficient permissions",
+  })
   async create(
     @Body() dto: CreateCaseDto,
     @CurrentUser() user: RequestUser,
+    @TenantId() organizationId: string,
   ): Promise<Case> {
-    return this.casesService.create(dto, user.id, user.organizationId);
+    return this.casesService.create(dto, user.id, organizationId);
   }
 
   /**
@@ -53,11 +91,20 @@ export class CasesController {
    * Returns paginated list of cases with optional filtering.
    */
   @Get()
+  @ApiOperation({
+    summary: "List cases",
+    description: "Returns paginated list of cases with optional filtering",
+  })
+  @ApiResponse({
+    status: 200,
+    description: "List of cases with pagination",
+  })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
   async findAll(
     @Query() query: CaseQueryDto,
-    @CurrentUser() user: RequestUser,
+    @TenantId() organizationId: string,
   ): Promise<{ data: Case[]; total: number; limit: number; offset: number }> {
-    return this.casesService.findAll(query, user.organizationId);
+    return this.casesService.findAll(query, organizationId);
   }
 
   /**
@@ -65,11 +112,19 @@ export class CasesController {
    * Returns a single case by ID.
    */
   @Get(":id")
+  @ApiOperation({
+    summary: "Get case by ID",
+    description: "Returns a single case by its UUID",
+  })
+  @ApiParam({ name: "id", description: "Case UUID" })
+  @ApiResponse({ status: 200, description: "Case found" })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  @ApiResponse({ status: 404, description: "Case not found" })
   async findOne(
     @Param("id", ParseUUIDPipe) id: string,
-    @CurrentUser() user: RequestUser,
+    @TenantId() organizationId: string,
   ): Promise<Case> {
-    return this.casesService.findOne(id, user.organizationId);
+    return this.casesService.findOne(id, organizationId);
   }
 
   /**
@@ -77,13 +132,26 @@ export class CasesController {
    * Returns a case by reference number (e.g., ETH-2026-00001).
    */
   @Get("reference/:referenceNumber")
+  @ApiOperation({
+    summary: "Get case by reference number",
+    description:
+      "Returns a case by its human-readable reference number (e.g., ETH-2026-00001)",
+  })
+  @ApiParam({
+    name: "referenceNumber",
+    description: "Case reference number",
+    example: "ETH-2026-00001",
+  })
+  @ApiResponse({ status: 200, description: "Case found" })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  @ApiResponse({ status: 404, description: "Case not found" })
   async findByReference(
     @Param("referenceNumber") referenceNumber: string,
-    @CurrentUser() user: RequestUser,
+    @TenantId() organizationId: string,
   ): Promise<Case> {
     return this.casesService.findByReferenceNumber(
       referenceNumber,
-      user.organizationId,
+      organizationId,
     );
   }
 
@@ -92,12 +160,29 @@ export class CasesController {
    * Updates a case (full update).
    */
   @Put(":id")
+  @Roles(
+    UserRole.COMPLIANCE_OFFICER,
+    UserRole.INVESTIGATOR,
+    UserRole.SYSTEM_ADMIN,
+  )
+  @UseGuards(RolesGuard)
+  @ApiOperation({
+    summary: "Update case",
+    description: "Updates a case with full replacement of provided fields",
+  })
+  @ApiParam({ name: "id", description: "Case UUID" })
+  @ApiResponse({ status: 200, description: "Case updated successfully" })
+  @ApiResponse({ status: 400, description: "Validation error" })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  @ApiResponse({ status: 403, description: "Forbidden" })
+  @ApiResponse({ status: 404, description: "Case not found" })
   async update(
     @Param("id", ParseUUIDPipe) id: string,
     @Body() dto: UpdateCaseDto,
     @CurrentUser() user: RequestUser,
+    @TenantId() organizationId: string,
   ): Promise<Case> {
-    return this.casesService.update(id, dto, user.id, user.organizationId);
+    return this.casesService.update(id, dto, user.id, organizationId);
   }
 
   /**
@@ -105,12 +190,29 @@ export class CasesController {
    * Partially updates a case.
    */
   @Patch(":id")
+  @Roles(
+    UserRole.COMPLIANCE_OFFICER,
+    UserRole.INVESTIGATOR,
+    UserRole.SYSTEM_ADMIN,
+  )
+  @UseGuards(RolesGuard)
+  @ApiOperation({
+    summary: "Partial update case",
+    description: "Partially updates a case - only provided fields are modified",
+  })
+  @ApiParam({ name: "id", description: "Case UUID" })
+  @ApiResponse({ status: 200, description: "Case updated successfully" })
+  @ApiResponse({ status: 400, description: "Validation error" })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  @ApiResponse({ status: 403, description: "Forbidden" })
+  @ApiResponse({ status: 404, description: "Case not found" })
   async partialUpdate(
     @Param("id", ParseUUIDPipe) id: string,
     @Body() dto: UpdateCaseDto,
     @CurrentUser() user: RequestUser,
+    @TenantId() organizationId: string,
   ): Promise<Case> {
-    return this.casesService.update(id, dto, user.id, user.organizationId);
+    return this.casesService.update(id, dto, user.id, organizationId);
   }
 
   /**
@@ -118,17 +220,31 @@ export class CasesController {
    * Updates case status with rationale.
    */
   @Patch(":id/status")
+  @Roles(UserRole.COMPLIANCE_OFFICER, UserRole.SYSTEM_ADMIN)
+  @UseGuards(RolesGuard)
+  @ApiOperation({
+    summary: "Change case status",
+    description:
+      "Updates case status with a required rationale for audit trail",
+  })
+  @ApiParam({ name: "id", description: "Case UUID" })
+  @ApiResponse({ status: 200, description: "Status updated successfully" })
+  @ApiResponse({ status: 400, description: "Validation error" })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  @ApiResponse({ status: 403, description: "Forbidden" })
+  @ApiResponse({ status: 404, description: "Case not found" })
   async updateStatus(
     @Param("id", ParseUUIDPipe) id: string,
-    @Body() body: { status: CaseStatus; rationale?: string },
+    @Body() dto: ChangeCaseStatusDto,
     @CurrentUser() user: RequestUser,
+    @TenantId() organizationId: string,
   ): Promise<Case> {
     return this.casesService.updateStatus(
       id,
-      body.status,
-      body.rationale,
+      dto.status,
+      dto.rationale,
       user.id,
-      user.organizationId,
+      organizationId,
     );
   }
 
@@ -137,18 +253,26 @@ export class CasesController {
    * Closes a case with rationale.
    */
   @Post(":id/close")
+  @Roles(UserRole.COMPLIANCE_OFFICER, UserRole.SYSTEM_ADMIN)
+  @UseGuards(RolesGuard)
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: "Close case",
+    description: "Closes a case with a required rationale",
+  })
+  @ApiParam({ name: "id", description: "Case UUID" })
+  @ApiResponse({ status: 200, description: "Case closed successfully" })
+  @ApiResponse({ status: 400, description: "Validation error" })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  @ApiResponse({ status: 403, description: "Forbidden" })
+  @ApiResponse({ status: 404, description: "Case not found" })
   async close(
     @Param("id", ParseUUIDPipe) id: string,
     @Body() body: { rationale: string },
     @CurrentUser() user: RequestUser,
+    @TenantId() organizationId: string,
   ): Promise<Case> {
-    return this.casesService.close(
-      id,
-      body.rationale,
-      user.id,
-      user.organizationId,
-    );
+    return this.casesService.close(id, body.rationale, user.id, organizationId);
   }
 
   /**
@@ -156,19 +280,43 @@ export class CasesController {
    * Returns activity timeline for a specific case.
    */
   @Get(":id/activity")
+  @ApiOperation({
+    summary: "Get case activity timeline",
+    description: "Returns paginated activity/audit log for a specific case",
+  })
+  @ApiParam({ name: "id", description: "Case UUID" })
+  @ApiQuery({
+    name: "page",
+    required: false,
+    description: "Page number",
+    example: 1,
+  })
+  @ApiQuery({
+    name: "limit",
+    required: false,
+    description: "Items per page",
+    example: 20,
+  })
+  @ApiResponse({
+    status: 200,
+    description: "Activity timeline",
+    type: ActivityListResponseDto,
+  })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  @ApiResponse({ status: 404, description: "Case not found" })
   async getActivity(
     @Param("id", ParseUUIDPipe) id: string,
     @Query("page", new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query("limit", new DefaultValuePipe(20), ParseIntPipe) limit: number,
-    @CurrentUser() user: RequestUser,
+    @TenantId() organizationId: string,
   ): Promise<ActivityListResponseDto> {
     // First verify the case exists and user has access
-    await this.casesService.findOne(id, user.organizationId);
+    await this.casesService.findOne(id, organizationId);
 
     return this.activityService.getEntityTimeline(
       AuditEntityType.CASE,
       id,
-      user.organizationId,
+      organizationId,
       { page, limit },
     );
   }
