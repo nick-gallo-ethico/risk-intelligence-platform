@@ -6,7 +6,7 @@ You are the **Ralph Loop Coordinator** for the Risk Intelligence Platform projec
 
 **Completed Slices:** 1.1, 1.2, 1.3, 1.4, 1.5, 1.6
 **Current Slice:** 1.7 - Remaining Foundation Features
-**Current Task:** 1.7.4 (ready to start)
+**Current Task:** 1.7.5 (ready to start)
 
 ## Recent Accomplishments
 
@@ -19,6 +19,7 @@ You are the **Ralph Loop Coordinator** for the Risk Intelligence Platform projec
 - Task 1.7.1: PostgreSQL full-text search ✅ COMPLETE
 - Task 1.7.2: Case query filters enhancement ✅ COMPLETE
 - Task 1.7.3: Case creation form - basic structure ✅ COMPLETE
+- Task 1.7.4: Case creation form - API integration ✅ COMPLETE
 
 ## Your Responsibilities
 
@@ -35,76 +36,75 @@ You are the **Ralph Loop Coordinator** for the Risk Intelligence Platform projec
    - [x] 1.7.1 - PostgreSQL full-text search (DONE)
    - [x] 1.7.2 - Case query filters enhancement (DONE)
    - [x] 1.7.3 - Case creation form - basic structure (DONE)
-   - [ ] 1.7.4 - Case creation form - API integration (READY)
-   - [ ] 1.7.5 - Case list - enhanced filters UI
+   - [x] 1.7.4 - Case creation form - API integration (DONE)
+   - [ ] 1.7.5 - Case list - enhanced filters UI (READY)
    - [ ] 1.7.6 - Dashboard quick actions
    - [ ] 1.7.7 - E2E tests for new features
 
 ## Next Task to Execute
 
-### Task 1.7.4: Case Creation Form - API Integration
+### Task 1.7.5: Case List - Enhanced Filters UI
 
-**GitHub Issue:** #23
-**Estimate:** 1 hour
+**GitHub Issue:** #16 (Part 2)
+**Estimate:** 1.5 hours
 
 **Input Files:**
-- `apps/frontend/src/lib/api.ts` - Existing API client
-- `apps/frontend/src/components/cases/case-creation-form.tsx` - Form from 1.7.3
-- `apps/backend/src/modules/cases/dto/create-case.dto.ts` - DTO definition
+- `apps/frontend/src/app/cases/page.tsx` - Current case list
+- `apps/frontend/src/components/ui/` - shadcn/ui components
+- `apps/frontend/src/lib/cases-api.ts` - API functions
 
-**Task:** Complete API integration for the case creation form.
+**Task:** Enhance case list page with comprehensive filter UI.
 
-**1. Create API client function for case creation:**
-- POST /api/v1/cases
-- Handle validation errors (400)
-- Handle auth errors (401)
-- Return created case data
+**1. Filter bar (horizontal, collapsible on mobile):**
+- Status: Multi-select dropdown
+- Severity: Multi-select dropdown
+- Source Channel: Dropdown
+- Case Type: Dropdown
+- Date Range: Date picker (from/to)
+- Clear All button
 
-**2. Integrate with react-query or SWR for:**
-- Mutation handling
-- Loading state
-- Error state
-- Success callback
+**2. Active filters display:**
+- Show chips for active filters below filter bar
+- Click chip to remove filter
+- Show count: "12 results"
 
-**3. Add success handling:**
-- Show success toast with reference number
-- Redirect to /cases/:id
-- Clear form state
+**3. Search enhancement:**
+- Debounced search input (300ms)
+- Search icon and clear button
+- Full-text search (uses backend)
 
-**4. Add error handling:**
-- Show error toast with message
-- Map API validation errors to form fields
-- Keep form state on error
+**4. Sort controls:**
+- Sort by dropdown (Created, Updated, Reference, Severity)
+- Sort order toggle (asc/desc)
 
-**5. Add "Save Draft" functionality (localStorage):**
-- Auto-save every 30 seconds
-- Restore draft on page load
-- Clear draft on successful submit
-- Show "Draft saved" indicator
+**5. URL state:**
+- Persist all filters in URL query params
+- Shareable URLs with filters
+- Browser back/forward works
 
-**API payload should match CreateCaseDto:**
-```typescript
-interface CreateCasePayload {
-  sourceChannel: SourceChannel;
-  caseType: CaseType;
-  severity: Severity;
-  summary: string;
-  details: string;
-  category?: string;
-  reporterType?: ReporterType;
-  reporterName?: string;
-  reporterEmail?: string;
-  reporterPhone?: string;
-  incidentCountry?: string;
-  incidentRegion?: string;
-  incidentLocation?: string;
-}
-```
+**6. Pagination improvements:**
+- Show "Showing 1-20 of 156"
+- Page size selector (10, 20, 50, 100)
+- Page navigation
+
+**Components to create/update:**
+- CaseListFilters (filter bar component)
+- FilterChips (active filters display)
+- SearchInput (debounced search)
+- Pagination (page controls)
+
+**Use shadcn/ui:**
+- Select for dropdowns
+- Popover + Calendar for date range
+- Badge for chips
+- Input for search
 
 **Output Files:**
-- `apps/frontend/src/lib/cases-api.ts` (add createCase function)
-- Update `apps/frontend/src/components/cases/case-creation-form.tsx`
-- `apps/frontend/src/hooks/use-case-form-draft.ts` (draft persistence hook)
+- `apps/frontend/src/components/cases/case-list-filters.tsx`
+- `apps/frontend/src/components/cases/filter-chips.tsx`
+- `apps/frontend/src/components/cases/search-input.tsx`
+- Update `apps/frontend/src/app/cases/page.tsx`
+- `apps/frontend/src/hooks/use-case-filters.ts` (URL state hook)
 
 **Verification:**
 ```bash
@@ -113,13 +113,14 @@ cd apps/frontend && npm run lint
 ```
 
 Manual verification:
-1. Fill and submit form
-2. Verify case created in backend
-3. Verify redirect to new case
-4. Test draft save/restore
-5. Test validation error display
+1. Test each filter type
+2. Test filter combinations
+3. Test URL persistence
+4. Test search debounce
+5. Test pagination
+6. Test mobile responsive
 
-**When Complete:** Reply **TASK 1.7.4 COMPLETE**
+**When Complete:** Reply **TASK 1.7.5 COMPLETE**
 
 ---
 
