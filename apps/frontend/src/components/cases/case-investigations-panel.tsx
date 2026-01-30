@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { InvestigationCard } from './investigation-card';
 import { CreateInvestigationDialog } from './create-investigation-dialog';
+import { InvestigationDetailPanel } from '@/components/investigations';
 import { getInvestigationsForCase } from '@/lib/investigation-api';
 import type { Case } from '@/types/case';
 import type { Investigation } from '@/types/investigation';
@@ -21,6 +22,7 @@ export function CaseInvestigationsPanel({ caseData, isLoading }: CaseInvestigati
   const [investigationsLoading, setInvestigationsLoading] = useState(false);
   const [investigationsError, setInvestigationsError] = useState<string | null>(null);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [selectedInvestigationId, setSelectedInvestigationId] = useState<string | null>(null);
 
   // Fetch investigations when case data is available
   const fetchInvestigations = useCallback(async () => {
@@ -50,6 +52,14 @@ export function CaseInvestigationsPanel({ caseData, isLoading }: CaseInvestigati
 
   const handleInvestigationCreated = useCallback((investigation: Investigation) => {
     setInvestigations((prev) => [...prev, investigation]);
+  }, []);
+
+  const handleInvestigationClick = useCallback((investigation: Investigation) => {
+    setSelectedInvestigationId(investigation.id);
+  }, []);
+
+  const handleDetailPanelClose = useCallback(() => {
+    setSelectedInvestigationId(null);
   }, []);
 
   if (isLoading) {
@@ -112,6 +122,7 @@ export function CaseInvestigationsPanel({ caseData, isLoading }: CaseInvestigati
                 <InvestigationCard
                   key={investigation.id}
                   investigation={investigation}
+                  onClick={handleInvestigationClick}
                 />
               ))}
             </div>
@@ -214,6 +225,12 @@ export function CaseInvestigationsPanel({ caseData, isLoading }: CaseInvestigati
           </div>
         </CardContent>
       </Card>
+
+      {/* Investigation Detail Panel */}
+      <InvestigationDetailPanel
+        investigationId={selectedInvestigationId}
+        onClose={handleDetailPanelClose}
+      />
     </div>
   );
 }
