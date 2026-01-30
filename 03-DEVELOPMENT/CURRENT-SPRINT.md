@@ -42,9 +42,18 @@
 
 ### Slice 1.2 - Core Case Flow
 
-- [ ] **Issue #5:** Tenant isolation test infrastructure
-- [ ] **Issue #6:** Case entity Prisma schema
-- [ ] **Issue #7:** Case CRUD endpoints
+- [x] **Issue #5:** Tenant isolation test infrastructure ✅
+  - `test/helpers/test-setup.ts` - Creates 2 test orgs with real JWT tokens
+  - `test/tenant-isolation.e2e-spec.ts` - E2E tests for RLS verification
+- [x] **Issue #6:** Case entity Prisma schema ✅
+  - Added Case model with 50+ fields (intake, reporter, location, AI enrichment)
+  - Enums: CaseStatus, SourceChannel, CaseType, ReporterType, Severity
+  - Migration: `20260130_add_case_entity`
+- [x] **Issue #7:** Case CRUD endpoints ✅
+  - Full REST API: create, list, get, update, status change, close
+  - Auto-generated reference numbers (ETH-YYYY-NNNNN)
+  - Pagination, filtering, search support
+  - All endpoints tenant-isolated via organizationId
 - [ ] **Issue #15:** Case list page (frontend)
 
 ---
@@ -97,3 +106,5 @@ Created from `docs/SLICE-1-ISSUES.md`:
 | 2026-01-29 | RLS policies added for tenant isolation | `ea153a1` |
 | 2026-01-29 | Frontend login page complete | `98f2c38` |
 | 2026-01-29 | Slice 1.1 COMPLETE - Starting Slice 1.2 | — |
+| 2026-01-30 | Case entity schema + tenant isolation tests | `3ede126` |
+| 2026-01-30 | Case CRUD endpoints (create, list, get, update, close) | `f9b3ce2` |
