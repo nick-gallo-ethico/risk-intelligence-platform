@@ -28,9 +28,11 @@ model Organization {
   updatedAt  DateTime @updatedAt @map("updated_at")
 
   // Relations
-  users      User[]
-  sessions   Session[]
-  cases      Case[]
+  users          User[]
+  sessions       Session[]
+  cases          Case[]
+  investigations Investigation[]
+  auditLogs      AuditLog[]
 
   @@index([slug])
   @@index([isActive])
@@ -61,6 +63,15 @@ model User {
   casesIntakeOperator Case[]       @relation("CaseIntakeOperator")
   casesReleased       Case[]       @relation("CaseReleasedBy")
   casesProxySubmitter Case[]       @relation("CaseProxySubmitter")
+  auditLogsActed      AuditLog[]   // Audit logs where this user was the actor
+
+  // Investigation relations
+  investigationsPrimaryInvestigator Investigation[] @relation("InvestigationPrimaryInvestigator")
+  investigationsAssignedBy          Investigation[] @relation("InvestigationAssignedBy")
+  investigationsClosedBy            Investigation[] @relation("InvestigationClosedBy")
+  investigationsClosureApprovedBy   Investigation[] @relation("InvestigationClosureApprovedBy")
+  investigationsCreatedBy           Investigation[] @relation("InvestigationCreatedBy")
+  investigationsUpdatedBy           Investigation[] @relation("InvestigationUpdatedBy")
 
   // Unique constraint: email must be unique within an organization
   @@unique([organizationId, email])
@@ -262,6 +273,7 @@ model Case {
   proxySubmitter User?        @relation("CaseProxySubmitter", fields: [proxySubmitterId], references: [id])
   parentCase     Case?        @relation("CaseSplits", fields: [parentCaseId], references: [id])
   splitCases     Case[]       @relation("CaseSplits")
+  investigations Investigation[] // Cases can have multiple investigations
 
   // Indexes for performance
   @@index([organizationId])
@@ -270,4 +282,235 @@ model Case {
   @@index([organizationId, severity])
   @@index([referenceNumber])
   @@map("cases")
+}
+
+// ===========================================
+// Audit Log (Unified Activity Tracking)
+// ===========================================
+
+/// AuditLog provides unified activity tracking across all entities.
+/// This is an append-only table - records are never updated or deleted.
+/// Used for compliance audit trails and AI context building.
+model AuditLog {
+  id             String   @id @default(uuid())
+  organizationId String   @map("organization_id")
+
+  // Entity Reference (polymorphic)
+  entityType     AuditEntityType @map("entity_type")
+  entityId       String          @map("entity_id")
+
+  // Action
+  action            String                // e.g., 'created', 'updated', 'status_changed'
+  actionCategory    AuditActionCategory   @map("action_category")
+  actionDescription String                @map("action_description") // Natural language: "John assigned case to Sarah"
+
+  // Actor
+  actorUserId    String?    @map("actor_user_id") // Null for system/AI actions
+  actorType      ActorType  @map("actor_type")
+  actorName      String?    @map("actor_name")    // Denormalized for display
+
+  // Change Details
+  changes        Json?      // { field: { old, new } }
+  context        Json?      // Additional context for AI
+
+  // Request Metadata
+  ipAddress      String?    @map("ip_address")
+  userAgent      String?    @map("user_agent")
+  requestId      String?    @map("request_id")    // Correlation ID
+
+  // Timestamp (immutable - NO updatedAt for append-only)
+  createdAt      DateTime   @default(now()) @map("created_at")
+
+  // Relations
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  actorUser      User?        @relation(fields: [actorUserId], references: [id])
+
+  // Indexes for query patterns
+  @@index([organizationId, createdAt])
+  @@index([organizationId, entityType, entityId, createdAt])
+  @@index([organizationId, actorUserId, createdAt])
+  @@index([organizationId, actionCategory, createdAt])
+  @@map("audit_logs")
+}
+
+// ===========================================
+// Audit Log Enums
+// ===========================================
+
+enum AuditEntityType {
+  CASE
+  INVESTIGATION
+  DISCLOSURE
+  POLICY
+  ATTESTATION
+  WORKFLOW
+  USER
+  EMPLOYEE
+  ORGANIZATION
+  CATEGORY
+  FORM
+  CHATBOT_CONVERSATION
+  REPORT
+  DASHBOARD
+  INTEGRATION
+
+  @@map("audit_entity_type")
+}
+
+enum AuditActionCategory {
+  CREATE
+  UPDATE
+  DELETE
+  ACCESS     // View, download, export
+  SYSTEM     // Automated actions
+  SECURITY   // Auth events
+  AI         // AI-generated actions
+
+  @@map("audit_action_category")
+}
+
+enum ActorType {
+  USER         // Human user
+  SYSTEM       // Automated process
+  AI           // AI-generated action
+  INTEGRATION  // External system
+  ANONYMOUS    // Anonymous reporter action
+
+  @@map("actor_type")
+}
+
+// ===========================================
+// Investigation Enums
+// ===========================================
+
+enum InvestigationStatus {
+  NEW
+  ASSIGNED
+  INVESTIGATING
+  PENDING_REVIEW
+  CLOSED
+  ON_HOLD
+
+  @@map("investigation_status")
+}
+
+enum InvestigationType {
+  FULL
+  LIMITED
+  INQUIRY
+
+  @@map("investigation_type")
+}
+
+enum InvestigationDepartment {
+  HR
+  LEGAL
+  SAFETY
+  COMPLIANCE
+  OTHER
+
+  @@map("investigation_department")
+}
+
+enum InvestigationOutcome {
+  SUBSTANTIATED
+  UNSUBSTANTIATED
+  INCONCLUSIVE
+  POLICY_VIOLATION
+  NO_VIOLATION
+  INSUFFICIENT_EVIDENCE
+
+  @@map("investigation_outcome")
+}
+
+enum SlaStatus {
+  ON_TRACK
+  WARNING
+  OVERDUE
+
+  @@map("sla_status")
+}
+
+// ===========================================
+// Investigation Entity
+// ===========================================
+
+/// Investigation represents a formal investigation linked to a Case.
+/// Cases can have multiple investigations (e.g., HR and Legal investigating same report).
+/// organizationId is denormalized from Case for RLS efficiency.
+model Investigation {
+  id                    String   @id @default(uuid())
+  caseId                String   @map("case_id")
+  organizationId        String   @map("organization_id") // Denormalized for RLS
+  investigationNumber   Int      @map("investigation_number") // 1, 2, 3... within case
+
+  // Classification
+  categoryId            String?  @map("category_id")
+  investigationType     InvestigationType @default(FULL) @map("investigation_type")
+  department            InvestigationDepartment? @map("department")
+
+  // Assignment
+  assignedTo            String[] @default([]) @map("assigned_to") // Array of user IDs
+  primaryInvestigatorId String?  @map("primary_investigator_id")
+  assignedAt            DateTime? @map("assigned_at")
+  assignedById          String?  @map("assigned_by_id")
+  assignmentHistory     Json?    @map("assignment_history") // Track assignment changes
+
+  // Workflow
+  status                InvestigationStatus @default(NEW)
+  statusRationale       String?  @map("status_rationale") // AI-first: why status changed
+  statusChangedAt       DateTime? @map("status_changed_at")
+  dueDate               DateTime? @map("due_date")
+  slaStatus             SlaStatus @default(ON_TRACK) @map("sla_status")
+
+  // Findings
+  findingsSummary       String?  @map("findings_summary")
+  findingsDetail        String?  @map("findings_detail")
+  outcome               InvestigationOutcome? @map("outcome")
+  rootCause             String?  @map("root_cause")
+  lessonsLearned        String?  @map("lessons_learned")
+  findingsDate          DateTime? @map("findings_date")
+
+  // Closure
+  closedAt              DateTime? @map("closed_at")
+  closedById            String?  @map("closed_by_id")
+  closureApprovedById   String?  @map("closure_approved_by_id")
+  closureApprovedAt     DateTime? @map("closure_approved_at")
+  closureNotes          String?  @map("closure_notes")
+
+  // Template
+  templateId            String?  @map("template_id")
+  templateResponses     Json?    @map("template_responses") // Checklist answers
+  templateCompleted     Boolean  @default(false) @map("template_completed")
+
+  // Migration Support
+  sourceSystem          String?  @map("source_system")
+  sourceRecordId        String?  @map("source_record_id")
+  migratedAt            DateTime? @map("migrated_at")
+
+  // Audit
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @updatedAt @map("updated_at")
+  createdById           String   @map("created_by_id")
+  updatedById           String   @map("updated_by_id")
+
+  // Relations
+  case                  Case         @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  organization          Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  primaryInvestigator   User?        @relation("InvestigationPrimaryInvestigator", fields: [primaryInvestigatorId], references: [id])
+  assignedBy            User?        @relation("InvestigationAssignedBy", fields: [assignedById], references: [id])
+  closedBy              User?        @relation("InvestigationClosedBy", fields: [closedById], references: [id])
+  closureApprovedBy     User?        @relation("InvestigationClosureApprovedBy", fields: [closureApprovedById], references: [id])
+  createdBy             User         @relation("InvestigationCreatedBy", fields: [createdById], references: [id])
+  updatedBy             User         @relation("InvestigationUpdatedBy", fields: [updatedById], references: [id])
+
+  // Indexes for query patterns
+  @@index([organizationId])
+  @@index([organizationId, caseId])
+  @@index([organizationId, status])
+  @@index([organizationId, primaryInvestigatorId])
+  @@index([organizationId, dueDate])
+  @@index([organizationId, slaStatus])
+  @@unique([caseId, investigationNumber])
+  @@map("investigations")
 }
