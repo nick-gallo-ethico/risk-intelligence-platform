@@ -6,7 +6,7 @@ You are the **Ralph Loop Coordinator** for the Risk Intelligence Platform projec
 
 **Completed Slices:** 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7 ✅
 **Current Slice:** 1.8 - File Attachments & User Management
-**Current Task:** 1.8.7 (ready to start)
+**Current Task:** 1.8.8 (ready to start)
 
 ## Recent Accomplishments
 
@@ -17,6 +17,7 @@ You are the **Ralph Loop Coordinator** for the Risk Intelligence Platform projec
 - Task 1.8.4: Attachment Controller & Module ✅
 - Task 1.8.5: User Management DTOs and Service ✅
 - Task 1.8.6: User Management Controller & Module ✅
+- Task 1.8.7: File Upload Component (Frontend) ✅
 
 ## Your Responsibilities
 
@@ -36,66 +37,73 @@ You are the **Ralph Loop Coordinator** for the Risk Intelligence Platform projec
    - [x] 1.8.4 - Attachment Controller & Module ✅
    - [x] 1.8.5 - User Management DTOs and Service ✅
    - [x] 1.8.6 - User Management Controller & Module ✅
-   - [ ] 1.8.7 - File Upload Component (Frontend) (READY)
-   - [ ] 1.8.8 - User Management UI (Frontend)
+   - [x] 1.8.7 - File Upload Component (Frontend) ✅
+   - [ ] 1.8.8 - User Management UI (Frontend) (READY)
    - [ ] 1.8.9 - E2E Tests for Slice 1.8
 
 ## Next Task to Execute
 
-### Task 1.8.7: File Upload Component (Frontend)
+### Task 1.8.8: User Management UI
 
-**Estimate:** 1.5 hours
+**Estimate:** 2 hours
 
 **Input Files:**
+- `apps/frontend/src/app/cases/page.tsx` - Table patterns
 - `apps/frontend/src/components/ui/` - shadcn components
-- `apps/frontend/src/lib/api.ts` - API client
-- `apps/frontend/src/app/cases/[id]/page.tsx` - Case detail page
+- `apps/backend/src/modules/users/dto/` - DTO shapes
 
-**Task:** Create reusable file upload component for case/investigation attachments.
+**Task:** Create user management page for admins.
 
-**Component:** `apps/frontend/src/components/files/file-upload.tsx`
+**Page:** `apps/frontend/src/app/settings/users/page.tsx`
 
 **Features:**
-- Drag and drop zone
-- Click to browse files
-- Multiple file selection
-- File type validation (show allowed types)
-- File size validation (show max size)
-- Upload progress indicator
-- Preview for images
-- Remove file before upload
-- Error display per file
+1. User list table:
+   - Columns: Name, Email, Role, Status, Last Login, Actions
+   - Sortable by name, email, last login
+   - Filterable by role, status
+   - Search by name or email
+   - Pagination
 
-**Props:**
-- entityType: 'CASE' | 'INVESTIGATION' | 'INVESTIGATION_NOTE'
-- entityId: string
-- onUploadComplete?: (attachment: Attachment) => void
-- maxFiles?: number (default 10)
-- accept?: string (mime types)
-- maxSize?: number (bytes, default 10MB)
+2. Create user dialog:
+   - Form with validation
+   - Role selection dropdown
+   - Optional password (or generate invite link)
+   - Success toast with next steps
 
-**API integration:**
-- POST /api/v1/attachments with multipart/form-data
-- Handle upload errors
-- Show success toast
+3. Edit user dialog:
+   - Pre-filled form
+   - Cannot edit own role
+   - Cannot deactivate self
+   - Success toast
 
-**Use shadcn/ui components:**
-- Card for drop zone
-- Progress for upload
-- Button for actions
-- Badge for file type
+4. Deactivate confirmation:
+   - Confirm dialog
+   - Warning about access removal
+   - Success toast
 
-**Add to case detail page:**
-- Attachments section in properties panel
-- List existing attachments
-- Upload button
+5. User detail view (optional):
+   - Click row to see full details
+   - Activity history for user
+
+**Navigation:**
+- Add "Settings" section to sidebar
+- Add "Users" link under Settings
+- Visible only to SYSTEM_ADMIN role
+
+**Components:**
+- UsersTable
+- CreateUserDialog
+- EditUserDialog
+- UserFilters
 
 **Output Files:**
-- `apps/frontend/src/components/files/file-upload.tsx`
-- `apps/frontend/src/components/files/file-list.tsx`
-- `apps/frontend/src/components/files/file-preview.tsx`
-- `apps/frontend/src/lib/attachments-api.ts`
-- Update `apps/frontend/src/app/cases/[id]/page.tsx`
+- `apps/frontend/src/app/settings/users/page.tsx`
+- `apps/frontend/src/components/users/users-table.tsx`
+- `apps/frontend/src/components/users/create-user-dialog.tsx`
+- `apps/frontend/src/components/users/edit-user-dialog.tsx`
+- `apps/frontend/src/components/users/user-filters.tsx`
+- `apps/frontend/src/lib/users-api.ts`
+- Update sidebar navigation
 
 **Verification:**
 ```bash
@@ -104,21 +112,20 @@ cd apps/frontend && npm run lint
 ```
 
 **Manual verification:**
-1. Navigate to case detail
-2. Upload file via drag and drop
-3. Upload file via click
-4. Verify file appears in list
-5. Download file
-6. Delete file
+1. Login as admin
+2. Navigate to Settings > Users
+3. Create new user
+4. Edit user
+5. Deactivate user
+6. Verify non-admin cannot access
 
 **Stop Condition:**
-- File upload working
-- File list displays
-- Download works
-- Delete works
+- User list displays
+- CRUD operations work
+- Role restrictions enforced
 - OR document blockers
 
-**When Complete:** Reply **TASK 1.8.7 COMPLETE**
+**When Complete:** Reply **TASK 1.8.8 COMPLETE**
 
 ---
 

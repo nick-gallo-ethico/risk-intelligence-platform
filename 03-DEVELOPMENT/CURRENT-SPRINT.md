@@ -321,7 +321,7 @@ Created from `docs/SLICE-1-ISSUES.md`:
 - [x] **Task 1.8.6:** User Management Controller & Module ✅
 
 **Frontend Tasks:**
-- [ ] **Task 1.8.7:** File Upload Component
+- [x] **Task 1.8.7:** File Upload Component ✅
 - [ ] **Task 1.8.8:** User Management UI
 
 **Testing:**
