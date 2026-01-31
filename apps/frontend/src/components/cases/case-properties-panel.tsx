@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { StatusBadge } from '@/components/ui/status-badge';
@@ -8,8 +8,11 @@ import { SeverityBadge } from '@/components/ui/severity-badge';
 import { toast } from '@/components/ui/toaster';
 import { PropertySection } from './property-section';
 import { EditableField } from './editable-field';
+import { FileUpload, FileList } from '@/components/files';
 import { apiClient } from '@/lib/api';
+import { attachmentsApi } from '@/lib/attachments-api';
 import type { Case, CaseStatus, Severity, SourceChannel, UpdateCaseInput } from '@/types/case';
+import type { Attachment } from '@/types/attachment';
 
 interface CasePropertiesPanelProps {
   caseData: Case | null;
@@ -69,6 +72,40 @@ export function CasePropertiesPanel({
   isLoading,
   onUpdate,
 }: CasePropertiesPanelProps) {
+  const [attachments, setAttachments] = useState<Attachment[]>([]);
+  const [attachmentsLoading, setAttachmentsLoading] = useState(false);
+  const [showUpload, setShowUpload] = useState(false);
+
+  // Fetch attachments when case data changes
+  useEffect(() => {
+    if (!caseData?.id) {
+      setAttachments([]);
+      return;
+    }
+
+    setAttachmentsLoading(true);
+    attachmentsApi
+      .getForEntity('CASE', caseData.id)
+      .then((response) => {
+        setAttachments(response.items);
+      })
+      .catch((err) => {
+        console.error('Failed to fetch attachments:', err);
+      })
+      .finally(() => {
+        setAttachmentsLoading(false);
+      });
+  }, [caseData?.id]);
+
+  const handleAttachmentUploadComplete = useCallback((attachment: Attachment) => {
+    setAttachments((prev) => [...prev, attachment]);
+    setShowUpload(false);
+  }, []);
+
+  const handleAttachmentDelete = useCallback((id: string) => {
+    setAttachments((prev) => prev.filter((a) => a.id !== id));
+  }, []);
+
   const updateCase = useCallback(
     async (field: keyof UpdateCaseInput, value: string | string[]) => {
       if (!caseData) return;
@@ -259,6 +296,54 @@ export function CasePropertiesPanel({
           />
         )}
       </PropertySection>
+
+      {/* Attachments Section */}
+      <PropertySection title={`Attachments (${attachments.length})`}>
+        <div className="space-y-4">
+          {showUpload ? (
+            <div className="space-y-3">
+              <FileUpload
+                entityType="CASE"
+                entityId={caseData.id}
+                onUploadComplete={handleAttachmentUploadComplete}
+                maxFiles={10}
+              />
+              <button
+                onClick={() => setShowUpload(false)}
+                className="text-sm text-gray-500 hover:text-gray-700"
+              >
+                Cancel
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => setShowUpload(true)}
+              className="flex items-center gap-2 w-full p-3 border-2 border-dashed border-gray-300 rounded-lg text-sm text-gray-600 hover:border-gray-400 hover:bg-gray-50 transition-colors"
+            >
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M12 4v16m8-8H4"
+                />
+              </svg>
+              Add attachment
+            </button>
+          )}
+
+          <FileList
+            attachments={attachments}
+            isLoading={attachmentsLoading}
+            onDelete={handleAttachmentDelete}
+          />
+        </div>
+      </PropertySection>
     </div>
   );
 }
@@ -266,7 +351,7 @@ export function CasePropertiesPanel({
 export function CasePropertiesPanelSkeleton() {
   return (
     <div className="space-y-4 p-4">
-      {[1, 2, 3, 4, 5].map((section) => (
+      {[1, 2, 3, 4, 5, 6].map((section) => (
         <Card key={section}>
           <CardHeader className="pb-2">
             <Skeleton className="h-4 w-24" />
