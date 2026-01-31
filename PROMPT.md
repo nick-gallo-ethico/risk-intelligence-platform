@@ -6,13 +6,14 @@ You are the **Ralph Loop Coordinator** for the Risk Intelligence Platform projec
 
 **Completed Slices:** 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7 ✅
 **Current Slice:** 1.8 - File Attachments & User Management
-**Current Task:** 1.8.3 (ready to start)
+**Current Task:** 1.8.4 (ready to start)
 
 ## Recent Accomplishments
 
 ### Slice 1.8 Progress
 - Task 1.8.1: File Attachment Prisma Schema ✅
 - Task 1.8.2: File Storage Service ✅
+- Task 1.8.3: Attachment DTOs and Service ✅
 
 ## Your Responsibilities
 
@@ -28,8 +29,8 @@ You are the **Ralph Loop Coordinator** for the Risk Intelligence Platform projec
 3. **Task Sequence for Slice 1.8:**
    - [x] 1.8.1 - File Attachment Prisma Schema ✅
    - [x] 1.8.2 - File Storage Service ✅
-   - [ ] 1.8.3 - Attachment DTOs and Service (READY)
-   - [ ] 1.8.4 - Attachment Controller & Module
+   - [x] 1.8.3 - Attachment DTOs and Service ✅
+   - [ ] 1.8.4 - Attachment Controller & Module (READY)
    - [ ] 1.8.5 - User Management DTOs and Service
    - [ ] 1.8.6 - User Management Controller & Module
    - [ ] 1.8.7 - File Upload Component (Frontend)
@@ -38,82 +39,69 @@ You are the **Ralph Loop Coordinator** for the Risk Intelligence Platform projec
 
 ## Next Task to Execute
 
-### Task 1.8.3: Attachment DTOs and Service
+### Task 1.8.4: Attachment Controller & Module
 
-**Estimate:** 1.5 hours
+**Estimate:** 1 hour
 
 **Input Files:**
-- `apps/backend/examples/dto-pattern.ts` - DTO patterns
-- `apps/backend/examples/service-pattern.ts` - Service patterns
-- `apps/backend/src/modules/cases/cases.service.ts` - Service reference
-- `apps/backend/src/common/services/storage.service.ts` - Storage service
+- `apps/backend/examples/controller-pattern.ts` - Controller patterns
+- `apps/backend/src/modules/cases/cases.controller.ts` - Reference controller
+- `apps/backend/src/modules/attachments/attachments.service.ts` - Attachment service
 
-**Task:** Create DTOs and service for file attachments.
+**Task:** Create controller and module for file attachments.
 
-**DTOs in `apps/backend/src/modules/attachments/dto/`:**
+**Controller endpoints:**
+- POST /api/v1/attachments - Upload file
+  - Use @UseInterceptors(FileInterceptor('file'))
+  - Body: CreateAttachmentDto
+  - Returns: AttachmentResponseDto
+- GET /api/v1/attachments?entityType=CASE&entityId=xxx - List by entity
+- GET /api/v1/attachments/:id - Get single attachment
+- GET /api/v1/attachments/:id/download - Download file (redirect to signed URL)
+- DELETE /api/v1/attachments/:id - Delete attachment
 
-**CreateAttachmentDto:**
-- entityType: AttachmentEntityType (required)
-- entityId: UUID (required)
-- description?: string (optional, max 500 chars)
-- isEvidence?: boolean (optional, default false)
-Note: File itself comes from multipart upload, not DTO
+**Guards:**
+- JwtAuthGuard on all endpoints
+- TenantGuard for tenant isolation
+- RolesGuard: SYSTEM_ADMIN, COMPLIANCE_OFFICER, INVESTIGATOR can upload/delete
 
-**AttachmentResponseDto:**
-- id, organizationId, entityType, entityId
-- fileName, mimeType, fileSize
-- uploadedBy: { id, name, email }
-- description, isEvidence
-- downloadUrl: string (signed URL)
-- createdAt
+**Swagger documentation:**
+- @ApiTags('attachments')
+- @ApiConsumes('multipart/form-data') for upload
+- @ApiBody with file schema
+- Response types documented
 
-**AttachmentQueryDto:**
-- entityType?: AttachmentEntityType
-- entityId?: UUID
-- isEvidence?: boolean
-- page, limit (pagination)
-
-**Service in `apps/backend/src/modules/attachments/`:**
-
-**AttachmentService methods:**
-- `create(file: Express.Multer.File, dto: CreateAttachmentDto, userId: string, orgId: string)`
-  - Validate entity exists and belongs to org
-  - Upload file via StorageService
-  - Create attachment record
-  - Log activity
-- `findByEntity(entityType: string, entityId: string, orgId: string)`
-- `findOne(id: string, orgId: string)`
-- `delete(id: string, userId: string, orgId: string)`
-  - Delete file from storage
-  - Delete attachment record
-  - Log activity
-
-**Entity validation:**
-- CASE: verify case exists in org
-- INVESTIGATION: verify investigation exists in org
-- INVESTIGATION_NOTE: verify note exists in org
+**Module:**
+- Import MulterModule with file size limits
+- Export AttachmentService for use by other modules
+- Register in AppModule
 
 **Output Files:**
-- `apps/backend/src/modules/attachments/dto/create-attachment.dto.ts`
-- `apps/backend/src/modules/attachments/dto/attachment-response.dto.ts`
-- `apps/backend/src/modules/attachments/dto/attachment-query.dto.ts`
-- `apps/backend/src/modules/attachments/dto/index.ts`
-- `apps/backend/src/modules/attachments/attachments.service.ts`
+- `apps/backend/src/modules/attachments/attachments.controller.ts`
+- `apps/backend/src/modules/attachments/attachments.module.ts`
+- Update `apps/backend/src/app.module.ts`
 
 **Verification:**
 ```bash
 cd apps/backend && npm run typecheck
 cd apps/backend && npm run lint
 cd apps/backend && npm test
+
+# Manual test: upload file
+curl -X POST "http://localhost:3000/api/v1/attachments" \
+  -H "Authorization: Bearer $TOKEN" \
+  -F "file=@test.pdf" \
+  -F "entityType=CASE" \
+  -F "entityId=xxx"
 ```
 
 **Stop Condition:**
-- All DTOs with validation
-- Service methods implemented
-- Activity logging integrated
+- All endpoints working
+- File upload/download functional
+- Swagger docs complete
 - OR document blockers
 
-**When Complete:** Reply **TASK 1.8.3 COMPLETE**
+**When Complete:** Reply **TASK 1.8.4 COMPLETE**
 
 ---
 
