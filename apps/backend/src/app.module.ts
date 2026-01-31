@@ -3,6 +3,7 @@ import { ConfigModule } from "@nestjs/config";
 import { HealthModule } from "./modules/health/health.module";
 import { PrismaModule } from "./modules/prisma/prisma.module";
 import { AuthModule } from "./modules/auth/auth.module";
+import { UsersModule } from "./modules/users/users.module";
 import { CasesModule } from "./modules/cases/cases.module";
 import { InvestigationsModule } from "./modules/investigations/investigations.module";
 import { InvestigationNotesModule } from "./modules/investigation-notes/investigation-notes.module";
@@ -23,6 +24,7 @@ import configuration from "./config/configuration";
     ActivityModule,
     StorageModule,
     AuthModule,
+    UsersModule,
     CasesModule,
     InvestigationsModule,
     InvestigationNotesModule,
