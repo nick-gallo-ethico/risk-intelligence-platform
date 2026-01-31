@@ -48,7 +48,8 @@
     "pino-pretty": "^10.3.1",
     "reflect-metadata": "^0.2.1",
     "rxjs": "^7.8.1",
-    "sanitize-html": "^2.17.0"
+    "sanitize-html": "^2.17.0",
+    "uuid": "^13.0.0"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.3.0",
@@ -60,6 +61,7 @@
     "@types/node": "^20.10.6",
     "@types/passport-jwt": "^4.0.0",
     "@types/supertest": "^6.0.2",
+    "@types/uuid": "^10.0.0",
     "@typescript-eslint/eslint-plugin": "^6.18.0",
     "@typescript-eslint/parser": "^6.18.0",
     "eslint": "^8.56.0",

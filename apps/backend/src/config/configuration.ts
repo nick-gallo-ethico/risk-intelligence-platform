@@ -41,4 +41,20 @@ export default () => ({
     pass: process.env.SMTP_PASS || "",
     from: process.env.EMAIL_FROM || "noreply@ethico.local",
   },
+
+  storage: {
+    type: (process.env.STORAGE_TYPE || "local") as "local" | "azure",
+    localPath: process.env.STORAGE_PATH || "./uploads",
+    maxFileSize: parseInt(
+      process.env.MAX_FILE_SIZE ?? String(10 * 1024 * 1024),
+      10,
+    ), // 10MB default
+    allowedMimeTypes: (
+      process.env.ALLOWED_MIME_TYPES ||
+      "image/*,application/pdf,text/*,application/msword,application/vnd.openxmlformats-officedocument.*,application/vnd.ms-excel,application/vnd.ms-powerpoint"
+    ).split(","),
+    // Azure Blob Storage settings (for production)
+    azureConnectionString: process.env.AZURE_STORAGE_CONNECTION_STRING || "",
+    azureContainerName: process.env.AZURE_STORAGE_CONTAINER || "uploads",
+  },
 });
