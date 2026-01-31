@@ -6,7 +6,7 @@ You are the **Ralph Loop Coordinator** for the Risk Intelligence Platform projec
 
 **Completed Slices:** 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7 ✅
 **Current Slice:** 1.8 - File Attachments & User Management
-**Current Task:** 1.8.8 (ready to start)
+**Current Task:** 1.8.9 (ready to start) - FINAL TASK OF SLICE
 
 ## Recent Accomplishments
 
@@ -18,6 +18,7 @@ You are the **Ralph Loop Coordinator** for the Risk Intelligence Platform projec
 - Task 1.8.5: User Management DTOs and Service ✅
 - Task 1.8.6: User Management Controller & Module ✅
 - Task 1.8.7: File Upload Component (Frontend) ✅
+- Task 1.8.8: User Management UI (Frontend) ✅
 
 ## Your Responsibilities
 
@@ -38,103 +39,108 @@ You are the **Ralph Loop Coordinator** for the Risk Intelligence Platform projec
    - [x] 1.8.5 - User Management DTOs and Service ✅
    - [x] 1.8.6 - User Management Controller & Module ✅
    - [x] 1.8.7 - File Upload Component (Frontend) ✅
-   - [ ] 1.8.8 - User Management UI (Frontend) (READY)
-   - [ ] 1.8.9 - E2E Tests for Slice 1.8
+   - [x] 1.8.8 - User Management UI (Frontend) ✅
+   - [ ] 1.8.9 - E2E Tests for Slice 1.8 (READY - FINAL TASK)
 
 ## Next Task to Execute
 
-### Task 1.8.8: User Management UI
+### Task 1.8.9: E2E Tests for Slice 1.8
 
-**Estimate:** 2 hours
+**Estimate:** 1.5 hours
 
 **Input Files:**
-- `apps/frontend/src/app/cases/page.tsx` - Table patterns
-- `apps/frontend/src/components/ui/` - shadcn components
-- `apps/backend/src/modules/users/dto/` - DTO shapes
+- `apps/frontend/e2e/tests/` - Existing tests
+- `apps/frontend/e2e/pages/` - Page objects
 
-**Task:** Create user management page for admins.
+**Task:** Add E2E tests for file attachments and user management.
 
-**Page:** `apps/frontend/src/app/settings/users/page.tsx`
+**Test Scenarios:**
 
-**Features:**
-1. User list table:
-   - Columns: Name, Email, Role, Status, Last Login, Actions
-   - Sortable by name, email, last login
-   - Filterable by role, status
-   - Search by name or email
-   - Pagination
+1. **File Attachments:**
+   - Upload file to case
+   - Verify file appears in attachments list
+   - Download file
+   - Delete file
+   - Upload to investigation
+   - Test file type validation
+   - Test file size validation
 
-2. Create user dialog:
-   - Form with validation
-   - Role selection dropdown
-   - Optional password (or generate invite link)
-   - Success toast with next steps
+2. **User Management (admin only):**
+   - Navigate to users page
+   - Create new user
+   - Verify user appears in list
+   - Edit user role
+   - Deactivate user
+   - Verify deactivated user cannot login
+   - Test non-admin cannot access users page
 
-3. Edit user dialog:
-   - Pre-filled form
-   - Cannot edit own role
-   - Cannot deactivate self
-   - Success toast
-
-4. Deactivate confirmation:
-   - Confirm dialog
-   - Warning about access removal
-   - Success toast
-
-5. User detail view (optional):
-   - Click row to see full details
-   - Activity history for user
-
-**Navigation:**
-- Add "Settings" section to sidebar
-- Add "Users" link under Settings
-- Visible only to SYSTEM_ADMIN role
-
-**Components:**
-- UsersTable
-- CreateUserDialog
-- EditUserDialog
-- UserFilters
+3. **Permission Tests:**
+   - Investigator can upload files
+   - Employee cannot upload files
+   - Only admin can manage users
 
 **Output Files:**
-- `apps/frontend/src/app/settings/users/page.tsx`
-- `apps/frontend/src/components/users/users-table.tsx`
-- `apps/frontend/src/components/users/create-user-dialog.tsx`
-- `apps/frontend/src/components/users/edit-user-dialog.tsx`
-- `apps/frontend/src/components/users/user-filters.tsx`
-- `apps/frontend/src/lib/users-api.ts`
-- Update sidebar navigation
+- `apps/frontend/e2e/tests/attachments.spec.ts`
+- `apps/frontend/e2e/tests/user-management.spec.ts`
+- `apps/frontend/e2e/pages/users.page.ts`
+- Update `apps/frontend/e2e/pages/case-detail.page.ts` (add attachment methods)
 
 **Verification:**
 ```bash
-cd apps/frontend && npm run typecheck
-cd apps/frontend && npm run lint
+cd apps/frontend && npm run e2e
 ```
 
-**Manual verification:**
-1. Login as admin
-2. Navigate to Settings > Users
-3. Create new user
-4. Edit user
-5. Deactivate user
-6. Verify non-admin cannot access
-
 **Stop Condition:**
-- User list displays
-- CRUD operations work
-- Role restrictions enforced
+- All E2E tests pass
+- File upload tested
+- User management tested
 - OR document blockers
 
-**When Complete:** Reply **TASK 1.8.8 COMPLETE**
+**When Complete:** Reply **TASK 1.8.9 COMPLETE**
 
 ---
 
-## When Execution Chat Reports Complete
+## When Slice 1.8.9 Complete
 
-1. Read the task file to get next task details
-2. Update PROMPT.md with next task (use same format)
-3. Update CURRENT-SPRINT.md to mark task complete
-4. Commit changes following git best practices
-5. Reply with confirmation and next task number
+This is the **FINAL TASK** of Slice 1.8. When complete:
+1. Mark task complete in CURRENT-SPRINT.md
+2. Move Slice 1.8 section to "Completed" in CURRENT-SPRINT.md
+3. Update PROMPT.md to prepare for Slice 1.9 planning
+4. Commit and push all changes
+5. Celebrate - Slice 1.8 complete!
 
-Start by confirming you understand the current state, then wait for task completion signals.
+---
+
+## Slice 1.8 Success Criteria (for verification)
+
+### File Attachments
+- [ ] Attachment entity with RLS
+- [ ] Local file storage working
+- [ ] Upload/download/delete endpoints
+- [ ] File type and size validation
+- [ ] Attachments on case detail page
+- [ ] Drag and drop upload UI
+
+### User Management
+- [ ] User CRUD endpoints (admin only)
+- [ ] User list page with filters
+- [ ] Create/edit/deactivate dialogs
+- [ ] Role-based access enforced
+- [ ] Settings navigation added
+
+### Testing
+- [ ] E2E tests for attachments
+- [ ] E2E tests for user management
+- [ ] Permission tests pass
+- [ ] All existing tests still pass
+
+### Verification Commands (All Must Pass)
+```bash
+cd apps/backend && npm run typecheck
+cd apps/backend && npm run lint
+cd apps/backend && npm test
+cd apps/backend && npm run test:e2e
+cd apps/frontend && npm run typecheck
+cd apps/frontend && npm run lint
+cd apps/frontend && npm run e2e
+```

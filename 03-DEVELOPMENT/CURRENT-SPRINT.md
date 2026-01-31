@@ -322,7 +322,7 @@ Created from `docs/SLICE-1-ISSUES.md`:
 
 **Frontend Tasks:**
 - [x] **Task 1.8.7:** File Upload Component ✅
-- [ ] **Task 1.8.8:** User Management UI
+- [x] **Task 1.8.8:** User Management UI ✅
 
 **Testing:**
 - [ ] **Task 1.8.9:** E2E Tests for Slice 1.8
