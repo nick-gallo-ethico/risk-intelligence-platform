@@ -2,11 +2,49 @@
 
 ## What This Is
 
-A multi-tenant SaaS compliance management platform - "HubSpot for Compliance" - that unifies ethics hotline intake, case management, investigations, disclosures, policy management, and analytics. Serves two distinct products: an Operator Console for Ethico's internal hotline staff and a Client Platform for customer compliance teams.
+A multi-tenant SaaS compliance management platform - "HubSpot for Compliance" - that unifies ethics hotline intake, case management, investigations, disclosures, policy management, and analytics.
+
+**Primary Customer:** Client compliance teams (CCOs, investigators, HR, Legal) who receive and investigate ethics reports.
+
+**Ethico's Role:** Ethico operates the hotline service - when someone calls to report, Ethico operators take the call, capture the intake, QA reviews it, then releases it to the client. Ethico also provides implementation services to onboard new clients.
+
+## Platform Interfaces
+
+The platform serves multiple user populations through distinct interfaces:
+
+| Interface | Users | Auth | Purpose |
+|-----------|-------|------|---------|
+| **Client Platform** | CCO, Investigators, Admins | Client SSO | Case management, investigations, analytics |
+| **Employee Portal** | Client employees | Client SSO | My cases, disclosures, attestations, policy Q&A |
+| **Ethics Portal** | Anyone (anonymous) | No auth / Access code | Anonymous reporting, status check via access code |
+| **Operator Console** | Ethico Operators, QA | Ethico SSO | Hotline intake, QA workflow, multi-client |
+| **Implementation Portal** | Implementation Specialists | Ethico SSO | Client onboarding, config, migration tools |
+| **Demo Environment** | AE, Solutions Engineers | Ethico SSO | Sales demos with resettable "Acme Co." data |
+
+### User Categories
+
+**Ethico Internal (cross-tenant access to assigned clients):**
+- Operators - Hotline intake
+- QA Reviewers - Review/edit before release to client
+- Implementation Specialists - Onboard clients, configure, migrate data
+- Support - Troubleshoot issues
+- Account Executives - Client relationships, demos
+- Solutions Engineers - Technical demos, pre-sales
+
+**Client Platform (single-tenant, their organization only):**
+- System Admin - Full configuration
+- CCO/Compliance - Full visibility, assignment
+- Triage Lead - Scoped assignment
+- Investigator - Assigned cases only
+- HR Manager - Scoped visibility
+
+**Employee Portal (self-service):**
+- Employee - Submit reports, check status, attest, policy Q&A
+- Manager - Above + proxy reports for team
 
 ## Core Value
 
-Investigators can track cases from intake through investigation, findings, and remediation in a unified, AI-native platform with real-time visibility and actionable insights.
+Compliance teams can track cases from intake through investigation, findings, and remediation in a unified, AI-native platform with real-time visibility and actionable insights.
 
 ## Requirements
 
@@ -42,7 +80,7 @@ Requirements for v1.0 completion (Tiers 1.5-5):
 - [ ] Organization model enhancement (branding, settings, domain fields)
 - [ ] Case soft delete endpoint
 
-**Tier 2 - Operator Console & Ethics Portal:**
+**Tier 2 - Operator Console & Portals:**
 - [ ] Operator Console: Client profile management with phone lookup
 - [ ] Operator Console: Hotline intake workflow with structured form
 - [ ] Operator Console: Directives system (scripts, escalation procedures)
@@ -85,13 +123,15 @@ Requirements for v1.0 completion (Tiers 1.5-5):
 - [ ] Email notifications (core events)
 - [ ] Notification preferences
 
-### Out of Scope
+### Out of Scope (v1.0)
 
 Deferred to v2.0 or later:
 
-- Policy Management module (attestations, version control, distribution) — complexity, sufficient for v2.0
-- Real-time AI assist during calls — requires WebSocket streaming infrastructure
-- Document AI analysis — requires vector database setup
+- **Implementation Portal** — Client onboarding tools, migration wizards, bulk config (post-MVP)
+- **Demo Environment** — Resettable "Acme Co." for sales (post-MVP)
+- Policy Management module (attestations, version control, distribution) — complexity
+- Real-time AI assist during calls — requires WebSocket streaming
+- Document AI analysis — requires vector database
 - SMS communication relay — operational complexity
 - Slack/Teams notifications — integration overhead
 - Mobile native apps — web-first, PWA later
@@ -110,6 +150,8 @@ Deferred to v2.0 or later:
 
 **Existing Documentation:**
 - Platform Vision: `00-PLATFORM/01-PLATFORM-VISION.md`
+- UI/UX Design System: `00-PLATFORM/UI-UX-DESIGN-SYSTEM.md`
+- Professional Services: `00-PLATFORM/PROFESSIONAL-SERVICES-SPEC.md`
 - PRDs in `02-MODULES/` (Case Management, Operator Console, Ethics Portal, Disclosures)
 - Tech Specs in `01-SHARED-INFRASTRUCTURE/` (Auth, AI, HRIS, Real-time)
 - Core Data Model: `01-SHARED-INFRASTRUCTURE/CORE-DATA-MODEL.md`
@@ -126,6 +168,7 @@ Deferred to v2.0 or later:
 ## Constraints
 
 - **Multi-tenancy**: All tables must have `organizationId` with RLS enforcement
+- **Cross-tenant for Ethico**: Operators/Implementation need access to multiple clients
 - **AI Integration**: Claude API primary, pluggable for Azure OpenAI fallback
 - **SSO**: Azure AD and Google OAuth required for enterprise customers
 - **UI Framework**: shadcn/ui + Tailwind CSS (not Material-UI)
@@ -142,6 +185,8 @@ Deferred to v2.0 or later:
 | User vs Employee separation | Users = platform logins, Employees = HRIS population | — Pending |
 | shadcn/ui over Material-UI | Modern, composable, Radix primitives | ✓ Good |
 | Unified AUDIT_LOG table | Cross-entity queries, AI context | ✓ Good |
+| Implementation Portal deferred to v2.0 | Focus v1.0 on core case/disclosure workflows | Decision |
+| Demo Environment deferred to v2.0 | Sales can demo using real test tenants initially | Decision |
 
 ---
-*Last updated: 2026-01-31 after GSD initialization from existing PRDs*
+*Last updated: 2026-01-31 after alignment review with user*
