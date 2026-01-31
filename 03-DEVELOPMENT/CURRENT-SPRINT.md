@@ -318,7 +318,7 @@ Created from `docs/SLICE-1-ISSUES.md`:
 - [x] **Task 1.8.3:** Attachment DTOs and Service ✅
 - [x] **Task 1.8.4:** Attachment Controller & Module ✅
 - [x] **Task 1.8.5:** User Management DTOs and Service ✅
-- [ ] **Task 1.8.6:** User Management Controller & Module
+- [x] **Task 1.8.6:** User Management Controller & Module ✅
 
 **Frontend Tasks:**
 - [ ] **Task 1.8.7:** File Upload Component

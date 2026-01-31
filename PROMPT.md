@@ -6,7 +6,7 @@ You are the **Ralph Loop Coordinator** for the Risk Intelligence Platform projec
 
 **Completed Slices:** 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7 ✅
 **Current Slice:** 1.8 - File Attachments & User Management
-**Current Task:** 1.8.6 (ready to start)
+**Current Task:** 1.8.7 (ready to start)
 
 ## Recent Accomplishments
 
@@ -16,6 +16,7 @@ You are the **Ralph Loop Coordinator** for the Risk Intelligence Platform projec
 - Task 1.8.3: Attachment DTOs and Service ✅
 - Task 1.8.4: Attachment Controller & Module ✅
 - Task 1.8.5: User Management DTOs and Service ✅
+- Task 1.8.6: User Management Controller & Module ✅
 
 ## Your Responsibilities
 
@@ -34,69 +35,90 @@ You are the **Ralph Loop Coordinator** for the Risk Intelligence Platform projec
    - [x] 1.8.3 - Attachment DTOs and Service ✅
    - [x] 1.8.4 - Attachment Controller & Module ✅
    - [x] 1.8.5 - User Management DTOs and Service ✅
-   - [ ] 1.8.6 - User Management Controller & Module (READY)
-   - [ ] 1.8.7 - File Upload Component (Frontend)
+   - [x] 1.8.6 - User Management Controller & Module ✅
+   - [ ] 1.8.7 - File Upload Component (Frontend) (READY)
    - [ ] 1.8.8 - User Management UI (Frontend)
    - [ ] 1.8.9 - E2E Tests for Slice 1.8
 
 ## Next Task to Execute
 
-### Task 1.8.6: User Management Controller & Module
+### Task 1.8.7: File Upload Component (Frontend)
 
-**Estimate:** 1 hour
+**Estimate:** 1.5 hours
 
 **Input Files:**
-- `apps/backend/examples/controller-pattern.ts` - Controller patterns
-- `apps/backend/src/modules/cases/cases.controller.ts` - Reference implementation
-- `apps/backend/src/modules/users/users.service.ts` - Service to use
+- `apps/frontend/src/components/ui/` - shadcn components
+- `apps/frontend/src/lib/api.ts` - API client
+- `apps/frontend/src/app/cases/[id]/page.tsx` - Case detail page
 
-**Task:** Create controller and module for user management.
+**Task:** Create reusable file upload component for case/investigation attachments.
 
-**Controller endpoints:**
-- POST /api/v1/users - Create user (SYSTEM_ADMIN only)
-- GET /api/v1/users - List users with filters
-- GET /api/v1/users/:id - Get user details
-- PATCH /api/v1/users/:id - Update user (SYSTEM_ADMIN only)
-- DELETE /api/v1/users/:id - Deactivate user (SYSTEM_ADMIN only)
-- GET /api/v1/users/me - Get current user profile (any authenticated)
+**Component:** `apps/frontend/src/components/files/file-upload.tsx`
 
-**Guards:**
-- JwtAuthGuard on all endpoints
-- TenantGuard for tenant isolation
-- RolesGuard: SYSTEM_ADMIN for create/update/delete
+**Features:**
+- Drag and drop zone
+- Click to browse files
+- Multiple file selection
+- File type validation (show allowed types)
+- File size validation (show max size)
+- Upload progress indicator
+- Preview for images
+- Remove file before upload
+- Error display per file
 
-**Swagger documentation:**
-- @ApiTags('users')
-- All request/response types documented
-- Role requirements documented
+**Props:**
+- entityType: 'CASE' | 'INVESTIGATION' | 'INVESTIGATION_NOTE'
+- entityId: string
+- onUploadComplete?: (attachment: Attachment) => void
+- maxFiles?: number (default 10)
+- accept?: string (mime types)
+- maxSize?: number (bytes, default 10MB)
 
-**Module:**
-- Export UsersService for use by other modules
-- Register in AppModule
+**API integration:**
+- POST /api/v1/attachments with multipart/form-data
+- Handle upload errors
+- Show success toast
+
+**Use shadcn/ui components:**
+- Card for drop zone
+- Progress for upload
+- Button for actions
+- Badge for file type
+
+**Add to case detail page:**
+- Attachments section in properties panel
+- List existing attachments
+- Upload button
 
 **Output Files:**
-- `apps/backend/src/modules/users/users.controller.ts`
-- `apps/backend/src/modules/users/users.module.ts`
-- Update `apps/backend/src/app.module.ts`
+- `apps/frontend/src/components/files/file-upload.tsx`
+- `apps/frontend/src/components/files/file-list.tsx`
+- `apps/frontend/src/components/files/file-preview.tsx`
+- `apps/frontend/src/lib/attachments-api.ts`
+- Update `apps/frontend/src/app/cases/[id]/page.tsx`
 
 **Verification:**
 ```bash
-cd apps/backend && npm run typecheck
-cd apps/backend && npm run lint
-cd apps/backend && npm test
-
-# Manual test: list users
-curl "http://localhost:3000/api/v1/users" \
-  -H "Authorization: Bearer $TOKEN"
+cd apps/frontend && npm run typecheck
+cd apps/frontend && npm run lint
 ```
 
+**Manual verification:**
+1. Navigate to case detail
+2. Upload file via drag and drop
+3. Upload file via click
+4. Verify file appears in list
+5. Download file
+6. Delete file
+
 **Stop Condition:**
-- All endpoints working
-- Role enforcement working
-- Swagger docs complete
+- File upload working
+- File list displays
+- Download works
+- Delete works
 - OR document blockers
 
-**When Complete:** Reply **TASK 1.8.6 COMPLETE**
+**When Complete:** Reply **TASK 1.8.7 COMPLETE**
 
 ---
 
