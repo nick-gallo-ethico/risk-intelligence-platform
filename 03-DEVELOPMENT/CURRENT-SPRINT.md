@@ -314,7 +314,7 @@ Created from `docs/SLICE-1-ISSUES.md`:
 
 **Backend Tasks:**
 - [x] **Task 1.8.1:** File Attachment Prisma Schema ✅
-- [ ] **Task 1.8.2:** File Storage Service
+- [x] **Task 1.8.2:** File Storage Service ✅
 - [ ] **Task 1.8.3:** Attachment DTOs and Service
 - [ ] **Task 1.8.4:** Attachment Controller & Module
 - [ ] **Task 1.8.5:** User Management DTOs and Service

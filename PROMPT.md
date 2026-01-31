@@ -6,12 +6,13 @@ You are the **Ralph Loop Coordinator** for the Risk Intelligence Platform projec
 
 **Completed Slices:** 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7 ✅
 **Current Slice:** 1.8 - File Attachments & User Management
-**Current Task:** 1.8.2 (ready to start)
+**Current Task:** 1.8.3 (ready to start)
 
 ## Recent Accomplishments
 
 ### Slice 1.8 Progress
 - Task 1.8.1: File Attachment Prisma Schema ✅
+- Task 1.8.2: File Storage Service ✅
 
 ## Your Responsibilities
 
@@ -26,8 +27,8 @@ You are the **Ralph Loop Coordinator** for the Risk Intelligence Platform projec
 
 3. **Task Sequence for Slice 1.8:**
    - [x] 1.8.1 - File Attachment Prisma Schema ✅
-   - [ ] 1.8.2 - File Storage Service (READY)
-   - [ ] 1.8.3 - Attachment DTOs and Service
+   - [x] 1.8.2 - File Storage Service ✅
+   - [ ] 1.8.3 - Attachment DTOs and Service (READY)
    - [ ] 1.8.4 - Attachment Controller & Module
    - [ ] 1.8.5 - User Management DTOs and Service
    - [ ] 1.8.6 - User Management Controller & Module
@@ -37,49 +38,67 @@ You are the **Ralph Loop Coordinator** for the Risk Intelligence Platform projec
 
 ## Next Task to Execute
 
-### Task 1.8.2: File Storage Service
+### Task 1.8.3: Attachment DTOs and Service
 
 **Estimate:** 1.5 hours
 
 **Input Files:**
-- `apps/backend/src/config/configuration.ts` - Current config
-- `apps/backend/src/common/services/` - Existing services
+- `apps/backend/examples/dto-pattern.ts` - DTO patterns
 - `apps/backend/examples/service-pattern.ts` - Service patterns
+- `apps/backend/src/modules/cases/cases.service.ts` - Service reference
+- `apps/backend/src/common/services/storage.service.ts` - Storage service
 
-**Task:** Create file storage service with local filesystem backend (Azure Blob ready).
+**Task:** Create DTOs and service for file attachments.
 
-**Create StorageService in `apps/backend/src/common/services/`:**
+**DTOs in `apps/backend/src/modules/attachments/dto/`:**
 
-**Interface:**
-- `upload(file: Express.Multer.File, tenantId: string): Promise<{key: string, url: string}>`
-- `download(key: string): Promise<{stream: Readable, mimeType: string}>`
-- `delete(key: string): Promise<void>`
-- `getSignedUrl(key: string, expiresIn?: number): Promise<string>`
+**CreateAttachmentDto:**
+- entityType: AttachmentEntityType (required)
+- entityId: UUID (required)
+- description?: string (optional, max 500 chars)
+- isEvidence?: boolean (optional, default false)
+Note: File itself comes from multipart upload, not DTO
 
-**Implementation (LocalStorageAdapter for now):**
-- Store files in `./uploads/{tenantId}/{uuid}/{filename}`
-- Generate unique keys using UUID
-- Return relative paths as URLs for local dev
-- Validate file types (configurable allowlist)
-- Validate file size (configurable max, default 10MB)
-- Sanitize filenames (remove special characters)
+**AttachmentResponseDto:**
+- id, organizationId, entityType, entityId
+- fileName, mimeType, fileSize
+- uploadedBy: { id, name, email }
+- description, isEvidence
+- downloadUrl: string (signed URL)
+- createdAt
 
-**Configuration in config/configuration.ts:**
-- STORAGE_TYPE: 'local' | 'azure' (default 'local')
-- STORAGE_PATH: './uploads' (for local)
-- MAX_FILE_SIZE: 10485760 (10MB)
-- ALLOWED_MIME_TYPES: ['image/*', 'application/pdf', 'text/*', ...]
+**AttachmentQueryDto:**
+- entityType?: AttachmentEntityType
+- entityId?: UUID
+- isEvidence?: boolean
+- page, limit (pagination)
 
-**Add to ConfigModule exports.**
+**Service in `apps/backend/src/modules/attachments/`:**
 
-Note: Azure Blob adapter will be added later - design interface to support both.
+**AttachmentService methods:**
+- `create(file: Express.Multer.File, dto: CreateAttachmentDto, userId: string, orgId: string)`
+  - Validate entity exists and belongs to org
+  - Upload file via StorageService
+  - Create attachment record
+  - Log activity
+- `findByEntity(entityType: string, entityId: string, orgId: string)`
+- `findOne(id: string, orgId: string)`
+- `delete(id: string, userId: string, orgId: string)`
+  - Delete file from storage
+  - Delete attachment record
+  - Log activity
+
+**Entity validation:**
+- CASE: verify case exists in org
+- INVESTIGATION: verify investigation exists in org
+- INVESTIGATION_NOTE: verify note exists in org
 
 **Output Files:**
-- `apps/backend/src/common/services/storage.service.ts`
-- `apps/backend/src/common/services/storage.interface.ts`
-- `apps/backend/src/common/services/local-storage.adapter.ts`
-- Update `apps/backend/src/config/configuration.ts`
-- Update `apps/backend/src/common/index.ts`
+- `apps/backend/src/modules/attachments/dto/create-attachment.dto.ts`
+- `apps/backend/src/modules/attachments/dto/attachment-response.dto.ts`
+- `apps/backend/src/modules/attachments/dto/attachment-query.dto.ts`
+- `apps/backend/src/modules/attachments/dto/index.ts`
+- `apps/backend/src/modules/attachments/attachments.service.ts`
 
 **Verification:**
 ```bash
@@ -89,12 +108,12 @@ cd apps/backend && npm test
 ```
 
 **Stop Condition:**
-- StorageService injectable
-- Local file upload/download works
-- File validation works
+- All DTOs with validation
+- Service methods implemented
+- Activity logging integrated
 - OR document blockers
 
-**When Complete:** Reply **TASK 1.8.2 COMPLETE**
+**When Complete:** Reply **TASK 1.8.3 COMPLETE**
 
 ---
 
