@@ -1,0 +1,27 @@
+{
+  "mode": "yolo",
+  "depth": "standard",
+  "parallelization": true,
+  "commit_docs": true,
+  "model_profile": "balanced",
+  "workflow": {
+    "research": false,
+    "plan_check": true,
+    "verifier": true
+  },
+  "project_type": "brownfield",
+  "source_docs": {
+    "vision": "00-PLATFORM/01-PLATFORM-VISION.md",
+    "audit": ".planning/v1.0-TIER1-AUDIT.md",
+    "prds": [
+      "02-MODULES/05-CASE-MANAGEMENT/PRD.md",
+      "02-MODULES/02-OPERATOR-CONSOLE/PRD.md",
+      "02-MODULES/03-ETHICS-PORTAL/PRD.md",
+      "02-MODULES/06-DISCLOSURES/PRD.md"
+    ],
+    "tech_specs": [
+      "01-SHARED-INFRASTRUCTURE/TECH-SPEC-AUTH-MULTITENANCY.md",
+      "01-SHARED-INFRASTRUCTURE/CORE-DATA-MODEL.md"
+    ]
+  }
+}
