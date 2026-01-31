@@ -6,7 +6,9 @@ import { AuthModule } from "./modules/auth/auth.module";
 import { CasesModule } from "./modules/cases/cases.module";
 import { InvestigationsModule } from "./modules/investigations/investigations.module";
 import { InvestigationNotesModule } from "./modules/investigation-notes/investigation-notes.module";
+import { AttachmentsModule } from "./modules/attachments/attachments.module";
 import { ActivityModule } from "./common/activity.module";
+import { StorageModule } from "./common/storage.module";
 import { TenantMiddleware } from "./common/middleware/tenant.middleware";
 import configuration from "./config/configuration";
 
@@ -19,10 +21,12 @@ import configuration from "./config/configuration";
     }),
     PrismaModule,
     ActivityModule,
+    StorageModule,
     AuthModule,
     CasesModule,
     InvestigationsModule,
     InvestigationNotesModule,
+    AttachmentsModule,
     HealthModule,
   ],
   controllers: [],

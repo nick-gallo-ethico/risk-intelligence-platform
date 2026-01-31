@@ -6,7 +6,7 @@ You are the **Ralph Loop Coordinator** for the Risk Intelligence Platform projec
 
 **Completed Slices:** 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7 ✅
 **Current Slice:** 1.8 - File Attachments & User Management
-**Current Task:** 1.8.4 (ready to start)
+**Current Task:** 1.8.5 (ready to start)
 
 ## Recent Accomplishments
 
@@ -14,6 +14,7 @@ You are the **Ralph Loop Coordinator** for the Risk Intelligence Platform projec
 - Task 1.8.1: File Attachment Prisma Schema ✅
 - Task 1.8.2: File Storage Service ✅
 - Task 1.8.3: Attachment DTOs and Service ✅
+- Task 1.8.4: Attachment Controller & Module ✅
 
 ## Your Responsibilities
 
@@ -30,8 +31,8 @@ You are the **Ralph Loop Coordinator** for the Risk Intelligence Platform projec
    - [x] 1.8.1 - File Attachment Prisma Schema ✅
    - [x] 1.8.2 - File Storage Service ✅
    - [x] 1.8.3 - Attachment DTOs and Service ✅
-   - [ ] 1.8.4 - Attachment Controller & Module (READY)
-   - [ ] 1.8.5 - User Management DTOs and Service
+   - [x] 1.8.4 - Attachment Controller & Module ✅
+   - [ ] 1.8.5 - User Management DTOs and Service (READY)
    - [ ] 1.8.6 - User Management Controller & Module
    - [ ] 1.8.7 - File Upload Component (Frontend)
    - [ ] 1.8.8 - User Management UI (Frontend)
@@ -39,69 +40,93 @@ You are the **Ralph Loop Coordinator** for the Risk Intelligence Platform projec
 
 ## Next Task to Execute
 
-### Task 1.8.4: Attachment Controller & Module
+### Task 1.8.5: User Management DTOs and Service
 
-**Estimate:** 1 hour
+**Estimate:** 1.5 hours
 
 **Input Files:**
-- `apps/backend/examples/controller-pattern.ts` - Controller patterns
-- `apps/backend/src/modules/cases/cases.controller.ts` - Reference controller
-- `apps/backend/src/modules/attachments/attachments.service.ts` - Attachment service
+- `apps/backend/examples/dto-pattern.ts` - DTO patterns
+- `apps/backend/examples/service-pattern.ts` - Service patterns
+- `apps/backend/prisma/schema.prisma` - User model
+- `apps/backend/src/modules/auth/auth.service.ts` - Password hashing
 
-**Task:** Create controller and module for file attachments.
+**Task:** Create DTOs and service for user management (admin only).
 
-**Controller endpoints:**
-- POST /api/v1/attachments - Upload file
-  - Use @UseInterceptors(FileInterceptor('file'))
-  - Body: CreateAttachmentDto
-  - Returns: AttachmentResponseDto
-- GET /api/v1/attachments?entityType=CASE&entityId=xxx - List by entity
-- GET /api/v1/attachments/:id - Get single attachment
-- GET /api/v1/attachments/:id/download - Download file (redirect to signed URL)
-- DELETE /api/v1/attachments/:id - Delete attachment
+**DTOs in `apps/backend/src/modules/users/dto/`:**
 
-**Guards:**
-- JwtAuthGuard on all endpoints
-- TenantGuard for tenant isolation
-- RolesGuard: SYSTEM_ADMIN, COMPLIANCE_OFFICER, INVESTIGATOR can upload/delete
+CreateUserDto:
+- email: string (required, email format)
+- firstName: string (required)
+- lastName: string (required)
+- role: UserRole enum (required)
+- password?: string (optional, for local auth)
+- departmentId?: UUID
+- businessUnitId?: UUID
 
-**Swagger documentation:**
-- @ApiTags('attachments')
-- @ApiConsumes('multipart/form-data') for upload
-- @ApiBody with file schema
-- Response types documented
+UpdateUserDto:
+- firstName?: string
+- lastName?: string
+- role?: UserRole
+- isActive?: boolean
+- departmentId?: UUID
+- businessUnitId?: UUID
 
-**Module:**
-- Import MulterModule with file size limits
-- Export AttachmentService for use by other modules
-- Register in AppModule
+UserResponseDto:
+- id, email, firstName, lastName
+- role, isActive
+- department?: { id, name }
+- businessUnit?: { id, name }
+- lastLoginAt
+- createdAt, updatedAt
+
+UserQueryDto:
+- role?: UserRole
+- isActive?: boolean
+- search?: string (name or email)
+- page, limit
+
+**Service in `apps/backend/src/modules/users/`:**
+
+UsersService methods:
+- create(dto: CreateUserDto, creatorId: string, orgId: string)
+  - Hash password if provided
+  - Send welcome email (stub for now)
+  - Log activity
+- findAll(query: UserQueryDto, orgId: string)
+- findOne(id: string, orgId: string)
+- update(id: string, dto: UpdateUserDto, updaterId: string, orgId: string)
+  - Cannot deactivate self
+  - Log activity
+- deactivate(id: string, updaterId: string, orgId: string)
+  - Soft delete (isActive = false)
+  - Cannot deactivate self
+  - Log activity
+
+Note: Password reset and SSO linking are separate features for later.
 
 **Output Files:**
-- `apps/backend/src/modules/attachments/attachments.controller.ts`
-- `apps/backend/src/modules/attachments/attachments.module.ts`
-- Update `apps/backend/src/app.module.ts`
+- `apps/backend/src/modules/users/dto/create-user.dto.ts`
+- `apps/backend/src/modules/users/dto/update-user.dto.ts`
+- `apps/backend/src/modules/users/dto/user-response.dto.ts`
+- `apps/backend/src/modules/users/dto/user-query.dto.ts`
+- `apps/backend/src/modules/users/dto/index.ts`
+- `apps/backend/src/modules/users/users.service.ts`
 
 **Verification:**
 ```bash
 cd apps/backend && npm run typecheck
 cd apps/backend && npm run lint
 cd apps/backend && npm test
-
-# Manual test: upload file
-curl -X POST "http://localhost:3000/api/v1/attachments" \
-  -H "Authorization: Bearer $TOKEN" \
-  -F "file=@test.pdf" \
-  -F "entityType=CASE" \
-  -F "entityId=xxx"
 ```
 
 **Stop Condition:**
-- All endpoints working
-- File upload/download functional
-- Swagger docs complete
+- All DTOs with validation
+- Service methods implemented
+- Password hashing working
+- Activity logging integrated
 - OR document blockers
 
-**When Complete:** Reply **TASK 1.8.4 COMPLETE**
+**When Complete:** Reply **TASK 1.8.5 COMPLETE**
 
 ---
 

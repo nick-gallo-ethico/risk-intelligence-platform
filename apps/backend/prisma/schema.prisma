@@ -364,6 +364,7 @@ enum AuditEntityType {
   REPORT
   DASHBOARD
   INTEGRATION
+  ATTACHMENT
 
   @@map("audit_entity_type")
 }
