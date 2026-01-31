@@ -1,4 +1,5 @@
 import { Page, Locator, expect } from '@playwright/test';
+import * as path from 'path';
 
 /**
  * Page Object for the Case Detail page (/cases/[id])
@@ -16,6 +17,15 @@ export class CaseDetailPage {
   readonly loadingIndicator: Locator;
   readonly errorMessage: Locator;
   readonly backButton: Locator;
+
+  // Attachment elements
+  readonly attachmentsSection: Locator;
+  readonly addAttachmentButton: Locator;
+  readonly attachmentsList: Locator;
+  readonly fileDropZone: Locator;
+  readonly fileInput: Locator;
+  readonly uploadButton: Locator;
+  readonly deleteAttachmentDialog: Locator;
 
   constructor(page: Page) {
     this.page = page;
@@ -38,6 +48,19 @@ export class CaseDetailPage {
     this.loadingIndicator = page.locator('text=Loading...');
     this.errorMessage = page.locator('text=Case Not Found');
     this.backButton = page.getByRole('button', { name: /back/i });
+
+    // Attachment elements
+    this.attachmentsSection = page.locator('text=Attachments').locator('..');
+    this.addAttachmentButton = page.locator('button').filter({ hasText: /add attachment/i });
+    this.attachmentsList = page.locator('[class*="space-y-2"]').filter({
+      has: page.locator('[class*="rounded-lg border"]'),
+    });
+    this.fileDropZone = page.locator('[class*="border-dashed"]');
+    this.fileInput = page.locator('input[type="file"]');
+    this.uploadButton = page.getByRole('button', { name: /upload/i });
+    this.deleteAttachmentDialog = page.getByRole('dialog').filter({
+      has: page.locator('text=Delete Attachment'),
+    });
   }
 
   /**
@@ -180,5 +203,160 @@ export class CaseDetailPage {
       await this.page.keyboard.press('Escape');
     }
     await expect(this.page.locator('[role="dialog"]')).toBeHidden();
+  }
+
+  // ==================== ATTACHMENT METHODS ====================
+
+  /**
+   * Click the Add Attachment button to show upload zone
+   */
+  async clickAddAttachment() {
+    await this.addAttachmentButton.click();
+    await expect(this.fileDropZone).toBeVisible({ timeout: 5000 });
+  }
+
+  /**
+   * Upload a file to the case
+   */
+  async uploadFile(filePath: string) {
+    // Ensure upload zone is visible
+    if (!(await this.fileDropZone.isVisible().catch(() => false))) {
+      await this.clickAddAttachment();
+    }
+
+    // Upload file
+    await this.fileInput.setInputFiles(filePath);
+
+    // Wait for file to appear in queue
+    await this.page.waitForTimeout(500);
+
+    // Click upload button
+    await this.uploadButton.click();
+
+    // Wait for upload to complete (toast or file in list)
+    await expect(async () => {
+      const uploadSuccess = await this.page.locator('text=Uploaded').isVisible().catch(() => false);
+      const fileName = path.basename(filePath);
+      const fileInList = await this.page.locator(`text=${fileName}`).isVisible().catch(() => false);
+      expect(uploadSuccess || fileInList).toBe(true);
+    }).toPass({ timeout: 15000 });
+  }
+
+  /**
+   * Upload a file using drag and drop simulation
+   */
+  async uploadFileDragDrop(filePath: string) {
+    // Ensure upload zone is visible
+    if (!(await this.fileDropZone.isVisible().catch(() => false))) {
+      await this.clickAddAttachment();
+    }
+
+    // Use Playwright's file chooser for drag simulation
+    await this.fileInput.setInputFiles(filePath);
+
+    // Wait for file to appear in queue
+    await this.page.waitForTimeout(500);
+
+    // Click upload button
+    await this.uploadButton.click();
+
+    // Wait for upload to complete
+    await this.page.waitForTimeout(3000);
+  }
+
+  /**
+   * Get the count of attachments
+   */
+  async getAttachmentCount(): Promise<number> {
+    // Look for the count in the section header
+    const header = this.page.locator('text=/Attachments \\(\\d+\\)/');
+    const text = await header.textContent().catch(() => 'Attachments (0)');
+    const match = text?.match(/\((\d+)\)/);
+    return match ? parseInt(match[1], 10) : 0;
+  }
+
+  /**
+   * Check if a file with the given name exists in attachments
+   */
+  async hasAttachment(fileName: string): Promise<boolean> {
+    const attachment = this.propertiesPanel.locator(`text=${fileName}`);
+    return await attachment.isVisible().catch(() => false);
+  }
+
+  /**
+   * Download an attachment by name
+   */
+  async downloadAttachment(fileName: string) {
+    const attachmentRow = this.propertiesPanel.locator('[class*="rounded-lg border"]').filter({
+      hasText: fileName,
+    });
+    const downloadButton = attachmentRow.locator('button[title="Download"]').or(
+      attachmentRow.locator('button').filter({ has: this.page.locator('svg') }).first()
+    );
+
+    // Set up download listener
+    const downloadPromise = this.page.waitForEvent('download');
+    await downloadButton.click();
+
+    const download = await downloadPromise;
+    return download;
+  }
+
+  /**
+   * Delete an attachment by name
+   */
+  async deleteAttachment(fileName: string) {
+    const attachmentRow = this.propertiesPanel.locator('[class*="rounded-lg border"]').filter({
+      hasText: fileName,
+    });
+    const deleteButton = attachmentRow.locator('button[title="Delete"]').or(
+      attachmentRow.locator('button').last()
+    );
+
+    await deleteButton.click();
+
+    // Confirm deletion in dialog
+    await expect(this.deleteAttachmentDialog).toBeVisible({ timeout: 5000 });
+    await this.page.getByRole('button', { name: /delete/i }).click();
+
+    // Wait for dialog to close
+    await expect(this.deleteAttachmentDialog).toBeHidden({ timeout: 10000 });
+  }
+
+  /**
+   * Try to upload an invalid file type and expect an error
+   */
+  async uploadInvalidFileType(filePath: string): Promise<string | null> {
+    // Ensure upload zone is visible
+    if (!(await this.fileDropZone.isVisible().catch(() => false))) {
+      await this.clickAddAttachment();
+    }
+
+    // Upload file
+    await this.fileInput.setInputFiles(filePath);
+
+    // Wait for error to appear
+    await this.page.waitForTimeout(500);
+
+    // Check for error message in the queue
+    const errorMessage = this.page.locator('text=/not allowed|invalid|error/i');
+    if (await errorMessage.isVisible().catch(() => false)) {
+      return await errorMessage.textContent();
+    }
+
+    return null;
+  }
+
+  /**
+   * Cancel the file upload (close the upload zone)
+   */
+  async cancelUpload() {
+    const cancelButton = this.page.locator('button').filter({ hasText: /cancel/i }).or(
+      this.page.locator('text=Cancel')
+    );
+    if (await cancelButton.isVisible()) {
+      await cancelButton.click();
+    }
+    await expect(this.fileDropZone).toBeHidden();
   }
 }
