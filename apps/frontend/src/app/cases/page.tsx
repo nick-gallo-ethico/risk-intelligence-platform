@@ -155,6 +155,15 @@ function CasesContent() {
               <Button variant="ghost" size="sm" className="font-semibold">
                 Cases
               </Button>
+              {user.role === 'SYSTEM_ADMIN' && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => router.push('/settings/users')}
+                >
+                  Settings
+                </Button>
+              )}
             </nav>
           </div>
         </div>

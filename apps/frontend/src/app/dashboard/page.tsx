@@ -88,6 +88,15 @@ export default function DashboardPage() {
               >
                 Cases
               </Button>
+              {user.role === 'SYSTEM_ADMIN' && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => router.push('/settings/users')}
+                >
+                  Settings
+                </Button>
+              )}
               <span className="text-sm text-gray-600">
                 {user.firstName} {user.lastName}
               </span>
