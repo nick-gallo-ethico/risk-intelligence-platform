@@ -253,6 +253,7 @@ Created from `docs/SLICE-1-ISSUES.md`:
 | 2026-01-30 | Slice 1.5 COMPLETE - Investigation Notes & E2E Testing | pushed |
 | 2026-01-30 | Code review + SQL injection fix + Slice 1.6/1.7 planning | — |
 | 2026-01-30 | Slice 1.7 COMPLETE - E2E tests (70 total tests) | — |
+| 2026-01-30 | Slice 1.8 COMPLETE - File Attachments & User Management | — |
 
 ---
 
@@ -308,9 +309,9 @@ Created from `docs/SLICE-1-ISSUES.md`:
 
 ---
 
-## In Progress
+## Completed
 
-### Slice 1.8 - File Attachments & User Management
+### Slice 1.8 - File Attachments & User Management ✅
 
 **Backend Tasks:**
 - [x] **Task 1.8.1:** File Attachment Prisma Schema ✅
@@ -325,4 +326,9 @@ Created from `docs/SLICE-1-ISSUES.md`:
 - [x] **Task 1.8.8:** User Management UI ✅
 
 **Testing:**
-- [ ] **Task 1.8.9:** E2E Tests for Slice 1.8
+- [x] **Task 1.8.9:** E2E Tests for Slice 1.8 ✅
+  - Created `attachments.spec.ts` (11 tests)
+  - Created `user-management.spec.ts` (22 tests)
+  - Created `users.page.ts` page object
+  - Updated `case-detail.page.ts` with attachment methods
+  - Total E2E tests: ~103 across 6 files
