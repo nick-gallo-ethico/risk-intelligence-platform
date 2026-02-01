@@ -1,15 +1,15 @@
 # Ethico Risk Intelligence Platform
 ## Platform Vision & Architecture
 
-**Document ID:** PRD-001  
-**Version:** 2.0 (Updated with Discovery Decisions)  
-**Last Updated:** January 2026
+**Document ID:** PRD-001
+**Version:** 3.2 (RIU - Risk Intelligence Unit)
+**Last Updated:** February 2026 (Added: RIU Creation by Module, Ethics Portal, Analytics Framework, Schema entities)
 
 ---
 
 ## Executive Summary
 
-The Ethico Risk Intelligence Platform is a next-generation compliance management system designed as "HubSpot for Compliance." It consolidates ethics hotline intake, case management, investigations, disclosures, policy management, and analytics into a unified, AI-native platform.
+The Ethico Risk Intelligence Platform is a next-generation compliance management system designed as **"HubSpot for Compliance."** It consolidates ethics hotline intake, case management, investigations, disclosures, policy management, and analytics into a unified, AI-native platform.
 
 ### Vision Statement
 
@@ -22,88 +22,496 @@ The Ethico Risk Intelligence Platform is a next-generation compliance management
 3. **User Expectations:** Today's users expect HubSpot/Salesforce-quality UX, not 2010-era enterprise software
 4. **Compliance Complexity:** Growing regulatory requirements demand better tools for managing and demonstrating compliance
 
----
+### Strategic Goals
 
-## Two Products, One Platform
-
-The platform serves two distinct user bases with tailored experiences:
-
-### Operator Console (Ethico Internal)
-
-| Aspect | Description |
-|--------|-------------|
-| **Users** | Ethico hotline operators, QA team |
-| **Purpose** | Intake calls, manage multi-client profiles, QA review workflow |
-| **Key Features** | Client profile loading via phone number, directives system, QA queue, release to client |
-| **Multi-tenant** | Operators work across multiple client profiles |
-
-### Client Platform (Customer-Facing)
-
-| Aspect | Description |
-|--------|-------------|
-| **Users** | CCOs, compliance managers, investigators, HR, Legal, Audit Committee |
-| **Purpose** | Investigation management, case tracking, reporting, dashboards |
-| **Key Features** | Saved views, investigation templates, remediation tracking, AI assistance |
-| **Multi-tenant** | Each customer sees only their organization's data |
+1. **Unified Platform:** Consolidate fragmented compliance activities into one system
+2. **AI-Native:** AI capabilities embedded throughout, not bolted on
+3. **HubSpot-Quality UX:** Modern, intuitive interface that compliance professionals want to use
+4. **Configurability:** Flexible enough to handle diverse compliance program structures
+5. **Speed to Value:** Fast implementation, easy historical data migration
+6. **Product-Led Growth:** Enable self-service onboarding and upgrades
 
 ---
 
-## Core Entity Model
+## Multi-Product Architecture
 
-### Hierarchy Overview
+**Decision: Single codebase, permission-based views**
+
+Everyone logs into the same application but sees different interfaces based on role:
+
+| User Type | Interface | Purpose |
+|-----------|-----------|---------|
+| Ethico Operators | Operator Console | Hotline intake, QA workflow |
+| Ethico Sales | Demo Environment | On-demand "Acme Co." demos |
+| Ethico Professional Services | Implementation Portal | Migration, setup, training |
+| Ethico Client Success | Client Health Dashboard | Usage metrics, deal health |
+| Client Users | Client Platform | Case management, investigations, etc. |
+
+### Demo Environment
+
+**Decision: On-demand demo tenant provisioning**
+
+Each salesperson can spin up their own "lived in" Acme Co. demo environment with historical data demonstrating all platform features. Fallback to shared demo tenant if on-demand proves too complex.
+
+### Client Success Metrics
+
+The Client Success view shows:
+- Client usage by user
+- Login frequency and patterns
+- Feature adoption metrics
+- Activity levels (cases created, reports run, etc.)
+- Deal health indicators
+
+### Professional Services Portal
+
+**Migration scope includes:**
+- Migrations from current Ethico platform to new platform
+- Migrations from competitors (NAVEX, Case IQ, EQS)
+- New clients with no prior system (Excel/paper-based)
+
+**Data types requiring migration support:**
+- Cases/investigations with attachments
+- Disclosures
+- Policies
+- User accounts and permissions (quick setup via replication)
+- Legacy reports (ability to replicate)
+- Audit logs (optional)
+
+---
+
+## Core Entity Model: The HubSpot Parallel
+
+### The Fundamental Insight
+
+The platform uses a clear separation between **immutable inputs** and **mutable work containers**, mirroring HubSpot's architecture:
+
+**HubSpot Architecture:**
+| HubSpot Concept | What It Does |
+|-----------------|--------------|
+| Contact | The person/entity being tracked. Immutable origin point. |
+| Deal | A work container with stages, pipeline, assignee. Mutable. |
+| Association | Links contacts to deals (many-to-many) |
+| Pipeline | Defines workflow stages for deals |
+| Properties | Custom fields on any object |
+
+**Ethico's Parallel Architecture:**
+| Ethico Concept | Parallel To | What It Does |
+|----------------|-------------|--------------|
+| Risk Intelligence Unit (RIU) | Contact | Immutable input - something happened. A report was filed, a form submitted, a disclosure made. |
+| Case | Deal | Mutable work container. Has status, assignee, investigations, outcomes. Represents "what we're doing about it." |
+| Association | Association | Links RIUs to Cases. Many RIUs can link to one Case. |
+| Pipeline/Workflow | Pipeline | Defines stages and required actions for different case types |
+| Custom Fields | Properties | Tenant-configurable fields on any entity |
+
+### The Critical Separation: Input vs. Response
+
+**Risk Intelligence Items are immutable inputs.**
+They represent facts: "On Jan 15, an anonymous caller reported X" or "Employee Jane Doe disclosed a financial interest in Vendor ABC." The RIU doesn't change - it's the record of what was received.
+
+**Cases are mutable work containers.**
+They represent the organization's response: "We investigated, found it substantiated, and implemented remediation." Cases have status, assignees, due dates, outcomes.
+
+### RIU Types
+
+| RIU Type | Source | Description |
+|----------|--------|-------------|
+| Hotline Report | Phone call | Called into call center, operator-entered |
+| Web Form Submission | Employee portal | Employee self-service submission |
+| Proxy Report | Manager portal | Manager submits on behalf of employee |
+| Disclosure Response | Campaign | COI, outside employment, gift, etc. |
+| Attestation Response | Campaign | Policy acknowledgment |
+| Incident Form | Various | HIPAA breach, slip and fall, etc. |
+| Chatbot Transcript | Employee portal | AI-guided intake conversation |
+| Survey Response | Campaign | Compliance surveys |
+
+### RIU → Case Creation Rules
+
+**Decision: Configurable per RIU type**
+
+| RIU Type | Default Behavior | Configurable? |
+|----------|------------------|---------------|
+| Hotline Report | Always creates Case | Yes |
+| Web Form | Always creates Case | Yes |
+| Proxy Report | Always creates Case | Yes |
+| Disclosure Response | Case only if threshold met or flagged | Yes |
+| Attestation Response | Case only on failure | Yes |
+| Incident Form | Configurable by form type | Yes |
+| Chatbot Transcript | Depends on outcome | Yes |
+| Survey Response | Case only if flagged response | Yes |
+
+### Many-to-One: RIUs to Cases
+
+**Critical requirement:** Multiple RIUs can be linked to a single Case.
+
+Example: Three hotline calls about the same issue should combine into one Case:
+```
+RIU #1: Hotline Report (Jan 10) ──┐
+RIU #2: Hotline Report (Jan 12) ──┼──► CASE #100: "Warehouse Safety Investigation"
+RIU #3: Hotline Report (Jan 15) ──┘         ├── Investigation A (Safety)
+                                            ├── Investigation B (Retaliation)
+                                            └── Remediation Plan
+```
+
+Each RIU maintains its integrity (original report, timestamp, reporter). The Case aggregates them and tracks the response.
+
+### Case Hierarchy
 
 ```
-CASE (primary entity - the risk intelligence container)
-│
-├── Intake Information (embedded)
-│   ├── Source channel, timestamp, operator
-│   ├── Reporter info (anonymous handling)
-│   ├── Location, category, severity
-│   ├── Original narrative, summary, addendum
-│   ├── Subjects (linked from HRIS or manual)
-│   └── Custom fields & questions
-│
-├── Interactions (timeline)
-│   ├── Initial Intake
-│   ├── Follow-up #1 (new info flagged)
-│   ├── Follow-up #2
-│   └── ... (hotline or web portal)
-│
-├── Investigations (0 to N)
+CASE (work container)
+├── Basic Info (number, category, severity, status)
+├── Pipeline Stage (workflow position)
+├── Assignment (user and/or team)
+├── Linked RIUs (source reports - many allowed)
+├── Related Subjects (people involved)
+├── Related Policies (if violation)
+├── Investigations (children - one to many)
 │   ├── Investigation A
-│   │   ├── Assignee(s), status, category
-│   │   ├── Notes, interviews, documents
-│   │   ├── Template/checklist (if applicable)
-│   │   ├── Findings & outcome
-│   │   └── Remediation plan
+│   │   ├── Type, Status, Investigator
+│   │   ├── Interviews, Notes, Evidence
+│   │   ├── Findings
+│   │   └── Remediation Plan (investigation-level)
 │   └── Investigation B
-│       └── (same structure)
-│
-├── Communications
-│   └── Two-way messaging with reporter (anonymized relay)
-│
-└── Remediation Plan (if no investigations but substantiated)
+│       └── ...
+├── Remediation Plan (case-level, if no investigations but substantiated)
+├── Communications (two-way with reporter via anonymized relay)
+├── Outcomes & Findings
+├── Custom Fields
+└── Activity Log / Audit Trail
 ```
 
-### Key Entity Decisions
+### Case Merging
 
-| Decision | Choice | Rationale |
-|----------|--------|-----------|
-| Intake vs Case | Combined (Case contains intake) | 99% of intakes are 1:1 with cases; split capability for rare exceptions |
-| Case Status | Derived from investigations | Auto-calculated but admin-overridable |
-| Investigations per Case | 0 to N | Some cases need no investigation; some spawn multiple (HR + Legal) |
-| Subjects | Linked at Case level | Searchable across all cases for pattern detection |
-| Follow-ups | Stored as Interactions | Don't clutter case list; tracked for metrics |
-| Remediation | At Investigation level | Falls back to Case level if no investigations exist |
+**Decision: Support both linking RIUs to existing Cases AND merging Cases**
 
-### Request for Information (RFI)
+**Merge behavior:**
+- Merged case becomes read-only tombstone (can still view history)
+- All RIUs, investigations, and content move to primary case
+- Merged case redirects to primary if accessed
+- Full audit trail of merge action
 
-RFIs are a separate entity type:
-- Logged and tracked for metrics
-- Skip QA workflow
-- No investigation required
-- Same intake form (not simplified)
-- Appear in separate list from Cases
+**Merge permissions:** Configurable (case owner, admin, or by permission)
+
+---
+
+## RIU Creation & Consumption by Module
+
+This section explicitly defines how each platform module creates and consumes Risk Intelligence Items. **This is the authoritative reference for PRD alignment.**
+
+### RIU Creation Matrix
+
+Every input into the platform creates a Risk Intelligence Item. This matrix shows the source and rules for each RIU type:
+
+| Module | RIU Type Created | Trigger | Auto-Creates Case? |
+|--------|------------------|---------|-------------------|
+| **Operator Console** | `hotline_report` | Operator completes intake form | Yes (after QA release) |
+| **Employee Portal** | `web_form_submission` | Employee submits report form | Yes (immediate) |
+| **Employee Portal** | `proxy_report` | Manager submits on behalf of employee | Yes (immediate) |
+| **Disclosures Module** | `disclosure_response` | Employee completes campaign disclosure form | If threshold met or flagged |
+| **Policy Module** | `attestation_response` | Employee attests or refuses policy | If failure or refusal (configurable) |
+| **Web Forms** | `incident_form` | Employee submits incident form | Configurable per form type |
+| **Employee Chatbot** | `chatbot_transcript` | Chatbot session completes | If escalation triggered or intake completed |
+| **Campaigns (Survey)** | `survey_response` | Employee completes survey | If flagged response detected |
+
+### RIU→Case Flow Diagrams
+
+**Hotline Flow (QA Required):**
+
+```
+Phone Call Received
+         │
+         ▼
+┌─────────────────────────────┐
+│  OPERATOR CREATES RIU       │
+│  type: hotline_report       │
+│  status: pending_qa         │
+└─────────────────────────────┘
+         │
+         ▼
+┌─────────────────────────────┐
+│  QA REVIEW                  │
+│  QA reviewer edits/approves │
+│  status: released           │
+└─────────────────────────────┘
+         │
+         ▼
+┌─────────────────────────────┐
+│  SYSTEM CREATES CASE        │
+│  status: new                │
+│  Links RIU as 'primary'     │
+└─────────────────────────────┘
+         │
+         ▼
+┌─────────────────────────────┐
+│  ROUTING & ASSIGNMENT       │
+│  Based on client rules      │
+└─────────────────────────────┘
+```
+
+**Web Form / Self-Service Flow (No QA):**
+
+```
+Employee Submits Report
+         │
+         ▼
+┌─────────────────────────────┐
+│  SYSTEM CREATES RIU         │
+│  type: web_form_submission  │
+│  status: received           │
+└─────────────────────────────┘
+         │ (immediate)
+         ▼
+┌─────────────────────────────┐
+│  SYSTEM CREATES CASE        │
+│  status: new                │
+│  Links RIU as 'primary'     │
+└─────────────────────────────┘
+```
+
+**Disclosure/Campaign Flow (Conditional Case):**
+
+```
+Employee Completes Disclosure Form
+         │
+         ▼
+┌─────────────────────────────┐
+│  UPDATE Campaign Assignment │
+│  status: completed          │
+└─────────────────────────────┘
+         │
+         ▼
+┌─────────────────────────────┐
+│  CREATE RIU                 │
+│  type: disclosure_response  │
+│  Links to campaign_id       │
+└─────────────────────────────┘
+         │
+         ▼
+┌─────────────────────────────────────────────┐
+│  EVALUATE THRESHOLDS (auto_case_rules)      │
+│  - Gift amount > configured threshold?      │
+│  - Relationship type flagged?               │
+│  - Manual review required by form config?   │
+└─────────────────────────────────────────────┘
+         │
+    ┌────┴────┐
+    │         │
+    ▼         ▼
+ No Case   CREATE CASE
+ (RIU only) (COI Review)
+```
+
+**Chatbot Flow (Outcome-Based):**
+
+```
+Chatbot Conversation Completes
+         │
+         ▼
+┌─────────────────────────────┐
+│  CREATE RIU                 │
+│  type: chatbot_transcript   │
+│  Full conversation stored   │
+└─────────────────────────────┘
+         │
+         ▼
+┌─────────────────────────────────────────────┐
+│  EVALUATE OUTCOME                           │
+│  - User requested escalation to human?      │
+│  - AI flagged concern for human review?     │
+│  - Intake completed (report submitted)?     │
+│  - Policy Q&A only (no action needed)?      │
+└─────────────────────────────────────────────┘
+         │
+    ┌────┴────┬────────────┐
+    │         │            │
+    ▼         ▼            ▼
+ No Case   Inquiry      CREATE CASE
+ (Q&A only) Created     (Escalation/Report)
+```
+
+### Linking Multiple RIUs to One Case
+
+When related RIUs are identified (same issue reported multiple times), they link to a single Case via `riu_case_associations`:
+
+```
+RIU #1: Hotline Report (Jan 10) ──┐  association_type: 'primary'
+      "Warehouse safety concern"  │
+                                  │
+RIU #2: Web Form (Jan 12) ────────┼──► CASE #100
+      "Unsafe equipment"          │     "Warehouse Safety Investigation"
+      association_type: 'related' │
+                                  │
+RIU #3: Follow-up Call (Jan 15) ──┘  association_type: 'related'
+      "Update from original caller"
+```
+
+**Association Type Rules:**
+- `primary` - First RIU that created the Case
+- `related` - Subsequent RIUs manually linked by investigator
+- `merged_from` - RIUs that came from a merged Case
+
+### RIU Immutability Rules
+
+**RIUs are immutable after creation.** This preserves the factual record of what was reported.
+
+| Field Category | Mutable? | Who Can Change | When |
+|----------------|----------|----------------|------|
+| Core content (details, narrative) | **No** | - | Never - original preserved |
+| Reporter information | **No** | - | Never - as captured at intake |
+| Category/Severity (as captured) | **No** | - | Never - corrections go on Case |
+| AI enrichment fields | Yes | System | On-demand regeneration |
+| Status (pending_qa → released) | Yes | QA Reviewer | During QA workflow only |
+| Translation fields | Yes | System | When translation requested |
+
+**Key Principle:** If an operator made a categorization error during intake, the **Case** category is corrected (not the RIU). The RIU preserves exactly what was captured at the moment of intake. This maintains audit integrity and allows "what was reported" vs "what it actually was" analysis.
+
+### Follow-Up Handling
+
+Follow-ups do **not** create new Cases. They either:
+1. Create a new RIU linked to the existing Case (if substantive new information)
+2. Create an Interaction record on the Case (for status checks)
+
+```
+Follow-up Call Received
+         │
+         ▼
+┌─────────────────────────────┐
+│  LOOKUP EXISTING CASE       │
+│  Via access code (anonymous)│
+│  or reporter info (identified)
+└─────────────────────────────┘
+         │
+    ┌────┴────┐
+    │         │
+    ▼         ▼
+New Info    Status Check
+    │           │
+    ▼           ▼
+CREATE RIU   CREATE INTERACTION
+(linked to    (no RIU created)
+existing Case)
+```
+
+---
+
+## Campaign Model
+
+### The Problem
+
+Outbound requests (annual COI disclosure, policy attestation) need different handling than inbound reports. You need to track:
+- Who was asked to do something
+- Who has/hasn't responded
+- What they responded with
+- Whether their response requires action
+
+### Campaign Entity Model
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                            CAMPAIGNS                                │
+│              [Outbound requests for information/action]             │
+├─────────────────────────────────────────────────────────────────────┤
+│  • Campaign Type (disclosure, attestation, certification, survey)   │
+│  • Target Audience (all employees, department, role, individual)    │
+│  • Form/Template to complete                                        │
+│  • Due Date & Reminder Schedule                                     │
+│  • Status (draft, active, closed)                                   │
+│  • Thresholds for auto-case creation                                │
+└─────────────────────────────────────────────────────────────────────┘
+                            │
+                            │ Creates (one per target employee)
+                            ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                       CAMPAIGN ASSIGNMENTS                          │
+│                [Individual employee obligations]                    │
+├─────────────────────────────────────────────────────────────────────┤
+│  • Employee (from HRIS)                                             │
+│  • Status: pending | completed | overdue | exempted                 │
+│  • Assigned Date, Due Date                                          │
+│  • Reminder History                                                 │
+│  • Completion Date (if completed)                                   │
+└─────────────────────────────────────────────────────────────────────┘
+                            │
+                            │ When Employee Completes
+                            ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                    RISK INTELLIGENCE ITEM                           │
+│                    [The actual response]                            │
+├─────────────────────────────────────────────────────────────────────┤
+│  • Type: 'disclosure_response' | 'attestation_response' | etc.      │
+│  • Links back to Campaign Assignment                                │
+│  • Contains the actual form data submitted                          │
+│  • Immutable record of what employee attested/disclosed             │
+└─────────────────────────────────────────────────────────────────────┘
+                            │
+                            │ If threshold met / review needed
+                            ▼
+┌─────────────────────────────────────────────────────────────────────┐
+│                             CASE                                    │
+│                    [If action required]                             │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+### Campaign Scenarios
+
+| Scenario | Campaign Assignment | RIU | Case |
+|----------|---------------------|-----|------|
+| Employee hasn't responded yet | ✓ Pending | ✗ Not yet | ✗ No |
+| Employee responds "No conflicts" | ✓ Completed | ✓ Created (clean) | ✗ No |
+| Employee discloses $50 gift | ✓ Completed | ✓ Created | ✗ Below threshold |
+| Employee discloses $500 gift | ✓ Completed | ✓ Created | ✓ Needs review |
+| Employee discloses family at vendor | ✓ Completed | ✓ Created | ✓ COI review case |
+| Employee never responds | ✓ Overdue | ✗ No response | ✓ Non-compliance case (if configured) |
+
+---
+
+## Policy Management Integration
+
+### How Policies Connect to the Core Model
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                           POLICIES                                  │
+│                    [Documents & Versions]                           │
+└───────────┬─────────────────────────────────────────┬───────────────┘
+            │                                         │
+            │ Attestation                             │ Violation
+            │ Campaigns                               │ Reference
+            ▼                                         │
+┌───────────────────────┐                             │
+│      CAMPAIGNS        │                             │
+│  (attestation, COI,   │                             │
+│   disclosure, survey) │                             │
+└───────────┬───────────┘                             │
+            │                                         │
+            │ Responses                               │
+            ▼                                         │
+┌───────────────────────────────────────────────────────────────────────┐
+│                    RISK INTELLIGENCE ITEMS                            │
+│  Hotline │ Web Form │ Disclosure │ Attestation │ Incident │ Chatbot  │
+└───────────────────────────────────┬───────────────────────────────────┘
+                                    │
+                                    │ Creates / Links To
+                                    ▼
+┌───────────────────────────────────────────────────────────────────────┐
+│                              CASES                                    │
+│  ├── Category (can be "Policy Violation")◄────────────────────────────┘
+│  ├── Related Policies (links to violated policies)
+│  ├── Related RIUs (source reports)
+│  ├── Investigations
+│  └── Remediation (can include "Update Policy X")
+└───────────────────────────────────────────────────────────────────────┘
+```
+
+### Policy-Case Connections
+
+| Policy Management Need | How It Maps |
+|------------------------|-------------|
+| Send policy for acknowledgment | Create Campaign (type: policy_attestation) |
+| Track who hasn't signed | Campaign Assignments with status = pending |
+| Record signature | RIU created when they attest |
+| Flag refusals or quiz failures | RIU → Case (configurable threshold) |
+| Policy violation found in investigation | Case → Related Policy link |
+| Update policy based on findings | Case outcome can trigger policy review workflow |
 
 ---
 
@@ -183,7 +591,27 @@ EMPLOYEE
 - Case subjects → Employee
 - Attestation recipients → Employee
 - Disclosure submitters → Employee
+- Campaign assignment targets → Employee
 - HRIS-driven routing rules → Employee attributes
+
+### Organization Entity
+
+Organizations are the top-level tenant containers.
+
+```
+ORGANIZATION
+├── id: uuid
+├── name: string
+├── slug: string (unique, URL-safe)
+├── domain: string? (for SSO domain matching)
+├── tier: enum ('FREE', 'PREMIUM', 'ENTERPRISE')
+├── settings: json (feature flags, limits, preferences)
+├── billing_status: enum
+├── logo_url: string?
+├── primary_contact_id: uuid? (FK to User)
+├── created_at, updated_at: timestamp
+└── Unique constraint: slug
+```
 
 ### JWT Token Structure
 
@@ -211,60 +639,44 @@ Access tokens contain:
 | `emp` | Linked Employee ID (if any) |
 | `isOp` | Is Ethico operator (cross-tenant access) |
 
-### Organization Entity
-
-Organizations are the top-level tenant containers.
-
-```
-ORGANIZATION
-├── id: uuid
-├── name: string
-├── slug: string (unique, URL-safe)
-├── domain: string? (for SSO domain matching)
-├── tier: enum ('FREE', 'PREMIUM', 'ENTERPRISE')
-├── settings: json (feature flags, limits, preferences)
-├── billing_status: enum
-├── logo_url: string?
-├── primary_contact_id: uuid? (FK to User)
-├── created_at, updated_at: timestamp
-└── Unique constraint: slug
-```
-
 ---
 
 ## Source Channels
 
-| Channel | Who Enters | Interface | QA Required |
-|---------|------------|-----------|-------------|
-| **Hotline** | Ethico Operator | Operator Console | Yes |
-| **Web Form** | Employee/Reporter | Employee Portal | No |
-| **Proxy Report** | Manager | Manager Portal | No |
-| **Direct Entry** | Compliance Officer | Client Platform | No |
-| **Chatbot** | Employee/Reporter | Employee Portal | No |
-| **Follow-up (hotline)** | Ethico Operator | Operator Console | Yes |
-| **Follow-up (web)** | Reporter | Employee Portal | No |
+| Channel | Who Enters | Interface | QA Required | Creates RIU Type |
+|---------|------------|-----------|-------------|------------------|
+| **Hotline** | Ethico Operator | Operator Console | Yes | hotline_report |
+| **Web Form** | Employee/Reporter | Employee Portal | No | web_form_submission |
+| **Proxy Report** | Manager | Manager Portal | No | proxy_report |
+| **Direct Entry** | Compliance Officer | Client Platform | No | direct_entry |
+| **Chatbot** | Employee/Reporter | Employee Portal | No | chatbot_transcript |
+| **Campaign Response** | Employee | Employee Portal | No | disclosure_response / attestation_response |
+| **Follow-up (hotline)** | Ethico Operator | Operator Console | Yes | (updates existing RIU) |
+| **Follow-up (web)** | Reporter | Employee Portal | No | (updates existing RIU) |
 
 ---
 
 ## Platform Modules
 
-### Core Modules (MVP Priority)
+### Core Modules (Client-Facing)
+
+1. **Case Management & Investigations** - Core work container and investigation workflows
+2. **Disclosures** - COI, gifts, outside employment campaigns
+3. **Policy Management** - Document lifecycle, attestations, distribution
+4. **Analytics & Dashboards** - HubSpot-style customizable reporting
+5. **Employee Portal** - Employee's view of compliance obligations
+6. **Employee Chatbot** - AI-guided intake and policy Q&A
+7. **Web Forms** - Configurable forms for various intake types
+8. **Project Management / Monday Board** - Task aggregation and program planning
+
+### Ethico Internal Modules
 
 1. **Operator Console** - Hotline intake, QA workflow, client profile management
-2. **Case Management** - Case tracking, investigation workflow, findings
-3. **Investigation Management** - Notes, interviews, documents, templates
-4. **Remediation Tracking** - Corrective action checklists, assignment, completion
-5. **Analytics Dashboard** - Metrics, trends, saved views
-6. **Employee Portal** - Self-service reporting, status checks, follow-ups
+2. **Sales Demo Environment** - Lived-in Acme Co. demonstration
+3. **Professional Services Portal** - Implementation and migration tools
+4. **Client Success Dashboard** - Client health and usage metrics
 
-### Extended Modules (Post-MVP)
-
-7. **Disclosure Management** - COI, gifts, outside activities
-8. **Policy Management** - Version control, attestations, distribution
-9. **Employee Chatbot** - AI-powered conversational interface (see detailed scope below)
-10. **Integration Hub** - HRIS sync, SSO, API access
-
-### Employee Chatbot (Module 9) - Detailed Scope
+### Employee Chatbot - Detailed Scope
 
 The Employee Chatbot is a comprehensive AI assistant serving as the primary self-service channel:
 
@@ -288,6 +700,89 @@ The Employee Chatbot is a comprehensive AI assistant serving as the primary self
 - Async over live (matches compliance team staffing reality)
 - Full audit trail with consent capture
 
+### Ethics Portal: Unified Employee Experience
+
+The Ethics Portal is the unified employee-facing experience layer that orchestrates capabilities from multiple modules. It serves as a **presentation layer** - owning UX/UI while delegating business logic and RIU creation to domain modules.
+
+**Portal Architecture:**
+
+```
+                    ┌─────────────────────────────────────┐
+                    │         ETHICS PORTAL               │
+                    │     (Public Landing Page)           │
+                    │   Branded per client (white-label)  │
+                    └─────────────────────────────────────┘
+                                    │
+          ┌─────────────────────────┼─────────────────────────┐
+          │                         │                         │
+          ▼                         ▼                         ▼
+┌─────────────────────┐  ┌─────────────────────┐  ┌─────────────────────┐
+│  ANONYMOUS PORTAL   │  │  EMPLOYEE PORTAL    │  │  MANAGER PORTAL     │
+│  (No login)         │  │  (SSO Required)     │  │  (SSO + Manager Role│
+│                     │  │                     │  │                     │
+│  • Submit report    │  │  • My Reports (RIUs)│  │  • Team Dashboard   │
+│  • Check status     │  │  • My Disclosures   │  │  • Proxy Reporting  │
+│  • Chat (limited)   │  │  • My Policies      │  │  • Team Completion  │
+│                     │  │  • Attestations     │  │    Status           │
+│  Creates RIUs:      │  │  • Chat (full)      │  │                     │
+│  • web_form_submission│ │                     │  │  Creates RIUs:      │
+│  • chatbot_transcript│ │  Creates RIUs:      │  │  • proxy_report     │
+└─────────────────────┘  │  • web_form_submission│ └─────────────────────┘
+                         │  • disclosure_response│
+                         │  • attestation_response
+                         │  • chatbot_transcript │
+                         └─────────────────────┘
+```
+
+**RIU Creation by Portal Section:**
+
+| Portal Section | Action | RIU Type Created |
+|----------------|--------|------------------|
+| Anonymous → Submit Report | Web form submission | `web_form_submission` |
+| Anonymous → Chatbot | Conversation | `chatbot_transcript` |
+| Employee → Submit Report | Web form submission | `web_form_submission` |
+| Employee → Complete Disclosure | Campaign response | `disclosure_response` |
+| Employee → Attest to Policy | Campaign response | `attestation_response` |
+| Employee → Chatbot | Conversation | `chatbot_transcript` |
+| Manager → Proxy Report | On behalf of employee | `proxy_report` |
+
+**Key Design Decisions:**
+- Full white-label (custom domain, logo, colors, fonts, imagery)
+- Client-configurable channels (enable/disable: web form, hotline info, chatbot, proxy)
+- PWA for mobile (installable, offline-capable, push notifications)
+- Multi-language (auto-detect + HRIS-driven + user override)
+- Access code system for anonymous reporter status checks
+
+See `02-MODULES/03-ETHICS-PORTAL/PRD.md` for full specification.
+
+---
+
+## Custom Fields
+
+**Available on ALL entity types:**
+- Risk Intelligence Items (base level)
+- RIU Type Extensions (hotline-specific, disclosure-specific, etc.)
+- Cases
+- Investigations (children of Cases)
+- Campaign Assignments
+- Policies
+- Subjects (people involved in cases)
+
+**Field types needed:**
+- Text (short and long)
+- Number
+- Date
+- Dropdown (single select)
+- Multi-select
+- User lookup
+- File attachment
+- Calculated (TBD)
+
+**Custom fields must be:**
+- Reportable in analytics
+- Filterable in views
+- Searchable
+
 ---
 
 ## AI Architecture
@@ -306,6 +801,8 @@ The Employee Chatbot is a comprehensive AI assistant serving as the primary self
 | **Subject Summary** | On-demand | All cases involving a subject |
 | **Document Analysis** | On-demand | Find references in uploaded documents |
 | **Board Reports** | On-demand | Generate presentations from data |
+| **Risk Scoring** | Auto | AI-assessed risk level per RIU/Case |
+| **Pattern Detection** | On-demand | Identify patterns across cases |
 
 ### AI Design Principles
 
@@ -385,7 +882,7 @@ The platform uses a single `AUDIT_LOG` table (not module-specific activity table
 
 ```
 AUDIT_LOG (unified across all modules)
-├── entity_type: 'CASE' | 'DISCLOSURE' | 'POLICY' | 'USER' | ...
+├── entity_type: 'CASE' | 'RIU' | 'DISCLOSURE' | 'POLICY' | 'USER' | ...
 ├── entity_id: uuid
 ├── action: standardized enum
 ├── action_description: text (natural language)
@@ -399,18 +896,101 @@ AUDIT_LOG (unified across all modules)
 
 This enables cross-entity queries like "Show me all actions by this user" or "What happened to this case?"
 
-#### Analytics Fact Tables
+---
 
-Pre-aggregated tables for fast dashboards (see `ANALYTICS-DATA-MODEL.md`):
+## Analytics & RIU Framework
 
-| Fact Table | Purpose |
-|------------|---------|
-| `CASE_FACT` | Case metrics: days open, resolution time, category trends |
-| `DISCLOSURE_FACT` | Disclosure metrics: approval time, campaign completion |
-| `FORM_FACT` | Form submission metrics: completion rate, time to complete |
-| `ATTESTATION_FACT` | Attestation metrics: compliance rate, overdue tracking |
+### Reporting on Inputs vs. Responses
 
-Fact tables are refreshed incrementally (5 min) and fully (daily) to support both real-time dashboards and historical reporting.
+The RIU→Case separation enables distinct analytics perspectives that were impossible with monolithic case models:
+
+| Metric Type | Data Source | Example Metrics |
+|-------------|-------------|-----------------|
+| **Input Volume** | RIUs | Reports received by channel, disclosure completion rates, geographic distribution |
+| **Response Metrics** | Cases | Time to assignment, investigation duration, substantiation rates, outcomes |
+| **Conversion Rates** | RIU→Case links | % of disclosures requiring review, escalation rates by category |
+| **Cross-Pillar Intelligence** | Entity relationships | Cases linked to policy violations, subjects appearing across modules |
+
+### Standard Dashboard Views
+
+**RIU Dashboard (Input Analysis):**
+- Reports by channel (hotline, web, chatbot, proxy) over time
+- Reports by category with trend analysis
+- Geographic distribution of reports
+- Anonymous vs. identified ratio
+- Campaign completion rates (disclosure, attestation)
+- Average time from RIU creation to Case creation
+
+**Case Dashboard (Response Analysis):**
+- Open cases by status and pipeline stage
+- Average days to close by category
+- Outcomes distribution (substantiated, unsubstantiated, inconclusive)
+- SLA compliance rates
+- Investigator workload distribution
+- Remediation completion rates
+
+**Cross-Pillar Intelligence Dashboard:**
+- Subjects appearing in multiple cases (pattern detection)
+- Categories trending up/down over time
+- Correlation: policy changes → case volume changes
+- Remediation effectiveness by category
+- Hotspot analysis by location/business unit
+
+### Analytics Fact Tables
+
+The analytics layer uses pre-aggregated fact tables for dashboard performance:
+
+```
+FACT_RIU_DAILY (Input metrics)
+├── date_id
+├── organization_id
+├── rii_type
+├── source_channel
+├── category_id
+├── severity
+├── location_id
+├── business_unit_id
+├── is_anonymous (boolean)
+├── created_case (boolean)
+└── count
+
+FACT_CASE_DAILY (Response metrics)
+├── date_id
+├── organization_id
+├── status
+├── outcome
+├── category_id
+├── assigned_to_id
+├── severity
+├── pipeline_stage
+├── avg_days_open
+├── sla_status
+└── count
+
+FACT_CAMPAIGN_DAILY (Campaign metrics)
+├── date_id
+├── organization_id
+├── campaign_id
+├── campaign_type
+├── assignments_total
+├── assignments_completed
+├── assignments_overdue
+├── cases_created
+└── completion_rate
+```
+
+### AI-Powered Analytics Queries
+
+Natural language queries leverage the RIU→Case structure:
+
+| User Query | Data Sources | Response |
+|------------|--------------|----------|
+| "How many reports did we receive last quarter?" | FACT_RIU_DAILY | Count of RIUs by period |
+| "What's our case closure rate?" | FACT_CASE_DAILY | Cases closed / total cases |
+| "Show harassment cases from EMEA" | Cases + RIUs | Filtered case list with source RIUs |
+| "Which locations have the most reports?" | RIUs by location | Ranked location list |
+| "Compare disclosure completion: Q3 vs Q4" | FACT_CAMPAIGN_DAILY | Completion rate comparison |
+| "Find patterns in retaliation cases" | Cases + AI analysis | AI-generated pattern summary |
 
 ---
 
@@ -420,12 +1000,13 @@ Fact tables are refreshed incrementally (5 min) and fully (daily) to support bot
 
 | Role | See Cases | Assign | Investigate | Close | Configure |
 |------|-----------|--------|-------------|-------|-----------|
-| **Oversight** (Audit Committee) | Specific (view only) | No | No | No | No |
-| **CCO** | All | Yes | Optional | Yes | Yes |
+| **System Admin** | All | Yes | Yes | Yes | Yes |
+| **CCO/Compliance** | All | Yes | Optional | Yes | Yes |
 | **Triage Lead** | Scoped | Yes | Yes | Configurable | Limited |
 | **Investigator** | Assigned only | Configurable | Yes | Configurable | No |
 | **Manager** (proxy) | Own submissions | No | No | No | No |
 | **Employee** | Own cases | No | No | No | No |
+| **Oversight** (Audit Committee) | Specific (view only) | No | No | No | No |
 
 ### Visibility Scoping
 
@@ -442,6 +1023,7 @@ These settings are adjustable per client:
 - Can investigators close cases? (default: No, requires supervisor)
 - Is supervisor approval required before closure? (default: No)
 - Can oversight roles add comments? (default: No, view only)
+- Who can merge cases? (configurable: case owner, admin, or by permission)
 
 ---
 
@@ -464,16 +1046,30 @@ Users can create personalized views (tabs) showing filtered data:
 ```
 LEFT NAV:
 ├── Dashboard (customizable)
-├── My Views (cross-entity)
+├── My Workspace (cross-pillar aggregation)
 ├── Cases
-├── Investigations  
+├── RIUs (Risk Intelligence Items)
+├── Investigations
 ├── Disclosures
+├── Campaigns
 ├── Policies
 ├── Remediation
 ├── Analytics
 ├── Employee Portal (admin)
 └── Settings
 ```
+
+### "My Workspace" (Personal Dashboard)
+
+- User-customizable aggregation from multiple pillars
+- Example: User responsible for both Policies and Investigations sees unified task list
+- Cross-pillar "next actions" visible in one place
+
+### Module Dashboards
+
+- Each module has its own customizable dashboard
+- Widgets can be added, removed, rearranged (~50 dashboards allowed, each with multiple widgets)
+- Drill-down from dashboard to detail views
 
 ---
 
@@ -535,20 +1131,333 @@ REPORTER                    ETHICO                     CLIENT
 
 ---
 
-## Technical Architecture (Proposed)
+## Schema Sketch
+
+### Core Tables
+
+```sql
+-- Base table for all risk intelligence inputs
+CREATE TABLE risk_intelligence_units (
+    id UUID PRIMARY KEY,
+    organization_id UUID NOT NULL,
+    type VARCHAR(50) NOT NULL,  -- 'hotline_report', 'disclosure', 'attestation', etc.
+
+    -- Common fields
+    source_channel VARCHAR(50),  -- 'phone', 'web_form', 'chatbot', 'email', 'proxy'
+    received_at TIMESTAMP NOT NULL,
+    reporter_type VARCHAR(20),   -- 'anonymous', 'confidential', 'identified'
+    reporter_employee_id UUID,   -- nullable, links to HRIS
+
+    -- Status (for RIUs that don't auto-create cases)
+    status VARCHAR(30) DEFAULT 'pending_review',
+    reviewed_by UUID,
+    reviewed_at TIMESTAMP,
+
+    -- AI enrichment
+    ai_summary TEXT,
+    ai_language_detected VARCHAR(10),
+    ai_translation TEXT,
+    ai_risk_score DECIMAL(3,2),
+
+    -- Migration support
+    source_system VARCHAR(50),
+    source_record_id VARCHAR(255),
+    migrated_at TIMESTAMP,
+
+    -- Audit
+    created_at TIMESTAMP DEFAULT NOW(),
+    created_by UUID,
+
+    CONSTRAINT fk_organization FOREIGN KEY (organization_id) REFERENCES organizations(id)
+);
+
+-- Type-specific extension tables
+CREATE TABLE riu_hotline_details (
+    riu_id UUID PRIMARY KEY REFERENCES risk_intelligence_units(id),
+    operator_id UUID,
+    call_duration_seconds INT,
+    callback_number VARCHAR(50),
+    callback_times TEXT,
+    anonymity_preference VARCHAR(20),
+    original_transcript TEXT
+);
+
+CREATE TABLE riu_disclosure_details (
+    riu_id UUID PRIMARY KEY REFERENCES risk_intelligence_units(id),
+    disclosure_type VARCHAR(50),  -- 'conflict_of_interest', 'outside_employment', 'gift'
+    campaign_id UUID,
+    related_party_name VARCHAR(255),
+    related_party_type VARCHAR(50),
+    financial_value DECIMAL(15,2),
+    relationship_description TEXT,
+    employee_attestation BOOLEAN
+);
+
+-- Campaigns
+CREATE TABLE campaigns (
+    id UUID PRIMARY KEY,
+    organization_id UUID NOT NULL,
+    campaign_type VARCHAR(50),  -- 'disclosure', 'attestation', 'survey'
+    name VARCHAR(255),
+    description TEXT,
+    form_template_id UUID,
+
+    target_audience JSONB,  -- rules for who receives
+
+    start_date DATE,
+    due_date DATE,
+    reminder_schedule JSONB,
+
+    -- Thresholds for auto-case creation
+    auto_case_rules JSONB,
+
+    status VARCHAR(30),  -- 'draft', 'active', 'closed'
+
+    created_at TIMESTAMP DEFAULT NOW(),
+    created_by UUID
+);
+
+CREATE TABLE campaign_assignments (
+    id UUID PRIMARY KEY,
+    campaign_id UUID REFERENCES campaigns(id),
+    employee_id UUID,  -- from HRIS
+
+    status VARCHAR(30),  -- 'pending', 'completed', 'overdue', 'exempted'
+    assigned_at TIMESTAMP,
+    due_date DATE,
+    completed_at TIMESTAMP,
+
+    riu_id UUID REFERENCES risk_intelligence_units(id),  -- links to response when completed
+
+    reminder_history JSONB
+);
+
+-- Cases: the work containers
+CREATE TABLE cases (
+    id UUID PRIMARY KEY,
+    organization_id UUID NOT NULL,
+    case_number VARCHAR(50) UNIQUE,
+
+    -- Classification
+    category_id UUID,
+    subcategory_id UUID,
+    severity VARCHAR(20),
+
+    -- Pipeline/Workflow
+    pipeline_id UUID,
+    stage VARCHAR(50),
+    status VARCHAR(30),  -- 'open', 'in_progress', 'pending_review', 'closed', 'merged'
+    status_rationale TEXT,
+
+    -- Assignment
+    assigned_to UUID,
+    assigned_team_id UUID,
+
+    -- Merge tracking
+    merged_into_case_id UUID REFERENCES cases(id),
+
+    -- Outcomes
+    substantiated BOOLEAN,
+    finding_summary TEXT,
+    outcome VARCHAR(50),
+
+    -- AI enrichment
+    ai_case_summary TEXT,
+    ai_recommended_actions TEXT,
+    ai_risk_score DECIMAL(3,2),
+    ai_generated_at TIMESTAMP,
+    ai_model_version VARCHAR(50),
+
+    -- Migration support
+    source_system VARCHAR(50),
+    source_record_id VARCHAR(255),
+    migrated_at TIMESTAMP,
+
+    -- Dates
+    opened_at TIMESTAMP DEFAULT NOW(),
+    due_date DATE,
+    closed_at TIMESTAMP,
+
+    created_by UUID,
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP
+);
+
+-- Association: RIUs to Cases (many-to-many)
+CREATE TABLE riu_case_associations (
+    id UUID PRIMARY KEY,
+    riu_id UUID NOT NULL REFERENCES risk_intelligence_units(id),
+    case_id UUID NOT NULL REFERENCES cases(id),
+    association_type VARCHAR(30),  -- 'primary', 'related', 'merged_from'
+    associated_at TIMESTAMP DEFAULT NOW(),
+    associated_by UUID,
+
+    UNIQUE(riu_id, case_id)
+);
+
+-- Investigations: children of cases
+CREATE TABLE investigations (
+    id UUID PRIMARY KEY,
+    case_id UUID NOT NULL REFERENCES cases(id),
+    organization_id UUID NOT NULL,
+    investigation_type VARCHAR(50),
+
+    status VARCHAR(30),
+    investigator_id UUID,
+
+    started_at TIMESTAMP,
+    due_date DATE,
+    completed_at TIMESTAMP,
+
+    findings TEXT,
+    substantiated BOOLEAN,
+
+    -- AI enrichment
+    ai_summary TEXT,
+    ai_generated_at TIMESTAMP,
+
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Custom fields (universal)
+CREATE TABLE custom_field_definitions (
+    id UUID PRIMARY KEY,
+    organization_id UUID NOT NULL,
+    entity_type VARCHAR(50),  -- 'rii', 'case', 'investigation', etc.
+    entity_subtype VARCHAR(50),  -- optional: 'hotline_report', 'disclosure'
+
+    field_name VARCHAR(100),
+    field_label VARCHAR(255),
+    field_type VARCHAR(30),  -- 'text', 'number', 'date', 'dropdown', 'multi_select', 'user', 'file'
+    field_options JSONB,
+    is_required BOOLEAN DEFAULT FALSE,
+    is_reportable BOOLEAN DEFAULT TRUE,
+    display_order INT,
+
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE custom_field_values (
+    id UUID PRIMARY KEY,
+    organization_id UUID NOT NULL,
+    field_definition_id UUID REFERENCES custom_field_definitions(id),
+    entity_type VARCHAR(50),
+    entity_id UUID,
+
+    value_text TEXT,
+    value_number DECIMAL(20,6),
+    value_date DATE,
+    value_json JSONB,
+
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP,
+
+    UNIQUE(field_definition_id, entity_id)
+);
+
+-- Related items (cross-pillar linking)
+CREATE TABLE entity_relationships (
+    id UUID PRIMARY KEY,
+    organization_id UUID NOT NULL,
+
+    source_entity_type VARCHAR(50),
+    source_entity_id UUID,
+
+    target_entity_type VARCHAR(50),
+    target_entity_id UUID,
+
+    relationship_type VARCHAR(50),  -- 'related_to', 'violation_of', 'spawned_from'
+
+    created_at TIMESTAMP DEFAULT NOW(),
+    created_by UUID
+);
+
+-- Interactions: Follow-ups and additional contacts on a Case
+CREATE TABLE interactions (
+    id UUID PRIMARY KEY,
+    case_id UUID NOT NULL REFERENCES cases(id),
+    riu_id UUID REFERENCES risk_intelligence_units(id), -- links to follow-up RIU if new info creates one
+    organization_id UUID NOT NULL,
+
+    interaction_type VARCHAR(30) NOT NULL, -- 'initial', 'follow_up', 'status_check'
+    channel VARCHAR(30) NOT NULL, -- 'hotline', 'web_portal', 'email', 'sms'
+
+    -- Content
+    notes TEXT,
+    summary TEXT,
+    addendum TEXT, -- operator notes on caller demeanor
+
+    -- New information tracking
+    new_info_added BOOLEAN DEFAULT FALSE,
+    fields_updated JSONB, -- which case fields were updated
+    additional_details TEXT, -- appended narrative
+
+    -- QA (for hotline follow-ups)
+    qa_required BOOLEAN DEFAULT FALSE,
+    qa_status VARCHAR(30), -- 'pending', 'approved', 'released'
+    qa_reviewed_by UUID,
+    qa_reviewed_at TIMESTAMP,
+
+    -- Operator info (for hotline)
+    operator_id UUID,
+
+    created_at TIMESTAMP DEFAULT NOW(),
+    created_by UUID
+);
+
+-- Subjects: People named in Cases (for cross-case pattern detection)
+CREATE TABLE subjects (
+    id UUID PRIMARY KEY,
+    case_id UUID NOT NULL REFERENCES cases(id),
+    organization_id UUID NOT NULL,
+
+    -- Identity (from HRIS or manual entry)
+    employee_id UUID, -- FK to employees table if linked from HRIS
+    external_name VARCHAR(255), -- if not in HRIS
+    email VARCHAR(255),
+    phone VARCHAR(50),
+
+    -- Context
+    subject_type VARCHAR(30) NOT NULL, -- 'accused', 'witness', 'victim', 'reporter', 'other'
+    relationship VARCHAR(50), -- 'employee', 'manager', 'vendor', 'contractor', 'customer'
+    department VARCHAR(100),
+    location VARCHAR(255),
+    job_title VARCHAR(100),
+    manager_name VARCHAR(255),
+    manager_email VARCHAR(255),
+
+    -- HRIS snapshot (captured at time of case creation for historical accuracy)
+    hris_snapshot JSONB,
+
+    -- Notes
+    notes TEXT, -- context about subject's involvement
+
+    created_at TIMESTAMP DEFAULT NOW(),
+    created_by UUID
+);
+
+-- Indexes for cross-case subject pattern detection
+CREATE INDEX idx_subjects_employee ON subjects(organization_id, employee_id) WHERE employee_id IS NOT NULL;
+CREATE INDEX idx_subjects_name ON subjects(organization_id, LOWER(external_name)) WHERE external_name IS NOT NULL;
+CREATE INDEX idx_subjects_email ON subjects(organization_id, LOWER(email)) WHERE email IS NOT NULL;
+```
+
+---
+
+## Technical Architecture
 
 ### Technology Stack
 
 | Layer | Technology |
 |-------|------------|
 | **Frontend** | Next.js 14+, TypeScript, Tailwind CSS, shadcn/ui |
-| **Backend** | Python FastAPI |
+| **Backend** | Node.js 20.x with NestJS, TypeScript |
 | **Database** | PostgreSQL 15+ with pgvector |
 | **Search** | Elasticsearch 8+ |
-| **Cache** | Redis |
+| **Cache** | Redis 7 |
 | **AI** | Anthropic Claude API |
-| **Storage** | AWS S3 (documents, evidence) |
-| **Infrastructure** | AWS / Kubernetes (EKS) |
+| **Storage** | Azure Blob Storage |
+| **Infrastructure** | Azure (App Service, Kubernetes) |
 
 ### Multi-Tenancy
 
@@ -558,19 +1467,19 @@ REPORTER                    ETHICO                     CLIENT
 - Data isolation enforced at query level AND application layer (defense in depth)
 - Business unit scoping within tenants (`business_unit_id`)
 
-### Key Technical Decisions (Resolved)
+### Key Technical Decisions
 
-See `00-PLATFORM/WORKING-DECISIONS.md` Section 13 for full details.
+See `00-PLATFORM/WORKING-DECISIONS.md` for full details.
 
 | Decision | Resolution |
 |----------|------------|
-| HRIS integration | Merge.dev unified API + SFTP fallback (see `TECH-SPEC-HRIS-INTEGRATION.md`) |
+| HRIS integration | Merge.dev unified API + SFTP fallback |
 | Notification system | Unified event-driven service; Email at launch, SMS later |
 | File storage | Azure Blob Storage, per-tenant containers, AES-256 encryption |
-| Audit log architecture | Unified `AUDIT_LOG` table with natural language (see `CORE-DATA-MODEL.md`) |
+| Audit log architecture | Unified `AUDIT_LOG` table with natural language |
 | Search indexing | Hybrid: PostgreSQL FTS primary, Elasticsearch for complex, pgvector for semantic |
-| User vs Employee | Separate entities; Users for auth, Employees for HRIS (see above) |
-| Analytics architecture | Fact tables with incremental refresh (see `ANALYTICS-DATA-MODEL.md`) |
+| User vs Employee | Separate entities; Users for auth, Employees for HRIS |
+| Analytics architecture | Fact tables with incremental refresh |
 | UI Framework | shadcn/ui + Tailwind CSS (Radix primitives) |
 | Background jobs | BullMQ with Redis |
 | Real-time features | Socket.io + Y.js for collaborative editing |
@@ -622,7 +1531,7 @@ Unlike competitors who bolt AI features onto legacy architectures, Ethico's plat
 | Custom Fields | Limited, not reportable | Unlimited, fully reportable |
 | Investigation Templates | None/basic | Category-specific checklists |
 | Remediation Tracking | Separate system | Integrated with library |
-| User Experience | Legacy (2010s) | Modern (2025) |
+| User Experience | Legacy (2010s) | Modern (2026) |
 | Time to Value | Weeks/months | Hours/days |
 | Data Migration | Painful, lossy | AI-assisted, context-preserving |
 
@@ -636,6 +1545,72 @@ Unlike competitors who bolt AI features onto legacy architectures, Ethico's plat
 6. Remediation plan library with reporting
 7. Investigation templates by category
 8. Gap detection ("these cases missing resolution dates")
+
+---
+
+## Resolved Decisions (Q12-Q16)
+
+### Q12: Campaign Non-Response Handling ✓
+
+**Decision: Configurable per campaign**
+
+Each campaign can define its own non-response behavior:
+- Auto-create Case for non-compliance
+- Escalate to manager (notification only)
+- Escalate to manager AND create Case
+- Just flag as overdue, no auto-action
+
+This allows critical campaigns (annual COI) to have stricter handling than routine ones.
+
+### Q13: Policy Violation Tracking ✓
+
+**Decision: Link to specific Policy Version**
+
+When a Case is categorized as a policy violation, it links to the **specific version** of the policy that was violated. This provides legal defensibility: "Employee violated Code of Conduct v2.1, effective Jan 2024."
+
+### Q14: Policy-to-Case Triggers ✓
+
+| Policy Event | Auto-Create Case? | Rationale |
+|--------------|-------------------|-----------|
+| Attestation refusal (refuses to sign) | **No** - Flag only | Track as failed attestation; manager can escalate if needed |
+| Attestation quiz failure | **No** - Remediation | Failed quiz = re-take training, not a compliance case |
+| Policy expired without renewal | **Configurable** | Critical policies (Code of Conduct) yes; minor policies no |
+| Policy review overdue | **No** - Workflow task | Policy review is an internal workflow, not a case |
+| Employee disputes policy | **Yes** - Always | Disputes require formal review, response tracking, and resolution |
+
+### Q15: Merge Permissions ✓
+
+**Decision: Configurable permission**
+
+Each client can define who has case merge rights. Options include:
+- Case owner only
+- Case owner or admin
+- Anyone with edit access to both cases
+- Specific role(s)
+
+### Q16: Custom Field Inheritance ✓
+
+**Decision: Smart inheritance with no-overwrite**
+
+Custom fields follow these rules:
+1. **Auto-match by field name**: When an RIU has a custom field, and a Case has a field with the same name, the value copies automatically
+2. **No overwrite**: If the Case field already has data, RIU data does not replace it
+3. **Explicit configuration**: Admins can set up additional inheritance rules beyond name-matching
+
+---
+
+## Future Topics to Specify
+
+- Pipeline stage definitions and workflow engine
+- Auto-assignment rules
+- Approval workflows
+- SLA and escalation triggers
+- Notification rules
+- Dataset builder specifications
+- Dashboard widget types
+- Board report templates
+- Monday Board / Project Management integration
+- HRIS sync patterns and employee lifecycle
 
 ---
 
@@ -655,10 +1630,30 @@ Unlike competitors who bolt AI features onto legacy architectures, Ethico's plat
 | Metric | Target |
 |--------|--------|
 | Time to first assignment | < 4 hours |
-| Average case resolution | < 30 days |
+| Average case resolution | < 20 days |
 | Investigation completeness | > 95% |
 | User adoption rate | > 90% |
 | Free tier conversion | > 5% |
+
+---
+
+## Key Principles
+
+These principles guide all platform decisions:
+
+1. **HubSpot Parallel:** RIUs are like Contacts (immutable inputs), Cases are like Deals (mutable work containers)
+
+2. **Separation of Concerns:** Campaigns track obligations, RIUs track responses, Cases track actions
+
+3. **Flexibility Over Rigidity:** Make things configurable rather than hard-coded where compliance programs vary
+
+4. **AI-Native:** Every entity should have AI-generated fields (summaries, translations, risk scores)
+
+5. **Cross-Pillar Intelligence:** The value is in connecting information across modules, not siloing it
+
+6. **Audit Everything:** Detailed audit logs for all fields and actions
+
+7. **Speed to Value:** Design for fast implementation and historical data migration
 
 ---
 
@@ -666,15 +1661,17 @@ Unlike competitors who bolt AI features onto legacy architectures, Ethico's plat
 
 | Term | Definition |
 |------|------------|
-| **Case** | Primary container for risk intelligence from an intake |
+| **RIU** | Risk Intelligence Item - immutable input representing something that happened |
+| **Case** | Mutable work container for tracking the organization's response to RIUs |
+| **Campaign** | Outbound request for information (disclosure, attestation, survey) |
+| **Campaign Assignment** | Individual employee's obligation to respond to a campaign |
 | **Investigation** | Workstream within a Case with own assignee, status, findings |
 | **Interaction** | Any touch point on a Case (initial intake, follow-ups) |
-| **RFI** | Request for Information - logged inquiry, not a full case |
 | **Directive** | Client-specific guidance/script for operators |
 | **Subject** | Person named in a Case (accused, witness, etc.) |
 | **Remediation Plan** | Checklist of corrective actions post-investigation |
-| **Proxy Report** | Case submitted by manager on behalf of employee |
-| **Intake** | The initial capture of information (embedded in Case) |
+| **Proxy Report** | RIU submitted by manager on behalf of employee |
+| **Pipeline** | Workflow stages for case progression |
 
 ---
 

@@ -2,10 +2,12 @@
 ## PRD-008: Employee Chatbot
 
 **Document ID:** PRD-008
-**Version:** 1.0
+**Version:** 2.0 (RIU - Risk Intelligence Unit)
 **Priority:** P1 - High (Extended Module)
 **Development Phase:** Phase 3 (Weeks 13-20)
-**Last Updated:** January 2026
+**Last Updated:** February 2026
+
+> **Architecture Reference:** This PRD implements the RIU→Case architecture defined in `00-PLATFORM/01-PLATFORM-VISION.md v3.2`. Every completed chatbot conversation creates an **immutable RIU** (Risk Intelligence Unit) of type `chatbot_transcript`. Case creation is **outcome-based**—only conversations that result in escalation, human review flags, or formal intake create Cases.
 
 ---
 
@@ -42,6 +44,131 @@ The Employee Chatbot is an AI-powered conversational interface that serves as th
 4. **Async Over Live** - Match compliance team staffing realities (1-5 people, not call centers)
 5. **Context Preservation** - Full conversation history for audit and handoff
 6. **Channel Unification** - Responses delivered where conversation started
+
+---
+
+## 1.1 RIU→Case Architecture (Chatbot Flow)
+
+The Employee Chatbot follows the platform-wide RIU→Case architecture. **Every completed chatbot conversation creates an RIU** (Risk Intelligence Unit) of type `chatbot_transcript`. Case creation depends on the conversation outcome.
+
+### Chatbot RIU Creation Flow
+
+```
+Chatbot Conversation Completes
+         │
+         ▼
+┌─────────────────────────────┐
+│  CREATE RIU                 │
+│  type: chatbot_transcript   │
+│  Full conversation stored   │
+│  Immutable record           │
+└─────────────────────────────┘
+         │
+         ▼
+┌─────────────────────────────────────────────┐
+│  EVALUATE OUTCOME                           │
+│  - User requested escalation to human?      │
+│  - AI flagged concern for human review?     │
+│  - Intake completed (report submitted)?     │
+│  - Policy Q&A only (no action needed)?      │
+└─────────────────────────────────────────────┘
+         │
+    ┌────┴────┬────────────┬────────────┐
+    │         │            │            │
+    ▼         ▼            ▼            ▼
+ No Case   Inquiry      CREATE CASE   CREATE CASE
+ (Q&A only) Created     (Escalation)  (Report)
+    │         │            │            │
+    │         │            └────────────┘
+    │         │                  │
+    │         │                  ▼
+    │         │          Link RIU to Case
+    │         │          via riu_case_associations
+    │         │          (association_type: 'primary')
+    └─────────┴──────────────────┘
+              │
+              ▼
+       RIU preserved for
+       analytics regardless
+       of Case creation
+```
+
+### Case Creation Rules by Outcome
+
+| Conversation Outcome | Creates Case? | Rationale |
+|---------------------|---------------|-----------|
+| **Intake completed** (user clicks "Submit Report") | Yes | Formal report requires investigation tracking |
+| **User requested escalation** ("Talk to a human") | Yes (or Inquiry) | Human review needed, creates audit trail |
+| **AI flagged for human review** (confidence < threshold) | Configurable | May create Inquiry only, or Case if serious |
+| **Disclosure completed** | Via Disclosures module | Creates disclosure_response RIU instead |
+| **Policy Q&A - answered successfully** | No | No action needed; RIU preserved for analytics |
+| **Policy Q&A - user satisfied** | No | Question resolved; RIU preserved |
+| **Status check only** | No | No new information; interaction logged on existing Case |
+| **Abandoned mid-intake** | No | Partial data preserved in RIU for resumption/analytics |
+| **Abandoned Q&A** | No | RIU preserved for analytics (common questions) |
+
+### RIU Fields for Chatbot Transcripts
+
+The `chatbot_transcript` RIU type includes:
+
+```
+RIU (type: chatbot_transcript)
+├── Standard RIU fields
+│   ├── id, organization_id, type, source_channel
+│   ├── received_at (conversation start)
+│   ├── reporter_type (anonymous/confidential/identified)
+│   ├── reporter_employee_id (if authenticated)
+│   ├── ai_summary, ai_language_detected
+│   └── source_system: 'CHATBOT'
+│
+├── Chatbot-specific extension (stored in JSONB or extension table)
+│   ├── conversation_id (FK to CHATBOT_CONVERSATION)
+│   ├── conversation_type (INTAKE, POLICY_QA, STATUS_CHECK, etc.)
+│   ├── outcome (SUBMITTED, ESCALATED, RESOLVED, ABANDONED)
+│   ├── message_count
+│   ├── full_transcript (JSONB array of messages)
+│   ├── extracted_data (structured data from conversation)
+│   │   ├── detected_category
+│   │   ├── detected_severity
+│   │   ├── detected_subjects[]
+│   │   └── case_draft (partial case data if intake)
+│   ├── ai_confidence_scores[] (per response)
+│   ├── escalation_reason (if escalated)
+│   └── resulting_entity_type (CASE, INQUIRY, DISCLOSURE, NONE)
+```
+
+### Linking RIUs to Cases
+
+When a Case is created from a chatbot conversation:
+
+1. **RIU created first** - Immutable record of the conversation
+2. **Case created second** - Mutable work container
+3. **Association created** - Links RIU to Case via `riu_case_associations`:
+   ```sql
+   INSERT INTO riu_case_associations (
+     riu_id,
+     case_id,
+     association_type,  -- 'primary'
+     associated_at,
+     associated_by      -- SYSTEM for auto-creation
+   )
+   ```
+
+4. **Activity logged on both entities:**
+   - RIU: "System created RIU from chatbot intake"
+   - Case: "System created Case from chatbot RIU"
+
+### Analytics Value of Non-Case RIUs
+
+Even when no Case is created, chatbot RIUs provide valuable analytics:
+
+| Metric | Data Source |
+|--------|-------------|
+| Common policy questions | Q&A RIUs by topic/policy |
+| Knowledge base gaps | Low-confidence Q&A RIUs |
+| Abandoned intake patterns | Where users drop off |
+| Self-service deflection rate | Q&A RIUs that didn't escalate |
+| Chatbot effectiveness | Resolution rate without human |
 
 ---
 
@@ -83,9 +210,12 @@ Key behaviors:
 - Chatbot guides through intake questions conversationally
 - Extracts structured data from natural language
 - Offers anonymous or identified reporting
-- Creates case on submission
-- Provides access code or case reference
-- Activity logged: "Employee submitted case via chatbot"
+- On submission:
+  - **Creates RIU** (type: `chatbot_transcript`) - immutable record of conversation
+  - **Creates Case** linked to RIU via `riu_case_associations` (association_type: 'primary')
+- Provides access code (anonymous) or case reference (identified)
+- Activity logged: "System created RIU from chatbot intake"
+- Activity logged: "System created Case from chatbot RIU"
 
 ---
 
@@ -197,7 +327,9 @@ Key behaviors:
 
 ## 3. Entity Model
 
-### 2.1 Chatbot Conversation
+> **Note:** The chatbot module creates RIUs (Risk Intelligence Units) of type `chatbot_transcript`. The CHATBOT_CONVERSATION entity below is the detailed tracking table; on conversation completion, an RIU is created linking to this conversation. See Section 1.1 for the RIU→Case flow.
+
+### 3.1 Chatbot Conversation
 
 The primary entity tracking all chatbot interactions:
 
@@ -253,11 +385,13 @@ CHATBOT_CONVERSATION
 │   ├── flow_step (current step in flow)
 │   ├── pending_questions[] (questions waiting for answer)
 │
-├── Resulting Entities (what was created from this conversation)
-│   ├── resulting_case_id (FK to Case)
+├── RIU & Resulting Entities (per RIU→Case architecture)
+│   ├── riu_id (FK to RIU) ← ALWAYS created on conversation completion
+│   ├── resulting_case_id (FK to Case) ← Only if outcome requires Case
 │   ├── resulting_disclosure_id (FK to Disclosure)
 │   ├── resulting_inquiry_id (FK to Inquiry)
 │   ├── resulting_entity_type (CASE, DISCLOSURE, INQUIRY, NONE)
+│   ├── case_creation_reason (INTAKE_COMPLETED, USER_ESCALATION, AI_FLAGGED, THRESHOLD_MET)
 │   ├── submitted_at
 │
 ├── Resume & Continuity
@@ -294,9 +428,9 @@ CHATBOT_CONVERSATION
     ├── ai_model_version
 ```
 
-### 2.2 Chatbot Inquiry
+### 3.2 Chatbot Inquiry
 
-For Tier 3 escalations that need human response:
+For Tier 3 escalations that need human response. Note: Inquiries may or may not create Cases depending on configuration. The chatbot RIU (`chatbot_transcript`) is always created and linked.
 
 ```
 CHATBOT_INQUIRY
@@ -305,6 +439,7 @@ CHATBOT_INQUIRY
 │   ├── organization_id (tenant)
 │   ├── reference_number (INQ-2026-00001)
 │   ├── conversation_id (FK to Chatbot Conversation)
+│   ├── riu_id (FK to RIU) ← Links to chatbot_transcript RIU
 │   ├── status (PENDING, ASSIGNED, IN_PROGRESS, ANSWERED, CLOSED, ESCALATED_TO_CASE)
 │   ├── created_at, updated_at
 │
@@ -371,7 +506,7 @@ CHATBOT_INQUIRY
     ├── closure_reason
 ```
 
-### 2.3 Knowledge Base Document
+### 3.3 Knowledge Base Document
 
 Documents that power the AI's policy knowledge:
 
@@ -429,7 +564,7 @@ KNOWLEDGE_BASE_DOCUMENT
     ├── notes
 ```
 
-### 2.4 Knowledge Base Chunk Embedding
+### 3.4 Knowledge Base Chunk Embedding
 
 Separate table for pgvector performance:
 
@@ -444,7 +579,7 @@ KNOWLEDGE_BASE_EMBEDDING
 ├── created_at
 ```
 
-### 2.5 Chatbot Consent Log
+### 3.5 Chatbot Consent Log
 
 Immutable audit trail of consent:
 
@@ -464,7 +599,7 @@ CHATBOT_CONSENT_LOG
 -- This table is APPEND-ONLY (no updates or deletes)
 ```
 
-### 2.6 Chatbot Configuration
+### 3.6 Chatbot Configuration
 
 Per-tenant chatbot settings:
 
@@ -532,7 +667,7 @@ CHATBOT_CONFIGURATION
     ├── updated_by
 ```
 
-### 2.7 FAQ Entry
+### 3.7 FAQ Entry
 
 Pre-defined Q&A pairs for common questions:
 
@@ -556,7 +691,7 @@ FAQ_ENTRY
 ├── updated_at, updated_by
 ```
 
-### 2.8 Chatbot Activity Log
+### 3.8 Chatbot Activity Log
 
 Immutable audit trail:
 
@@ -570,7 +705,8 @@ CHATBOT_ACTIVITY
 ├── Activity
 │   ├── activity_type (STARTED, MESSAGE_SENT, MESSAGE_RECEIVED,
 │   │                  ATTACHMENT_UPLOADED, CONSENT_CAPTURED,
-│   │                  FLOW_STARTED, FLOW_COMPLETED, SUBMISSION_CREATED,
+│   │                  FLOW_STARTED, FLOW_COMPLETED,
+│   │                  RIU_CREATED, CASE_CREATED, SUBMISSION_CREATED,
 │   │                  ESCALATED, INQUIRY_CREATED, INQUIRY_ASSIGNED,
 │   │                  INQUIRY_ANSWERED, RESUMED, ABANDONED,
 │   │                  HANDOFF_OFFERED, HANDOFF_ACCEPTED,
@@ -601,6 +737,13 @@ CHATBOT_ACTIVITY
 - Knowledge base documents enable RAG-based policy Q&A
 - Extracted data from conversations provides structured context for AI summarization
 - All activity logged to both `CHATBOT_ACTIVITY` and unified `AUDIT_LOG`
+
+**RIU→Case Architecture Notes:**
+- Every completed conversation creates an RIU (type: `chatbot_transcript`)
+- RIU is immutable record of what was said; Case is mutable work container
+- RIU always created; Case creation is outcome-based (see Section 1.1)
+- Non-Case RIUs still provide analytics value (common questions, drop-off patterns)
+- Activity logged on RIU creation: "System created RIU from chatbot {conversation_type}"
 
 ---
 
@@ -693,11 +836,16 @@ HANDOFF OPTION (available throughout):
    └── "When you call, you can mention this code and we'll have your information ready."
 ```
 
-**Case Creation:**
-- Creates Case entity (PRD-005) with `source_channel = CHATBOT`
+**RIU & Case Creation (per RIU→Case Architecture):**
+- **Always creates RIU** (type: `chatbot_transcript`) with full conversation
+- **Case creation is outcome-based:**
+  - Intake completed (report submitted)? → Create Case, link RIU as 'primary'
+  - User clicked "Submit Report"? → Create Case
+  - Abandoned mid-intake? → RIU only (no Case, preserves partial data for analytics)
+- Case created with `source_channel = CHATBOT`
 - No QA required (same as web form submissions)
 - Triggers routing/assignment rules
-- Conversation linked via `resulting_case_id`
+- RIU linked to Case via `riu_case_associations` (association_type: 'primary')
 
 ### 3.2 Policy Q&A (Tiered Model)
 
@@ -749,6 +897,8 @@ TIER 3: ASYNC ESCALATION (Low Confidence / User Request)
 │   Would you like me to send your question to them? They typically
 │   respond within 1 business day."
 ├── If YES: Create CHATBOT_INQUIRY
+├── Creates RIU (type: chatbot_transcript) with escalation flag
+├── Creates Case if inquiry requires formal tracking (configurable)
 ├── Confirmation:
 │   "I've sent your question to the compliance team.
 │   Reference: INQ-2026-00042
@@ -760,6 +910,7 @@ TIER 3: ASYNC ESCALATION (Low Confidence / User Request)
 ONE-CLICK ESCALATION (Always Visible):
 ├── Persistent option: "I'd prefer to ask a human"
 ├── Available at any point in conversation
+├── Creates RIU (type: chatbot_transcript) capturing conversation
 └── Creates inquiry with full conversation context
 ```
 
@@ -873,6 +1024,12 @@ CONFIRMATION:
 ├── Reference number
 ├── Next steps (if requires review)
 ├── "You can update this disclosure anytime from your portal"
+
+RIU CREATION (per RIU→Case architecture):
+├── Creates RIU type: disclosure_response (NOT chatbot_transcript)
+├── This is a Disclosures module RIU, not a Chatbot RIU
+├── Chatbot is just the UI layer; Disclosures module owns the RIU
+├── Case created only if disclosure thresholds met (per Disclosures PRD-006)
 ```
 
 ### 3.5 Compliance Team Inquiry
@@ -1375,13 +1532,14 @@ Would you like me to keep this window open while you call?"
 
 | Module | Integration | Direction |
 |--------|-------------|-----------|
-| Case Management (PRD-005) | Creates cases from intake | Chatbot → Cases |
-| Disclosures (PRD-006) | Creates disclosures | Chatbot → Disclosures |
+| **RIU System** | Creates RIU (type: chatbot_transcript) on completion | Chatbot → RIU |
+| Case Management (PRD-005) | Links RIU to Case via `riu_case_associations` when outcome requires Case | Chatbot → RIU → Cases |
+| Disclosures (PRD-006) | Creates disclosures (creates disclosure_response RIU) | Chatbot → Disclosures |
 | Policy Management (PRD-009) | Sources knowledge base | Policies → Chatbot |
 | HRIS (PRD-010) | Employee lookup | HRIS → Chatbot |
 | Notifications | Triggers proactive prompts | Notifications → Chatbot |
 | Employee Portal (PRD-003) | Embedded chat | Shared UI |
-| Operator Console (PRD-002) | Draft handoff | Chatbot → Console |
+| Operator Console (PRD-002) | Draft handoff (lookup by RIU reference) | Chatbot → Console |
 
 ### 12.2 External APIs
 
@@ -1396,7 +1554,9 @@ Would you like me to keep this window open while you call?"
 ```
 CHATBOT_CONVERSATION_STARTED
 CHATBOT_CONVERSATION_COMPLETED
-CHATBOT_CASE_CREATED
+CHATBOT_RIU_CREATED           ← Always fired on conversation completion
+CHATBOT_CASE_CREATED          ← Only when outcome requires Case
+CHATBOT_RIU_CASE_LINKED       ← When RIU linked to Case
 CHATBOT_DISCLOSURE_CREATED
 CHATBOT_INQUIRY_CREATED
 CHATBOT_INQUIRY_ASSIGNED
@@ -1452,9 +1612,16 @@ DELETE /api/v1/chatbot/conversations/{id}
 Body: { reason?: "USER_EXIT" | "START_OVER" }
 
 # Complete conversation (submit)
+# Per RIU→Case architecture: ALWAYS creates RIU, Case creation is outcome-based
 POST   /api/v1/chatbot/conversations/{id}/complete
-Body: { submission_type: "CASE" | "DISCLOSURE" | "INQUIRY" }
-Returns: { resulting_entity_id, resulting_entity_type, reference_number }
+Body: { submission_type: "CASE" | "DISCLOSURE" | "INQUIRY" | "NONE" }
+Returns: {
+  riu_id,                    // Always returned - RIU is always created
+  riu_reference_number,      // RIU reference
+  resulting_case_id?,        // Only if Case was created
+  resulting_entity_type,     // CASE, DISCLOSURE, INQUIRY, NONE
+  reference_number?          // Case/Disclosure/Inquiry reference if created
+}
 ```
 
 ### 13.2 Anonymous Access
@@ -1624,6 +1791,18 @@ Returns: {
   search_success_rate,
   unanswered_queries: [...]
 }
+
+# RIU metrics (per RIU→Case architecture)
+GET    /api/v1/chatbot/analytics/rius
+Query: ?start_date=...&end_date=...&group_by=day
+Returns: {
+  total_rius_created,
+  by_outcome: { SUBMITTED: N, ESCALATED: N, RESOLVED: N, ABANDONED: N },
+  case_creation_rate,         // % of RIUs that resulted in Cases
+  rius_without_cases: N,      // Q&A resolved, no action needed
+  common_qa_topics: [...],    // From non-Case RIUs
+  drop_off_analysis: {...}    // Where abandoned RIUs stopped
+}
 ```
 
 ---
@@ -1634,10 +1813,18 @@ Returns: {
 
 | ID | Criterion | Priority |
 |----|-----------|----------|
+| **RIU→Case Architecture** | | |
+| AC-R1 | Every completed conversation creates RIU (type: chatbot_transcript) | P0 |
+| AC-R2 | RIU is immutable after creation (conversation preserved) | P0 |
+| AC-R3 | Case created only when outcome requires it (intake, escalation, AI flag) | P0 |
+| AC-R4 | RIU linked to Case via riu_case_associations with association_type 'primary' | P0 |
+| AC-R5 | Policy Q&A-only conversations create RIU but no Case | P0 |
+| AC-R6 | Abandoned conversations create RIU with status ABANDONED | P1 |
+| AC-R7 | Activity logged on RIU: "System created RIU from chatbot {type}" | P0 |
 | **Intake** | | |
 | AC-01 | Employee can complete speak-up report via guided conversation | P0 |
 | AC-02 | Anonymous reporter receives access code for status checks | P0 |
-| AC-03 | Report creates Case entity with all required fields | P0 |
+| AC-03 | Completed intake creates RIU first, then Case linked via riu_case_associations | P0 |
 | AC-04 | Attachments can be uploaded mid-conversation | P0 |
 | AC-05 | Chatbot suggests category based on narrative | P1 |
 | **Policy Q&A** | | |
@@ -1937,6 +2124,13 @@ CHATBOT: Your report has been submitted.
          I can help you with?
 
          [Check Status Later] [Report Another Concern] [Exit]
+
+# Behind the scenes (RIU→Case flow):
+# 1. RIU created (type: chatbot_transcript, status: received)
+# 2. Case created (status: new, source_channel: CHATBOT)
+# 3. riu_case_associations record created (association_type: 'primary')
+# 4. Activity logged on RIU: "System created RIU from chatbot intake"
+# 5. Activity logged on Case: "System created Case from chatbot RIU"
 ```
 
 ### A.2 Policy Q&A (Tier 2 Example)
@@ -1977,6 +2171,17 @@ CHATBOT: Thanks for the details. Based on our Gift &
          [Send this question to Compliance for confirmation]
          [View the full policy]
          [I have another question]
+
+# Behind the scenes (RIU→Case flow for Q&A):
+# If user is satisfied → Conversation completes
+#   - RIU created (type: chatbot_transcript, outcome: RESOLVED)
+#   - NO Case created (Q&A resolved, no action needed)
+#   - RIU preserved for analytics (common questions, policy citations)
+#
+# If user escalates → "Send this question to Compliance"
+#   - RIU created (type: chatbot_transcript, outcome: ESCALATED)
+#   - Inquiry created, linked to RIU
+#   - Case creation configurable (depends on client settings)
 ```
 
 ---

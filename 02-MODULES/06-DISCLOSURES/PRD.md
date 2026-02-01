@@ -2,16 +2,31 @@
 ## PRD-006: Disclosures Management
 
 **Document ID:** PRD-006
-**Version:** 1.0
+**Version:** 2.0 (RIU - Risk Intelligence Unit)
 **Priority:** P0 - Critical (Core Module)
 **Development Phase:** Phase 1 (Core) Weeks 5-8, Extended through Phase 4
-**Last Updated:** January 2026
+**Last Updated:** February 2026
+
+> **Architecture Reference:** This PRD implements the RIU->Case architecture defined in `00-PLATFORM/01-PLATFORM-VISION.md v3.2`. When employees complete disclosure forms, the system creates a **Risk Intelligence Unit (RIU)** of type `disclosure_response`. Cases are created **conditionally** based on configurable thresholds (e.g., gift amount, relationship type, flagged responses).
 
 ---
 
 ## 1. Executive Summary
 
 The Disclosures module enables organizations to collect, review, and manage employee disclosures including Conflicts of Interest, Gifts & Entertainment, Outside Employment, and other compliance-related declarations. Unlike static form submissions, disclosures are treated as **living artifacts** with lifecycle management, versioning, and decision tracking.
+
+### RIU->Case Architecture
+
+When an employee completes a disclosure form (via campaign or ad-hoc):
+1. **Campaign Assignment** is updated to `completed`
+2. **RIU** (Risk Intelligence Unit) is created with type `disclosure_response`
+3. **Case** is created **only if thresholds are met** (configurable per disclosure type)
+
+This separation enables:
+- Tracking all disclosure responses (RIUs) regardless of whether they require action
+- Creating Cases only when compliance review or follow-up is needed
+- Linking multiple related disclosures to a single Case if needed
+- Clear analytics: "X disclosures submitted" vs "Y cases requiring review"
 
 **This module reuses patterns established in Case Management (PRD-005):**
 - Form Builder (shared with PRD-004 Web Form Builder)
@@ -20,6 +35,7 @@ The Disclosures module enables organizations to collect, review, and manage empl
 - HRIS integration (employee data snapshot)
 - Reporting patterns (saved views, dashboards)
 - AI translation (same pattern as case translation)
+- RIU->Case linking (same association pattern as hotline reports)
 
 ### Module Scope
 
@@ -27,11 +43,12 @@ The Disclosures module enables organizations to collect, review, and manage empl
 |----------|---------------------------|
 | Disclosure Form templates | Ethics Portal branding (PRD-003) |
 | Campaign engine | Web Form Builder core (PRD-004) |
-| Disclosure lifecycle | Analytics dashboards (PRD-007) |
-| Approval workflows | HRIS integration core (PRD-010) |
+| RIU creation (type: disclosure_response) | Analytics dashboards (PRD-007) |
+| Conditional Case creation (thresholds) | HRIS integration core (PRD-010) |
+| Disclosure lifecycle | Case Management core (PRD-005) |
+| Approval workflows | |
 | Conditions tracking | |
 | Versioning & history | |
-| Case integration | |
 | GT&E thresholds | |
 | Employee Portal (disclosure views) | |
 
@@ -132,16 +149,18 @@ Key behaviors:
 
 ---
 
-**Link disclosure to case**
-As a **Compliance Officer**, I want to link a disclosure to a case
+**Link disclosure RIU to existing case**
+As a **Compliance Officer**, I want to link a disclosure RIU to an existing case
 so that related compliance matters are tracked together.
 
 Key behaviors:
+- Disclosure RIU can be linked to existing Case via `riu_case_associations`
 - Search for case by reference number
-- Link appears on both disclosure and case
+- Association type set to 'related'
+- Link appears on both disclosure RIU and case
 - Notes on relationship captured
 - Cross-reference visible in investigation
-- Activity logged: "Compliance Officer {name} linked disclosure to case {case_ref}"
+- Activity logged: "Compliance Officer {name} linked disclosure RIU to case {case_ref}"
 
 ---
 
@@ -214,7 +233,53 @@ Key behaviors:
 
 ## 3. Entity Model
 
-### 2.1 Disclosure Form (Template)
+> **Architecture Note:** This module implements the RIU->Case architecture defined in `00-PLATFORM/01-PLATFORM-VISION.md`. When employees complete disclosure forms, the system creates a **Risk Intelligence Unit (RIU)** of type `disclosure_response`. Cases are created **conditionally** based on configurable thresholds.
+
+### 3.0 RIU->Case Flow for Disclosures
+
+```
+Employee Completes Disclosure Form
+         │
+         ▼
+┌─────────────────────────────────┐
+│  UPDATE Campaign Assignment     │
+│  status: completed              │
+└─────────────────────────────────┘
+         │
+         ▼
+┌─────────────────────────────────┐
+│  CREATE RIU                     │
+│  type: disclosure_response      │
+│  Links to campaign_assignment_id│
+│  Contains form responses (JSONB)│
+└─────────────────────────────────┘
+         │
+         ▼
+┌─────────────────────────────────────────────────┐
+│  EVALUATE THRESHOLDS (auto_case_rules)          │
+│  - Gift amount > configured threshold?          │
+│  - Relationship type flagged?                   │
+│  - Government official involved?                │
+│  - Manual review required by form config?       │
+│  - Auto-clear rules matched?                    │
+└─────────────────────────────────────────────────┘
+         │
+    ┌────┴────┐
+    │         │
+    ▼         ▼
+ No Case   CREATE CASE
+ (RIU only  (COI Review,
+  stored)   Gift Approval, etc.)
+```
+
+**Key Points:**
+- Every disclosure submission creates an RIU (immutable record of what was disclosed)
+- Cases are created ONLY when thresholds trigger review
+- RIUs link to Cases via `riu_case_associations` (same pattern as hotline reports)
+- One Case can have multiple linked disclosure RIUs (e.g., related family disclosures)
+- "Disclosure" entity below represents the **business workflow layer** on top of the RIU
+
+### 3.1 Disclosure Form (Template)
 
 The Disclosure Form defines what questions are asked and how submissions are routed:
 
@@ -283,7 +348,7 @@ DISCLOSURE_FORM
     └── archived_at
 ```
 
-### 2.2 Campaign
+### 3.2 Campaign
 
 Campaigns wrap Disclosure Forms and target employees:
 
@@ -341,9 +406,9 @@ CAMPAIGN
     └── completed_at
 ```
 
-### 2.3 Campaign Assignment
+### 3.3 Campaign Assignment
 
-Individual employee assignments within a campaign:
+Individual employee assignments within a campaign. When completed, creates an RIU (Risk Intelligence Unit).
 
 ```
 CAMPAIGN_ASSIGNMENT
@@ -381,19 +446,68 @@ CAMPAIGN_ASSIGNMENT
 │   ├── extension_reason
 │   └── extended_by
 │
-├── Completion
+├── Completion (RIU Link)
 │   ├── started_at
 │   ├── completed_at
-│   └── disclosure_id (FK - links to submitted disclosure)
+│   ├── riu_id (FK to RISK_INTELLIGENCE_UNIT - the disclosure_response RIU)
+│   └── disclosure_id (FK - business workflow entity on top of RIU)
 │
 └── Metadata
     ├── created_at
     └── updated_at
 ```
 
-### 2.4 Disclosure (Living Instance)
+**Key Behavior:** When status transitions to COMPLETED, the system:
+1. Creates an RIU (type: `disclosure_response`) with the form responses
+2. Stores the `riu_id` on this assignment
+3. Evaluates threshold rules to determine if a Case should be created
+4. If thresholds met, creates Case and links RIU via `riu_case_associations`
 
-The core disclosure entity - a living, versioned record:
+### 3.4 Risk Intelligence Unit (RIU) - Disclosure Response
+
+When an employee completes a disclosure form, the system creates an **immutable RIU** that preserves exactly what was disclosed. The full RIU schema is defined in the Platform Vision document. Key points for Disclosures:
+
+```
+RISK_INTELLIGENCE_UNIT (immutable input - type: disclosure_response)
+├── id (UUID)
+├── organization_id
+├── type = 'disclosure_response'
+├── source_channel (CAMPAIGN, AD_HOC_AUTHENTICATED, AD_HOC_UNAUTHENTICATED, PROXY)
+├── received_at (timestamp)
+│
+├── Reporter/Submitter Info
+│   ├── reporter_employee_id (FK to Employee)
+│   ├── reporter_type = 'identified' (disclosures are never anonymous)
+│   └── proxy_submitter_id (if proxy submission)
+│
+├── Content
+│   ├── form_responses (JSONB - answers to form questions)
+│   ├── attachments[] (file references)
+│   └── original_language
+│
+├── Campaign Link
+│   ├── campaign_id (FK, null if ad-hoc)
+│   └── campaign_assignment_id (FK, null if ad-hoc)
+│
+├── AI Enrichment
+│   ├── ai_summary
+│   ├── ai_risk_score
+│   ├── ai_generated_at
+│   └── ai_model_version
+│
+├── Migration Support
+│   ├── source_system
+│   ├── source_record_id
+│   └── migrated_at
+│
+└── created_at, created_by
+```
+
+**Immutability:** RIUs are immutable after creation. The Disclosure entity (below) handles mutable workflow state.
+
+### 3.5 Disclosure (Business Workflow Layer)
+
+The Disclosure entity provides a **mutable business workflow layer** on top of the immutable RIU. It tracks review status, conditions, and versioning.
 
 ```
 DISCLOSURE
@@ -404,7 +518,15 @@ DISCLOSURE
 │   ├── reference_number (DIS-2026-00001)
 │   ├── disclosure_form_id (FK)
 │   ├── campaign_assignment_id (FK, null if ad-hoc)
-│   └── disclosure_type (denormalized from form)
+│   ├── disclosure_type (denormalized from form)
+│   │
+│   ├── RIU Link (immutable source)
+│   │   └── riu_id (FK to RISK_INTELLIGENCE_UNIT - the disclosure_response RIU)
+│   │
+│   └── Case Link (if threshold triggered Case creation)
+│       ├── linked_case_id (FK to Case, via riu_case_associations)
+│       ├── case_created_automatically (boolean)
+│       └── threshold_rule_matched (which rule triggered Case creation)
 │
 ├── Submitter Information
 │   ├── employee_id
@@ -491,8 +613,10 @@ DISCLOSURE
 │   ├── relationship (VENDOR, CUSTOMER, FAMILY_MEMBER, etc.)
 │   └── added_at
 │
-├── Case Link (if escalated to Case Management)
-│   ├── linked_case_id (FK to Case)
+├── Case Link (created via RIU association, or manual escalation)
+│   ├── linked_case_id (FK to Case - denormalized from riu_case_associations)
+│   ├── case_creation_trigger (AUTO_THRESHOLD, MANUAL_ESCALATION, MANUAL_LINK)
+│   ├── threshold_rule_matched (which auto_case_rule triggered, if AUTO_THRESHOLD)
 │   ├── linked_at
 │   ├── linked_by
 │   └── link_reason
@@ -521,7 +645,7 @@ DISCLOSURE
     └── renewal_reminder_sent_at
 ```
 
-### 2.5 External Party
+### 3.6 External Party
 
 For tracking vendors, companies, and individuals across disclosures and cases:
 
@@ -566,7 +690,7 @@ EXTERNAL_PARTY
     └── last_activity_at
 ```
 
-### 2.6 Proxy Delegation
+### 3.8 Proxy Delegation
 
 Admin-configured relationships for delegate submission:
 
@@ -605,54 +729,54 @@ PROXY_DELEGATION
     └── updated_at
 ```
 
-### 2.7 Disclosure Activity Log
+### 3.7 Disclosure Activity Log
 
-Immutable audit trail:
+Immutable audit trail. Activity is logged to the **unified AUDIT_LOG** (not a module-specific table) for cross-entity queries.
 
 ```
-DISCLOSURE_ACTIVITY
-├── id (UUID)
-├── disclosure_id (FK)
+AUDIT_LOG (unified across all modules - see Platform Vision)
+├── entity_type = 'DISCLOSURE' or 'RIU'
+├── entity_id (disclosure_id or riu_id)
 ├── organization_id
 │
 ├── Activity
-│   ├── activity_type (CREATED, SUBMITTED, ASSIGNED, REASSIGNED,
-│   │                  STATUS_CHANGE, CONDITION_ADDED, CONDITION_COMPLETED,
-│   │                  CONDITION_WAIVED, VERSION_CREATED, MARKED_INACTIVE,
-│   │                  CASE_CREATED, REMINDER_SENT, VIEWED, EXPORTED,
-│   │                  COMMENT_ADDED, ATTACHMENT_ADDED, BULK_ACTION)
-│   ├── description
-│   └── details (JSONB - additional context)
+│   ├── action (CREATED, SUBMITTED, ASSIGNED, REASSIGNED,
+│   │          STATUS_CHANGE, CONDITION_ADDED, CONDITION_COMPLETED,
+│   │          CONDITION_WAIVED, VERSION_CREATED, MARKED_INACTIVE,
+│   │          CASE_LINKED, CASE_CREATED, REMINDER_SENT, VIEWED, EXPORTED,
+│   │          COMMENT_ADDED, ATTACHMENT_ADDED, BULK_ACTION)
+│   ├── action_description (natural language, e.g., "Compliance Officer Jane cleared disclosure with no conditions")
+│   └── context (JSONB - additional context for AI understanding)
 │
 ├── Actor
 │   ├── actor_id (FK to User, null if system/employee)
-│   ├── actor_type (USER, SYSTEM, EMPLOYEE)
-│   ├── actor_name
-│   └── actor_email
+│   ├── actor_type (USER, SYSTEM, EMPLOYEE, AI)
+│   └── (name/email denormalized for display)
 │
 ├── Changes
-│   ├── old_value (JSONB)
-│   ├── new_value (JSONB)
-│   └── fields_changed[]
+│   ├── changes (JSONB - { old_value, new_value, fields_changed[] })
 │
 ├── Context
 │   ├── ip_address
-│   ├── user_agent
-│   └── session_id
+│   └── user_agent
 │
 └── created_at (immutable)
 
 -- This table is APPEND-ONLY (no updates or deletes)
--- All entries ALSO written to unified AUDIT_LOG for cross-module queries
+-- Enables queries like "Show all actions on this disclosure AND its linked RIU AND any linked Case"
 ```
 
-**AI-First Design Notes:**
-- `ai_summary` enables quick reviewer understanding of disclosure content
-- `source_system` enables migration tracking and data lineage from competitor systems
-- `status_rationale` captures human reasoning for AI context and audit
-- All activity logged to both `DISCLOSURE_ACTIVITY` and unified `AUDIT_LOG`
+**RIU vs Disclosure Activity:**
+- RIU activity: creation, AI enrichment, translation
+- Disclosure activity: workflow state changes, assignments, conditions, Case linking
 
-### 2.8 GT&E Threshold Configuration
+**AI-First Design Notes:**
+- `action_description` uses natural language for AI context
+- `context` JSONB enables rich querying and AI understanding
+- `source_system` on RIU enables migration tracking from competitor systems
+- `status_rationale` on Disclosure captures human reasoning for AI context
+
+### 3.9 GT&E Threshold Configuration
 
 For Gifts & Entertainment with threshold-based routing:
 
@@ -694,7 +818,7 @@ GTE_THRESHOLD
     └── updated_at, updated_by
 ```
 
-### 2.9 Workflow Definition
+### 3.10 Workflow Definition
 
 Reusable approval workflow definitions:
 
@@ -1052,35 +1176,81 @@ Day X+3: Escalation to Compliance
 
 ## 6. Integration with Case Management
 
-### 6.1 Create Case from Disclosure
+> **Architecture:** Disclosures follow the same RIU->Case architecture as hotline reports. The disclosure RIU links to Cases via `riu_case_associations`.
+
+### 6.1 Automatic Case Creation (Threshold-Based)
+
+**Trigger:** Disclosure form responses match configured `auto_case_rules`
+
+**Threshold Examples:**
+```javascript
+{
+  "auto_case_rules": [
+    {
+      "condition": "gift_value > 100",
+      "action": "CREATE_CASE",
+      "case_category": "Gifts & Entertainment Review",
+      "severity": "MEDIUM"
+    },
+    {
+      "condition": "relationship_type = 'GOVERNMENT_OFFICIAL'",
+      "action": "CREATE_CASE",
+      "case_category": "Government COI Review",
+      "severity": "HIGH"
+    },
+    {
+      "condition": "conflict_type = 'FAMILY_AT_VENDOR' AND vendor_contract_value > 50000",
+      "action": "CREATE_CASE",
+      "case_category": "Vendor COI Review",
+      "severity": "MEDIUM"
+    }
+  ]
+}
+```
+
+**Process:**
+1. Employee submits disclosure form
+2. System creates RIU (type: `disclosure_response`) - immutable record
+3. System evaluates `auto_case_rules` against form responses
+4. If threshold matched:
+   - System creates Case
+   - Links RIU to Case via `riu_case_associations` (association_type: 'primary')
+   - Disclosure entity updated with `case_creation_trigger: 'AUTO_THRESHOLD'`
+   - Case follows normal Case Management workflow
+5. If no threshold matched:
+   - RIU stored (disclosure record preserved)
+   - Disclosure entity created but no Case
+   - Can be manually escalated later if needed
+
+### 6.2 Manual Case Creation (Escalation)
 
 **Trigger:** Reviewer clicks "Escalate to Case" or "Create Case"
 
 **Process:**
 1. System creates Case in Case Management module
-2. Case pre-populated with:
-   - Source: "DISCLOSURE"
+2. Links disclosure RIU to Case via `riu_case_associations` (association_type: 'primary')
+3. Case pre-populated with:
+   - Source channel from RIU
    - Disclosure reference number
-   - Employee as Subject (ACCUSED or OTHER based on context)
-   - Disclosure summary as case narrative
-   - All attachments copied
-   - Link back to disclosure
-3. Disclosure status → ESCALATED
-4. Disclosure marked with `linked_case_id`
-5. Case follows normal Case Management workflow
-6. Activity logged on both disclosure and case
+   - Employee as Subject (DISCLOSER or OTHER based on context)
+   - AI-generated summary from RIU as case narrative
+   - All attachments linked (not copied)
+4. Disclosure status -> ESCALATED
+5. Disclosure updated with `case_creation_trigger: 'MANUAL_ESCALATION'`
+6. Activity logged on both RIU, Disclosure, and Case
 
-**Case Pre-Population:**
+**Case Pre-Population (from RIU):**
 ```javascript
 {
   "source_channel": "DISCLOSURE",
+  "riu_id": "uuid-of-disclosure-rii",
   "source_reference": "DIS-2026-00042",
   "summary": "Escalated from disclosure: Undisclosed conflict of interest...",
   "subjects": [
     {
       "name": "John Smith",
       "employee_id": "EMP123",
-      "subject_type": "OTHER",  // or ACCUSED
+      "subject_type": "DISCLOSER",
       "relationship": "EMPLOYEE"
     }
   ],
@@ -1090,14 +1260,29 @@ Day X+3: Escalation to Compliance
 }
 ```
 
-### 6.2 Cross-Reference Visibility
+### 6.3 Linking Disclosure RIU to Existing Case
+
+**Trigger:** Compliance Officer identifies related disclosure during review
+
+**Process:**
+1. Search for existing Case by reference number or category
+2. Link disclosure RIU to Case via `riu_case_associations` (association_type: 'related')
+3. Disclosure updated with `case_creation_trigger: 'MANUAL_LINK'`
+4. Activity logged on both entities
+
+**Use Case:** Multiple family members at the same vendor - link all disclosure RIUs to a single "Vendor Relationship Review" Case.
+
+### 6.4 Cross-Reference Visibility
 
 **In Case Detail:**
-- "Related Disclosures" section shows linked disclosure
+- "Linked RIUs" section shows all associated RIUs (including disclosure_response type)
+- Filter by RIU type to see only disclosures
 - Click-through to disclosure (if user has permission)
+- Association type shown (primary, related)
 
 **In Disclosure Detail:**
-- "Related Case" section shows linked case
+- "Related Case" section shows linked case (if any)
+- Shows how case was created (AUTO_THRESHOLD, MANUAL_ESCALATION, MANUAL_LINK)
 - Click-through to case (if user has permission)
 
 ---
@@ -1395,16 +1580,19 @@ POST    /api/v1/campaigns/{id}/remind                 # Send bulk reminder
 
 ```
 GET     /api/v1/disclosures                           # List disclosures
-POST    /api/v1/disclosures                           # Create disclosure
-GET     /api/v1/disclosures/{id}                      # Get disclosure detail
-PATCH   /api/v1/disclosures/{id}                      # Update disclosure (draft)
-DELETE  /api/v1/disclosures/{id}                      # Delete draft
-POST    /api/v1/disclosures/{id}/submit               # Submit disclosure
+POST    /api/v1/disclosures                           # Create disclosure (creates RIU + Disclosure)
+GET     /api/v1/disclosures/{id}                      # Get disclosure detail (includes linked RIU)
+PATCH   /api/v1/disclosures/{id}                      # Update disclosure workflow state (draft)
+DELETE  /api/v1/disclosures/{id}                      # Delete draft (RIU not created until submit)
+POST    /api/v1/disclosures/{id}/submit               # Submit disclosure (creates RIU, evaluates thresholds)
 POST    /api/v1/disclosures/{id}/withdraw             # Withdraw disclosure
+GET     /api/v1/disclosures/{id}/riu                  # Get the linked RIU (disclosure_response)
 GET     /api/v1/disclosures/{id}/versions             # Get version history
-GET     /api/v1/disclosures/{id}/timeline             # Get activity timeline
-POST    /api/v1/disclosures/{id}/version              # Create new version
+GET     /api/v1/disclosures/{id}/timeline             # Get activity timeline (includes RIU activity)
+POST    /api/v1/disclosures/{id}/version              # Create new version (new RIU created)
 ```
+
+> **Note:** Submitting a disclosure creates an immutable RIU (type: `disclosure_response`). The RIU preserves what was disclosed. The Disclosure entity tracks mutable workflow state.
 
 ### 14.4 Review Endpoints
 
@@ -1414,11 +1602,16 @@ POST    /api/v1/disclosures/{id}/reassign             # Reassign to different re
 POST    /api/v1/disclosures/{id}/decide               # Make decision
         Body: { decision: "CLEARED"|"REJECTED"|"WITH_CONDITIONS", notes: "..." }
 POST    /api/v1/disclosures/{id}/escalate             # Escalate to next stage
-POST    /api/v1/disclosures/{id}/create-case          # Create case from disclosure
+POST    /api/v1/disclosures/{id}/create-case          # Create Case, link RIU via riu_case_associations
+        Body: { category_id, severity, notes, subject_type: "DISCLOSER"|"OTHER" }
+POST    /api/v1/disclosures/{id}/link-to-case         # Link RIU to existing Case
+        Body: { case_id, association_type: "related", notes }
 POST    /api/v1/disclosures/bulk-decide               # Bulk decision
         Body: { disclosure_ids: [...], decision: "CLEARED", notes: "..." }
 POST    /api/v1/disclosures/bulk-assign               # Bulk assignment
 ```
+
+> **Note:** `create-case` and `link-to-case` both operate on the disclosure's underlying RIU, creating entries in `riu_case_associations`.
 
 ### 14.5 Condition Endpoints
 
@@ -1495,28 +1688,34 @@ DELETE  /api/v1/disclosure-workflows/{id}             # Archive workflow
 |----|-----------|----------|
 | AC-01 | Employee can submit ad-hoc disclosure via Ethics Portal (no login) | P0 |
 | AC-02 | Employee can submit disclosure via campaign with SSO login | P0 |
-| AC-03 | Disclosure versions are tracked; previous versions read-only | P0 |
-| AC-04 | Workflow routes disclosure to correct reviewer based on rules | P0 |
-| AC-05 | Reviewer can clear, reject, or add conditions | P0 |
-| AC-06 | Conditions have due dates and send automated reminders | P0 |
-| AC-07 | Employee sees conditions in Employee Portal | P0 |
-| AC-08 | Disclosure can spawn a Case in Case Management | P0 |
-| AC-09 | Campaign assigns employees based on HRIS rules | P0 |
-| AC-10 | Campaign sends reminders on schedule | P0 |
-| AC-11 | Campaign tracks completion rate in real-time | P0 |
-| AC-12 | Campaign handles exceptions (prior completion, terminated) | P1 |
-| AC-13 | Multi-stage approval workflow works (up to 4 stages) | P1 |
-| AC-14 | Auto-clear and auto-reject rules process correctly | P1 |
-| AC-15 | External Party links disclosures automatically | P1 |
-| AC-16 | Bulk approve/reject works with individual audit trail | P1 |
-| AC-17 | Proxy submission works for managers | P0 |
-| AC-18 | Delegate proxy submission works for configured EAs | P2 |
-| AC-19 | GT&E thresholds route correctly based on value/context | P2 |
-| AC-20 | Multi-language form submission works | P2 |
-| AC-21 | Reviewer sees translated responses + original | P2 |
-| AC-22 | Activity log records all actions immutably | P0 |
-| AC-23 | Saved views work with disclosure data | P0 |
-| AC-24 | Export to CSV works for disclosures | P1 |
+| AC-03 | Submitting disclosure creates RIU (type: disclosure_response) | P0 |
+| AC-04 | RIU is immutable; disclosure workflow state is mutable | P0 |
+| AC-05 | Disclosure versions tracked; each version creates new RIU | P0 |
+| AC-06 | Workflow routes disclosure to correct reviewer based on rules | P0 |
+| AC-07 | Reviewer can clear, reject, or add conditions | P0 |
+| AC-08 | Conditions have due dates and send automated reminders | P0 |
+| AC-09 | Employee sees conditions in Employee Portal | P0 |
+| AC-10 | Case created automatically when thresholds met (auto_case_rules) | P0 |
+| AC-11 | Case links to disclosure RIU via riu_case_associations | P0 |
+| AC-12 | Reviewer can manually escalate disclosure to new Case | P0 |
+| AC-13 | Reviewer can link disclosure RIU to existing Case | P0 |
+| AC-14 | Campaign assigns employees based on HRIS rules | P0 |
+| AC-15 | Campaign Assignment links to created RIU on completion | P0 |
+| AC-16 | Campaign sends reminders on schedule | P0 |
+| AC-17 | Campaign tracks completion rate in real-time | P0 |
+| AC-18 | Campaign handles exceptions (prior completion, terminated) | P1 |
+| AC-19 | Multi-stage approval workflow works (up to 4 stages) | P1 |
+| AC-20 | Auto-clear and auto-reject rules process correctly | P1 |
+| AC-21 | External Party links disclosures automatically | P1 |
+| AC-22 | Bulk approve/reject works with individual audit trail | P1 |
+| AC-23 | Proxy submission works for managers | P0 |
+| AC-24 | Delegate proxy submission works for configured EAs | P2 |
+| AC-25 | GT&E thresholds route correctly based on value/context | P2 |
+| AC-26 | Multi-language form submission works | P2 |
+| AC-27 | Reviewer sees translated responses + original (from RIU) | P2 |
+| AC-28 | Activity log records all actions immutably on both RIU and Disclosure | P0 |
+| AC-29 | Saved views work with disclosure data | P0 |
+| AC-30 | Export to CSV works for disclosures | P1 |
 
 ### 15.2 Performance Targets
 
@@ -1539,15 +1738,19 @@ DELETE  /api/v1/disclosure-workflows/{id}             # Archive workflow
 
 **Included:**
 - Disclosure Form entity with standard library (7 types)
+- RIU creation (type: disclosure_response) on submission
+- RIU->Case linking via riu_case_associations
+- Basic threshold rules for auto Case creation
 - Ad-hoc disclosure submission (authenticated and unauthenticated)
 - Basic approval workflow (single-stage)
 - Active/inactive status management
-- Version tracking (new version on update)
+- Version tracking (new version creates new RIU)
 - Conditions with due dates and reminders
-- Integration: Create Case from disclosure
+- Integration: Create Case from disclosure (manual + threshold-based)
+- Integration: Link disclosure RIU to existing Case
 - Employee Portal: View own disclosures
 - External Party entity (basic)
-- Activity timeline
+- Activity timeline (unified across RIU and Disclosure)
 - Role-based permissions
 - Basic reporting
 - Email notifications
@@ -1556,8 +1759,8 @@ DELETE  /api/v1/disclosure-workflows/{id}             # Archive workflow
 **Not Included:**
 - Campaign engine
 - Multi-stage workflows
-- Auto-clear/auto-reject rules
-- GT&E thresholds
+- Advanced auto-clear/auto-reject rules
+- GT&E thresholds with aggregation
 - Bulk actions
 - Localization
 - Advanced reporting dashboards
@@ -1566,10 +1769,12 @@ DELETE  /api/v1/disclosure-workflows/{id}             # Archive workflow
 
 **Added:**
 - Campaign engine (point-in-time and rolling)
+- Campaign Assignment -> RIU creation flow
+- Campaign Assignment stores riu_id on completion
 - HRIS-driven targeting
 - Multi-stage approval workflows (up to 4 stages)
 - Conditional routing
-- Auto-clear/auto-reject rules
+- Advanced auto-clear/auto-reject rules with threshold evaluation
 - Campaign completion dashboards
 - Campaign exception handling
 - Bulk assignment
@@ -1712,6 +1917,21 @@ Default risk scoring rules (clients can customize):
 - 0-25: LOW
 - 26-50: MEDIUM
 - 51+: HIGH
+
+---
+
+## Appendix D: Glossary (RIU Architecture)
+
+| Term | Definition |
+|------|------------|
+| **RIU** | Risk Intelligence Unit - immutable input representing something that happened (a disclosure was submitted, a report was filed). For disclosures, type is `disclosure_response`. |
+| **Disclosure** | Mutable business workflow entity that sits on top of an RIU. Tracks review status, conditions, versioning. |
+| **Campaign** | Outbound request for disclosures from a target population (annual COI, gifts review). |
+| **Campaign Assignment** | Individual employee's obligation to complete a disclosure form. Links to the RIU created on completion. |
+| **riu_case_associations** | Many-to-many link table connecting RIUs to Cases. Association types: `primary`, `related`, `merged_from`. |
+| **auto_case_rules** | Configurable threshold rules that determine whether a disclosure RIU should automatically create a Case. |
+| **disclosure_response** | The RIU type for all disclosure submissions. Immutable record of what was disclosed. |
+| **threshold** | Configurable trigger (e.g., gift_value > $100, government_official = true) that determines whether a disclosure requires Case-level review. |
 
 ---
 

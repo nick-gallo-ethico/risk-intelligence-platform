@@ -131,52 +131,109 @@ When writing any data access code:
 
 **Operator Console (Ethico Internal)**
 - Users: Hotline operators, QA team
-- Workflow: Phone intake → Metadata capture → AI-assisted note cleanup → QA review → Release to client
+- Workflow: Phone intake → **Create RIU** (hotline_report) → AI-assisted note cleanup → QA review → **Release RIU** → System creates Case
+- **Key:** Operators create RIUs, NOT Cases. Cases are auto-created when RIU is released.
 
 **Client Platform (Customer-Facing)**
 - Users: CCOs, Compliance Officers, Investigators, HR, Legal
-- Workflow: Case receipt → Routing → Investigation → Findings → Remediation
+- Workflow: Case receipt (from released RIUs) → Routing → Investigation → Findings → Remediation
+- **Key:** Clients see Cases with linked RIUs. Intake data lives on RIU, work tracking on Case.
 
-## Core Entity Model
+## Core Entity Model: RIU→Case Architecture
+
+**The HubSpot Parallel:** This platform uses a clear separation between **immutable inputs** and **mutable work containers**, mirroring HubSpot's Contact→Deal architecture.
+
+| Concept | HubSpot Parallel | Description |
+|---------|------------------|-------------|
+| **RIU** (Risk Intelligence Unit) | Contact | Immutable input - something happened. A report filed, form submitted, disclosure made. |
+| **Case** | Deal | Mutable work container. Has status, assignee, investigations, outcomes. |
+| **riu_case_associations** | Association | Links RIUs to Cases (many-to-many). |
+
+### Entity Hierarchy
 
 ```
-CASE (primary container)
-├── Intake Information (embedded: source, reporter, location, category, severity)
-├── Interactions (timeline of follow-ups)
-├── Investigations (0 to N per case)
+RIU (Risk Intelligence Unit) - IMMUTABLE INPUT
+├── type (hotline_report, web_form_submission, disclosure_response, etc.)
+├── source_channel (phone, web_form, chatbot, email, proxy)
+├── Reporter info (anonymous_access_code, contact details if identified)
+├── Content (details, narrative - NEVER changes after creation)
+├── Category/Severity (as captured at intake - corrections go on Case)
+├── AI enrichment (ai_summary, ai_risk_score, ai_translation)
+└── status (pending_qa, released, etc.)
+
+            │
+            │ riu_case_associations (many-to-many)
+            │ association_type: 'primary' | 'related' | 'merged_from'
+            ▼
+
+CASE (mutable work container)
+├── Classification (may differ from RIU - this is where corrections go)
+├── Pipeline/Workflow (status, stage, SLA)
+├── Assignment (user, team)
+├── Investigations[] (0 to N per case)
 │   ├── Assignees, status, notes, interviews, documents
 │   ├── Template/checklist (category-specific)
 │   ├── Findings & outcome
 │   └── Remediation plan
+├── Subjects[] (people involved - for cross-case pattern detection)
+├── Interactions[] (follow-up contacts)
 ├── Communications (two-way with reporter via anonymized relay)
-└── Subjects (linked at Case level for cross-case pattern detection)
+└── Outcomes & Findings
+
+CAMPAIGN (outbound requests)
+├── type (disclosure, attestation, survey)
+├── target_audience, due_date, reminder_schedule
+└── auto_case_rules (thresholds for when RIU creates Case)
+
+    │
+    │ Campaign Assignment (one per employee)
+    │ status: pending | completed | overdue
+    ▼
+
+RIU (disclosure_response, attestation_response, survey_response)
+    │
+    │ If threshold met or flagged
+    ▼
+CASE (for review/investigation)
 
 POLICY
 ├── Versions (parentPolicyId for version chains)
 ├── Approval workflows
-├── Attestation campaigns
+├── Attestation campaigns → RIU (attestation_response)
 └── Translations (AI-powered, preserves originals)
-
-DISCLOSURE
-├── Type (COI, Gifts & Entertainment, Outside Activities)
-├── Configurable form fields per tenant
-└── Approver workflows
 ```
 
-**Key Design Decisions:**
-- Case status derived from investigations but admin-overridable
-- Follow-ups stored as Interactions (not cluttering case list)
-- Anonymous communication via Ethico relay (Chinese Wall model)
+### RIU Types by Source
+
+| Source Module | RIU Type | Auto-Creates Case? |
+|---------------|----------|-------------------|
+| Operator Console | `hotline_report` | Yes (after QA release) |
+| Employee Portal | `web_form_submission` | Yes (immediate) |
+| Manager Portal | `proxy_report` | Yes (immediate) |
+| Disclosures | `disclosure_response` | If threshold met |
+| Policy Attestation | `attestation_response` | If failure/refusal |
+| Chatbot | `chatbot_transcript` | If escalation triggered |
+| Web Forms | `incident_form` | Configurable |
+
+### Key Design Decisions
+
+- **RIUs are immutable** - intake content never changes; corrections go on the Case
+- **Case status derived** from investigations but admin-overridable
+- **Follow-ups** create Interactions (status checks) or new RIUs (substantive new info)
+- **Multiple RIUs** can link to one Case (consolidating related reports)
+- **Case merge** moves RIU associations to primary Case
+- **Anonymous communication** via Ethico relay (Chinese Wall model)
 
 ## Backend Module Structure
 
 Each feature is a NestJS module in `apps/backend/src/modules/`:
 - `auth/` - JWT, SSO (Azure AD, Google), guards
-- `cases/` - Case CRUD, search, status tracking
+- `rius/` - RIU CRUD, immutability enforcement, RIU→Case association
+- `cases/` - Case CRUD, search, status tracking, merge operations
 - `investigations/` - Workflow, templates, findings
+- `campaigns/` - Disclosure/attestation campaigns, assignments
 - `policies/` - CRUD, versioning, approval workflows
-- `attestations/` - Distribution campaigns, tracking
-- `disclosures/` - Form management, conflict detection
+- `disclosures/` - Form management, conflict detection (creates RIUs)
 - `ai/` - Policy generation, note cleanup, summarization
 
 ## AI Integration
@@ -386,6 +443,8 @@ Use consistent terminology across all documents:
 
 | Use This | Not This |
 |----------|----------|
+| `RIU` (Risk Intelligence Unit) | `RII`, `Report`, `Intake`, `Submission` |
+| `riu_case_associations` | `case_reports`, `intake_links` |
 | `organization_id` | `tenant_id` (for tenant column name) |
 | `Employee` | `HRISEmployee`, `Person` (for HRIS-synced individual) |
 | `User` | `Account`, `Login` (for platform login identity) |
@@ -418,6 +477,36 @@ aiModelVersion?: string
 sourceSystem?: string      // 'NAVEX', 'EQS', 'MANUAL'
 sourceRecordId?: string
 migratedAt?: DateTime
+```
+
+### RIU Immutability Pattern
+RIUs (Risk Intelligence Units) are **immutable after creation**:
+```typescript
+// RIU - intake content NEVER changes
+model RiskIntelligenceUnit {
+  id              String   @id @default(uuid())
+  organizationId  String
+  type            String   // 'hotline_report', 'web_form_submission', etc.
+
+  // IMMUTABLE fields - set at creation, never updated
+  details         String   // Reporter's narrative
+  reporterType    String   // 'anonymous', 'confidential', 'identified'
+  categoryId      String   // Category as captured at intake
+  severity        String   // Severity as captured at intake
+
+  // MUTABLE fields (system-only)
+  status          String   // 'pending_qa', 'released'
+  aiSummary       String?  // Can be regenerated
+
+  createdAt       DateTime @default(now())
+  // NO updatedAt - emphasizes immutability
+}
+
+// Corrections go on the CASE, not the RIU
+model Case {
+  categoryId      String   // May differ from RIU - this is corrected value
+  severity        String   // May differ from RIU - this is corrected value
+}
 ```
 
 ### Service Pattern

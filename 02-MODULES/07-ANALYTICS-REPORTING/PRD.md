@@ -2,30 +2,33 @@
 ## PRD-007: Analytics & Reporting
 
 **Document ID:** PRD-007
-**Version:** 2.0 (Complete Specification)
+**Version:** 3.0 (RIU Architecture Update)
 **Priority:** P1 - High (Core Module)
 **Development Phase:** Phase 2
-**Last Updated:** January 2026
+**Last Updated:** February 2026
 
 **Cross-References:**
-- Platform Vision: `00-PLATFORM/01-PLATFORM-VISION.md`
+- Platform Vision: `00-PLATFORM/01-PLATFORM-VISION.md` (v3.2 - authoritative RIU→Case architecture)
 - Analytics Data Model: `01-SHARED-INFRASTRUCTURE/ANALYTICS-DATA-MODEL.md`
 - Core Data Model: `01-SHARED-INFRASTRUCTURE/CORE-DATA-MODEL.md`
-- Case Management: `02-MODULES/05-CASE-MANAGEMENT/PRD.md`
+- Case Management: `02-MODULES/05-CASE-MANAGEMENT/PRD.md` (v3.1)
 - Disclosures: `02-MODULES/06-DISCLOSURES/PRD.md`
 - Policy Management: `02-MODULES/09-POLICY-MANAGEMENT/PRD.md`
 
 > **Tech Stack:** NestJS (backend) + Next.js (frontend) + shadcn/ui + Tailwind CSS.
 > See `01-SHARED-INFRASTRUCTURE/` docs for implementation patterns and standards.
 
+> **Architecture Note:** This PRD implements analytics for the RIU→Case architecture defined in `00-PLATFORM/01-PLATFORM-VISION.md v3.2`. Risk Intelligence Units (RIUs) are **immutable inputs**; Cases are **mutable work containers**. This separation enables distinct analytics perspectives: Input metrics (RIUs) vs Response metrics (Cases).
+
 ---
 
 ## Table of Contents
 
 1. [Executive Summary](#executive-summary)
-2. [AI-First Considerations](#ai-first-considerations)
-3. [User Stories](#user-stories)
-4. [Feature Specifications](#feature-specifications)
+2. [RIU vs Case Analytics Framework](#riu-vs-case-analytics-framework)
+3. [AI-First Considerations](#ai-first-considerations)
+4. [User Stories](#user-stories)
+5. [Feature Specifications](#feature-specifications)
    - F1: Dashboard Builder
    - F2: Widget Library
    - F3: Report Builder
@@ -34,10 +37,10 @@
    - F6: Scheduled Reports
    - F7: Export Capabilities
    - F8: Pre-built Templates
-5. [Data Model](#data-model)
-6. [API Specifications](#api-specifications)
-7. [UI/UX Specifications](#uiux-specifications)
-8. [Non-Functional Requirements](#non-functional-requirements)
+6. [Data Model](#data-model)
+7. [API Specifications](#api-specifications)
+8. [UI/UX Specifications](#uiux-specifications)
+9. [Non-Functional Requirements](#non-functional-requirements)
 
 ---
 
@@ -56,7 +59,8 @@ Unlike competitors that require Power BI or external tools, Ethico provides:
 - Visual report builder with live preview
 - AI-assisted insights and anomaly detection
 - One-click board report generation
-- Unified data across Cases, Disclosures, Policies, and Attestations
+- Unified data across RIUs, Cases, Disclosures, Policies, and Attestations
+- Clear separation of **Input metrics** (RIUs) vs **Response metrics** (Cases)
 
 ### Target Users
 
@@ -74,6 +78,7 @@ Unlike competitors that require Power BI or external tools, Ethico provides:
 |------------|-------|-----|------------|
 | Self-service dashboards | Limited | Basic | Full drag-and-drop |
 | Cross-module analytics | No | No | Unified data model |
+| Input vs Response metrics | No separation | No separation | RIU→Case analytics |
 | AI insights | No | No | Anomaly detection, summaries |
 | Board reports | PowerPoint export | PDF only | AI-generated presentations |
 | Real-time metrics | No | No | Live widgets |
@@ -82,19 +87,87 @@ Unlike competitors that require Power BI or external tools, Ethico provides:
 
 ---
 
+## RIU vs Case Analytics Framework
+
+### The Fundamental Insight
+
+The platform's RIU→Case architecture enables analytics perspectives that were impossible with monolithic case models. This separation distinguishes between **what was reported** (immutable inputs) and **how the organization responded** (mutable work containers).
+
+### Metric Categories
+
+| Metric Type | Data Source | Description | Example Metrics |
+|-------------|-------------|-------------|-----------------|
+| **Input Volume** | RIUs | What's coming in | Reports received, channel mix, geographic distribution, anonymous vs identified ratio |
+| **Response Metrics** | Cases | How we're responding | Time to assignment, investigation duration, substantiation rates, outcomes |
+| **Conversion Rates** | RIU→Case links | Escalation patterns | % of disclosures requiring review, hotline→case rate, escalation rates by category |
+| **Campaign Metrics** | Campaigns | Outbound completion | Disclosure completion rates, attestation compliance, overdue rates |
+| **Cross-Pillar Intelligence** | Entity relationships | Connected insights | Subjects appearing across cases, policy violations linked to cases |
+
+### RIU Types for Analytics
+
+Risk Intelligence Units (RIUs) are categorized by type for analytics:
+
+| RIU Type | Source Module | Creates Case? | Key Metrics |
+|----------|---------------|---------------|-------------|
+| `hotline_report` | Operator Console | Always (after QA) | Call volume, duration, operator efficiency |
+| `web_form_submission` | Employee Portal | Always | Self-service adoption, time of day patterns |
+| `proxy_report` | Manager Portal | Always | Manager engagement, department patterns |
+| `disclosure_response` | Disclosures Module | If threshold met | Completion rate, conflict rates, escalation % |
+| `attestation_response` | Policy Module | If failure/refusal | Compliance rate, failure patterns |
+| `incident_form` | Web Forms | Configurable | Volume by form type, completion rates |
+| `chatbot_transcript` | Employee Chatbot | If escalation | Deflection rate, escalation triggers |
+| `survey_response` | Campaigns | If flagged | Participation rate, flagged response % |
+
+### Standard Dashboard Views
+
+**RIU Dashboard (Input Analysis):**
+- Reports by channel (hotline, web, chatbot, proxy) over time
+- Reports by category with trend analysis
+- Geographic distribution of reports
+- Anonymous vs. identified ratio
+- Campaign completion rates (disclosure, attestation)
+- Average time from RIU creation to Case creation
+
+**Case Dashboard (Response Analysis):**
+- Open cases by status and pipeline stage
+- Average days to close by category
+- Outcomes distribution (substantiated, unsubstantiated, inconclusive)
+- SLA compliance rates
+- Investigator workload distribution
+- Remediation completion rates
+
+**Cross-Pillar Intelligence Dashboard:**
+- Subjects appearing in multiple cases (pattern detection)
+- Categories trending up/down over time
+- Correlation: policy changes vs case volume changes
+- Remediation effectiveness by category
+- Hotspot analysis by location/business unit
+
+**RIU→Case Conversion Dashboard:**
+- Conversion rate by RIU type
+- Time from RIU creation to Case creation (by channel)
+- Disclosures requiring review (% above threshold)
+- Escalation rates by category/severity
+- QA turnaround time (hotline reports)
+
+---
+
 ## AI-First Considerations
 
 ### Conversational Interface
 
-Users can interact with analytics via natural language:
+Users can interact with analytics via natural language. The AI understands the RIU→Case distinction:
 
 | User Intent | Example Phrases | AI Response |
 |-------------|-----------------|-------------|
-| Metric lookup | "How many cases are open?" | Direct answer with trend |
+| Input volume | "How many reports did we receive last quarter?" | RIU count by period |
+| Response metrics | "How many cases are open?" | Direct answer with trend |
+| Conversion analysis | "What % of disclosures required review?" | RIU→Case conversion rate |
 | Trend analysis | "Show me cases by month this year" | Chart with insight |
-| Comparison | "Compare Q4 to Q3 case volume" | Side-by-side with % change |
+| Comparison | "Compare Q4 to Q3 report volume" | Side-by-side with % change |
 | Anomaly alert | "Anything unusual in the data?" | Detected anomalies highlighted |
 | Report request | "Create a report of overdue cases" | Draft report definition |
+| Channel analysis | "Which reporting channel has the highest volume?" | RIU breakdown by channel |
 
 **Example Conversation:**
 ```
@@ -106,6 +179,16 @@ AI: "The average time to close harassment cases is 45 days, which is
 
 User: "Yes, by region"
 AI: [Generates bar chart showing regional breakdown]
+
+User: "How many reports came in through the hotline vs web form?"
+AI: "Last quarter you received 234 reports total:
+    - Hotline: 156 (67%)
+    - Web Form: 58 (25%)
+    - Chatbot: 12 (5%)
+    - Proxy Reports: 8 (3%)
+
+    Hotline volume is up 15% vs prior quarter. Would you like to see
+    the trend by month?"
 ```
 
 ### AI Assistance Points
@@ -182,7 +265,8 @@ As a **Compliance Officer**, I want to build custom reports by selecting fields 
 so that I can answer specific business questions without technical help.
 
 Key behaviors:
-- Select fields from Cases, Investigations, Disclosures, Policies, Attestations
+- Select fields from RIUs, Cases, Investigations, Disclosures, Policies, Attestations, Campaigns
+- Join RIU and Case data via RIU→Case associations
 - Build filters visually with AND/OR logic
 - Group by any dimension with subtotals
 - Add calculated fields using formula builder
@@ -441,13 +525,16 @@ Visual interface for building custom reports across all data sources.
 
 | Source | Key Fields |
 |--------|------------|
-| Cases | Case number, created date, status, category, severity, location, assignee, days open |
-| Investigations | Status, findings, outcome, days to close |
-| Disclosures | Type, status, submitter, decision, value |
-| Policies | Title, status, version, effective date, owner |
-| Attestations | Policy, status, completion date, days overdue |
-| Users | Name, role, department, last login |
-| Employees | Name, department, location, manager |
+| **RIUs (Risk Intelligence Units)** | RIU type, source channel, received date, reporter type (anonymous/identified), category (at intake), severity (at intake), location, ai_risk_score |
+| **Cases** | Case number, created date, status, category (may differ from RIU), severity, location, assignee, days open, outcome |
+| **RIU→Case Associations** | Association type (primary, related, merged_from), time to case creation |
+| **Investigations** | Status, findings, outcome, days to close, investigator |
+| **Campaigns** | Campaign type, target audience, completion rate, overdue count |
+| **Disclosures** | Type, status, submitter, decision, value, threshold exceeded |
+| **Policies** | Title, status, version, effective date, owner |
+| **Attestations** | Policy, status, completion date, days overdue |
+| **Users** | Name, role, department, last login |
+| **Employees** | Name, department, location, manager |
 
 ---
 
@@ -466,10 +553,12 @@ HubSpot-style saved filter configurations that appear as tabs on list pages.
 **Default System Views:**
 | Module | Default Views |
 |--------|---------------|
+| RIUs | All RIUs, By Channel, Pending QA, High Severity, Recent |
 | Cases | All Cases, My Cases, Unassigned, High Severity, Overdue |
 | Investigations | My Investigations, In Progress, Pending Review |
-| Disclosures | Pending Approval, My Disclosures, Recent |
+| Disclosures | Pending Approval, My Disclosures, Threshold Exceeded, Recent |
 | Attestations | Overdue, Pending, By Department |
+| Campaigns | Active Campaigns, Low Completion, Overdue |
 
 ---
 
@@ -480,25 +569,33 @@ AI-assisted generation of executive presentations for board meetings.
 
 **Templates:**
 1. **Quarterly Compliance Review**
-   - Case volume and trends
-   - Investigation outcomes
+   - Input volume (RIUs received by channel)
+   - Case outcomes and investigation results
    - Key metrics vs. benchmarks
-   - Notable incidents
+   - Notable incidents (with linked RIU sources)
    - Program improvements
 
 2. **Annual Compliance Report**
-   - Year-over-year comparisons
-   - Category analysis
-   - Resolution rates
-   - Training compliance
+   - Year-over-year comparisons (both inputs and outcomes)
+   - Category analysis (RIU intake vs Case findings)
+   - Resolution rates and average time to close
+   - Campaign completion rates (disclosures, attestations)
    - Recommendations
 
 3. **Hotline Statistics**
-   - Call volume by month
-   - Source channel breakdown
-   - Anonymous vs. identified
-   - Category distribution
-   - Response time metrics
+   - RIU volume by month (all channels)
+   - Source channel breakdown (hotline, web, chatbot, proxy)
+   - Anonymous vs. identified ratio
+   - Category distribution at intake
+   - QA turnaround time
+   - Response time metrics (time to Case, time to assignment)
+
+4. **Risk Intelligence Summary**
+   - RIU→Case conversion rates by type
+   - Disclosure escalation patterns
+   - Cross-pillar insights (subjects appearing in multiple cases)
+   - Regional hotspot analysis
+   - AI-detected patterns and anomalies
 
 **Generation Flow:**
 1. User selects template
@@ -509,10 +606,12 @@ AI-assisted generation of executive presentations for board meetings.
 
 **AI Capabilities:**
 - Generate executive summary (2-3 paragraphs)
+- Distinguish input trends (RIUs) from response metrics (Cases)
 - Identify key trends and anomalies
 - Compare to previous period
 - Suggest areas of concern
 - Plain-language insights
+- Highlight RIU→Case conversion patterns
 
 ---
 
@@ -585,7 +684,15 @@ Ready-to-use dashboards and reports for common use cases.
 
 **Dashboard Templates:**
 
-1. **Compliance Overview**
+1. **Input Volume Dashboard (RIU-focused)**
+   - Total RIUs received (metric card with trend)
+   - RIUs by channel (hotline, web, chatbot, proxy)
+   - RIUs by category chart
+   - Anonymous vs identified ratio
+   - Geographic distribution map
+   - Recent RIUs list
+
+2. **Compliance Overview (Case-focused)**
    - Open cases metric
    - Cases by category chart
    - Cases by status funnel
@@ -593,44 +700,60 @@ Ready-to-use dashboards and reports for common use cases.
    - SLA compliance gauge
    - Recent cases list
 
-2. **Investigation Dashboard**
+3. **RIU→Case Conversion**
+   - Conversion rate by RIU type
+   - Time from RIU to Case (by channel)
+   - Disclosure escalation rate
+   - QA turnaround time
+   - Hotline processing efficiency
+
+4. **Investigation Dashboard**
    - My open investigations
    - Investigation pipeline
    - Avg days by category
    - Overdue investigations
    - Completion rate trend
 
-3. **Disclosure Manager**
+5. **Disclosure Manager**
+   - Campaign completion rate gauge
    - Pending approvals count
    - Disclosures by type pie
-   - Decision distribution
-   - Monthly submissions
+   - Decision distribution (approved/requires review)
+   - Threshold breach rate
    - Overdue approvals list
 
-4. **Attestation Tracker**
+6. **Attestation Tracker**
    - Completion rate gauge
    - Completion by department
    - Overdue by policy
    - Reminder effectiveness
    - Daily completion trend
 
-5. **Executive Summary**
-   - Key metrics cards
-   - Period comparison
+7. **Executive Summary**
+   - Key metrics cards (RIU volume + Case outcomes)
+   - Period comparison (input vs response)
    - Category breakdown
    - Regional heatmap
    - AI-generated insights
 
+8. **Cross-Pillar Intelligence**
+   - Repeat subjects across cases
+   - Category trends over time
+   - Policy violation correlation
+   - Hotspot analysis by location/BU
+
 **Report Templates:**
 
-1. **Case Detail Export**
-2. **Investigation Summary**
-3. **Disclosure Audit Trail**
-4. **Attestation Compliance**
-5. **User Activity Report**
-6. **SLA Performance Report**
-7. **Category Analysis**
-8. **Regional Breakdown**
+1. **RIU Volume Report** - Input metrics by channel, category, period
+2. **Case Detail Export** - Full case data with linked RIUs
+3. **Investigation Summary** - Outcomes, durations, investigator metrics
+4. **Disclosure Audit Trail** - Campaign responses with escalation tracking
+5. **Attestation Compliance** - Completion rates by policy, department
+6. **User Activity Report** - Login frequency, actions taken
+7. **SLA Performance Report** - Response times, breach rates
+8. **Category Analysis** - Trends by category across RIUs and Cases
+9. **Regional Breakdown** - Location-based input and response metrics
+10. **RIU→Case Conversion Report** - Escalation patterns, processing times
 
 ---
 
@@ -645,7 +768,122 @@ See `01-SHARED-INFRASTRUCTURE/ANALYTICS-DATA-MODEL.md` for complete schemas:
 - **SavedReport** - Report definitions
 - **ScheduledReport** - Delivery schedules
 - **ReportExecution** - Execution history
-- **CaseFact, DisclosureFact, FormFact, AttestationFact** - Pre-aggregated analytics
+- **FACT_RIU_DAILY** - Pre-aggregated RIU (input) metrics
+- **FACT_CASE_DAILY** - Pre-aggregated Case (response) metrics
+- **FACT_CAMPAIGN_DAILY** - Pre-aggregated campaign metrics
+- **CaseFact, DisclosureFact, FormFact, AttestationFact** - Legacy fact tables (deprecated in favor of above)
+
+### Analytics Fact Tables
+
+The analytics layer uses pre-aggregated fact tables for dashboard performance. These implement the RIU→Case architecture:
+
+```prisma
+// Input metrics - tracks all Risk Intelligence Units received
+model FACT_RIU_DAILY {
+  id                String   @id @default(uuid())
+  date_id           DateTime @db.Date
+  organization_id   String
+
+  // RIU dimensions
+  riu_type          String   // hotline_report, web_form_submission, disclosure_response, etc.
+  source_channel    String   // phone, web_form, chatbot, email, proxy
+  category_id       String?
+  severity          String?  // HIGH, MEDIUM, LOW (as captured at intake)
+  location_id       String?
+  business_unit_id  String?
+
+  // Reporter dimensions
+  is_anonymous      Boolean
+  reporter_type     String?  // anonymous, confidential, identified
+
+  // Conversion tracking
+  created_case      Boolean  // Did this RIU create a Case?
+
+  // Metrics
+  count             Int      @default(1)
+
+  // Timestamps
+  created_at        DateTime @default(now())
+
+  @@index([organization_id, date_id])
+  @@index([organization_id, riu_type])
+  @@index([organization_id, source_channel])
+}
+
+// Response metrics - tracks Case processing and outcomes
+model FACT_CASE_DAILY {
+  id                String   @id @default(uuid())
+  date_id           DateTime @db.Date
+  organization_id   String
+
+  // Case dimensions
+  status            String   // NEW, OPEN, CLOSED
+  outcome           String?  // SUBSTANTIATED, UNSUBSTANTIATED, etc.
+  category_id       String?
+  severity          String?
+  pipeline_stage    String?
+  assigned_to_id    String?
+
+  // Metrics
+  count             Int      @default(1)
+  avg_days_open     Float?
+  sla_status        String?  // ON_TRACK, WARNING, OVERDUE
+
+  // Timestamps
+  created_at        DateTime @default(now())
+
+  @@index([organization_id, date_id])
+  @@index([organization_id, status])
+}
+
+// Campaign metrics - tracks disclosure and attestation campaigns
+model FACT_CAMPAIGN_DAILY {
+  id                    String   @id @default(uuid())
+  date_id               DateTime @db.Date
+  organization_id       String
+
+  // Campaign dimensions
+  campaign_id           String
+  campaign_type         String   // disclosure, attestation, survey
+
+  // Metrics
+  assignments_total     Int      @default(0)
+  assignments_completed Int      @default(0)
+  assignments_overdue   Int      @default(0)
+  cases_created         Int      @default(0)  // RIUs that escalated to Cases
+  completion_rate       Float?
+
+  // Timestamps
+  created_at            DateTime @default(now())
+
+  @@index([organization_id, date_id])
+  @@index([organization_id, campaign_id])
+}
+
+// RIU→Case conversion metrics
+model FACT_RIU_CASE_CONVERSION {
+  id                    String   @id @default(uuid())
+  date_id               DateTime @db.Date
+  organization_id       String
+
+  // Dimensions
+  riu_type              String
+  source_channel        String
+  category_id           String?
+
+  // Metrics
+  riu_count             Int      @default(0)
+  cases_created         Int      @default(0)
+  conversion_rate       Float?
+  avg_time_to_case_hours Float?  // Time from RIU creation to Case creation
+
+  // Timestamps
+  created_at            DateTime @default(now())
+
+  @@index([organization_id, date_id])
+  @@index([organization_id, riu_type])
+}
+```
 
 ### Saved View Schema
 
@@ -681,11 +919,13 @@ model SavedView {
 }
 
 enum ViewModule {
+  RIUS                // Risk Intelligence Units
   CASES
   INVESTIGATIONS
   DISCLOSURES
   POLICIES
   ATTESTATIONS
+  CAMPAIGNS
   USERS
 }
 ```
@@ -742,8 +982,29 @@ POST   /api/v1/schedules/:sid/run-now        # Trigger immediate run
 ### Analytics Endpoints
 
 ```
-# Fact Table Queries
+# RIU (Input) Analytics
+POST   /api/v1/analytics/rius                # Query RIU facts
+GET    /api/v1/analytics/rius/volume         # RIU volume over time
+GET    /api/v1/analytics/rius/by-channel     # RIU breakdown by source channel
+GET    /api/v1/analytics/rius/by-type        # RIU breakdown by type
+
+# Case (Response) Analytics
 POST   /api/v1/analytics/cases               # Query case facts
+GET    /api/v1/analytics/cases/status        # Case status distribution
+GET    /api/v1/analytics/cases/outcomes      # Case outcomes distribution
+GET    /api/v1/analytics/cases/sla           # SLA compliance metrics
+
+# RIU→Case Conversion Analytics
+POST   /api/v1/analytics/conversion          # Query conversion facts
+GET    /api/v1/analytics/conversion/rate     # Conversion rate by RIU type
+GET    /api/v1/analytics/conversion/time     # Time to case creation metrics
+
+# Campaign Analytics
+POST   /api/v1/analytics/campaigns           # Query campaign facts
+GET    /api/v1/analytics/campaigns/:id/completion  # Campaign completion metrics
+GET    /api/v1/analytics/campaigns/:id/escalation  # Campaign escalation rates
+
+# Legacy endpoints (maintained for compatibility)
 POST   /api/v1/analytics/disclosures         # Query disclosure facts
 POST   /api/v1/analytics/attestations        # Query attestation facts
 POST   /api/v1/analytics/forms               # Query form facts
@@ -756,6 +1017,7 @@ GET    /api/v1/analytics/metrics/:metric     # Single metric value
 POST   /api/v1/analytics/insights            # Generate AI insights
 POST   /api/v1/analytics/anomalies           # Detect anomalies
 POST   /api/v1/analytics/summary             # Generate natural language summary
+POST   /api/v1/analytics/patterns            # Cross-case pattern detection
 ```
 
 ### Saved Views Endpoints
@@ -891,6 +1153,30 @@ PUT    /api/v1/views/reorder                 # Reorder tabs
 
 ---
 
+## Acceptance Criteria
+
+### Functional Acceptance
+
+| ID | Criterion | Priority |
+|----|-----------|----------|
+| AC-01 | RIU fact table (FACT_RIU_DAILY) populated with input metrics | P0 |
+| AC-02 | Case fact table (FACT_CASE_DAILY) populated with response metrics | P0 |
+| AC-03 | RIU→Case conversion metrics tracked and reportable | P0 |
+| AC-04 | Dashboards can display both RIU and Case widgets side-by-side | P0 |
+| AC-05 | Report builder includes RIU data source with all RIU fields | P0 |
+| AC-06 | Board reports distinguish input volume (RIUs) from outcomes (Cases) | P0 |
+| AC-07 | Saved views support RIU module filtering | P0 |
+| AC-08 | Natural language queries understand RIU vs Case distinction | P1 |
+| AC-09 | Campaign completion rates calculated from RIU responses | P0 |
+| AC-10 | Disclosure escalation rates trackable (% creating Cases) | P0 |
+| AC-11 | Channel breakdown shows all RIU source channels | P0 |
+| AC-12 | Anonymous vs identified ratio reportable | P0 |
+| AC-13 | Time from RIU creation to Case creation measurable | P1 |
+| AC-14 | QA turnaround time (hotline RIUs) reportable | P1 |
+| AC-15 | Cross-pillar intelligence dashboard shows subject patterns | P2 |
+
+---
+
 ## Checklist Verification
 
 ### AI-First Checklist Compliance
@@ -900,19 +1186,33 @@ PUT    /api/v1/views/reorder                 # Reorder tabs
 - [x] Dashboard and report configurations stored as JSON
 - [x] Execution history with audit context
 - [x] Source tracking for fact table refresh
+- [x] RIU and Case fact tables separate (input vs response)
 
 **Feature Design:**
 - [x] Natural language query examples documented
 - [x] AI assistance points identified (insights, summaries, anomalies)
 - [x] AI-generated board report narratives
+- [x] RIU→Case conversion analytics included
 
 **API Design:**
 - [x] Context-rich responses for widgets
 - [x] Bulk query support via aggregation endpoints
+- [x] Separate endpoints for RIU and Case analytics
 
 **UI Design:**
 - [x] AI insight panels on dashboards
 - [x] Self-service configuration (drag-and-drop)
+- [x] RIU dashboard templates included
+- [x] Conversion dashboard template included
+
+### RIU Architecture Compliance
+
+- [x] RIU fact table tracks immutable input metrics
+- [x] Case fact table tracks mutable response metrics
+- [x] Conversion metrics link RIU→Case relationship
+- [x] Campaign metrics connect to RIU responses
+- [x] Board reports distinguish inputs from outcomes
+- [x] API endpoints separate RIU and Case analytics
 
 ---
 

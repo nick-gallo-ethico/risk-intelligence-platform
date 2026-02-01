@@ -2,10 +2,12 @@
 ## PRD-003: Employee Portal & Ethics Portal
 
 **Document ID:** PRD-003
-**Version:** 1.0
+**Version:** 2.0 (RIU - Risk Intelligence Unit Architecture)
 **Priority:** P0 - Critical (Core Module)
 **Development Phase:** Phase 1 (Core) Weeks 5-8, Extended through Phase 3
-**Last Updated:** January 2026
+**Last Updated:** February 2026
+
+> **Architecture Reference:** This PRD implements the RIU→Case architecture defined in `00-PLATFORM/01-PLATFORM-VISION.md v3.2`. The Employee Portal creates **Risk Intelligence Units (RIUs)** - immutable inputs. Cases are mutable work containers created by the system when business rules require one. Employees see "My Reports" (their submitted RIUs), which may or may not have linked Cases.
 
 ---
 
@@ -13,17 +15,24 @@
 
 The Employee Portal is the self-service interface for employees, managers, and anonymous reporters to interact with the Ethico Risk Intelligence Platform. It works in conjunction with the public-facing Ethics Portal to provide a complete employee experience for compliance activities.
 
-**This module serves as the employee-facing gateway to:**
-- Case Management (PRD-005) - submitting and tracking speak-up reports
-- Disclosure Management (PRD-006) - completing disclosure campaigns and ad-hoc disclosures
-- Policy Management (PRD-009) - accessing policies and completing attestations
+**This module creates Risk Intelligence Units (RIUs):**
+- `web_form_submission` - Employee/anonymous speak-up reports
+- `proxy_report` - Manager submits on behalf of employee
+- `disclosure_response` - Campaign disclosure completions (via Disclosures PRD-006)
+- `attestation_response` - Policy attestations (via Policy PRD-009)
+- `chatbot_transcript` - AI chatbot conversations that result in intake
+
+**RIU→Case Flow:**
+- RIUs are **immutable inputs** created when employees submit reports
+- The system creates **Cases** (mutable work containers) based on business rules
+- Employees see "My Reports" showing their RIUs with status derived from linked Case (if any)
 
 ### Two-Portal Architecture
 
 | Portal | Access | Purpose |
 |--------|--------|---------|
 | **Ethics Portal** (Public) | No login required | Landing page, anonymous reporting, crisis resources, access code status checks |
-| **Employee Portal** (Authenticated) | SSO / Email link / Access code | Full self-service: cases, disclosures, policies, messaging, manager dashboard |
+| **Employee Portal** (Authenticated) | SSO / Email link / Access code | Full self-service: reports (RIUs), disclosures, policies, messaging, manager dashboard |
 
 ### Module Scope
 
@@ -32,10 +41,11 @@ The Employee Portal is the self-service interface for employees, managers, and a
 | Ethics Portal (public landing page) | Case investigation workflow (PRD-005) |
 | Employee Portal (authenticated) | Disclosure review workflow (PRD-006) |
 | Anonymous reporter experience | Policy creation/management (PRD-009) |
-| Speak-up report submission | HRIS integration core (PRD-010) |
+| **RIU creation** (web_form_submission, proxy_report, chatbot_transcript) | HRIS integration core (PRD-010) |
 | Two-way messaging (employee side) | Operator Console (PRD-002) |
-| Disclosure campaign completion | |
-| Policy viewing & attestation | |
+| **My Reports view** (employee's submitted RIUs) | |
+| Disclosure campaign completion (creates disclosure_response RIUs) | |
+| Policy viewing & attestation (creates attestation_response RIUs) | |
 | Manager team dashboard | |
 | Policy Q&A chatbot (MVP) | |
 | Program transparency stats | |
@@ -62,32 +72,33 @@ ETHICS PORTAL (PUBLIC)
 │
 ├── [No Login] View company ethics message
 ├── [No Login] Access "Need Immediate Help?" crisis resources
-├── [No Login] Submit anonymous speak-up report
-├── [Access Code] Check case status
-├── [Access Code] Submit follow-up to existing case
+├── [No Login] Submit anonymous speak-up report → Creates RIU (web_form_submission)
+├── [Access Code] Check report status (RIU status OR linked Case status)
+├── [Access Code] Submit follow-up to existing report
 ├── [Access Code] Exchange messages with investigators
 │
 └── [Login Button] → Redirect to Employee Portal
                      ↓
 EMPLOYEE PORTAL (AUTHENTICATED)
 │
-├── My Cases
-│   ├── View submitted cases
-│   ├── Submit new speak-up report (identified or anonymous)
+├── My Reports (RIUs submitted by this user)
+│   ├── View submitted RIUs with status
+│   │   └── Status from: linked Case (if exists) OR RIU status (if no Case)
+│   ├── Submit new speak-up report → Creates RIU (web_form_submission)
 │   ├── Submit follow-ups
 │   └── Exchange messages with investigators
 │
 ├── My Disclosures
-│   ├── Complete outstanding campaigns
-│   ├── Submit ad-hoc disclosures
+│   ├── Complete outstanding campaigns → Creates RIU (disclosure_response)
+│   ├── Submit ad-hoc disclosures → Creates RIU (disclosure_response)
 │   ├── View disclosure history
 │   └── Complete conditions
 │
 ├── Policies
 │   ├── Browse policy library
-│   ├── Complete attestations
+│   ├── Complete attestations → Creates RIU (attestation_response)
 │   ├── View attestation history
-│   └── Ask policy questions (AI chatbot)
+│   └── Ask policy questions (AI chatbot) → May create RIU (chatbot_transcript)
 │
 ├── Notifications
 │   └── View notification inbox
@@ -95,8 +106,47 @@ EMPLOYEE PORTAL (AUTHENTICATED)
 └── [Manager Only] Team Dashboard
     ├── Team compliance overview
     ├── Outstanding items by team member
-    └── Proxy submission
+    └── Proxy submission → Creates RIU (proxy_report)
 ```
+
+---
+
+## 2.3 RIU→Case Architecture Summary
+
+> **Reference:** See `00-PLATFORM/01-PLATFORM-VISION.md v3.2` for the complete RIU→Case architecture.
+
+### Key Concepts
+
+**Risk Intelligence Unit (RIU):** Immutable input created when something is reported or submitted. Contains the original data exactly as captured. Never modified after creation.
+
+**Case:** Mutable work container tracking the organization's response. Has status, assignees, investigations, outcomes. Linked to one or more RIUs.
+
+### RIU Types Created by This Module
+
+| RIU Type | Created When | Auto-Creates Case? |
+|----------|--------------|-------------------|
+| `web_form_submission` | Employee/anonymous submits speak-up report | Yes (immediate) |
+| `proxy_report` | Manager submits on behalf of employee | Yes (immediate) |
+| `disclosure_response` | Employee completes disclosure form | If threshold/flag |
+| `attestation_response` | Employee attests to policy | If failure/refusal |
+| `chatbot_transcript` | Chatbot session with escalation | If escalation triggered |
+
+### Status Display Logic
+
+Employees see "My Reports" which displays their submitted RIUs. The status shown is:
+1. **If RIU has linked Case:** Display Case status (Open, Under Review, Closed, etc.)
+2. **If RIU has no linked Case:** Display RIU status (Received, Pending Review, etc.)
+
+### Data Storage
+
+| Data Type | Stored On | Why |
+|-----------|-----------|-----|
+| Original submission content | RIU | Immutable audit trail |
+| Access code | RIU | Links anonymous reporter to their submission |
+| Reporter contact info | RIU | Original capture, used for relay |
+| Status, assignment, investigations | Case | Mutable work tracking |
+| Messages | Case | Related to response workflow |
+| Category/severity (corrected) | Case | Corrections go on Case, RIU preserves original |
 
 ---
 
@@ -112,19 +162,22 @@ Key behaviors:
 - No login required
 - Confidentiality statement shown before form
 - All required intake fields available
-- Access code generated for status checks (prominently displayed)
+- **System creates RIU** (type: `web_form_submission`, reporter_type: `anonymous`)
+- **System creates Case** (immediate, linked to RIU as 'primary')
+- Access code generated for status checks (stored on RIU, prominently displayed)
 - Optional email for update notifications
-- Activity logged: "Anonymous report submitted via portal"
+- Activity logged: "Anonymous report submitted via portal - RIU created"
 
 ---
 
-**Check case status with access code**
+**Check report status with access code**
 As an **Anonymous Reporter**, I want to check the status of my submitted report
 so that I know my concern is being addressed.
 
 Key behaviors:
-- Enter access code on portal
-- View current case status and updates
+- Enter access code on portal (access code stored on RIU)
+- **Status displayed from linked Case** (if Case exists) OR **RIU status** (if no Case yet)
+- View current status and updates
 - See any messages from investigators
 - Can submit follow-up information
 - No personal information required or exposed
@@ -150,23 +203,27 @@ so that investigators can reach me directly for follow-up.
 
 Key behaviors:
 - SSO or magic link authentication
-- Contact info captured and encrypted
-- Can view case in "My Cases" after submission
+- Contact info captured and encrypted (stored on RIU)
+- **System creates RIU** (type: `web_form_submission`, reporter_type: `identified`)
+- **System creates Case** (immediate, linked to RIU as 'primary')
+- Can view RIU in "My Reports" after submission with linked Case status
 - Direct messaging with investigators
-- Activity logged: "Employee {name} submitted identified report"
+- Activity logged: "Employee {name} submitted identified report - RIU created"
 
 ---
 
-**View my submitted cases**
-As an **Employee**, I want to see all cases I've submitted
+**View my submitted reports**
+As an **Employee**, I want to see all reports (RIUs) I've submitted
 so that I can track their progress.
 
 Key behaviors:
-- List of submitted cases with status
-- Click to view case details and messages
+- List of submitted RIUs with status
+- **Status derived from**: linked Case status (if Case exists) OR RIU status (if no Case)
+- Click to view report details and messages
 - Submit follow-up information
-- View activity timeline
+- View activity timeline (RIU + linked Case activities)
 - organizationId enforced by RLS
+- Only shows RIUs where `reporter_employee_id` matches logged-in user
 
 ---
 
@@ -258,8 +315,10 @@ Key behaviors:
 - Select team member from dropdown
 - Capture proxy submitter info
 - Note reason for proxy submission
-- Case linked to employee and proxy submitter
-- Activity logged: "Manager {name} submitted proxy report for {employee}"
+- **System creates RIU** (type: `proxy_report`)
+- **System creates Case** (immediate, linked to RIU as 'primary')
+- RIU linked to both employee and proxy submitter
+- Activity logged: "Manager {name} submitted proxy report for {employee} - RIU created"
 
 ---
 
@@ -347,20 +406,29 @@ If you are in immediate danger or witnessing an emergency, please contact:
 2. View confidentiality statement
 3. Choose: "Report Anonymously" or "Provide My Identity"
 4. Complete intake form (same fields as operator intake)
-5. Receive access code for status checks
-6. Confirmation page with access code displayed prominently
+5. **System creates RIU** (type: `web_form_submission`)
+6. **System creates Case** (linked to RIU as 'primary')
+7. Receive access code for status checks (stored on RIU)
+8. Confirmation page with access code displayed prominently
+
+**RIU Creation Details:**
+- RIU type: `web_form_submission`
+- RIU status: `received` (no QA required for web submissions)
+- reporter_type: `anonymous` or `confidential`
+- Access code generated and stored on RIU
 
 **Form Fields:** (Same as PRD-005 Case Management intake)
-- Report details (narrative)
-- Category selection
-- Location (optional)
-- Subjects (optional)
-- Custom questions (client-configured)
-- File attachments (up to 25MB per file)
-- Severity indicator (optional self-assessment)
+- Report details (narrative) → stored on RIU
+- Category selection → stored on RIU (copied to Case)
+- Location (optional) → stored on RIU
+- Subjects (optional) → stored on RIU
+- Custom questions (client-configured) → stored on RIU
+- File attachments (up to 25MB per file) → stored on RIU
+- Severity indicator (optional self-assessment) → stored on RIU
 
 **Access Code:**
 - 8-character alphanumeric
+- **Stored on RIU** (not Case)
 - Displayed prominently on confirmation
 - Option to email code (if email provided)
 - Printed version available
@@ -368,11 +436,20 @@ If you are in immediate danger or witnessing an emergency, please contact:
 ### 3.5 Status Check (Access Code)
 
 **Flow:**
-1. Enter access code
-2. View case status and summary
-3. View messages from investigators
-4. Submit follow-up information
-5. Send messages to investigators
+1. Enter access code (stored on RIU)
+2. System looks up RIU by access code
+3. **Status displayed from**: linked Case (if exists) OR RIU status (if no Case)
+4. View messages from investigators
+5. Submit follow-up information
+6. Send messages to investigators
+
+**Status Resolution Logic:**
+```
+IF RIU has linked Case:
+  Display Case status (Open, Under Review, Closed, etc.)
+ELSE:
+  Display RIU status (Received, Pending Review, etc.)
+```
 
 **Display Options (Client Configurable):**
 
@@ -447,24 +524,33 @@ ETHICS_PORTAL_CONFIG
 ### 4.1 Overview
 
 The Employee Portal is the authenticated self-service interface where employees:
-- Track their submitted cases
-- Complete disclosure requirements
-- Access and attest to policies
+- Track their submitted reports (RIUs) with status from linked Cases
+- Complete disclosure requirements (creates RIUs)
+- Access and attest to policies (creates RIUs)
 - Communicate with compliance team
 - (Managers) View team compliance status
+
+**RIU Creation in Employee Portal:**
+| Action | RIU Type Created | Auto-Creates Case? |
+|--------|------------------|-------------------|
+| Submit speak-up report | `web_form_submission` | Yes (immediate) |
+| Complete disclosure campaign | `disclosure_response` | If threshold met or flagged |
+| Submit ad-hoc disclosure | `disclosure_response` | If threshold met or flagged |
+| Attest to policy | `attestation_response` | If failure/refusal (configurable) |
+| Chatbot escalation | `chatbot_transcript` | If escalation triggered |
 
 ### 4.2 Navigation Structure
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│ [Company Logo]  My Cases  Disclosures  Policies     [🔔] [👤]  │
+│ [Company Logo]  My Reports  Disclosures  Policies   [🔔] [👤]  │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
 │  LEFT SIDEBAR (collapsible)              MAIN CONTENT AREA     │
 │  ┌───────────────┐                      ┌───────────────────┐  │
 │  │ Dashboard     │                      │                   │  │
-│  │ My Cases      │                      │   (Context-       │  │
-│  │ My Disclosures│                      │    dependent)     │  │
+│  │ My Reports    │ ← RIUs submitted     │   (Context-       │  │
+│  │ My Disclosures│   by this user       │    dependent)     │  │
 │  │ Policies      │                      │                   │  │
 │  │ Notifications │                      │                   │  │
 │  │               │                      │                   │  │
@@ -473,8 +559,8 @@ The Employee Portal is the authenticated self-service interface where employees:
 │  │               │                      │                   │  │
 │  │ ───────────── │                      │                   │  │
 │  │ Submit New    │                      │                   │  │
-│  │   • Report    │                      │                   │  │
-│  │   • Disclosure│                      │                   │  │
+│  │   • Report    │ → Creates RIU        │                   │  │
+│  │   • Disclosure│ → Creates RIU        │                   │  │
 │  │               │                      │                   │  │
 │  │ ───────────── │                      │                   │  │
 │  │ Help / FAQ    │                      │                   │  │
@@ -500,7 +586,7 @@ The Employee Portal is the authenticated self-service interface where employees:
 │                                                                 │
 │  ┌──────────────────┐ ┌──────────────────┐ ┌──────────────────┐│
 │  │ 📋 2            │ │ 📝 1            │ │ ✅ 3            ││
-│  │ Pending Cases   │ │ Disclosure Due  │ │ Attestations Due ││
+│  │ Pending Reports │ │ Disclosure Due  │ │ Attestations Due ││
 │  └──────────────────┘ └──────────────────┘ └──────────────────┘│
 │                                                                 │
 │  ─────────────────────────────────────────────────────────────  │
@@ -519,8 +605,8 @@ The Employee Portal is the authenticated self-service interface where employees:
 │  ─────────────────────────────────────────────────────────────  │
 │                                                                 │
 │  RECENT ACTIVITY                                                │
-│  • Case #ETH-2026-00042 status changed to "Under Review"       │
-│  • New message on Case #ETH-2026-00038                          │
+│  • Report #RIU-2026-00042 status changed to "Under Review"     │
+│  • New message on Report #RIU-2026-00038                        │
 │  • Condition completed on Disclosure DIS-2026-00015             │
 │                                                                 │
 │  ─────────────────────────────────────────────────────────────  │
@@ -533,40 +619,53 @@ The Employee Portal is the authenticated self-service interface where employees:
 
 ---
 
-## 5. My Cases
+## 5. My Reports
 
-### 5.1 Case List View
+### 5.1 Report List View
 
-**Purpose:** Show all cases submitted by the employee
+**Purpose:** Show all RIUs (Risk Intelligence Units) submitted by the employee
+
+> **Architecture Note:** "My Reports" displays RIUs, not Cases. Status is derived from the linked Case (if one exists) or from the RIU status (if no Case has been created yet).
 
 **Display:**
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│  My Cases                                    [+ Submit Report]  │
+│  My Reports                                  [+ Submit Report]  │
 │                                                                 │
 │  Filter: [All ▼]  [Date Range ▼]  [Search...]                  │
 │                                                                 │
 │  ┌─────────────────────────────────────────────────────────┐   │
-│  │ ETH-2026-00042              Under Review      Jan 15    │   │
-│  │ Workplace Safety Concern                                 │   │
+│  │ RIU-2026-00042              Under Review      Jan 15    │   │
+│  │ Workplace Safety Concern     (Case: ETH-2026-00042)     │   │
 │  │ 💬 1 unread message                                      │   │
 │  ├─────────────────────────────────────────────────────────┤   │
-│  │ ETH-2026-00038              Closed - Resolved Jan 8     │   │
-│  │ Policy Clarification Request                             │   │
+│  │ RIU-2026-00038              Closed - Resolved Jan 8     │   │
+│  │ Policy Clarification Request (Case: ETH-2026-00038)     │   │
 │  │                                                          │   │
 │  ├─────────────────────────────────────────────────────────┤   │
-│  │ ETH-2025-01892              Closed - No Action Dec 12   │   │
-│  │ Expense Report Question                                  │   │
+│  │ RIU-2025-01892              Closed - No Action Dec 12   │   │
+│  │ Expense Report Question      (Case: ETH-2025-01892)     │   │
 │  │                                                          │   │
 │  └─────────────────────────────────────────────────────────┘   │
 │                                                                 │
-│  Showing 3 of 3 cases                                          │
+│  Showing 3 of 3 reports                                        │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-**Visibility Rule:** Employees see ONLY cases they personally submitted. They do NOT see cases where they are a subject or witness.
+**Status Display Logic:**
+```
+FOR each RIU in employee's submitted reports:
+  IF RIU has linked Case (via riu_case_associations):
+    Display Case status (Under Review, Investigating, Closed, etc.)
+    Show Case reference number
+  ELSE:
+    Display RIU status (Received, Pending Review, etc.)
+    Show "Pending Case Assignment" indicator
+```
 
-### 5.2 Case Detail View (Configurable)
+**Visibility Rule:** Employees see ONLY RIUs they personally submitted (`reporter_employee_id` = current user). They do NOT see Cases where they are a subject or witness.
+
+### 5.2 Report Detail View (Configurable)
 
 **Visibility Levels (Client Configurable):**
 
@@ -579,30 +678,37 @@ The Employee Portal is the authenticated self-service interface where employees:
 
 **Default:** Standard
 
+**Data Sources:**
+- **YOUR SUBMISSION section**: Pulled from RIU (immutable)
+- **Status/Assignment**: Pulled from linked Case (if exists)
+- **Timeline**: Combined from RIU creation + Case activities
+- **Messages**: Stored on Case, linked via RIU
+
 **Detail View Structure:**
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│  ← Back to My Cases                                             │
+│  ← Back to My Reports                                           │
 │                                                                 │
-│  ETH-2026-00042                                                 │
+│  Report: RIU-2026-00042                                         │
 │  Workplace Safety Concern                                       │
 │                                                                 │
-│  Status: Under Review                                           │
+│  Status: Under Review (from linked Case)                        │
 │  Submitted: January 15, 2026                                    │
 │  Assigned to: Human Resources                                   │
 │  Last Activity: January 18, 2026                                │
 │                                                                 │
 │  ─────────────────────────────────────────────────────────────  │
 │                                                                 │
-│  YOUR SUBMISSION                                                │
-│  [Original narrative and details - read only]                   │
+│  YOUR SUBMISSION (from RIU - read only)                         │
+│  [Original narrative and details - immutable]                   │
 │                                                                 │
 │  ─────────────────────────────────────────────────────────────  │
 │                                                                 │
 │  TIMELINE (if visibility >= Detailed)                           │
-│  ● Jan 18 - Status changed to "Under Review"                   │
-│  ● Jan 16 - Assigned to Human Resources                        │
-│  ● Jan 15 - Case submitted                                     │
+│  ● Jan 18 - Case status changed to "Under Review"              │
+│  ● Jan 16 - Case assigned to Human Resources                   │
+│  ● Jan 15 - Case created from your report                      │
+│  ● Jan 15 - Report submitted (RIU created)                     │
 │                                                                 │
 │  ─────────────────────────────────────────────────────────────  │
 │                                                                 │
@@ -633,17 +739,25 @@ The Employee Portal is the authenticated self-service interface where employees:
 3. View confidentiality statement
 4. Complete intake form
 5. Review and submit
-6. Confirmation with case number (and access code if anonymous)
+6. **System creates RIU** (type: `web_form_submission`)
+7. **System creates Case** (linked to RIU as 'primary')
+8. Confirmation with RIU reference number (and access code if anonymous)
+
+**RIU Creation:**
+- RIU type: `web_form_submission`
+- RIU status: `received`
+- All form data stored on RIU (immutable)
+- Case created immediately, linked to RIU
 
 **Form (Same fields as Ethics Portal, with pre-filled employee data):**
-- Employee info (pre-filled from HRIS, read-only)
-- Report details (narrative) - session-only draft
-- Category selection
-- Location
-- Subjects
-- Custom questions
-- File attachments (up to 25MB per file)
-- Severity self-assessment (optional)
+- Employee info (pre-filled from HRIS, read-only) → stored on RIU
+- Report details (narrative) - session-only draft → stored on RIU
+- Category selection → stored on RIU (copied to Case)
+- Location → stored on RIU
+- Subjects → stored on RIU (copied to Case)
+- Custom questions → stored on RIU
+- File attachments (up to 25MB per file) → stored on RIU
+- Severity self-assessment (optional) → stored on RIU (copied to Case)
 
 **Session-Only Drafts:**
 - Draft saved automatically as user types
@@ -653,42 +767,54 @@ The Employee Portal is the authenticated self-service interface where employees:
 
 ### 5.4 Follow-Up Submission
 
-**Purpose:** Add new information to an existing case
+**Purpose:** Add new information to an existing report/case
 
 **Flow:**
-1. From case detail, click "Add Follow-Up Information"
+1. From report detail, click "Add Follow-Up Information"
 2. Enter additional details
 3. Optionally attach files (up to 25MB)
 4. Submit
 
 **Result:**
-- Creates new Interaction record (type: FOLLOW_UP)
+- Creates new Interaction record (type: FOLLOW_UP) on linked Case
+- **May create new RIU** if substantive new information (linked to same Case)
 - Notification sent to case assignee
-- Appears in case timeline
-- Does NOT create a new case
+- Appears in combined timeline (RIU + Case)
+- Does NOT create a new Case
+
+**RIU Handling:**
+- If follow-up contains substantive new information, a new RIU may be created
+- New RIU linked to same Case with association_type: 'related'
+- Original RIU remains unchanged (immutable)
 
 ### 5.5 Two-Way Messaging
 
 **Purpose:** Secure communication between reporter and investigators
 
 **Employee Experience:**
-- View messages in portal inbox
+- View messages in portal inbox (messages stored on linked Case)
 - Receive email notification when new message arrives
 - Reply via portal or email (relay)
 - Attach files to messages (up to 25MB)
 
 **Anonymous Reporter Experience:**
-- Same messaging capability via access code
+- Same messaging capability via access code (stored on RIU)
+- Access code lookup finds RIU → linked Case → messages
 - Email relay preserves anonymity
 - Reply via portal or email relay
 
+**Architecture Note:**
+- Messages are stored on the **Case** entity (not the RIU)
+- Reporter contact info stored on **RIU** (used for relay)
+- Access code stored on **RIU** (used for anonymous lookup)
+
 **Message Entity:**
 ```
-EMPLOYEE_PORTAL_MESSAGE
+CASE_MESSAGE (stored on Case, accessed via RIU link)
 ├── id (UUID)
 ├── case_id (FK to Case)
 ├── organization_id
-├── direction (TO_EMPLOYEE, FROM_EMPLOYEE)
+├── direction (TO_REPORTER, FROM_REPORTER)
 ├── content (text)
 ├── attachments[] (JSONB)
 │   ├── file_name
@@ -1040,7 +1166,7 @@ CHATBOT_MESSAGE
 │                                                                 │
 │  TODAY                                                          │
 │  ┌─────────────────────────────────────────────────────────┐   │
-│  │ 🔵 New message on Case #ETH-2026-00042       2:30 PM    │   │
+│  │ 🔵 New message on Report #RIU-2026-00042     2:30 PM    │   │
 │  │    The compliance team has responded to your report     │   │
 │  ├─────────────────────────────────────────────────────────┤   │
 │  │ 🔵 Disclosure condition due soon             10:00 AM   │   │
@@ -1049,8 +1175,8 @@ CHATBOT_MESSAGE
 │                                                                 │
 │  YESTERDAY                                                      │
 │  ┌─────────────────────────────────────────────────────────┐   │
-│  │    Case status updated                       4:15 PM    │   │
-│  │    Case #ETH-2026-00042 is now "Under Review"           │   │
+│  │    Report status updated                     4:15 PM    │   │
+│  │    Report #RIU-2026-00042 is now "Under Review"         │   │
 │  ├─────────────────────────────────────────────────────────┤   │
 │  │    Disclosure reviewed                       11:30 AM   │   │
 │  │    DIS-2026-00038 has been cleared with conditions      │   │
@@ -1070,8 +1196,8 @@ CHATBOT_MESSAGE
 
 | Event | Email | In-App | Push (PWA) |
 |-------|-------|--------|------------|
-| New message on case | ✓ | ✓ | ✓ |
-| Case status changed | ✓ | ✓ | |
+| New message on report (via linked Case) | ✓ | ✓ | ✓ |
+| Report status changed (Case status) | ✓ | ✓ | |
 | New disclosure campaign | ✓ | ✓ | ✓ |
 | Disclosure decision | ✓ | ✓ | |
 | Condition reminder | ✓ | ✓ | ✓ |
@@ -1115,7 +1241,7 @@ EMPLOYEE_NOTIFICATION
 ├── title
 ├── message
 ├── link_url (deep link into portal)
-├── related_entity_type (CASE, DISCLOSURE, POLICY, CONDITION)
+├── related_entity_type (RIU, CASE, DISCLOSURE, POLICY, CONDITION)
 ├── related_entity_id (FK)
 ├── is_read (boolean)
 ├── read_at
@@ -1124,6 +1250,8 @@ EMPLOYEE_NOTIFICATION
 ├── created_at
 ├── expires_at (optional - auto-dismiss after date)
 ```
+
+**Note:** For report-related notifications, `related_entity_type` is `RIU` (the employee's view), but status information is pulled from the linked Case.
 
 ---
 
@@ -1177,9 +1305,11 @@ Managers see an enhanced view with team compliance information.
 1. Manager clicks "Submit Proxy Report"
 2. Selects employee from direct reports list
 3. Captures the report on their behalf
-4. Report tagged as "Proxy Submission"
-5. Manager identified as submitter
-6. Employee notified (optional, configurable)
+4. **System creates RIU** (type: `proxy_report`)
+5. **System creates Case** (linked to RIU as 'primary')
+6. RIU tagged as proxy submission with manager info
+7. Manager identified as submitter on RIU
+8. Employee notified (optional, configurable)
 
 **Use Cases:**
 - Employee uncomfortable with technology
@@ -1187,17 +1317,19 @@ Managers see an enhanced view with team compliance information.
 - Verbal report to manager needs documentation
 - Emergency situation
 
-**Entity Additions:**
+**Entity Additions (on RIU, not Case):**
 ```
-CASE (additional fields)
-├── is_proxy_submission (boolean)
+RIU (for type: proxy_report)
+├── is_proxy_submission (boolean) = true
 ├── proxy_submitter_id (FK to User - the manager)
 ├── proxy_submitter_name
-├── proxy_for_employee_id (FK)
+├── proxy_for_employee_id (FK to Employee)
 ├── proxy_for_employee_name
 ├── proxy_employee_notified (boolean)
 ├── proxy_reason (TECH_DIFFICULTY, ON_LEAVE, VERBAL_REPORT, EMERGENCY, OTHER)
 ```
+
+**Note:** Proxy information is stored on the RIU (immutable record of how report was submitted), not on the Case.
 
 ---
 
@@ -1244,15 +1376,16 @@ CASE (additional fields)
 
 ```
 1. User enters 8-character access code
-2. System validates code exists and is active
-3. Limited session created (case-specific only)
-4. User can:
-   - View case status
+2. System looks up RIU by access code (access_code stored on RIU)
+3. System finds linked Case (if any) via riu_case_associations
+4. Limited session created (RIU-specific only)
+5. User can:
+   - View report status (from linked Case or RIU status)
    - Submit follow-ups
-   - Exchange messages
-5. User cannot:
+   - Exchange messages (via linked Case)
+6. User cannot:
    - Access other portal features
-   - See other cases
+   - See other reports
 ```
 
 ### 11.5 Session Management
@@ -1271,7 +1404,8 @@ EMPLOYEE_PORTAL_SESSION
 ├── id (UUID)
 ├── organization_id
 ├── employee_id (FK, null for access code sessions)
-├── access_code (for anonymous sessions)
+├── riu_id (FK, for access code sessions - links to the RIU being accessed)
+├── access_code (for anonymous sessions - lookup key)
 ├── session_token (hashed)
 ├── authentication_method (SSO, MAGIC_LINK, ACCESS_CODE)
 ├── created_at
@@ -1584,15 +1718,21 @@ POST    /api/v1/auth/logout                    # Logout
 GET     /api/v1/auth/session                   # Get current session
 ```
 
-### 18.2 Employee Case Endpoints
+### 18.2 Employee Report Endpoints (RIU-based)
 
 ```
-GET     /api/v1/employee/cases                 # List my cases
-GET     /api/v1/employee/cases/{id}            # Get case detail
-POST    /api/v1/employee/cases                 # Submit new case
-POST    /api/v1/employee/cases/{id}/follow-up  # Submit follow-up
-GET     /api/v1/employee/cases/{id}/messages   # Get messages
-POST    /api/v1/employee/cases/{id}/messages   # Send message
+# My Reports (RIUs submitted by employee)
+GET     /api/v1/employee/reports               # List my RIUs with linked Case status
+GET     /api/v1/employee/reports/{riu_id}      # Get RIU detail + linked Case info
+POST    /api/v1/employee/reports               # Submit new report (creates RIU + Case)
+POST    /api/v1/employee/reports/{riu_id}/follow-up  # Submit follow-up (on linked Case)
+GET     /api/v1/employee/reports/{riu_id}/messages   # Get messages (from linked Case)
+POST    /api/v1/employee/reports/{riu_id}/messages   # Send message (to linked Case)
+
+# Response includes:
+# - RIU details (immutable submission data)
+# - Linked Case status (if Case exists)
+# - Combined timeline (RIU + Case activities)
 ```
 
 ### 18.3 Employee Disclosure Endpoints
@@ -1646,10 +1786,13 @@ POST    /api/v1/manager/remind                 # Send reminder to team
 ### 18.8 Anonymous Reporter Endpoints
 
 ```
-GET     /api/v1/anonymous/case                 # Get case (by access code in session)
-POST    /api/v1/anonymous/case/follow-up       # Submit follow-up
-GET     /api/v1/anonymous/case/messages        # Get messages
-POST    /api/v1/anonymous/case/messages        # Send message
+# Access code stored on RIU - system resolves to linked Case
+GET     /api/v1/anonymous/report               # Get RIU + linked Case status (by access code in session)
+POST    /api/v1/anonymous/report/follow-up     # Submit follow-up (on linked Case)
+GET     /api/v1/anonymous/report/messages      # Get messages (from linked Case)
+POST    /api/v1/anonymous/report/messages      # Send message (to linked Case)
+
+# Flow: access_code → RIU lookup → riu_case_associations → Case
 ```
 
 ---
@@ -1660,29 +1803,30 @@ POST    /api/v1/anonymous/case/messages        # Send message
 
 | Action | Employee | Manager | Contractor | Anonymous |
 |--------|----------|---------|------------|-----------|
-| View own cases | ✓ | ✓ | ✓ | ✓ (one case) |
-| Submit case | ✓ | ✓ | ✓ | ✓ |
+| View own reports (RIUs) | ✓ | ✓ | ✓ | ✓ (one RIU via access code) |
+| Submit report (creates RIU) | ✓ | ✓ | ✓ | ✓ |
 | Submit follow-up | ✓ | ✓ | ✓ | ✓ |
-| Send messages | ✓ | ✓ | ✓ | ✓ |
+| Send messages (via linked Case) | ✓ | ✓ | ✓ | ✓ |
 | View disclosures | ✓ | ✓ | ✓ | ✗ |
-| Submit disclosure | ✓ | ✓ | ✓ | ✗ |
+| Submit disclosure (creates RIU) | ✓ | ✓ | ✓ | ✗ |
 | Complete conditions | ✓ | ✓ | ✓ | ✗ |
 | View policies | ✓ | ✓ | Limited | ✗ |
-| Attest to policies | ✓ | ✓ | Limited | ✗ |
+| Attest to policies (creates RIU) | ✓ | ✓ | Limited | ✗ |
 | Use chatbot | ✓ | ✓ | ✓ | ✗ |
 | View team dashboard | ✗ | ✓ | ✗ | ✗ |
-| Submit proxy report | ✗ | ✓ | ✗ | ✗ |
+| Submit proxy report (creates RIU) | ✗ | ✓ | ✗ | ✗ |
 
 ### 19.2 Client Configuration Options
 
 | Setting | Default | Description |
 |---------|---------|-------------|
-| Case visibility level | STANDARD | How much detail employees see |
-| Allow anonymous from portal | Yes | Allow anonymous submissions |
+| Report visibility level | STANDARD | How much detail employees see about their RIUs/Cases |
+| Allow anonymous from portal | Yes | Allow anonymous submissions (creates RIU + Case) |
 | Show program transparency | No | Display anonymized stats |
-| Manager proxy submission | Yes | Allow managers to submit for reports |
+| Manager proxy submission | Yes | Allow managers to submit proxy reports (creates RIU) |
 | Chatbot enabled | Yes | Enable policy Q&A chatbot |
 | Session timeout | 30 min | Idle timeout duration |
+| Auto-create Case from web form | Yes | Always create Case when web_form_submission RIU created |
 
 ---
 
@@ -1692,31 +1836,34 @@ POST    /api/v1/anonymous/case/messages        # Send message
 
 | ID | Criterion | Priority |
 |----|-----------|----------|
-| AC-01 | Employee can submit speak-up report from Employee Portal (authenticated) | P0 |
-| AC-02 | Anonymous reporter can submit report from Ethics Portal | P0 |
-| AC-03 | Anonymous reporter can check status with access code | P0 |
-| AC-04 | Employee sees only their own submitted cases | P0 |
-| AC-05 | Case visibility level is configurable per client | P0 |
-| AC-06 | Two-way messaging works via portal and email | P0 |
-| AC-07 | File attachments work on messages (up to 25MB) | P0 |
-| AC-08 | Employee can complete disclosure campaigns | P0 |
-| AC-09 | Employee can submit ad-hoc disclosures | P0 |
-| AC-10 | Employee can complete conditions | P0 |
-| AC-11 | Employee can view and attest to policies | P0 |
-| AC-12 | Policy Q&A chatbot answers questions based on policy content | P1 |
-| AC-13 | Manager sees team compliance dashboard | P1 |
-| AC-14 | Manager can submit proxy reports | P1 |
-| AC-15 | SSO authentication works with SAML and OIDC | P0 |
-| AC-16 | Email magic link authentication works | P1 |
-| AC-17 | Access code authentication works | P0 |
-| AC-18 | Session timeout is client-configurable | P1 |
-| AC-19 | Notifications appear in-app and via email | P0 |
-| AC-20 | PWA is installable and works offline (cached data) | P1 |
-| AC-21 | Portal meets WCAG 2.1 AA accessibility | P0 |
-| AC-22 | Language auto-detection works with manual override | P1 |
-| AC-23 | Ethics Portal crisis section is prominent and configurable | P0 |
-| AC-24 | Program transparency stats are configurable per client | P2 |
-| AC-25 | HRIS snapshot is stored with each submission | P0 |
+| AC-01 | Employee can submit speak-up report from Employee Portal (creates RIU + Case) | P0 |
+| AC-02 | Anonymous reporter can submit report from Ethics Portal (creates RIU + Case) | P0 |
+| AC-03 | Anonymous reporter can check status with access code (RIU lookup → Case status) | P0 |
+| AC-04 | "My Reports" shows only RIUs submitted by logged-in employee | P0 |
+| AC-05 | Report status derived from linked Case (if exists) OR RIU status (if no Case) | P0 |
+| AC-06 | Report visibility level is configurable per client | P0 |
+| AC-07 | Two-way messaging works via portal and email (messages on Case, accessed via RIU) | P0 |
+| AC-08 | File attachments work on messages (up to 25MB) | P0 |
+| AC-09 | Employee can complete disclosure campaigns (creates disclosure_response RIU) | P0 |
+| AC-10 | Employee can submit ad-hoc disclosures (creates disclosure_response RIU) | P0 |
+| AC-11 | Employee can complete conditions | P0 |
+| AC-12 | Employee can view and attest to policies (creates attestation_response RIU) | P0 |
+| AC-13 | Policy Q&A chatbot answers questions based on policy content | P1 |
+| AC-14 | Manager sees team compliance dashboard | P1 |
+| AC-15 | Manager can submit proxy reports (creates proxy_report RIU + Case) | P1 |
+| AC-16 | SSO authentication works with SAML and OIDC | P0 |
+| AC-17 | Email magic link authentication works | P1 |
+| AC-18 | Access code authentication works (stored on RIU) | P0 |
+| AC-19 | Session timeout is client-configurable | P1 |
+| AC-20 | Notifications appear in-app and via email | P0 |
+| AC-21 | PWA is installable and works offline (cached data) | P1 |
+| AC-22 | Portal meets WCAG 2.1 AA accessibility | P0 |
+| AC-23 | Language auto-detection works with manual override | P1 |
+| AC-24 | Ethics Portal crisis section is prominent and configurable | P0 |
+| AC-25 | Program transparency stats are configurable per client | P2 |
+| AC-26 | HRIS snapshot is stored with each RIU submission | P0 |
+| AC-27 | RIU data is immutable after creation | P0 |
+| AC-28 | Follow-ups create Interactions on linked Case (may create related RIU) | P0 |
 
 ### 20.2 Performance Targets
 
@@ -1724,7 +1871,7 @@ POST    /api/v1/anonymous/case/messages        # Send message
 |--------|--------|
 | Portal initial load | < 2 seconds |
 | Page navigation | < 500ms |
-| Case list load (25 items) | < 1 second |
+| Report list load (25 RIUs with Case status) | < 1 second |
 | Message send | < 1 second |
 | Disclosure submission | < 2 seconds |
 | Chatbot response | < 3 seconds |
@@ -1747,18 +1894,19 @@ POST    /api/v1/anonymous/case/messages        # Send message
 **Employee Portal:**
 - SSO authentication
 - Dashboard with action items
-- My Cases (list, detail, configurable visibility)
-- Follow-up submission
-- Two-way messaging with attachments
-- My Disclosures (from PRD-006)
-- Policies (view and attest)
+- My Reports (RIU list with linked Case status, configurable visibility)
+- Report submission (creates RIU + Case)
+- Follow-up submission (on linked Case)
+- Two-way messaging with attachments (via linked Case)
+- My Disclosures (from PRD-006, creates disclosure_response RIUs)
+- Policies (view and attest, creates attestation_response RIUs)
 - Notifications (in-app and email)
 - Basic branding (Standard tier)
 
 **Not Included:**
 - Policy Q&A chatbot
 - Manager dashboard
-- Proxy submission
+- Proxy submission (creates proxy_report RIU)
 - Email magic link auth
 - PWA offline mode
 - Enterprise branding
@@ -1798,7 +1946,8 @@ Dear [Name / "Anonymous Reporter"],
 Thank you for submitting your report. We take all concerns seriously
 and will review your submission promptly.
 
-Reference Number: [ETH-2026-00042]
+Report Reference: [RIU-2026-00042]
+Case Reference: [ETH-2026-00042]
 [If anonymous: Access Code: ABCD1234]
 
 You can check the status of your report or add additional information at:

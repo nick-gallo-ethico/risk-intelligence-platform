@@ -2,16 +2,18 @@
 ## PRD-009: Policy Management
 
 **Document ID:** PRD-009
-**Version:** 2.0 (Integrated from standalone Policy Management Project)
+**Version:** 3.1 (RIU Architecture Integration)
 **Priority:** P1 - High (Extended Module)
 **Development Phase:** Phase 2
-**Last Updated:** January 2026
+**Last Updated:** February 2026
 
 **Cross-References:**
-- Platform Vision: `00-PLATFORM/01-PLATFORM-VISION.md`
+- Platform Vision: `00-PLATFORM/01-PLATFORM-VISION.md` (v3.2 - authoritative RIU architecture)
 - Authentication & Multi-tenancy: `01-SHARED-INFRASTRUCTURE/TECH-SPEC-AUTH-MULTITENANCY.md`
 - AI Integration Patterns: `01-SHARED-INFRASTRUCTURE/TECH-SPEC-AI-INTEGRATION.md`
-- Case Integration: `02-MODULES/05-CASE-MANAGEMENT/PRD.md` (Section 8: Policy Linkage)
+- Case Management: `02-MODULES/05-CASE-MANAGEMENT/PRD.md` (v3.1 - RIU/Case architecture)
+
+> **Architecture Reference:** This PRD implements the RIU (Risk Intelligence Unit) architecture defined in `00-PLATFORM/01-PLATFORM-VISION.md v3.2`. Policy attestation responses create **immutable RIUs** (type: `attestation_response`). Attestation failures or refusals can optionally create **Cases** (configurable per campaign). Cases can link to specific **Policy Versions** when categorized as policy violations.
 
 > **Tech Stack:** NestJS (backend) + Next.js (frontend) + shadcn/ui + Tailwind CSS.
 > See `01-SHARED-INFRASTRUCTURE/` docs for implementation patterns and standards.
@@ -278,6 +280,196 @@ Key behaviors:
 - Results show relevant excerpts
 - Click to view full policy
 - organizationId enforced by RLS
+
+---
+
+# RIU Architecture Integration
+
+> **Note:** This section documents how Policy Management integrates with the platform's RIU→Case architecture. See `00-PLATFORM/01-PLATFORM-VISION.md v3.2` for the authoritative architecture reference.
+
+## Policy Module in the RIU Ecosystem
+
+The Policy Management module creates **Risk Intelligence Units (RIUs)** when employees complete attestations. RIUs are **immutable records** of what occurred - preserving the exact response, timestamp, and context.
+
+### RIU Creation Matrix (Policy Module)
+
+| Trigger | RIU Type Created | Auto-Creates Case? |
+|---------|------------------|-------------------|
+| Employee attests to policy (successful) | `attestation_response` | No |
+| Employee refuses to attest | `attestation_response` | Configurable (per campaign) |
+| Employee fails quiz (if required) | `attestation_response` | Configurable (per campaign) |
+| Employee never responds (overdue) | No RIU (no response received) | Configurable (per campaign) |
+
+### Attestation Response → RIU Flow
+
+```
+Employee Completes Policy Attestation
+         │
+         ▼
+┌─────────────────────────────┐
+│  UPDATE Campaign Assignment │
+│  status: completed          │
+└─────────────────────────────┘
+         │
+         ▼
+┌─────────────────────────────┐
+│  CREATE RIU                 │
+│  type: attestation_response │
+│  Links to campaign_id       │
+│  Links to policy_version_id │
+│  Contains attestation data  │
+│  (checkbox, signature, quiz)│
+└─────────────────────────────┘
+         │
+         ▼
+┌─────────────────────────────────────────────┐
+│  EVALUATE THRESHOLDS (auto_case_rules)      │
+│  - Did employee refuse to attest?           │
+│  - Did employee fail required quiz?         │
+│  - Other configurable conditions?           │
+└─────────────────────────────────────────────┘
+         │
+    ┌────┴────┐
+    │         │
+    ▼         ▼
+ No Case   CREATE CASE
+ (RIU only) (Non-Compliance Review)
+```
+
+### Attestation Response RIU Schema
+
+```
+ATTESTATION_RESPONSE_RIU (extends RISK_INTELLIGENCE_UNIT)
+├── Core RIU Fields (inherited)
+│   ├── id (UUID)
+│   ├── organization_id
+│   ├── type: 'attestation_response'
+│   ├── source_channel: 'policy_attestation'
+│   ├── received_at (timestamp)
+│   ├── reporter_employee_id (FK to Employee)
+│   ├── status: 'received' (attestation RIUs skip QA)
+│   ├── ai_summary, ai_risk_score (optional enrichment)
+│   └── created_at, created_by
+│
+├── Attestation-Specific Fields
+│   ├── campaign_assignment_id (FK)
+│   ├── policy_id (FK)
+│   ├── policy_version_id (FK - specific version attested)
+│   ├── policy_version_number (denormalized for audit)
+│   ├── attestation_type: 'CHECKBOX' | 'SIGNATURE' | 'QUIZ'
+│   ├── attestation_result: 'ATTESTED' | 'REFUSED' | 'QUIZ_FAILED'
+│   ├── acknowledged_at (timestamp)
+│   │
+│   ├── Quiz Data (if applicable)
+│   │   ├── quiz_id (FK)
+│   │   ├── quiz_score (percentage)
+│   │   ├── quiz_passed (boolean)
+│   │   ├── quiz_attempt_number
+│   │   └── quiz_answers (JSONB - preserved for audit)
+│   │
+│   ├── Signature Data (if applicable)
+│   │   ├── signature_type: 'TYPED' | 'DRAWN' | 'ELECTRONIC'
+│   │   ├── signature_data (encrypted)
+│   │   └── signature_captured_at
+│   │
+│   └── Refusal Data (if applicable)
+│       ├── refusal_reason (text - employee's explanation)
+│       └── refusal_category: 'DISAGREE' | 'NOT_APPLICABLE' | 'OTHER'
+│
+└── Immutability
+    └── RIU is immutable after creation - preserves exact attestation record
+```
+
+### Case Creation from Attestation (Configurable)
+
+Campaign administrators configure when attestation outcomes should create Cases:
+
+```json
+{
+  "campaignId": "uuid",
+  "name": "Annual Code of Conduct 2026",
+  "autoCaseRules": {
+    "createCaseOnRefusal": true,
+    "createCaseOnQuizFailure": true,
+    "createCaseOnOverdue": true,
+    "quizFailureThreshold": 2,
+    "overdueDaysBeforeCase": 30,
+    "caseCategory": "Policy Non-Compliance",
+    "caseSeverity": "LOW",
+    "caseAssignTo": "manager"
+  }
+}
+```
+
+**Case Creation Scenarios:**
+
+| Scenario | Campaign Assignment | RIU Created | Case Created |
+|----------|---------------------|-------------|--------------|
+| Employee attests successfully | ✓ Completed | ✓ (attestation_response) | ✗ No |
+| Employee attests, passes quiz | ✓ Completed | ✓ (attestation_response) | ✗ No |
+| Employee attests, fails quiz | ✓ Completed | ✓ (attestation_response) | If configured |
+| Employee refuses to attest | ✓ Refused | ✓ (attestation_response) | If configured |
+| Employee never responds (overdue) | ✓ Overdue | ✗ No response | If configured |
+
+### Policy Version Linking for Cases
+
+When a Case involves a policy violation (from any source - investigation, report, etc.), it links to the **specific Policy Version** that was violated:
+
+```
+CASE
+├── ...other fields...
+├── Related Policies (via POLICY_CASE_LINK)
+│   ├── policy_id (FK)
+│   ├── policy_version_id (FK - specific version violated)
+│   ├── policy_version_number (denormalized: "v2.1")
+│   ├── link_type: 'VIOLATION' | 'REFERENCE' | 'GOVERNING'
+│   ├── link_reason (text - why this policy is relevant)
+│   └── linked_at, linked_by
+└── ...
+```
+
+**Why Link to Specific Version?**
+- Legal defensibility: "Employee violated Code of Conduct v2.1, effective Jan 2024"
+- Historical accuracy: Policy may have been updated since violation
+- Audit trail: Can show exactly what policy was in effect at time of incident
+
+### Campaign Model Integration
+
+Policy attestation campaigns use the platform's **Campaign** entity model:
+
+```
+CAMPAIGN (type: policy_attestation)
+├── id (UUID)
+├── organization_id
+├── campaign_type: 'policy_attestation'
+├── name: "Annual Code of Conduct 2026"
+├── policy_id (FK)
+├── policy_version_id (FK - which version to attest)
+│
+├── Target Audience (JSONB)
+│   ├── departments: ["Engineering", "Sales"]
+│   ├── locations: ["US", "UK"]
+│   ├── job_levels: ["Manager", "Director"]
+│   └── exclude_users: ["user-uuid-1"]
+│
+├── Schedule
+│   ├── start_date
+│   ├── due_date
+│   └── reminder_schedule (JSONB): [7, 14, 21]
+│
+├── Attestation Config
+│   ├── attestation_type: 'CHECKBOX' | 'SIGNATURE' | 'QUIZ'
+│   ├── quiz_id (FK, if quiz required)
+│   ├── quiz_required: boolean
+│   ├── quiz_passing_score: number
+│   └── quiz_max_attempts: number
+│
+├── Auto-Case Rules (JSONB)
+│   └── (see configuration above)
+│
+├── Status: 'DRAFT' | 'ACTIVE' | 'CLOSED'
+└── created_at, created_by
+```
 
 ---
 
@@ -2339,9 +2531,70 @@ Verify policy comprehension through quizzes and issue certifications upon succes
 
 ## Attestation APIs
 
+> **Architecture Note:** Attestation APIs create RIUs (Risk Intelligence Units) as immutable records. The POST /api/v1/attestations/:id/attest endpoint creates an `attestation_response` RIU and may optionally create a Case based on campaign auto_case_rules.
+
+### POST /api/v1/campaigns/attestation
+
+**Description:** Create a policy attestation campaign (uses Campaign model)
+
+**Request:**
+```json
+{
+  "name": "Q1 2026 Code of Conduct",
+  "campaignType": "policy_attestation",
+  "policyId": "policy-uuid",
+  "policyVersionId": "policy-version-uuid",
+  "targetCriteria": {
+    "departments": ["Engineering", "Sales"],
+    "locations": ["US", "UK"],
+    "excludeUsers": ["user-uuid-1"]
+  },
+  "scheduledDate": "2026-01-20T09:00:00Z",
+  "dueDate": "2026-02-20T23:59:59Z",
+  "reminderSchedule": {
+    "intervals": [7, 14, 21]
+  },
+  "attestationConfig": {
+    "attestationType": "QUIZ",
+    "quizId": "quiz-uuid",
+    "quizRequired": true,
+    "quizPassingScore": 80,
+    "quizMaxAttempts": 3
+  },
+  "autoCaseRules": {
+    "createCaseOnRefusal": true,
+    "createCaseOnQuizFailure": true,
+    "createCaseOnOverdue": false,
+    "quizFailureThreshold": 2,
+    "overdueDaysBeforeCase": 30,
+    "caseCategory": "policy_non_compliance",
+    "caseSeverity": "LOW",
+    "caseAssignTo": "manager"
+  }
+}
+```
+
+**Response (201 Created):**
+```json
+{
+  "id": "campaign-uuid",
+  "name": "Q1 2026 Code of Conduct",
+  "campaignType": "policy_attestation",
+  "policyId": "policy-uuid",
+  "policyVersionId": "policy-version-uuid",
+  "policyVersionNumber": "v2.1",
+  "audienceCount": 250,
+  "scheduledDate": "2026-01-20T09:00:00Z",
+  "dueDate": "2026-02-20T23:59:59Z",
+  "status": "SCHEDULED"
+}
+```
+
+---
+
 ### POST /api/v1/distributions
 
-**Description:** Create a distribution campaign
+**Description:** Create a distribution campaign (legacy endpoint, use POST /api/v1/campaigns/attestation for new implementations)
 
 **Request:**
 ```json
@@ -2376,16 +2629,102 @@ Verify policy comprehension through quizzes and issue certifications upon succes
 
 ### POST /api/v1/attestations/:id/attest
 
-**Description:** Record an attestation (used by attestation page)
+**Description:** Record an attestation. This endpoint:
+1. Updates the Campaign Assignment status
+2. **Creates an `attestation_response` RIU** (immutable record)
+3. Optionally creates a Case if campaign `autoCaseRules` are triggered
 
 **Request:**
 ```json
 {
   "acknowledged": true,
+  "attestationType": "QUIZ",
   "quizAnswers": [
     { "questionId": 1, "answer": "A" },
     { "questionId": 2, "answer": "C" }
-  ]
+  ],
+  "signature": {
+    "type": "TYPED",
+    "data": "John Smith"
+  }
+}
+```
+
+**Response (200 OK) - Successful Attestation:**
+```json
+{
+  "id": "attestation-uuid",
+  "status": "COMPLETED",
+  "attestedAt": "2026-01-15T16:30:00Z",
+  "quizScore": 100,
+  "quizPassed": true,
+  "riu": {
+    "id": "riu-uuid",
+    "type": "attestation_response",
+    "result": "ATTESTED"
+  },
+  "caseCreated": null,
+  "certificate": {
+    "id": "ATT-2026-00123",
+    "downloadUrl": "/api/v1/attestations/ATT-2026-00123/certificate"
+  }
+}
+```
+
+**Response (200 OK) - Quiz Failure with Case Creation:**
+```json
+{
+  "id": "attestation-uuid",
+  "status": "FAILED",
+  "attestedAt": "2026-01-15T16:30:00Z",
+  "quizScore": 60,
+  "quizPassed": false,
+  "attemptsRemaining": 1,
+  "riu": {
+    "id": "riu-uuid",
+    "type": "attestation_response",
+    "result": "QUIZ_FAILED"
+  },
+  "caseCreated": null,
+  "retryAllowed": true
+}
+```
+
+**Response (200 OK) - Final Quiz Failure (Case Created):**
+```json
+{
+  "id": "attestation-uuid",
+  "status": "FAILED",
+  "attestedAt": "2026-01-15T16:30:00Z",
+  "quizScore": 55,
+  "quizPassed": false,
+  "attemptsRemaining": 0,
+  "riu": {
+    "id": "riu-uuid",
+    "type": "attestation_response",
+    "result": "QUIZ_FAILED"
+  },
+  "caseCreated": {
+    "id": "case-uuid",
+    "caseNumber": "ETH-2026-00456",
+    "category": "Policy Non-Compliance",
+    "assignedTo": "manager"
+  },
+  "retryAllowed": false
+}
+```
+
+---
+
+### POST /api/v1/attestations/:id/refuse
+
+**Description:** Record an attestation refusal. Creates an `attestation_response` RIU with result 'REFUSED' and optionally creates a Case.
+
+**Request:**
+```json
+{
+  "refusalCategory": "NOT_APPLICABLE",
+  "refusalReason": "This policy does not apply to my role as a contractor."
 }
 ```
 
@@ -2393,12 +2732,52 @@ Verify policy comprehension through quizzes and issue certifications upon succes
 ```json
 {
   "id": "attestation-uuid",
-  "status": "COMPLETED",
-  "attestedAt": "2026-01-15T16:30:00Z",
-  "quizScore": 100,
-  "certificate": {
-    "id": "ATT-2026-00123",
-    "downloadUrl": "/api/v1/attestations/ATT-2026-00123/certificate"
+  "status": "REFUSED",
+  "refusedAt": "2026-01-15T16:30:00Z",
+  "riu": {
+    "id": "riu-uuid",
+    "type": "attestation_response",
+    "result": "REFUSED"
+  },
+  "caseCreated": {
+    "id": "case-uuid",
+    "caseNumber": "ETH-2026-00457",
+    "category": "Attestation Refusal",
+    "assignedTo": "compliance_officer"
+  }
+}
+```
+
+---
+
+### GET /api/v1/attestations/:id/riu
+
+**Description:** Get the RIU created for a specific attestation
+
+**Response (200 OK):**
+```json
+{
+  "riu": {
+    "id": "riu-uuid",
+    "type": "attestation_response",
+    "organizationId": "org-uuid",
+    "receivedAt": "2026-01-15T16:30:00Z",
+    "reporterEmployeeId": "employee-uuid",
+    "campaignAssignmentId": "assignment-uuid",
+    "policyId": "policy-uuid",
+    "policyVersionId": "version-uuid",
+    "policyVersionNumber": "v2.1",
+    "attestationType": "QUIZ",
+    "attestationResult": "ATTESTED",
+    "acknowledgedAt": "2026-01-15T16:30:00Z",
+    "quizData": {
+      "quizId": "quiz-uuid",
+      "score": 100,
+      "passed": true,
+      "attemptNumber": 1,
+      "answers": [...]
+    },
+    "caseId": null
   }
 }
 ```
@@ -2626,11 +3005,24 @@ Verify policy comprehension through quizzes and issue certifications upon succes
 
 ## Policy Linkage APIs
 
+> **Architecture Note:** When linking policies to Cases (e.g., for policy violations), the link includes the **specific Policy Version** that was violated or referenced. This provides legal defensibility and historical accuracy.
+
 ### POST /api/v1/policies/:policyId/links
 
-**Description:** Link a policy to a risk, case, or investigation
+**Description:** Link a policy to a risk, case, or investigation. For Case links, includes the specific policy version.
 
-**Request:**
+**Request (Linking to Case - Policy Violation):**
+```json
+{
+  "entityType": "CASE",
+  "entityId": "case-uuid",
+  "linkType": "VIOLATION",
+  "policyVersionId": "version-uuid",
+  "notes": "Employee violated gift acceptance threshold in section 4.2"
+}
+```
+
+**Request (Linking to Risk):**
 ```json
 {
   "entityType": "RISK",
@@ -2644,7 +3036,7 @@ Verify policy comprehension through quizzes and issue certifications upon succes
 
 ### GET /api/v1/policies/:policyId/links
 
-**Description:** Get all entities linked to a policy
+**Description:** Get all entities linked to a policy. Case links include the specific policy version that was violated/referenced.
 
 **Response (200 OK):**
 ```json
@@ -2655,7 +3047,8 @@ Verify policy comprehension through quizzes and issue certifications upon succes
       "title": "Third-Party Due Diligence",
       "severity": "HIGH",
       "linkType": "MITIGATES",
-      "linkedAt": "2026-01-15T10:00:00Z"
+      "linkedAt": "2026-01-15T10:00:00Z",
+      "linkedBy": { "id": "user-uuid", "name": "John Smith" }
     }
   ],
   "cases": [
@@ -2663,10 +3056,61 @@ Verify policy comprehension through quizzes and issue certifications upon succes
       "id": "case-uuid",
       "caseNumber": "CASE-2026-0042",
       "status": "OPEN",
-      "linkType": "REFERENCED"
+      "linkType": "VIOLATION",
+      "policyVersionId": "version-uuid",
+      "policyVersionNumber": "v2.1",
+      "policyVersionEffectiveDate": "2025-06-01T00:00:00Z",
+      "linkedAt": "2026-01-15T10:00:00Z",
+      "linkedBy": { "id": "user-uuid", "name": "Jane Doe" },
+      "notes": "Employee violated gift acceptance threshold in section 4.2"
+    },
+    {
+      "id": "case-uuid-2",
+      "caseNumber": "CASE-2026-0048",
+      "status": "CLOSED",
+      "linkType": "REFERENCE",
+      "policyVersionId": "version-uuid",
+      "policyVersionNumber": "v2.1",
+      "linkedAt": "2026-01-10T14:30:00Z"
     }
   ],
-  "investigations": []
+  "investigations": [],
+  "attestationRius": [
+    {
+      "riuId": "riu-uuid",
+      "result": "REFUSED",
+      "employeeId": "employee-uuid",
+      "employeeName": "Bob Wilson",
+      "caseId": "case-uuid-3",
+      "caseNumber": "CASE-2026-0050",
+      "refusedAt": "2026-01-12T09:00:00Z"
+    }
+  ]
+}
+```
+
+---
+
+### GET /api/v1/cases/:caseId/policies
+
+**Description:** Get policies linked to a case (from Case Management module perspective). Includes version information for legal defensibility.
+
+**Response (200 OK):**
+```json
+{
+  "policies": [
+    {
+      "policyId": "policy-uuid",
+      "policyTitle": "Anti-Bribery Policy",
+      "policyVersionId": "version-uuid",
+      "policyVersionNumber": "v2.1",
+      "policyVersionEffectiveDate": "2025-06-01T00:00:00Z",
+      "linkType": "VIOLATION",
+      "linkedAt": "2026-01-15T10:00:00Z",
+      "linkedBy": { "id": "user-uuid", "name": "Jane Doe" },
+      "notes": "Employee violated gift acceptance threshold in section 4.2"
+    }
+  ]
 }
 ```
 
@@ -3284,10 +3728,130 @@ Verify policy comprehension through quizzes and issue certifications upon succes
   "policyId": "uuid",
   "entityType": "RISK | CASE | INVESTIGATION",
   "entityId": "uuid",
-  "linkType": "MITIGATES | CONTROLS | REFERENCES | GOVERNS",
+  "linkType": "MITIGATES | CONTROLS | REFERENCES | GOVERNS | VIOLATION",
+  "policyVersionId": "uuid? (required for CASE links, preserves specific version)",
+  "policyVersionNumber": "string? (denormalized for display, e.g., 'v2.1')",
   "notes": "string?",
   "linkedById": "uuid",
   "linkedAt": "datetime"
+}
+```
+
+### AttestationResponseRIU (extends RiskIntelligenceUnit)
+
+> **Note:** This entity extends the base `RiskIntelligenceUnit` schema defined in `00-PLATFORM/01-PLATFORM-VISION.md`. Attestation responses are **immutable** after creation.
+
+```json
+{
+  "id": "uuid",
+  "organizationId": "uuid",
+  "type": "attestation_response",
+  "sourceChannel": "policy_attestation",
+  "receivedAt": "datetime",
+  "reporterEmployeeId": "uuid (FK to Employee)",
+  "status": "received",
+
+  "campaignAssignmentId": "uuid (FK to CampaignAssignment)",
+  "policyId": "uuid (FK to Policy)",
+  "policyVersionId": "uuid (FK to PolicyVersion - specific version attested)",
+  "policyVersionNumber": "string (denormalized, e.g., 'v2.1')",
+
+  "attestationType": "CHECKBOX | SIGNATURE | QUIZ",
+  "attestationResult": "ATTESTED | REFUSED | QUIZ_FAILED",
+  "acknowledgedAt": "datetime",
+
+  "quizData": {
+    "quizId": "uuid?",
+    "score": "number?",
+    "passed": "boolean?",
+    "attemptNumber": "number?",
+    "answers": "json? (preserved for audit)"
+  },
+
+  "signatureData": {
+    "signatureType": "TYPED | DRAWN | ELECTRONIC?",
+    "signatureData": "string? (encrypted)",
+    "signatureCapturedAt": "datetime?"
+  },
+
+  "refusalData": {
+    "refusalReason": "string?",
+    "refusalCategory": "DISAGREE | NOT_APPLICABLE | OTHER?"
+  },
+
+  "caseId": "uuid? (FK to Case, if case was created)",
+
+  "aiSummary": "string?",
+  "aiRiskScore": "number?",
+  "aiGeneratedAt": "datetime?",
+
+  "sourceSystem": "string? (for migrated data)",
+  "sourceRecordId": "string? (original ID from source)",
+  "migratedAt": "datetime?",
+
+  "createdAt": "datetime",
+  "createdBy": "uuid"
+}
+```
+
+### PolicyAttestationCampaign (extends Campaign)
+
+> **Note:** This entity extends the base `Campaign` schema defined in `00-PLATFORM/01-PLATFORM-VISION.md`.
+
+```json
+{
+  "id": "uuid",
+  "organizationId": "uuid",
+  "campaignType": "policy_attestation",
+  "name": "string",
+  "description": "string?",
+
+  "policyId": "uuid (FK to Policy)",
+  "policyVersionId": "uuid (FK to PolicyVersion - which version to attest)",
+
+  "targetAudience": {
+    "departments": ["string"]?,
+    "locations": ["string"]?,
+    "jobLevels": ["string"]?,
+    "businessUnits": ["uuid"]?,
+    "excludeUsers": ["uuid"]?
+  },
+
+  "startDate": "date",
+  "dueDate": "date",
+  "reminderSchedule": {
+    "intervals": ["number (days before due)"]
+  },
+
+  "attestationConfig": {
+    "attestationType": "CHECKBOX | SIGNATURE | QUIZ",
+    "quizId": "uuid?",
+    "quizRequired": "boolean",
+    "quizPassingScore": "number? (percentage)",
+    "quizMaxAttempts": "number?"
+  },
+
+  "autoCaseRules": {
+    "createCaseOnRefusal": "boolean",
+    "createCaseOnQuizFailure": "boolean",
+    "createCaseOnOverdue": "boolean",
+    "quizFailureThreshold": "number (attempts before case)",
+    "overdueDaysBeforeCase": "number",
+    "caseCategory": "string",
+    "caseSeverity": "LOW | MEDIUM | HIGH",
+    "caseAssignTo": "manager | compliance_officer | specific_user",
+    "caseAssignToUserId": "uuid?"
+  },
+
+  "status": "DRAFT | SCHEDULED | ACTIVE | CLOSED",
+
+  "sourceSystem": "string?",
+  "sourceRecordId": "string?",
+  "migratedAt": "datetime?",
+
+  "createdAt": "datetime",
+  "createdBy": "uuid",
+  "updatedAt": "datetime"
 }
 ```
 
@@ -3621,6 +4185,31 @@ Immutable audit trail for policy and related entity actions:
 | RLS | Row-Level Security - PostgreSQL feature for tenant data isolation |
 | JIT Provisioning | Just-In-Time user creation during first SSO login |
 | CRDT | Conflict-free Replicated Data Type - enables real-time collaboration |
+| RIU | Risk Intelligence Unit - immutable record of an input event (report, disclosure, attestation) |
+| Campaign | Outbound request for action (attestation, disclosure, survey) with tracking |
+| Campaign Assignment | Individual employee's obligation to respond to a campaign |
+
+## RIU Architecture Acceptance Criteria
+
+> **Note:** These acceptance criteria are specific to the RIU architecture integration. See individual feature sections for additional acceptance criteria.
+
+| ID | Criterion | Priority |
+|----|-----------|----------|
+| RIU-01 | Policy attestation completion creates an `attestation_response` RIU | P0 |
+| RIU-02 | RIU includes policy_version_id linking to specific version attested | P0 |
+| RIU-03 | RIU is immutable after creation (no edits allowed) | P0 |
+| RIU-04 | Campaign auto_case_rules evaluate after RIU creation | P0 |
+| RIU-05 | Case created when refusal detected (if configured) | P1 |
+| RIU-06 | Case created when quiz fails after max attempts (if configured) | P1 |
+| RIU-07 | Case created for overdue attestations (if configured) | P1 |
+| RIU-08 | Case links to specific Policy Version (not just Policy) | P0 |
+| RIU-09 | Policy violation links preserve version for legal defensibility | P0 |
+| RIU-10 | GET /policies/:id/links returns cases with version information | P0 |
+| RIU-11 | GET /cases/:id/policies returns linked policies with version info | P0 |
+| RIU-12 | Attestation response RIU accessible via GET /attestations/:id/riu | P1 |
+| RIU-13 | Campaign Assignment status updates when RIU created | P0 |
+| RIU-14 | Activity logged to AUDIT_LOG for RIU creation | P0 |
+| RIU-15 | Activity logged to AUDIT_LOG for Case creation from attestation | P1 |
 
 ## Document History
 
@@ -3629,5 +4218,6 @@ Immutable audit trail for policy and related entity actions:
 | 1.0 | Jan 2026 | Nick Gallo | Initial PRD |
 | 2.0 | Jan 2026 | Claude Code | Enhanced with competitive analysis, wireframes, API specs |
 | 3.0 | Jan 2026 | Claude Code | Added 12 new MVP features: Exception Management (F5), Regulatory Frameworks (F6), Risk/Incident Linkage (F7), Employee Policy Hub (F8), SharePoint Integration (F9), External Portals (F10), LMS Integration (F11), Integration Marketplace (F12), Conditional Workflows (F13), Real-Time Audit Dashboards (F14), AI Auto-Tagging (F15), Quiz & Certifications (F16). Added corresponding APIs, data models, and updated competitive analysis. |
+| 3.1 | Feb 2026 | Claude Code | **RIU Architecture Integration:** Updated to align with Platform Vision v3.2. Added RIU Architecture Integration section documenting attestation_response RIU creation, Campaign model integration, and Policy Version linking for Cases. Updated API endpoints (POST /attestations/:id/attest creates RIU, POST /attestations/:id/refuse, GET /attestations/:id/riu, GET /cases/:id/policies). Added AttestationResponseRIU and PolicyAttestationCampaign entity schemas. Updated PolicyLink to include policyVersionId for Case links. Added RIU Architecture acceptance criteria. |
 
 ---

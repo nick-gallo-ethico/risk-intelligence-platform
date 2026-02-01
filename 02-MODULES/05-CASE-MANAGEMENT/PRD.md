@@ -1,11 +1,13 @@
 # Ethico Risk Intelligence Platform
 ## PRD-005: Case Management & Investigations
 
-**Document ID:** PRD-005  
-**Version:** 2.0 (Updated with Discovery Decisions)  
-**Priority:** P0 - Critical (Foundation Module)  
-**Development Phase:** Weeks 3-4 (Core), Extended through Week 12  
-**Last Updated:** January 2026
+**Document ID:** PRD-005
+**Version:** 3.1 (RIU - Risk Intelligence Unit)
+**Priority:** P0 - Critical (Foundation Module)
+**Development Phase:** Weeks 3-4 (Core), Extended through Week 12
+**Last Updated:** February 2026
+
+> **Architecture Reference:** This PRD implements the RIU→Case architecture defined in `00-PLATFORM/01-PLATFORM-VISION.md v3.1`. Cases are **mutable work containers** that link to **immutable RIUs** (Risk Intelligence Units). Intake information lives on RIUs, not Cases.
 
 ---
 
@@ -40,17 +42,21 @@ The Case Management module is the foundational component of the Ethico Risk Inte
 
 ### Ethico Staff
 
-**Create case from phone intake**
-As an **Operator**, I want to create a new case from a hotline call
-so that the reporter's concern is captured and routed to the appropriate client.
+**Create RIU from phone intake (Operator Console creates RIU, system creates Case)**
+As an **Operator**, I want to capture a hotline report
+so that the reporter's concern is recorded and routed to the appropriate client.
 
 Key behaviors:
-- Case created with status 'draft' until QA review
-- Required fields: category, severity, description, reporter contact method
-- Reporter information encrypted if identified
-- Anonymous reporter receives access code
-- Case assigned to selected client's organization
-- Activity logged: "Operator {name} created case from phone intake"
+- Operator creates **RIU** (type: hotline_report), not Case directly
+- RIU created with status 'pending_qa' until QA review
+- Required fields on RIU: category, severity, description, reporter contact method
+- Reporter information encrypted if identified, stored on RIU
+- Anonymous reporter receives access code (stored on RIU)
+- After QA releases RIU → System automatically creates **Case** and links RIU as 'primary'
+- Activity logged: "Operator {name} created RIU from phone intake"
+- Activity logged: "System created Case from released RIU"
+
+> **Note:** See PRD-002 (Operator Console) for the full intake workflow. This module receives Cases after RIU release.
 
 ---
 
@@ -96,15 +102,46 @@ Key behaviors:
 ---
 
 **View case details**
-As a **Compliance Officer**, I want to view complete case details including investigations
+As a **Compliance Officer**, I want to view complete case details including linked RIUs and investigations
 so that I can understand the full context of a report.
 
 Key behaviors:
 - Case header: reference number, status, severity, category
-- Intake information with reporter details (respecting anonymity)
+- **Linked RIUs section** showing all associated Risk Intelligence Units
+  - Primary RIU displayed prominently with full intake details
+  - Related RIUs listed with association type and date
+- Intake information pulled from primary RIU (respecting anonymity)
 - Linked investigations with their statuses
-- Activity timeline showing all actions
+- Activity timeline showing all actions across Case and linked RIUs
 - organizationId enforced by RLS
+
+---
+
+**Link additional RIU to existing Case**
+As a **Triage Lead**, I want to link a new report (RIU) to an existing Case
+so that related reports are tracked together.
+
+Key behaviors:
+- Search for existing Cases by reference number, category, or subject
+- Link RIU to selected Case with association_type 'related'
+- Original Case's primary RIU remains unchanged
+- Activity logged: "Triage Lead {name} linked RIU {riu_id} to Case {case_number}"
+- Notification sent to Case assignee
+
+---
+
+**Merge Cases**
+As a **Compliance Officer**, I want to merge two Cases into one
+so that duplicate or related reports are consolidated.
+
+Key behaviors:
+- Select primary Case (will remain) and secondary Case (will be merged)
+- All RIU associations from secondary move to primary (association_type: 'merged_from')
+- All investigations from secondary move to primary
+- Secondary Case marked as merged, read-only tombstone
+- Accessing merged Case redirects to primary
+- Activity logged on both Cases
+- Requires merge permission (configurable per client)
 
 ---
 
@@ -268,12 +305,36 @@ Key behaviors:
 
 ## 3. Entity Model
 
-### 2.1 Case Entity
+> **Architecture Note:** This module implements the RIU→Case architecture defined in `00-PLATFORM/01-PLATFORM-VISION.md`. Risk Intelligence Units (RIUs) are **immutable inputs** created by intake channels. Cases are **mutable work containers** that track the organization's response. Cases link to RIUs via `riu_case_associations` (many-to-many).
 
-The Case is the primary container for risk intelligence:
+### 3.1 Risk Intelligence Unit (RIU) - Reference
+
+RIUs are created by intake channels (Operator Console, Web Forms, Chatbot, etc.) and are **immutable after creation**. The full RIU schema is defined in the Platform Vision document. Key points for Case Management:
 
 ```
-CASE
+RISK_INTELLIGENCE_ITEM (immutable input - see Vision doc for full schema)
+├── id, organization_id, type
+├── source_channel, received_at
+├── Reporter info (anonymous_access_code, reporter_type, contact info)
+├── Location info (captured at intake)
+├── Content (details, narrative, addendum)
+├── AI enrichment (ai_summary, ai_risk_score, ai_translation)
+├── status (pending_qa, released, etc.)
+└── created_at, created_by
+```
+
+**This module does NOT create RIUs directly.** RIUs are created by:
+- Operator Console (hotline_report) - see PRD-002
+- Web Forms (web_form_submission) - see PRD-004
+- Employee Chatbot (chatbot_transcript) - see PRD-008
+- Disclosures (disclosure_response) - see PRD-006
+
+### 3.2 Case Entity
+
+The Case is a **mutable work container** that tracks the organization's response to one or more RIUs. Cases do NOT contain intake information - that lives on the linked RIUs.
+
+```
+CASE (mutable work container)
 ├── Core Fields
 │   ├── id (UUID)
 │   ├── reference_number (ETH-2026-00001)
@@ -284,66 +345,59 @@ CASE
 │   ├── created_at, updated_at
 │   └── created_by, updated_by
 │
-├── Intake Information (embedded)
-│   ├── source_channel (HOTLINE, WEB_FORM, PROXY, DIRECT_ENTRY, CHATBOT)
-│   ├── intake_timestamp
-│   ├── intake_operator_id (if hotline)
-│   ├── first_time_caller (boolean)
-│   ├── awareness_source (how they found the hotline)
-│   ├── interpreter_used (boolean)
-│   └── case_type (REPORT, RFI)
+├── Linked RIUs (via riu_case_associations)
+│   └── One or more RIUs linked to this Case
+│       ├── primary RIU (first/main report)
+│       └── related RIUs (follow-ups, additional reports on same issue)
 │
-├── Reporter Information
-│   ├── reporter_type (ANONYMOUS, IDENTIFIED, PROXY)
-│   ├── reporter_anonymous (boolean)
-│   ├── reporter_name (encrypted, null if anonymous)
-│   ├── reporter_email (encrypted, hidden from client if anonymous)
-│   ├── reporter_phone (encrypted, hidden from client if anonymous)
-│   ├── reporter_relationship (EMPLOYEE, VENDOR, CONTRACTOR, WITNESS, etc.)
-│   ├── anonymous_access_code (for status checks)
-│   └── proxy_submitter_id (if proxy report, links to manager)
-│
-├── Location
-│   ├── location_id (FK to client locations, if selected)
-│   ├── location_name
-│   ├── location_address
-│   ├── location_city
-│   ├── location_state
-│   ├── location_zip
-│   ├── location_country
-│   └── location_manual (boolean - was this manually entered?)
-│
-├── Report Content
-│   ├── details (full narrative captured during intake)
-│   ├── summary (AI-generated or manual)
-│   ├── addendum (operator notes on caller demeanor, etc.)
-│   ├── original_language
-│   ├── translated_details (if translated)
-│   └── translation_language
-│
-├── AI Enrichment
-│   ├── ai_summary (AI-generated summary, distinct from manual)
-│   ├── ai_summary_generated_at (when AI generated the summary)
-│   ├── ai_model_version (e.g., "claude-3-opus")
-│   ├── ai_category_suggestion (AI-suggested category)
-│   ├── ai_severity_suggestion (AI-suggested severity)
-│   └── ai_confidence_score (0-100)
-│
-├── Classification
+├── Classification (may differ from original RIU if corrected)
 │   ├── primary_category_id
 │   ├── secondary_category_id
 │   ├── severity (HIGH, MEDIUM, LOW)
 │   ├── severity_reason
 │   └── tags[]
 │
-├── Subjects[] (linked)
+├── Pipeline/Workflow
+│   ├── pipeline_id (FK to workflow definition)
+│   ├── stage (current pipeline stage)
+│   ├── due_date
+│   └── sla_status (ON_TRACK, WARNING, OVERDUE)
+│
+├── Assignment
+│   ├── assigned_to (FK to User)
+│   ├── assigned_team_id (FK to Team)
+│   ├── assigned_at
+│   └── assigned_by
+│
+├── Investigations[] (children - one to many)
+│   └── (see Investigation entity below)
+│
+├── Subjects[] (people involved)
 │   └── (see Subject entity below)
 │
-├── Custom Fields (JSONB)
-│   └── (client-configured fields)
+├── Related Policies[] (if policy violation)
+│   └── policy_id, policy_version_id
 │
-├── Custom Questions (JSONB)
-│   └── (responses to client-configured questions)
+├── Outcomes & Findings
+│   ├── substantiated (boolean, null until determined)
+│   ├── finding_summary (text)
+│   ├── outcome (SUBSTANTIATED, UNSUBSTANTIATED, INCONCLUSIVE, etc.)
+│   └── outcome_rationale
+│
+├── AI Enrichment (Case-level, aggregates from RIUs)
+│   ├── ai_case_summary (AI summary of all linked RIUs + investigations)
+│   ├── ai_recommended_actions
+│   ├── ai_risk_score (Case-level risk assessment)
+│   ├── ai_generated_at
+│   └── ai_model_version
+│
+├── Merge Tracking
+│   ├── merged_into_case_id (FK, if this case was merged into another)
+│   ├── is_merged (boolean)
+│   └── merged_at, merged_by
+│
+├── Custom Fields (JSONB)
+│   └── (client-configured Case-level fields)
 │
 ├── Migration Support (for imported data)
 │   ├── source_system (e.g., 'NAVEX', 'EQS', 'CONVERCENT', 'MANUAL')
@@ -353,16 +407,103 @@ CASE
 └── Metadata
     ├── parent_case_id (if split from another case)
     ├── is_split (boolean)
-    ├── released_at (when released from QA)
-    ├── released_by
-    └── qa_notes
+    └── created_from_riu_id (the RIU that triggered Case creation)
+```
+
+### 3.3 RIU-Case Association
+
+Links RIUs to Cases (many-to-many relationship):
+
+```
+RIU_CASE_ASSOCIATION
+├── id (UUID)
+├── riu_id (FK to risk_intelligence_items)
+├── case_id (FK to cases)
+├── association_type
+│   ├── 'primary' - The first/main RIU that created this Case
+│   ├── 'related' - Additional RIU linked by investigator
+│   └── 'merged_from' - RIU that came from a merged Case
+├── associated_at (timestamp)
+├── associated_by (FK to User)
+└── notes (optional context for why linked)
+
+UNIQUE(riu_id, case_id)
+```
+
+**Key Behaviors:**
+- When an RIU is created that requires a Case, the system creates the Case AND the association
+- Investigators can link additional RIUs to an existing Case ("related")
+- When Cases are merged, RIU associations move to the primary Case ("merged_from")
+- One RIU can only be linked to one Case (but one Case can have many RIUs)
+
+### 3.4 Investigation Entity
+
+Investigations are child records of Cases (unchanged from before):
+
+```
+INVESTIGATION
+├── id (UUID)
+├── case_id (FK to Case)
+├── organization_id (denormalized for RLS)
+├── business_unit_id (denormalized from Case)
+├── investigation_number (1, 2, 3... within case)
+│
+├── Classification
+│   ├── category_id (may differ from case category)
+│   ├── investigation_type (FULL, LIMITED, INQUIRY)
+│   └── department (HR, LEGAL, SAFETY, etc.)
+│
+├── Assignment
+│   ├── assigned_to[] (array of user IDs)
+│   ├── primary_investigator_id
+│   ├── assigned_at
+│   ├── assigned_by
+│   └── assignment_history (JSONB)
+│
+├── Workflow
+│   ├── status (NEW, ASSIGNED, INVESTIGATING, PENDING_REVIEW, CLOSED, ON_HOLD)
+│   ├── status_rationale (text - why status changed, captures reasoning)
+│   ├── status_changed_at
+│   ├── workflow_id (FK to workflow definition)
+│   ├── due_date
+│   └── sla_status (ON_TRACK, WARNING, OVERDUE)
+│
+├── Findings
+│   ├── findings_summary
+│   ├── findings_detail
+│   ├── outcome (SUBSTANTIATED, UNSUBSTANTIATED, INCONCLUSIVE, POLICY_VIOLATION, NO_VIOLATION, INSUFFICIENT_EVIDENCE)
+│   ├── root_cause
+│   ├── lessons_learned
+│   └── findings_date
+│
+├── Closure
+│   ├── closed_at
+│   ├── closed_by
+│   ├── closure_approved_by (if approval required)
+│   ├── closure_approved_at
+│   └── closure_notes
+│
+├── Template
+│   ├── template_id (FK to investigation template)
+│   ├── template_responses (JSONB - checklist answers)
+│   └── template_completed (boolean)
+│
+├── Migration Support
+│   ├── source_system
+│   ├── source_record_id
+│   └── migrated_at
+│
+└── Metadata
+    ├── created_at, updated_at
+    └── created_by, updated_by
 ```
 
 **AI-First Design Notes:**
-- `ai_summary` is generated on-demand and stored for quick retrieval
+- `ai_case_summary` aggregates information from all linked RIUs
 - `source_system` enables migration tracking and data lineage
 - `status_rationale` captures human reasoning for AI context
-- All activity logged to both `CASE_ACTIVITY` and unified `AUDIT_LOG`
+- All activity logged to unified `AUDIT_LOG`
+- Category/severity on Case may differ from RIU (corrections go on Case, RIU is immutable)
 
 ### 2.2 Investigation Entity
 
@@ -426,16 +567,19 @@ INVESTIGATION
     └── created_by, updated_by
 ```
 
-### 2.3 Supporting Entities
+### 3.5 Supporting Entities
 
-#### Interaction (Follow-ups and Initial Contact)
+#### Interaction (Follow-ups and Status Checks)
+
+Interactions track contacts on existing Cases. If substantive new information is provided, a new RIU may also be created and linked.
 
 ```
 INTERACTION
 ├── id (UUID)
 ├── case_id (FK)
+├── riu_id (FK, nullable - links to new RIU if new info creates one)
 ├── organization_id
-├── interaction_type (INITIAL, FOLLOW_UP)
+├── interaction_type (FOLLOW_UP, STATUS_CHECK)
 ├── channel (HOTLINE, WEB_PORTAL, EMAIL, SMS)
 ├── timestamp
 ├── operator_id (if hotline)
@@ -447,10 +591,10 @@ INTERACTION
 │
 ├── New Information
 │   ├── new_info_added (boolean)
-│   ├── fields_updated[] (which case fields were updated)
+│   ├── created_new_rii (boolean - did this create a linked RIU?)
 │   └── additional_details (appended narrative)
 │
-├── QA
+├── QA (for hotline follow-ups)
 │   ├── qa_required (boolean)
 │   ├── qa_status (PENDING, APPROVED, RELEASED)
 │   ├── qa_reviewed_by
@@ -459,6 +603,11 @@ INTERACTION
 └── Metadata
     └── created_at, created_by
 ```
+
+**Key Behaviors:**
+- Status checks create Interaction only (no RIU)
+- Follow-ups with new substantive information MAY create a new RIU linked to the Case
+- The `riu_id` field links to any RIU created from this interaction
 
 #### Subject (People Named in Cases)
 
@@ -920,7 +1069,9 @@ REPORTER                    ETHICO                     CLIENT INVESTIGATOR
 | Permission | CCO | Triage Lead | Investigator | Oversight | Reporter |
 |------------|-----|-------------|--------------|-----------|----------|
 | View all cases | ✓ | Scoped | Assigned only | Specific cases | Own only |
-| Create case | ✓ | ✓ | ✓ | ✗ | ✓ (via form) |
+| View linked RIUs | ✓ | ✓ | ✓ (assigned cases) | ✓ | Own only |
+| Link RIU to Case | ✓ | ✓ | ✗ | ✗ | ✗ |
+| Merge Cases | ✓ | Configurable | ✗ | ✗ | ✗ |
 | Assign investigation | ✓ | ✓ | Configurable | ✗ | ✗ |
 | Add notes | ✓ | ✓ | ✓ | ✗ | ✗ |
 | Upload files | ✓ | ✓ | ✓ | ✗ | Initial only |
@@ -931,6 +1082,8 @@ REPORTER                    ETHICO                     CLIENT INVESTIGATOR
 | Send messages | ✓ | ✓ | ✓ | ✗ | ✓ |
 | Configure workflows | ✓ | ✗ | ✗ | ✗ | ✗ |
 | Ask AI questions | ✓ | ✓ | ✓ | ✓ | ✗ |
+
+> **Note:** RIUs are created by intake modules (Operator Console, Web Forms, Chatbot). This module manages Cases and their RIU associations.
 
 ### 9.2 Configurable Permissions (Per Client)
 
@@ -1057,22 +1210,33 @@ Example views:
 
 ```
 GET     /api/v1/cases                    # List cases (filtered, paginated)
-POST    /api/v1/cases                    # Create case
-GET     /api/v1/cases/{id}               # Get case detail
+POST    /api/v1/cases                    # Create case (usually system-triggered from RIU)
+GET     /api/v1/cases/{id}               # Get case detail (includes linked RIUs)
 PATCH   /api/v1/cases/{id}               # Update case
 DELETE  /api/v1/cases/{id}               # Soft delete (admin only)
 
-GET     /api/v1/cases/{id}/timeline      # Get activity timeline
+# RIU Associations
+GET     /api/v1/cases/{id}/riis          # Get linked RIUs
+POST    /api/v1/cases/{id}/riis          # Link RIU to case (association_type: 'related')
+DELETE  /api/v1/cases/{id}/riis/{riu_id} # Unlink RIU from case
+
+# Case Merge
+POST    /api/v1/cases/{id}/merge         # Merge another case into this one
+                                         # Body: { sourceCase Id, mergeOptions }
+
+GET     /api/v1/cases/{id}/timeline      # Get activity timeline (Case + linked RIUs)
 GET     /api/v1/cases/{id}/interactions  # Get all interactions
 POST    /api/v1/cases/{id}/interactions  # Add follow-up interaction
 
 GET     /api/v1/cases/{id}/messages      # Get communication thread
-POST    /api/v1/cases/{id}/messages      # Send message to reporter
+POST    /api/v1/cases/{id}/messages      # Send message to reporter (via RIU contact)
 
 GET     /api/v1/cases/{id}/subjects      # Get subjects
 POST    /api/v1/cases/{id}/subjects      # Add subject
 DELETE  /api/v1/cases/{id}/subjects/{sid} # Remove subject
 ```
+
+> **Note:** Cases are typically created by the system when an RIU is released (hotline) or submitted (web form). Direct POST to /cases is for admin/migration use.
 
 ### 14.2 Investigation Endpoints
 
@@ -1128,21 +1292,24 @@ POST    /api/v1/ai/subject-summary                   # Summary of subject across
 
 | ID | Criterion | Priority |
 |----|-----------|----------|
-| AC-01 | User can create case with all required fields | P0 |
-| AC-02 | Anonymous reporter receives access code | P0 |
-| AC-03 | Case status auto-derives from investigations | P0 |
-| AC-04 | Investigator can only see assigned cases | P0 |
-| AC-05 | Notes, interviews, files can be added to investigation | P0 |
-| AC-06 | Investigation template can be applied and completed | P0 |
-| AC-07 | Findings required before investigation closure | P0 |
-| AC-08 | Approval workflow works when configured | P1 |
-| AC-09 | Remediation plan can be attached and tracked | P0 |
-| AC-10 | Follow-ups link to parent case, don't create new cases | P0 |
-| AC-11 | New info from follow-up triggers notification | P0 |
-| AC-12 | Two-way messaging works with anonymous reporters | P0 |
-| AC-13 | Activity log records all actions immutably | P0 |
-| AC-14 | Saved views work with custom columns/filters | P0 |
-| AC-15 | AI summary generates from case details | P0 |
+| AC-01 | Cases are created from released RIUs (system-triggered) | P0 |
+| AC-02 | Case displays linked RIUs with intake details from primary RIU | P0 |
+| AC-03 | Additional RIUs can be linked to existing Case | P0 |
+| AC-04 | Cases can be merged, moving all RIU associations | P0 |
+| AC-05 | Anonymous reporter receives access code (on RIU) | P0 |
+| AC-06 | Case status auto-derives from investigations | P0 |
+| AC-07 | Investigator can only see assigned cases | P0 |
+| AC-08 | Notes, interviews, files can be added to investigation | P0 |
+| AC-09 | Investigation template can be applied and completed | P0 |
+| AC-10 | Findings required before investigation closure | P0 |
+| AC-11 | Approval workflow works when configured | P1 |
+| AC-12 | Remediation plan can be attached and tracked | P0 |
+| AC-13 | Follow-ups create Interactions, may create linked RIUs | P0 |
+| AC-14 | New info from follow-up triggers notification | P0 |
+| AC-15 | Two-way messaging works via RIU contact info | P0 |
+| AC-16 | Activity log records all actions immutably | P0 |
+| AC-17 | Saved views work with custom columns/filters | P0 |
+| AC-18 | AI summary aggregates from all linked RIUs | P0 |
 | AC-16 | Translation works for non-English reports | P0 |
 | AC-17 | Subject search shows all related cases | P1 |
 

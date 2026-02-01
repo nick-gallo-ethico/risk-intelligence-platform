@@ -2,9 +2,11 @@
 ## Ethico Risk Intelligence Platform
 
 **Document ID:** PRD-004
-**Version:** 1.0 (Draft)
+**Version:** 2.0 (RIU - Risk Intelligence Unit)
 **Priority:** P0 - Critical (Foundation Module)
-**Last Updated:** January 2026
+**Last Updated:** February 2026
+
+> **Architecture Reference:** This PRD implements the RIU->Case architecture defined in `00-PLATFORM/01-PLATFORM-VISION.md v3.2`. Form submissions create **Risk Intelligence Units (RIUs)** - immutable inputs that may trigger Case creation based on configurable rules. Forms do NOT create Cases directly.
 
 ---
 
@@ -15,10 +17,23 @@ The Web Form Configuration module is the **shared foundation** for all employee-
 ### Scope
 
 This module powers:
-- **Case Intake Forms** (speak-up/hotline web reports)
-- **Disclosure Forms** (COI, Gifts & Entertainment, Outside Employment)
-- **Policy Attestations** (acknowledgment forms)
-- **Surveys** (employee feedback, training evaluations)
+- **Case Intake Forms** (speak-up/hotline web reports) - Creates RIU type: `web_form_submission`
+- **Disclosure Forms** (COI, Gifts & Entertainment, Outside Employment) - Creates RIU type: `disclosure_response`
+- **Policy Attestations** (acknowledgment forms) - Creates RIU type: `attestation_response`
+- **Incident Forms** (HIPAA breach, safety reports) - Creates RIU type: `incident_form`
+- **Surveys** (employee feedback, training evaluations) - Creates RIU type: `survey_response`
+
+### RIU Architecture Integration
+
+**Key Principle:** Form submissions create **Risk Intelligence Units (RIUs)**, not Cases directly. RIUs are immutable records of what was submitted. Cases are mutable work containers created based on configurable rules.
+
+| Form Type | RIU Type Created | Auto-Creates Case? |
+|-----------|------------------|-------------------|
+| Case Intake | `web_form_submission` | Yes (always) |
+| Disclosure | `disclosure_response` | If threshold met or flagged |
+| Attestation | `attestation_response` | If failure or refusal (configurable) |
+| Incident | `incident_form` | Configurable per form |
+| Survey | `survey_response` | If flagged response detected |
 
 ### Key Design Principles
 
@@ -102,6 +117,24 @@ Key behaviors:
 
 ---
 
+**Configure RIU type and Case creation rules**
+As a **Compliance Officer**, I want to configure what type of RIU this form creates and when Cases are auto-created
+so that form submissions flow correctly into our compliance workflow.
+
+Key behaviors:
+- Select RIU type for this form (web_form_submission, disclosure_response, etc.)
+- Configure auto_case_rules:
+  - Always create Case (for intake forms)
+  - Create Case if threshold met (e.g., gift value > $100)
+  - Create Case if flag field triggered (e.g., government_official = true)
+  - Create Case if keyword detected (e.g., "retaliation")
+  - Manual review required (RIU created, Case pending human decision)
+- Configure Case defaults when auto-created (category, severity, pipeline)
+- Preview rule evaluation logic
+- Activity logged: "Compliance Officer {name} configured RIU/Case rules for form {form_name}"
+
+---
+
 **Translate form to multiple languages**
 As a **Compliance Officer**, I want to translate forms into multiple languages
 so that global employees can complete forms in their preferred language.
@@ -151,8 +184,10 @@ Key behaviors:
 - Save draft and resume later
 - Progress indicator shows completion
 - Validation errors shown inline
-- Confirmation message on submit
-- Activity logged: "Employee completed form {form_name}"
+- On submit: RIU created with type from form definition
+- If auto_case_rules match: Case created and linked to RIU
+- Confirmation message shows submission received
+- Activity logged: "Employee completed form {form_name}, RIU created"
 
 ---
 
@@ -163,9 +198,11 @@ so that I can report concerns without identifying myself.
 Key behaviors:
 - No login required
 - Optional email field for updates
-- Access code generated for follow-up
+- Access code generated for follow-up (stored on both FORM_SUBMISSION and RIU)
 - No employee data pre-filled
-- Activity logged: "Anonymous user submitted form"
+- On submit: RIU created with reporter_type = 'anonymous'
+- If auto_case_rules match: Case created and linked to RIU
+- Activity logged: "Anonymous user submitted form, RIU created"
 
 ---
 
@@ -184,7 +221,9 @@ Key behaviors:
 
 ## 3. Entity Model
 
-### 2.1 Form Definition (Template)
+> **Architecture Note:** Form submissions create **Risk Intelligence Units (RIUs)** as defined in `00-PLATFORM/01-PLATFORM-VISION.md`. The RIU type and Case creation rules are configured per form.
+
+### 3.1 Form Definition (Template)
 
 ```
 FORM_DEFINITION
@@ -194,11 +233,25 @@ FORM_DEFINITION
 │   ├── business_unit_id (FK, nullable - for scoping forms to BU)
 │   ├── name (e.g., "Annual COI Disclosure 2026")
 │   ├── description
-│   ├── form_type (CASE_INTAKE, DISCLOSURE, ATTESTATION, SURVEY, CUSTOM)
+│   ├── form_type (CASE_INTAKE, DISCLOSURE, ATTESTATION, INCIDENT, SURVEY, CUSTOM)
 │   ├── form_code (short URL-safe code, e.g., "coi-2026")
 │   ├── status (DRAFT, PUBLISHED, ARCHIVED)
 │   ├── version (1, 2, 3...)
 │   ├── is_current_version (boolean)
+│
+├── RIU Configuration (determines what type of RIU is created)
+│   ├── riu_type (web_form_submission, disclosure_response, attestation_response,
+│   │             incident_form, survey_response)
+│   ├── auto_case_rules (JSONB - when to create Case from RIU)
+│   │   ├── always_create_case (boolean)
+│   │   ├── threshold_rules[] (e.g., gift value > $100)
+│   │   ├── flag_field_rules[] (e.g., if "government_official" = true)
+│   │   ├── keyword_triggers[] (e.g., ["retaliation", "harassment"])
+│   │   └── manual_review_required (boolean - requires human to trigger Case)
+│   └── case_creation_defaults (JSONB - defaults when Case is auto-created)
+│       ├── default_category_id
+│       ├── default_severity
+│       └── default_pipeline_id
 │
 ├── Sections[] (grouping of questions)
 │   ├── id (UUID)
@@ -270,7 +323,7 @@ FORM_DEFINITION
     ├── parent_version_id (FK to previous version)
 ```
 
-### 2.2 Question Entity
+### 3.2 Question Entity
 
 ```
 FORM_QUESTION
@@ -336,7 +389,7 @@ FORM_QUESTION
     ├── created_at, updated_at
 ```
 
-### 2.3 Question Types
+### 3.3 Question Types
 
 | Type | Description | Validation Options |
 |------|-------------|-------------------|
@@ -366,7 +419,7 @@ FORM_QUESTION
 | **STATIC_TEXT** | Display-only content | n/a |
 | **CALCULATED** | Auto-calculated from other fields | formula expression |
 
-### 2.4 Form Version
+### 3.4 Form Version
 
 ```
 FORM_VERSION
@@ -383,7 +436,9 @@ FORM_VERSION
 ├── created_by
 ```
 
-### 2.5 Form Submission
+### 3.5 Form Submission & RIU Creation
+
+> **Key Architecture:** Form submission creates both a `FORM_SUBMISSION` record (for form-specific tracking) AND a `RISK_INTELLIGENCE_UNIT` (RIU) record (for the unified compliance workflow). The RIU is the primary entity that flows into Case Management.
 
 ```
 FORM_SUBMISSION
@@ -394,13 +449,17 @@ FORM_SUBMISSION
 ├── business_unit_id (FK, nullable - from form definition or submitter)
 ├── reference_number (auto-generated, e.g., "SUB-2026-00042")
 │
+├── RIU Link (created on submission)
+│   ├── riu_id (FK to risk_intelligence_units - created when form is submitted)
+│   └── riu_type (copied from form definition for quick reference)
+│
 ├── Submitter
 │   ├── submitter_type (EMPLOYEE_SSO, EMPLOYEE_ANONYMOUS, EXTERNAL, PROXY)
 │   ├── employee_id (if SSO)
 │   ├── employee_email
 │   ├── employee_name
 │   ├── hris_snapshot (JSONB - employee data at submission time)
-│   ├── anonymous_access_code (if anonymous)
+│   ├── anonymous_access_code (if anonymous - also stored on RIU)
 │   ├── proxy_submitter_id (if proxy submission)
 │   ├── ip_address
 │   ├── user_agent
@@ -416,10 +475,11 @@ FORM_SUBMISSION
 │   ├── draft_saved_at (last auto-save)
 │   ├── draft_expires_at
 │
-├── Routing (populated after submission)
-│   ├── routed_to_entity_type (CASE, DISCLOSURE, ATTESTATION, etc.)
-│   ├── routed_to_entity_id (FK to created entity)
-│   ├── routed_at
+├── RIU→Case Outcome (populated after RIU processing)
+│   ├── case_created (boolean)
+│   ├── case_id (FK to cases, if created)
+│   ├── case_creation_reason (threshold_met, flagged, manual, always)
+│   ├── processed_at
 │
 ├── Analytics
 │   ├── started_at
@@ -437,7 +497,53 @@ FORM_SUBMISSION
     ├── created_at, updated_at
 ```
 
-### 2.6 Translation Memory
+### 3.6 RIU Created from Form Submission
+
+When a form is submitted, a **Risk Intelligence Unit** is created with type based on the form configuration:
+
+```
+RISK_INTELLIGENCE_UNIT (created from form submission)
+├── id (UUID)
+├── organization_id
+├── type (from form definition: web_form_submission, disclosure_response,
+│         attestation_response, incident_form, survey_response)
+├── source_channel ('web_form')
+│
+├── Form Link
+│   ├── form_submission_id (FK back to FORM_SUBMISSION)
+│   ├── form_definition_id (FK)
+│   ├── form_code (denormalized for quick lookup)
+│
+├── Reporter Info (from submission)
+│   ├── reporter_type (anonymous, confidential, identified)
+│   ├── reporter_employee_id (if identified/SSO)
+│   ├── anonymous_access_code (if anonymous)
+│
+├── Content (derived from form responses)
+│   ├── details (mapped from form fields)
+│   ├── category_id (if captured in form)
+│   ├── severity (if captured in form)
+│
+├── AI Enrichment
+│   ├── ai_summary
+│   ├── ai_risk_score
+│   ├── ai_language_detected
+│   ├── ai_translation
+│
+├── Status
+│   ├── status ('received' - no QA for web forms)
+│   └── received_at
+│
+└── created_at, created_by
+```
+
+**Key Behaviors:**
+- Form submission ALWAYS creates an RIU (immutable record)
+- Case creation is CONDITIONAL based on `auto_case_rules` in form definition
+- RIU preserves the exact form responses; Case may have corrected/updated values
+- For anonymous submissions, access code is stored on both FORM_SUBMISSION and RIU
+
+### 3.7 Translation Memory
 
 ```
 TRANSLATION_MEMORY
@@ -456,7 +562,7 @@ TRANSLATION_MEMORY
 ├── created_at, updated_at
 ```
 
-### 2.7 Form Template Library
+### 3.8 Form Template Library
 
 ```
 FORM_TEMPLATE
@@ -464,7 +570,10 @@ FORM_TEMPLATE
 ├── organization_id (null = global/Ethico-provided)
 ├── name
 ├── description
-├── form_type (CASE_INTAKE, DISCLOSURE, ATTESTATION, SURVEY)
+├── form_type (CASE_INTAKE, DISCLOSURE, ATTESTATION, INCIDENT, SURVEY)
+├── riu_type (web_form_submission, disclosure_response, attestation_response,
+│             incident_form, survey_response)
+├── default_auto_case_rules (JSONB - default rules, can be customized on clone)
 ├── industry_pack (GENERAL, HEALTHCARE, FINANCIAL_SERVICES, GOVERNMENT, etc.)
 ├── template_definition (JSONB - full form structure)
 ├── preview_image_url
@@ -473,7 +582,7 @@ FORM_TEMPLATE
 ├── created_at, updated_at
 ```
 
-### 2.8 Form Activity Log
+### 3.9 Form Activity Log
 
 Immutable audit trail for form and submission actions:
 
@@ -516,6 +625,8 @@ FORM_ACTIVITY
 - Activity log captures natural language descriptions for AI context
 - All activity logged to both `FORM_ACTIVITY` and unified `AUDIT_LOG`
 - Form analytics data provides rich context for AI-driven insights
+- RIU stores AI enrichment (summary, risk score, translation) for unified AI queries
+- Form responses flow into RIU for consistent AI processing across all intake channels
 
 ---
 
@@ -896,16 +1007,18 @@ All form actions logged:
 
 ### 9.1 Standard Templates
 
-| Template | Type | Description |
-|----------|------|-------------|
-| **Speak-Up Report** | CASE_INTAKE | General ethics reporting form |
-| **Conflicts of Interest** | DISCLOSURE | Annual COI certification |
-| **Gift Received** | DISCLOSURE | GT&E - gifts from third parties |
-| **Gift Given** | DISCLOSURE | GT&E - gifts to third parties |
-| **Outside Employment** | DISCLOSURE | Side jobs, consulting work |
-| **Personal Relationship** | DISCLOSURE | Workplace relationships |
-| **Policy Attestation** | ATTESTATION | Generic policy acknowledgment |
-| **Code of Conduct** | ATTESTATION | Annual CoC certification |
+| Template | Form Type | RIU Type | Auto-Creates Case? | Description |
+|----------|-----------|----------|-------------------|-------------|
+| **Speak-Up Report** | CASE_INTAKE | `web_form_submission` | Always | General ethics reporting form |
+| **Conflicts of Interest** | DISCLOSURE | `disclosure_response` | If flagged | Annual COI certification |
+| **Gift Received** | DISCLOSURE | `disclosure_response` | If threshold met | GT&E - gifts from third parties |
+| **Gift Given** | DISCLOSURE | `disclosure_response` | If threshold met | GT&E - gifts to third parties |
+| **Outside Employment** | DISCLOSURE | `disclosure_response` | If flagged | Side jobs, consulting work |
+| **Personal Relationship** | DISCLOSURE | `disclosure_response` | If flagged | Workplace relationships |
+| **Policy Attestation** | ATTESTATION | `attestation_response` | If refused | Generic policy acknowledgment |
+| **Code of Conduct** | ATTESTATION | `attestation_response` | If refused | Annual CoC certification |
+| **HIPAA Breach Report** | INCIDENT | `incident_form` | Always | Healthcare privacy incident |
+| **Safety Incident** | INCIDENT | `incident_form` | Configurable | Workplace safety report |
 
 ### 9.2 Industry Packs
 
@@ -945,31 +1058,75 @@ All form actions logged:
 
 ## 10. Integration Points
 
-### 10.1 Workflow Engine (PRD-008)
+### 10.1 RIU Creation & Case Management (PRD-005)
 
-**After submission, form data passed to Workflow Engine:**
+**Form submission triggers the following flow:**
+
+```
+Form Submitted
+      │
+      ▼
+┌─────────────────────────────────┐
+│  CREATE RIU                     │
+│  type: from form definition     │
+│  status: received               │
+│  Immutable record of submission │
+└─────────────────────────────────┘
+      │
+      ▼
+┌─────────────────────────────────────────────────┐
+│  EVALUATE auto_case_rules (from form definition)│
+│  - always_create_case?                          │
+│  - threshold_rules met?                         │
+│  - flag_field_rules triggered?                  │
+│  - keyword_triggers matched?                    │
+└─────────────────────────────────────────────────┘
+      │
+  ┌───┴───┐
+  │       │
+  ▼       ▼
+No Case   CREATE CASE
+(RIU only) │
+           ▼
+    ┌─────────────────────────────────┐
+    │  Case linked to RIU             │
+    │  association_type: 'primary'    │
+    │  Routed based on form config    │
+    └─────────────────────────────────┘
+```
+
+**RIU payload created from form submission:**
 ```json
 {
-  "submission_id": "uuid",
-  "form_type": "DISCLOSURE",
+  "riu_id": "uuid",
+  "type": "disclosure_response",
+  "source_channel": "web_form",
+  "form_submission_id": "uuid",
   "form_code": "coi-2026",
   "responses": { ... },
   "aggregations": {
     "total_gift_value": 250,
     "subject_count": 2
   },
-  "triggers": ["HIGH_VALUE", "GOVERNMENT_PARTY"],
+  "triggers_matched": ["HIGH_VALUE", "GOVERNMENT_PARTY"],
   "submitter": { ... }
 }
 ```
 
-**Workflow Engine determines:**
-- Which entity to create (Case, Disclosure, etc.)
-- Routing/assignment
-- Approval workflow
-- Notifications
+**Case creation outcome stored on FORM_SUBMISSION:**
+- `case_created`: true/false
+- `case_id`: FK to case (if created)
+- `case_creation_reason`: why case was created
 
-### 10.2 HRIS Integration (PRD-010)
+### 10.2 Workflow Engine (PRD-008)
+
+**For forms that create Cases, workflow engine handles:**
+- Routing/assignment based on form rules
+- Approval workflows (if configured)
+- Notifications
+- SLA tracking
+
+### 10.3 HRIS Integration (PRD-010)
 
 **Employee Lookup:**
 - Search employees by name, email, employee ID
@@ -980,14 +1137,14 @@ All form actions logged:
 - Search organization locations
 - Return: name, address, region, country
 
-### 10.3 External Party Integration
+### 10.4 External Party Integration
 
 **From Disclosures module (PRD-006):**
 - Search existing external parties
 - Create new external parties inline
 - Auto-link party to submission
 
-### 10.4 File Storage
+### 10.5 File Storage
 
 **Uploads stored in:**
 - Azure Blob Storage (per-tenant containers)
@@ -1045,14 +1202,27 @@ GET     /api/v1/forms/{id}/preview              # Get preview data
 ### 12.2 Form Submission APIs
 
 ```
-POST    /api/v1/forms/{id}/submissions          # Create/start submission
-GET     /api/v1/submissions/{id}                # Get submission
+POST    /api/v1/forms/{id}/submissions          # Create/start submission (draft)
+GET     /api/v1/submissions/{id}                # Get submission (includes linked RIU if submitted)
 PATCH   /api/v1/submissions/{id}                # Update draft submission
-POST    /api/v1/submissions/{id}/submit         # Submit form
-DELETE  /api/v1/submissions/{id}                # Delete draft
+POST    /api/v1/submissions/{id}/submit         # Submit form → creates RIU, evaluates Case rules
+DELETE  /api/v1/submissions/{id}                # Delete draft (only if not submitted)
 GET     /api/v1/submissions                     # List submissions (filtered)
 POST    /api/v1/submissions/{id}/export         # Export submission
+
+# RIU Access (read-only from this module - RIU is immutable)
+GET     /api/v1/submissions/{id}/riu            # Get the RIU created from this submission
+GET     /api/v1/submissions/{id}/case           # Get the Case created from this submission (if any)
 ```
+
+**Submit endpoint behavior:**
+1. Validates all required fields
+2. Creates immutable RIU record (type from form definition)
+3. Evaluates `auto_case_rules` from form definition
+4. If rules match: Creates Case and links RIU as 'primary'
+5. Updates FORM_SUBMISSION with `case_created`, `case_id`, `case_creation_reason`
+6. Sends notifications based on form and Case configuration
+7. Returns submission with RIU ID and Case ID (if created)
 
 ### 12.3 Template APIs
 
@@ -1105,8 +1275,13 @@ GET     /api/v1/forms/{id}/analytics/fields     # Get field-level analytics
 | AC-16 | DSAR export works for employee data | P1 |
 | AC-17 | Analytics show completion rates and drop-off | P1 |
 | AC-18 | Repeatable sections support min/max limits | P0 |
-| AC-19 | Aggregation calculates correctly for workflow | P1 |
-| AC-20 | Submissions route to correct entity type | P0 |
+| AC-19 | Aggregation calculates correctly for Case creation rules | P1 |
+| AC-20 | Form submission creates RIU with correct type from form definition | P0 |
+| AC-21 | RIU is immutable after form submission | P0 |
+| AC-22 | Case auto-creation rules evaluate correctly (always_create, thresholds, flags) | P0 |
+| AC-23 | Case links to RIU with association_type 'primary' when auto-created | P0 |
+| AC-24 | Form submission stores case_created, case_id, case_creation_reason | P0 |
+| AC-25 | Anonymous access code stored on both FORM_SUBMISSION and RIU | P0 |
 
 ### 13.2 Performance Targets
 
@@ -1137,8 +1312,13 @@ GET     /api/v1/forms/{id}/analytics/fields     # Get field-level analytics
 - Direct links
 - Auto-save drafts
 - Basic form analytics (submission count)
-- Standard template library (8 templates)
+- Standard template library (10 templates with RIU types)
 - Email notifications (confirmation)
+- **RIU Configuration:**
+  - RIU type selection per form
+  - Basic auto_case_rules (always_create_case only)
+  - RIU creation on form submission
+  - Case auto-creation for intake forms
 
 **Not Included:**
 - Multi-condition AND/OR logic
@@ -1152,6 +1332,7 @@ GET     /api/v1/forms/{id}/analytics/fields     # Get field-level analytics
 - Field-level encryption
 - Redaction
 - DSAR export
+- Advanced auto_case_rules (thresholds, flags, keywords)
 - Industry packs
 - Advanced analytics
 
@@ -1165,6 +1346,11 @@ GET     /api/v1/forms/{id}/analytics/fields     # Get field-level analytics
 - Embed widgets
 - QR code generation
 - Advanced analytics (drop-off, field timing)
+- **Advanced auto_case_rules:**
+  - Threshold-based Case creation (e.g., gift value > $100)
+  - Flag field triggers (e.g., government_official = true)
+  - Keyword triggers (e.g., "retaliation", "harassment")
+  - Manual review workflow (RIU pending human Case decision)
 
 ### 14.3 Phase 3 - Weeks 9-12
 
@@ -1175,6 +1361,7 @@ GET     /api/v1/forms/{id}/analytics/fields     # Get field-level analytics
 - Redaction capability
 - DSAR export
 - Industry template packs
+- AI-powered RIU enrichment (auto-summary, risk scoring)
 
 ---
 
@@ -1182,12 +1369,14 @@ GET     /api/v1/forms/{id}/analytics/fields     # Get field-level analytics
 
 ### 15.1 Delegation Types
 
-| Type | Submitter | On Behalf Of | Use Case |
-|------|-----------|--------------|----------|
-| **Manager Proxy** | Manager | Direct report | Manager reports concern for team member |
-| **EA Delegate** | Executive Assistant | Executive | EA submits disclosures for busy executives |
-| **HR Proxy** | HR Business Partner | Any employee | HR enters reports received verbally |
-| **Compliance Proxy** | Compliance Officer | Any employee | Compliance enters paper/email submissions |
+| Type | Submitter | On Behalf Of | RIU Type | Use Case |
+|------|-----------|--------------|----------|----------|
+| **Manager Proxy** | Manager | Direct report | `proxy_report` | Manager reports concern for team member |
+| **EA Delegate** | Executive Assistant | Executive | `disclosure_response` | EA submits disclosures for busy executives |
+| **HR Proxy** | HR Business Partner | Any employee | `proxy_report` | HR enters reports received verbally |
+| **Compliance Proxy** | Compliance Officer | Any employee | `proxy_report` | Compliance enters paper/email submissions |
+
+**Note:** Proxy submissions create RIUs with `submitter_type: DELEGATE_PROXY` and track both the proxy submitter and the on-behalf-of employee.
 
 ### 15.2 Delegation Configuration
 
@@ -1215,10 +1404,13 @@ FORM_DELEGATION_CONFIG
 2. Selects executive from their delegator list
 3. Form pre-fills executive's HRIS data
 4. EA completes form as executive would
-5. Submission tagged with:
-   - `submitter_type: DELEGATE_PROXY`
-   - `proxy_submitter_id: [EA's user ID]`
-   - `on_behalf_of_id: [Executive's employee ID]`
+5. On submit:
+   - RIU created with type from form definition
+   - RIU tagged with:
+     - `submitter_type: DELEGATE_PROXY`
+     - `proxy_submitter_id: [EA's user ID]`
+     - `on_behalf_of_id: [Executive's employee ID]`
+   - If auto_case_rules match: Case created and linked to RIU
 6. Executive receives notification (if configured)
 
 ### 15.4 Manager Proxy Workflow
@@ -1449,6 +1641,10 @@ FORM_BRANCH
 | Partial submission | No | Forms must be complete; drafts handle save-and-resume |
 | API-driven forms | Future consideration | Focus on UI builder first; API can be added later |
 | A/B testing | Future consideration | Not critical for MVP; can add for form optimization later |
+| Form submission creates RIU | Yes (always) | Every submission creates immutable RIU record for compliance audit trail |
+| Case creation from RIU | Configurable per form | `auto_case_rules` on form definition determines when RIU triggers Case |
+| RIU immutability | Strict | RIU preserves exact submission; corrections go on Case entity |
+| RIU type per form | Configurable | Form definition specifies RIU type (web_form_submission, disclosure_response, etc.) |
 
 ---
 
