@@ -2566,4 +2566,132 @@ Healthcare clients (HIPAA) require 15-minute idle timeouts; retail can allow 8 h
 
 ---
 
+## 18. AI Agent Architecture (February 2026)
+
+### AA: AI as Action Agent ("Claude Code for Compliance")
+
+The platform AI is not just a chatbot - it's an **action agent** that can execute operations on behalf of users, similar to how Claude Code operates for developers.
+
+#### AA.1 Core Capability
+
+**Decision:** AI can take real actions in the platform, not just answer questions
+
+**Action Categories:**
+| Category | Examples | Confirm Required? |
+|----------|----------|-------------------|
+| **Read/Summarize** | "Summarize this case", "Show overdue tasks" | No |
+| **Draft/Propose** | "Draft follow-up emails to managers", "Suggest remediation steps" | Preview only |
+| **Execute (Low Risk)** | "Add a note to this case", "Create a task for myself" | Yes (single click) |
+| **Execute (High Risk)** | "Send emails to 15 managers", "Close this investigation" | Yes (explicit confirm + preview) |
+| **Modify Settings** | "Update the approval workflow", "Change notification rules" | Yes (admin only, full preview) |
+
+#### AA.2 Context Awareness
+
+**Decision:** AI context adapts based on what user is viewing
+
+**Context Scopes:**
+| Scope | User Is Looking At | AI Can Act On |
+|-------|-------------------|---------------|
+| **Program (Bird's Eye)** | Dashboard, analytics | Cross-entity queries, bulk operations, program-wide insights |
+| **Entity List** | Cases list, campaign list | Filter/search, bulk actions on visible items |
+| **Entity Detail** | Specific case, investigation | That entity and its children (notes, tasks, messages) |
+| **Workflow** | Approval queue, task board | Items in that workflow context |
+
+**Context is passed to AI with every interaction:**
+- Current page/view
+- Selected entity (if any)
+- User's role and permissions
+- Organization settings
+
+#### AA.3 Confirm-Before-Action UX
+
+**Decision:** Tiered confirmation based on action risk
+
+**UX Pattern:**
+1. User requests action via chat
+2. AI proposes action with full preview (who will receive what, what will change)
+3. User reviews and clicks "Confirm" or "Edit"
+4. AI executes and reports result
+5. All actions logged with AI attribution
+
+**Example Flow:**
+```
+User: "Send follow-up emails to all managers whose approval is needed for pending COI disclosures"
+
+AI: "I found 12 managers with pending approvals. Here's the proposed email:
+
+To: [Manager Name]
+Subject: Action Required: COI Disclosure Awaiting Your Approval
+Body: [Preview...]
+
+Recipients: Sarah Chen, Mike Rodriguez, ... [+10 more]
+
+[Preview All] [Edit Template] [Confirm & Send] [Cancel]"
+```
+
+#### AA.4 Permission Model
+
+**Decision:** AI actions respect user's existing permissions
+
+**Rules:**
+- AI cannot do anything the user couldn't do manually
+- AI cannot escalate privileges
+- Admin-only actions require admin role
+- Bulk actions may have additional limits (e.g., max 50 emails per request)
+
+#### AA.5 Audit Trail
+
+**Decision:** All AI-initiated actions are logged with full attribution
+
+**Audit Record:**
+```
+{
+  action: "email_sent",
+  actor_type: "ai",
+  actor_user_id: "user_123",  // User who authorized
+  ai_conversation_id: "conv_456",
+  ai_prompt: "Send follow-up emails to managers...",
+  affected_entities: ["user_789", "user_012", ...],
+  timestamp: "2026-02-02T10:30:00Z"
+}
+```
+
+#### AA.6 Guardrails
+
+**Decision:** Certain actions ALWAYS require human confirmation
+
+**Never Auto-Execute:**
+- Delete/archive operations
+- External communications (email, SMS)
+- Permission changes
+- Workflow modifications
+- Bulk operations (>5 items)
+- Financial/sensitive data export
+
+#### AA.7 Required Spec
+
+**Action:** Create `01-SHARED-INFRASTRUCTURE/TECH-SPEC-AI-AGENT.md` to detail:
+- Complete action catalog by module
+- Context passing architecture
+- Confirmation UX patterns
+- Permission inheritance rules
+- Conversation storage and resumption
+- Error handling and rollback
+
+---
+
+### Decision Log Summary (AI Agent)
+
+| ID | Area | Decision | Status |
+|----|------|----------|--------|
+| AA.1 | AI Agent | AI can execute real actions, not just answer questions | Confirmed |
+| AA.2 | AI Agent | Context adapts to user's current view (program/entity/workflow) | Confirmed |
+| AA.3 | AI Agent | Tiered confirmation UX based on action risk | Confirmed |
+| AA.4 | AI Agent | AI respects user's existing permissions | Confirmed |
+| AA.5 | AI Agent | Full audit trail with AI attribution | Confirmed |
+| AA.6 | AI Agent | Guardrails prevent auto-execution of risky actions | Confirmed |
+| AA.7 | AI Agent | TECH-SPEC-AI-AGENT.md needed for full specification | Pending |
+
+---
+
 *End of Working Decisions Document*

@@ -2,7 +2,7 @@
 ## PRD-007: Analytics & Reporting
 
 **Document ID:** PRD-007
-**Version:** 3.0 (RIU Architecture Update)
+**Version:** 4.0 (Complete Specification)
 **Priority:** P1 - High (Core Module)
 **Development Phase:** Phase 2
 **Last Updated:** February 2026
@@ -14,6 +14,7 @@
 - Case Management: `02-MODULES/05-CASE-MANAGEMENT/PRD.md` (v3.1)
 - Disclosures: `02-MODULES/06-DISCLOSURES/PRD.md`
 - Policy Management: `02-MODULES/09-POLICY-MANAGEMENT/PRD.md`
+- UI/UX Design System: `00-PLATFORM/UI-UX-DESIGN-SYSTEM.md`
 
 > **Tech Stack:** NestJS (backend) + Next.js (frontend) + shadcn/ui + Tailwind CSS.
 > See `01-SHARED-INFRASTRUCTURE/` docs for implementation patterns and standards.
@@ -40,7 +41,11 @@
 6. [Data Model](#data-model)
 7. [API Specifications](#api-specifications)
 8. [UI/UX Specifications](#uiux-specifications)
-9. [Non-Functional Requirements](#non-functional-requirements)
+9. [Migration Considerations](#migration-considerations)
+10. [Integration Points](#integration-points)
+11. [Non-Functional Requirements](#non-functional-requirements)
+12. [Acceptance Criteria](#acceptance-criteria)
+13. [Checklist Verification](#checklist-verification)
 
 ---
 
@@ -191,6 +196,58 @@ AI: "Last quarter you received 234 reports total:
     the trend by month?"
 ```
 
+### AI Query Parsing Architecture
+
+The natural language query system uses a multi-stage pipeline:
+
+```
+User Query → Intent Classification → Entity Extraction → Query Builder → Execution → Response Generation
+```
+
+**Stage 1: Intent Classification**
+```typescript
+enum QueryIntent {
+  COUNT_METRIC      // "How many..."
+  AVERAGE_METRIC    // "What's the average..."
+  TREND_ANALYSIS    // "Show trend...", "Over time..."
+  COMPARISON        // "Compare...", "vs..."
+  BREAKDOWN         // "By category...", "By region..."
+  ANOMALY_DETECTION // "Anything unusual...", "Outliers..."
+  REPORT_CREATION   // "Create a report...", "Generate..."
+  FILTER_REFINEMENT // "Only open cases...", "Exclude..."
+}
+```
+
+**Stage 2: Entity Extraction**
+```typescript
+interface ExtractedEntities {
+  dataSource: 'RIU' | 'CASE' | 'DISCLOSURE' | 'ATTESTATION' | 'CAMPAIGN';
+  metrics: string[];           // ["count", "avg_days_open"]
+  dimensions: string[];        // ["category", "region"]
+  filters: FilterCondition[];  // [{field: "status", op: "=", value: "OPEN"}]
+  timeRange: TimeRange;        // {start: "2025-10-01", end: "2025-12-31"}
+  comparison?: ComparisonType; // "previous_period" | "previous_year"
+}
+```
+
+**Stage 3: Query Generation**
+AI generates structured query from extracted entities:
+```json
+{
+  "dataSource": "FACT_CASE_DAILY",
+  "select": [
+    {"field": "category_name", "alias": "Category"},
+    {"aggregation": "AVG", "field": "days_to_close", "alias": "Avg Days"}
+  ],
+  "where": [
+    {"field": "category_code", "operator": "=", "value": "HARASSMENT"},
+    {"field": "date_id", "operator": ">=", "value": "2025-10-01"}
+  ],
+  "groupBy": ["category_name"],
+  "orderBy": [{"field": "Avg Days", "direction": "DESC"}]
+}
+```
+
 ### AI Assistance Points
 
 | Feature | AI Capability |
@@ -201,6 +258,68 @@ AI: "Last quarter you received 234 reports total:
 | Board reports | AI-generated executive summaries |
 | Insight generation | "Key takeaways" for any visualization |
 | Forecasting | Trend extrapolation for metrics |
+
+### AI-Generated Insights
+
+For each dashboard or report, AI can generate:
+
+**Automatic Insights:**
+```typescript
+interface AIInsight {
+  id: string;
+  type: InsightType;
+  severity: 'info' | 'warning' | 'critical';
+  title: string;
+  description: string;
+  metric: string;
+  currentValue: number;
+  comparisonValue?: number;
+  changePercent?: number;
+  recommendation?: string;
+  relatedWidgets: string[];
+  generatedAt: DateTime;
+  modelVersion: string;
+}
+
+enum InsightType {
+  TREND_CHANGE       // Significant increase/decrease
+  ANOMALY            // Outlier detection
+  THRESHOLD_BREACH   // SLA or target exceeded
+  PATTERN            // Recurring pattern identified
+  CORRELATION        // Related metrics moving together
+  FORECAST           // Predicted future value
+}
+```
+
+**Example Insights:**
+- "Harassment cases are up 23% this quarter compared to last quarter"
+- "Your APAC region has 3x the average case volume - investigate potential hotspot"
+- "5 employees have appeared as subjects in multiple cases this year"
+- "Disclosure completion rate dropped below 80% threshold"
+- "Based on current trends, you may exceed SLA targets by end of quarter"
+
+### Anomaly Detection
+
+The system automatically detects anomalies using statistical methods:
+
+```typescript
+interface AnomalyDetectionConfig {
+  method: 'z_score' | 'iqr' | 'isolation_forest' | 'prophet';
+  sensitivity: 'low' | 'medium' | 'high';
+  lookbackPeriod: number; // days
+  minimumDataPoints: number;
+}
+
+interface DetectedAnomaly {
+  metric: string;
+  timestamp: DateTime;
+  expectedValue: number;
+  actualValue: number;
+  deviationPercent: number;
+  confidence: number;
+  possibleCauses: string[];
+}
+```
 
 ### Data Requirements for AI Context
 
@@ -360,6 +479,19 @@ Key behaviors:
 
 ---
 
+**Configure role-based default dashboards**
+As a **System Admin**, I want to configure default dashboards for each role
+so that users see relevant metrics immediately upon first login.
+
+Key behaviors:
+- Assign default dashboard per role (CCO, Investigator, Triage Lead, etc.)
+- Users can override with personal preference
+- New users automatically see role-appropriate dashboard
+- Update role defaults without affecting existing user preferences
+- Activity logged: role_default_dashboard_set
+
+---
+
 ### Ethico Staff
 
 **Monitor platform-wide analytics**
@@ -400,37 +532,55 @@ Drag-and-drop canvas for creating custom dashboards with configurable widgets.
    - Grid-based layout (12 columns)
    - Widgets snap to grid
    - Responsive scaling for different screens
-   - Undo/redo support
+   - Undo/redo support (Ctrl+Z/Ctrl+Y)
+   - Keyboard shortcuts for common actions
 
 2. **Widget Palette**
    - Categorized widget types
    - Drag to add to canvas
    - Widget preview on hover
+   - Search/filter widgets
 
 3. **Widget Configuration**
    - Data source selection
    - Metric/dimension configuration
-   - Display options
+   - Display options (colors, labels, formatting)
    - Drill-down settings
+   - Conditional formatting rules
 
 4. **Dashboard Settings**
    - Name, description
    - Sharing permissions
    - Auto-refresh interval
    - Global filters
+   - Theme (light/dark)
 
 **User Flow:**
 1. User clicks "Create Dashboard"
 2. Empty canvas displays with widget palette
 3. User drags widgets from palette to canvas
 4. User configures each widget via side panel
-5. User saves dashboard
+5. User previews with sample data
+6. User saves dashboard
 
 **Business Rules:**
 - Maximum 20 widgets per dashboard
 - Widgets cannot overlap
 - Minimum widget size: 2 columns x 1 row
+- Maximum widget size: 12 columns x 8 rows
 - Dashboard names must be unique per user
+- Shared dashboards require explicit permission grant
+
+**Keyboard Shortcuts:**
+| Shortcut | Action |
+|----------|--------|
+| Ctrl+S | Save dashboard |
+| Ctrl+Z | Undo |
+| Ctrl+Y | Redo |
+| Delete | Remove selected widget |
+| Ctrl+D | Duplicate selected widget |
+| Ctrl+A | Select all widgets |
+| Arrow keys | Move selected widget |
 
 ---
 
@@ -442,46 +592,175 @@ Pre-built widget types for common metrics and visualizations.
 **Widget Categories:**
 
 #### Metric Widgets
-| Widget | Description | Best For |
-|--------|-------------|----------|
-| Metric Card | Single number with trend | KPIs, counts |
-| Metric Comparison | Two values side-by-side | Period comparison |
-| Gauge | Progress toward target | Goal tracking |
-| Sparkline | Compact trend line | Quick trends |
+| Widget | Description | Best For | Configuration |
+|--------|-------------|----------|---------------|
+| Metric Card | Single number with trend | KPIs, counts | Metric, comparison period, trend direction indicator |
+| Metric Comparison | Two values side-by-side | Period comparison | Two metrics, labels, change calculation |
+| Gauge | Progress toward target | Goal tracking | Current value, target, thresholds (warning, danger) |
+| Sparkline | Compact trend line | Quick trends | Metric, time range, granularity |
 
 #### Chart Widgets
-| Widget | Description | Best For |
-|--------|-------------|----------|
-| Bar Chart | Vertical bars | Category comparison |
-| Horizontal Bar | Horizontal bars | Ranked lists |
-| Line Chart | Time series | Trends over time |
-| Area Chart | Filled line chart | Cumulative trends |
-| Pie Chart | Proportions | Distribution (≤5 categories) |
-| Donut Chart | Pie with center hole | Distribution with total |
-| Stacked Bar | Multi-series bars | Part-to-whole comparison |
-| Heatmap | Color-coded grid | Two-dimension patterns |
+| Widget | Description | Best For | Configuration |
+|--------|-------------|----------|---------------|
+| Bar Chart | Vertical bars | Category comparison | Dimension, metric, sort order, max bars |
+| Horizontal Bar | Horizontal bars | Ranked lists | Dimension, metric, sort order |
+| Line Chart | Time series | Trends over time | Time dimension, metrics, interpolation |
+| Area Chart | Filled line chart | Cumulative trends | Time dimension, metric, stacked option |
+| Pie Chart | Proportions | Distribution (5 categories max) | Dimension, metric, "Other" threshold |
+| Donut Chart | Pie with center hole | Distribution with total | Dimension, metric, center label |
+| Stacked Bar | Multi-series bars | Part-to-whole comparison | Dimension, series, metrics |
+| Heatmap | Color-coded grid | Two-dimension patterns | X dimension, Y dimension, metric, color scale |
+| Funnel | Stage progression | Process flow | Stages, metric, conversion labels |
+| Scatter Plot | Correlation analysis | Two-variable relationship | X metric, Y metric, size metric, color dimension |
 
 #### Table Widgets
-| Widget | Description | Best For |
-|--------|-------------|----------|
-| Data Table | Sortable, paginated table | Detailed data |
-| Pivot Table | Grouped aggregations | Cross-tabulation |
-| Leaderboard | Ranked list with metrics | Top/bottom performers |
+| Widget | Description | Best For | Configuration |
+|--------|-------------|----------|---------------|
+| Data Table | Sortable, paginated table | Detailed data | Columns, sort, page size, conditional formatting |
+| Pivot Table | Grouped aggregations | Cross-tabulation | Rows, columns, values, totals |
+| Leaderboard | Ranked list with metrics | Top/bottom performers | Dimension, metric, rank count, bars |
 
 #### List Widgets
-| Widget | Description | Best For |
-|--------|-------------|----------|
-| Recent Activity | Recent items with details | Activity monitoring |
-| Top N List | Ranked items | Highlights |
-| Alert List | Items needing attention | Action items |
+| Widget | Description | Best For | Configuration |
+|--------|-------------|----------|---------------|
+| Recent Activity | Recent items with details | Activity monitoring | Entity type, fields, limit, time format |
+| Top N List | Ranked items | Highlights | Dimension, metric, N count |
+| Alert List | Items needing attention | Action items | Alert conditions, severity icons, actions |
+
+#### Geographic Widgets
+| Widget | Description | Best For | Configuration |
+|--------|-------------|----------|---------------|
+| Choropleth Map | Color-coded regions | Regional distribution | Geography level (country/state), metric, color scale |
+| Bubble Map | Sized markers on map | Location volume | Latitude/longitude, metric for size, color dimension |
+
+#### Timeline Widgets
+| Widget | Description | Best For | Configuration |
+|--------|-------------|----------|---------------|
+| Gantt Chart | Time-based bars | Project timelines | Entity, start date, end date, grouping |
+| Calendar Heatmap | Day-by-day view | Daily patterns | Date, metric, color scale |
+| Event Timeline | Chronological events | Activity history | Entity, timestamp, event type, details |
 
 #### Special Widgets
-| Widget | Description | Best For |
-|--------|-------------|----------|
-| Map | Geographic visualization | Regional analysis |
-| Funnel | Stage progression | Process flow |
-| Text Block | Markdown content | Instructions, context |
-| Embedded | External content | Integrations |
+| Widget | Description | Best For | Configuration |
+|--------|-------------|----------|---------------|
+| Text Block | Markdown content | Instructions, context | Markdown content, heading level |
+| Embedded | External content | Integrations | URL, height, refresh |
+| AI Insights | Auto-generated insights | Executive summary | Data sources, insight types, max items |
+
+**Widget Data Configuration:**
+
+```typescript
+interface WidgetQueryConfig {
+  // Data source
+  factTable: 'FACT_RIU_DAILY' | 'FACT_CASE_DAILY' | 'FACT_CAMPAIGN_DAILY' | 'FACT_RIU_CASE_CONVERSION';
+
+  // Metrics to calculate
+  metrics: {
+    field: string;
+    aggregation: 'COUNT' | 'SUM' | 'AVG' | 'MIN' | 'MAX' | 'DISTINCT';
+    alias: string;
+    format?: 'number' | 'percent' | 'currency' | 'duration';
+  }[];
+
+  // Dimensions to group by
+  dimensions?: {
+    field: string;
+    alias: string;
+    sort?: 'asc' | 'desc';
+    limit?: number;
+  }[];
+
+  // Filters
+  filters?: {
+    field: string;
+    operator: 'eq' | 'neq' | 'gt' | 'gte' | 'lt' | 'lte' | 'in' | 'notIn' | 'contains' | 'between';
+    value: any;
+  }[];
+
+  // Time configuration
+  timeField?: string;
+  timeGranularity?: 'day' | 'week' | 'month' | 'quarter' | 'year';
+
+  // Comparison
+  comparison?: {
+    type: 'previous_period' | 'previous_year' | 'custom';
+    customRange?: { start: string; end: string };
+  };
+}
+```
+
+**Widget Display Configuration:**
+
+```typescript
+interface WidgetDisplayConfig {
+  // Chart configuration
+  chart?: {
+    colors: string[];
+    showLegend: boolean;
+    legendPosition: 'top' | 'bottom' | 'left' | 'right';
+    showLabels: boolean;
+    showValues: boolean;
+    showGrid: boolean;
+    animation: boolean;
+  };
+
+  // Metric configuration
+  metric?: {
+    format: 'number' | 'percent' | 'currency' | 'duration';
+    prefix?: string;
+    suffix?: string;
+    decimals?: number;
+    trendComparison: 'previous_period' | 'previous_year' | 'target';
+    positiveIsGood: boolean;
+    thresholds?: { warning: number; danger: number };
+  };
+
+  // Table configuration
+  table?: {
+    showPagination: boolean;
+    pageSize: number;
+    sortable: boolean;
+    showTotals: boolean;
+    striped: boolean;
+    compact: boolean;
+  };
+
+  // Conditional formatting
+  conditionalFormatting?: {
+    rules: {
+      field: string;
+      condition: 'gt' | 'lt' | 'eq' | 'between';
+      value: any;
+      style: { backgroundColor?: string; color?: string; fontWeight?: string };
+    }[];
+  };
+}
+```
+
+**Drill-Down Behavior:**
+
+Each widget supports drill-down to reveal underlying data:
+
+```typescript
+interface DrillDownConfig {
+  enabled: boolean;
+
+  // Where to drill to
+  target: 'modal' | 'new_tab' | 'side_panel' | 'navigate';
+  targetUrl?: string; // For navigate
+
+  // What data to show
+  detailColumns: string[];
+
+  // How to filter
+  inheritFilters: boolean;
+  additionalFilters?: FilterCondition[];
+
+  // Pagination
+  pageSize: number;
+  maxRows: number;
+}
+```
 
 ---
 
@@ -493,33 +772,38 @@ Visual interface for building custom reports across all data sources.
 **Components:**
 
 1. **Field Selector**
-   - Grouped by module (Cases, Disclosures, etc.)
+   - Grouped by module (RIUs, Cases, Disclosures, etc.)
    - Searchable field list
    - Drag fields to columns
-   - Shows field type icons
+   - Shows field type icons (text, number, date, boolean)
+   - Field descriptions on hover
 
 2. **Filter Builder**
    - Visual filter conditions
-   - AND/OR logic groups
-   - Date range picker
-   - Relative dates (Last 30 days)
+   - AND/OR logic groups with nesting
+   - Date range picker with presets
+   - Relative dates (Last 30 days, This quarter)
    - Dynamic filters (My Cases, My Department)
+   - Filter templates for common scenarios
 
 3. **Grouping Configuration**
    - Drag fields to group by
-   - Multiple levels supported
+   - Multiple levels supported (up to 5)
    - Show subtotals option
+   - Collapse/expand groups in preview
 
 4. **Calculated Fields**
-   - Formula builder
-   - Common functions (COUNT, SUM, AVG, etc.)
-   - Field references
-   - Preview calculation
+   - Formula builder with syntax highlighting
+   - Common functions (COUNT, SUM, AVG, IF, CASE, DATE_DIFF, etc.)
+   - Field references with autocomplete
+   - Preview calculation with sample data
+   - Save as reusable calculated field
 
 5. **Live Preview**
    - First 10 rows displayed
    - Updates as configuration changes
-   - Performance indicator
+   - Performance indicator (estimated query time)
+   - Sample data warning when applicable
 
 **Available Data Sources:**
 
@@ -536,6 +820,51 @@ Visual interface for building custom reports across all data sources.
 | **Users** | Name, role, department, last login |
 | **Employees** | Name, department, location, manager |
 
+**Calculated Field Functions:**
+
+| Category | Functions |
+|----------|-----------|
+| Aggregate | COUNT, SUM, AVG, MIN, MAX, DISTINCT_COUNT |
+| Math | ROUND, FLOOR, CEIL, ABS, MOD, POWER |
+| String | CONCAT, UPPER, LOWER, TRIM, SUBSTRING, LENGTH |
+| Date | DATE_DIFF, DATE_ADD, DATE_TRUNC, EXTRACT, NOW |
+| Logic | IF, CASE, COALESCE, NULLIF, AND, OR, NOT |
+| Conversion | CAST, TO_DATE, TO_NUMBER, FORMAT |
+
+**Example Calculated Fields:**
+
+```
+// Days overdue (negative = early)
+DATE_DIFF('day', due_date, COALESCE(completed_date, NOW()))
+
+// SLA status
+CASE
+  WHEN days_open <= sla_target THEN 'On Track'
+  WHEN days_open <= sla_target * 1.2 THEN 'Warning'
+  ELSE 'Breached'
+END
+
+// Substantiation rate
+ROUND(COUNT(IF(outcome = 'SUBSTANTIATED', 1, NULL)) * 100.0 / COUNT(*), 1)
+```
+
+**Report Templates:**
+
+Pre-built report configurations users can start from:
+
+| Template | Description | Data Sources | Default Columns |
+|----------|-------------|--------------|-----------------|
+| RIU Volume Report | Input metrics by channel, category, period | FACT_RIU_DAILY | Date, Channel, Category, Count, % Change |
+| Case Detail Export | Full case data with linked RIUs | Cases, RIU_Case_Associations | Case #, RIU #, Category, Status, Assignee, Days Open |
+| Investigation Summary | Outcomes, durations, investigator metrics | Investigations | Investigator, Case Count, Avg Days, Substantiation Rate |
+| Disclosure Audit Trail | Campaign responses with escalation tracking | Disclosures, Campaigns | Employee, Campaign, Submitted, Decision, Escalated |
+| Attestation Compliance | Completion rates by policy, department | Attestations | Policy, Department, Total, Completed, Overdue, Rate |
+| User Activity Report | Login frequency, actions taken | Audit Log | User, Last Login, Action Count, Recent Actions |
+| SLA Performance Report | Response times, breach rates | Cases | Category, Target Days, Avg Days, Breach Count, Rate |
+| Category Analysis | Trends by category across RIUs and Cases | FACT_RIU_DAILY, FACT_CASE_DAILY | Category, RIU Count, Case Count, Substantiation Rate |
+| Regional Breakdown | Location-based input and response metrics | Cases, RIUs | Region, Location, Report Count, Case Count, Avg Days |
+| RIU→Case Conversion | Escalation patterns, processing times | FACT_RIU_CASE_CONVERSION | RIU Type, Channel, Total RIUs, Cases Created, Rate, Avg Time |
+
 ---
 
 ### F4: Saved Views
@@ -549,6 +878,7 @@ HubSpot-style saved filter configurations that appear as tabs on list pages.
 - Personal and shared views
 - Quick switching between views
 - View count badges (optional)
+- Drag to reorder tabs
 
 **Default System Views:**
 | Module | Default Views |
@@ -560,6 +890,41 @@ HubSpot-style saved filter configurations that appear as tabs on list pages.
 | Attestations | Overdue, Pending, By Department |
 | Campaigns | Active Campaigns, Low Completion, Overdue |
 
+**View Configuration:**
+
+```typescript
+interface SavedViewConfig {
+  // Column configuration
+  columns: {
+    field: string;
+    width: number;
+    visible: boolean;
+    sortOrder?: number;
+  }[];
+
+  // Filter configuration
+  filters: {
+    field: string;
+    operator: string;
+    value: any;
+    isQuickFilter: boolean; // Appears in filter bar
+  }[];
+
+  // Sort configuration
+  sort: {
+    field: string;
+    direction: 'asc' | 'desc';
+  }[];
+
+  // Display options
+  displayOptions: {
+    showCountBadge: boolean;
+    compactMode: boolean;
+    groupBy?: string;
+  };
+}
+```
+
 ---
 
 ### F5: Board Reports
@@ -568,6 +933,7 @@ HubSpot-style saved filter configurations that appear as tabs on list pages.
 AI-assisted generation of executive presentations for board meetings.
 
 **Templates:**
+
 1. **Quarterly Compliance Review**
    - Input volume (RIUs received by channel)
    - Case outcomes and investigation results
@@ -601,17 +967,71 @@ AI-assisted generation of executive presentations for board meetings.
 1. User selects template
 2. User confirms date range and scope
 3. System generates draft with AI narrative
-4. User reviews and edits
-5. Export to PowerPoint
+4. User reviews and edits each section
+5. User customizes branding (logo, colors)
+6. Export to PowerPoint or PDF
 
 **AI Capabilities:**
 - Generate executive summary (2-3 paragraphs)
 - Distinguish input trends (RIUs) from response metrics (Cases)
 - Identify key trends and anomalies
-- Compare to previous period
+- Compare to previous period automatically
 - Suggest areas of concern
-- Plain-language insights
+- Plain-language insights (no jargon)
 - Highlight RIU→Case conversion patterns
+
+**Board Report Schema:**
+
+```typescript
+interface BoardReport {
+  id: string;
+  organizationId: string;
+
+  // Identity
+  title: string;
+  templateType: 'QUARTERLY_REVIEW' | 'ANNUAL_REPORT' | 'HOTLINE_STATS' | 'RISK_INTELLIGENCE';
+
+  // Period
+  periodStart: DateTime;
+  periodEnd: DateTime;
+  comparisonPeriodStart?: DateTime;
+  comparisonPeriodEnd?: DateTime;
+
+  // Content
+  sections: BoardReportSection[];
+
+  // AI-generated content
+  executiveSummary: string;
+  keyInsights: string[];
+  recommendations: string[];
+  aiGeneratedAt: DateTime;
+  aiModelVersion: string;
+
+  // Branding
+  logoUrl?: string;
+  primaryColor?: string;
+  secondaryColor?: string;
+
+  // Status
+  status: 'DRAFT' | 'FINAL' | 'ARCHIVED';
+
+  // Audit
+  createdById: string;
+  createdAt: DateTime;
+  updatedAt: DateTime;
+  finalizedAt?: DateTime;
+}
+
+interface BoardReportSection {
+  id: string;
+  order: number;
+  title: string;
+  type: 'TEXT' | 'CHART' | 'TABLE' | 'METRIC_GRID';
+  content: any; // Section-specific content
+  aiNarrative?: string;
+  userEdited: boolean;
+}
+```
 
 ---
 
@@ -636,13 +1056,54 @@ Automated report execution and delivery.
 | Slack | Link + preview | Requires integration |
 | SFTP | CSV, Excel | For external systems |
 | Webhook | JSON | For automation |
+| Microsoft Teams | Link + preview | Requires integration |
 
 **Features:**
-- Timezone-aware scheduling
+- Timezone-aware scheduling (uses organization timezone)
 - Dynamic recipients (role-based)
 - Execution history with status
-- Retry on failure
+- Retry on failure (3 attempts with exponential backoff)
 - Pause/resume capability
+- Skip if no data option
+- Conditional delivery (only if threshold met)
+
+**Schedule Configuration:**
+
+```typescript
+interface ReportScheduleConfig {
+  // Schedule timing
+  scheduleType: 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'QUARTERLY' | 'CRON';
+  cronExpression?: string;
+  dayOfWeek?: number; // 0-6 (Sunday-Saturday)
+  dayOfMonth?: number; // 1-31
+  monthOfQuarter?: number; // 1-3
+  timeOfDay: string; // "09:00" in 24h format
+  timezone: string; // "America/New_York"
+
+  // Delivery
+  deliveryMethod: 'EMAIL' | 'SLACK' | 'SFTP' | 'WEBHOOK' | 'TEAMS';
+  recipients: string[]; // Email addresses or channel IDs
+  recipientRoles?: UserRole[]; // Dynamic recipients
+
+  // Format
+  format: 'PDF' | 'EXCEL' | 'CSV';
+  includeSummary: boolean;
+  includeCharts: boolean;
+
+  // Conditions
+  skipIfEmpty: boolean;
+  minRowsThreshold?: number;
+  conditionalDelivery?: {
+    field: string;
+    operator: string;
+    value: any;
+  };
+
+  // Retry
+  maxRetries: number;
+  retryDelayMinutes: number;
+}
+```
 
 ---
 
@@ -655,25 +1116,65 @@ Export data and reports in multiple formats.
 
 | Format | Use Case | Max Rows | Notes |
 |--------|----------|----------|-------|
-| Excel (.xlsx) | Analysis, sharing | 100,000 | Formatted, with formulas |
-| CSV | Data transfer | Unlimited | Raw data |
-| PDF | Formal reports | 10,000 | Paginated, styled |
-| PowerPoint | Presentations | N/A | Charts as slides |
+| Excel (.xlsx) | Analysis, sharing | 100,000 | Formatted, with formulas, multiple sheets |
+| CSV | Data transfer | Unlimited | Raw data, UTF-8 encoded |
+| PDF | Formal reports | 10,000 | Paginated, styled, charts embedded |
+| PowerPoint (.pptx) | Presentations | N/A | Charts as slides, editable |
 | JSON | API integration | Unlimited | Structured data |
 
 **Export Features:**
-- Column selection
-- Filter preservation
-- Branding (logo, colors)
-- Page orientation
+- Column selection and ordering
+- Filter preservation (exports only filtered data)
+- Branding (logo, colors) for PDF/PPTX
+- Page orientation (portrait/landscape)
 - Header/footer customization
 - Password protection (PDF, Excel)
+- Watermarking (Draft, Confidential, etc.)
+- PII redaction (configurable per field)
 
 **Large Export Handling:**
 - Exports >10,000 rows run async
-- User notified when complete
+- User notified via email/notification when complete
 - Download link valid 24 hours
-- Background job queue
+- Background job queue with priority
+- Progress indicator for in-progress exports
+
+**PII Redaction Configuration:**
+
+```typescript
+interface PIIRedactionConfig {
+  enabled: boolean;
+
+  // Fields to redact
+  redactedFields: {
+    field: string;
+    redactionType: 'MASK' | 'HASH' | 'REMOVE' | 'INITIALS';
+    maskPattern?: string; // e.g., "***-**-####" for SSN
+  }[];
+
+  // Redaction rules by role
+  roleOverrides?: {
+    role: UserRole;
+    canViewPII: boolean;
+  }[];
+
+  // Audit
+  logRedactions: boolean;
+}
+```
+
+**Export Watermarking:**
+
+```typescript
+interface WatermarkConfig {
+  enabled: boolean;
+  text: string; // "CONFIDENTIAL", "DRAFT", custom
+  position: 'diagonal' | 'header' | 'footer';
+  opacity: number; // 0.0 - 1.0
+  includeTimestamp: boolean;
+  includeUsername: boolean;
+}
+```
 
 ---
 
@@ -709,7 +1210,7 @@ Ready-to-use dashboards and reports for common use cases.
 
 4. **Investigation Dashboard**
    - My open investigations
-   - Investigation pipeline
+   - Investigation pipeline funnel
    - Avg days by category
    - Overdue investigations
    - Completion rate trend
@@ -742,18 +1243,16 @@ Ready-to-use dashboards and reports for common use cases.
    - Policy violation correlation
    - Hotspot analysis by location/BU
 
-**Report Templates:**
+**Role-Based Default Dashboards:**
 
-1. **RIU Volume Report** - Input metrics by channel, category, period
-2. **Case Detail Export** - Full case data with linked RIUs
-3. **Investigation Summary** - Outcomes, durations, investigator metrics
-4. **Disclosure Audit Trail** - Campaign responses with escalation tracking
-5. **Attestation Compliance** - Completion rates by policy, department
-6. **User Activity Report** - Login frequency, actions taken
-7. **SLA Performance Report** - Response times, breach rates
-8. **Category Analysis** - Trends by category across RIUs and Cases
-9. **Regional Breakdown** - Location-based input and response metrics
-10. **RIU→Case Conversion Report** - Escalation patterns, processing times
+| Role | Default Dashboard | Rationale |
+|------|-------------------|-----------|
+| CCO / Compliance Officer | Executive Summary | High-level view of program health |
+| Investigator | Investigation Dashboard | Focus on workload and cases |
+| Triage Lead | Compliance Overview + Assignment Metrics | Queue management focus |
+| Department Admin | Department-scoped Compliance Overview | Filtered to their department |
+| System Admin | Platform Health Dashboard | Technical metrics, user activity |
+| HR Manager | Attestation Tracker + Disclosure Manager | Employee compliance focus |
 
 ---
 
@@ -761,165 +1260,504 @@ Ready-to-use dashboards and reports for common use cases.
 
 ### Primary Entities
 
-See `01-SHARED-INFRASTRUCTURE/ANALYTICS-DATA-MODEL.md` for complete schemas:
+See `01-SHARED-INFRASTRUCTURE/ANALYTICS-DATA-MODEL.md` for complete fact table schemas.
 
-- **SavedDashboard** - Dashboard definitions
-- **DashboardWidget** - Widget configurations
-- **SavedReport** - Report definitions
-- **ScheduledReport** - Delivery schedules
-- **ReportExecution** - Execution history
-- **FACT_RIU_DAILY** - Pre-aggregated RIU (input) metrics
-- **FACT_CASE_DAILY** - Pre-aggregated Case (response) metrics
-- **FACT_CAMPAIGN_DAILY** - Pre-aggregated campaign metrics
-- **CaseFact, DisclosureFact, FormFact, AttestationFact** - Legacy fact tables (deprecated in favor of above)
-
-### Analytics Fact Tables
-
-The analytics layer uses pre-aggregated fact tables for dashboard performance. These implement the RIU→Case architecture:
+### Dashboard Entity
 
 ```prisma
-// Input metrics - tracks all Risk Intelligence Units received
-model FACT_RIU_DAILY {
-  id                String   @id @default(uuid())
-  date_id           DateTime @db.Date
-  organization_id   String
-
-  // RIU dimensions
-  riu_type          String   // hotline_report, web_form_submission, disclosure_response, etc.
-  source_channel    String   // phone, web_form, chatbot, email, proxy
-  category_id       String?
-  severity          String?  // HIGH, MEDIUM, LOW (as captured at intake)
-  location_id       String?
-  business_unit_id  String?
-
-  // Reporter dimensions
-  is_anonymous      Boolean
-  reporter_type     String?  // anonymous, confidential, identified
-
-  // Conversion tracking
-  created_case      Boolean  // Did this RIU create a Case?
-
-  // Metrics
-  count             Int      @default(1)
-
-  // Timestamps
-  created_at        DateTime @default(now())
-
-  @@index([organization_id, date_id])
-  @@index([organization_id, riu_type])
-  @@index([organization_id, source_channel])
-}
-
-// Response metrics - tracks Case processing and outcomes
-model FACT_CASE_DAILY {
-  id                String   @id @default(uuid())
-  date_id           DateTime @db.Date
-  organization_id   String
-
-  // Case dimensions
-  status            String   // NEW, OPEN, CLOSED
-  outcome           String?  // SUBSTANTIATED, UNSUBSTANTIATED, etc.
-  category_id       String?
-  severity          String?
-  pipeline_stage    String?
-  assigned_to_id    String?
-
-  // Metrics
-  count             Int      @default(1)
-  avg_days_open     Float?
-  sla_status        String?  // ON_TRACK, WARNING, OVERDUE
-
-  // Timestamps
-  created_at        DateTime @default(now())
-
-  @@index([organization_id, date_id])
-  @@index([organization_id, status])
-}
-
-// Campaign metrics - tracks disclosure and attestation campaigns
-model FACT_CAMPAIGN_DAILY {
+model Dashboard {
   id                    String   @id @default(uuid())
-  date_id               DateTime @db.Date
-  organization_id       String
+  organizationId        String
 
-  // Campaign dimensions
-  campaign_id           String
-  campaign_type         String   // disclosure, attestation, survey
+  // Identity
+  name                  String
+  description           String?
+  slug                  String                    // URL-safe identifier
 
-  // Metrics
-  assignments_total     Int      @default(0)
-  assignments_completed Int      @default(0)
-  assignments_overdue   Int      @default(0)
-  cases_created         Int      @default(0)  // RIUs that escalated to Cases
-  completion_rate       Float?
+  // Ownership
+  ownerUserId           String
+  ownerType             DashboardOwnerType        // USER, TEAM, SYSTEM
+
+  // Sharing
+  isDefault             Boolean  @default(false)  // Org default dashboard
+  isShared              Boolean  @default(false)  // Visible to org
+  sharedWithRoles       UserRole[]                // Specific role access
+  sharedWithUserIds     String[]                  // Specific user access
+
+  // Layout
+  layoutType            DashboardLayoutType       // GRID, FREEFORM
+  layout                Json                      // Widget positions
+  columnCount           Int      @default(12)    // Grid columns
+  rowHeight             Int      @default(50)    // Row height in pixels
+
+  // Filters
+  globalFilters         Json?                     // Filters applied to all widgets
+  dateRangeType         DateRangeType?            // LAST_7_DAYS, etc.
+  customDateStart       DateTime?
+  customDateEnd         DateTime?
+
+  // Behavior
+  autoRefresh           Boolean  @default(true)
+  refreshIntervalSeconds Int?    @default(300)   // 5 minutes
+
+  // AI Features
+  aiInsightsEnabled     Boolean  @default(true)
+  lastAiInsightAt       DateTime?
+
+  // Metadata
+  viewCount             Int      @default(0)
+  lastViewedAt          DateTime?
+
+  // Activity log support
+  notes                 String?                   // User notes about this dashboard
+
+  // Migration support
+  sourceSystem          String?
+  sourceRecordId        String?
+  migratedAt            DateTime?
 
   // Timestamps
-  created_at            DateTime @default(now())
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  createdById           String
+  updatedById           String
 
-  @@index([organization_id, date_id])
-  @@index([organization_id, campaign_id])
+  // Relations
+  widgets               DashboardWidget[]
+  organization          Organization @relation(fields: [organizationId], references: [id])
+  owner                 User @relation("DashboardOwner", fields: [ownerUserId], references: [id])
+  createdBy             User @relation("DashboardCreatedBy", fields: [createdById], references: [id])
+  updatedBy             User @relation("DashboardUpdatedBy", fields: [updatedById], references: [id])
+
+  // Indexes
+  @@unique([organizationId, slug])
+  @@index([organizationId])
+  @@index([organizationId, ownerUserId])
+  @@index([organizationId, isShared])
 }
 
-// RIU→Case conversion metrics
-model FACT_RIU_CASE_CONVERSION {
-  id                    String   @id @default(uuid())
-  date_id               DateTime @db.Date
-  organization_id       String
+enum DashboardOwnerType {
+  USER
+  TEAM
+  SYSTEM
+}
 
-  // Dimensions
-  riu_type              String
-  source_channel        String
-  category_id           String?
+enum DashboardLayoutType {
+  GRID
+  FREEFORM
+}
 
-  // Metrics
-  riu_count             Int      @default(0)
-  cases_created         Int      @default(0)
-  conversion_rate       Float?
-  avg_time_to_case_hours Float?  // Time from RIU creation to Case creation
-
-  // Timestamps
-  created_at            DateTime @default(now())
-
-  @@index([organization_id, date_id])
-  @@index([organization_id, riu_type])
+enum DateRangeType {
+  TODAY
+  YESTERDAY
+  LAST_7_DAYS
+  LAST_30_DAYS
+  LAST_90_DAYS
+  LAST_365_DAYS
+  THIS_MONTH
+  LAST_MONTH
+  THIS_QUARTER
+  LAST_QUARTER
+  THIS_YEAR
+  LAST_YEAR
+  CUSTOM
+  ALL_TIME
 }
 ```
 
-### Saved View Schema
+### Dashboard Widget Entity
+
+```prisma
+model DashboardWidget {
+  id                    String   @id @default(uuid())
+  dashboardId           String
+
+  // Identity
+  title                 String
+  description           String?
+
+  // Widget Type
+  widgetType            WidgetType
+  subtype               String?                   // Chart subtype, etc.
+
+  // Data Source
+  dataSource            WidgetDataSource          // Which fact table
+  queryConfig           Json                      // Filters, grouping, etc.
+
+  // Display Configuration
+  displayConfig         Json                      // Colors, labels, formatting
+
+  // Position (grid-based)
+  positionX             Int      @default(0)     // Grid column
+  positionY             Int      @default(0)     // Grid row
+  width                 Int      @default(4)     // Columns spanned
+  height                Int      @default(2)     // Rows spanned
+
+  // Behavior
+  refreshIndependently  Boolean  @default(false)
+  refreshIntervalSeconds Int?
+
+  // Drill-down
+  drillDownEnabled      Boolean  @default(true)
+  drillDownConfig       Json?                     // Drill-down settings
+
+  // Conditional visibility
+  visibilityConditions  Json?                     // Show/hide based on data
+
+  // Timestamps
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  // Relations
+  dashboard             Dashboard @relation(fields: [dashboardId], references: [id], onDelete: Cascade)
+}
+
+enum WidgetType {
+  // Metrics
+  METRIC_CARD
+  METRIC_COMPARISON
+  GAUGE
+  SPARKLINE
+
+  // Charts
+  BAR_CHART
+  HORIZONTAL_BAR
+  LINE_CHART
+  AREA_CHART
+  PIE_CHART
+  DONUT_CHART
+  STACKED_BAR
+  FUNNEL_CHART
+  HEATMAP
+  SCATTER_PLOT
+
+  // Tables
+  DATA_TABLE
+  PIVOT_TABLE
+  LEADERBOARD
+
+  // Lists
+  RECENT_LIST
+  TOP_N_LIST
+  ALERT_LIST
+
+  // Geographic
+  CHOROPLETH_MAP
+  BUBBLE_MAP
+
+  // Timeline
+  GANTT_CHART
+  CALENDAR_HEATMAP
+  EVENT_TIMELINE
+
+  // Special
+  TEXT_BLOCK
+  IFRAME
+  AI_INSIGHTS
+}
+
+enum WidgetDataSource {
+  FACT_RIU_DAILY
+  FACT_CASE_DAILY
+  FACT_CAMPAIGN_DAILY
+  FACT_RIU_CASE_CONVERSION
+  CASE_FACT           // Legacy
+  DISCLOSURE_FACT
+  FORM_FACT
+  ATTESTATION_FACT
+  AUDIT_LOG
+  CUSTOM_QUERY
+}
+```
+
+### Report Entity
+
+```prisma
+model Report {
+  id                    String   @id @default(uuid())
+  organizationId        String
+
+  // Identity
+  name                  String
+  description           String?
+
+  // Ownership
+  ownerUserId           String
+  isShared              Boolean  @default(false)
+  sharedWithRoles       UserRole[]
+  sharedWithUserIds     String[]
+
+  // Data Configuration
+  dataSources           ReportDataSource[]        // Which modules/facts
+  columns               Json                      // Field selections
+  filters               Json                      // Filter conditions
+  grouping              Json?                     // Group by configuration
+  sort                  Json?                     // Sort configuration
+
+  // Calculations
+  calculatedFields      Json?                     // Custom formulas
+  subtotals             Boolean  @default(false)
+  grandTotals           Boolean  @default(true)
+
+  // Display
+  columnWidths          Json?                     // Per-column widths
+  conditionalFormatting Json?                     // Highlight rules
+
+  // Export Defaults
+  defaultFormat         ReportFormat @default(EXCEL)
+  includeHeaders        Boolean  @default(true)
+
+  // Template
+  isTemplate            Boolean  @default(false)  // System template
+  templateCategory      String?                   // Template grouping
+
+  // Activity log support
+  notes                 String?
+
+  // Migration support
+  sourceSystem          String?
+  sourceRecordId        String?
+  migratedAt            DateTime?
+
+  // Timestamps
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  createdById           String
+  updatedById           String
+
+  // Relations
+  schedules             ReportSchedule[]
+  executions            ReportExecution[]
+  organization          Organization @relation(fields: [organizationId], references: [id])
+  owner                 User @relation("ReportOwner", fields: [ownerUserId], references: [id])
+
+  // Indexes
+  @@index([organizationId])
+  @@index([organizationId, ownerUserId])
+  @@index([organizationId, isShared])
+  @@index([organizationId, isTemplate])
+}
+
+enum ReportDataSource {
+  RIUS
+  CASES
+  INVESTIGATIONS
+  DISCLOSURES
+  POLICIES
+  ATTESTATIONS
+  USERS
+  EMPLOYEES
+  AUDIT_LOG
+  FORMS
+  CAMPAIGNS
+}
+
+enum ReportFormat {
+  PDF
+  EXCEL
+  CSV
+  POWERPOINT
+  JSON
+}
+```
+
+### Report Schedule Entity
+
+```prisma
+model ReportSchedule {
+  id                    String   @id @default(uuid())
+  reportId              String
+  organizationId        String
+
+  // Identity
+  name                  String?                   // Optional schedule name
+
+  // Schedule
+  scheduleType          ScheduleType
+  cronExpression        String?                   // For CRON type
+  dayOfWeek             Int?                      // 0-6 for weekly
+  dayOfMonth            Int?                      // 1-31 for monthly
+  monthOfQuarter        Int?                      // 1-3 for quarterly
+  timeOfDay             String                    // "09:00" in org timezone
+  timezone              String                    // IANA timezone
+
+  // Delivery
+  deliveryMethod        DeliveryMethod
+  recipients            String[]                  // Email addresses
+  recipientRoles        UserRole[]                // Dynamic role-based
+  slackChannel          String?                   // For Slack delivery
+  sftpConfig            Json?                     // SFTP connection details
+  webhookUrl            String?                   // For webhook delivery
+
+  // Format
+  format                ReportFormat
+  includeSummary        Boolean  @default(true)
+  includeCharts         Boolean  @default(true)
+
+  // Filters (override report defaults)
+  filterOverrides       Json?
+  dateRangeType         DateRangeType
+
+  // Conditions
+  skipIfEmpty           Boolean  @default(false)
+  minRowsThreshold      Int?
+  conditionalDelivery   Json?                     // Condition for sending
+
+  // Retry configuration
+  maxRetries            Int      @default(3)
+  retryDelayMinutes     Int      @default(15)
+
+  // Status
+  isActive              Boolean  @default(true)
+  lastRunAt             DateTime?
+  nextRunAt             DateTime?
+  lastRunStatus         ScheduleRunStatus?
+  lastRunError          String?
+  consecutiveFailures   Int      @default(0)
+
+  // Timestamps
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  createdById           String
+
+  // Relations
+  report                Report @relation(fields: [reportId], references: [id], onDelete: Cascade)
+
+  // Indexes
+  @@index([organizationId])
+  @@index([organizationId, isActive, nextRunAt])
+}
+
+enum ScheduleType {
+  DAILY
+  WEEKLY
+  MONTHLY
+  QUARTERLY
+  CRON
+}
+
+enum DeliveryMethod {
+  EMAIL
+  SLACK
+  SFTP
+  WEBHOOK
+  TEAMS
+}
+
+enum ScheduleRunStatus {
+  SUCCESS
+  FAILED
+  PARTIAL
+  CANCELLED
+  SKIPPED
+}
+```
+
+### Report Execution Entity
+
+```prisma
+model ReportExecution {
+  id                    String   @id @default(uuid())
+  reportId              String
+  organizationId        String
+
+  // Trigger
+  triggeredBy           ReportTrigger
+  triggeredByUserId     String?
+  scheduleId            String?
+
+  // Execution
+  startedAt             DateTime @default(now())
+  completedAt           DateTime?
+  durationMs            Int?
+
+  // Results
+  status                ReportExecutionStatus
+  rowCount              Int?
+  errorMessage          String?
+  errorDetails          Json?
+
+  // Output
+  outputFormat          ReportFormat?
+  outputFileUrl         String?                   // For cached exports
+  outputFileSizeBytes   Int?
+  outputExpiresAt       DateTime?                 // Cache expiration
+
+  // Filters Used
+  filtersApplied        Json?                     // Actual filters for this run
+  dateRangeStart        DateTime?
+  dateRangeEnd          DateTime?
+
+  // Relations
+  report                Report @relation(fields: [reportId], references: [id])
+
+  // Index
+  @@index([organizationId, reportId, startedAt])
+  @@index([organizationId, startedAt])
+  @@index([organizationId, status])
+}
+
+enum ReportTrigger {
+  MANUAL
+  SCHEDULED
+  API
+  EXPORT
+}
+
+enum ReportExecutionStatus {
+  QUEUED
+  RUNNING
+  SUCCESS
+  FAILED
+  CANCELLED
+  TIMEOUT
+}
+```
+
+### Saved View Entity
 
 ```prisma
 model SavedView {
   id                    String   @id @default(uuid())
-  organization_id       String
-  user_id               String
+  organizationId        String
+  userId                String
 
   // Identity
   name                  String
-  module                ViewModule              // CASES, INVESTIGATIONS, etc.
+  module                ViewModule                // CASES, INVESTIGATIONS, etc.
 
   // Configuration
-  columns               Json                    // Visible columns
-  filters               Json                    // Filter conditions
-  sort                  Json                    // Sort configuration
+  columns               Json                      // Visible columns
+  filters               Json                      // Filter conditions
+  sort                  Json                      // Sort configuration
+  displayOptions        Json?                     // Additional display settings
 
   // Display
-  sort_order            Int      @default(0)   // Tab order
-  is_pinned             Boolean  @default(false)
+  sortOrder             Int      @default(0)     // Tab order
+  isPinned              Boolean  @default(false)
+  showCountBadge        Boolean  @default(true)
 
   // Sharing
-  is_shared             Boolean  @default(false)
-  shared_with_roles     UserRole[]
+  isShared              Boolean  @default(false)
+  sharedWithRoles       UserRole[]
+
+  // Default
+  isDefault             Boolean  @default(false)  // User's default for module
 
   // Timestamps
-  created_at            DateTime @default(now())
-  updated_at            DateTime @updatedAt
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
 
-  @@unique([organization_id, user_id, name])
-  @@index([organization_id, user_id, module])
+  // Relations
+  organization          Organization @relation(fields: [organizationId], references: [id])
+  user                  User @relation(fields: [userId], references: [id])
+
+  @@unique([organizationId, userId, name, module])
+  @@index([organizationId, userId, module])
 }
 
 enum ViewModule {
-  RIUS                // Risk Intelligence Units
+  RIUS
   CASES
   INVESTIGATIONS
   DISCLOSURES
@@ -927,6 +1765,129 @@ enum ViewModule {
   ATTESTATIONS
   CAMPAIGNS
   USERS
+  EMPLOYEES
+}
+```
+
+### AI Insight Entity
+
+```prisma
+model AIInsight {
+  id                    String   @id @default(uuid())
+  organizationId        String
+
+  // Context
+  dashboardId           String?
+  reportId              String?
+  widgetId              String?
+
+  // Insight details
+  insightType           InsightType
+  severity              InsightSeverity
+  title                 String
+  description           String                    // Natural language explanation
+
+  // Metrics
+  metric                String
+  currentValue          Float
+  comparisonValue       Float?
+  changePercent         Float?
+  threshold             Float?
+
+  // AI generation
+  recommendation        String?
+  confidenceScore       Float                     // 0.0 - 1.0
+  aiModelVersion        String
+
+  // User feedback
+  wasHelpful            Boolean?
+  userFeedback          String?
+
+  // Status
+  isAcknowledged        Boolean  @default(false)
+  acknowledgedAt        DateTime?
+  acknowledgedById      String?
+
+  // Timestamps
+  generatedAt           DateTime @default(now())
+  expiresAt             DateTime?                 // When insight becomes stale
+
+  // Relations
+  dashboard             Dashboard? @relation(fields: [dashboardId], references: [id])
+  report                Report? @relation(fields: [reportId], references: [id])
+
+  @@index([organizationId, generatedAt])
+  @@index([organizationId, dashboardId])
+  @@index([organizationId, insightType])
+}
+
+enum InsightType {
+  TREND_CHANGE
+  ANOMALY
+  THRESHOLD_BREACH
+  PATTERN
+  CORRELATION
+  FORECAST
+}
+
+enum InsightSeverity {
+  INFO
+  WARNING
+  CRITICAL
+}
+```
+
+### Analytics Activity Log Entity
+
+```prisma
+model AnalyticsActivity {
+  id                    String   @id @default(uuid())
+  organizationId        String
+
+  // Entity reference
+  entityType            AnalyticsEntityType
+  entityId              String
+
+  // Action
+  action                String                    // created, updated, shared, exported, etc.
+  actionDescription     String                    // Natural language description
+
+  // Actor
+  actorUserId           String?
+  actorType             ActorType
+
+  // Changes
+  changes               Json?                     // { oldValue, newValue, fieldsChanged }
+  context               Json?                     // Additional context
+
+  // Metadata
+  ipAddress             String?
+  userAgent             String?
+
+  // Timestamps
+  createdAt             DateTime @default(now())
+
+  // Indexes
+  @@index([organizationId, entityType, entityId, createdAt])
+  @@index([organizationId, actorUserId, createdAt])
+  @@index([organizationId, createdAt])
+}
+
+enum AnalyticsEntityType {
+  DASHBOARD
+  WIDGET
+  REPORT
+  SCHEDULE
+  VIEW
+  BOARD_REPORT
+  EXPORT
+}
+
+enum ActorType {
+  USER
+  SYSTEM
+  AI
+  INTEGRATION
 }
 ```
 
@@ -949,10 +1910,128 @@ POST   /api/v1/dashboards/:id/duplicate      # Clone dashboard
 POST   /api/v1/dashboards/:id/widgets        # Add widget
 PUT    /api/v1/dashboards/:id/widgets/:wid   # Update widget
 DELETE /api/v1/dashboards/:id/widgets/:wid   # Remove widget
+PUT    /api/v1/dashboards/:id/widgets/layout # Batch update positions
 
 # Widget Data
 POST   /api/v1/widgets/:id/data              # Fetch widget data
 POST   /api/v1/widgets/preview               # Preview widget config
+
+# Dashboard Sharing
+POST   /api/v1/dashboards/:id/share          # Share dashboard
+DELETE /api/v1/dashboards/:id/share/:userId  # Revoke user access
+POST   /api/v1/dashboards/:id/set-default    # Set as org/role default
+```
+
+**Create Dashboard Request:**
+```typescript
+interface CreateDashboardRequest {
+  name: string;
+  description?: string;
+  layoutType?: 'GRID' | 'FREEFORM';
+  globalFilters?: FilterCondition[];
+  dateRangeType?: DateRangeType;
+  autoRefresh?: boolean;
+  refreshIntervalSeconds?: number;
+  templateId?: string; // Clone from template
+}
+```
+
+**Create Dashboard Response:**
+```typescript
+interface DashboardResponse {
+  id: string;
+  organizationId: string;
+  name: string;
+  description?: string;
+  slug: string;
+  ownerUserId: string;
+  ownerType: DashboardOwnerType;
+  isShared: boolean;
+  layoutType: DashboardLayoutType;
+  columnCount: number;
+  globalFilters?: FilterCondition[];
+  dateRangeType?: DateRangeType;
+  autoRefresh: boolean;
+  refreshIntervalSeconds?: number;
+  widgets: WidgetResponse[];
+  createdAt: string;
+  updatedAt: string;
+  createdBy: UserSummary;
+}
+```
+
+**Add Widget Request:**
+```typescript
+interface CreateWidgetRequest {
+  title: string;
+  description?: string;
+  widgetType: WidgetType;
+  subtype?: string;
+  dataSource: WidgetDataSource;
+  queryConfig: WidgetQueryConfig;
+  displayConfig: WidgetDisplayConfig;
+  positionX: number;
+  positionY: number;
+  width: number;
+  height: number;
+  drillDownEnabled?: boolean;
+  drillDownConfig?: DrillDownConfig;
+}
+```
+
+**Widget Data Request:**
+```typescript
+interface WidgetDataRequest {
+  // Override dashboard filters
+  filters?: FilterCondition[];
+  dateRange?: {
+    start: string;
+    end: string;
+  };
+  // Comparison
+  includeComparison?: boolean;
+  comparisonType?: 'previous_period' | 'previous_year';
+}
+```
+
+**Widget Data Response:**
+```typescript
+interface WidgetDataResponse {
+  widgetId: string;
+  data: {
+    series: DataSeries[];
+    summary?: MetricSummary;
+  };
+  comparison?: {
+    series: DataSeries[];
+    summary?: MetricSummary;
+    changePercent: number;
+  };
+  metadata: {
+    rowCount: number;
+    queryDurationMs: number;
+    dataAsOf: string;
+    nextRefreshAt?: string;
+  };
+}
+
+interface DataSeries {
+  name: string;
+  data: DataPoint[];
+}
+
+interface DataPoint {
+  label: string;
+  value: number;
+  metadata?: Record<string, any>;
+}
+
+interface MetricSummary {
+  total: number;
+  average?: number;
+  min?: number;
+  max?: number;
+}
 ```
 
 ### Report Endpoints
@@ -964,9 +2043,11 @@ POST   /api/v1/reports                       # Create report
 GET    /api/v1/reports/:id                   # Get report definition
 PUT    /api/v1/reports/:id                   # Update report
 DELETE /api/v1/reports/:id                   # Delete report
+POST   /api/v1/reports/:id/duplicate         # Clone report
 
 # Report Execution
 POST   /api/v1/reports/:id/execute           # Run report
+GET    /api/v1/reports/:id/preview           # Preview (first 10 rows)
 GET    /api/v1/reports/:id/executions        # List past executions
 GET    /api/v1/reports/:id/executions/:eid   # Get execution result
 POST   /api/v1/reports/:id/export            # Export report
@@ -977,6 +2058,128 @@ POST   /api/v1/reports/:id/schedules         # Create schedule
 PUT    /api/v1/schedules/:sid                # Update schedule
 DELETE /api/v1/schedules/:sid                # Delete schedule
 POST   /api/v1/schedules/:sid/run-now        # Trigger immediate run
+POST   /api/v1/schedules/:sid/pause          # Pause schedule
+POST   /api/v1/schedules/:sid/resume         # Resume schedule
+```
+
+**Create Report Request:**
+```typescript
+interface CreateReportRequest {
+  name: string;
+  description?: string;
+  dataSources: ReportDataSource[];
+  columns: ColumnConfig[];
+  filters: FilterCondition[];
+  grouping?: GroupingConfig[];
+  sort?: SortConfig[];
+  calculatedFields?: CalculatedFieldConfig[];
+  subtotals?: boolean;
+  grandTotals?: boolean;
+  defaultFormat?: ReportFormat;
+}
+
+interface ColumnConfig {
+  source: ReportDataSource;
+  field: string;
+  label: string;
+  width?: number;
+  visible?: boolean;
+  format?: string;
+}
+
+interface FilterCondition {
+  field: string;
+  operator: 'eq' | 'neq' | 'gt' | 'gte' | 'lt' | 'lte' | 'in' | 'notIn' | 'contains' | 'between' | 'isNull' | 'isNotNull';
+  value: any;
+  logicalOperator?: 'AND' | 'OR';
+}
+
+interface GroupingConfig {
+  field: string;
+  level: number;
+  showSubtotal?: boolean;
+  collapsed?: boolean;
+}
+
+interface SortConfig {
+  field: string;
+  direction: 'asc' | 'desc';
+}
+
+interface CalculatedFieldConfig {
+  name: string;
+  label: string;
+  formula: string;
+  format?: string;
+}
+```
+
+**Execute Report Request:**
+```typescript
+interface ExecuteReportRequest {
+  filters?: FilterCondition[];
+  dateRange?: {
+    start: string;
+    end: string;
+  };
+  format?: ReportFormat;
+  options?: {
+    includeHeaders?: boolean;
+    maxRows?: number;
+    async?: boolean; // Force async execution
+  };
+}
+```
+
+**Execute Report Response:**
+```typescript
+interface ExecuteReportResponse {
+  executionId: string;
+  status: ReportExecutionStatus;
+
+  // For sync execution
+  data?: {
+    columns: ColumnMetadata[];
+    rows: any[][];
+    totals?: any[];
+  };
+
+  // For async execution
+  estimatedCompletionAt?: string;
+
+  metadata: {
+    rowCount: number;
+    queryDurationMs: number;
+    truncated: boolean;
+    filters: FilterCondition[];
+    dateRange?: { start: string; end: string };
+  };
+}
+```
+
+**Export Report Request:**
+```typescript
+interface ExportReportRequest {
+  format: ReportFormat;
+  filters?: FilterCondition[];
+  dateRange?: {
+    start: string;
+    end: string;
+  };
+  options?: {
+    includeHeaders?: boolean;
+    includeTotals?: boolean;
+    orientation?: 'portrait' | 'landscape';
+    paperSize?: 'letter' | 'legal' | 'a4';
+    watermark?: WatermarkConfig;
+    piiRedaction?: PIIRedactionConfig;
+    password?: string;
+    branding?: {
+      logoUrl?: string;
+      primaryColor?: string;
+    };
+  };
+}
 ```
 
 ### Analytics Endpoints
@@ -1004,20 +2207,95 @@ POST   /api/v1/analytics/campaigns           # Query campaign facts
 GET    /api/v1/analytics/campaigns/:id/completion  # Campaign completion metrics
 GET    /api/v1/analytics/campaigns/:id/escalation  # Campaign escalation rates
 
-# Legacy endpoints (maintained for compatibility)
-POST   /api/v1/analytics/disclosures         # Query disclosure facts
-POST   /api/v1/analytics/attestations        # Query attestation facts
-POST   /api/v1/analytics/forms               # Query form facts
-
 # Aggregations
 POST   /api/v1/analytics/aggregate           # Generic aggregation query
 GET    /api/v1/analytics/metrics/:metric     # Single metric value
 
 # AI Insights
-POST   /api/v1/analytics/insights            # Generate AI insights
-POST   /api/v1/analytics/anomalies           # Detect anomalies
-POST   /api/v1/analytics/summary             # Generate natural language summary
-POST   /api/v1/analytics/patterns            # Cross-case pattern detection
+POST   /api/v1/analytics/ai/query            # Natural language query
+POST   /api/v1/analytics/ai/insights         # Generate AI insights
+POST   /api/v1/analytics/ai/anomalies        # Detect anomalies
+POST   /api/v1/analytics/ai/summary          # Generate natural language summary
+POST   /api/v1/analytics/ai/patterns         # Cross-case pattern detection
+```
+
+**Generic Aggregation Query:**
+```typescript
+interface AggregationQueryRequest {
+  factTable: WidgetDataSource;
+  select: {
+    field: string;
+    aggregation?: 'COUNT' | 'SUM' | 'AVG' | 'MIN' | 'MAX' | 'DISTINCT';
+    alias?: string;
+  }[];
+  where?: FilterCondition[];
+  groupBy?: string[];
+  having?: FilterCondition[];
+  orderBy?: { field: string; direction: 'asc' | 'desc' }[];
+  limit?: number;
+  offset?: number;
+}
+```
+
+**AI Query Request:**
+```typescript
+interface AIQueryRequest {
+  query: string; // Natural language query
+  context?: {
+    currentDashboardId?: string;
+    currentFilters?: FilterCondition[];
+    conversationHistory?: AIConversationMessage[];
+  };
+  options?: {
+    generateVisualization?: boolean;
+    includeInsights?: boolean;
+    maxResults?: number;
+  };
+}
+
+interface AIConversationMessage {
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: string;
+}
+```
+
+**AI Query Response:**
+```typescript
+interface AIQueryResponse {
+  // Interpreted query
+  interpretation: {
+    intent: QueryIntent;
+    entities: ExtractedEntities;
+    confidence: number;
+  };
+
+  // Results
+  answer: string; // Natural language answer
+  data?: {
+    series: DataSeries[];
+    summary?: MetricSummary;
+  };
+
+  // Visualization suggestion
+  visualization?: {
+    type: WidgetType;
+    config: WidgetDisplayConfig;
+  };
+
+  // Insights
+  insights?: AIInsight[];
+
+  // Follow-up suggestions
+  suggestedFollowUps?: string[];
+
+  // Metadata
+  metadata: {
+    queryDurationMs: number;
+    tokensUsed: number;
+    modelVersion: string;
+  };
+}
 ```
 
 ### Saved Views Endpoints
@@ -1025,23 +2303,78 @@ POST   /api/v1/analytics/patterns            # Cross-case pattern detection
 ```
 GET    /api/v1/views                         # List user's views
 POST   /api/v1/views                         # Create view
+GET    /api/v1/views/:id                     # Get view
 PUT    /api/v1/views/:id                     # Update view
 DELETE /api/v1/views/:id                     # Delete view
 POST   /api/v1/views/:id/set-default         # Set as default
 PUT    /api/v1/views/reorder                 # Reorder tabs
 ```
 
+**Create View Request:**
+```typescript
+interface CreateViewRequest {
+  name: string;
+  module: ViewModule;
+  columns: {
+    field: string;
+    width?: number;
+    visible?: boolean;
+  }[];
+  filters: FilterCondition[];
+  sort: SortConfig[];
+  displayOptions?: {
+    showCountBadge?: boolean;
+    compactMode?: boolean;
+    groupBy?: string;
+  };
+  isShared?: boolean;
+  sharedWithRoles?: UserRole[];
+}
+```
+
+### Board Reports Endpoints
+
+```
+GET    /api/v1/board-reports                 # List board reports
+POST   /api/v1/board-reports                 # Create board report
+GET    /api/v1/board-reports/:id             # Get board report
+PUT    /api/v1/board-reports/:id             # Update board report
+DELETE /api/v1/board-reports/:id             # Delete board report
+POST   /api/v1/board-reports/:id/generate    # Generate/refresh content
+POST   /api/v1/board-reports/:id/export      # Export to PPTX/PDF
+POST   /api/v1/board-reports/:id/finalize    # Mark as final
+```
+
 ---
 
 ## UI/UX Specifications
+
+### Navigation Placement
+
+Analytics & Reporting appears in the main navigation as a top-level item:
+
+```
+Main Navigation
+├── Home
+├── Cases
+├── Investigations
+├── Disclosures
+├── Policies
+├── Analytics           ← Primary entry point
+│   ├── Dashboards     (default landing)
+│   ├── Reports
+│   ├── Board Reports
+│   └── Saved Views
+└── Settings
+```
 
 ### Dashboard Builder UI
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
-│ ← Back to Dashboards    [Dashboard Name ▼]    [🔗 Share] [💾 Save]     │
+│ ← Back to Dashboards    [Dashboard Name ▼]    [Share] [Save]            │
 ├─────────────────────────────────────────────────────────────────────────┤
-│ Global Filters: [Date Range ▼] [Business Unit ▼] [Location ▼] [Apply]  │
+│ Global Filters: [Date Range ▼] [Business Unit ▼] [Location ▼] [Apply]   │
 ├─────────────┬───────────────────────────────────────────────────────────┤
 │ Widget      │                                                           │
 │ Palette     │   ┌──────────────┐ ┌──────────────┐ ┌──────────────┐     │
@@ -1052,10 +2385,10 @@ PUT    /api/v1/views/reorder                 # Reorder tabs
 │   • Compare │                                                           │
 │             │   ┌────────────────────────────────┐ ┌──────────────────┐ │
 │ ▼ Charts    │   │  Cases by Category             │ │ Cases by Month   │ │
-│   • Bar     │   │  ▓▓▓▓▓▓▓▓ Harassment    45    │ │      📈          │ │
-│   • Line    │   │  ▓▓▓▓▓▓   Fraud         32    │ │                  │ │
-│   • Pie     │   │  ▓▓▓▓     Safety        28    │ │  [Line chart]    │ │
-│   • Area    │   │  ▓▓▓      Retaliation   21    │ │                  │ │
+│   • Bar     │   │  ████████ Harassment    45    │ │      📈          │ │
+│   • Line    │   │  ██████   Fraud         32    │ │                  │ │
+│   • Pie     │   │  ████     Safety        28    │ │  [Line chart]    │ │
+│   • Area    │   │  ███      Retaliation   21    │ │                  │ │
 │             │   └────────────────────────────────┘ └──────────────────┘ │
 │ ▼ Tables    │                                                           │
 │   • Data    │   ┌────────────────────────────────────────────────────┐ │
@@ -1068,6 +2401,43 @@ PUT    /api/v1/views/reorder                 # Reorder tabs
 └─────────────┴───────────────────────────────────────────────────────────┘
 ```
 
+### Widget Configuration Panel
+
+```
+┌─────────────────────────────────────────┐
+│ Configure Widget                    [X] │
+├─────────────────────────────────────────┤
+│ Title: [Cases by Category         ]     │
+│                                         │
+│ ▼ Data Source                           │
+│   [FACT_CASE_DAILY              ▼]      │
+│                                         │
+│ ▼ Metrics                               │
+│   Aggregation: [COUNT           ▼]      │
+│   Field:       [*               ▼]      │
+│                                         │
+│ ▼ Dimensions                            │
+│   Group by:    [category_name   ▼]      │
+│   Limit:       [10              ▼]      │
+│                                         │
+│ ▼ Filters                               │
+│   [+ Add filter]                        │
+│   status IN [OPEN, IN_INVESTIGATION]    │
+│                                         │
+│ ▼ Display Options                       │
+│   Chart type:  [Horizontal Bar  ▼]      │
+│   Colors:      [Auto            ▼]      │
+│   Show values: [✓]                      │
+│   Show legend: [ ]                      │
+│                                         │
+│ ▼ Drill-down                            │
+│   Enabled:     [✓]                      │
+│   Target:      [Modal           ▼]      │
+│                                         │
+│                        [Cancel] [Apply] │
+└─────────────────────────────────────────┘
+```
+
 ### Report Builder UI
 
 ```
@@ -1077,22 +2447,27 @@ PUT    /api/v1/views/reorder                 # Reorder tabs
 │                                                                         │
 │  ┌─── Fields ────┐  ┌─── Columns ─────────────────────────────────────┐ │
 │  │ 🔍 Search...  │  │                                                 │ │
-│  │               │  │  [📋 Case #] [📅 Created] [📁 Category] [👤 Assignee] │
-│  │ ▼ Cases       │  │                                                 │ │
-│  │   • Case #    │  │  Drag fields here to add columns                │ │
-│  │   • Created   │  │                                                 │ │
-│  │   • Status    │  └─────────────────────────────────────────────────┘ │
-│  │   • Category  │                                                      │
-│  │   • Severity  │  ┌─── Filters ─────────────────────────────────────┐ │
-│  │   • Location  │  │                                                 │ │
-│  │   • Assignee  │  │  Status    [is any of ▼]  [Open, In Progress]   │ │
-│  │               │  │  Created   [is after ▼]   [Last 90 days]        │ │
-│  │ ▼ Investigations │  │  + Add filter                                   │ │
-│  │   • Status    │  │                                                 │ │
-│  │   • Outcome   │  └─────────────────────────────────────────────────┘ │
-│  │   • Days Open │                                                      │
+│  │               │  │  [Case #] [Created] [Category] [Assignee]       │ │
+│  │ ▼ RIUs       │  │                                                 │ │
+│  │   • RIU Type │  │  Drag fields here to add columns                │ │
+│  │   • Channel  │  │                                                 │ │
+│  │   • Received │  └─────────────────────────────────────────────────┘ │
+│  │               │                                                      │
+│  │ ▼ Cases      │  ┌─── Filters ─────────────────────────────────────┐ │
+│  │   • Case #   │  │                                                 │ │
+│  │   • Created  │  │  Status    [is any of ▼]  [Open, In Progress]   │ │
+│  │   • Status   │  │  Created   [is after ▼]   [Last 90 days]        │ │
+│  │   • Category │  │  + Add filter                                   │ │
+│  │   • Severity │  │                                                 │ │
+│  │   • Location │  └─────────────────────────────────────────────────┘ │
+│  │   • Assignee │                                                      │
+│  │               │  ┌─── Grouping ───────────────────────────────────┐ │
+│  │ ▼ Invest.    │  │  Group by: [Category ▼] [+ Add level]           │ │
+│  │   • Status   │  │  [✓] Show subtotals                             │ │
+│  │   • Outcome  │  └─────────────────────────────────────────────────┘ │
+│  │   • Days     │                                                      │
 │  │               │  ┌─── Preview (10 rows) ───────────────────────────┐ │
-│  │ ▼ Disclosures │  │ Case #  │ Created    │ Category    │ Assignee   │ │
+│  │ ▼ Disclosures│  │ Case #  │ Created    │ Category    │ Assignee   │ │
 │  │               │  │ C-1234  │ 2026-01-15 │ Harassment  │ Sarah Chen │ │
 │  └───────────────┘  │ C-1233  │ 2026-01-14 │ Fraud       │ John Smith │ │
 │                     │ C-1232  │ 2026-01-12 │ Safety      │ Unassigned │ │
@@ -1114,6 +2489,128 @@ PUT    /api/v1/views/reorder                 # Reorder tabs
 └─────────────────────────────────────────────────────────────────────────┘
 ```
 
+### AI Query Interface
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│ Ask AI                                                              [X] │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│  You: "What's our average time to close harassment cases?"              │
+│                                                                         │
+│  AI: "The average time to close harassment cases is 45 days, which is   │
+│       12% higher than your overall average of 40 days."                 │
+│                                                                         │
+│       ┌────────────────────────────────────────────────┐                │
+│       │  Average Days to Close by Category             │                │
+│       │  ████████████████████████ Harassment  45 days  │                │
+│       │  ██████████████████████   Fraud       42 days  │                │
+│       │  ████████████████████     Safety      40 days  │                │
+│       │  ██████████████           Theft       35 days  │                │
+│       └────────────────────────────────────────────────┘                │
+│                                                                         │
+│       Would you like to:                                                │
+│       • See breakdown by region?                                        │
+│       • Compare to last quarter?                                        │
+│       • Save this as a dashboard widget?                                │
+│                                                                         │
+├─────────────────────────────────────────────────────────────────────────┤
+│  [Ask a follow-up question...                              ] [Send]     │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+### Component Library (shadcn/ui)
+
+All analytics components use shadcn/ui primitives:
+
+| Component | shadcn/ui Base | Usage |
+|-----------|----------------|-------|
+| Dashboard Canvas | Custom + DnD Kit | Widget drag-and-drop |
+| Widget Card | Card | Widget container |
+| Filter Bar | Popover + Select | Global filters |
+| Date Picker | Calendar + Popover | Date range selection |
+| Chart | Recharts | All chart types |
+| Data Table | Table + Pagination | Tabular data |
+| Metric Card | Card + Badge | KPI display |
+| Report Builder | Dialog + Tabs | Report configuration |
+| View Tabs | Tabs | Saved view switching |
+| AI Chat | Sheet + Input | AI query interface |
+
+---
+
+## Migration Considerations
+
+### Data Mapping from Competitor Systems
+
+| Source System | Analytics Feature | Ethico Equivalent | Migration Notes |
+|---------------|-------------------|-------------------|-----------------|
+| NAVEX | Saved reports | SavedReport | Map report definitions, recreate calculated fields |
+| NAVEX | Scheduled reports | ReportSchedule | Map schedules, verify recipient emails |
+| EQS | Dashboard widgets | DashboardWidget | Map widget types, may need manual chart type mapping |
+| EQS | Export templates | Report templates | Convert to Ethico format |
+| Custom BI | SQL queries | Calculated fields | Convert SQL to formula syntax |
+
+### Handling Sparse Data
+
+| Scenario | Challenge | Solution |
+|----------|-----------|----------|
+| Missing categories | Historical data lacks categories | Show "Uncategorized" bucket, AI can suggest categorization |
+| Incomplete dates | Records without created_at | Use migrated_at as fallback, flag in reports |
+| No outcome data | Cases without outcomes | Exclude from outcome metrics, show "Pending" |
+| Missing assignee | Unassigned cases | Include in "Unassigned" counts |
+
+### Post-Migration Analytics Enrichment
+
+After migration, run these enrichment jobs:
+
+1. **Fact Table Population** - Rebuild all fact tables from migrated data
+2. **AI Summary Generation** - Generate summaries for historical records lacking them
+3. **Trend Baseline** - Establish baseline metrics for anomaly detection
+4. **Category Standardization** - Map legacy categories to new taxonomy
+
+---
+
+## Integration Points
+
+### Internal Module Integrations
+
+| Module | Integration Type | Data Exchanged |
+|--------|------------------|----------------|
+| Case Management | Read | Case facts, status, outcomes |
+| RIU Intake | Read | RIU counts, channel data, conversion metrics |
+| Investigations | Read | Investigation outcomes, duration |
+| Disclosures | Read | Disclosure facts, campaign completion |
+| Policy Management | Read | Attestation metrics, policy versions |
+| Campaigns | Read | Campaign status, completion rates |
+| User Management | Read | User roles, departments (for filtering) |
+| HRIS | Read | Employee data (for departmental analytics) |
+| Audit Log | Read | Activity data for user reports |
+
+### External System Integrations
+
+| System | Integration Method | Use Case |
+|--------|-------------------|----------|
+| Slack | Webhook (outbound) | Scheduled report delivery |
+| Microsoft Teams | Webhook (outbound) | Scheduled report delivery |
+| SFTP | File transfer (outbound) | Report delivery to external systems |
+| Power BI | API (export) | JSON/CSV export for Power BI ingestion |
+| Email (SMTP) | Email (outbound) | Report delivery |
+| SSO Provider | Authentication | User identity for report access |
+
+### Event Publishing
+
+Analytics module publishes events for audit and integration:
+
+| Event | Trigger | Payload |
+|-------|---------|---------|
+| `dashboard.created` | Dashboard creation | Dashboard ID, owner, template used |
+| `dashboard.shared` | Dashboard sharing | Dashboard ID, shared with users/roles |
+| `report.executed` | Report run | Report ID, execution time, row count |
+| `report.exported` | Report export | Report ID, format, recipient |
+| `schedule.triggered` | Scheduled report | Schedule ID, status, delivery method |
+| `ai.query.executed` | AI query | Query text (anonymized), tokens used |
+| `insight.generated` | AI insight | Insight type, severity, confidence |
+
 ---
 
 ## Non-Functional Requirements
@@ -1125,31 +2622,48 @@ PUT    /api/v1/views/reorder                 # Reorder tabs
 | Dashboard load | < 2 seconds |
 | Widget refresh | < 500ms |
 | Report preview | < 1 second |
+| Report execution (10K rows) | < 10 seconds |
 | Report export (10K rows) | < 30 seconds |
+| AI query response | < 5 seconds |
 | Scheduled report generation | < 5 minutes |
 
 ### Scalability
 
-- Support 100+ concurrent dashboard viewers
+- Support 100+ concurrent dashboard viewers per organization
 - Handle dashboards with 20 widgets
 - Reports up to 100,000 rows
 - 1,000+ scheduled reports per organization
-- Fact tables with 10M+ records
+- Fact tables with 10M+ records per organization
+- 500+ saved views per organization
 
 ### Security
 
-- All data filtered by organization_id
-- Business unit scoping enforced
-- Role-based dashboard sharing
-- Audit log for report exports
-- PII redaction in exports (configurable)
+- All data filtered by organization_id (RLS enforced)
+- Business unit scoping enforced on all queries
+- Role-based dashboard and report sharing
+- Audit log for all report exports
+- PII redaction configurable per export
+- Export downloads require re-authentication for sensitive data
+- API rate limiting: 100 requests/minute per user
 
 ### Reliability
 
 - Dashboard data cached with 5-minute TTL
-- Scheduled reports retry 3x on failure
-- Export files stored 24 hours
+- Scheduled reports retry 3x on failure with exponential backoff
+- Export files stored 24 hours in blob storage
 - Historical report executions retained 90 days
+- Fact tables have 5-minute refresh with full daily rebuild
+- 99.5% availability target for analytics API
+
+### Caching Strategy
+
+| Layer | TTL | Invalidation |
+|-------|-----|--------------|
+| Widget query results | 5 minutes | On fact table refresh |
+| Dashboard layout | 1 hour | On dashboard save |
+| Report preview | 1 minute | On filter change |
+| AI query cache | 15 minutes | On significant data change |
+| User preferences | 24 hours | On preference change |
 
 ---
 
@@ -1165,7 +2679,7 @@ PUT    /api/v1/views/reorder                 # Reorder tabs
 | AC-04 | Dashboards can display both RIU and Case widgets side-by-side | P0 |
 | AC-05 | Report builder includes RIU data source with all RIU fields | P0 |
 | AC-06 | Board reports distinguish input volume (RIUs) from outcomes (Cases) | P0 |
-| AC-07 | Saved views support RIU module filtering | P0 |
+| AC-07 | Saved views support all modules (RIUs, Cases, Investigations, Disclosures, Attestations) | P0 |
 | AC-08 | Natural language queries understand RIU vs Case distinction | P1 |
 | AC-09 | Campaign completion rates calculated from RIU responses | P0 |
 | AC-10 | Disclosure escalation rates trackable (% creating Cases) | P0 |
@@ -1174,6 +2688,13 @@ PUT    /api/v1/views/reorder                 # Reorder tabs
 | AC-13 | Time from RIU creation to Case creation measurable | P1 |
 | AC-14 | QA turnaround time (hotline RIUs) reportable | P1 |
 | AC-15 | Cross-pillar intelligence dashboard shows subject patterns | P2 |
+| AC-16 | Dashboard sharing works with role-based permissions | P0 |
+| AC-17 | Scheduled reports deliver to Email, Slack, SFTP | P0 |
+| AC-18 | Export supports Excel, CSV, PDF, PowerPoint formats | P0 |
+| AC-19 | PII redaction works correctly in exports | P1 |
+| AC-20 | AI generates actionable insights with anomaly detection | P1 |
+| AC-21 | Role-based default dashboards assigned on user creation | P1 |
+| AC-22 | All analytics activity logged for audit | P0 |
 
 ---
 
@@ -1187,23 +2708,29 @@ PUT    /api/v1/views/reorder                 # Reorder tabs
 - [x] Execution history with audit context
 - [x] Source tracking for fact table refresh
 - [x] RIU and Case fact tables separate (input vs response)
+- [x] AI enrichment fields on insights (model version, confidence)
+- [x] Activity log with natural language descriptions
 
 **Feature Design:**
 - [x] Natural language query examples documented
 - [x] AI assistance points identified (insights, summaries, anomalies)
 - [x] AI-generated board report narratives
 - [x] RIU→Case conversion analytics included
+- [x] Conversation storage for AI queries
+- [x] AI action audit designed
 
 **API Design:**
 - [x] Context-rich responses for widgets
 - [x] Bulk query support via aggregation endpoints
 - [x] Separate endpoints for RIU and Case analytics
+- [x] AI query endpoint with conversation context
 
 **UI Design:**
 - [x] AI insight panels on dashboards
 - [x] Self-service configuration (drag-and-drop)
 - [x] RIU dashboard templates included
 - [x] Conversion dashboard template included
+- [x] AI chat interface designed
 
 ### RIU Architecture Compliance
 
@@ -1213,6 +2740,37 @@ PUT    /api/v1/views/reorder                 # Reorder tabs
 - [x] Campaign metrics connect to RIU responses
 - [x] Board reports distinguish inputs from outcomes
 - [x] API endpoints separate RIU and Case analytics
+
+### Multi-Tenancy Compliance
+
+- [x] All entities have organizationId field
+- [x] All queries filter by organizationId
+- [x] Cache keys include organizationId
+- [x] Scheduled report scoped to organization
+- [x] Export security respects tenant isolation
+
+---
+
+## Appendix
+
+### Glossary
+
+| Term | Definition |
+|------|------------|
+| RIU | Risk Intelligence Unit - immutable input record |
+| Fact Table | Pre-aggregated metrics table for dashboard performance |
+| Widget | A single visualization component on a dashboard |
+| Saved View | A persisted filter/column configuration appearing as a tab |
+| Board Report | AI-assisted executive presentation |
+
+### Change Log
+
+| Version | Date | Changes | Author |
+|---------|------|---------|--------|
+| 1.0 | Oct 2025 | Initial draft | Product Team |
+| 2.0 | Dec 2025 | Added RIU→Case framework | Product Team |
+| 3.0 | Jan 2026 | RIU architecture update | Product Team |
+| 4.0 | Feb 2026 | Complete specification with full schemas, API specs, AI details | Product Team |
 
 ---
 

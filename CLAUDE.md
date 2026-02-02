@@ -6,6 +6,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Ethico Risk Intelligence Platform - a multi-tenant SaaS compliance management system ("HubSpot for Compliance"). Unifies ethics hotline intake, case management, investigations, disclosures, policy management, and analytics.
 
+**About Ethico:** Healthcare compliance software company based in Charlotte, NC, serving 1,500+ customers. Competes against NAVEX, EQS/Conversant, and Case IQ, differentiating through superior service and healthcare expertise.
+
 **Current Status:** Discovery/specification phase. Architecture docs and PRDs exist; source code development pending.
 
 ## Tech Stack (Planned)
@@ -39,7 +41,12 @@ Risk Intelligence Platform/
 │   ├── 06-DISCLOSURES/             # COI, gifts & entertainment
 │   ├── 07-ANALYTICS-REPORTING/     # BI dashboards
 │   ├── 08-EMPLOYEE-CHATBOT/        # AI conversational interface
-│   └── 09-POLICY-MANAGEMENT/       # Policy lifecycle, attestations
+│   ├── 09-POLICY-MANAGEMENT/       # Policy lifecycle, attestations
+│   ├── 10-IMPLEMENTATION-PORTAL/   # Customer onboarding portal
+│   ├── 11-SALES-DEMO/              # Sales demonstration module
+│   ├── 12-PROJECT-MANAGEMENT/      # Project & task management
+│   ├── 13-NOTIFICATIONS/           # Notifications & email system
+│   └── 14-SEARCH-DISCOVERY/        # Platform-wide search
 └── 03-DEVELOPMENT/                 # Development resources
 ```
 
@@ -305,6 +312,11 @@ Combine if: Tasks are just boilerplate steps of the same feature
 | `01-SHARED-INFRASTRUCTURE/TECH-SPEC-AI-INTEGRATION.md` | Claude API patterns, prompts, rate limiting |
 | `02-MODULES/05-CASE-MANAGEMENT/PRD.md` | Case/Investigation entity specs, API design |
 | `02-MODULES/09-POLICY-MANAGEMENT/PRD.md` | Policy lifecycle, attestations |
+| `02-MODULES/10-IMPLEMENTATION-PORTAL/PRD.md` | Customer onboarding, implementation tracking |
+| `02-MODULES/11-SALES-DEMO/PRD.md` | Sales demonstration environment, demo data |
+| `02-MODULES/12-PROJECT-MANAGEMENT/PRD.md` | Project & task management for implementations |
+| `02-MODULES/13-NOTIFICATIONS/PRD.md` | Notifications & email delivery system |
+| `02-MODULES/14-SEARCH-DISCOVERY/PRD.md` | Platform-wide search & discovery |
 | `00-PLATFORM/AI-FIRST-CHECKLIST.md` | Design validation checklist for all documents |
 | `00-PLATFORM/PRD-TEMPLATE.md` | Standard template for new PRDs |
 | `01-SHARED-INFRASTRUCTURE/CORE-DATA-MODEL.md` | Core entities: User, Employee, Organization, etc. |
