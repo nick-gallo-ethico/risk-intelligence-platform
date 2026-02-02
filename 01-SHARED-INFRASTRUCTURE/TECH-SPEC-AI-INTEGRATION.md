@@ -1,7 +1,7 @@
 # Technical Specification: AI Integration
 
-**Version:** 2.0
-**Last Updated:** January 2026
+**Version:** 3.0
+**Last Updated:** February 2026
 **Status:** Draft
 **Author:** Architecture Team
 
@@ -12,6 +12,11 @@
 - Disclosures: Auto-tagging, conflict detection
 - Policy Management: Policy generation, translation, quiz creation
 - Employee Chatbot: Policy Q&A, escalation routing
+- **All Modules:** AI Agent action execution, scoped assistants, skill invocation
+
+**Related Documents:**
+- `00-PLATFORM/WORKING-DECISIONS.md` - AI Agent decisions (AA.1-AA.21)
+- `01-SHARED-INFRASTRUCTURE/TECH-SPEC-AI-AGENT.md` - Full agent architecture (pending)
 
 ---
 
@@ -19,21 +24,27 @@
 
 1. [Overview](#1-overview)
 2. [Architecture](#2-architecture)
-3. [AI Provider Abstraction](#3-ai-provider-abstraction)
-4. [Policy Generation](#4-policy-generation)
-5. [Bulk Policy Updates](#5-bulk-policy-updates)
-6. [AI-Powered Translation](#6-ai-powered-translation)
-7. [Policy Analysis & Insights](#7-policy-analysis--insights)
-8. [AI Auto-Tagging](#8-ai-auto-tagging)
-9. [AI Policy Summarization](#9-ai-policy-summarization)
-10. [AI Quiz Generation](#10-ai-quiz-generation)
-11. [Regulatory Mapping Assistance](#11-regulatory-mapping-assistance)
-12. [Prompt Engineering](#12-prompt-engineering)
-13. [Rate Limiting & Cost Control](#13-rate-limiting--cost-control)
-14. [Security & Privacy](#14-security--privacy)
-15. [Error Handling](#15-error-handling)
-16. [API Specifications](#16-api-specifications)
-17. [Implementation Guide](#17-implementation-guide)
+3. [AI Agent Architecture](#3-ai-agent-architecture) **NEW**
+   - 3.1 Context Hierarchy Schema
+   - 3.2 Skills Registry Interface
+   - 3.3 Action Framework
+   - 3.4 Model Selection Strategy
+   - 3.5 Scoped Agents
+4. [AI Provider Abstraction](#4-ai-provider-abstraction)
+5. [Policy Generation](#5-policy-generation)
+6. [Bulk Policy Updates](#6-bulk-policy-updates)
+7. [AI-Powered Translation](#7-ai-powered-translation)
+8. [Policy Analysis & Insights](#8-policy-analysis--insights)
+9. [AI Auto-Tagging](#9-ai-auto-tagging)
+10. [AI Policy Summarization](#10-ai-policy-summarization)
+11. [AI Quiz Generation](#11-ai-quiz-generation)
+12. [Regulatory Mapping Assistance](#12-regulatory-mapping-assistance)
+13. [Prompt Engineering](#13-prompt-engineering)
+14. [Rate Limiting & Cost Control](#14-rate-limiting--cost-control)
+15. [Security & Privacy](#15-security--privacy)
+16. [Error Handling](#16-error-handling)
+17. [API Specifications](#17-api-specifications)
+18. [Implementation Guide](#18-implementation-guide)
 
 ---
 
@@ -63,6 +74,10 @@ This document provides detailed technical specifications for implementing AI-pow
 3. **Auditable**: All AI operations are logged for compliance
 4. **Cost Controlled**: Rate limiting and usage tracking per tenant
 5. **Human-in-the-Loop**: AI suggestions require human approval
+6. **Action Agent**: AI executes real actions via Action Catalog, not just generates text (AA.1)
+7. **Context Aware**: AI context adapts based on user's current view and loaded entities (AA.2)
+8. **Tiered Confirmation**: Risk-based confirmation for AI-initiated actions (AA.3)
+9. **Skill-Based**: Reusable, composable AI skills at platform/org/team/user levels (AA.12)
 
 ### 1.4 Technology Stack
 
@@ -178,12 +193,1099 @@ This document provides detailed technical specifications for implementing AI-pow
 
 ---
 
-## 3. AI Provider Abstraction
+## 3. AI Agent Architecture
 
-### 3.1 Provider Interface
+> **Reference:** WORKING-DECISIONS.md sections AA.1-AA.21
+
+The platform AI is not just a text generator - it's an **action agent** that can execute operations on behalf of users, similar to how Claude Code operates for developers. This section defines the technical architecture for context management, skills, actions, and model routing.
+
+### 3.1 Context Hierarchy Schema
+
+Context loads in a hierarchical order, with later levels able to override earlier ones. This mirrors the CLAUDE.md pattern used in Claude Code.
+
+```typescript
+// apps/backend/src/modules/ai/context/context-hierarchy.interface.ts
+
+/**
+ * Context loading order (later overrides earlier):
+ * 1. Platform Context → Built-in platform knowledge, entity schemas, action catalog
+ * 2. Organization Context → Org-level customizations (terminology, policies, standards)
+ * 3. Team Context → Team-level customizations (workflows, preferences)
+ * 4. User Context → User-level customizations (personal style, shortcuts)
+ * 5. Entity Context → Current entity data + conversation history
+ */
+export interface ContextHierarchy {
+  // Level 1: Platform (built-in, same for all)
+  platform: PlatformContext;
+
+  // Level 2: Organization-specific
+  organization: OrganizationContext;
+
+  // Level 3: Team-specific (optional)
+  team?: TeamContext;
+
+  // Level 4: User-specific (optional)
+  user?: UserContext;
+
+  // Level 5: Current entity (when viewing specific case/investigation/etc)
+  entity?: EntityContext;
+
+  // Metadata about context loading
+  loadedAt: Date;
+  totalTokens: number;
+  percentUsed: number; // of context window
+}
+
+export interface PlatformContext {
+  // Entity schema knowledge (what fields exist, their meanings)
+  entitySchemas: Record<string, EntitySchemaDefinition>;
+
+  // Platform-wide action catalog (all possible actions)
+  actionCatalog: AIAction[];
+
+  // Built-in skills available to all organizations
+  platformSkills: Skill[];
+
+  // Platform terminology and standards
+  terminology: Record<string, string>;
+}
+
+export interface OrganizationContext {
+  organizationId: string;
+  organizationName: string;
+
+  // Organization's custom context file (markdown, like CLAUDE.md)
+  contextDocument?: string;
+
+  // Organization-specific terminology overrides
+  terminology?: Record<string, string>;
+
+  // Writing standards and preferences
+  styleGuide?: string;
+
+  // Escalation rules and business rules
+  businessRules?: string[];
+
+  // Organization's custom skills
+  orgSkills: Skill[];
+
+  // Enabled/disabled features
+  enabledFeatures: string[];
+}
+
+export interface TeamContext {
+  teamId: string;
+  teamName: string;
+
+  // Team's custom context file
+  contextDocument?: string;
+
+  // Team-specific workflow customizations
+  workflows?: string[];
+
+  // Team's custom skills
+  teamSkills: Skill[];
+}
+
+export interface UserContext {
+  userId: string;
+  userName: string;
+
+  // User's personal context/preferences
+  contextDocument?: string;
+
+  // User's personal shortcuts and skills
+  userSkills: Skill[];
+
+  // User's role and permissions (affects available actions)
+  role: string;
+  permissions: string[];
+}
+
+export interface EntityContext {
+  entityType: 'case' | 'investigation' | 'riu' | 'policy' | 'campaign';
+  entityId: string;
+
+  // Core entity data
+  entityData: Record<string, any>;
+
+  // Related entities (summaries, not full data)
+  linkedEntities?: LinkedEntitySummary[];
+
+  // Activity timeline
+  activityTimeline: ActivityEntry[];
+
+  // Active session notes (from pause/resume pattern)
+  sessionNotes?: SessionNote[];
+
+  // Conversation history (compact, not full transcript)
+  conversationSummary?: string;
+}
+
+export interface LinkedEntitySummary {
+  entityType: string;
+  entityId: string;
+  displayText: string;
+  summary: string;
+}
+
+export interface SessionNote {
+  id: string;
+  decisions: string[];
+  pendingActions: string[];
+  draftContent?: string;
+  contextSummary: string;
+  status: 'active' | 'resolved' | 'archived';
+  createdAt: Date;
+}
+```
+
+**Context Loading Service:**
+
+```typescript
+// apps/backend/src/modules/ai/context/context-loader.service.ts
+
+import { Injectable } from '@nestjs/common';
+import { PrismaService } from '../../../prisma/prisma.service';
+import { ContextHierarchy, PlatformContext, OrganizationContext } from './context-hierarchy.interface';
+
+@Injectable()
+export class ContextLoaderService {
+  constructor(
+    private prisma: PrismaService,
+    private skillsRegistry: SkillsRegistryService,
+    private actionCatalog: ActionCatalogService,
+  ) {}
+
+  /**
+   * Load full context hierarchy for an AI request
+   */
+  async loadContextHierarchy(
+    organizationId: string,
+    userId: string,
+    teamId?: string,
+    entityType?: string,
+    entityId?: string,
+  ): Promise<ContextHierarchy> {
+    const [platform, organization, team, user, entity] = await Promise.all([
+      this.loadPlatformContext(),
+      this.loadOrganizationContext(organizationId),
+      teamId ? this.loadTeamContext(teamId, organizationId) : undefined,
+      this.loadUserContext(userId, organizationId),
+      entityType && entityId
+        ? this.loadEntityContext(entityType, entityId, organizationId)
+        : undefined,
+    ]);
+
+    const totalTokens = this.estimateContextTokens({
+      platform, organization, team, user, entity,
+    });
+
+    return {
+      platform,
+      organization,
+      team,
+      user,
+      entity,
+      loadedAt: new Date(),
+      totalTokens,
+      percentUsed: (totalTokens / this.getMaxContextTokens()) * 100,
+    };
+  }
+
+  private async loadPlatformContext(): Promise<PlatformContext> {
+    return {
+      entitySchemas: await this.loadEntitySchemas(),
+      actionCatalog: this.actionCatalog.getAllActions(),
+      platformSkills: await this.skillsRegistry.getPlatformSkills(),
+      terminology: this.getPlatformTerminology(),
+    };
+  }
+
+  private async loadOrganizationContext(organizationId: string): Promise<OrganizationContext> {
+    const org = await this.prisma.organization.findUnique({
+      where: { id: organizationId },
+      select: {
+        id: true,
+        name: true,
+        aiContextDocument: true,
+        terminology: true,
+        styleGuide: true,
+        businessRules: true,
+        enabledFeatures: true,
+      },
+    });
+
+    const orgSkills = await this.skillsRegistry.getOrganizationSkills(organizationId);
+
+    return {
+      organizationId: org.id,
+      organizationName: org.name,
+      contextDocument: org.aiContextDocument,
+      terminology: org.terminology as Record<string, string>,
+      styleGuide: org.styleGuide,
+      businessRules: org.businessRules as string[],
+      orgSkills,
+      enabledFeatures: org.enabledFeatures as string[],
+    };
+  }
+
+  private async loadEntityContext(
+    entityType: string,
+    entityId: string,
+    organizationId: string,
+  ): Promise<EntityContext> {
+    // Load entity-specific context based on type
+    // Implementation varies by entity type
+    // ...
+  }
+
+  private estimateContextTokens(hierarchy: Partial<ContextHierarchy>): number {
+    // Rough estimate: 1 token ≈ 4 characters
+    let chars = 0;
+    if (hierarchy.platform) chars += JSON.stringify(hierarchy.platform).length;
+    if (hierarchy.organization) chars += JSON.stringify(hierarchy.organization).length;
+    if (hierarchy.team) chars += JSON.stringify(hierarchy.team).length;
+    if (hierarchy.user) chars += JSON.stringify(hierarchy.user).length;
+    if (hierarchy.entity) chars += JSON.stringify(hierarchy.entity).length;
+    return Math.ceil(chars / 4);
+  }
+
+  private getMaxContextTokens(): number {
+    // Default to 200k context window
+    return 200000;
+  }
+}
+```
+
+### 3.2 Skills Registry Interface
+
+Skills are reusable, composable AI actions - like slash commands in Claude Code.
+
+```typescript
+// apps/backend/src/modules/ai/skills/skill.interface.ts
+
+export interface Skill {
+  id: string;                    // 'summarize-hipaa'
+  name: string;                  // 'HIPAA Summary'
+  description: string;           // Shown in skill picker
+
+  // Ownership and scope
+  scope: 'platform' | 'organization' | 'team' | 'user';
+  createdById?: string;          // For non-platform skills
+  organizationId?: string;       // For org/team/user skills
+  teamId?: string;               // For team skills
+
+  // What the skill does
+  promptTemplate: string;        // AI instructions with {{variables}}
+  requiredContext: string[];     // ['case', 'investigation']
+
+  // Permissions
+  requiredPermissions: string[];
+  requiredFeatures: string[];
+
+  // Parameters user can provide
+  parameters?: SkillParameter[];
+
+  // Actions the skill can take
+  allowedActions: string[];      // From Action Catalog
+
+  // Model preferences
+  modelHint?: 'fast' | 'standard' | 'premium' | 'auto';
+  modelJustification?: string;   // "Requires nuanced legal analysis"
+
+  // Versioning (for published skills)
+  version?: string;
+  changelog?: string;
+
+  // Community metadata (when published to marketplace)
+  publishedAt?: Date;
+  category?: string;
+  tags?: string[];
+  installCount?: number;
+  rating?: number;
+}
+
+export interface SkillParameter {
+  name: string;
+  type: 'string' | 'number' | 'boolean' | 'select';
+  description: string;
+  required: boolean;
+  defaultValue?: any;
+  options?: string[];  // For select type
+}
+
+export interface SkillExecutionRequest {
+  skillId: string;
+  parameters?: Record<string, any>;
+  contextOverrides?: Partial<ContextHierarchy>;
+}
+
+export interface SkillExecutionResult {
+  success: boolean;
+  output: string;
+  actionsExecuted?: ExecutedAction[];
+  suggestedActions?: AIAction[];
+  tokensUsed: number;
+  model: string;
+}
+```
+
+**Skills Registry Service:**
+
+```typescript
+// apps/backend/src/modules/ai/skills/skills-registry.service.ts
+
+import { Injectable } from '@nestjs/common';
+import { PrismaService } from '../../../prisma/prisma.service';
+import { Skill, SkillExecutionRequest, SkillExecutionResult } from './skill.interface';
+
+@Injectable()
+export class SkillsRegistryService {
+  constructor(private prisma: PrismaService) {}
+
+  /**
+   * Get all skills available to a user in current context
+   */
+  async getAvailableSkills(
+    organizationId: string,
+    userId: string,
+    teamId?: string,
+    permissions: string[] = [],
+    features: string[] = [],
+  ): Promise<Skill[]> {
+    const [platform, org, team, user] = await Promise.all([
+      this.getPlatformSkills(),
+      this.getOrganizationSkills(organizationId),
+      teamId ? this.getTeamSkills(teamId) : [],
+      this.getUserSkills(userId),
+    ]);
+
+    // Merge skills with override precedence: user > team > org > platform
+    const skillMap = new Map<string, Skill>();
+
+    for (const skill of [...platform, ...org, ...team, ...user]) {
+      // Check permissions
+      if (skill.requiredPermissions.every(p => permissions.includes(p))) {
+        // Check features
+        if (skill.requiredFeatures.every(f => features.includes(f))) {
+          skillMap.set(skill.id, skill);
+        }
+      }
+    }
+
+    return Array.from(skillMap.values());
+  }
+
+  async getPlatformSkills(): Promise<Skill[]> {
+    return this.prisma.skill.findMany({
+      where: { scope: 'platform' },
+    });
+  }
+
+  async getOrganizationSkills(organizationId: string): Promise<Skill[]> {
+    return this.prisma.skill.findMany({
+      where: { scope: 'organization', organizationId },
+    });
+  }
+
+  async getTeamSkills(teamId: string): Promise<Skill[]> {
+    return this.prisma.skill.findMany({
+      where: { scope: 'team', teamId },
+    });
+  }
+
+  async getUserSkills(userId: string): Promise<Skill[]> {
+    return this.prisma.skill.findMany({
+      where: { scope: 'user', createdById: userId },
+    });
+  }
+
+  /**
+   * Create a new skill
+   */
+  async createSkill(skill: Omit<Skill, 'id'>): Promise<Skill> {
+    return this.prisma.skill.create({
+      data: skill as any,
+    });
+  }
+
+  /**
+   * Install a skill from marketplace
+   */
+  async installSkill(
+    skillId: string,
+    organizationId: string,
+    installedBy: string,
+  ): Promise<void> {
+    // Copy skill to organization
+    const sourceSkill = await this.prisma.skill.findUnique({
+      where: { id: skillId },
+    });
+
+    if (!sourceSkill || sourceSkill.scope !== 'platform') {
+      throw new Error('Skill not available for installation');
+    }
+
+    await this.prisma.installedSkill.create({
+      data: {
+        skillId,
+        organizationId,
+        installedById: installedBy,
+        installedAt: new Date(),
+      },
+    });
+
+    // Update install count
+    await this.prisma.skill.update({
+      where: { id: skillId },
+      data: { installCount: { increment: 1 } },
+    });
+  }
+}
+```
+
+### 3.3 Action Framework
+
+AI actions are registered in a static catalog and filtered at runtime based on permissions, features, and context.
+
+```typescript
+// apps/backend/src/modules/ai/actions/action.interface.ts
+
+export interface AIAction {
+  id: string;
+  label: string;
+  description: string;
+
+  // Module that owns this action
+  module: string;  // 'cases', 'investigations', 'policies', etc.
+
+  // Required permissions for this action
+  requiredPermissions: string[];
+
+  // Required features (org must have enabled)
+  requiredFeatures: string[];
+
+  // Context requirements
+  contextRequirements: {
+    entityType?: string[];           // ['case', 'investigation']
+    conditions?: string[];           // ['status != closed', 'has_assignee']
+    requiredFields?: string[];       // Fields that must exist on entity
+  };
+
+  // Parameters for the action
+  parameters: ActionParameter[];
+
+  // Confirmation requirements (AA.3, AA.6)
+  confirmationLevel: 'none' | 'single' | 'preview' | 'explicit';
+  isDestructive: boolean;
+  isExternal: boolean;  // Sends data outside system (email, API call)
+
+  // Reversibility (AA.14)
+  reversibility: 'full' | 'soft' | 'none';
+  undoAction?: string;
+  undoWindowMinutes?: number;
+
+  // Handler function reference
+  handler: string;  // 'caseService.updateStatus'
+}
+
+export interface ActionParameter {
+  name: string;
+  type: 'string' | 'number' | 'boolean' | 'entityRef' | 'enum' | 'date';
+  description: string;
+  required: boolean;
+  defaultValue?: any;
+  enumValues?: string[];
+  entityType?: string;  // For entityRef type
+}
+
+export interface ActionExecutionRequest {
+  actionId: string;
+  parameters: Record<string, any>;
+  entityType: string;
+  entityId: string;
+  confirmationToken?: string;  // For preview-then-execute pattern
+}
+
+export interface ActionExecutionResult {
+  success: boolean;
+  actionId: string;
+  entityType: string;
+  entityId: string;
+
+  // Changes made
+  changes: {
+    field: string;
+    oldValue: any;
+    newValue: any;
+  }[];
+
+  // For undo capability
+  undoRecord?: UndoRecord;
+
+  // Activity log entry created
+  activityId: string;
+
+  // For external actions
+  externalResult?: {
+    service: string;
+    status: string;
+    details?: any;
+  };
+}
+
+export interface UndoRecord {
+  id: string;
+  actionId: string;
+  entityType: string;
+  entityId: string;
+  previousState: Record<string, any>;
+  newState: Record<string, any>;
+  executedAt: Date;
+  undoExpiresAt: Date;
+  status: 'available' | 'executed' | 'expired';
+}
+```
+
+**Action Catalog Service:**
+
+```typescript
+// apps/backend/src/modules/ai/actions/action-catalog.service.ts
+
+import { Injectable, OnModuleInit } from '@nestjs/common';
+import { AIAction, ActionExecutionRequest, ActionExecutionResult } from './action.interface';
+
+@Injectable()
+export class ActionCatalogService implements OnModuleInit {
+  private actions: Map<string, AIAction> = new Map();
+  private handlers: Map<string, Function> = new Map();
+
+  onModuleInit() {
+    this.registerCoreActions();
+  }
+
+  /**
+   * Register an action (called by modules on init)
+   */
+  registerAction(action: AIAction, handler: Function): void {
+    this.actions.set(action.id, action);
+    this.handlers.set(action.id, handler);
+  }
+
+  /**
+   * Get all registered actions
+   */
+  getAllActions(): AIAction[] {
+    return Array.from(this.actions.values());
+  }
+
+  /**
+   * Get actions filtered for current context
+   */
+  getAvailableActions(
+    permissions: string[],
+    features: string[],
+    entityType?: string,
+    entityData?: Record<string, any>,
+  ): AIAction[] {
+    return Array.from(this.actions.values()).filter(action => {
+      // Permission filter
+      if (!action.requiredPermissions.every(p => permissions.includes(p))) {
+        return false;
+      }
+
+      // Feature filter
+      if (!action.requiredFeatures.every(f => features.includes(f))) {
+        return false;
+      }
+
+      // Entity type filter
+      if (action.contextRequirements.entityType) {
+        if (!entityType || !action.contextRequirements.entityType.includes(entityType)) {
+          return false;
+        }
+      }
+
+      // Condition filter
+      if (action.contextRequirements.conditions && entityData) {
+        for (const condition of action.contextRequirements.conditions) {
+          if (!this.evaluateCondition(condition, entityData)) {
+            return false;
+          }
+        }
+      }
+
+      return true;
+    });
+  }
+
+  /**
+   * Execute an action
+   */
+  async executeAction(
+    request: ActionExecutionRequest,
+    userId: string,
+    organizationId: string,
+  ): Promise<ActionExecutionResult> {
+    const action = this.actions.get(request.actionId);
+    if (!action) {
+      throw new Error(`Action not found: ${request.actionId}`);
+    }
+
+    const handler = this.handlers.get(request.actionId);
+    if (!handler) {
+      throw new Error(`Handler not found for action: ${request.actionId}`);
+    }
+
+    // Execute the handler
+    const result = await handler(request, userId, organizationId);
+
+    // Create undo record if action is reversible
+    if (action.reversibility !== 'none') {
+      result.undoRecord = await this.createUndoRecord(action, request, result);
+    }
+
+    return result;
+  }
+
+  private evaluateCondition(condition: string, data: Record<string, any>): boolean {
+    // Simple condition evaluation: "status != closed"
+    const match = condition.match(/^(\w+)\s*(=|!=|>|<)\s*(.+)$/);
+    if (!match) return true;
+
+    const [, field, operator, value] = match;
+    const fieldValue = data[field];
+
+    switch (operator) {
+      case '=': return fieldValue === value;
+      case '!=': return fieldValue !== value;
+      case '>': return fieldValue > value;
+      case '<': return fieldValue < value;
+      default: return true;
+    }
+  }
+
+  private async createUndoRecord(
+    action: AIAction,
+    request: ActionExecutionRequest,
+    result: ActionExecutionResult,
+  ): Promise<UndoRecord> {
+    const undoWindowMinutes = action.undoWindowMinutes || 5;
+
+    return {
+      id: crypto.randomUUID(),
+      actionId: action.id,
+      entityType: request.entityType,
+      entityId: request.entityId,
+      previousState: Object.fromEntries(
+        result.changes.map(c => [c.field, c.oldValue])
+      ),
+      newState: Object.fromEntries(
+        result.changes.map(c => [c.field, c.newValue])
+      ),
+      executedAt: new Date(),
+      undoExpiresAt: new Date(Date.now() + undoWindowMinutes * 60 * 1000),
+      status: 'available',
+    };
+  }
+
+  private registerCoreActions(): void {
+    // Core actions are registered by each module
+    // See TECH-SPEC-AI-AGENT.md for complete action catalog
+  }
+}
+```
+
+### 3.4 Model Selection Strategy
+
+Task-based automatic model routing with tier-based access to premium models (AA.19).
+
+```typescript
+// apps/backend/src/modules/ai/routing/model-router.service.ts
+
+import { Injectable } from '@nestjs/common';
+
+export type ModelTier = 'fast' | 'standard' | 'premium';
+
+export interface ModelRoutingRule {
+  taskType: string;
+  defaultModel: ModelTier;
+  upgradeConditions?: string[];
+}
+
+export interface ModelConfig {
+  tier: ModelTier;
+  provider: string;
+  model: string;
+  maxTokens: number;
+  costMultiplier: number;  // 1.0 = standard, 3.0 = premium
+}
+
+const MODEL_CONFIGS: Record<ModelTier, ModelConfig> = {
+  fast: {
+    tier: 'fast',
+    provider: 'claude',
+    model: 'claude-3-5-haiku-20241022',
+    maxTokens: 8192,
+    costMultiplier: 0.25,
+  },
+  standard: {
+    tier: 'standard',
+    provider: 'claude',
+    model: 'claude-sonnet-4-20250514',
+    maxTokens: 16384,
+    costMultiplier: 1.0,
+  },
+  premium: {
+    tier: 'premium',
+    provider: 'claude',
+    model: 'claude-opus-4-20250514',
+    maxTokens: 32768,
+    costMultiplier: 3.0,
+  },
+};
+
+const ROUTING_RULES: ModelRoutingRule[] = [
+  // Fast model (Haiku)
+  { taskType: 'inline_suggestion', defaultModel: 'fast' },
+  { taskType: 'autocomplete', defaultModel: 'fast' },
+  { taskType: 'simple_lookup', defaultModel: 'fast' },
+  { taskType: 'entity_reference', defaultModel: 'fast' },
+
+  // Standard model (Sonnet)
+  { taskType: 'chat_response', defaultModel: 'standard' },
+  { taskType: 'skill_execution', defaultModel: 'standard' },
+  { taskType: 'entity_summary', defaultModel: 'standard' },
+  { taskType: 'action_planning', defaultModel: 'standard' },
+  { taskType: 'policy_generation', defaultModel: 'standard' },
+  { taskType: 'translation', defaultModel: 'standard' },
+
+  // Premium model (Opus) or upgrade conditions
+  {
+    taskType: 'complex_analysis',
+    defaultModel: 'premium',
+  },
+  {
+    taskType: 'document_generation',
+    defaultModel: 'standard',
+    upgradeConditions: ['formal_report', 'external_facing', 'legal_document'],
+  },
+  {
+    taskType: 'cross_entity_analysis',
+    defaultModel: 'standard',
+    upgradeConditions: ['entity_count > 20', 'requires_nuanced_judgment'],
+  },
+];
+
+@Injectable()
+export class ModelRouterService {
+  /**
+   * Select appropriate model for a task
+   */
+  selectModel(
+    taskType: string,
+    context: {
+      organizationPlan: 'starter' | 'professional' | 'enterprise';
+      documentLength?: number;
+      entityCount?: number;
+      flags?: string[];
+      userOverride?: ModelTier;
+    },
+  ): ModelConfig {
+    // Check for user override (professional/enterprise only)
+    if (context.userOverride && context.organizationPlan !== 'starter') {
+      if (this.tierAllowed(context.userOverride, context.organizationPlan)) {
+        return MODEL_CONFIGS[context.userOverride];
+      }
+    }
+
+    // Find routing rule
+    const rule = ROUTING_RULES.find(r => r.taskType === taskType);
+    if (!rule) {
+      return MODEL_CONFIGS['standard'];  // Default
+    }
+
+    let selectedTier = rule.defaultModel;
+
+    // Check upgrade conditions
+    if (rule.upgradeConditions) {
+      for (const condition of rule.upgradeConditions) {
+        if (this.evaluateUpgradeCondition(condition, context)) {
+          selectedTier = 'premium';
+          break;
+        }
+      }
+    }
+
+    // Enforce plan limits
+    if (!this.tierAllowed(selectedTier, context.organizationPlan)) {
+      selectedTier = this.getMaxAllowedTier(context.organizationPlan);
+    }
+
+    return MODEL_CONFIGS[selectedTier];
+  }
+
+  private tierAllowed(tier: ModelTier, plan: string): boolean {
+    const planTiers: Record<string, ModelTier[]> = {
+      starter: ['fast', 'standard'],
+      professional: ['fast', 'standard', 'premium'],
+      enterprise: ['fast', 'standard', 'premium'],
+    };
+    return planTiers[plan]?.includes(tier) ?? false;
+  }
+
+  private getMaxAllowedTier(plan: string): ModelTier {
+    switch (plan) {
+      case 'enterprise':
+      case 'professional':
+        return 'premium';
+      default:
+        return 'standard';
+    }
+  }
+
+  private evaluateUpgradeCondition(
+    condition: string,
+    context: Record<string, any>,
+  ): boolean {
+    // Simple flag check
+    if (context.flags?.includes(condition)) {
+      return true;
+    }
+
+    // Numeric condition: "entity_count > 20"
+    const match = condition.match(/^(\w+)\s*([><=])\s*(\d+)$/);
+    if (match) {
+      const [, field, op, value] = match;
+      const fieldValue = context[field];
+      if (fieldValue !== undefined) {
+        switch (op) {
+          case '>': return fieldValue > parseInt(value);
+          case '<': return fieldValue < parseInt(value);
+          case '=': return fieldValue === parseInt(value);
+        }
+      }
+    }
+
+    return false;
+  }
+}
+```
+
+### 3.5 Scoped Agents
+
+Instead of one AI that dynamically adjusts scope, we use specialized agents for different views (AA.17).
+
+```typescript
+// apps/backend/src/modules/ai/agents/agent-type.interface.ts
+
+export interface AgentType {
+  id: string;
+  name: string;
+  description: string;
+  scope: 'entity' | 'program';
+
+  // What it loads automatically
+  contextLoading: {
+    primaryEntity: boolean;
+    linkedEntities: 'full' | 'summary' | 'none';
+    activityDepth: number;  // How many activity entries to load
+    programData?: {
+      assignedItems: boolean;
+      recentActivity: boolean;
+      trends: boolean;
+    };
+  };
+
+  // Behavioral defaults
+  persona: {
+    description: string;
+    defaultTone: 'analytical' | 'supportive' | 'executive';
+    thinkingStyle: string;
+  };
+
+  // Skill availability
+  availableSkillCategories: string[];
+  defaultSkills: string[];
+}
+
+// Predefined agent types
+export const AGENT_TYPES: Record<string, AgentType> = {
+  'investigation': {
+    id: 'investigation',
+    name: 'Investigation Assistant',
+    description: 'Helps conduct thorough investigations with proper documentation',
+    scope: 'entity',
+    contextLoading: {
+      primaryEntity: true,
+      linkedEntities: 'summary',
+      activityDepth: 100,
+    },
+    persona: {
+      description: 'I help you conduct thorough investigations with proper documentation.',
+      defaultTone: 'analytical',
+      thinkingStyle: 'Focuses on evidence, interviews, findings, and defensible conclusions',
+    },
+    availableSkillCategories: ['investigation', 'interviews', 'documentation'],
+    defaultSkills: ['/interview-prep', '/summarize-findings', '/evidence-checklist'],
+  },
+
+  'case': {
+    id: 'case',
+    name: 'Case Manager',
+    description: 'Helps manage cases and see the full picture',
+    scope: 'entity',
+    contextLoading: {
+      primaryEntity: true,
+      linkedEntities: 'full',  // Load all linked RIUs and investigations
+      activityDepth: 50,
+    },
+    persona: {
+      description: 'I help you manage cases and track all related information.',
+      defaultTone: 'supportive',
+      thinkingStyle: 'Focuses on status, assignments, timeline, and next steps',
+    },
+    availableSkillCategories: ['case-management', 'routing', 'communication'],
+    defaultSkills: ['/case-summary', '/assign', '/send-reminder'],
+  },
+
+  'riu': {
+    id: 'riu',
+    name: 'Intake Assistant',
+    description: 'Helps review and process intake reports',
+    scope: 'entity',
+    contextLoading: {
+      primaryEntity: true,
+      linkedEntities: 'summary',
+      activityDepth: 20,
+    },
+    persona: {
+      description: 'I help you review and process intake reports.',
+      defaultTone: 'analytical',
+      thinkingStyle: 'Focuses on categorization, severity, and routing decisions',
+    },
+    availableSkillCategories: ['intake', 'categorization', 'qa'],
+    defaultSkills: ['/categorize', '/summarize-report', '/suggest-routing'],
+  },
+
+  'compliance-manager': {
+    id: 'compliance-manager',
+    name: 'Compliance Manager',
+    description: 'Helps oversee compliance program and spot patterns',
+    scope: 'program',
+    contextLoading: {
+      primaryEntity: false,
+      linkedEntities: 'none',
+      activityDepth: 20,
+      programData: {
+        assignedItems: true,
+        recentActivity: true,
+        trends: true,
+      },
+    },
+    persona: {
+      description: 'I help you oversee your compliance program and spot patterns.',
+      defaultTone: 'executive',
+      thinkingStyle: 'Focuses on trends, risks, overdue items, and strategic insights',
+    },
+    availableSkillCategories: ['reporting', 'analytics', 'oversight'],
+    defaultSkills: ['/weekly-summary', '/overdue-items', '/trend-analysis'],
+  },
+
+  'policy': {
+    id: 'policy',
+    name: 'Policy Assistant',
+    description: 'Helps with policy lifecycle management',
+    scope: 'entity',
+    contextLoading: {
+      primaryEntity: true,
+      linkedEntities: 'summary',
+      activityDepth: 30,
+    },
+    persona: {
+      description: 'I help you create, update, and manage policies.',
+      defaultTone: 'analytical',
+      thinkingStyle: 'Focuses on compliance requirements, clarity, and version control',
+    },
+    availableSkillCategories: ['policy', 'translation', 'attestation'],
+    defaultSkills: ['/generate-policy', '/translate', '/create-quiz'],
+  },
+};
+```
+
+**Agent Selection Service:**
+
+```typescript
+// apps/backend/src/modules/ai/agents/agent-selector.service.ts
+
+import { Injectable } from '@nestjs/common';
+import { AgentType, AGENT_TYPES } from './agent-type.interface';
+
+@Injectable()
+export class AgentSelectorService {
+  /**
+   * Select appropriate agent based on current view
+   */
+  selectAgent(
+    viewType: string,
+    entityType?: string,
+  ): AgentType {
+    // View-based selection
+    switch (viewType) {
+      case 'dashboard':
+      case 'analytics':
+        return AGENT_TYPES['compliance-manager'];
+
+      case 'case-detail':
+        return AGENT_TYPES['case'];
+
+      case 'investigation-detail':
+        return AGENT_TYPES['investigation'];
+
+      case 'riu-detail':
+      case 'intake':
+        return AGENT_TYPES['riu'];
+
+      case 'policy-detail':
+      case 'policy-editor':
+        return AGENT_TYPES['policy'];
+
+      default:
+        // Entity-based fallback
+        if (entityType) {
+          const agentMap: Record<string, string> = {
+            'case': 'case',
+            'investigation': 'investigation',
+            'riu': 'riu',
+            'policy': 'policy',
+          };
+          const agentId = agentMap[entityType];
+          if (agentId && AGENT_TYPES[agentId]) {
+            return AGENT_TYPES[agentId];
+          }
+        }
+
+        // Default to compliance manager
+        return AGENT_TYPES['compliance-manager'];
+    }
+  }
+}
+```
+
+---
+
+## 4. AI Provider Abstraction
+
+### 4.1 Provider Interface
 
 ```typescript
 // apps/backend/src/modules/ai/interfaces/ai-provider.interface.ts
+
+// Import agent-related types from Section 3
+import { ContextHierarchy } from '../context/context-hierarchy.interface';
+import { AIAction } from '../actions/action.interface';
+import { Skill } from '../skills/skill.interface';
 
 export interface AIProviderConfig {
   apiKey?: string;
@@ -200,10 +1302,62 @@ export interface AICompletionRequest {
   maxTokens?: number;
   temperature?: number;
   stopSequences?: string[];
-  metadata?: {
+
+  // Required metadata for all requests
+  metadata: {
     organizationId: string;
     userId: string;
     operationType: AIOperationType;
+    teamId?: string;
+    entityType?: string;
+    entityId?: string;
+  };
+
+  // === NEW: AI Agent Architecture Fields (v3.0) ===
+
+  /**
+   * Loaded context from each hierarchy level (AA.12)
+   * Contains platform, org, team, user, and entity context
+   */
+  contextHierarchy?: ContextHierarchy;
+
+  /**
+   * Actions available to AI in current context (AA.9)
+   * Pre-filtered based on user permissions, org features, and entity state
+   */
+  availableActions?: AIAction[];
+
+  /**
+   * Skills available in current context (AA.12)
+   * Merged from platform, org, team, and user levels
+   */
+  activeSkills?: Skill[];
+
+  /**
+   * Which scoped agent is active (AA.17)
+   * Determines context loading strategy and available capabilities
+   */
+  agentType?: 'investigation' | 'case' | 'riu' | 'compliance-manager' | 'policy';
+
+  /**
+   * Model selection override (AA.19)
+   * Allows user to request specific model tier
+   */
+  modelOverride?: 'fast' | 'standard' | 'premium';
+
+  /**
+   * Task type for automatic model routing (AA.19)
+   */
+  taskType?: string;
+
+  /**
+   * Session context for pause/resume (AA.13)
+   */
+  sessionContext?: {
+    sessionId?: string;
+    previousDecisions?: string[];
+    pendingActions?: string[];
+    draftContent?: string;
   };
 }
 
@@ -225,6 +1379,7 @@ export interface AIStreamChunk {
 }
 
 export type AIOperationType =
+  // Content generation
   | 'policy_generation'
   | 'bulk_update'
   | 'translation'
@@ -233,7 +1388,16 @@ export type AIOperationType =
   | 'auto_tagging'
   | 'summarization'
   | 'quiz_generation'
-  | 'regulatory_mapping';
+  | 'regulatory_mapping'
+  // Agent operations (v3.0)
+  | 'chat_response'          // Conversational AI response
+  | 'skill_execution'        // Executing a registered skill
+  | 'action_planning'        // AI planning action sequence
+  | 'action_execution'       // AI executing registered action
+  | 'inline_suggestion'      // Ghost text / autocomplete
+  | 'entity_summary'         // Summarizing current entity
+  | 'cross_entity_query'     // Querying across multiple entities
+  | 'complex_analysis';      // Deep analysis requiring premium model
 
 export interface AIProvider {
   readonly name: string;
@@ -251,7 +1415,7 @@ export interface AIProvider {
 }
 ```
 
-### 3.2 Claude Provider Implementation
+### 4.2 Claude Provider Implementation
 
 ```typescript
 // apps/backend/src/modules/ai/providers/claude.provider.ts
@@ -415,7 +1579,7 @@ Guidelines:
 }
 ```
 
-### 3.3 Azure OpenAI Provider
+### 4.3 Azure OpenAI Provider
 
 ```typescript
 // apps/backend/src/modules/ai/providers/azure-openai.provider.ts
@@ -567,7 +1731,7 @@ export class AzureOpenAIProvider implements AIProvider {
 }
 ```
 
-### 3.4 Provider Manager
+### 4.4 Provider Manager
 
 ```typescript
 // apps/backend/src/modules/ai/ai-provider.manager.ts
@@ -644,7 +1808,7 @@ export class AIProviderManager {
 
 ---
 
-## 4. Policy Generation
+## 5. Policy Generation
 
 ### 4.1 Generation Service
 
@@ -1390,7 +2554,7 @@ interface RegulatoryMappingPromptInput {
 
 ---
 
-## 5. Bulk Policy Updates
+## 6. Bulk Policy Updates
 
 ### 5.1 Bulk Update Service
 
@@ -1771,7 +2935,7 @@ export class BulkUpdateProcessor extends WorkerHost {
 
 ---
 
-## 6. AI-Powered Translation
+## 7. AI-Powered Translation
 
 ### 6.1 Translation Service
 
@@ -2032,7 +3196,7 @@ export class TranslationService {
 
 ---
 
-## 7. Policy Analysis & Insights
+## 8. Policy Analysis & Insights
 
 ### 7.1 Analysis Service
 
@@ -2300,9 +3464,9 @@ interface VersionComparison {
 
 ---
 
-## 8. AI Auto-Tagging
+## 9. AI Auto-Tagging
 
-### 8.1 Auto-Tagging Service
+### 9.1 Auto-Tagging Service
 
 ```typescript
 // apps/backend/src/modules/ai/services/auto-tagging.service.ts
@@ -2611,7 +3775,7 @@ Guidelines:
 }
 ```
 
-### 8.2 Auto-Tag Configuration
+### 9.2 Auto-Tag Configuration
 
 ```typescript
 // apps/backend/src/modules/ai/config/auto-tag.config.ts
@@ -2656,9 +3820,9 @@ export const POLICY_TAG_TAXONOMY = {
 
 ---
 
-## 9. AI Policy Summarization
+## 10. AI Policy Summarization
 
-### 9.1 Summarization Service
+### 10.1 Summarization Service
 
 ```typescript
 // apps/backend/src/modules/ai/services/summarization.service.ts
@@ -2902,9 +4066,9 @@ Highlight areas requiring legal attention.`,
 
 ---
 
-## 10. AI Quiz Generation
+## 11. AI Quiz Generation
 
-### 10.1 Quiz Generation Service
+### 11.1 Quiz Generation Service
 
 ```typescript
 // apps/backend/src/modules/ai/services/quiz-generation.service.ts
@@ -3242,9 +4406,9 @@ interface GradedAnswer {
 
 ---
 
-## 11. Regulatory Mapping Assistance
+## 12. Regulatory Mapping Assistance
 
-### 11.1 Regulatory Mapping Service
+### 12.1 Regulatory Mapping Service
 
 ```typescript
 // apps/backend/src/modules/ai/services/regulatory-mapping.service.ts
@@ -3660,9 +4824,9 @@ interface PolicySuggestion {
 
 ---
 
-## 12. Prompt Engineering
+## 13. Prompt Engineering
 
-### 8.1 Prompt Templates
+### 13.1 Prompt Templates
 
 ```typescript
 // apps/backend/src/modules/ai/prompts/policy-templates.ts
@@ -3793,7 +4957,7 @@ export const GENERATION_GUIDELINES = `
 `;
 ```
 
-### 8.2 Prompt Safety
+### 13.2 Prompt Safety
 
 ```typescript
 // apps/backend/src/modules/ai/prompt-safety.ts
@@ -3869,9 +5033,9 @@ export class PromptSafety {
 
 ---
 
-## 9. Rate Limiting & Cost Control
+## 14. Rate Limiting & Cost Control
 
-### 9.1 Rate Limiter
+### 14.1 Rate Limiter
 
 ```typescript
 // apps/backend/src/modules/ai/rate-limiter.ts
@@ -4057,7 +5221,7 @@ export class AIRateLimiter {
 }
 ```
 
-### 9.2 Usage Dashboard
+### 14.2 Usage Dashboard
 
 ```typescript
 // apps/backend/src/modules/ai/services/usage.service.ts
@@ -4205,9 +5369,9 @@ export class AIUsageService {
 
 ---
 
-## 10. Security & Privacy
+## 15. Security & Privacy
 
-### 10.1 Data Privacy Rules
+### 15.1 Data Privacy Rules
 
 ```typescript
 // apps/backend/src/modules/ai/security/data-privacy.ts
@@ -4250,7 +5414,7 @@ export class AIDataPrivacy {
 }
 ```
 
-### 10.2 Tenant Data Isolation
+### 15.2 Tenant Data Isolation
 
 ```typescript
 // apps/backend/src/modules/ai/security/tenant-isolation.ts
@@ -4396,7 +5560,7 @@ export class AIAuditService {
 
 ---
 
-## 11. Error Handling
+## 16. Error Handling
 
 ### 11.1 AI Error Types
 
@@ -4532,7 +5696,7 @@ export class AIErrorHandler {
 
 ---
 
-## 12. API Specifications
+## 17. API Specifications
 
 ### 12.1 Policy Generation API
 
@@ -5111,7 +6275,7 @@ export class AIErrorHandler {
 
 ---
 
-## 17. Implementation Guide
+## 18. Implementation Guide
 
 ### 17.1 Phase 1: Core Infrastructure (Week 1)
 

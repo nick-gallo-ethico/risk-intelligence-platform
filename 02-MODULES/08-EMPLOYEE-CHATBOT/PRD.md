@@ -1,19 +1,33 @@
 # Ethico Risk Intelligence Platform
-## PRD-008: Employee Chatbot
+## PRD-008: Employee Chatbot (Employee Portal Agent)
 
 **Document ID:** PRD-008
-**Version:** 2.0 (RIU - Risk Intelligence Unit)
+**Version:** 3.0 (AI Agent Architecture)
 **Priority:** P1 - High (Extended Module)
 **Development Phase:** Phase 3 (Weeks 13-20)
 **Last Updated:** February 2026
 
-> **Architecture Reference:** This PRD implements the RIU→Case architecture defined in `00-PLATFORM/01-PLATFORM-VISION.md v3.2`. Every completed chatbot conversation creates an **immutable RIU** (Risk Intelligence Unit) of type `chatbot_transcript`. Case creation is **outcome-based**—only conversations that result in escalation, human review flags, or formal intake create Cases.
+> **Architecture References:**
+> - **RIU→Case:** Implements the RIU→Case architecture defined in `00-PLATFORM/01-PLATFORM-VISION.md v3.2`. Every completed chatbot conversation creates an **immutable RIU** (Risk Intelligence Unit) of type `chatbot_transcript`. Case creation is **outcome-based**—only conversations that result in escalation, human review flags, or formal intake create Cases.
+> - **AI Agent:** The Employee Chatbot is the **Employee Portal Agent**—one of the platform's scoped agents as defined in `00-PLATFORM/WORKING-DECISIONS.md` (AA.17). It inherits from the platform's AI architecture: context hierarchy (AA.12), skills system (AA.12, AA.16), pause/resume pattern (AA.13), and action catalog (AA.9).
 
 ---
 
 ## 1. Executive Summary
 
-The Employee Chatbot is an AI-powered conversational interface that serves as the primary self-service channel for employees interacting with the Ethico platform. It provides a natural language interface for speak-up reporting, policy questions, disclosure assistance, case status checks, and compliance team inquiries.
+The Employee Chatbot is the **Employee Portal Agent**—a specialized AI agent that serves as the primary self-service channel for employees interacting with the Ethico platform. As one of the platform's scoped agents (alongside Investigation Agent, Case Agent, Compliance Manager Agent, etc.), it provides a natural language interface optimized for employee-facing workflows: speak-up reporting, policy questions, disclosure assistance, case status checks, and compliance team inquiries.
+
+### Agent Identity
+
+The Employee Portal Agent is distinct from other platform agents in its scope, context loading, and available skills:
+
+| Aspect | Employee Portal Agent | vs. Other Agents |
+|--------|----------------------|------------------|
+| **Primary Users** | Employees (authenticated + anonymous) | Compliance staff, investigators |
+| **Context Scope** | Employee-centric (their reports, policies, disclosures) | Entity-centric (cases, investigations) |
+| **Persona** | Supportive, approachable, non-judgmental | Analytical, executive, process-focused |
+| **Default Skills** | `/report`, `/policy-qa`, `/check-status`, `/disclose` | `/summarize`, `/interview-prep`, `/trends` |
+| **Action Authority** | Create RIUs, submit forms, relay messages | Update cases, assign, close |
 
 **This module reuses patterns established in other PRDs:**
 - Case creation workflow (from PRD-005 Case Management)
@@ -38,12 +52,16 @@ The Employee Chatbot is an AI-powered conversational interface that serves as th
 
 ### Key Design Principles
 
-1. **Tiered AI Model** - Direct answers when confident, escalate when uncertain
-2. **Confidence Transparency** - Always indicate when quoting policy vs. interpreting
-3. **One-Click Human Access** - Never trap users in AI purgatory
-4. **Async Over Live** - Match compliance team staffing realities (1-5 people, not call centers)
-5. **Context Preservation** - Full conversation history for audit and handoff
-6. **Channel Unification** - Responses delivered where conversation started
+1. **Scoped Agent Architecture** - Specialized agent with employee-focused context, skills, and persona
+2. **Skills-Based Interaction** - Employees invoke capabilities through natural language that maps to skills
+3. **Tiered AI Model** - Direct answers when confident, escalate when uncertain
+4. **Confidence Transparency** - Always indicate when quoting policy vs. interpreting
+5. **One-Click Human Access** - Never trap users in AI purgatory
+6. **Context Hierarchy Inheritance** - Org terminology, writing standards, and policies automatically applied
+7. **Pause/Resume Pattern** - Session context persists across interruptions
+8. **Async Over Live** - Match compliance team staffing realities (1-5 people, not call centers)
+9. **Context Preservation** - Full conversation history for audit and handoff
+10. **Channel Unification** - Responses delivered where conversation started
 
 ---
 
@@ -169,6 +187,313 @@ Even when no Case is created, chatbot RIUs provide valuable analytics:
 | Abandoned intake patterns | Where users drop off |
 | Self-service deflection rate | Q&A RIUs that didn't escalate |
 | Chatbot effectiveness | Resolution rate without human |
+
+---
+
+## 1.2 AI Agent Architecture
+
+The Employee Chatbot implements the platform's AI Agent architecture as defined in WORKING-DECISIONS.md (AA.8-AA.17). This section details how the Employee Portal Agent fits within the broader agent ecosystem.
+
+### 1.2.1 Agent Definition
+
+```typescript
+const employeePortalAgent: AgentType = {
+  id: 'employee-portal',
+  name: 'Employee Portal Assistant',
+  scope: 'employee',  // Unique scope for employee-facing interactions
+
+  contextLoading: {
+    primaryEntity: false,  // Not entity-focused like Case/Investigation agents
+    linkedEntities: 'none',
+    activityDepth: 10,     // Limited history (employee's own interactions)
+    employeeData: {
+      ownReports: true,         // Cases they submitted
+      pendingDisclosures: true, // Outstanding disclosure requests
+      ownAttestations: true,    // Policy attestation status
+      knowledgeBase: true,      // Org's policy knowledge base
+    },
+  },
+
+  persona: {
+    description: "I'm here to help you report concerns, understand policies, and manage your compliance tasks.",
+    defaultTone: 'supportive',  // Approachable, non-judgmental
+    thinkingStyle: 'Focuses on guiding employees through processes, answering questions clearly, and connecting to human help when needed',
+  },
+
+  availableSkillCategories: ['intake', 'policy-qa', 'status', 'disclosure'],
+  defaultSkills: ['/report', '/policy-qa', '/check-status', '/disclose', '/escalate'],
+};
+```
+
+### 1.2.2 Context Hierarchy
+
+The Employee Portal Agent inherits from the platform's context hierarchy (AA.12), loading context in this order:
+
+```
+Context Loading Order:
+─────────────────────────────────────────────────────────
+1. Platform Context     → Agent definition, skill catalog, action permissions
+2. Organization Context → Org-level CONTEXT.md (terminology, policies, escalation rules)
+3. Employee Context     → Employee's own data, pending tasks, interaction history
+4. Session Context      → Current conversation, drafts, session notes
+```
+
+**Organization Context Example (auto-injected):**
+```markdown
+# Acme Corp Employee Portal Context
+
+## Terminology
+- Use "Associate" instead of "Employee"
+- Call our ethics line the "Integrity Hotline"
+- Reference "People & Culture" not "HR"
+
+## Reporting Standards
+- Anonymous reports encouraged - never pressure for identity
+- Remind reporters: retaliation is prohibited
+- Always offer hotline as alternative channel
+
+## Disclosure Rules
+- Gift threshold: $100
+- COI disclosure required within 30 days of awareness
+- Travel gifts must be disclosed regardless of value
+```
+
+### 1.2.3 Context Window Display
+
+The Employee Portal Agent shows context usage like other agents:
+
+```
+┌─────────────────────────────────────────────────────────┐
+│ 💬 Employee Portal Assistant        [Context: 25%]      │
+├─────────────────────────────────────────────────────────┤
+│ Context Breakdown                              25%      │
+│─────────────────────────────────────────────────────────│
+│ Organization context (policies)      ██░░░░░░    10%   │
+│ Knowledge base (relevant docs)       ██░░░░░░     8%   │
+│ Employee data (your history)         █░░░░░░░     4%   │
+│ Current conversation                 █░░░░░░░     3%   │
+│─────────────────────────────────────────────────────────│
+│ Available                            ███████████  75%   │
+│ (ample room for detailed questions)                     │
+└─────────────────────────────────────────────────────────┘
+```
+
+### 1.2.4 Available Skills
+
+The Employee Portal Agent has access to employee-focused skills:
+
+**Platform Skills (built-in):**
+| Skill | Description | Maps to Flow |
+|-------|-------------|--------------|
+| `/report` | Start or resume a speak-up report | Section 4.1 Report Intake |
+| `/policy-qa` | Ask questions about policies | Section 4.2 Policy Q&A |
+| `/check-status` | Check status of submitted reports | Section 4.3 Status Check |
+| `/disclose` | Submit or update a disclosure | Section 4.4 Disclosure |
+| `/escalate` | Talk to a human (compliance team) | Section 4.5 Inquiry |
+| `/help` | See what the chatbot can do | Shows available options |
+
+**Organization Skills (org-defined, examples):**
+| Skill | Description |
+|-------|-------------|
+| `/gift-check` | Quick gift acceptance guidance |
+| `/coi-triage` | Determine if COI disclosure needed |
+| `/training-status` | Check compliance training completion |
+
+**Skill Invocation (Natural Language Mapping):**
+```
+User: "I need to report something"        → /report skill
+User: "Can I accept concert tickets?"     → /policy-qa with gift context
+User: "What's happening with my case?"    → /check-status skill
+User: "I need to disclose a COI"          → /disclose skill
+User: "I want to talk to someone"         → /escalate skill
+```
+
+### 1.2.5 Action Catalog (Capabilities)
+
+The Employee Portal Agent can execute these actions via the platform's Action Catalog (AA.9):
+
+**Actions Available:**
+```typescript
+const employeePortalActions: AIAction[] = [
+  // RIU Creation
+  {
+    id: 'chatbot.create_riu',
+    label: 'Create RIU from conversation',
+    requiredPermissions: [],  // Any employee can submit
+    contextRequirements: {
+      conversationType: ['INTAKE', 'ESCALATION'],
+      conditions: ['conversation_complete']
+    },
+    reversibility: 'none',
+  },
+
+  // Status Check
+  {
+    id: 'chatbot.lookup_case',
+    label: 'Look up case by access code',
+    requiredPermissions: [],
+    contextRequirements: {
+      conditions: ['valid_access_code']
+    },
+  },
+
+  // Message Relay
+  {
+    id: 'chatbot.send_message',
+    label: 'Send message to case',
+    requiredPermissions: [],
+    contextRequirements: {
+      conditions: ['authenticated_reporter || valid_access_code']
+    },
+    reversibility: 'none',
+  },
+
+  // Disclosure
+  {
+    id: 'chatbot.create_disclosure',
+    label: 'Submit disclosure',
+    requiredPermissions: ['employee'],
+    reversibility: 'soft',  // Can edit within grace period
+  },
+
+  // Inquiry
+  {
+    id: 'chatbot.create_inquiry',
+    label: 'Create inquiry for compliance team',
+    requiredPermissions: [],
+    reversibility: 'none',
+  },
+
+  // Knowledge Base Search
+  {
+    id: 'chatbot.search_policies',
+    label: 'Search policy knowledge base',
+    requiredPermissions: [],
+  },
+];
+```
+
+**Actions NOT Available (require other agents/roles):**
+- `case.assign` - Compliance staff only
+- `case.close` - Investigators/compliance only
+- `investigation.create` - System or compliance only
+- `user.manage` - Admin only
+
+### 1.2.6 Pause/Resume Pattern (AA.13)
+
+The Employee Portal Agent implements pause/resume for interrupted sessions:
+
+**On Pause (user closes window, navigates away, or timeout):**
+```
+┌─────────────────────────────────────────────────────────┐
+│ 📌 Save your progress?                                   │
+│                                                          │
+│ **Report in progress:**                                  │
+│ • Category: Harassment concern                           │
+│ • Location: Chicago Office (captured)                    │
+│ • Timing: Ongoing (captured)                             │
+│ • Details: Partial narrative entered                     │
+│                                                          │
+│ You can resume anytime with your access code:            │
+│ 🔑 CHAT-ABC-123                                          │
+│                                                          │
+│ [Save & Exit]  [Continue Report]  [Discard]              │
+└─────────────────────────────────────────────────────────┘
+```
+
+**Session Context Saved (not raw transcript):**
+```typescript
+interface ChatbotSessionContext {
+  id: string;
+  conversationId: string;
+  organizationId: string;
+
+  // What's preserved (structured, not raw chat)
+  conversationType: string;
+  currentFlow: string;           // 'intake', 'policy-qa', 'disclosure'
+  flowStep: string;              // Where they stopped
+  extractedData: {               // Structured data captured so far
+    category?: string;
+    location?: string;
+    subjects?: string[];
+    narrative?: string;          // Draft narrative
+    // ... other fields based on flow
+  };
+  pendingQuestions: string[];    // What we still need to ask
+
+  // Resume mechanics
+  accessCode: string;            // For anonymous resume
+  resumeExpiresAt: DateTime;     // 48 hours default
+
+  // Lifecycle
+  status: 'active' | 'paused' | 'completed' | 'abandoned';
+  pausedAt?: DateTime;
+}
+```
+
+**On Resume:**
+```
+┌─────────────────────────────────────────────────────────┐
+│ 👋 Welcome back!                                         │
+│                                                          │
+│ You started a report 3 hours ago about a harassment      │
+│ concern at the Chicago Office.                           │
+│                                                          │
+│ **What we have so far:**                                 │
+│ • Location: Chicago Office                               │
+│ • Timing: Ongoing situation                              │
+│ • Your description (partial)                             │
+│                                                          │
+│ **What's needed:**                                       │
+│ • People involved                                        │
+│ • Any additional details                                 │
+│                                                          │
+│ Ready to continue?                                       │
+│                                                          │
+│ [Continue Report]  [Start Over]  [Talk to Someone]       │
+└─────────────────────────────────────────────────────────┘
+```
+
+### 1.2.7 Interaction Tiers (AA.8)
+
+The Employee Portal Agent supports all three interaction tiers:
+
+**Tier 1 - Inline (Limited in Chatbot Context):**
+- Auto-complete for location names, people names (HRIS lookup)
+- Suggested categories based on typed narrative
+
+**Tier 2 - Contextual:**
+- Quick action buttons: [Report a Concern] [Ask a Question] [Check Status]
+- Policy citation links in responses
+- "Explain this" option on policy quotes
+
+**Tier 3 - Full Conversation (Primary Mode):**
+- Full chat drawer experience
+- Multi-turn conversations for complex intake
+- Skills accessible via natural language
+
+### 1.2.8 Agent Handoff
+
+When an employee's chatbot conversation results in a Case, the agent hands off context to the Case Agent for compliance staff:
+
+```
+Employee Portal Agent (employee's conversation)
+         │
+         ▼
+    Creates RIU (chatbot_transcript)
+         │
+         ▼
+    Creates Case (if outcome requires)
+         │
+         ▼
+Case Agent (compliance staff views case)
+    │
+    │ Context handoff includes:
+    │ • Conversation summary (AI-generated)
+    │ • Extracted data (category, subjects, timeline)
+    │ • Confidence scores on AI classifications
+    │ • Full transcript (available, not auto-loaded)
+```
 
 ---
 
@@ -747,9 +1072,9 @@ CHATBOT_ACTIVITY
 
 ---
 
-## 3. Use Cases & Conversation Flows
+## 4. Use Cases & Conversation Flows
 
-### 3.1 Report Intake (Speak-Up)
+### 4.1 Report Intake (Speak-Up)
 
 **Purpose:** Guide employees through submitting an ethics/compliance report conversationally.
 
@@ -847,7 +1172,7 @@ HANDOFF OPTION (available throughout):
 - Triggers routing/assignment rules
 - RIU linked to Case via `riu_case_associations` (association_type: 'primary')
 
-### 3.2 Policy Q&A (Tiered Model)
+### 4.2 Policy Q&A (Tiered Model)
 
 **Purpose:** Answer employee questions about policies, procedures, and compliance topics.
 
@@ -920,7 +1245,7 @@ ONE-CLICK ESCALATION (Always Visible):
 3. Direct to hotline/email
 4. Let user choose
 
-### 3.3 Case Status Check
+### 4.3 Case Status Check
 
 **Purpose:** Allow reporters to check status and communicate about their case.
 
@@ -970,7 +1295,7 @@ ADDITIONAL ACTIONS:
 └── "I have a question about the process"
 ```
 
-### 3.4 Disclosure Assistance
+### 4.4 Disclosure Assistance
 
 **Purpose:** Help employees complete disclosure forms conversationally.
 
@@ -1032,7 +1357,7 @@ RIU CREATION (per RIU→Case architecture):
 ├── Case created only if disclosure thresholds met (per Disclosures PRD-006)
 ```
 
-### 3.5 Compliance Team Inquiry
+### 4.5 Compliance Team Inquiry
 
 **Purpose:** Submit questions to the compliance team when AI cannot help.
 
@@ -1068,7 +1393,7 @@ RESPONSE DELIVERY:
 
 ---
 
-## 4. Knowledge Base Architecture
+## 5. Knowledge Base Architecture
 
 ### 4.1 Document Sources
 
@@ -1166,7 +1491,7 @@ as they exceed the annual limit.
 
 ---
 
-## 5. Multi-Language Support
+## 6. Multi-Language Support
 
 ### 5.1 Language Detection
 
@@ -1203,7 +1528,7 @@ USER FIRST MESSAGE
 
 ---
 
-## 6. Access Points & Placement
+## 7. Access Points & Placement
 
 ### 6.1 Ethics Portal Widget (Public)
 
@@ -1290,7 +1615,7 @@ On click:
 
 ---
 
-## 7. Proactive Capabilities
+## 8. Proactive Capabilities
 
 ### 7.1 Notification-Triggered
 
@@ -1340,7 +1665,7 @@ Shall we get started?"
 
 ---
 
-## 8. Continuity & Draft Management
+## 9. Continuity & Draft Management
 
 ### 8.1 Auto-Save
 
@@ -1389,7 +1714,7 @@ WHAT'S CAPTURED:
 
 ---
 
-## 9. Human Handoff
+## 10. Human Handoff
 
 ### 9.1 Hotline Handoff
 
@@ -1427,7 +1752,7 @@ Would you like me to keep this window open while you call?"
 
 ---
 
-## 10. Permissions & Visibility
+## 11. Permissions & Visibility
 
 ### 10.1 Conversation Access
 
@@ -1459,7 +1784,7 @@ Would you like me to keep this window open while you call?"
 
 ---
 
-## 11. Compliance & Audit
+## 12. Compliance & Audit
 
 ### 11.1 Consent Capture
 
@@ -1526,7 +1851,7 @@ Would you like me to keep this window open while you call?"
 
 ---
 
-## 12. Integration Points
+## 13. Integration Points
 
 ### 12.1 Internal Modules
 
@@ -1566,7 +1891,7 @@ CHATBOT_HANDOFF_REQUESTED
 
 ---
 
-## 13. API Endpoints
+## 14. API Endpoints
 
 ### 13.1 Conversation Management
 
@@ -1807,7 +2132,7 @@ Returns: {
 
 ---
 
-## 14. Acceptance Criteria
+## 15. Acceptance Criteria
 
 ### 14.1 Functional Acceptance
 
@@ -1903,7 +2228,7 @@ Returns: {
 
 ---
 
-## 15. Error Handling & Edge Cases
+## 16. Error Handling & Edge Cases
 
 ### 15.1 AI Errors
 
@@ -1934,7 +2259,7 @@ Returns: {
 
 ---
 
-## 16. UI/UX Guidelines
+## 17. UI/UX Guidelines
 
 ### 16.1 Chat Message Display
 
@@ -2005,7 +2330,7 @@ Tier 3 (Low/Escalated):
 
 ---
 
-## 17. Appendix A: Sample Conversations
+## 18. Appendix A: Sample Conversations
 
 ### A.1 Report Intake Flow
 
@@ -2186,9 +2511,455 @@ CHATBOT: Thanks for the details. Based on our Gift &
 
 ---
 
-## 18. Appendix B: Prompt Templates
+## 19. Appendix B: AI Agent Architecture Details
 
-### B.1 Report Intake System Prompt
+### B.1 Employee Portal Agent Definition
+
+The Employee Portal Agent is defined as a scoped agent per AA.17:
+
+```typescript
+// Full Agent Definition
+const employeePortalAgent: AgentType = {
+  id: 'employee-portal',
+  name: 'Employee Portal Assistant',
+  scope: 'employee',
+
+  // Context Loading Configuration
+  contextLoading: {
+    primaryEntity: false,
+    linkedEntities: 'none',
+    activityDepth: 10,
+    employeeData: {
+      ownReports: true,
+      pendingDisclosures: true,
+      ownAttestations: true,
+      knowledgeBase: true,
+    },
+  },
+
+  // Persona Configuration
+  persona: {
+    description: "I'm here to help you report concerns, understand policies, and manage your compliance tasks.",
+    defaultTone: 'supportive',
+    thinkingStyle: 'Focuses on guiding employees through processes, answering questions clearly, and connecting to human help when needed',
+  },
+
+  // Skill Categories
+  availableSkillCategories: ['intake', 'policy-qa', 'status', 'disclosure', 'general'],
+  defaultSkills: ['/report', '/policy-qa', '/check-status', '/disclose', '/escalate'],
+
+  // Required Context Files
+  requiredContextFiles: ['organization'],
+  optionalContextFiles: ['team'],  // Team context rarely applies to employees
+};
+```
+
+### B.2 Skills Definitions
+
+Each chatbot capability is implemented as a skill:
+
+**Skill: /report (Report Intake)**
+```typescript
+const reportSkill: Skill = {
+  id: 'chatbot.report',
+  name: 'Report a Concern',
+  scope: 'platform',
+  description: 'Guide employee through submitting an ethics/compliance report',
+
+  promptTemplate: `
+You are the Employee Portal Assistant helping {{employee_name || 'an employee'}} report a concern.
+
+## Context from Organization
+{{org.terminology_guidelines}}
+{{org.reporting_standards}}
+
+## Your Approach
+1. Make the employee feel safe and heard
+2. Gather information through natural conversation, one question at a time
+3. Be patient and non-judgmental
+4. Never provide legal advice
+5. Encourage them to share what they're comfortable with
+
+## Information to Collect
+- What happened (narrative)
+- Where it happened (location)
+- When it happened (timing, ongoing?)
+- Who was involved (subjects)
+- Category of concern (suggest based on narrative)
+- Any supporting evidence
+
+## Conversation Guidelines
+- If the employee seems distressed, acknowledge their feelings
+- Always remind them: "You can call our {{org.hotline_name || 'hotline'}} at {{org.hotline_number}} anytime"
+- Thank them for speaking up
+- Never pressure for identity if they want to remain anonymous
+
+## On Completion
+Create RIU with type 'chatbot_transcript' and outcome 'SUBMITTED'.
+Link to Case via riu_case_associations.
+  `,
+
+  requiredContext: ['organization'],
+  parameters: [
+    { name: 'anonymous', type: 'boolean', default: true, description: 'Whether reporter wants anonymity' },
+  ],
+  allowedActions: ['chatbot.create_riu', 'chatbot.generate_access_code', 'chatbot.upload_attachment'],
+};
+```
+
+**Skill: /policy-qa (Policy Questions)**
+```typescript
+const policyQASkill: Skill = {
+  id: 'chatbot.policy-qa',
+  name: 'Ask Policy Questions',
+  scope: 'platform',
+  description: 'Answer employee questions about company policies using knowledge base',
+
+  promptTemplate: `
+You are the Employee Portal Assistant helping {{employee_name || 'an employee'}} understand company policies.
+
+## Context from Organization
+{{org.terminology_guidelines}}
+{{org.writing_standards}}
+
+## Knowledge Base
+The following documents are available for answering questions:
+{{knowledge_base_summary}}
+
+## Tiered Response Model
+
+### Tier 1: Direct Answer (Confidence > {{org.tier1_threshold || 85}}%)
+- Quote the relevant policy section
+- Provide clear, direct answer
+- Include citation: "Based on [Policy Name], Section X..."
+- Offer link to full policy
+
+### Tier 2: Situational Guidance (Confidence {{org.tier2_threshold || 50}}-{{org.tier1_threshold || 85}}%)
+- Ask clarifying questions first (max 3)
+- Provide guidance with appropriate caveats
+- Include: "This is general guidance. For your specific situation, I recommend..."
+- Always offer escalation: "Would you like me to send this to our compliance team?"
+
+### Tier 3: Escalation (Confidence < {{org.tier2_threshold || 50}}% or user request)
+- Acknowledge the question is complex
+- Offer to create inquiry for compliance team
+- Provide expected response time
+
+## Never
+- Provide legal advice
+- Make up policy content
+- Guarantee outcomes
+- Dismiss concerns
+  `,
+
+  requiredContext: ['organization', 'knowledge_base'],
+  allowedActions: ['chatbot.search_policies', 'chatbot.create_inquiry'],
+};
+```
+
+**Skill: /check-status (Status Check)**
+```typescript
+const checkStatusSkill: Skill = {
+  id: 'chatbot.check-status',
+  name: 'Check Report Status',
+  scope: 'platform',
+  description: 'Allow reporters to check status and communicate about their reports',
+
+  promptTemplate: `
+You are the Employee Portal Assistant helping someone check on a report they submitted.
+
+## Authentication
+- For anonymous reporters: Validate access code
+- For authenticated users: Look up their submitted reports
+
+## Information to Show
+- Case reference number
+- Current status (in plain language)
+- Last update date
+- Any messages from the compliance team
+- Whether action is needed from them
+
+## Communication
+- Allow them to reply to messages
+- Allow them to add new information
+- Allow them to ask questions about the process
+
+## Tone
+- Be reassuring about the process
+- Never reveal investigation details
+- Protect confidentiality of other parties
+- If case is closed, explain what that means
+  `,
+
+  requiredContext: [],
+  parameters: [
+    { name: 'access_code', type: 'string', optional: true },
+  ],
+  allowedActions: ['chatbot.lookup_case', 'chatbot.send_message', 'chatbot.add_follow_up'],
+};
+```
+
+**Skill: /disclose (Disclosure Submission)**
+```typescript
+const discloseSkill: Skill = {
+  id: 'chatbot.disclose',
+  name: 'Submit Disclosure',
+  scope: 'platform',
+  description: 'Help employees complete disclosure forms conversationally',
+
+  promptTemplate: `
+You are the Employee Portal Assistant helping {{employee_name}} submit a disclosure.
+
+## Context from Organization
+{{org.disclosure_rules}}
+{{org.terminology_guidelines}}
+
+## Disclosure Types Available
+{{available_disclosure_types}}
+
+## Conversation Flow
+1. Determine disclosure type (if not pre-loaded)
+2. Optionally help triage: "Not sure if you need to disclose? Let me help."
+3. Walk through each required field conversationally
+4. Explain why each field matters: "We ask this because..."
+5. Review and confirm before submission
+
+## On Completion
+- Submit creates disclosure via Disclosures module (PRD-006)
+- Creates RIU type 'disclosure_response' (not chatbot_transcript)
+- Case created only if thresholds met per Disclosures PRD
+  `,
+
+  requiredContext: ['organization', 'employee'],
+  allowedActions: ['chatbot.create_disclosure', 'chatbot.upload_attachment'],
+};
+```
+
+**Skill: /escalate (Human Handoff)**
+```typescript
+const escalateSkill: Skill = {
+  id: 'chatbot.escalate',
+  name: 'Talk to Compliance Team',
+  scope: 'platform',
+  description: 'Create inquiry or connect employee with human support',
+
+  promptTemplate: `
+You are the Employee Portal Assistant connecting {{employee_name || 'someone'}} with human support.
+
+## Options to Offer
+1. **Async inquiry** (recommended for most questions)
+   - Create inquiry ticket
+   - Typical response: 1 business day
+   - Full conversation context transferred
+
+2. **Phone support** (for urgent or complex)
+   - Hotline: {{org.hotline_number}}
+   - Hours: {{org.hotline_hours}}
+   - Can share chat reference code for continuity
+
+## Create Inquiry
+- Capture their question clearly
+- Ask for any additional context
+- Set expectations for response time
+- Provide reference number
+
+## Conversation Preservation
+- Full transcript available to compliance team
+- AI summary generated for quick context
+- Never lose their progress
+  `,
+
+  requiredContext: ['organization'],
+  allowedActions: ['chatbot.create_inquiry', 'chatbot.generate_handoff_code'],
+};
+```
+
+### B.3 Organization Context Template
+
+Organizations can customize agent behavior via their CONTEXT.md file:
+
+```markdown
+# {{Organization Name}} Employee Portal Context
+
+## Terminology
+<!-- How to refer to people, departments, and concepts -->
+- Use "{{term_for_employee}}" instead of "Employee"
+- Call our ethics line the "{{hotline_name}}"
+- Reference "{{hr_department_name}}" for HR matters
+
+## Reporting Standards
+<!-- Rules for how the agent handles reports -->
+- Anonymous reports: {{anonymous_policy}}
+- Always mention: {{key_message_for_reporters}}
+- Hotline number: {{hotline_number}}
+- Hotline hours: {{hotline_hours}}
+
+## Disclosure Rules
+<!-- Organization-specific disclosure thresholds -->
+- Gift threshold: {{gift_threshold}}
+- COI disclosure timeline: {{coi_timeline}}
+- Special rules: {{special_disclosure_rules}}
+
+## Writing Standards
+<!-- How AI-generated content should read -->
+- Tone: {{preferred_tone}}
+- Formality: {{formality_level}}
+- Languages supported: {{supported_languages}}
+
+## Escalation Rules
+<!-- When to flag for human review -->
+- Auto-escalate keywords: {{escalation_keywords}}
+- High-priority categories: {{high_priority_categories}}
+- Required reviews: {{required_review_rules}}
+
+## Confidence Thresholds
+- Tier 1 (direct answer): confidence > {{tier1_threshold}}%
+- Tier 2 (guidance with caveats): confidence {{tier2_threshold}}-{{tier1_threshold}}%
+- Tier 3 (escalate): confidence < {{tier2_threshold}}%
+```
+
+### B.4 Conversation Flow State Machine
+
+The chatbot maintains conversation state for pause/resume:
+
+```typescript
+// Conversation state machine
+type ConversationState =
+  | { flow: 'greeting', step: 'initial' }
+  | { flow: 'intake', step: 'consent' | 'anonymous_choice' | 'narrative' | 'location' | 'timing' | 'subjects' | 'category' | 'attachments' | 'review' | 'submitted' }
+  | { flow: 'policy_qa', step: 'question' | 'clarifying' | 'answered' | 'escalated' }
+  | { flow: 'status_check', step: 'authentication' | 'displaying' | 'replying' }
+  | { flow: 'disclosure', step: 'type_selection' | 'triage' | 'form_fields' | 'review' | 'submitted' }
+  | { flow: 'inquiry', step: 'question_capture' | 'context' | 'submitted' }
+  | { flow: 'completed', step: 'final' };
+
+interface ConversationStateMachine {
+  currentState: ConversationState;
+  extractedData: Record<string, any>;
+  canPause: boolean;           // Can save progress
+  canResume: boolean;          // Has saved progress
+  nextPossibleSteps: string[]; // Valid transitions
+
+  // State transition with validation
+  transition(action: string, data?: any): ConversationState;
+
+  // Serialize for persistence
+  serialize(): ChatbotSessionContext;
+
+  // Restore from persistence
+  static restore(session: ChatbotSessionContext): ConversationStateMachine;
+}
+```
+
+### B.5 Sample Skill Execution Flow
+
+Complete example of skill invocation through the agent:
+
+```
+Employee: "I think I need to disclose something about my spouse's job"
+
+Agent Processing:
+─────────────────────────────────────────────────────────
+1. Intent Recognition
+   └─ Maps to: /disclose skill (COI context detected)
+
+2. Context Loading
+   ├─ Platform Context: Agent definition, skill catalog
+   ├─ Org Context: "Acme Corp Employee Portal Context"
+   │   └─ Disclosure rules: "COI disclosure within 30 days"
+   ├─ Employee Context: Jane Smith, Marketing Dept
+   │   └─ Existing disclosures: None
+   └─ Session Context: Fresh conversation
+
+3. Skill Execution
+   ├─ Load /disclose skill template
+   ├─ Inject org context variables
+   └─ Generate response
+
+4. Response
+   ┌─────────────────────────────────────────────────────────┐
+   │ It sounds like you may have a potential conflict of      │
+   │ interest to disclose. Let me help you figure that out.   │
+   │                                                          │
+   │ A few quick questions:                                   │
+   │                                                          │
+   │ 1. Does your spouse's employer do business with Acme?    │
+   │    [Yes] [No] [Not Sure]                                 │
+   │                                                          │
+   │ Based on your answer, I can help you either:             │
+   │ • Complete a COI disclosure form, or                     │
+   │ • Confirm that no disclosure is needed                   │
+   │                                                          │
+   │ Per Acme's policy, any potential conflicts should be     │
+   │ disclosed within 30 days of becoming aware.              │
+   └─────────────────────────────────────────────────────────┘
+
+5. State Update
+   └─ conversationState: { flow: 'disclosure', step: 'triage' }
+
+6. Session Persistence
+   └─ If employee leaves, progress saved for resume
+```
+
+### B.6 Action Catalog Integration
+
+How skills invoke actions through the Action Catalog:
+
+```typescript
+// When report intake completes
+async function completeIntake(
+  skill: Skill,
+  context: AgentContext,
+  extractedData: IntakeData
+): Promise<ActionResult> {
+  // 1. Validate action is available
+  const createRIU = actionCatalog.getAction('chatbot.create_riu');
+  if (!createRIU.isAvailable(context)) {
+    throw new ActionNotAvailableError('Cannot create RIU in current context');
+  }
+
+  // 2. Prepare action payload
+  const riuPayload = {
+    type: 'chatbot_transcript',
+    source_channel: 'CHATBOT',
+    organization_id: context.organizationId,
+    details: extractedData.narrative,
+    category_id: extractedData.category,
+    reporter_type: extractedData.anonymous ? 'anonymous' : 'identified',
+    // ... other fields
+  };
+
+  // 3. Execute action (creates RIU + Case + association)
+  const result = await actionCatalog.execute('chatbot.create_riu', riuPayload);
+
+  // 4. Log activity
+  await activityService.log({
+    entityType: 'RIU',
+    entityId: result.riuId,
+    action: 'created',
+    actionDescription: 'System created RIU from chatbot intake',
+    actorType: 'SYSTEM',
+    details: { conversationId: context.conversationId },
+  });
+
+  // 5. Return result with entity references
+  return {
+    success: true,
+    riuId: result.riuId,
+    caseId: result.caseId,
+    referenceNumber: result.caseReferenceNumber,
+    accessCode: result.accessCode,
+  };
+}
+```
+
+---
+
+## 20. Appendix C: Legacy Prompt Templates
+
+> **Note:** These simplified prompts are preserved for reference. The production implementation uses the skills-based architecture in Appendix B.
+
+### C.1 Report Intake System Prompt (Simplified)
 
 ```
 You are a helpful assistant guiding employees through
@@ -2214,7 +2985,7 @@ and remind them they can call the hotline for human support.
 Always maintain confidentiality and thank them for speaking up.
 ```
 
-### B.2 Policy Q&A System Prompt
+### C.2 Policy Q&A System Prompt (Simplified)
 
 ```
 You are a knowledgeable assistant helping employees understand

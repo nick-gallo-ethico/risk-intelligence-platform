@@ -787,6 +787,8 @@ See `02-MODULES/03-ETHICS-PORTAL/PRD.md` for full specification.
 
 ## AI Architecture
 
+The platform AI is not just a chatbot - it is an **action agent** that can execute operations on behalf of users, similar to how Claude Code operates for developers. This section provides a high-level overview; see `01-SHARED-INFRASTRUCTURE/TECH-SPEC-AI-AGENT.md` for full technical specification.
+
 ### Confirmed AI Features
 
 | Feature | When | Description |
@@ -804,6 +806,15 @@ See `02-MODULES/03-ETHICS-PORTAL/PRD.md` for full specification.
 | **Risk Scoring** | Auto | AI-assessed risk level per RIU/Case |
 | **Pattern Detection** | On-demand | Identify patterns across cases |
 
+**AI Action Capabilities:**
+| Category | Examples | Confirmation Required? |
+|----------|----------|------------------------|
+| **Read/Summarize** | "Summarize this case", "Show overdue tasks" | No |
+| **Draft/Propose** | "Draft follow-up emails", "Suggest remediation steps" | Preview only |
+| **Execute (Low Risk)** | "Add a note to this case", "Create a task for myself" | Yes (single click) |
+| **Execute (High Risk)** | "Send emails to 15 managers", "Close this investigation" | Yes (explicit confirm + preview) |
+| **Modify Settings** | "Update the approval workflow", "Change notification rules" | Yes (admin only, full preview) |
+
 ### AI Design Principles
 
 1. **Assist, don't replace** - Human judgment always final
@@ -811,6 +822,139 @@ See `02-MODULES/03-ETHICS-PORTAL/PRD.md` for full specification.
 3. **Transparent** - Clear when content is AI-generated
 4. **Editable** - All AI outputs can be modified
 5. **Auditable** - Track AI usage and edits
+6. **Permission-scoped** - AI cannot do anything the user couldn't do manually
+
+### Context Hierarchy Model
+
+Context loads in layers, with later layers overriding earlier ones (similar to CLAUDE.md in Claude Code):
+
+```
+Context Loading Order:
+1. Platform Context     → Built-in platform knowledge, entity schemas, action catalog
+2. Organization Context → Org-level CONTEXT.md (terminology, policies, standards)
+3. Team Context         → Team-level CONTEXT.md (team workflows, preferences)
+4. User Context         → User-level CONTEXT.md (personal style, shortcuts)
+5. Entity Context       → Current case/investigation data + conversation history
+```
+
+**Example Organization Context:**
+- Terminology ("Associate" not "Employee", "Incident" not "Case" externally)
+- Writing standards (3 paragraphs max, active voice, PII handling rules)
+- Escalation rules (retaliation cases auto-flag Legal, VP+ cases notify CCO)
+
+This enables organizations, teams, and individuals to customize AI behavior without code changes.
+
+### Scoped Agents by View
+
+Instead of one AI that dynamically adjusts scope, the platform uses **specialized agents** for different views. Each agent has its own context scope, default behaviors, and available skills.
+
+| Agent | Scope | Loads | Best For |
+|-------|-------|-------|----------|
+| **Investigation Agent** | Single investigation | Investigation details, interviews, findings, evidence | Deep work on one investigation |
+| **Case Agent** | Case + linked entities | Case data, all RIUs, all investigations (summarized), timeline | Case management, full picture |
+| **RIU Agent** | Single RIU | RIU details, linked case (if any), reporter communications | Intake review, QA work |
+| **Compliance Manager** | Program-wide | Recent activity, assigned items, trends, cross-entity patterns | Dashboard, oversight, reporting |
+| **Policy Agent** | Policy lifecycle | Policy content, versions, approval workflow, attestation status | Policy work |
+
+**Agent Switching:** Agents load automatically based on the current view. When the Compliance Manager surfaces an entity, users can "zoom in" and the system smoothly hands off to the appropriate entity-scoped agent.
+
+**Benefits:**
+- Right context, right scope (no wasted tokens on irrelevant data)
+- Specialized expertise (each agent is "expert" in its domain)
+- Clear user mental model ("I'm talking to the Investigation Assistant")
+- Smooth handoffs (agents summarize for each other)
+
+### Skills System
+
+Skills are reusable, composable AI actions (like Claude Code slash commands):
+
+```
+Skill Hierarchy:
+─────────────────
+Platform Skills (built-in, all orgs)
+├── /summarize - Generate entity summary
+├── /timeline - Create chronological narrative
+├── /find - Search across entities
+├── /assign - Assign entity to user
+├── /status - Change entity status
+├── /remind - Set reminder/follow-up
+├── /export - Generate report/export
+└── /template - Apply response template
+
+Organization Skills (org-defined)
+├── /summarize-hipaa - HIPAA-specific summary with required fields
+├── /escalate-legal - Standard legal escalation workflow
+└── /weekly-report - Generate weekly case summary
+
+Team Skills (team-defined)
+├── /peer-review - Request peer review with checklist
+└── /interview-prep - Generate interview questions for case type
+
+User Skills (personal shortcuts)
+├── /my-summary-style - Apply preferred summary format
+└── /quick-close - Standard closure notes
+```
+
+**Skill Lifecycle:** Skills progress from personal use to community sharing:
+- Create (personal) → Test (draft) → Use (active) → Share (team/org) → Publish (community marketplace)
+
+Quality signals include ratings, reviews, install counts, and curated "Featured" collections. See TECH-SPEC-AI-AGENT.md for skill schema and marketplace details.
+
+### Action Framework
+
+AI executes actions through a registered **Action Catalog** - not by calling APIs directly. This ensures:
+- **Auditable:** All possible actions documented in static catalog
+- **Permission-scoped:** Actions filtered by user role, org features, and entity context
+- **Safe:** AI can only invoke actions in the filtered catalog
+- **Extensible:** Custom workflows can register custom actions
+
+**Runtime Filtering:**
+```
+User asks: "What can I do with this case?"
+AI sees: [assign, add_note, request_investigation, send_reminder, close]
+AI does NOT see: [delete, change_org_settings, bulk_export] (no permission)
+```
+
+**Confirm-Before-Action UX:** Tiered confirmation based on action risk. For multi-step actions, AI uses the **Preview-then-Execute** pattern - preparing everything invisibly, presenting an editable preview, then executing on single confirmation.
+
+**Guardrails (NEVER auto-execute):**
+- Delete/archive operations
+- External communications (email, SMS)
+- Permission changes
+- Workflow modifications
+- Bulk operations (>5 items)
+- Financial/sensitive data export
+
+### Tiered Interaction Model
+
+AI assistance scales from minimal to full conversation based on task complexity:
+
+**Tier 1 - Inline (Ghost Text)**
+- Trigger: Auto-appears while typing in text fields
+- UX: Ghost text suggestions (smart compose style)
+- Accept: Tab to accept, Escape to dismiss
+- Use cases: Note completion, email templates, standard phrases
+
+**Tier 2 - Contextual (Selection/Field Actions)**
+- Trigger: Text selection, right-click, sparkle icon on AI-enabled fields
+- UX: Floating toolbar or popover with action buttons
+- Actions: "Summarize", "Improve", "Translate", "Ask AI..."
+- Use cases: Summarize selected notes, improve draft text, create form from screenshot
+
+**Tier 3 - Slide-over Drawer (Extended Conversation)**
+- Trigger: Cmd+J (Mac) / Ctrl+J (Win), header AI icon, escalation from Tier 2
+- UX: Right-side drawer slides in (like Claude Code terminal)
+- Default: Closed - opens on demand, can be pinned open
+- Use cases: Multi-turn conversations, complex queries, bulk action workflows
+
+**Escalation Flow:**
+```
+Tier 1 (Inline) → User wants more control → Tier 2 (Contextual)
+                                                     ↓
+                               Task requires multi-turn → Tier 3 (Drawer)
+```
+
+**Key Principle:** AI is non-intrusive by default. Contextual assistance appears where you're working, not in a persistent panel consuming screen space.
 
 ### AI-First Data Architecture
 
