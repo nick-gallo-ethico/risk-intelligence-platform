@@ -19,13 +19,13 @@ datasource db {
 /// Organization represents a tenant in the multi-tenant system.
 /// All business data is scoped to an organization via Row-Level Security.
 model Organization {
-  id         String   @id @default(uuid())
-  name       String
-  slug       String   @unique
-  settings   Json     @default("{}")
-  isActive   Boolean  @default(true) @map("is_active")
-  createdAt  DateTime @default(now()) @map("created_at")
-  updatedAt  DateTime @updatedAt @map("updated_at")
+  id        String   @id @default(uuid())
+  name      String
+  slug      String   @unique
+  settings  Json     @default("{}")
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relations
   users          User[]
@@ -34,6 +34,11 @@ model Organization {
   investigations Investigation[]
   auditLogs      AuditLog[]
   attachments    Attachment[]
+  categories     Category[]
+  rius           RiskIntelligenceUnit[]
+  subjects       Subject[]
+  caseMessages   CaseMessage[]
+  interactions   Interaction[]
 
   @@index([slug])
   @@index([isActive])
@@ -43,18 +48,18 @@ model Organization {
 /// User represents an authenticated user within an organization.
 /// Users are scoped to a single organization (no cross-tenant access).
 model User {
-  id             String    @id @default(uuid())
-  organizationId String    @map("organization_id")
-  email          String
-  passwordHash   String?   @map("password_hash")
-  firstName      String    @map("first_name")
-  lastName       String    @map("last_name")
-  role           UserRole  @default(EMPLOYEE)
-  isActive       Boolean   @default(true) @map("is_active")
+  id              String    @id @default(uuid())
+  organizationId  String    @map("organization_id")
+  email           String
+  passwordHash    String?   @map("password_hash")
+  firstName       String    @map("first_name")
+  lastName        String    @map("last_name")
+  role            UserRole  @default(EMPLOYEE)
+  isActive        Boolean   @default(true) @map("is_active")
   emailVerifiedAt DateTime? @map("email_verified_at")
-  lastLoginAt    DateTime? @map("last_login_at")
-  createdAt      DateTime  @default(now()) @map("created_at")
-  updatedAt      DateTime  @updatedAt @map("updated_at")
+  lastLoginAt     DateTime? @map("last_login_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
 
   // Relations
   organization        Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
@@ -64,7 +69,7 @@ model User {
   casesIntakeOperator Case[]       @relation("CaseIntakeOperator")
   casesReleased       Case[]       @relation("CaseReleasedBy")
   casesProxySubmitter Case[]       @relation("CaseProxySubmitter")
-  auditLogsActed      AuditLog[]   // Audit logs where this user was the actor
+  auditLogsActed      AuditLog[] // Audit logs where this user was the actor
 
   // Investigation relations
   investigationsPrimaryInvestigator Investigation[] @relation("InvestigationPrimaryInvestigator")
@@ -75,10 +80,27 @@ model User {
   investigationsUpdatedBy           Investigation[] @relation("InvestigationUpdatedBy")
 
   // Investigation note relations
-  investigationNotesAuthored        InvestigationNote[] @relation("InvestigationNoteAuthor")
+  investigationNotesAuthored InvestigationNote[] @relation("InvestigationNoteAuthor")
 
   // Attachment relations
-  attachmentsUploaded               Attachment[] @relation("AttachmentUploadedBy")
+  attachmentsUploaded Attachment[] @relation("AttachmentUploadedBy")
+
+  // RIU relations
+  riusCreated RiskIntelligenceUnit[] @relation("RiuCreatedBy")
+
+  // RIU-Case Association relations
+  riuCaseAssociationsCreated RiuCaseAssociation[] @relation("RiuCaseAssociationCreatedBy")
+
+  // Subject relations
+  subjectsCreated Subject[] @relation("SubjectCreatedBy")
+
+  // Case Message relations
+  caseMessagesCreated CaseMessage[] @relation("CaseMessageCreatedBy")
+  caseMessagesRead    CaseMessage[] @relation("CaseMessageReadBy")
+
+  // Interaction relations
+  interactionsConducted  Interaction[] @relation("InteractionConductedBy")
+  interactionsQaReviewed Interaction[] @relation("InteractionQaReviewedBy")
 
   // Unique constraint: email must be unique within an organization
   @@unique([organizationId, email])
@@ -102,8 +124,8 @@ model Session {
   createdAt         DateTime  @default(now()) @map("created_at")
 
   // Relations
-  organization      Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  user              User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([organizationId])
   @@index([userId])
@@ -190,32 +212,32 @@ enum Severity {
 /// Case represents a compliance report or request for information.
 /// This is the primary container for all case-related data.
 model Case {
-  id              String   @id @default(uuid())
-  referenceNumber String   @unique @map("reference_number")
-  organizationId  String   @map("organization_id")
+  id              String @id @default(uuid())
+  referenceNumber String @unique @map("reference_number")
+  organizationId  String @map("organization_id")
 
   // Status
   status          CaseStatus @default(NEW)
   statusRationale String?    @map("status_rationale")
 
   // Intake Information
-  sourceChannel   SourceChannel @map("source_channel")
-  caseType        CaseType      @default(REPORT) @map("case_type")
-  intakeTimestamp DateTime      @default(now()) @map("intake_timestamp")
-  intakeOperatorId String?      @map("intake_operator_id")
-  firstTimeCaller Boolean?      @map("first_time_caller")
-  awarenessSource String?       @map("awareness_source")
-  interpreterUsed Boolean?      @map("interpreter_used")
+  sourceChannel    SourceChannel @map("source_channel")
+  caseType         CaseType      @default(REPORT) @map("case_type")
+  intakeTimestamp  DateTime      @default(now()) @map("intake_timestamp")
+  intakeOperatorId String?       @map("intake_operator_id")
+  firstTimeCaller  Boolean?      @map("first_time_caller")
+  awarenessSource  String?       @map("awareness_source")
+  interpreterUsed  Boolean?      @map("interpreter_used")
 
   // Reporter Information
-  reporterType         ReporterType @default(ANONYMOUS) @map("reporter_type")
-  reporterAnonymous    Boolean      @default(true) @map("reporter_anonymous")
-  reporterName         String?      @map("reporter_name") // Encrypted
-  reporterEmail        String?      @map("reporter_email") // Encrypted
-  reporterPhone        String?      @map("reporter_phone") // Encrypted
+  reporterType         ReporterType          @default(ANONYMOUS) @map("reporter_type")
+  reporterAnonymous    Boolean               @default(true) @map("reporter_anonymous")
+  reporterName         String?               @map("reporter_name") // Encrypted
+  reporterEmail        String?               @map("reporter_email") // Encrypted
+  reporterPhone        String?               @map("reporter_phone") // Encrypted
   reporterRelationship ReporterRelationship? @map("reporter_relationship")
-  anonymousAccessCode  String?      @map("anonymous_access_code")
-  proxySubmitterId     String?      @map("proxy_submitter_id")
+  anonymousAccessCode  String?               @map("anonymous_access_code")
+  proxySubmitterId     String?               @map("proxy_submitter_id")
 
   // Location Information
   locationName    String?  @map("location_name")
@@ -227,11 +249,11 @@ model Case {
   locationManual  Boolean? @map("location_manual")
 
   // Report Content
-  details           String  // Full narrative (rich text)
-  summary           String? // Manual summary
-  addendum          String? // Operator notes
-  originalLanguage  String? @map("original_language")
-  translatedDetails String? @map("translated_details")
+  details             String // Full narrative (rich text)
+  summary             String? // Manual summary
+  addendum            String? // Operator notes
+  originalLanguage    String? @map("original_language")
+  translatedDetails   String? @map("translated_details")
   translationLanguage String? @map("translation_language")
 
   // Classification
@@ -242,12 +264,12 @@ model Case {
   tags                String[] @default([])
 
   // AI Enrichment
-  aiSummary             String?   @map("ai_summary")
-  aiSummaryGeneratedAt  DateTime? @map("ai_summary_generated_at")
-  aiModelVersion        String?   @map("ai_model_version")
-  aiCategorySuggestion  String?   @map("ai_category_suggestion")
-  aiSeveritySuggestion  Severity? @map("ai_severity_suggestion")
-  aiConfidenceScore     Int?      @map("ai_confidence_score")
+  aiSummary            String?   @map("ai_summary")
+  aiSummaryGeneratedAt DateTime? @map("ai_summary_generated_at")
+  aiModelVersion       String?   @map("ai_model_version")
+  aiCategorySuggestion String?   @map("ai_category_suggestion")
+  aiSeveritySuggestion Severity? @map("ai_severity_suggestion")
+  aiConfidenceScore    Int?      @map("ai_confidence_score")
 
   // Custom Data (JSONB)
   customFields    Json? @map("custom_fields")
@@ -272,19 +294,35 @@ model Case {
   updatedById String   @map("updated_by_id")
 
   // Relations
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  createdBy      User         @relation("CaseCreatedBy", fields: [createdById], references: [id])
-  updatedBy      User         @relation("CaseUpdatedBy", fields: [updatedById], references: [id])
-  intakeOperator User?        @relation("CaseIntakeOperator", fields: [intakeOperatorId], references: [id])
-  releasedBy     User?        @relation("CaseReleasedBy", fields: [releasedById], references: [id])
-  proxySubmitter User?        @relation("CaseProxySubmitter", fields: [proxySubmitterId], references: [id])
-  parentCase     Case?        @relation("CaseSplits", fields: [parentCaseId], references: [id])
-  splitCases     Case[]       @relation("CaseSplits")
+  organization   Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdBy      User            @relation("CaseCreatedBy", fields: [createdById], references: [id])
+  updatedBy      User            @relation("CaseUpdatedBy", fields: [updatedById], references: [id])
+  intakeOperator User?           @relation("CaseIntakeOperator", fields: [intakeOperatorId], references: [id])
+  releasedBy     User?           @relation("CaseReleasedBy", fields: [releasedById], references: [id])
+  proxySubmitter User?           @relation("CaseProxySubmitter", fields: [proxySubmitterId], references: [id])
+  parentCase     Case?           @relation("CaseSplits", fields: [parentCaseId], references: [id])
+  splitCases     Case[]          @relation("CaseSplits")
   investigations Investigation[] // Cases can have multiple investigations
+
+  // Category relations
+  primaryCategory   Category? @relation("CasePrimaryCategory", fields: [primaryCategoryId], references: [id])
+  secondaryCategory Category? @relation("CaseSecondaryCategory", fields: [secondaryCategoryId], references: [id])
+
+  // RIU associations (many-to-many via join table)
+  riuAssociations RiuCaseAssociation[]
+
+  // Subjects (people involved in the case)
+  subjects Subject[]
+
+  // Communication
+  messages CaseMessage[]
+
+  // Follow-up interactions
+  interactions Interaction[]
 
   // Full-text search vector (auto-populated by database trigger)
   /// @db.Unsupported("tsvector")
-  searchVector  Unsupported("tsvector")?  @map("search_vector")
+  searchVector Unsupported("tsvector")? @map("search_vector")
 
   // Indexes for performance
   @@index([organizationId])
@@ -303,38 +341,38 @@ model Case {
 /// This is an append-only table - records are never updated or deleted.
 /// Used for compliance audit trails and AI context building.
 model AuditLog {
-  id             String   @id @default(uuid())
-  organizationId String   @map("organization_id")
+  id             String @id @default(uuid())
+  organizationId String @map("organization_id")
 
   // Entity Reference (polymorphic)
-  entityType     AuditEntityType @map("entity_type")
-  entityId       String          @map("entity_id")
+  entityType AuditEntityType @map("entity_type")
+  entityId   String          @map("entity_id")
 
   // Action
-  action            String                // e.g., 'created', 'updated', 'status_changed'
-  actionCategory    AuditActionCategory   @map("action_category")
-  actionDescription String                @map("action_description") // Natural language: "John assigned case to Sarah"
+  action            String // e.g., 'created', 'updated', 'status_changed'
+  actionCategory    AuditActionCategory @map("action_category")
+  actionDescription String              @map("action_description") // Natural language: "John assigned case to Sarah"
 
   // Actor
-  actorUserId    String?    @map("actor_user_id") // Null for system/AI actions
-  actorType      ActorType  @map("actor_type")
-  actorName      String?    @map("actor_name")    // Denormalized for display
+  actorUserId String?   @map("actor_user_id") // Null for system/AI actions
+  actorType   ActorType @map("actor_type")
+  actorName   String?   @map("actor_name") // Denormalized for display
 
   // Change Details
-  changes        Json?      // { field: { old, new } }
-  context        Json?      // Additional context for AI
+  changes Json? // { field: { old, new } }
+  context Json? // Additional context for AI
 
   // Request Metadata
-  ipAddress      String?    @map("ip_address")
-  userAgent      String?    @map("user_agent")
-  requestId      String?    @map("request_id")    // Correlation ID
+  ipAddress String? @map("ip_address")
+  userAgent String? @map("user_agent")
+  requestId String? @map("request_id") // Correlation ID
 
   // Timestamp (immutable - NO updatedAt for append-only)
-  createdAt      DateTime   @default(now()) @map("created_at")
+  createdAt DateTime @default(now()) @map("created_at")
 
   // Relations
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  actorUser      User?        @relation(fields: [actorUserId], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  actorUser    User?        @relation(fields: [actorUserId], references: [id])
 
   // Indexes for query patterns
   @@index([organizationId, createdAt])
@@ -350,6 +388,7 @@ model AuditLog {
 
 enum AuditEntityType {
   CASE
+  RIU
   INVESTIGATION
   DISCLOSURE
   POLICY
@@ -365,6 +404,9 @@ enum AuditEntityType {
   DASHBOARD
   INTEGRATION
   ATTACHMENT
+  SUBJECT
+  CASE_MESSAGE
+  INTERACTION
 
   @@map("audit_entity_type")
 }
@@ -373,20 +415,20 @@ enum AuditActionCategory {
   CREATE
   UPDATE
   DELETE
-  ACCESS     // View, download, export
-  SYSTEM     // Automated actions
-  SECURITY   // Auth events
-  AI         // AI-generated actions
+  ACCESS // View, download, export
+  SYSTEM // Automated actions
+  SECURITY // Auth events
+  AI // AI-generated actions
 
   @@map("audit_action_category")
 }
 
 enum ActorType {
-  USER         // Human user
-  SYSTEM       // Automated process
-  AI           // AI-generated action
-  INTEGRATION  // External system
-  ANONYMOUS    // Anonymous reporter action
+  USER // Human user
+  SYSTEM // Automated process
+  AI // AI-generated action
+  INTEGRATION // External system
+  ANONYMOUS // Anonymous reporter action
 
   @@map("actor_type")
 }
@@ -459,9 +501,9 @@ enum NoteType {
 }
 
 enum NoteVisibility {
-  PRIVATE  // Author only
-  TEAM     // Assigned investigators
-  ALL      // All org users with case access
+  PRIVATE // Author only
+  TEAM // Assigned investigators
+  ALL // All org users with case access
 
   @@map("note_visibility")
 }
@@ -486,74 +528,75 @@ enum AttachmentEntityType {
 /// Cases can have multiple investigations (e.g., HR and Legal investigating same report).
 /// organizationId is denormalized from Case for RLS efficiency.
 model Investigation {
-  id                    String   @id @default(uuid())
-  caseId                String   @map("case_id")
-  organizationId        String   @map("organization_id") // Denormalized for RLS
-  investigationNumber   Int      @map("investigation_number") // 1, 2, 3... within case
+  id                  String @id @default(uuid())
+  caseId              String @map("case_id")
+  organizationId      String @map("organization_id") // Denormalized for RLS
+  investigationNumber Int    @map("investigation_number") // 1, 2, 3... within case
 
   // Classification
-  categoryId            String?  @map("category_id")
-  investigationType     InvestigationType @default(FULL) @map("investigation_type")
-  department            InvestigationDepartment? @map("department")
+  categoryId        String?                  @map("category_id")
+  investigationType InvestigationType        @default(FULL) @map("investigation_type")
+  department        InvestigationDepartment? @map("department")
 
   // Assignment
-  assignedTo            String[] @default([]) @map("assigned_to") // Array of user IDs
-  primaryInvestigatorId String?  @map("primary_investigator_id")
+  assignedTo            String[]  @default([]) @map("assigned_to") // Array of user IDs
+  primaryInvestigatorId String?   @map("primary_investigator_id")
   assignedAt            DateTime? @map("assigned_at")
-  assignedById          String?  @map("assigned_by_id")
-  assignmentHistory     Json?    @map("assignment_history") // Track assignment changes
+  assignedById          String?   @map("assigned_by_id")
+  assignmentHistory     Json?     @map("assignment_history") // Track assignment changes
 
   // Workflow
-  status                InvestigationStatus @default(NEW)
-  statusRationale       String?  @map("status_rationale") // AI-first: why status changed
-  statusChangedAt       DateTime? @map("status_changed_at")
-  dueDate               DateTime? @map("due_date")
-  slaStatus             SlaStatus @default(ON_TRACK) @map("sla_status")
+  status          InvestigationStatus @default(NEW)
+  statusRationale String?             @map("status_rationale") // AI-first: why status changed
+  statusChangedAt DateTime?           @map("status_changed_at")
+  dueDate         DateTime?           @map("due_date")
+  slaStatus       SlaStatus           @default(ON_TRACK) @map("sla_status")
 
   // Findings
-  findingsSummary       String?  @map("findings_summary")
-  findingsDetail        String?  @map("findings_detail")
-  outcome               InvestigationOutcome? @map("outcome")
-  rootCause             String?  @map("root_cause")
-  lessonsLearned        String?  @map("lessons_learned")
-  findingsDate          DateTime? @map("findings_date")
+  findingsSummary String?               @map("findings_summary")
+  findingsDetail  String?               @map("findings_detail")
+  outcome         InvestigationOutcome? @map("outcome")
+  rootCause       String?               @map("root_cause")
+  lessonsLearned  String?               @map("lessons_learned")
+  findingsDate    DateTime?             @map("findings_date")
 
   // Closure
-  closedAt              DateTime? @map("closed_at")
-  closedById            String?  @map("closed_by_id")
-  closureApprovedById   String?  @map("closure_approved_by_id")
-  closureApprovedAt     DateTime? @map("closure_approved_at")
-  closureNotes          String?  @map("closure_notes")
+  closedAt            DateTime? @map("closed_at")
+  closedById          String?   @map("closed_by_id")
+  closureApprovedById String?   @map("closure_approved_by_id")
+  closureApprovedAt   DateTime? @map("closure_approved_at")
+  closureNotes        String?   @map("closure_notes")
 
   // Template
-  templateId            String?  @map("template_id")
-  templateResponses     Json?    @map("template_responses") // Checklist answers
-  templateCompleted     Boolean  @default(false) @map("template_completed")
+  templateId        String? @map("template_id")
+  templateResponses Json?   @map("template_responses") // Checklist answers
+  templateCompleted Boolean @default(false) @map("template_completed")
 
   // Migration Support
-  sourceSystem          String?  @map("source_system")
-  sourceRecordId        String?  @map("source_record_id")
-  migratedAt            DateTime? @map("migrated_at")
+  sourceSystem   String?   @map("source_system")
+  sourceRecordId String?   @map("source_record_id")
+  migratedAt     DateTime? @map("migrated_at")
 
   // Audit
-  createdAt             DateTime @default(now()) @map("created_at")
-  updatedAt             DateTime @updatedAt @map("updated_at")
-  createdById           String   @map("created_by_id")
-  updatedById           String   @map("updated_by_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  createdById String   @map("created_by_id")
+  updatedById String   @map("updated_by_id")
 
   // Relations
-  case                  Case         @relation(fields: [caseId], references: [id], onDelete: Cascade)
-  organization          Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  primaryInvestigator   User?        @relation("InvestigationPrimaryInvestigator", fields: [primaryInvestigatorId], references: [id])
-  assignedBy            User?        @relation("InvestigationAssignedBy", fields: [assignedById], references: [id])
-  closedBy              User?        @relation("InvestigationClosedBy", fields: [closedById], references: [id])
-  closureApprovedBy     User?        @relation("InvestigationClosureApprovedBy", fields: [closureApprovedById], references: [id])
-  createdBy             User         @relation("InvestigationCreatedBy", fields: [createdById], references: [id])
-  updatedBy             User         @relation("InvestigationUpdatedBy", fields: [updatedById], references: [id])
+  case                Case         @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  organization        Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  primaryInvestigator User?        @relation("InvestigationPrimaryInvestigator", fields: [primaryInvestigatorId], references: [id])
+  assignedBy          User?        @relation("InvestigationAssignedBy", fields: [assignedById], references: [id])
+  closedBy            User?        @relation("InvestigationClosedBy", fields: [closedById], references: [id])
+  closureApprovedBy   User?        @relation("InvestigationClosureApprovedBy", fields: [closureApprovedById], references: [id])
+  createdBy           User         @relation("InvestigationCreatedBy", fields: [createdById], references: [id])
+  updatedBy           User         @relation("InvestigationUpdatedBy", fields: [updatedById], references: [id])
 
   // Child entities
-  notes                 InvestigationNote[]
+  notes InvestigationNote[]
 
+  @@unique([caseId, investigationNumber])
   // Indexes for query patterns
   @@index([organizationId])
   @@index([organizationId, caseId])
@@ -561,7 +604,6 @@ model Investigation {
   @@index([organizationId, primaryInvestigatorId])
   @@index([organizationId, dueDate])
   @@index([organizationId, slaStatus])
-  @@unique([caseId, investigationNumber])
   @@map("investigations")
 }
 
@@ -573,9 +615,9 @@ model Investigation {
 /// Notes can be general, interview records, evidence documentation, findings, recommendations, or follow-ups.
 /// organizationId is denormalized from Investigation for RLS efficiency.
 model InvestigationNote {
-  id               String   @id @default(uuid())
-  investigationId  String   @map("investigation_id")
-  organizationId   String   @map("organization_id") // Denormalized from Investigation for RLS
+  id              String @id @default(uuid())
+  investigationId String @map("investigation_id")
+  organizationId  String @map("organization_id") // Denormalized from Investigation for RLS
 
   // Content
   content          String   @db.VarChar(50000) // Rich text (HTML/markdown)
@@ -583,42 +625,42 @@ model InvestigationNote {
   noteType         NoteType @default(GENERAL) @map("note_type")
 
   // Visibility
-  visibility       NoteVisibility @default(TEAM)
+  visibility NoteVisibility @default(TEAM)
 
   // Author
-  authorId         String   @map("author_id")
-  authorName       String   @map("author_name") // Denormalized for display performance
+  authorId   String @map("author_id")
+  authorName String @map("author_name") // Denormalized for display performance
 
   // Edit Tracking
-  isEdited         Boolean  @default(false) @map("is_edited")
-  editedAt         DateTime? @map("edited_at")
-  editCount        Int      @default(0) @map("edit_count")
+  isEdited  Boolean   @default(false) @map("is_edited")
+  editedAt  DateTime? @map("edited_at")
+  editCount Int       @default(0) @map("edit_count")
 
   // Attachments (JSON array: [{ id, filename, url, size, mimeType }])
-  attachments      Json     @default("[]")
+  attachments Json @default("[]")
 
   // AI Enrichment
-  aiSummary             String?   @map("ai_summary")
-  aiSummaryGeneratedAt  DateTime? @map("ai_summary_generated_at")
-  aiModelVersion        String?   @map("ai_model_version")
+  aiSummary            String?   @map("ai_summary")
+  aiSummaryGeneratedAt DateTime? @map("ai_summary_generated_at")
+  aiModelVersion       String?   @map("ai_model_version")
 
   // Migration Support
-  sourceSystem     String?   @map("source_system") // e.g., 'NAVEX', 'EQS', 'MANUAL'
-  sourceRecordId   String?   @map("source_record_id")
-  migratedAt       DateTime? @map("migrated_at")
+  sourceSystem   String?   @map("source_system") // e.g., 'NAVEX', 'EQS', 'MANUAL'
+  sourceRecordId String?   @map("source_record_id")
+  migratedAt     DateTime? @map("migrated_at")
 
   // Audit
-  createdAt        DateTime @default(now()) @map("created_at")
-  updatedAt        DateTime @updatedAt @map("updated_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relations
-  investigation    Investigation @relation(fields: [investigationId], references: [id], onDelete: Cascade)
-  author           User          @relation("InvestigationNoteAuthor", fields: [authorId], references: [id])
+  investigation Investigation @relation(fields: [investigationId], references: [id], onDelete: Cascade)
+  author        User          @relation("InvestigationNoteAuthor", fields: [authorId], references: [id])
 
   // Indexes for query patterns
   @@index([organizationId, investigationId]) // Primary query pattern
-  @@index([organizationId, authorId])        // Author filtering
-  @@index([createdAt])                       // Timeline sorting
+  @@index([organizationId, authorId]) // Author filtering
+  @@index([createdAt]) // Timeline sorting
   @@map("investigation_notes")
 }
 
@@ -630,36 +672,516 @@ model InvestigationNote {
 /// Uses polymorphic pattern (entityType + entityId) to link to Cases, Investigations, or Notes.
 /// Actual file content stored in Azure Blob Storage; this table stores metadata only.
 model Attachment {
-  id               String   @id @default(uuid())
-  organizationId   String   @map("organization_id") // Denormalized for RLS
+  id             String @id @default(uuid())
+  organizationId String @map("organization_id") // Denormalized for RLS
 
   // Polymorphic reference to parent entity
-  entityType       AttachmentEntityType @map("entity_type")
-  entityId         String               @map("entity_id")
+  entityType AttachmentEntityType @map("entity_type")
+  entityId   String               @map("entity_id")
 
   // File metadata
-  fileName         String   @map("file_name")     // Original filename
-  fileKey          String   @map("file_key")      // Storage key/path in blob storage
-  mimeType         String   @map("mime_type")     // MIME type (e.g., "application/pdf")
-  fileSize         Int      @map("file_size")     // Size in bytes
+  fileName String @map("file_name") // Original filename
+  fileKey  String @map("file_key") // Storage key/path in blob storage
+  mimeType String @map("mime_type") // MIME type (e.g., "application/pdf")
+  fileSize Int    @map("file_size") // Size in bytes
 
   // Optional metadata
-  description      String?                        // User-provided description
-  isEvidence       Boolean  @default(false) @map("is_evidence") // Flag for investigation evidence
+  description String? // User-provided description
+  isEvidence  Boolean @default(false) @map("is_evidence") // Flag for investigation evidence
 
   // Audit
-  uploadedById     String   @map("uploaded_by_id")
-  createdAt        DateTime @default(now()) @map("created_at")
-  updatedAt        DateTime @updatedAt @map("updated_at")
+  uploadedById String   @map("uploaded_by_id")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
 
   // Relations
-  organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  uploadedBy       User         @relation("AttachmentUploadedBy", fields: [uploadedById], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  uploadedBy   User         @relation("AttachmentUploadedBy", fields: [uploadedById], references: [id])
 
   // Indexes for query patterns
-  @@index([organizationId])                       // RLS performance
-  @@index([entityType, entityId])                 // Lookup attachments for an entity
+  @@index([organizationId]) // RLS performance
+  @@index([entityType, entityId]) // Lookup attachments for an entity
   @@index([organizationId, entityType, entityId]) // Combined filter with tenant
-  @@index([uploadedById])                         // User's uploads
+  @@index([uploadedById]) // User's uploads
   @@map("attachments")
+}
+
+// ===========================================
+// Category Entity (Hierarchical Taxonomy)
+// ===========================================
+
+/// Category provides unified taxonomy for classification across modules.
+/// Used for Cases, RIUs, Disclosures, and Policies.
+/// Supports hierarchical structure via self-referential parent relationship.
+model Category {
+  id             String @id @default(uuid())
+  organizationId String @map("organization_id")
+
+  // Identity
+  name        String
+  code        String? // Short code (e.g., "HAR" for Harassment)
+  description String?
+
+  // Hierarchy
+  parentCategoryId String? @map("parent_category_id")
+  level            Int     @default(0) // 0 = top level
+  path             String? // Materialized path: "/root/child/grandchild"
+
+  // Classification
+  module     CategoryModule // Which module(s) use this category
+  conceptKey String?        @map("concept_key") // Cross-module correlation key
+
+  // Behavior
+  severityDefault       Severity? @map("severity_default") // Default severity for this category
+  requiresInvestigation Boolean   @default(true) @map("requires_investigation")
+  escalationRequired    Boolean   @default(false) @map("escalation_required")
+  slaDays               Int?      @map("sla_days") // Target resolution time
+
+  // Routing
+  defaultAssigneeId String? @map("default_assignee_id")
+  routingRules      Json?   @map("routing_rules") // Complex routing configuration
+
+  // Module-Specific Config
+  moduleConfig Json? @map("module_config")
+
+  // Display
+  icon      String?
+  color     String? // Hex color
+  sortOrder Int     @default(0) @map("sort_order")
+
+  // Status
+  isActive Boolean @default(true) @map("is_active")
+  isSystem Boolean @default(false) @map("is_system") // System-managed, not editable
+
+  // Timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  organization    Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  parentCategory  Category?    @relation("CategoryHierarchy", fields: [parentCategoryId], references: [id])
+  childCategories Category[]   @relation("CategoryHierarchy")
+
+  // Case relations
+  casesPrimary   Case[] @relation("CasePrimaryCategory")
+  casesSecondary Case[] @relation("CaseSecondaryCategory")
+
+  // RIU relations
+  rius RiskIntelligenceUnit[]
+
+  // Unique constraints
+  @@unique([organizationId, module, code])
+  // Indexes
+  @@index([organizationId])
+  @@index([organizationId, module])
+  @@index([organizationId, parentCategoryId])
+  @@index([organizationId, conceptKey])
+  @@index([organizationId, isActive])
+  @@map("categories")
+}
+
+enum CategoryModule {
+  CASE
+  DISCLOSURE
+  POLICY
+  ALL
+
+  @@map("category_module")
+}
+
+// ===========================================
+// Risk Intelligence Unit (RIU) Entity
+// ===========================================
+
+/// RiskIntelligenceUnit represents an immutable intake record - something that happened.
+/// This is the "Contact" parallel to HubSpot's architecture.
+/// RIUs are IMMUTABLE after creation - corrections go on the Case, not the RIU.
+/// NO updatedAt field - emphasizes immutability of intake content.
+model RiskIntelligenceUnit {
+  id              String @id @default(uuid())
+  organizationId  String @map("organization_id")
+  referenceNumber String @unique @map("reference_number") // RIU-2024-001
+
+  // Type Classification
+  type          RiuType // hotline_report, web_form_submission, etc.
+  sourceChannel RiuSourceChannel @map("source_channel") // phone, web_form, chatbot, etc.
+
+  // Core Content (IMMUTABLE after creation)
+  details String // Reporter's narrative (rich text)
+  summary String? // Brief summary
+
+  // Reporter Information (IMMUTABLE)
+  reporterType        RiuReporterType @map("reporter_type") // anonymous, confidential, identified
+  anonymousAccessCode String?         @map("anonymous_access_code") // For anonymous status checks
+  reporterName        String?         @map("reporter_name") // Encrypted if identified
+  reporterEmail       String?         @map("reporter_email") // Encrypted if identified
+  reporterPhone       String?         @map("reporter_phone") // Encrypted if identified
+
+  // Classification (as captured at intake - corrections go on Case)
+  categoryId String?  @map("category_id")
+  severity   Severity @default(MEDIUM)
+
+  // Status (only field that can change)
+  status RiuStatus @default(PENDING_QA)
+
+  // Location Information
+  locationName    String? @map("location_name")
+  locationAddress String? @map("location_address")
+  locationCity    String? @map("location_city")
+  locationState   String? @map("location_state")
+  locationZip     String? @map("location_zip")
+  locationCountry String? @map("location_country")
+
+  // AI Enrichment (can be regenerated)
+  aiSummary          String?   @map("ai_summary")
+  aiRiskScore        Decimal?  @map("ai_risk_score") @db.Decimal(3, 2) // 0.00 to 1.00
+  aiTranslation      String?   @map("ai_translation")
+  aiLanguageDetected String?   @map("ai_language_detected")
+  aiModelVersion     String?   @map("ai_model_version")
+  aiGeneratedAt      DateTime? @map("ai_generated_at")
+  aiConfidenceScore  Int?      @map("ai_confidence_score") // 0-100
+
+  // Campaign linkage (for disclosure/attestation responses)
+  campaignId           String? @map("campaign_id")
+  campaignAssignmentId String? @map("campaign_assignment_id")
+
+  // Custom Data (JSONB)
+  customFields  Json? @map("custom_fields")
+  formResponses Json? @map("form_responses") // Structured form data
+
+  // Migration Support
+  sourceSystem   String?   @map("source_system") // 'NAVEX', 'EQS', 'MANUAL'
+  sourceRecordId String?   @map("source_record_id")
+  migratedAt     DateTime? @map("migrated_at")
+
+  // Audit (NO updatedAt - emphasizes immutability)
+  createdAt   DateTime @default(now()) @map("created_at")
+  createdById String   @map("created_by_id")
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdBy    User         @relation("RiuCreatedBy", fields: [createdById], references: [id])
+  category     Category?    @relation(fields: [categoryId], references: [id])
+
+  // Case associations
+  caseAssociations RiuCaseAssociation[]
+
+  // Interactions (follow-up contacts)
+  interactions Interaction[]
+
+  // Indexes
+  @@index([organizationId])
+  @@index([organizationId, type])
+  @@index([organizationId, status])
+  @@index([organizationId, sourceChannel])
+  @@index([organizationId, createdAt])
+  @@index([organizationId, categoryId])
+  @@index([organizationId, severity])
+  @@index([anonymousAccessCode])
+  @@map("risk_intelligence_units")
+}
+
+enum RiuType {
+  HOTLINE_REPORT
+  WEB_FORM_SUBMISSION
+  DISCLOSURE_RESPONSE
+  ATTESTATION_RESPONSE
+  CHATBOT_TRANSCRIPT
+  INCIDENT_FORM
+  PROXY_REPORT
+  SURVEY_RESPONSE
+
+  @@map("riu_type")
+}
+
+enum RiuSourceChannel {
+  PHONE
+  WEB_FORM
+  CHATBOT
+  EMAIL
+  PROXY
+  DIRECT_ENTRY
+  CAMPAIGN
+
+  @@map("riu_source_channel")
+}
+
+enum RiuReporterType {
+  ANONYMOUS
+  CONFIDENTIAL
+  IDENTIFIED
+
+  @@map("riu_reporter_type")
+}
+
+enum RiuStatus {
+  PENDING_QA // Awaiting QA review (hotline reports)
+  IN_QA // Currently being reviewed by QA
+  RELEASED // QA approved, Case created (or will be)
+  RECEIVED // Web form - no QA needed
+  COMPLETED // Campaign response completed
+
+  @@map("riu_status")
+}
+
+// ===========================================
+// RIU-Case Association Entity
+// ===========================================
+
+/// RiuCaseAssociation links Risk Intelligence Units to Cases (many-to-many).
+/// Multiple RIUs can be associated with a single Case (related reports).
+/// A single RIU typically has one primary Case but could be linked to multiple Cases.
+model RiuCaseAssociation {
+  id     String @id @default(uuid())
+  riuId  String @map("riu_id")
+  caseId String @map("case_id")
+
+  // Association Type
+  associationType RiuAssociationType @default(PRIMARY) @map("association_type")
+
+  // Notes
+  notes String? // Why this association was made
+
+  // Audit
+  createdAt   DateTime @default(now()) @map("created_at")
+  createdById String   @map("created_by_id")
+
+  // Relations
+  riu       RiskIntelligenceUnit @relation(fields: [riuId], references: [id], onDelete: Cascade)
+  case      Case                 @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  createdBy User                 @relation("RiuCaseAssociationCreatedBy", fields: [createdById], references: [id])
+
+  // Unique constraint: one association per RIU-Case pair
+  @@unique([riuId, caseId])
+  // Indexes
+  @@index([riuId])
+  @@index([caseId])
+  @@index([associationType])
+  @@map("riu_case_associations")
+}
+
+enum RiuAssociationType {
+  PRIMARY // First RIU that created the Case
+  RELATED // Subsequently linked RIU
+  MERGED_FROM // RIU came from a merged Case
+
+  @@map("riu_association_type")
+}
+
+// ===========================================
+// Subject Entity (People Involved in Cases)
+// ===========================================
+
+/// Subject represents people named in Cases for cross-case pattern detection.
+/// Can link to Employee records (HRIS) or store external names for non-employees.
+/// Used to identify repeat subjects across multiple cases.
+model Subject {
+  id             String @id @default(uuid())
+  organizationId String @map("organization_id")
+  caseId         String @map("case_id")
+
+  // Identity - either link to Employee OR manual entry
+  employeeId   String? @map("employee_id") // FK to HRIS Employee if linked
+  externalName String? @map("external_name") // For non-employees
+  email        String?
+  phone        String?
+
+  // Role in Case
+  role SubjectRole // reporter, accused, witness, victim, other
+
+  // Context
+  relationship String? // 'employee', 'vendor', 'contractor', etc.
+  department   String?
+  location     String?
+  jobTitle     String? @map("job_title")
+  managerName  String? @map("manager_name")
+
+  // HRIS Snapshot (captured at time of case creation for historical accuracy)
+  hrisSnapshot Json? @map("hris_snapshot")
+
+  // Notes
+  notes String? // Context about subject's involvement
+
+  // Timestamps
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  createdById String   @map("created_by_id")
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  case         Case         @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  createdBy    User         @relation("SubjectCreatedBy", fields: [createdById], references: [id])
+
+  // Indexes for cross-case pattern detection
+  @@index([organizationId])
+  @@index([organizationId, caseId])
+  @@index([organizationId, employeeId])
+  @@index([organizationId, role])
+  @@map("subjects")
+}
+
+enum SubjectRole {
+  REPORTER
+  ACCUSED
+  WITNESS
+  VICTIM
+  OTHER
+
+  @@map("subject_role")
+}
+
+// ===========================================
+// Case Message Entity (Anonymous Communication)
+// ===========================================
+
+/// CaseMessage provides two-way anonymous communication between reporters and investigators.
+/// Ethico acts as a relay protecting reporter identity (Chinese Wall model).
+/// Reporter contact info is stored on RIU but hidden from Case users.
+model CaseMessage {
+  id             String @id @default(uuid())
+  organizationId String @map("organization_id")
+  caseId         String @map("case_id")
+
+  // Direction and Sender
+  direction  MessageDirection // inbound (from reporter), outbound (to reporter)
+  senderType MessageSenderType @map("sender_type") // reporter, investigator, system
+
+  // Content
+  content String // Message body (rich text)
+  subject String? // Optional subject line
+
+  // Read Status
+  isRead   Boolean   @default(false) @map("is_read")
+  readAt   DateTime? @map("read_at")
+  readById String?   @map("read_by_id")
+
+  // Delivery Status (for outbound messages)
+  deliveryStatus MessageDeliveryStatus? @map("delivery_status")
+  deliveredAt    DateTime?              @map("delivered_at")
+
+  // Audit
+  createdAt   DateTime @default(now()) @map("created_at")
+  createdById String?  @map("created_by_id") // Null for reporter messages
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  case         Case         @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  createdBy    User?        @relation("CaseMessageCreatedBy", fields: [createdById], references: [id])
+  readBy       User?        @relation("CaseMessageReadBy", fields: [readById], references: [id])
+
+  // Indexes
+  @@index([organizationId])
+  @@index([organizationId, caseId])
+  @@index([organizationId, caseId, createdAt])
+  @@index([organizationId, isRead])
+  @@map("case_messages")
+}
+
+enum MessageDirection {
+  INBOUND // From reporter to investigators
+  OUTBOUND // From investigators to reporter
+
+  @@map("message_direction")
+}
+
+enum MessageSenderType {
+  REPORTER // Anonymous or identified reporter
+  INVESTIGATOR // Case investigator or assignee
+  SYSTEM // Automated system message
+
+  @@map("message_sender_type")
+}
+
+enum MessageDeliveryStatus {
+  PENDING
+  SENT
+  DELIVERED
+  FAILED
+  BOUNCED
+
+  @@map("message_delivery_status")
+}
+
+// ===========================================
+// Interaction Entity (Follow-up Contacts)
+// ===========================================
+
+/// Interaction records follow-up contacts and status checks on Cases.
+/// Distinct from CaseMessage - Interactions are internal notes about contacts,
+/// while CaseMessages are the actual two-way communication content.
+model Interaction {
+  id             String  @id @default(uuid())
+  organizationId String  @map("organization_id")
+  caseId         String  @map("case_id")
+  riuId          String? @map("riu_id") // Links to follow-up RIU if new info creates one
+
+  // Type and Channel
+  interactionType InteractionType    @map("interaction_type")
+  channel         InteractionChannel
+
+  // Content
+  summary  String // Brief summary of interaction
+  notes    String? // Detailed notes (rich text)
+  addendum String? // Operator notes on caller demeanor, etc.
+
+  // New Information Tracking
+  newInfoAdded      Boolean @default(false) @map("new_info_added")
+  fieldsUpdated     Json?   @map("fields_updated") // Which case fields were updated
+  additionalDetails String? @map("additional_details") // Appended narrative
+
+  // QA (for hotline follow-ups)
+  qaRequired     Boolean              @default(false) @map("qa_required")
+  qaStatus       InteractionQaStatus? @map("qa_status")
+  qaReviewedById String?              @map("qa_reviewed_by_id")
+  qaReviewedAt   DateTime?            @map("qa_reviewed_at")
+
+  // Who conducted the interaction
+  conductedById String   @map("conducted_by_id")
+  conductedAt   DateTime @map("conducted_at")
+
+  // Audit
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  organization Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  case         Case                  @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  riu          RiskIntelligenceUnit? @relation(fields: [riuId], references: [id])
+  conductedBy  User                  @relation("InteractionConductedBy", fields: [conductedById], references: [id])
+  qaReviewedBy User?                 @relation("InteractionQaReviewedBy", fields: [qaReviewedById], references: [id])
+
+  // Indexes
+  @@index([organizationId])
+  @@index([organizationId, caseId])
+  @@index([organizationId, caseId, conductedAt])
+  @@index([organizationId, interactionType])
+  @@map("interactions")
+}
+
+enum InteractionType {
+  STATUS_CHECK // Reporter checking on case status
+  ADDITIONAL_INFO // Reporter providing new information
+  FOLLOW_UP_QUESTION // Investigator reaching out with questions
+  INTERVIEW // Formal interview conducted
+  CALLBACK // Scheduled callback completed
+
+  @@map("interaction_type")
+}
+
+enum InteractionChannel {
+  PHONE
+  EMAIL
+  PORTAL
+  IN_PERSON
+  VIDEO
+
+  @@map("interaction_channel")
+}
+
+enum InteractionQaStatus {
+  PENDING
+  APPROVED
+  NEEDS_REVISION
+  RELEASED
+
+  @@map("interaction_qa_status")
 }

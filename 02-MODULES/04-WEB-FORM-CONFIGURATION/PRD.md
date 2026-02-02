@@ -1126,7 +1126,7 @@ No Case   CREATE CASE
 - Notifications
 - SLA tracking
 
-### 10.3 HRIS Integration (PRD-010)
+### 10.3 HRIS Integration (see `01-SHARED-INFRASTRUCTURE/TECH-SPEC-HRIS-INTEGRATION.md`)
 
 **Employee Lookup:**
 - Search employees by name, email, employee ID

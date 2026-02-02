@@ -184,20 +184,20 @@ describe('PoliciesService', () => {
         content: { type: 'doc', content: [] },
       };
       const userId = 'user-123';
-      const tenantId = 'tenant-123';
+      const organizationId = 'org-123';
 
       const expectedPolicy = {
         id: 'policy-123',
         ...createDto,
         status: PolicyStatus.DRAFT,
         ownerId: userId,
-        tenantId,
+        organizationId,
         versionNumber: '1.0',
       };
 
       mockPrismaService.policy.create.mockResolvedValue(expectedPolicy);
 
-      const result = await service.create(createDto, userId, tenantId);
+      const result = await service.create(createDto, userId, organizationId);
 
       expect(result).toEqual(expectedPolicy);
       expect(mockPrismaService.policy.create).toHaveBeenCalledWith({
@@ -205,7 +205,7 @@ describe('PoliciesService', () => {
           title: createDto.title,
           status: PolicyStatus.DRAFT,
           ownerId: userId,
-          tenantId,
+          organizationId,
         }),
       });
     });
@@ -216,14 +216,14 @@ describe('PoliciesService', () => {
         policyType: 'Ethics',
       };
 
-      await expect(service.create(createDto, 'user-123', 'tenant-123'))
+      await expect(service.create(createDto, 'user-123', 'org-123'))
         .rejects.toThrow('Title must not exceed 200 characters');
     });
   });
 
   describe('findAll', () => {
     it('should return paginated policies for tenant', async () => {
-      const tenantId = 'tenant-123';
+      const organizationId = 'org-123';
       const filters = { page: 1, limit: 25 };
       const mockPolicies = [
         { id: 'policy-1', title: 'Policy 1' },
@@ -232,12 +232,12 @@ describe('PoliciesService', () => {
 
       mockPrismaService.policy.findMany.mockResolvedValue(mockPolicies);
 
-      const result = await service.findAll(tenantId, filters);
+      const result = await service.findAll(organizationId, filters);
 
       expect(result.data).toEqual(mockPolicies);
       expect(mockPrismaService.policy.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
-          where: { tenantId },
+          where: { organizationId },
           skip: 0,
           take: 25,
         })
@@ -245,16 +245,16 @@ describe('PoliciesService', () => {
     });
 
     it('should filter by status when provided', async () => {
-      const tenantId = 'tenant-123';
+      const organizationId = 'org-123';
       const filters = { status: PolicyStatus.PUBLISHED, page: 1, limit: 25 };
 
       mockPrismaService.policy.findMany.mockResolvedValue([]);
 
-      await service.findAll(tenantId, filters);
+      await service.findAll(organizationId, filters);
 
       expect(mockPrismaService.policy.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
-          where: { tenantId, status: PolicyStatus.PUBLISHED },
+          where: { organizationId, status: PolicyStatus.PUBLISHED },
         })
       );
     });
@@ -481,7 +481,7 @@ describe('PoliciesController (e2e)', () => {
   let app: INestApplication;
   let prisma: PrismaService;
   let authToken: string;
-  let tenantId: string;
+  let organizationId: string;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -498,14 +498,14 @@ describe('PoliciesController (e2e)', () => {
     const tenant = await prisma.tenant.create({
       data: { name: 'Test Tenant', slug: 'test-tenant' },
     });
-    tenantId = tenant.id;
+    organizationId = tenant.id;
 
     const user = await prisma.user.create({
       data: {
         email: 'test@example.com',
         firstName: 'Test',
         lastName: 'User',
-        tenantId: tenant.id,
+        organizationId: tenant.id,
         role: 'POLICY_AUTHOR',
         passwordHash: await bcrypt.hash('password123', 12),
       },
@@ -520,9 +520,9 @@ describe('PoliciesController (e2e)', () => {
   });
 
   afterAll(async () => {
-    await prisma.policy.deleteMany({ where: { tenantId } });
-    await prisma.user.deleteMany({ where: { tenantId } });
-    await prisma.tenant.delete({ where: { id: tenantId } });
+    await prisma.policy.deleteMany({ where: { organizationId } });
+    await prisma.user.deleteMany({ where: { organizationId } });
+    await prisma.tenant.delete({ where: { id: organizationId } });
     await app.close();
   });
 
@@ -572,9 +572,9 @@ describe('PoliciesController (e2e)', () => {
       // Create test policies
       await prisma.policy.createMany({
         data: [
-          { title: 'Policy A', policyType: 'Ethics', tenantId, ownerId: 'user-123', status: 'DRAFT' },
-          { title: 'Policy B', policyType: 'HR', tenantId, ownerId: 'user-123', status: 'PUBLISHED' },
-          { title: 'Policy C', policyType: 'Ethics', tenantId, ownerId: 'user-123', status: 'PUBLISHED' },
+          { title: 'Policy A', policyType: 'Ethics', organizationId, ownerId: 'user-123', status: 'DRAFT' },
+          { title: 'Policy B', policyType: 'HR', organizationId, ownerId: 'user-123', status: 'PUBLISHED' },
+          { title: 'Policy C', policyType: 'Ethics', organizationId, ownerId: 'user-123', status: 'PUBLISHED' },
         ],
       });
     });
@@ -617,7 +617,7 @@ describe('PoliciesController (e2e)', () => {
 ### 4.2 Tenant Isolation Tests
 
 ```typescript
-// apps/backend/test/tenant-isolation.e2e-spec.ts
+// apps/backend/test/org-isolation.e2e-spec.ts
 
 describe('Tenant Isolation (e2e)', () => {
   let app: INestApplication;
@@ -637,7 +637,7 @@ describe('Tenant Isolation (e2e)', () => {
       .expect(200);
 
     const tenantBPolicies = response.body.data.filter(
-      p => p.tenantId !== tenantAId
+      p => p.organizationId !== tenantAId
     );
     expect(tenantBPolicies).toHaveLength(0);
   });
@@ -1148,7 +1148,7 @@ describe('Accessibility', () => {
 // apps/backend/test/fixtures/index.ts
 
 export const testTenant = {
-  id: 'test-tenant-id',
+  id: 'test-org-id',
   name: 'Test Tenant',
   slug: 'test-tenant',
 };
@@ -1160,7 +1160,7 @@ export const testUsers = {
     firstName: 'Admin',
     lastName: 'User',
     role: 'SYSTEM_ADMIN',
-    tenantId: testTenant.id,
+    organizationId: testTenant.id,
   },
   author: {
     id: 'author-user-id',
@@ -1168,7 +1168,7 @@ export const testUsers = {
     firstName: 'Author',
     lastName: 'User',
     role: 'POLICY_AUTHOR',
-    tenantId: testTenant.id,
+    organizationId: testTenant.id,
   },
   reviewer: {
     id: 'reviewer-user-id',
@@ -1176,7 +1176,7 @@ export const testUsers = {
     firstName: 'Reviewer',
     lastName: 'User',
     role: 'POLICY_REVIEWER',
-    tenantId: testTenant.id,
+    organizationId: testTenant.id,
   },
 };
 
@@ -1186,7 +1186,7 @@ export const testPolicies = {
     title: 'Draft Policy',
     status: 'DRAFT',
     policyType: 'Ethics',
-    tenantId: testTenant.id,
+    organizationId: testTenant.id,
     ownerId: testUsers.author.id,
   },
   published: {
@@ -1194,7 +1194,7 @@ export const testPolicies = {
     title: 'Published Policy',
     status: 'PUBLISHED',
     policyType: 'HR',
-    tenantId: testTenant.id,
+    organizationId: testTenant.id,
     ownerId: testUsers.author.id,
   },
 };
@@ -1339,7 +1339,7 @@ describe('ExceptionsService', () => {
         businessUnit: 'Sales EMEA',
       };
 
-      const result = await service.createException(createDto, 'user-123', 'tenant-123');
+      const result = await service.createException(createDto, 'user-123', 'org-123');
 
       expect(result.status).toBe('PENDING');
       expect(result.requestedBy).toBe('user-123');
@@ -1354,7 +1354,7 @@ describe('ExceptionsService', () => {
         // Missing expirationDate
       };
 
-      await expect(service.createException(createDto, 'user-123', 'tenant-123'))
+      await expect(service.createException(createDto, 'user-123', 'org-123'))
         .rejects.toThrow('Expiration date required for temporary exceptions');
     });
 
@@ -1365,7 +1365,7 @@ describe('ExceptionsService', () => {
         exceptionType: 'PERMANENT',
       };
 
-      await expect(service.createException(createDto, 'user-123', 'tenant-123'))
+      await expect(service.createException(createDto, 'user-123', 'org-123'))
         .rejects.toThrow('Justification must be at least 50 characters');
     });
   });
@@ -1379,10 +1379,10 @@ describe('ExceptionsService', () => {
       mockPrismaService.policyException.findUnique.mockResolvedValue({
         id: exceptionId,
         status: 'PENDING',
-        tenantId: 'tenant-123',
+        organizationId: 'org-123',
       });
 
-      await service.approveException(exceptionId, approverId, comment, 'tenant-123');
+      await service.approveException(exceptionId, approverId, comment, 'org-123');
 
       expect(mockPrismaService.policyException.update).toHaveBeenCalledWith({
         where: { id: exceptionId },
@@ -1403,10 +1403,10 @@ describe('ExceptionsService', () => {
         id: exceptionId,
         status: 'PENDING',
         requestedBy: requesterId,
-        tenantId: 'tenant-123',
+        organizationId: 'org-123',
       });
 
-      await expect(service.approveException(exceptionId, requesterId, 'OK', 'tenant-123'))
+      await expect(service.approveException(exceptionId, requesterId, 'OK', 'org-123'))
         .rejects.toThrow('Cannot approve your own exception request');
     });
   });
@@ -1415,7 +1415,7 @@ describe('ExceptionsService', () => {
     it('should return exceptions expiring within specified days', async () => {
       const daysAhead = 7;
 
-      await service.checkExpiringExceptions('tenant-123', daysAhead);
+      await service.checkExpiringExceptions('org-123', daysAhead);
 
       expect(mockPrismaService.policyException.findMany).toHaveBeenCalledWith({
         where: expect.objectContaining({
@@ -1554,7 +1554,7 @@ describe('RegulatoryService', () => {
     it('should import predefined framework with requirements', async () => {
       const frameworkId = 'GDPR';
 
-      const result = await service.importFramework(frameworkId, 'tenant-123');
+      const result = await service.importFramework(frameworkId, 'org-123');
 
       expect(result.name).toBe('GDPR');
       expect(result.requirements.length).toBeGreaterThan(0);
@@ -1567,7 +1567,7 @@ describe('RegulatoryService', () => {
         frameworkId: 'GDPR',
       });
 
-      await expect(service.importFramework('GDPR', 'tenant-123'))
+      await expect(service.importFramework('GDPR', 'org-123'))
         .rejects.toThrow('Framework already imported');
     });
   });
@@ -1581,7 +1581,7 @@ describe('RegulatoryService', () => {
         notes: 'Covers data collection minimization',
       };
 
-      await service.createMapping(mappingDto, 'tenant-123');
+      await service.createMapping(mappingDto, 'org-123');
 
       expect(mockPrismaService.regulatoryMapping.create).toHaveBeenCalledWith({
         data: expect.objectContaining(mappingDto),
@@ -1594,7 +1594,7 @@ describe('RegulatoryService', () => {
       mockPrismaService.regulatoryRequirement.count.mockResolvedValue(100);
       mockPrismaService.regulatoryMapping.count.mockResolvedValue(87);
 
-      const result = await service.calculateCoverage('framework-123', 'tenant-123');
+      const result = await service.calculateCoverage('framework-123', 'org-123');
 
       expect(result.coverage).toBe(87);
       expect(result.totalRequirements).toBe(100);
@@ -1604,7 +1604,7 @@ describe('RegulatoryService', () => {
 
   describe('identifyGaps', () => {
     it('should return unmapped requirements', async () => {
-      const result = await service.identifyGaps('framework-123', 'tenant-123');
+      const result = await service.identifyGaps('framework-123', 'org-123');
 
       expect(result.gaps).toBeInstanceOf(Array);
       expect(result.gaps.every(g => g.mappedPolicies.length === 0)).toBe(true);
@@ -1686,7 +1686,7 @@ describe('LinkageService', () => {
         notes: 'Policy addresses this risk',
       };
 
-      await service.createLinkage(linkageDto, 'tenant-123');
+      await service.createLinkage(linkageDto, 'org-123');
 
       expect(mockPrismaService.policyLinkage.create).toHaveBeenCalled();
     });
@@ -1698,14 +1698,14 @@ describe('LinkageService', () => {
         policyId: 'policy-123',
         linkedRecordId: 'INVALID-ID',
         linkedRecordType: 'RISK',
-      }, 'tenant-123'))
+      }, 'org-123'))
         .rejects.toThrow('Record not found in MyCM');
     });
   });
 
   describe('getLinkedRecords', () => {
     it('should return all linked records for a policy', async () => {
-      const result = await service.getLinkedRecords('policy-123', 'tenant-123');
+      const result = await service.getLinkedRecords('policy-123', 'org-123');
 
       expect(result.risks).toBeInstanceOf(Array);
       expect(result.incidents).toBeInstanceOf(Array);
@@ -1719,7 +1719,7 @@ describe('LinkageService', () => {
       const result = await service.getPoliciesLinkedToRecord(
         'RISK-2024-0089',
         'RISK',
-        'tenant-123'
+        'org-123'
       );
 
       expect(result.policies).toBeInstanceOf(Array);
@@ -1728,7 +1728,7 @@ describe('LinkageService', () => {
 
   describe('getCrossModuleAnalytics', () => {
     it('should calculate policy mentions in records', async () => {
-      const result = await service.getCrossModuleAnalytics('tenant-123', {
+      const result = await service.getCrossModuleAnalytics('org-123', {
         startDate: new Date('2025-01-01'),
         endDate: new Date('2026-01-20'),
       });
@@ -1758,7 +1758,7 @@ describe('PolicyHubService', () => {
       const userId = 'user-123';
       const userRole = 'ENGINEER';
 
-      const result = await service.getMyPolicies(userId, 'tenant-123');
+      const result = await service.getMyPolicies(userId, 'org-123');
 
       expect(result.policies).toBeInstanceOf(Array);
       expect(mockPrismaService.policy.findMany).toHaveBeenCalledWith({
@@ -1772,7 +1772,7 @@ describe('PolicyHubService', () => {
     });
 
     it('should include attestation status for each policy', async () => {
-      const result = await service.getMyPolicies('user-123', 'tenant-123');
+      const result = await service.getMyPolicies('user-123', 'org-123');
 
       result.policies.forEach(policy => {
         expect(policy).toHaveProperty('attestationStatus');
@@ -1786,7 +1786,7 @@ describe('PolicyHubService', () => {
     it('should return team compliance overview for manager', async () => {
       const managerId = 'manager-123';
 
-      const result = await service.getTeamPolicies(managerId, 'tenant-123');
+      const result = await service.getTeamPolicies(managerId, 'org-123');
 
       expect(result.teamMembers).toBeInstanceOf(Array);
       expect(result.overallCompliance).toBeGreaterThanOrEqual(0);
@@ -1796,7 +1796,7 @@ describe('PolicyHubService', () => {
     it('should only return direct reports', async () => {
       const managerId = 'manager-123';
 
-      await service.getTeamPolicies(managerId, 'tenant-123');
+      await service.getTeamPolicies(managerId, 'org-123');
 
       expect(mockPrismaService.user.findMany).toHaveBeenCalledWith({
         where: { managerId },
@@ -1806,7 +1806,7 @@ describe('PolicyHubService', () => {
 
   describe('getQuickActions', () => {
     it('should return pending actions count', async () => {
-      const result = await service.getQuickActions('user-123', 'tenant-123');
+      const result = await service.getQuickActions('user-123', 'org-123');
 
       expect(result).toEqual(expect.objectContaining({
         pendingReviews: expect.any(Number),
@@ -1889,7 +1889,7 @@ describe('SharePointService', () => {
 
       mockPrismaService.policy.findMany.mockResolvedValue(policies);
 
-      await service.syncPolicies('tenant-123');
+      await service.syncPolicies('org-123');
 
       expect(mockSharePointClient.indexDocument).toHaveBeenCalledTimes(2);
     });
@@ -1901,7 +1901,7 @@ describe('SharePointService', () => {
 
       mockPrismaService.policy.findMany.mockResolvedValue(policies);
 
-      await service.syncPolicies('tenant-123');
+      await service.syncPolicies('org-123');
 
       expect(mockSharePointClient.indexDocument).not.toHaveBeenCalled();
     });
@@ -1911,7 +1911,7 @@ describe('SharePointService', () => {
     it('should verify SharePoint API connectivity', async () => {
       mockSharePointClient.getMe.mockResolvedValue({ id: 'user-id' });
 
-      const result = await service.testConnection('tenant-123');
+      const result = await service.testConnection('org-123');
 
       expect(result.connected).toBe(true);
     });
@@ -1936,7 +1936,7 @@ describe('LMSService', () => {
         policyId: 'policy-123',
       });
 
-      await service.syncCourseCompletion('tenant-123');
+      await service.syncCourseCompletion('org-123');
 
       expect(mockPrismaService.attestation.create).toHaveBeenCalledWith({
         data: expect.objectContaining({
@@ -1952,7 +1952,7 @@ describe('LMSService', () => {
     it('should create LMS course from policy quiz', async () => {
       const quizId = 'quiz-123';
 
-      await service.exportQuizAsCourse(quizId, 'tenant-123');
+      await service.exportQuizAsCourse(quizId, 'org-123');
 
       expect(mockLMSClient.createCourse).toHaveBeenCalled();
     });
@@ -2261,7 +2261,7 @@ describe('ConditionEngineService', () => {
 describe('WorkflowAnalyticsService', () => {
   describe('getWorkflowPerformance', () => {
     it('should calculate average duration by workflow type', async () => {
-      const result = await service.getWorkflowPerformance('tenant-123', {
+      const result = await service.getWorkflowPerformance('org-123', {
         startDate: new Date('2025-01-01'),
         endDate: new Date('2026-01-20'),
       });
@@ -2279,7 +2279,7 @@ describe('WorkflowAnalyticsService', () => {
 
   describe('identifyBottlenecks', () => {
     it('should identify slowest workflow steps', async () => {
-      const result = await service.identifyBottlenecks('workflow-123', 'tenant-123');
+      const result = await service.identifyBottlenecks('workflow-123', 'org-123');
 
       expect(result.bottlenecks).toEqual(expect.arrayContaining([
         expect.objectContaining({
@@ -2320,7 +2320,7 @@ describe('AuditStreamService', () => {
 
   describe('getRealtimeMetrics', () => {
     it('should calculate live compliance metrics', async () => {
-      const result = await service.getRealtimeMetrics('tenant-123');
+      const result = await service.getRealtimeMetrics('org-123');
 
       expect(result).toEqual(expect.objectContaining({
         attestationRate: expect.any(Number),
@@ -2371,7 +2371,7 @@ describe('AuditAlertsService', () => {
         scopeId: 'finance',
       };
 
-      const result = await service.checkMetricAlert(alertRule, 'tenant-123');
+      const result = await service.checkMetricAlert(alertRule, 'org-123');
 
       expect(result.triggered).toBe(true);
     });
@@ -2387,7 +2387,7 @@ describe('AuditAlertsService', () => {
         actions: ['EMAIL_SECURITY', 'BLOCK_IP'],
       };
 
-      await service.createAlertRule(ruleDto, 'tenant-123');
+      await service.createAlertRule(ruleDto, 'org-123');
 
       expect(mockPrismaService.auditAlertRule.create).toHaveBeenCalled();
     });
@@ -2417,14 +2417,14 @@ describe('AutoTaggingService', () => {
         ],
       }));
 
-      const result = await service.generateTagSuggestions(policyContent, 'tenant-123');
+      const result = await service.generateTagSuggestions(policyContent, 'org-123');
 
       expect(result.suggestions).toHaveLength(3);
       expect(result.suggestions[0].confidence).toBeGreaterThan(0.9);
     });
 
     it('should categorize suggestions by confidence level', async () => {
-      const result = await service.generateTagSuggestions('policy content', 'tenant-123');
+      const result = await service.generateTagSuggestions('policy content', 'org-123');
 
       expect(result.highConfidence).toBeDefined();
       expect(result.mediumConfidence).toBeDefined();
@@ -2437,7 +2437,7 @@ describe('AutoTaggingService', () => {
       const policyId = 'policy-123';
       const selectedTags = ['Anti-Bribery', 'Ethics'];
 
-      await service.applyTagSuggestions(policyId, selectedTags, 'tenant-123');
+      await service.applyTagSuggestions(policyId, selectedTags, 'org-123');
 
       expect(mockPrismaService.policy.update).toHaveBeenCalledWith({
         where: { id: policyId },
@@ -2496,7 +2496,7 @@ describe('RegulatoryMappingService', () => {
       const policyContent = 'This policy covers data minimization and consent...';
       const framework = 'GDPR';
 
-      const result = await service.suggestMappings(policyContent, framework, 'tenant-123');
+      const result = await service.suggestMappings(policyContent, framework, 'org-123');
 
       expect(result.suggestions).toEqual(expect.arrayContaining([
         expect.objectContaining({
@@ -2540,14 +2540,14 @@ describe('QuizGenerationService', () => {
         ],
       }));
 
-      const result = await service.generateQuiz(policyContent, options, 'tenant-123');
+      const result = await service.generateQuiz(policyContent, options, 'org-123');
 
       expect(result.questions).toHaveLength(5);
       expect(result.questions[0]).toHaveProperty('correctAnswer');
     });
 
     it('should validate generated questions have correct structure', async () => {
-      const result = await service.generateQuiz('content', { questionCount: 3 }, 'tenant-123');
+      const result = await service.generateQuiz('content', { questionCount: 3 }, 'org-123');
 
       result.questions.forEach(q => {
         expect(q).toHaveProperty('question');
@@ -2584,7 +2584,7 @@ describe('QuizAttemptService', () => {
         { id: 'q3', correctAnswer: 'Explicit consent' },
       ]);
 
-      const result = await service.submitAttempt(quizId, answers, 'user-123', 'tenant-123');
+      const result = await service.submitAttempt(quizId, answers, 'user-123', 'org-123');
 
       expect(result.score).toBe(67); // 2/3 = 66.67%
       expect(result.correctCount).toBe(2);
@@ -2599,7 +2599,7 @@ describe('QuizAttemptService', () => {
       const result = await service.submitAttempt('quiz-123', [
         { questionId: 'q1', answer: 'Correct' },
         { questionId: 'q2', answer: 'Wrong' },
-      ], 'user-123', 'tenant-123');
+      ], 'user-123', 'org-123');
 
       expect(result.passed).toBe(false); // 50% < 80%
     });
@@ -2610,7 +2610,7 @@ describe('QuizAttemptService', () => {
         maxAttempts: 3,
       });
 
-      const result = await service.submitAttempt('quiz-123', [], 'user-123', 'tenant-123');
+      const result = await service.submitAttempt('quiz-123', [], 'user-123', 'org-123');
 
       expect(result.attemptNumber).toBe(3);
       expect(result.attemptsRemaining).toBe(0);
@@ -2622,7 +2622,7 @@ describe('QuizAttemptService', () => {
         maxAttempts: 3,
       });
 
-      await expect(service.submitAttempt('quiz-123', [], 'user-123', 'tenant-123'))
+      await expect(service.submitAttempt('quiz-123', [], 'user-123', 'org-123'))
         .rejects.toThrow('Maximum attempts reached');
     });
   });
@@ -2647,7 +2647,7 @@ describe('CertificateService', () => {
         quiz: { policy: { title: 'Data Privacy Policy' } },
       });
 
-      const result = await service.generateCertificate(attemptId, 'tenant-123');
+      const result = await service.generateCertificate(attemptId, 'org-123');
 
       expect(result.certificateId).toBeDefined();
       expect(result.pdfUrl).toBeDefined();
@@ -2659,7 +2659,7 @@ describe('CertificateService', () => {
         passed: false,
       });
 
-      await expect(service.generateCertificate('attempt-123', 'tenant-123'))
+      await expect(service.generateCertificate('attempt-123', 'org-123'))
         .rejects.toThrow('Cannot generate certificate for failed attempt');
     });
 
@@ -2669,7 +2669,7 @@ describe('CertificateService', () => {
         quiz: { certificateValidityMonths: 12 },
       });
 
-      const result = await service.generateCertificate('attempt-123', 'tenant-123');
+      const result = await service.generateCertificate('attempt-123', 'org-123');
 
       expect(result.validUntil).toBeDefined();
       expect(new Date(result.validUntil).getTime())
@@ -2687,7 +2687,7 @@ describe('CertificateService', () => {
 describe('QuizAnalyticsService', () => {
   describe('getQuizPerformance', () => {
     it('should calculate overall pass rate', async () => {
-      const result = await service.getQuizPerformance('tenant-123', {
+      const result = await service.getQuizPerformance('org-123', {
         startDate: new Date('2025-01-01'),
         endDate: new Date('2026-01-20'),
       });
@@ -2697,7 +2697,7 @@ describe('QuizAnalyticsService', () => {
     });
 
     it('should identify hardest questions', async () => {
-      const result = await service.getQuestionAnalysis('quiz-123', 'tenant-123');
+      const result = await service.getQuestionAnalysis('quiz-123', 'org-123');
 
       expect(result.questions).toEqual(expect.arrayContaining([
         expect.objectContaining({

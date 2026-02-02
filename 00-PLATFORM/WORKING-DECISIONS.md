@@ -2691,6 +2691,1193 @@ Recipients: Sarah Chen, Mike Rodriguez, ... [+10 more]
 | AA.5 | AI Agent | Full audit trail with AI attribution | Confirmed |
 | AA.6 | AI Agent | Guardrails prevent auto-execution of risky actions | Confirmed |
 | AA.7 | AI Agent | TECH-SPEC-AI-AGENT.md needed for full specification | Pending |
+| AA.8 | AI Agent | Tiered interaction model (Inline → Contextual → Drawer) | Confirmed |
+| AA.9 | AI Agent | Hybrid action catalog with dynamic filtering | Confirmed |
+| AA.10 | AI Agent | Preview-then-Execute pattern for multi-step actions | Confirmed |
+| AA.11 | AI Agent | User-owned narratives with AI assistance modes | Confirmed |
+| AA.12 | AI Agent | Claude Code-style context hierarchy and skills system | Confirmed |
+| AA.13 | AI Agent | Selective persistence with pause/resume pattern | Confirmed |
+| AA.14 | AI Agent | Partial success with retry + time-limited undo trail | Confirmed |
+| AA.15 | AI Agent | Visible context usage with compact/clear/fresh actions | Confirmed |
+| AA.16 | AI Agent | Skill lifecycle from personal to community marketplace | Confirmed |
+| AA.17 | AI Agent | Scoped agents per view (Investigation, Case, Compliance Manager, etc.) | Confirmed |
+
+#### AA.8 AI Interaction Model
+
+**Decision:** Tiered interaction model - AI doesn't consume screen real estate until invoked
+
+**Tier 1 - Inline (Ghost Text)**
+| Aspect | Detail |
+|--------|--------|
+| **Trigger** | Auto-appears while typing in text fields |
+| **UX** | Ghost text suggestions (smart compose style) |
+| **Accept** | Tab to accept |
+| **Dismiss** | Escape or keep typing |
+| **Use Cases** | Note completion, email templates, standard phrases |
+
+**Tier 2 - Contextual (Selection/Field Actions)**
+| Aspect | Detail |
+|--------|--------|
+| **Trigger** | Text selection, right-click, ✨ icon on AI-enabled fields |
+| **UX** | Floating toolbar or popover with action buttons |
+| **Actions** | "Summarize", "Improve", "Translate", "Ask AI..." |
+| **Special** | Screenshot drop zones for "create form from image" workflows |
+| **Use Cases** | Summarize selected notes, improve draft text, create form from screenshot |
+
+**Tier 3 - Slide-over Drawer (Extended Conversation)**
+| Aspect | Detail |
+|--------|--------|
+| **Trigger** | Cmd+J (Mac) / Ctrl+J (Win), header AI icon, escalation from Tier 2 |
+| **UX** | Right-side drawer slides in (like Claude Code terminal) |
+| **Default** | Closed - opens on demand |
+| **Option** | Can be pinned open by users who prefer persistent chat |
+| **Use Cases** | Multi-turn conversations, complex queries, bulk action workflows |
+
+**Escalation Flow:**
+```
+Tier 1 (Inline)
+    │ User wants more control/options
+    ▼
+Tier 2 (Contextual)
+    │ Task requires multi-turn conversation
+    ▼
+Tier 3 (Drawer)
+```
+
+**Key Principle:** AI is non-intrusive by default. Contextual assistance appears where you're working, not in a persistent panel consuming screen space.
+
+#### AA.9 AI Action Discovery
+
+**Decision:** Hybrid approach - Static action catalog with dynamic runtime filtering
+
+**Action Registration Pattern:**
+```typescript
+// Each module registers its AI-invokable actions
+const caseActions: AIAction[] = [
+  {
+    id: 'case.send_reminder',
+    label: 'Send reminder to assignee',
+    requiredPermissions: ['case.update', 'email.send'],
+    requiredFeatures: ['email_integration'],
+    contextRequirements: {
+      entityType: 'case',
+      conditions: ['status != closed', 'has_assignee']
+    },
+    parameters: [{ name: 'message', type: 'string', optional: true }]
+  }
+]
+```
+
+**Runtime Filtering Layers:**
+| Layer | Filter Logic |
+|-------|-------------|
+| **Permission Filter** | User must have all `requiredPermissions` |
+| **Feature Filter** | Organization must have all `requiredFeatures` enabled |
+| **Context Filter** | Current entity must match `contextRequirements` |
+| **Workflow Filter** | Custom workflows may add/remove actions dynamically |
+
+**What AI Receives:**
+```
+User asks: "What can I do with this case?"
+AI sees: [assign, add_note, request_investigation, send_reminder, close]
+AI does NOT see: [delete, change_org_settings, bulk_export] (no permission)
+```
+
+**Benefits:**
+- **Auditable:** All possible actions documented in static catalog
+- **Adaptive:** Respects permissions, org config, custom workflows at runtime
+- **Safe:** AI can only invoke actions in the filtered catalog
+- **Extensible:** Custom workflows register custom actions
+
+**Anti-Pattern:** AI must NEVER directly call API endpoints. All AI actions route through the action catalog with permission validation.
+
+#### AA.10 AI Multi-Step Actions
+
+**Decision:** Preview-then-Execute pattern - AI prepares everything invisibly, presents editable preview, user confirms once
+
+**UX Pattern:**
+```
+User: "Send follow-up emails to all managers with pending COI approvals"
+
+AI: [Does work invisibly - queries, generates, prepares]
+
+AI Response:
+┌─────────────────────────────────────────────────────────┐
+│ 📧 Ready to send 12 follow-up emails                    │
+│                                                         │
+│ Recipients: 12 managers with pending approvals          │
+│ [View List] [Edit Recipients]                           │
+│                                                         │
+│ Template Preview:                                       │
+│ ┌─────────────────────────────────────────────────────┐ │
+│ │ Subject: Action Required: Pending COI Approval      │ │
+│ │                                                     │ │
+│ │ Hi {manager_name},                                  │ │
+│ │ You have {count} pending COI disclosures awaiting...│ │
+│ └─────────────────────────────────────────────────────┘ │
+│ [Edit Template]                                         │
+│                                                         │
+│ ⚠️ This will send 12 emails immediately                 │
+│                                                         │
+│ [Cancel]                     [Send All]                 │
+└─────────────────────────────────────────────────────────┘
+```
+
+**Key Principles:**
+| Principle | Implementation |
+|-----------|----------------|
+| **Prep Invisibly** | User doesn't see "Step 1 of 5" wizard |
+| **Smart Defaults** | AI makes reasonable choices (user can adjust) |
+| **Everything Editable** | Recipients, template, timing all changeable from preview |
+| **Single Confirmation** | One "Send All" button, not confirm-confirm-confirm |
+| **Clear Consequences** | "This will send 12 emails" shown explicitly |
+
+**Escalation to Conversation:**
+If AI cannot make a confident choice, it asks ONE clarifying question before preparing preview:
+```
+AI: "Should I include managers on leave, or only active managers?
+     (3 are currently on leave)"
+User: "Only active"
+AI: [Prepares preview with 9 recipients]
+```
+
+**Anti-Patterns:**
+- ❌ Wizard fatigue: "Step 1 of 6: Select recipients..."
+- ❌ Surprise actions: Sending without preview
+- ❌ Over-asking: "Are you sure?" at every step
+
+#### AA.11 AI Summary & Narrative Ownership
+
+**Decision:** Every Case and Investigation has an owned narrative that persists and evolves. User controls it; AI assists.
+
+**Ownership Model:**
+```typescript
+interface EntityNarrative {
+  // The "owned" summary - persists on the entity
+  summary: string;              // 2-3 paragraph executive summary
+  summaryLastEditedBy: 'user' | 'ai';
+  summaryLastEditedAt: DateTime;
+
+  // Optional detailed write-up
+  detailedWriteup?: string;     // Full chronological narrative
+  writeupLastEditedBy: 'user' | 'ai';
+
+  // AI can always regenerate from raw data
+  // but user edits are preserved until explicitly replaced
+}
+```
+
+**Three AI Assistance Modes:**
+| Mode | User Action | AI Behavior |
+|------|-------------|-------------|
+| **Generate** | "Write me a summary" | AI creates full summary from entity data, user edits before accepting |
+| **Suggest** | "What should I add?" | AI proposes additions based on recent activity, user cherry-picks |
+| **Augment** | "Update with latest findings" | AI drafts additions, user reviews diff before merging |
+
+**Edit-Before-Accept Pattern (Always):**
+```
+┌─────────────────────────────────────────────────────────┐
+│ AI has drafted a summary update                         │
+│                                                         │
+│ Current Summary:                                        │
+│ ┌─────────────────────────────────────────────────────┐ │
+│ │ On Jan 15, employee reported witnessing...          │ │
+│ │ Investigation assigned to Sarah Chen on Jan 16...   │ │
+│ └─────────────────────────────────────────────────────┘ │
+│                                                         │
+│ Suggested Addition:                      [Edit ✏️]      │
+│ ┌─────────────────────────────────────────────────────┐ │
+│ │ On Jan 20, interview with department manager        │ │
+│ │ revealed that similar incidents occurred in Q3...   │ │
+│ └─────────────────────────────────────────────────────┘ │
+│                                                         │
+│ [Discard]    [Replace Full Summary]    [Append to End] │
+└─────────────────────────────────────────────────────────┘
+```
+
+**Conversation Accumulation Mental Model:**
+Each workflow step adds to a conversation record that AI can read:
+```
+Case #1234 Conversation Timeline:
+─────────────────────────────────
+[RIU Created] "Employee called hotline reporting HIPAA concern..."
+     ↓
+[Triage Note] "Categorized as Privacy violation, assigned to..."
+     ↓
+[Investigation Started] "Investigation opened, template: HIPAA Breach"
+     ↓
+[Interview Logged] "Spoke with department manager who confirmed..."
+     ↓
+[Finding Added] "Root cause: Inadequate access controls on..."
+     ↓
+[AI Summary Request] → AI reads full conversation → drafts summary
+     ↓
+[User Edits] "Added context about prior training completion"
+     ↓
+[Summary Saved] → Owned narrative updated
+```
+
+**AI Context Access:**
+- AI always has access to full conversation timeline (raw data)
+- AI can materialize this into narrative form on demand
+- User's owned summary is separate from raw data - it's their curated view
+- Regenerating summary doesn't delete user edits unless explicitly chosen
+
+**Key Principle:** The owned narrative is the user's artifact. AI helps create and update it, but user always has final edit authority.
+
+#### AA.12 AI Architecture: Context, Skills, and Actions
+
+**Decision:** Platform AI follows Claude Code patterns - hierarchical context loading, native skills system, and action capabilities.
+
+**1. Context Hierarchy (like CLAUDE.md)**
+
+Context loads in order, later overrides earlier:
+```
+Context Loading Order:
+─────────────────────────────────────────────────────────
+1. Platform Context     → Built-in platform knowledge, entity schemas, action catalog
+2. Organization Context → Org-level CONTEXT.md (terminology, policies, standards)
+3. Team Context         → Team-level CONTEXT.md (team workflows, preferences)
+4. User Context         → User-level CONTEXT.md (personal style, shortcuts)
+5. Entity Context       → Current case/investigation data + conversation history
+```
+
+**Organization Context Example:**
+```markdown
+# Acme Corp AI Context
+
+## Terminology
+- "Associate" not "Employee"
+- "Incident" not "Case" in external communications
+- HIPAA cases always require Legal review before closing
+
+## Writing Standards
+- Summaries: 3 paragraphs max, executive-friendly
+- Use active voice
+- Never include SSNs or full names in AI-generated summaries
+
+## Escalation Rules
+- Any case mentioning "retaliation" → auto-flag for Legal
+- Cases involving VP+ → CCO notification required
+```
+
+**Team Context Example:**
+```markdown
+# HIPAA Investigation Team Context
+
+## Our Workflow
+- Always check prior training records before interview
+- Standard interview questions in /templates/hipaa-interview.md
+- Final reports require peer review
+
+## Preferred Tools
+- Use /summarize-hipaa for breach summaries (includes required fields)
+```
+
+**2. AI Action Capabilities**
+
+AI executes actions via Action Catalog, not just generates text:
+```
+User: "Mark this case as under investigation and assign to Sarah"
+
+AI: [Executes via Action Catalog]
+┌─────────────────────────────────────────────────────────┐
+│ ✓ Done. I've made these changes to Case #1234:         │
+│                                                         │
+│   • Status: Open → Under Investigation                  │
+│   • Assignee: Unassigned → Sarah Chen                   │
+│   • Activity logged: "AI assigned case per user request"│
+│                                                         │
+│   [View Case #1234](/cases/1234)                        │
+└─────────────────────────────────────────────────────────┘
+```
+
+**Deep Linking Pattern:**
+```typescript
+// AI responses include entity references that render as clickable links
+interface AIEntityReference {
+  entityType: 'case' | 'investigation' | 'riu' | 'policy' | 'user';
+  entityId: string;
+  displayText: string;  // "Case #1234" or "Sarah Chen"
+}
+```
+
+**3. Native Skills System**
+
+Skills are reusable, composable AI actions (like Claude Code slash commands):
+```
+Skill Hierarchy:
+─────────────────
+Platform Skills (built-in, all orgs)
+├── /summarize - Generate entity summary
+├── /timeline - Create chronological narrative
+├── /find - Search across entities
+├── /assign - Assign entity to user
+├── /status - Change entity status
+├── /remind - Set reminder/follow-up
+├── /export - Generate report/export
+└── /template - Apply response template
+
+Organization Skills (org-defined)
+├── /summarize-hipaa - HIPAA-specific summary with required fields
+├── /escalate-legal - Standard legal escalation workflow
+├── /close-investigation - Org's closure checklist
+└── /weekly-report - Generate weekly case summary
+
+Team Skills (team-defined)
+├── /peer-review - Request peer review with checklist
+└── /interview-prep - Generate interview questions for case type
+
+User Skills (personal shortcuts)
+├── /my-summary-style - Apply my preferred summary format
+└── /quick-close - My standard closure notes
+```
+
+**Skill Definition Schema:**
+```typescript
+interface Skill {
+  id: string;                    // 'summarize-hipaa'
+  name: string;                  // 'HIPAA Summary'
+  scope: 'platform' | 'organization' | 'team' | 'user';
+  description: string;           // Shown in skill picker
+
+  // What the skill does
+  promptTemplate: string;        // AI instructions with {{variables}}
+  requiredContext: string[];     // ['case', 'investigation']
+
+  // Permissions
+  requiredPermissions: string[];
+  requiredFeatures: string[];
+
+  // Parameters user can provide
+  parameters?: SkillParameter[];
+
+  // Actions the skill can take
+  allowedActions: string[];      // From Action Catalog
+}
+```
+
+**Skill Invocation Example:**
+```
+User: /summarize-hipaa
+
+AI: [Loads skill, applies org context, generates]
+┌─────────────────────────────────────────────────────────┐
+│ HIPAA Breach Summary - Case #1234                       │
+│                                                         │
+│ **Breach Type:** Unauthorized Access                    │
+│ **PHI Involved:** Yes - 3 patient records               │
+│ **Discovery Date:** January 15, 2026                    │
+│ **Notification Deadline:** March 15, 2026 (60 days)     │
+│                                                         │
+│ **Summary:**                                            │
+│ An employee accessed patient records outside their      │
+│ authorized scope...                                     │
+│                                                         │
+│ [Edit] [Add to Case Summary] [Export as PDF]            │
+└─────────────────────────────────────────────────────────┘
+```
+
+**4. Skills Library Architecture**
+```
+┌─────────────────────────────────────────────────────────┐
+│                    Skills Registry                       │
+├─────────────────────────────────────────────────────────┤
+│ Platform Skills (code-deployed, version-controlled)     │
+│ └── Maintained by Ethico, available to all              │
+├─────────────────────────────────────────────────────────┤
+│ Org Skill Library (admin-configured)                    │
+│ ├── Custom skills created by org admins                 │
+│ ├── Can reference platform skills                       │
+│ └── Org Context automatically injected                  │
+├─────────────────────────────────────────────────────────┤
+│ Team Skills (team lead-configured)                      │
+│ └── Team-specific workflows and shortcuts               │
+├─────────────────────────────────────────────────────────┤
+│ User Skills (personal)                                  │
+│ └── Personal shortcuts and preferences                  │
+└─────────────────────────────────────────────────────────┘
+```
+
+**5. Context + Skills + Actions Integration**
+```
+User opens Case #1234, types: "close this with standard findings"
+
+AI Processing:
+1. Load Context: Platform → Org → Team → User → Case #1234
+2. Interpret Intent: "close" + "standard findings" → /close-investigation skill
+3. Load Skill: Org's close-investigation skill definition
+4. Check Permissions: User has case.close permission? ✓
+5. Execute Skill: Generate closure summary using org template
+6. Prepare Actions: [update_status, add_summary, log_activity]
+7. Preview: Show user what will happen
+8. On Confirm: Execute actions via Action Catalog
+```
+
+**Key Architecture Decisions:**
+| Decision | Choice |
+|----------|--------|
+| Context storage | Per-scope files (org, team, user) - editable via settings UI |
+| Skills storage | Data in DB, not code - admins can create without deploys |
+| Action routing | All skill actions go through Action Catalog - permission-checked |
+| Entity context | AI always has entity context when in drawer - no re-explaining needed |
+
+#### AA.13 AI Conversation Persistence: Pause/Resume Pattern
+
+**Decision:** Selective Persistence - Chat transcripts are ephemeral. What persists is structured context: decisions, session notes, drafts, and entity data.
+
+**Persistence Layers:**
+| Layer | Persists | Example |
+|-------|----------|---------|
+| Entity data | Always | Status changes, assignments, findings |
+| Owned narrative | Always | User's curated summary |
+| Activity log | Always | All actions taken |
+| Session notes | When saved | "Waiting for Legal before closing" |
+| Drafts | Until accepted/discarded | In-progress summary |
+| Raw chat | Never | The actual back-and-forth |
+
+**The Pause Pattern:**
+When user leaves mid-work (closes drawer, navigates away, or explicitly `/pause`):
+```
+AI detects unsaved work or important decisions
+
+AI:
+┌─────────────────────────────────────────────────────────┐
+│ 📌 Save session context before leaving?                 │
+│                                                         │
+│ **Decisions:**                                          │
+│ • Waiting for Legal review before closing               │
+│                                                         │
+│ **Draft in progress:**                                  │
+│ • Investigation summary (not yet saved)                 │
+│   [Preview draft]                                       │
+│                                                         │
+│ **Next steps identified:**                              │
+│ • Follow up after Legal responds                        │
+│                                                         │
+│ [Save Context]  [Save Draft Only]  [Discard]            │
+└─────────────────────────────────────────────────────────┘
+```
+
+**Session Note Schema:**
+```typescript
+interface SessionNote {
+  id: string;
+  entityType: 'case' | 'investigation';
+  entityId: string;
+  createdAt: DateTime;
+  createdBy: string;
+
+  // Structured content (not raw transcript)
+  decisions: string[];           // Key decisions made
+  pendingActions: string[];      // What's waiting
+  draftContent?: string;         // Any unsaved draft
+  contextSummary: string;        // AI-generated summary of session
+
+  // Lifecycle
+  status: 'active' | 'resolved' | 'archived';
+  resolvedAt?: DateTime;         // When pending items completed
+}
+```
+
+**The Resume Pattern:**
+When user returns to entity and opens AI drawer:
+```
+AI loads: Entity data + Owned narrative + Active session notes + Recent activity
+
+AI:
+┌─────────────────────────────────────────────────────────┐
+│ 👋 Welcome back to Case #1234                           │
+│                                                         │
+│ **From your last session (2 days ago):**                │
+│ • Waiting for Legal review                              │
+│ • Draft summary saved                                   │
+│                                                         │
+│ **Since then:**                                         │
+│ • ✓ Legal review completed - Approved to close          │
+│ • 2 new comments added                                  │
+│                                                         │
+│ Ready to finalize that summary?                         │
+│                                                         │
+│ [Continue draft]  [Show what changed]  [Start fresh]    │
+└─────────────────────────────────────────────────────────┘
+```
+
+**Auto-Resolution of Session Notes:**
+When pending items complete, session notes auto-resolve:
+```
+Session note: "Waiting for Legal review"
+     ↓
+Legal adds approval comment
+     ↓
+System detects: Legal review completed
+     ↓
+Session note status: active → resolved
+     ↓
+Next session: AI mentions "Legal review you were waiting for is complete"
+```
+
+**Pinning Mid-Conversation:**
+User can explicitly pin important context without pausing:
+```
+User: "Remember that the reporter mentioned they have documentation at home"
+
+AI: "Got it. Want me to add this as a case note so it's captured?"
+    [Add as Case Note]  [Just for this session]
+
+If "Add as Case Note":
+→ Adds to entity: "Reporter has additional documentation at home (not yet collected)"
+→ Visible in case timeline
+→ AI will reference in future sessions
+```
+
+**What This Enables:**
+- No repeat context - "I already told you" never happens
+- No stale transcripts - Structured notes stay relevant
+- Smart resume - AI knows what changed since you left
+- Clean entity timeline - Decisions captured, not chat noise
+- Draft safety - Work-in-progress survives session boundaries
+
+**Anti-Patterns Avoided:**
+- ❌ Storing months of chat transcripts
+- ❌ AI referencing outdated conversation context
+- ❌ User manually re-explaining every session
+- ❌ Lost work when browser closes
+
+#### AA.14 AI Error Handling & Undo
+
+**Decision:** Partial success with retry offer for failures; time-limited undo trail for reversible actions.
+
+**Scenario 1: Partial Failure**
+Successful actions preserved, failed actions reported with retry option:
+```
+AI: "Done: Case assigned to Sarah ✓
+     ⚠️ Failed: Email notification (server timeout)
+
+     [Retry Notification]  [Skip]  [Undo Assignment]"
+```
+
+**Scenario 2: Wrong Action / Wrong Entity**
+Undo trail with time limit and reversibility classification.
+
+**Action Classification:**
+```typescript
+interface AIAction {
+  id: string;
+  // ... other fields
+
+  reversibility: 'full' | 'soft' | 'none';
+  // full: Can undo completely (status change, assignment)
+  // soft: Can restore within grace period (delete → trash)
+  // none: Cannot undo (send email, external API call)
+
+  undoAction?: string;  // Action ID to reverse this
+  undoWindowMinutes?: number;  // How long undo available (default: 5)
+}
+```
+
+**Reversibility by Action Type:**
+| Action Type | Reversibility | Example |
+|-------------|---------------|---------|
+| Status change | Full | Open → Closed → Open |
+| Assignment | Full | Assign → Reassign |
+| Add note/summary | Full | Add → Remove |
+| Send notification | None | Can't unsend email |
+| External integration | None | Sent to Legal system |
+| Delete | Soft | Trash → Restore (30 days) |
+
+**Undo UX Pattern:**
+After every action, show result with undo option:
+```
+┌─────────────────────────────────────────────────────────┐
+│ ✓ Done                                                  │
+│                                                         │
+│ Changes to Case #1234:                                  │
+│   • Status: Open → Closed                               │
+│   • Outcome: Substantiated                              │
+│   • Closed by: You (via AI)                             │
+│                                                         │
+│ [Undo] ← available for 5 min     [View Case #1234]      │
+└─────────────────────────────────────────────────────────┘
+```
+
+**Multi-Action Undo:**
+```
+User: "Assign to Sarah, set priority high, add note about deadline"
+
+AI executes 3 actions, shows:
+┌─────────────────────────────────────────────────────────┐
+│ ✓ 3 changes made to Case #1234                          │
+│                                                         │
+│   • Assigned to Sarah Chen                              │
+│   • Priority: Normal → High                             │
+│   • Note added: "Deadline: Feb 10 per client request"   │
+│                                                         │
+│ [Undo All]  [Undo specific...]  [View Case]             │
+└─────────────────────────────────────────────────────────┘
+
+If [Undo specific...]:
+┌─────────────────────────────────────────────────────────┐
+│ Select changes to undo:                                 │
+│                                                         │
+│ ☐ Assigned to Sarah Chen                                │
+│ ☐ Priority: Normal → High                               │
+│ ☐ Note added: "Deadline: Feb 10..."                     │
+│                                                         │
+│ [Undo Selected]  [Cancel]                               │
+└─────────────────────────────────────────────────────────┘
+```
+
+**Irreversible Action Warning:**
+Before executing irreversible actions, require explicit confirmation:
+```
+User: "Close this and notify the reporter"
+
+AI:
+┌─────────────────────────────────────────────────────────┐
+│ ⚠️ This includes actions that cannot be undone          │
+│                                                         │
+│ Reversible:                                             │
+│   • Close Case #1234                                    │
+│                                                         │
+│ ⚠️ NOT reversible:                                       │
+│   • Send closure notification to reporter               │
+│     (email cannot be unsent)                            │
+│                                                         │
+│ [Confirm All]  [Close Only]  [Cancel]                   │
+└─────────────────────────────────────────────────────────┘
+```
+
+**Undo Record Schema:**
+```typescript
+interface UndoRecord {
+  id: string;
+  actionId: string;
+  entityType: string;
+  entityId: string;
+
+  // What changed
+  previousState: Record<string, any>;  // Snapshot of changed fields
+  newState: Record<string, any>;
+
+  // Timing
+  executedAt: DateTime;
+  undoExpiresAt: DateTime;  // executedAt + undoWindowMinutes
+
+  // Status
+  status: 'available' | 'executed' | 'expired';
+  undoneAt?: DateTime;
+
+  userId: string;
+  organizationId: string;
+}
+```
+
+**Activity Log Shows Full Trail:**
+```
+Case #1234 Activity:
+─────────────────────
+[Feb 2, 2:30 PM] Status changed: Open → Closed (by AI, user: John)
+[Feb 2, 2:31 PM] Status changed: Closed → Open (Undo by AI, user: John)
+                 Reason: User initiated undo
+```
+
+**Prevention: Entity Confirmation in Preview**
+For significant actions, preview shows entity clearly:
+```
+┌─────────────────────────────────────────────────────────┐
+│ About to close:                                         │
+│                                                         │
+│ Case #1234                                              │
+│ "ABC Corp - Harassment Allegation"                      │
+│ Created: Jan 15, 2026 | Assignee: Sarah Chen            │
+│                                                         │
+│ Is this the right case?                                 │
+│                                                         │
+│ [Yes, Close It]  [No, Wrong Case]                       │
+└─────────────────────────────────────────────────────────┘
+```
+
+**Key Principles:**
+- Always show what changed (diff view)
+- Undo available for reversible actions (5 min default)
+- Irreversible actions require explicit confirmation with warning
+- Activity log records all actions AND undos
+- Preview confirms entity identity before action
+
+---
+
+#### AA.15 AI Context Window Management
+
+**Decision:** Like Claude Code, users see and control their context consumption.
+
+**Context Visibility UI:**
+```
+┌─────────────────────────────────────────────────────────┐
+│ AI Chat                                    [≡] [⟳] [×]  │
+├─────────────────────────────────────────────────────────┤
+│ Context: ████████░░░░░░░░ 52% used                      │
+│ [View breakdown ▼]                                      │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│ (conversation content)                                  │
+│                                                         │
+└─────────────────────────────────────────────────────────┘
+```
+
+**Expanded Breakdown:**
+```
+┌─────────────────────────────────────────────────────────┐
+│ Context Breakdown                              52%      │
+│─────────────────────────────────────────────────────────│
+│ Entity data (Case #1234)           ████░░░░    18%      │
+│ Activity timeline (47 events)      ███░░░░░    12%      │
+│ Context files (org + user)         ██░░░░░░     8%      │
+│ Session notes (2 active)           █░░░░░░░     4%      │
+│ Current conversation               ███░░░░░    10%      │
+│─────────────────────────────────────────────────────────│
+│ Available                          ████████    48%      │
+│                                                         │
+│ [Compact Conversation]  [Clear Chat]  [Start Fresh]     │
+└─────────────────────────────────────────────────────────┘
+```
+
+**Context Actions:**
+| Action | What It Does |
+|--------|--------------|
+| **Compact** | AI summarizes conversation so far, replaces raw history with summary. Preserves meaning, reduces tokens. |
+| **Clear Chat** | Clears conversation history, keeps entity context + context files. Like starting new chat on same case. |
+| **Start Fresh** | Clears everything except base entity data. Reloads context files fresh. |
+
+**Compact Flow:**
+```
+User clicks [Compact Conversation]
+
+AI:
+┌─────────────────────────────────────────────────────────┐
+│ Compacting conversation...                              │
+│                                                         │
+│ Summary of conversation so far:                         │
+│ ┌─────────────────────────────────────────────────────┐ │
+│ │ User asked about case status and next steps.        │ │
+│ │ Discussed waiting for Legal review. Drafted         │ │
+│ │ partial summary (saved). Identified 3 pending       │ │
+│ │ interviews to schedule.                             │ │
+│ └─────────────────────────────────────────────────────┘ │
+│                                                         │
+│ This will reduce context from 52% → ~35%                │
+│                                                         │
+│ [Compact]  [Cancel]                                     │
+└─────────────────────────────────────────────────────────┘
+```
+
+**Key Principle:** Users should never be surprised by context limits. Visibility enables informed decisions about when to compact or start fresh.
+
+---
+
+#### AA.16 AI Skills: Creation & Community Marketplace
+
+**Decision:** Skills progress from personal use to community sharing, with marketplace features for discovery and quality signals.
+
+**Skill Lifecycle:**
+```
+┌─────────────────────────────────────────────────────────┐
+│ SKILL LIFECYCLE                                         │
+│                                                         │
+│  [Create] → [Test] → [Use] → [Share] → [Publish]        │
+│     │         │        │        │          │            │
+│     ▼         ▼        ▼        ▼          ▼            │
+│  Personal   Draft    Active   Team/Org  Community       │
+│   Skill    Version   Skill    Shared    Marketplace     │
+└─────────────────────────────────────────────────────────┘
+```
+
+**Extended Skill Schema (for sharing):**
+```typescript
+interface Skill {
+  id: string;
+  name: string;
+  description: string;
+
+  // Ownership & Scope
+  createdBy: string;
+  scope: 'personal' | 'team' | 'organization' | 'community';
+  visibility: 'private' | 'shared' | 'published';
+
+  // The actual skill
+  promptTemplate: string;
+  requiredContext: string[];
+  allowedActions: string[];
+  parameters: SkillParameter[];
+
+  // Versioning
+  version: string;              // semver
+  changelog: string;
+  previousVersions: string[];
+
+  // Community metadata (when published)
+  publishedAt?: DateTime;
+  category: string;             // 'investigations', 'reporting', 'hipaa', etc.
+  tags: string[];
+
+  // Ratings & usage
+  installCount?: number;
+  rating?: number;              // 1-5 stars
+  reviewCount?: number;
+
+  // Compatibility
+  minPlatformVersion: string;
+  requiredFeatures: string[];
+}
+```
+
+**Skill Builder UI:**
+```
+┌─────────────────────────────────────────────────────────┐
+│ Create New Skill                                        │
+├─────────────────────────────────────────────────────────┤
+│ Name: ___HIPAA Breach Summary_______________            │
+│                                                         │
+│ Description:                                            │
+│ ┌─────────────────────────────────────────────────────┐ │
+│ │ Generates a HIPAA-compliant breach summary with     │ │
+│ │ all required fields for HHS notification.           │ │
+│ └─────────────────────────────────────────────────────┘ │
+│                                                         │
+│ When to use: [Case] [Investigation] ☑️                  │
+│ Category: [Healthcare / HIPAA ▼]                        │
+│                                                         │
+│ Prompt Template:                                        │
+│ ┌─────────────────────────────────────────────────────┐ │
+│ │ Generate a HIPAA breach summary for this case.      │ │
+│ │ Include:                                            │ │
+│ │ - Breach type and description                       │ │
+│ │ - PHI types involved                                │ │
+│ │ - Number of individuals affected                    │ │
+│ │ - Discovery date and notification deadline          │ │
+│ │ - Root cause analysis                               │ │
+│ │ {{#if org.hipaa_additional_fields}}                 │ │
+│ │ Also include: {{org.hipaa_additional_fields}}       │ │
+│ │ {{/if}}                                             │ │
+│ └─────────────────────────────────────────────────────┘ │
+│                                                         │
+│ Actions this skill can take:                            │
+│ ☑️ Read case data    ☑️ Generate text                   │
+│ ☐ Update fields      ☐ Send notifications              │
+│                                                         │
+│ [Test Skill]  [Save as Draft]  [Save & Activate]        │
+└─────────────────────────────────────────────────────────┘
+```
+
+**Skill Marketplace:**
+```
+┌─────────────────────────────────────────────────────────┐
+│ Skill Marketplace                      [My Skills]      │
+├─────────────────────────────────────────────────────────┤
+│ 🔍 Search skills...                [Filter ▼]           │
+│                                                         │
+│ Categories: [All] [Investigations] [HIPAA] [SOX]        │
+│             [Reporting] [Interviews] [Closures]         │
+├─────────────────────────────────────────────────────────┤
+│ ⭐ Featured                                              │
+│ ┌─────────────────────────────────────────────────────┐ │
+│ │ 📋 HIPAA Breach Summary Pro          ⭐ 4.8 (127)    │ │
+│ │ Complete HHS-ready breach documentation             │ │
+│ │ By: ComplianceExpert42 | 1.2k installs              │ │
+│ │ [Preview]  [Install]                                │ │
+│ └─────────────────────────────────────────────────────┘ │
+│ ┌─────────────────────────────────────────────────────┐ │
+│ │ 🔍 Investigation Interview Prep      ⭐ 4.6 (89)     │ │
+│ │ Generates tailored interview questions by case type │ │
+│ │ By: InvestigatorPro | 890 installs                  │ │
+│ │ [Preview]  [Install]                                │ │
+│ └─────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────┘
+```
+
+**User Skill Profile & Progression:**
+```typescript
+interface UserSkillProfile {
+  userId: string;
+
+  // Usage stats
+  skillsCreated: number;
+  skillsPublished: number;
+  totalSkillUses: number;
+
+  // Recognition
+  badges: Badge[];              // 'Skill Creator', 'Top Contributor', etc.
+  reputation: number;
+
+  // Published skill stats
+  totalInstalls: number;
+  averageRating: number;
+
+  // Progression
+  level: 'Novice' | 'Practitioner' | 'Expert' | 'Master';
+  experiencePoints: number;
+}
+
+interface Badge {
+  id: string;
+  name: string;                 // 'First Skill Published'
+  description: string;
+  earnedAt: DateTime;
+  rarity: 'common' | 'rare' | 'epic' | 'legendary';
+}
+```
+
+**Skill Profile UI:**
+```
+┌─────────────────────────────────────────────────────────┐
+│ Your AI Skill Profile                                   │
+├─────────────────────────────────────────────────────────┤
+│ Level: Expert                    XP: 2,450 / 5,000      │
+│ ████████████████░░░░░░░░                                │
+│                                                         │
+│ 🏆 Badges                                               │
+│ [🌟 First Skill] [📤 Publisher] [⭐ 5-Star Creator]     │
+│ [🔥 Trending] [💯 100 Installs]                         │
+│                                                         │
+│ 📊 Your Stats                                           │
+│ • Skills created: 12                                    │
+│ • Skills published: 4                                   │
+│ • Total installs: 347                                   │
+│ • Average rating: 4.6 ⭐                                 │
+│                                                         │
+│ 🎯 Next Badge: "Community Champion" (500 installs)      │
+│    Progress: 347/500 ████████████████░░░                │
+└─────────────────────────────────────────────────────────┘
+```
+
+**Community Features:**
+- **Skill Challenges:** "Create the best SOX audit skill this month"
+- **Leaderboards:** Top skill creators, most helpful skills
+- **Skill Forking:** "Based on HIPAA Summary Pro by @ComplianceExpert42"
+- **Collaboration:** Co-author skills with team members
+- **Certification Paths:** "Ethico Certified Skill Developer"
+
+**Key Principles:**
+- Low barrier to create (personal skills = just save a prompt)
+- Progressive sharing (personal → team → org → community)
+- Quality signals (ratings, reviews, install counts)
+- Recognition & progression (badges, levels, leaderboards)
+- Safe marketplace (skills reviewed before community publish)
+
+---
+
+#### AA.17 AI Agent Architecture: Scoped Agents by View
+
+**Decision:** Instead of one AI that dynamically adjusts scope, use specialized agents for different views. Each agent has its own context scope, default behaviors, and available skills.
+
+**Agent Types:**
+| Agent | Scope | Loads | Best For |
+|-------|-------|-------|----------|
+| Investigation Agent | Single investigation | Investigation details, interviews, findings, evidence | Deep work on one investigation |
+| Case Agent | Case + linked entities | Case data, all RIUs, all investigations (summarized), timeline, communications | Case management, seeing full picture |
+| RIU Agent | Single RIU | RIU details, linked case (if any), reporter communications | Intake review, QA work |
+| Compliance Manager | Program-wide | Recent activity, assigned items, trends, cross-entity patterns | Dashboard, oversight, reporting |
+| Policy Agent | Policy lifecycle | Policy content, versions, approval workflow, attestation status | Policy work |
+
+**Context Loading by Agent:**
+
+Investigation Agent (viewing Investigation #456):
+```
+┌─────────────────────────────────────────────────────────┐
+│ Context Breakdown                              48%      │
+│─────────────────────────────────────────────────────────│
+│ Investigation #456 details         ██████░░    25%      │
+│ ├─ Interviews (3)                                       │
+│ ├─ Findings draft                                       │
+│ ├─ Evidence/documents                                   │
+│ └─ Activity timeline                                    │
+│ Parent Case #123 (summary only)    ██░░░░░░     8%      │
+│ Context files (org + user)         ██░░░░░░     8%      │
+│ Session notes                      █░░░░░░░     3%      │
+│ Conversation                       █░░░░░░░     4%      │
+│─────────────────────────────────────────────────────────│
+│ Available                          █████████   52%      │
+└─────────────────────────────────────────────────────────┘
+```
+
+Case Agent (viewing Case #123):
+```
+┌─────────────────────────────────────────────────────────┐
+│ Context Breakdown                              62%      │
+│─────────────────────────────────────────────────────────│
+│ Case #123 details                  █████░░░    20%      │
+│ Linked RIUs (2)                    ███░░░░░    12%      │
+│ Investigations (3, summarized)     ████░░░░    15%      │
+│ Activity timeline                  ██░░░░░░     7%      │
+│ Context files (org + user)         ██░░░░░░     8%      │
+│─────────────────────────────────────────────────────────│
+│ Available                          ███████░    38%      │
+└─────────────────────────────────────────────────────────┘
+```
+
+Compliance Manager (dashboard view):
+```
+┌─────────────────────────────────────────────────────────┐
+│ Context Breakdown                              35%      │
+│─────────────────────────────────────────────────────────│
+│ Your assigned items (12)           ████░░░░    15%      │
+│ Recent activity (org-wide)         ██░░░░░░     6%      │
+│ Dashboard state/filters            █░░░░░░░     2%      │
+│ Context files (org + user)         ██░░░░░░     8%      │
+│ Conversation                       █░░░░░░░     4%      │
+│─────────────────────────────────────────────────────────│
+│ Available for queries              █████████   65%      │
+│ (more headroom for cross-entity searches)               │
+└─────────────────────────────────────────────────────────┘
+```
+
+**Agent Type Schema:**
+```typescript
+interface AgentType {
+  id: string;
+  name: string;
+  scope: 'entity' | 'program';
+
+  // What it loads automatically
+  contextLoading: {
+    primaryEntity: boolean;
+    linkedEntities: 'full' | 'summary' | 'none';
+    activityDepth: number;
+    programData?: {
+      assignedItems: boolean;
+      recentActivity: boolean;
+      trends: boolean;
+    };
+  };
+
+  // Behavioral defaults
+  persona: {
+    description: string;
+    defaultTone: string;       // "analytical", "supportive", "executive"
+    thinkingStyle: string;
+  };
+
+  // Skill availability
+  availableSkillCategories: string[];
+  defaultSkills: string[];
+}
+```
+
+**Agent Definitions:**
+```typescript
+const investigationAgent: AgentType = {
+  id: 'investigation',
+  name: 'Investigation Assistant',
+  scope: 'entity',
+  contextLoading: {
+    primaryEntity: true,
+    linkedEntities: 'summary',
+    activityDepth: 100,
+  },
+  persona: {
+    description: "I help you conduct thorough investigations with proper documentation.",
+    defaultTone: 'analytical',
+    thinkingStyle: 'Focuses on evidence, interviews, findings, and defensible conclusions',
+  },
+  availableSkillCategories: ['investigation', 'interviews', 'documentation'],
+  defaultSkills: ['/interview-prep', '/summarize-findings', '/evidence-checklist'],
+};
+
+const complianceManagerAgent: AgentType = {
+  id: 'compliance-manager',
+  name: 'Compliance Manager',
+  scope: 'program',
+  contextLoading: {
+    primaryEntity: false,
+    linkedEntities: 'none',
+    activityDepth: 20,
+    programData: {
+      assignedItems: true,
+      recentActivity: true,
+      trends: true,
+    },
+  },
+  persona: {
+    description: "I help you oversee your compliance program and spot patterns.",
+    defaultTone: 'executive',
+    thinkingStyle: 'Focuses on trends, risks, overdue items, and strategic insights',
+  },
+  availableSkillCategories: ['reporting', 'analytics', 'oversight'],
+  defaultSkills: ['/weekly-summary', '/overdue-items', '/trend-analysis'],
+};
+```
+
+**Agent Switching UX:**
+Agents load automatically based on view. User sees which agent they're talking to:
+```
+┌─────────────────────────────────────────────────────────┐
+│ 🔍 Investigation Assistant          [Context: 48%]     │
+│ Investigation #456                                      │
+├─────────────────────────────────────────────────────────┤
+│ User: "What questions should I ask the department head?"│
+│                                                         │
+│ AI: Based on the evidence collected and witness         │
+│ statements so far, here are targeted questions...       │
+│                                                         │
+│ [/interview-prep] [/evidence-checklist] [+ Skills]      │
+└─────────────────────────────────────────────────────────┘
+```
+
+When user navigates to dashboard:
+```
+┌─────────────────────────────────────────────────────────┐
+│ 📊 Compliance Manager               [Context: 35%]      │
+│ Program Overview                                        │
+├─────────────────────────────────────────────────────────┤
+│ AI: Good morning! You have 12 items assigned to you,    │
+│ 3 are overdue. I also noticed a spike in harassment     │
+│ reports this month (up 40% from last month). Want me    │
+│ to dig into that trend?                                 │
+│                                                         │
+│ [/overdue-items] [/weekly-summary] [/trends] [+ Skills] │
+└─────────────────────────────────────────────────────────┘
+```
+
+**Cross-Agent Handoff:**
+When Compliance Manager surfaces an entity, user can "zoom in":
+```
+User (to Compliance Manager): "Show me the overdue cases"
+
+AI: You have 3 overdue cases:
+
+    1. Case #789 - "Manufacturing Safety Concern"
+       Due: Jan 28 (5 days overdue)
+       [Open Case →]
+    ...
+
+User clicks [Open Case →]
+
+→ Navigates to Case #789
+→ Case Manager agent loads
+→ Context shifts to Case #789 data
+→ AI: "I've loaded Case #789. This case is 5 days overdue.
+   The investigation is waiting on an interview. Want me
+   to help draft a follow-up?"
+```
+
+**Shared Across All Agents:**
+- User context file (personal preferences, style)
+- Org context file (terminology, standards)
+- Team context file (workflows)
+- Session notes (when navigating between entities)
+
+**Agent-Specific:**
+- Context loading rules
+- Default skills shown
+- Persona and tone
+- Thinking patterns
+
+**Benefits:**
+- **Right context, right scope** - No wasted tokens on irrelevant data
+- **Specialized expertise** - Each agent is "expert" in its domain
+- **Clear user mental model** - "I'm talking to the Investigation Assistant"
+- **Smooth handoffs** - Agents know how to summarize for each other
+- **Skill targeting** - Investigation skills for investigations, not dashboards
 
 ---
 

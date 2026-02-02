@@ -124,10 +124,10 @@ CREATE ROLE ethico_app LOGIN PASSWORD 'ethico_app_password';
 GRANT ALL PRIVILEGES ON DATABASE ethico_dev TO ethico_app;
 
 -- Create function to set tenant context (will be replaced by migration)
-CREATE OR REPLACE FUNCTION set_tenant_context(tenant_id text)
+CREATE OR REPLACE FUNCTION set_organization_context(organization_id text)
 RETURNS void AS $$
 BEGIN
-  PERFORM set_config('app.current_tenant', tenant_id, true);
+  PERFORM set_config('app.current_organization', organization_id, true);
 END;
 $$ LANGUAGE plpgsql;
 ```
@@ -701,7 +701,7 @@ resource "azurerm_static_web_app" "frontend" {
   "name": "policies",
   "fields": [
     { "name": "id", "type": "Edm.String", "key": true, "searchable": false },
-    { "name": "tenantId", "type": "Edm.String", "filterable": true, "searchable": false },
+    { "name": "organizationId", "type": "Edm.String", "filterable": true, "searchable": false },
     { "name": "title", "type": "Edm.String", "searchable": true, "analyzer": "en.lucene" },
     { "name": "content", "type": "Edm.String", "searchable": true, "analyzer": "en.lucene" },
     { "name": "policyType", "type": "Edm.String", "filterable": true, "facetable": true },
@@ -796,7 +796,7 @@ EMAIL_FROM=noreply@ethico.com
 # Azure Storage
 # ====================
 AZURE_STORAGE_CONNECTION_STRING=UseDevelopmentStorage=true
-AZURE_STORAGE_CONTAINER_PREFIX=tenant-
+AZURE_STORAGE_CONTAINER_PREFIX=org-
 
 # ====================
 # Azure Cognitive Search
@@ -1007,9 +1007,9 @@ import { Injectable } from '@nestjs/common';
 export class CustomThrottlerGuard extends ThrottlerGuard {
   protected getTracker(req: Record<string, any>): Promise<string> {
     // Rate limit by tenant + IP for better isolation
-    const tenantId = req.user?.tenantId || 'anonymous';
+    const organizationId = req.user?.organizationId || 'anonymous';
     const ip = req.ip;
-    return Promise.resolve(`${tenantId}:${ip}`);
+    return Promise.resolve(`${organizationId}:${ip}`);
   }
 }
 
@@ -1085,14 +1085,14 @@ az storage blob restore \
 export interface MicrosoftGraphConfig {
   clientId: string;
   clientSecret: string;
-  tenantId: string;
+  organizationId: string;
   scopes: string[];
 }
 
 export const microsoftGraphConfig: MicrosoftGraphConfig = {
   clientId: process.env.MICROSOFT_GRAPH_CLIENT_ID!,
   clientSecret: process.env.MICROSOFT_GRAPH_CLIENT_SECRET!,
-  tenantId: process.env.MICROSOFT_GRAPH_TENANT_ID || 'common',
+  organizationId: process.env.MICROSOFT_GRAPH_TENANT_ID || 'common',
   scopes: [
     'https://graph.microsoft.com/.default',
     'Sites.Read.All',
@@ -1448,7 +1448,7 @@ export interface MagicLinkToken {
   token: string;
   email: string;
   portalId: string;
-  tenantId: string;
+  organizationId: string;
   expiresAt: Date;
   permissions: PortalPermission[];
   metadata: {
@@ -1697,7 +1697,7 @@ resource "azurerm_cosmosdb_sql_container" "realtime_metrics" {
   resource_group_name = azurerm_resource_group.main.name
   account_name        = azurerm_cosmosdb_account.audit.name
   database_name       = azurerm_cosmosdb_sql_database.audit.name
-  partition_key_paths = ["/tenantId"]
+  partition_key_paths = ["/organizationId"]
 
   default_ttl = 86400 # 24 hours - hot data only
 
@@ -1705,7 +1705,7 @@ resource "azurerm_cosmosdb_sql_container" "realtime_metrics" {
     indexing_mode = "consistent"
 
     included_path {
-      path = "/tenantId/*"
+      path = "/organizationId/*"
     }
     included_path {
       path = "/timestamp/*"
@@ -1736,10 +1736,10 @@ export const auditWebSocketConfig = {
 
   // Room naming (tenant isolation)
   rooms: {
-    auditDashboard: (tenantId: string) => `audit:${tenantId}:dashboard`,
-    complianceAlerts: (tenantId: string) => `audit:${tenantId}:alerts`,
-    userActivity: (tenantId: string, userId: string) =>
-      `audit:${tenantId}:user:${userId}`,
+    auditDashboard: (organizationId: string) => `audit:${organizationId}:dashboard`,
+    complianceAlerts: (organizationId: string) => `audit:${organizationId}:alerts`,
+    userActivity: (organizationId: string, userId: string) =>
+      `audit:${organizationId}:user:${userId}`,
   },
 
   // Event types
@@ -1952,7 +1952,7 @@ spec:
 // apps/backend/src/modules/ai/rate-limiting/ai-budget.service.ts
 
 export interface TenantAIBudget {
-  tenantId: string;
+  organizationId: string;
   monthlyTokenLimit: number;
   dailyRequestLimit: number;
   concurrentRequestLimit: number;
@@ -1969,7 +1969,7 @@ export interface TenantAIBudget {
 
 export const defaultAIBudgets: Record<string, TenantAIBudget> = {
   enterprise: {
-    tenantId: 'enterprise',
+    organizationId: 'enterprise',
     monthlyTokenLimit: 10_000_000,
     dailyRequestLimit: 5000,
     concurrentRequestLimit: 20,
@@ -1982,7 +1982,7 @@ export const defaultAIBudgets: Record<string, TenantAIBudget> = {
     },
   },
   professional: {
-    tenantId: 'professional',
+    organizationId: 'professional',
     monthlyTokenLimit: 2_000_000,
     dailyRequestLimit: 1000,
     concurrentRequestLimit: 5,
@@ -2084,7 +2084,7 @@ AI_CONCURRENT_REQUEST_LIMIT=20
 
 model IntegrationConnector {
   id                String   @id @default(uuid())
-  tenantId          String
+  organizationId          String
 
   // Connector identity
   connectorType     String   // 'hris', 'lms', 'grc', 'custom'
@@ -2112,11 +2112,11 @@ model IntegrationConnector {
   createdBy         String
 
   // Relations
-  tenant            Tenant   @relation(fields: [tenantId], references: [id])
+  tenant            Tenant   @relation(fields: [organizationId], references: [id])
   syncLogs          ConnectorSyncLog[]
 
-  @@unique([tenantId, connectorId])
-  @@index([tenantId])
+  @@unique([organizationId, connectorId])
+  @@index([organizationId])
   @@index([connectorType])
 }
 
@@ -2216,7 +2216,7 @@ resource "azurerm_container_app" "connector_runner" {
 
 export interface ConnectorCredentials {
   connectorId: string;
-  tenantId: string;
+  organizationId: string;
   credentialType: 'oauth2' | 'api_key' | 'basic' | 'certificate';
 
   // OAuth2
@@ -2250,7 +2250,7 @@ export interface ConnectorCredentials {
 }
 
 // Key Vault secret naming pattern:
-// connector-{tenantId}-{connectorId}-credentials
+// connector-{organizationId}-{connectorId}-credentials
 ```
 
 ### 12.5 Marketplace Environment Variables

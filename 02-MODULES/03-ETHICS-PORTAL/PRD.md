@@ -41,7 +41,7 @@ The Employee Portal is the self-service interface for employees, managers, and a
 | Ethics Portal (public landing page) | Case investigation workflow (PRD-005) |
 | Employee Portal (authenticated) | Disclosure review workflow (PRD-006) |
 | Anonymous reporter experience | Policy creation/management (PRD-009) |
-| **RIU creation** (web_form_submission, proxy_report, chatbot_transcript) | HRIS integration core (PRD-010) |
+| **RIU creation** (web_form_submission, proxy_report, chatbot_transcript) | HRIS integration core (see `01-SHARED-INFRASTRUCTURE/TECH-SPEC-HRIS-INTEGRATION.md`) |
 | Two-way messaging (employee side) | Operator Console (PRD-002) |
 | **My Reports view** (employee's submitted RIUs) | |
 | Disclosure campaign completion (creates disclosure_response RIUs) | |

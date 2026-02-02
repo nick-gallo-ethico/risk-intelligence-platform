@@ -201,7 +201,7 @@ export interface AICompletionRequest {
   temperature?: number;
   stopSequences?: string[];
   metadata?: {
-    tenantId: string;
+    organizationId: string;
     userId: string;
     operationType: AIOperationType;
   };
@@ -595,10 +595,10 @@ export class AIProviderManager {
     this.providers.set('self-hosted', selfHostedProvider);
   }
 
-  async getProviderForTenant(tenantId: string): Promise<AIProvider> {
+  async getProviderForTenant(organizationId: string): Promise<AIProvider> {
     // Get tenant's AI configuration
     const tenant = await this.prisma.tenant.findUnique({
-      where: { id: tenantId },
+      where: { id: organizationId },
       select: { aiProvider: true, aiConfig: true },
     });
 
@@ -613,10 +613,10 @@ export class AIProviderManager {
   }
 
   async getProviderForOperation(
-    tenantId: string,
+    organizationId: string,
     operation: AIOperationType
   ): Promise<AIProvider> {
-    const provider = await this.getProviderForTenant(tenantId);
+    const provider = await this.getProviderForTenant(organizationId);
 
     if (!provider.supportedOperations.includes(operation)) {
       throw new Error(
@@ -699,16 +699,16 @@ export class PolicyGenerationService {
   ) {}
 
   async generatePolicy(dto: GeneratePolicyDto): Promise<GeneratedPolicy> {
-    const tenantId = this.request.tenantId;
+    const organizationId = this.request.organizationId;
 
     // Get provider for tenant
     const provider = await this.providerManager.getProviderForOperation(
-      tenantId,
+      organizationId,
       'policy_generation'
     );
 
     // Get tenant context
-    const tenantContext = await this.getTenantContext(tenantId);
+    const tenantContext = await this.getTenantContext(organizationId);
 
     // Get template if specified
     let template: PolicyTemplate | null = null;
@@ -716,7 +716,7 @@ export class PolicyGenerationService {
       template = await this.prisma.policyTemplate.findFirst({
         where: {
           id: dto.templateId,
-          tenantId, // CRITICAL: Ensure template belongs to tenant
+          organizationId, // CRITICAL: Ensure template belongs to tenant
         },
       });
     }
@@ -735,7 +735,7 @@ export class PolicyGenerationService {
       maxTokens: 8192,
       temperature: 0.7,
       metadata: {
-        tenantId,
+        organizationId,
         userId: this.request.userId,
         operationType: 'policy_generation',
       },
@@ -754,7 +754,7 @@ export class PolicyGenerationService {
     await this.auditService.log({
       action: 'AI_POLICY_GENERATED',
       userId: this.request.userId,
-      tenantId,
+      organizationId,
       resourceType: 'policy',
       metadata: {
         policyType: dto.policyType,
@@ -766,7 +766,7 @@ export class PolicyGenerationService {
     });
 
     // Track usage
-    await this.trackUsage(tenantId, response.usage.totalTokens, estimatedCost);
+    await this.trackUsage(organizationId, response.usage.totalTokens, estimatedCost);
 
     return {
       ...generated,
@@ -783,13 +783,13 @@ export class PolicyGenerationService {
     dto: GeneratePolicyDto,
     onChunk: (chunk: string) => void
   ): Promise<void> {
-    const tenantId = this.request.tenantId;
+    const organizationId = this.request.organizationId;
     const provider = await this.providerManager.getProviderForOperation(
-      tenantId,
+      organizationId,
       'policy_generation'
     );
 
-    const tenantContext = await this.getTenantContext(tenantId);
+    const tenantContext = await this.getTenantContext(organizationId);
     const prompt = this.promptBuilder.buildGenerationPrompt({
       ...dto,
       tenantContext,
@@ -800,7 +800,7 @@ export class PolicyGenerationService {
       systemPrompt: this.getSystemPrompt(dto.policyType),
       maxTokens: 8192,
       metadata: {
-        tenantId,
+        organizationId,
         userId: this.request.userId,
         operationType: 'policy_generation',
       },
@@ -813,10 +813,10 @@ export class PolicyGenerationService {
     }
   }
 
-  private async getTenantContext(tenantId: string): Promise<TenantContext> {
+  private async getTenantContext(organizationId: string): Promise<TenantContext> {
     // Fetch tenant-specific information for better generation
     const tenant = await this.prisma.tenant.findUnique({
-      where: { id: tenantId },
+      where: { id: organizationId },
       select: {
         name: true,
         industry: true,
@@ -827,7 +827,7 @@ export class PolicyGenerationService {
 
     // Get existing policies for style reference
     const recentPolicies = await this.prisma.policy.findMany({
-      where: { tenantId, status: 'PUBLISHED' },
+      where: { organizationId, status: 'PUBLISHED' },
       select: { title: true, type: true },
       take: 10,
       orderBy: { updatedAt: 'desc' },
@@ -915,13 +915,13 @@ Create clear, comprehensive, and legally sound policies.`,
   }
 
   private async trackUsage(
-    tenantId: string,
+    organizationId: string,
     tokens: number,
     cost: number
   ): Promise<void> {
     await this.prisma.aiUsage.create({
       data: {
-        tenantId,
+        organizationId,
         operation: 'policy_generation',
         tokensUsed: tokens,
         estimatedCost: cost,
@@ -1416,7 +1416,7 @@ export interface BulkUpdateDto {
 
 export interface BulkUpdateJob {
   id: string;
-  tenantId: string;
+  organizationId: string;
   userId: string;
   oldTerm: string;
   newTerm: string;
@@ -1449,12 +1449,12 @@ export class BulkUpdateService {
   ) {}
 
   async createBulkUpdateJob(dto: BulkUpdateDto): Promise<BulkUpdateJob> {
-    const tenantId = this.request.tenantId;
+    const organizationId = this.request.organizationId;
     const userId = this.request.userId;
 
     // Find affected policies
     const whereClause: any = {
-      tenantId,
+      organizationId,
       status: { in: ['DRAFT', 'PUBLISHED'] },
       content: { contains: dto.oldTerm, mode: 'insensitive' },
     };
@@ -1479,7 +1479,7 @@ export class BulkUpdateService {
     // Create job record
     const job = await this.prisma.bulkUpdateJob.create({
       data: {
-        tenantId,
+        organizationId,
         userId,
         oldTerm: dto.oldTerm,
         newTerm: dto.newTerm,
@@ -1497,7 +1497,7 @@ export class BulkUpdateService {
       'process-bulk-update',
       {
         jobId: job.id,
-        tenantId,
+        organizationId,
         userId,
         policies,
         oldTerm: dto.oldTerm,
@@ -1521,7 +1521,7 @@ export class BulkUpdateService {
     const job = await this.prisma.bulkUpdateJob.findFirst({
       where: {
         id: jobId,
-        tenantId: this.request.tenantId,
+        organizationId: this.request.organizationId,
       },
       include: {
         changes: true,
@@ -1539,7 +1539,7 @@ export class BulkUpdateService {
     const job = await this.prisma.bulkUpdateJob.findFirst({
       where: {
         id: jobId,
-        tenantId: this.request.tenantId,
+        organizationId: this.request.organizationId,
         status: 'completed',
       },
       include: {
@@ -1575,7 +1575,7 @@ export class BulkUpdateService {
         // Create audit log
         await tx.auditLog.create({
           data: {
-            tenantId: this.request.tenantId,
+            organizationId: this.request.organizationId,
             userId: this.request.userId,
             action: 'BULK_UPDATE_APPLIED',
             resourceType: 'policy',
@@ -1606,7 +1606,7 @@ export class BulkUpdateService {
   private formatJob(job: any): BulkUpdateJob {
     return {
       id: job.id,
-      tenantId: job.tenantId,
+      organizationId: job.organizationId,
       userId: job.userId,
       oldTerm: job.oldTerm,
       newTerm: job.newTerm,
@@ -1635,7 +1635,7 @@ import { PromptBuilder } from '../prompt-builder';
 
 interface BulkUpdateJobData {
   jobId: string;
-  tenantId: string;
+  organizationId: string;
   userId: string;
   policies: { id: string; title: string; content: string }[];
   oldTerm: string;
@@ -1655,7 +1655,7 @@ export class BulkUpdateProcessor extends WorkerHost {
   }
 
   async process(job: Job<BulkUpdateJobData>): Promise<void> {
-    const { jobId, tenantId, policies, oldTerm, newTerm, context, dryRun } =
+    const { jobId, organizationId, policies, oldTerm, newTerm, context, dryRun } =
       job.data;
 
     try {
@@ -1666,7 +1666,7 @@ export class BulkUpdateProcessor extends WorkerHost {
       });
 
       const provider = await this.providerManager.getProviderForOperation(
-        tenantId,
+        organizationId,
         'bulk_update'
       );
 
@@ -1688,7 +1688,7 @@ export class BulkUpdateProcessor extends WorkerHost {
             maxTokens: policy.content.length * 2, // Allow for expansion
             temperature: 0.3, // Lower temperature for consistency
             metadata: {
-              tenantId,
+              organizationId,
               userId: job.data.userId,
               operationType: 'bulk_update',
             },
@@ -1830,13 +1830,13 @@ export class TranslationService {
   }
 
   async translatePolicy(dto: TranslateDto): Promise<TranslationResult> {
-    const tenantId = this.request.tenantId;
+    const organizationId = this.request.organizationId;
 
     // Get source policy
     const policy = await this.prisma.policy.findFirst({
       where: {
         id: dto.policyId,
-        tenantId, // CRITICAL: Tenant isolation
+        organizationId, // CRITICAL: Tenant isolation
       },
     });
 
@@ -1865,7 +1865,7 @@ export class TranslationService {
       const glossaryRecord = await this.prisma.translationGlossary.findFirst({
         where: {
           id: dto.glossaryId,
-          tenantId,
+          organizationId,
         },
       });
       glossary = glossaryRecord?.terms as Record<string, string>;
@@ -1873,7 +1873,7 @@ export class TranslationService {
 
     // Get AI provider
     const provider = await this.providerManager.getProviderForOperation(
-      tenantId,
+      organizationId,
       'translation'
     );
 
@@ -1891,7 +1891,7 @@ export class TranslationService {
       maxTokens: policy.content.length * 3, // Translations can be longer
       temperature: 0.3,
       metadata: {
-        tenantId,
+        organizationId,
         userId: this.request.userId,
         operationType: 'translation',
       },
@@ -1901,7 +1901,7 @@ export class TranslationService {
     const translation = await this.prisma.policyTranslation.create({
       data: {
         policyId: dto.policyId,
-        tenantId,
+        organizationId,
         sourceLanguage: policy.language || 'en',
         targetLanguage: dto.targetLanguage,
         originalContent: policy.content,
@@ -1914,7 +1914,7 @@ export class TranslationService {
     });
 
     // Track usage
-    await this.trackTranslationUsage(tenantId, response.usage.totalTokens);
+    await this.trackTranslationUsage(organizationId, response.usage.totalTokens);
 
     return this.formatTranslation(translation);
   }
@@ -1923,7 +1923,7 @@ export class TranslationService {
     const translations = await this.prisma.policyTranslation.findMany({
       where: {
         policyId,
-        tenantId: this.request.tenantId,
+        organizationId: this.request.organizationId,
       },
       orderBy: { createdAt: 'desc' },
     });
@@ -1984,7 +1984,7 @@ export class TranslationService {
   ): Promise<TranslationGlossary> {
     return this.prisma.translationGlossary.create({
       data: {
-        tenantId: this.request.tenantId,
+        organizationId: this.request.organizationId,
         name,
         terms,
         createdById: this.request.userId,
@@ -1994,7 +1994,7 @@ export class TranslationService {
 
   async getGlossaries(): Promise<TranslationGlossary[]> {
     return this.prisma.translationGlossary.findMany({
-      where: { tenantId: this.request.tenantId },
+      where: { organizationId: this.request.organizationId },
       orderBy: { name: 'asc' },
     });
   }
@@ -2015,12 +2015,12 @@ export class TranslationService {
   }
 
   private async trackTranslationUsage(
-    tenantId: string,
+    organizationId: string,
     tokens: number
   ): Promise<void> {
     await this.prisma.aiUsage.create({
       data: {
-        tenantId,
+        organizationId,
         operation: 'translation',
         tokensUsed: tokens,
         timestamp: new Date(),
@@ -2110,7 +2110,7 @@ export class AnalysisService {
     policyId: string,
     analysisType: string
   ): Promise<AnalysisResult> {
-    const tenantId = this.request.tenantId;
+    const organizationId = this.request.organizationId;
 
     // Validate analysis type
     if (!ANALYSIS_TYPES.find((t) => t.id === analysisType)) {
@@ -2121,7 +2121,7 @@ export class AnalysisService {
     const policy = await this.prisma.policy.findFirst({
       where: {
         id: policyId,
-        tenantId,
+        organizationId,
       },
     });
 
@@ -2131,7 +2131,7 @@ export class AnalysisService {
 
     // Get AI provider
     const provider = await this.providerManager.getProviderForOperation(
-      tenantId,
+      organizationId,
       'analysis'
     );
 
@@ -2147,7 +2147,7 @@ export class AnalysisService {
       maxTokens: 4096,
       temperature: 0.5,
       metadata: {
-        tenantId,
+        organizationId,
         userId: this.request.userId,
         operationType: 'analysis',
       },
@@ -2160,7 +2160,7 @@ export class AnalysisService {
     const analysis = await this.prisma.policyAnalysis.create({
       data: {
         policyId,
-        tenantId,
+        organizationId,
         analysisType,
         summary: analysisData.summary,
         score: analysisData.score,
@@ -2179,7 +2179,7 @@ export class AnalysisService {
     const analyses = await this.prisma.policyAnalysis.findMany({
       where: {
         policyId,
-        tenantId: this.request.tenantId,
+        organizationId: this.request.organizationId,
       },
       orderBy: { createdAt: 'desc' },
       take: 10,
@@ -2192,11 +2192,11 @@ export class AnalysisService {
     policyId1: string,
     policyId2: string
   ): Promise<VersionComparison> {
-    const tenantId = this.request.tenantId;
+    const organizationId = this.request.organizationId;
 
     const [policy1, policy2] = await Promise.all([
-      this.prisma.policy.findFirst({ where: { id: policyId1, tenantId } }),
-      this.prisma.policy.findFirst({ where: { id: policyId2, tenantId } }),
+      this.prisma.policy.findFirst({ where: { id: policyId1, organizationId } }),
+      this.prisma.policy.findFirst({ where: { id: policyId2, organizationId } }),
     ]);
 
     if (!policy1 || !policy2) {
@@ -2204,7 +2204,7 @@ export class AnalysisService {
     }
 
     const provider = await this.providerManager.getProviderForOperation(
-      tenantId,
+      organizationId,
       'analysis'
     );
 
@@ -2231,7 +2231,7 @@ Return as JSON with: added, removed, modified, summary`;
       maxTokens: 4096,
       temperature: 0.3,
       metadata: {
-        tenantId,
+        organizationId,
         userId: this.request.userId,
         operationType: 'analysis',
       },
@@ -2366,12 +2366,12 @@ export class AutoTaggingService {
     policyId: string,
     config: Partial<AutoTagConfig> = {}
   ): Promise<AutoTagResult> {
-    const tenantId = this.request.tenantId;
+    const organizationId = this.request.organizationId;
     const mergedConfig = { ...DEFAULT_CONFIG, ...config };
 
     // Get policy content
     const policy = await this.prisma.policy.findFirst({
-      where: { id: policyId, tenantId },
+      where: { id: policyId, organizationId },
       select: { id: true, title: true, content: true, type: true, tags: true },
     });
 
@@ -2385,7 +2385,7 @@ export class AutoTaggingService {
     let departments: string[] = [];
 
     if (mergedConfig.useTenantTaxonomy) {
-      const taxonomy = await this.getTenantTaxonomy(tenantId);
+      const taxonomy = await this.getTenantTaxonomy(organizationId);
       existingTags = taxonomy.tags;
       existingCategories = taxonomy.categories;
       departments = taxonomy.departments;
@@ -2393,7 +2393,7 @@ export class AutoTaggingService {
 
     // Get AI provider
     const provider = await this.providerManager.getProviderForOperation(
-      tenantId,
+      organizationId,
       'auto_tagging'
     );
 
@@ -2416,7 +2416,7 @@ export class AutoTaggingService {
       maxTokens: 2048,
       temperature: 0.3, // Lower temp for consistent tagging
       metadata: {
-        tenantId,
+        organizationId,
         userId: this.request.userId,
         operationType: 'auto_tagging',
       },
@@ -2429,7 +2429,7 @@ export class AutoTaggingService {
     await this.prisma.policyTagSuggestion.create({
       data: {
         policyId,
-        tenantId,
+        organizationId,
         suggestedTags: tagResult.suggestedTags,
         suggestedCategory: tagResult.suggestedCategory,
         suggestedDepartments: tagResult.suggestedDepartments,
@@ -2444,7 +2444,7 @@ export class AutoTaggingService {
     await this.auditService.log({
       action: 'AI_AUTO_TAG_ANALYZED',
       userId: this.request.userId,
-      tenantId,
+      organizationId,
       resourceType: 'policy',
       resourceId: policyId,
       metadata: {
@@ -2462,11 +2462,11 @@ export class AutoTaggingService {
     category?: string,
     departments?: string[]
   ): Promise<void> {
-    const tenantId = this.request.tenantId;
+    const organizationId = this.request.organizationId;
 
     // Verify policy belongs to tenant
     const policy = await this.prisma.policy.findFirst({
-      where: { id: policyId, tenantId },
+      where: { id: policyId, organizationId },
     });
 
     if (!policy) {
@@ -2476,9 +2476,9 @@ export class AutoTaggingService {
     // Create any new tags that don't exist
     for (const tag of tags) {
       await this.prisma.tag.upsert({
-        where: { tenantId_name: { tenantId, name: tag } },
+        where: { organizationId_name: { organizationId, name: tag } },
         update: {},
-        create: { tenantId, name: tag, createdById: this.request.userId },
+        create: { organizationId, name: tag, createdById: this.request.userId },
       });
     }
 
@@ -2498,7 +2498,7 @@ export class AutoTaggingService {
     await this.auditService.log({
       action: 'AI_TAGS_APPLIED',
       userId: this.request.userId,
-      tenantId,
+      organizationId,
       resourceType: 'policy',
       resourceId: policyId,
       metadata: { tags, category, departments },
@@ -2536,23 +2536,23 @@ export class AutoTaggingService {
     return { results, errors };
   }
 
-  private async getTenantTaxonomy(tenantId: string): Promise<{
+  private async getTenantTaxonomy(organizationId: string): Promise<{
     tags: string[];
     categories: string[];
     departments: string[];
   }> {
     const [tags, policies, departments] = await Promise.all([
       this.prisma.tag.findMany({
-        where: { tenantId },
+        where: { organizationId },
         select: { name: true },
       }),
       this.prisma.policy.findMany({
-        where: { tenantId },
+        where: { organizationId },
         select: { category: true },
         distinct: ['category'],
       }),
       this.prisma.department.findMany({
-        where: { tenantId },
+        where: { organizationId },
         select: { name: true },
       }),
     ]);
@@ -2713,7 +2713,7 @@ export class SummarizationService {
       includeActionItems?: boolean;
     } = {}
   ): Promise<SummarizationResult> {
-    const tenantId = this.request.tenantId;
+    const organizationId = this.request.organizationId;
     const {
       length = 'standard',
       audience = 'employee',
@@ -2723,7 +2723,7 @@ export class SummarizationService {
 
     // Get policy
     const policy = await this.prisma.policy.findFirst({
-      where: { id: policyId, tenantId },
+      where: { id: policyId, organizationId },
       select: { id: true, title: true, content: true, type: true },
     });
 
@@ -2733,7 +2733,7 @@ export class SummarizationService {
 
     // Get AI provider
     const provider = await this.providerManager.getProviderForOperation(
-      tenantId,
+      organizationId,
       'summarization'
     );
 
@@ -2755,7 +2755,7 @@ export class SummarizationService {
       maxTokens: this.getMaxTokensForLength(length),
       temperature: 0.4,
       metadata: {
-        tenantId,
+        organizationId,
         userId: this.request.userId,
         operationType: 'summarization',
       },
@@ -2782,7 +2782,7 @@ export class SummarizationService {
       },
       create: {
         policyId,
-        tenantId,
+        organizationId,
         audience,
         executiveSummary: summary.executiveSummary,
         keyPoints: summary.keyPoints,
@@ -2977,12 +2977,12 @@ export class QuizGenerationService {
     policyId: string,
     config: Partial<QuizGenerationConfig> = {}
   ): Promise<GeneratedQuiz> {
-    const tenantId = this.request.tenantId;
+    const organizationId = this.request.organizationId;
     const mergedConfig = { ...DEFAULT_CONFIG, ...config };
 
     // Get policy
     const policy = await this.prisma.policy.findFirst({
-      where: { id: policyId, tenantId },
+      where: { id: policyId, organizationId },
       select: { id: true, title: true, content: true, type: true },
     });
 
@@ -2992,7 +2992,7 @@ export class QuizGenerationService {
 
     // Get AI provider
     const provider = await this.providerManager.getProviderForOperation(
-      tenantId,
+      organizationId,
       'quiz_generation'
     );
 
@@ -3014,7 +3014,7 @@ export class QuizGenerationService {
       maxTokens: 4096,
       temperature: 0.6, // Slightly higher for question variety
       metadata: {
-        tenantId,
+        organizationId,
         userId: this.request.userId,
         operationType: 'quiz_generation',
       },
@@ -3027,7 +3027,7 @@ export class QuizGenerationService {
     const quiz = await this.prisma.quiz.create({
       data: {
         policyId,
-        tenantId,
+        organizationId,
         title: `${policy.title} - Comprehension Quiz`,
         description: `Test your understanding of the ${policy.title} policy`,
         questions,
@@ -3053,7 +3053,7 @@ export class QuizGenerationService {
     const quiz = await this.prisma.quiz.findFirst({
       where: {
         policyId,
-        tenantId: this.request.tenantId,
+        organizationId: this.request.organizationId,
         isActive: true,
       },
       orderBy: { createdAt: 'desc' },
@@ -3078,12 +3078,12 @@ export class QuizGenerationService {
     quizId: string,
     answers: { questionId: string; selectedOption: string }[]
   ): Promise<QuizAttemptResult> {
-    const tenantId = this.request.tenantId;
+    const organizationId = this.request.organizationId;
     const userId = this.request.userId;
 
     // Get quiz
     const quiz = await this.prisma.quiz.findFirst({
-      where: { id: quizId, tenantId },
+      where: { id: quizId, organizationId },
     });
 
     if (!quiz) {
@@ -3126,7 +3126,7 @@ export class QuizGenerationService {
       data: {
         quizId,
         userId,
-        tenantId,
+        organizationId,
         answers: gradedAnswers,
         score,
         passed,
@@ -3162,7 +3162,7 @@ export class QuizGenerationService {
       data: {
         policyId,
         userId,
-        tenantId: this.request.tenantId,
+        organizationId: this.request.organizationId,
         score,
         issuedAt: new Date(),
         expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 year
@@ -3302,11 +3302,11 @@ export class RegulatoryMappingService {
     policyId: string,
     frameworkIds: string[]
   ): Promise<RegulatoryMappingSuggestion> {
-    const tenantId = this.request.tenantId;
+    const organizationId = this.request.organizationId;
 
     // Get policy
     const policy = await this.prisma.policy.findFirst({
-      where: { id: policyId, tenantId },
+      where: { id: policyId, organizationId },
       select: { id: true, title: true, content: true, type: true },
     });
 
@@ -3332,7 +3332,7 @@ export class RegulatoryMappingService {
 
     // Get AI provider
     const provider = await this.providerManager.getProviderForOperation(
-      tenantId,
+      organizationId,
       'regulatory_mapping'
     );
 
@@ -3358,7 +3358,7 @@ export class RegulatoryMappingService {
         maxTokens: 4096,
         temperature: 0.3,
         metadata: {
-          tenantId,
+          organizationId,
           userId: this.request.userId,
           operationType: 'regulatory_mapping',
         },
@@ -3397,7 +3397,7 @@ export class RegulatoryMappingService {
     await this.prisma.regulatoryMappingSuggestion.create({
       data: {
         policyId,
-        tenantId,
+        organizationId,
         frameworkMappings,
         complianceGaps: allGaps,
         recommendations,
@@ -3420,11 +3420,11 @@ export class RegulatoryMappingService {
     policyId: string,
     mappings: { frameworkId: string; requirementId: string; coverageLevel: string }[]
   ): Promise<void> {
-    const tenantId = this.request.tenantId;
+    const organizationId = this.request.organizationId;
 
     // Verify policy belongs to tenant
     const policy = await this.prisma.policy.findFirst({
-      where: { id: policyId, tenantId },
+      where: { id: policyId, organizationId },
     });
 
     if (!policy) {
@@ -3448,7 +3448,7 @@ export class RegulatoryMappingService {
           policyId,
           frameworkId: mapping.frameworkId,
           requirementId: mapping.requirementId,
-          tenantId,
+          organizationId,
           coverageLevel: mapping.coverageLevel,
           createdById: this.request.userId,
         },
@@ -3459,7 +3459,7 @@ export class RegulatoryMappingService {
   async suggestPoliciesForRequirement(
     requirementId: string
   ): Promise<PolicySuggestion[]> {
-    const tenantId = this.request.tenantId;
+    const organizationId = this.request.organizationId;
 
     // Get requirement details
     const requirement = await this.prisma.regulatoryRequirement.findUnique({
@@ -3473,13 +3473,13 @@ export class RegulatoryMappingService {
 
     // Get tenant's policies
     const policies = await this.prisma.policy.findMany({
-      where: { tenantId, status: 'PUBLISHED' },
+      where: { organizationId, status: 'PUBLISHED' },
       select: { id: true, title: true, content: true, type: true },
     });
 
     // Get AI provider
     const provider = await this.providerManager.getProviderForOperation(
-      tenantId,
+      organizationId,
       'regulatory_mapping'
     );
 
@@ -3504,7 +3504,7 @@ Return a JSON array of policy suggestions with:
       maxTokens: 2048,
       temperature: 0.3,
       metadata: {
-        tenantId,
+        organizationId,
         userId: this.request.userId,
         operationType: 'regulatory_mapping',
       },
@@ -3850,10 +3850,10 @@ export class PromptSafety {
     // This is a critical security check
 
     // Look for tenant ID patterns in the prompt
-    const tenantIdPattern = /tenant[_-]?id[:\s=]+([a-f0-9-]+)/gi;
+    const organizationIdPattern = /tenant[_-]?id[:\s=]+([a-f0-9-]+)/gi;
     let match;
 
-    while ((match = tenantIdPattern.exec(prompt)) !== null) {
+    while ((match = organizationIdPattern.exec(prompt)) !== null) {
       if (match[1] !== allowedTenantId) {
         return {
           valid: false,
@@ -3903,13 +3903,13 @@ export class AIRateLimiter {
     private prisma: PrismaService,
   ) {}
 
-  async checkLimit(tenantId: string): Promise<{
+  async checkLimit(organizationId: string): Promise<{
     allowed: boolean;
     reason?: string;
     retryAfter?: number;
   }> {
-    const limits = await this.getTenantLimits(tenantId);
-    const usage = await this.getCurrentUsage(tenantId);
+    const limits = await this.getTenantLimits(organizationId);
+    const usage = await this.getCurrentUsage(organizationId);
 
     // Check requests per minute
     if (usage.requestsLastMinute >= limits.requestsPerMinute) {
@@ -3960,7 +3960,7 @@ export class AIRateLimiter {
   }
 
   async recordRequest(
-    tenantId: string,
+    organizationId: string,
     tokens: number,
     cost: number
   ): Promise<void> {
@@ -3970,28 +3970,28 @@ export class AIRateLimiter {
     // Increment counters
     await Promise.all([
       // Requests per minute (expire after 60s)
-      this.redis.incr(`ai:rate:${tenantId}:rpm`),
-      this.redis.expire(`ai:rate:${tenantId}:rpm`, 60),
+      this.redis.incr(`ai:rate:${organizationId}:rpm`),
+      this.redis.expire(`ai:rate:${organizationId}:rpm`, 60),
 
       // Requests per hour (expire after 3600s)
-      this.redis.incr(`ai:rate:${tenantId}:rph`),
-      this.redis.expire(`ai:rate:${tenantId}:rph`, 3600),
+      this.redis.incr(`ai:rate:${organizationId}:rph`),
+      this.redis.expire(`ai:rate:${organizationId}:rph`, 3600),
 
       // Requests today
-      this.redis.incr(`ai:rate:${tenantId}:rpd:${today}`),
-      this.redis.expire(`ai:rate:${tenantId}:rpd:${today}`, 86400),
+      this.redis.incr(`ai:rate:${organizationId}:rpd:${today}`),
+      this.redis.expire(`ai:rate:${organizationId}:rpd:${today}`, 86400),
 
       // Tokens today
-      this.redis.incrby(`ai:rate:${tenantId}:tpd:${today}`, tokens),
-      this.redis.expire(`ai:rate:${tenantId}:tpd:${today}`, 86400),
+      this.redis.incrby(`ai:rate:${organizationId}:tpd:${today}`, tokens),
+      this.redis.expire(`ai:rate:${organizationId}:tpd:${today}`, 86400),
 
       // Cost today
-      this.redis.incrbyfloat(`ai:rate:${tenantId}:cpd:${today}`, cost),
-      this.redis.expire(`ai:rate:${tenantId}:cpd:${today}`, 86400),
+      this.redis.incrbyfloat(`ai:rate:${organizationId}:cpd:${today}`, cost),
+      this.redis.expire(`ai:rate:${organizationId}:cpd:${today}`, 86400),
     ]);
   }
 
-  async getCurrentUsage(tenantId: string): Promise<{
+  async getCurrentUsage(organizationId: string): Promise<{
     requestsLastMinute: number;
     requestsLastHour: number;
     requestsToday: number;
@@ -4001,11 +4001,11 @@ export class AIRateLimiter {
     const today = new Date().toISOString().split('T')[0];
 
     const [rpm, rph, rpd, tpd, cpd] = await Promise.all([
-      this.redis.get(`ai:rate:${tenantId}:rpm`),
-      this.redis.get(`ai:rate:${tenantId}:rph`),
-      this.redis.get(`ai:rate:${tenantId}:rpd:${today}`),
-      this.redis.get(`ai:rate:${tenantId}:tpd:${today}`),
-      this.redis.get(`ai:rate:${tenantId}:cpd:${today}`),
+      this.redis.get(`ai:rate:${organizationId}:rpm`),
+      this.redis.get(`ai:rate:${organizationId}:rph`),
+      this.redis.get(`ai:rate:${organizationId}:rpd:${today}`),
+      this.redis.get(`ai:rate:${organizationId}:tpd:${today}`),
+      this.redis.get(`ai:rate:${organizationId}:cpd:${today}`),
     ]);
 
     return {
@@ -4017,9 +4017,9 @@ export class AIRateLimiter {
     };
   }
 
-  private async getTenantLimits(tenantId: string): Promise<RateLimitConfig> {
+  private async getTenantLimits(organizationId: string): Promise<RateLimitConfig> {
     const tenant = await this.prisma.tenant.findUnique({
-      where: { id: tenantId },
+      where: { id: organizationId },
       select: { aiLimits: true, plan: true },
     });
 
@@ -4105,7 +4105,7 @@ export class AIUsageService {
   ) {}
 
   async getUsageStats(): Promise<UsageStats> {
-    const tenantId = this.request.tenantId;
+    const organizationId = this.request.organizationId;
     const today = new Date();
     const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
     const thirtyDaysAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
@@ -4113,7 +4113,7 @@ export class AIUsageService {
     // Today's usage
     const todayUsage = await this.prisma.aiUsage.aggregate({
       where: {
-        tenantId,
+        organizationId,
         timestamp: {
           gte: new Date(today.toISOString().split('T')[0]),
         },
@@ -4128,7 +4128,7 @@ export class AIUsageService {
     // This month's usage
     const monthUsage = await this.prisma.aiUsage.aggregate({
       where: {
-        tenantId,
+        organizationId,
         timestamp: { gte: startOfMonth },
       },
       _count: true,
@@ -4142,7 +4142,7 @@ export class AIUsageService {
     const byOperation = await this.prisma.aiUsage.groupBy({
       by: ['operation'],
       where: {
-        tenantId,
+        organizationId,
         timestamp: { gte: startOfMonth },
       },
       _count: true,
@@ -4160,7 +4160,7 @@ export class AIUsageService {
         SUM(tokens_used) as tokens,
         SUM(estimated_cost) as cost
       FROM ai_usage
-      WHERE tenant_id = ${tenantId}
+      WHERE organization_id = ${organizationId}
         AND timestamp >= ${thirtyDaysAgo}
       GROUP BY DATE(timestamp)
       ORDER BY date
@@ -4168,7 +4168,7 @@ export class AIUsageService {
 
     // Get tenant limits
     const tenant = await this.prisma.tenant.findUnique({
-      where: { id: tenantId },
+      where: { id: organizationId },
       select: { aiLimits: true },
     });
     const monthlyLimit = (tenant?.aiLimits as any)?.maxCostPerMonth || 1000;
@@ -4263,19 +4263,19 @@ export class AITenantIsolation {
   constructor(private prisma: PrismaService) {}
 
   async validateSingleTenantContext(
-    tenantId: string,
+    organizationId: string,
     ...dataItems: Array<{ id: string; table: string }>
   ): Promise<boolean> {
     // Verify all referenced data belongs to the same tenant
     for (const item of dataItems) {
       const record = await this.prisma[item.table].findFirst({
         where: { id: item.id },
-        select: { tenantId: true },
+        select: { organizationId: true },
       });
 
-      if (!record || record.tenantId !== tenantId) {
+      if (!record || record.organizationId !== organizationId) {
         throw new Error(
-          `Data isolation violation: ${item.table}:${item.id} does not belong to tenant ${tenantId}`
+          `Data isolation violation: ${item.table}:${item.id} does not belong to tenant ${organizationId}`
         );
       }
     }
@@ -4284,7 +4284,7 @@ export class AITenantIsolation {
   }
 
   async prepareContextForAI(
-    tenantId: string,
+    organizationId: string,
     policies: string[],
     templates: string[]
   ): Promise<{
@@ -4296,13 +4296,13 @@ export class AITenantIsolation {
       this.prisma.policy.findMany({
         where: {
           id: { in: policies },
-          tenantId, // CRITICAL: Tenant filter
+          organizationId, // CRITICAL: Tenant filter
         },
       }),
       this.prisma.policyTemplate.findMany({
         where: {
           id: { in: templates },
-          tenantId, // CRITICAL: Tenant filter
+          organizationId, // CRITICAL: Tenant filter
         },
       }),
     ]);
@@ -4333,7 +4333,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../prisma/prisma.service';
 
 export interface AIAuditEntry {
-  tenantId: string;
+  organizationId: string;
   userId: string;
   operation: string;
   model: string;
@@ -4353,7 +4353,7 @@ export class AIAuditService {
   async logOperation(entry: AIAuditEntry): Promise<void> {
     await this.prisma.aiAuditLog.create({
       data: {
-        tenantId: entry.tenantId,
+        organizationId: entry.organizationId,
         userId: entry.userId,
         operation: entry.operation,
         model: entry.model,
@@ -4370,7 +4370,7 @@ export class AIAuditService {
   }
 
   async getOperationHistory(
-    tenantId: string,
+    organizationId: string,
     options: {
       userId?: string;
       operation?: string;
@@ -4381,7 +4381,7 @@ export class AIAuditService {
   ): Promise<AIAuditEntry[]> {
     return this.prisma.aiAuditLog.findMany({
       where: {
-        tenantId,
+        organizationId,
         ...(options.userId && { userId: options.userId }),
         ...(options.operation && { operation: options.operation }),
         ...(options.startDate && { timestamp: { gte: options.startDate } }),
@@ -5196,7 +5196,7 @@ AI_MAX_COST_PER_DAY=100
 model PolicyTagSuggestion {
   id                   String   @id @default(uuid())
   policyId             String
-  tenantId             String
+  organizationId             String
   suggestedTags        Json     // TagSuggestion[]
   suggestedCategory    Json     // CategorySuggestion
   suggestedDepartments String[]
@@ -5208,15 +5208,15 @@ model PolicyTagSuggestion {
   createdAt            DateTime @default(now())
 
   policy  Policy @relation(fields: [policyId], references: [id])
-  tenant  Tenant @relation(fields: [tenantId], references: [id])
+  tenant  Tenant @relation(fields: [organizationId], references: [id])
 
-  @@index([tenantId, policyId])
+  @@index([organizationId, policyId])
 }
 
 model PolicySummary {
   id               String   @id @default(uuid())
   policyId         String
-  tenantId         String
+  organizationId         String
   audience         String   // executive, employee, technical, legal
   executiveSummary String
   keyPoints        Json     // string[]
@@ -5227,16 +5227,16 @@ model PolicySummary {
   updatedAt        DateTime @updatedAt
 
   policy Policy @relation(fields: [policyId], references: [id])
-  tenant Tenant @relation(fields: [tenantId], references: [id])
+  tenant Tenant @relation(fields: [organizationId], references: [id])
 
   @@unique([policyId, audience])
-  @@index([tenantId])
+  @@index([organizationId])
 }
 
 model Quiz {
   id            String   @id @default(uuid())
   policyId      String
-  tenantId      String
+  organizationId      String
   title         String
   description   String
   questions     Json     // QuizQuestion[]
@@ -5249,17 +5249,17 @@ model Quiz {
   updatedAt     DateTime @updatedAt
 
   policy   Policy        @relation(fields: [policyId], references: [id])
-  tenant   Tenant        @relation(fields: [tenantId], references: [id])
+  tenant   Tenant        @relation(fields: [organizationId], references: [id])
   attempts QuizAttempt[]
 
-  @@index([tenantId, policyId])
+  @@index([organizationId, policyId])
 }
 
 model QuizAttempt {
   id             String   @id @default(uuid())
   quizId         String
   userId         String
-  tenantId       String
+  organizationId       String
   answers        Json     // GradedAnswer[]
   score          Int
   passed         Boolean
@@ -5270,9 +5270,9 @@ model QuizAttempt {
 
   quiz   Quiz   @relation(fields: [quizId], references: [id])
   user   User   @relation(fields: [userId], references: [id])
-  tenant Tenant @relation(fields: [tenantId], references: [id])
+  tenant Tenant @relation(fields: [organizationId], references: [id])
 
-  @@index([tenantId, userId])
+  @@index([organizationId, userId])
   @@index([quizId])
 }
 
@@ -5280,7 +5280,7 @@ model Certificate {
   id                String   @id @default(uuid())
   policyId          String
   userId            String
-  tenantId          String
+  organizationId          String
   score             Int
   certificateNumber String   @unique
   issuedAt          DateTime @default(now())
@@ -5289,16 +5289,16 @@ model Certificate {
 
   policy Policy @relation(fields: [policyId], references: [id])
   user   User   @relation(fields: [userId], references: [id])
-  tenant Tenant @relation(fields: [tenantId], references: [id])
+  tenant Tenant @relation(fields: [organizationId], references: [id])
 
-  @@index([tenantId, userId])
+  @@index([organizationId, userId])
   @@index([policyId])
 }
 
 model RegulatoryMappingSuggestion {
   id                String   @id @default(uuid())
   policyId          String
-  tenantId          String
+  organizationId          String
   frameworkMappings Json     // FrameworkMapping[]
   complianceGaps    Json     // ComplianceGap[]
   recommendations   String[]
@@ -5307,9 +5307,9 @@ model RegulatoryMappingSuggestion {
   createdAt         DateTime @default(now())
 
   policy Policy @relation(fields: [policyId], references: [id])
-  tenant Tenant @relation(fields: [tenantId], references: [id])
+  tenant Tenant @relation(fields: [organizationId], references: [id])
 
-  @@index([tenantId, policyId])
+  @@index([organizationId, policyId])
 }
 ```
 

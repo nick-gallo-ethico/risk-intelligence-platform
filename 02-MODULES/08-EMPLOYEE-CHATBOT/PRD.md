@@ -32,7 +32,7 @@ The Employee Chatbot is an AI-powered conversational interface that serves as th
 | Case status checks | Case workflow engine (PRD-005) |
 | Disclosure assistance | Disclosure forms/workflows (PRD-006) |
 | Compliance team inquiries | Analytics dashboards (PRD-007) |
-| Knowledge base management | HRIS integration core (PRD-010) |
+| Knowledge base management | HRIS integration core (see `01-SHARED-INFRASTRUCTURE/TECH-SPEC-HRIS-INTEGRATION.md`) |
 | Multi-language conversations | |
 | Proactive notifications | |
 
@@ -1536,7 +1536,7 @@ Would you like me to keep this window open while you call?"
 | Case Management (PRD-005) | Links RIU to Case via `riu_case_associations` when outcome requires Case | Chatbot → RIU → Cases |
 | Disclosures (PRD-006) | Creates disclosures (creates disclosure_response RIU) | Chatbot → Disclosures |
 | Policy Management (PRD-009) | Sources knowledge base | Policies → Chatbot |
-| HRIS (PRD-010) | Employee lookup | HRIS → Chatbot |
+| HRIS (see HRIS Tech Spec) | Employee lookup | HRIS → Chatbot |
 | Notifications | Triggers proactive prompts | Notifications → Chatbot |
 | Employee Portal (PRD-003) | Embedded chat | Shared UI |
 | Operator Console (PRD-002) | Draft handoff (lookup by RIU reference) | Chatbot → Console |

@@ -153,11 +153,11 @@ This document provides detailed technical specifications for implementing real-t
 
 ```typescript
 // Room names are tenant-scoped for security
-function getRoomName(tenantId: string, policyId: string): string {
-  return `tenant:${tenantId}:policy:${policyId}`;
+function getRoomName(organizationId: string, policyId: string): string {
+  return `org:${organizationId}:policy:${policyId}`;
 }
 
-// Example: tenant:abc123:policy:pol456
+// Example: org:abc123:policy:pol456
 ```
 
 ---
@@ -212,7 +212,7 @@ import { WebsocketProvider } from 'y-websocket';
 import { IndexeddbPersistence } from 'y-indexeddb';
 
 export interface CollaborationConfig {
-  tenantId: string;
+  organizationId: string;
   policyId: string;
   userId: string;
   userName: string;
@@ -233,7 +233,7 @@ export class CollaborationProvider {
   }
 
   async connect(): Promise<void> {
-    const roomName = `tenant:${this.config.tenantId}:policy:${this.config.policyId}`;
+    const roomName = `org:${this.config.organizationId}:policy:${this.config.policyId}`;
 
     // Setup IndexedDB persistence (offline support)
     this.idbProvider = new IndexeddbPersistence(
@@ -372,7 +372,7 @@ import { AuditService } from '../audit/audit.service';
 
 interface AuthenticatedSocket extends Socket {
   userId: string;
-  tenantId: string;
+  organizationId: string;
   userName: string;
 }
 
@@ -412,7 +412,7 @@ export class CollaborationGateway
 
       // Attach user info to socket
       client.userId = payload.sub;
-      client.tenantId = payload.tenantId;
+      client.organizationId = payload.organizationId;
       client.userName = `${payload.firstName} ${payload.lastName}`;
 
       console.log(`User ${client.userId} connected to collaboration`);
@@ -445,12 +445,12 @@ export class CollaborationGateway
     @MessageBody() data: { policyId: string }
   ): Promise<void> {
     // Validate tenant access
-    const roomName = `tenant:${client.tenantId}:policy:${data.policyId}`;
+    const roomName = `org:${client.organizationId}:policy:${data.policyId}`;
 
     // Check user has permission to access this policy
     const hasAccess = await this.documentService.checkAccess(
       client.userId,
-      client.tenantId,
+      client.organizationId,
       data.policyId
     );
 
@@ -483,7 +483,7 @@ export class CollaborationGateway
     await this.auditService.log({
       action: 'COLLABORATION_JOIN',
       userId: client.userId,
-      tenantId: client.tenantId,
+      organizationId: client.organizationId,
       resourceType: 'policy',
       resourceId: data.policyId,
     });
@@ -494,7 +494,7 @@ export class CollaborationGateway
     @ConnectedSocket() client: AuthenticatedSocket,
     @MessageBody() data: { policyId: string }
   ): Promise<void> {
-    const roomName = `tenant:${client.tenantId}:policy:${data.policyId}`;
+    const roomName = `org:${client.organizationId}:policy:${data.policyId}`;
 
     await client.leave(roomName);
 
@@ -511,7 +511,7 @@ export class CollaborationGateway
     @ConnectedSocket() client: AuthenticatedSocket,
     @MessageBody() data: { policyId: string; cursor: CursorPosition }
   ): Promise<void> {
-    const roomName = `tenant:${client.tenantId}:policy:${data.policyId}`;
+    const roomName = `org:${client.organizationId}:policy:${data.policyId}`;
 
     // Broadcast cursor position to others in room
     client.to(roomName).emit('cursor:moved', {
@@ -527,13 +527,13 @@ export class CollaborationGateway
     @ConnectedSocket() client: AuthenticatedSocket,
     @MessageBody() data: AddCommentDto
   ): Promise<void> {
-    const roomName = `tenant:${client.tenantId}:policy:${data.policyId}`;
+    const roomName = `org:${client.organizationId}:policy:${data.policyId}`;
 
     // Save comment to database
     const comment = await this.documentService.addComment({
       ...data,
       userId: client.userId,
-      tenantId: client.tenantId,
+      organizationId: client.organizationId,
     });
 
     // Broadcast to room
@@ -545,12 +545,12 @@ export class CollaborationGateway
     @ConnectedSocket() client: AuthenticatedSocket,
     @MessageBody() data: { policyId: string; commentId: string }
   ): Promise<void> {
-    const roomName = `tenant:${client.tenantId}:policy:${data.policyId}`;
+    const roomName = `org:${client.organizationId}:policy:${data.policyId}`;
 
     await this.documentService.resolveComment(
       data.commentId,
       client.userId,
-      client.tenantId
+      client.organizationId
     );
 
     this.server.to(roomName).emit('comment:resolved', {
@@ -605,9 +605,9 @@ export class YjsWebSocketServer {
         // Verify JWT
         const payload = this.jwtService.verifyAccessToken(token);
 
-        // Validate room access (room format: tenant:xxx:policy:yyy)
+        // Validate room access (room format: org:xxx:policy:yyy)
         const roomParts = roomName.split(':');
-        if (roomParts[0] !== 'tenant' || roomParts[1] !== payload.tenantId) {
+        if (roomParts[0] !== 'tenant' || roomParts[1] !== payload.organizationId) {
           ws.close(4003, 'Tenant mismatch');
           return;
         }
@@ -701,8 +701,8 @@ export class DocumentPersistence {
       return cached;
     }
 
-    // Parse room name: tenant:xxx:policy:yyy
-    const [, tenantId, , policyId] = roomName.split(':');
+    // Parse room name: org:xxx:policy:yyy
+    const [, organizationId, , policyId] = roomName.split(':');
 
     // Load from database
     const policy = await this.prisma.policy.findUnique({
@@ -725,7 +725,7 @@ export class DocumentPersistence {
   }
 
   async saveDocument(roomName: string, ydoc: Y.Doc): Promise<void> {
-    const [, tenantId, , policyId] = roomName.split(':');
+    const [, organizationId, , policyId] = roomName.split(':');
 
     // Encode Y.Doc state
     const state = Y.encodeStateAsUpdate(ydoc);
@@ -748,7 +748,7 @@ export class DocumentPersistence {
 
     // Extract plain text for search indexing
     const content = this.extractTextContent(ydoc);
-    await this.updateSearchIndex(tenantId, policyId, content);
+    await this.updateSearchIndex(organizationId, policyId, content);
   }
 
   private extractTextContent(ydoc: Y.Doc): string {
@@ -772,7 +772,7 @@ export class DocumentPersistence {
   }
 
   private async updateSearchIndex(
-    tenantId: string,
+    organizationId: string,
     policyId: string,
     content: string
   ): Promise<void> {
@@ -1410,7 +1410,7 @@ export const PresenceAvatars: React.FC<PresenceAvatarsProps> = ({
 export interface Comment {
   id: string;
   policyId: string;
-  tenantId: string;
+  organizationId: string;
   parentId?: string;        // For threaded replies
   authorId: string;
   author: {
@@ -1454,7 +1454,7 @@ export class CommentService {
     const comment = await this.prisma.comment.create({
       data: {
         policyId: data.policyId,
-        tenantId: this.request.tenantId,
+        organizationId: this.request.organizationId,
         parentId: data.parentId,
         authorId: this.request.userId,
         content: data.content,
@@ -1555,7 +1555,7 @@ export class CommentService {
     return {
       id: dbComment.id,
       policyId: dbComment.policyId,
-      tenantId: dbComment.tenantId,
+      organizationId: dbComment.organizationId,
       parentId: dbComment.parentId,
       authorId: dbComment.authorId,
       author: {
@@ -1580,7 +1580,7 @@ export class CommentService {
   }
 
   private ensureTenantContext(): void {
-    if (!this.request.tenantId) {
+    if (!this.request.organizationId) {
       throw new UnauthorizedException('Tenant context not established');
     }
   }
@@ -2556,14 +2556,14 @@ export class CollaborationAccessControl {
 
   async canAccessRoom(
     userId: string,
-    tenantId: string,
+    organizationId: string,
     policyId: string
   ): Promise<boolean> {
     // Verify policy belongs to tenant
     const policy = await this.prisma.policy.findFirst({
       where: {
         id: policyId,
-        tenantId,
+        organizationId,
       },
       include: {
         owner: true,
@@ -2577,10 +2577,10 @@ export class CollaborationAccessControl {
     // Get user role
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
-      select: { role: true, tenantId: true },
+      select: { role: true, organizationId: true },
     });
 
-    if (!user || user.tenantId !== tenantId) {
+    if (!user || user.organizationId !== organizationId) {
       return false;
     }
 

@@ -125,7 +125,7 @@ This document provides detailed technical specifications for implementing authen
 interface AzureADConfig {
   clientId: string;           // Application (client) ID
   clientSecret: string;       // Client secret
-  tenantId: string;          // Azure AD tenant ID (use 'common' for multi-tenant)
+  organizationId: string;          // Azure AD tenant ID (use 'common' for multi-tenant)
   redirectUri: string;        // Callback URL
   scopes: string[];          // OpenID Connect scopes
 }
@@ -335,7 +335,7 @@ export class AuthService {
       await this.auditService.log({
         action: 'USER_LOGIN',
         userId: user.id,
-        tenantId: user.tenantId,
+        organizationId: user.organizationId,
         metadata: { ssoProvider },
       });
 
@@ -365,7 +365,7 @@ export class AuthService {
       await this.auditService.log({
         action: 'USER_SSO_LINKED',
         userId: user.id,
-        tenantId: user.tenantId,
+        organizationId: user.organizationId,
         metadata: { ssoProvider },
       });
 
@@ -396,7 +396,7 @@ export class AuthService {
         lastName,
         ssoProvider,
         ssoId,
-        tenantId: tenant.id,
+        organizationId: tenant.id,
         role: Role.EMPLOYEE,
         status: UserStatus.ACTIVE,
         lastLoginAt: new Date(),
@@ -407,7 +407,7 @@ export class AuthService {
     await this.auditService.log({
       action: 'USER_JIT_PROVISIONED',
       userId: user.id,
-      tenantId: tenant.id,
+      organizationId: tenant.id,
       metadata: { ssoProvider, email },
     });
 
@@ -442,7 +442,7 @@ export class TenantService {
   }
 
   async registerDomain(
-    tenantId: string,
+    organizationId: string,
     domain: string
   ): Promise<TenantDomain> {
     // Generate verification token
@@ -450,7 +450,7 @@ export class TenantService {
 
     return this.prisma.tenantDomain.create({
       data: {
-        tenantId,
+        organizationId,
         domain: domain.toLowerCase(),
         verified: false,
         verificationToken,
@@ -460,11 +460,11 @@ export class TenantService {
   }
 
   async verifyDomain(
-    tenantId: string,
+    organizationId: string,
     domain: string
   ): Promise<boolean> {
     const domainRecord = await this.prisma.tenantDomain.findFirst({
-      where: { tenantId, domain },
+      where: { organizationId, domain },
     });
 
     if (!domainRecord) {
@@ -515,7 +515,7 @@ export class TenantService {
 interface AccessTokenPayload {
   sub: string;           // User ID
   email: string;         // User email
-  tenantId: string;      // Tenant ID (CRITICAL)
+  organizationId: string;      // Tenant ID (CRITICAL)
   role: Role;            // User role
   permissions: string[]; // Computed permissions
   sessionId: string;     // Session reference
@@ -530,7 +530,7 @@ interface AccessTokenPayload {
 ```typescript
 interface RefreshTokenPayload {
   sub: string;           // User ID
-  tenantId: string;      // Tenant ID
+  organizationId: string;      // Tenant ID
   sessionId: string;     // Session reference
   iat: number;           // Issued at
   exp: number;           // Expiration (7 days)
@@ -557,7 +557,7 @@ export class JwtService {
     const accessPayload: AccessTokenPayload = {
       sub: user.id,
       email: user.email,
-      tenantId: user.tenantId,
+      organizationId: user.organizationId,
       role: user.role,
       permissions: this.computePermissions(user.role),
       sessionId,
@@ -566,7 +566,7 @@ export class JwtService {
 
     const refreshPayload: RefreshTokenPayload = {
       sub: user.id,
-      tenantId: user.tenantId,
+      organizationId: user.organizationId,
       sessionId,
       type: 'refresh',
     };
@@ -666,7 +666,7 @@ export class AuthService {
       data: {
         id: newSessionId,
         userId: session.userId,
-        tenantId: session.tenantId,
+        organizationId: session.organizationId,
         userAgent: session.userAgent,
         ipAddress: session.ipAddress,
         expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
@@ -784,8 +784,8 @@ export class AuthService {
 │  │                    PostgreSQL 15+                                ││
 │  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐              ││
 │  │  │  Session    │  │    RLS      │  │   Tables    │              ││
-│  │  │  Variable   │──▶│  Policies   │──▶│  (tenant_id)│             ││
-│  │  │app.tenant_id│  │             │  │             │              ││
+│  │  │  Variable   │──▶│  Policies   │──▶│  (organization_id)│             ││
+│  │  │app.organization_id│  │             │  │             │              ││
 │  │  └─────────────┘  └─────────────┘  └─────────────┘              ││
 │  └─────────────────────────────────────────────────────────────────┘│
 └─────────────────────────────────────────────────────────────────────┘
@@ -819,14 +819,14 @@ export class TenantMiddleware implements NestMiddleware {
       const payload = this.jwtService.verifyAccessToken(token);
 
       // Set tenant context on request
-      req.tenantId = payload.tenantId;
+      req.organizationId = payload.organizationId;
       req.userId = payload.sub;
       req.userRole = payload.role;
       req.permissions = payload.permissions;
 
       // Set PostgreSQL session variable for RLS
       await this.prisma.$executeRaw`
-        SELECT set_config('app.current_tenant_id', ${payload.tenantId}, true)
+        SELECT set_config('app.current_organization_id', ${payload.organizationId}, true)
       `;
 
       // Also set user for audit purposes
@@ -837,7 +837,7 @@ export class TenantMiddleware implements NestMiddleware {
       next();
     } catch (error) {
       // Clear any tenant context on error
-      req.tenantId = null;
+      req.organizationId = null;
       req.userId = null;
       next();
     }
@@ -869,7 +869,7 @@ import { Request } from 'express';
 import { Role } from '@prisma/client';
 
 export interface RequestWithTenant extends Request {
-  tenantId: string | null;
+  organizationId: string | null;
   userId: string | null;
   userRole: Role | null;
   permissions: string[] | null;
@@ -889,7 +889,7 @@ export class PolicyService {
   ) {}
 
   async findAll(pagination: PaginationDto): Promise<PaginatedResult<Policy>> {
-    // RLS automatically filters by tenant_id
+    // RLS automatically filters by organization_id
     // But we also verify tenant context is set
     this.ensureTenantContext();
 
@@ -927,7 +927,7 @@ export class PolicyService {
 
     // RLS ensures we can only see our tenant's policies
     // This check is defense-in-depth
-    if (policy.tenantId !== this.request.tenantId) {
+    if (policy.organizationId !== this.request.organizationId) {
       throw new ForbiddenException('Access denied');
     }
 
@@ -940,7 +940,7 @@ export class PolicyService {
     return this.prisma.policy.create({
       data: {
         ...data,
-        tenantId: this.request.tenantId, // Explicitly set tenant
+        organizationId: this.request.organizationId, // Explicitly set tenant
         ownerId: this.request.userId,
         status: PolicyStatus.DRAFT,
       },
@@ -948,7 +948,7 @@ export class PolicyService {
   }
 
   private ensureTenantContext(): void {
-    if (!this.request.tenantId) {
+    if (!this.request.organizationId) {
       throw new UnauthorizedException('Tenant context not established');
     }
   }
@@ -965,9 +965,9 @@ export class PolicyService {
 -- Enable RLS on all tenant-scoped tables
 
 -- Function to get current tenant from session
-CREATE OR REPLACE FUNCTION current_tenant_id()
+CREATE OR REPLACE FUNCTION current_organization_id()
 RETURNS UUID AS $$
-  SELECT NULLIF(current_setting('app.current_tenant_id', true), '')::UUID;
+  SELECT NULLIF(current_setting('app.current_organization_id', true), '')::UUID;
 $$ LANGUAGE SQL STABLE;
 
 -- Function to get current user from session
@@ -977,7 +977,7 @@ RETURNS UUID AS $$
 $$ LANGUAGE SQL STABLE;
 
 -- ============================================
--- TENANTS TABLE (special - no tenant_id filter)
+-- TENANTS TABLE (special - no organization_id filter)
 -- ============================================
 -- No RLS needed - tenants are isolated by ID
 
@@ -989,7 +989,7 @@ ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 -- Users can only see users in their tenant
 CREATE POLICY users_tenant_isolation ON users
   FOR ALL
-  USING (tenant_id = current_tenant_id());
+  USING (organization_id = current_organization_id());
 
 -- ============================================
 -- POLICIES TABLE
@@ -998,7 +998,7 @@ ALTER TABLE policies ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY policies_tenant_isolation ON policies
   FOR ALL
-  USING (tenant_id = current_tenant_id());
+  USING (organization_id = current_organization_id());
 
 -- ============================================
 -- POLICY_VERSIONS TABLE
@@ -1007,7 +1007,7 @@ ALTER TABLE policy_versions ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY policy_versions_tenant_isolation ON policy_versions
   FOR ALL
-  USING (tenant_id = current_tenant_id());
+  USING (organization_id = current_organization_id());
 
 -- ============================================
 -- WORKFLOWS TABLE
@@ -1016,7 +1016,7 @@ ALTER TABLE workflows ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY workflows_tenant_isolation ON workflows
   FOR ALL
-  USING (tenant_id = current_tenant_id());
+  USING (organization_id = current_organization_id());
 
 -- ============================================
 -- POLICY_WORKFLOWS TABLE
@@ -1025,7 +1025,7 @@ ALTER TABLE policy_workflows ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY policy_workflows_tenant_isolation ON policy_workflows
   FOR ALL
-  USING (tenant_id = current_tenant_id());
+  USING (organization_id = current_organization_id());
 
 -- ============================================
 -- COMMENTS TABLE
@@ -1034,7 +1034,7 @@ ALTER TABLE comments ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY comments_tenant_isolation ON comments
   FOR ALL
-  USING (tenant_id = current_tenant_id());
+  USING (organization_id = current_organization_id());
 
 -- ============================================
 -- DISTRIBUTION_CAMPAIGNS TABLE
@@ -1043,7 +1043,7 @@ ALTER TABLE distribution_campaigns ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY distribution_campaigns_tenant_isolation ON distribution_campaigns
   FOR ALL
-  USING (tenant_id = current_tenant_id());
+  USING (organization_id = current_organization_id());
 
 -- ============================================
 -- ATTESTATIONS TABLE
@@ -1052,7 +1052,7 @@ ALTER TABLE attestations ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY attestations_tenant_isolation ON attestations
   FOR ALL
-  USING (tenant_id = current_tenant_id());
+  USING (organization_id = current_organization_id());
 
 -- ============================================
 -- TASKS TABLE
@@ -1061,7 +1061,7 @@ ALTER TABLE tasks ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY tasks_tenant_isolation ON tasks
   FOR ALL
-  USING (tenant_id = current_tenant_id());
+  USING (organization_id = current_organization_id());
 
 -- ============================================
 -- AUDIT_LOGS TABLE
@@ -1070,7 +1070,7 @@ ALTER TABLE audit_logs ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY audit_logs_tenant_isolation ON audit_logs
   FOR ALL
-  USING (tenant_id = current_tenant_id());
+  USING (organization_id = current_organization_id());
 
 -- ============================================
 -- SESSIONS TABLE
@@ -1079,7 +1079,7 @@ ALTER TABLE sessions ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY sessions_tenant_isolation ON sessions
   FOR ALL
-  USING (tenant_id = current_tenant_id());
+  USING (organization_id = current_organization_id());
 ```
 
 ### 6.2 RLS Bypass for System Operations
@@ -1111,8 +1111,8 @@ describe('Row Level Security', () => {
 
   beforeAll(async () => {
     // Create two tenants
-    tenant1 = await createTestTenant('tenant-1');
-    tenant2 = await createTestTenant('tenant-2');
+    tenant1 = await createTestTenant('org-1');
+    tenant2 = await createTestTenant('org-2');
 
     // Create users in each tenant
     user1 = await createTestUser(tenant1.id);
@@ -1126,25 +1126,25 @@ describe('Row Level Security', () => {
   it('should only return policies from current tenant', async () => {
     // Set tenant 1 context
     await prisma.$executeRaw`
-      SELECT set_config('app.current_tenant_id', ${tenant1.id}, true)
+      SELECT set_config('app.current_organization_id', ${tenant1.id}, true)
     `;
 
     const policies = await prisma.policy.findMany();
 
     expect(policies).toHaveLength(1);
     expect(policies[0].title).toBe('Policy A');
-    expect(policies.every(p => p.tenantId === tenant1.id)).toBe(true);
+    expect(policies.every(p => p.organizationId === tenant1.id)).toBe(true);
   });
 
   it('should prevent cross-tenant access via direct ID query', async () => {
     // Set tenant 1 context
     await prisma.$executeRaw`
-      SELECT set_config('app.current_tenant_id', ${tenant1.id}, true)
+      SELECT set_config('app.current_organization_id', ${tenant1.id}, true)
     `;
 
     // Try to access tenant 2's policy by ID
     const tenant2Policy = await prisma.policy.findFirst({
-      where: { tenantId: tenant2.id },
+      where: { organizationId: tenant2.id },
     });
 
     // RLS should filter this out
@@ -1154,7 +1154,7 @@ describe('Row Level Security', () => {
   it('should prevent cross-tenant data insertion', async () => {
     // Set tenant 1 context
     await prisma.$executeRaw`
-      SELECT set_config('app.current_tenant_id', ${tenant1.id}, true)
+      SELECT set_config('app.current_organization_id', ${tenant1.id}, true)
     `;
 
     // Try to create policy in tenant 2
@@ -1162,7 +1162,7 @@ describe('Row Level Security', () => {
       prisma.policy.create({
         data: {
           title: 'Malicious Policy',
-          tenantId: tenant2.id, // Trying to inject into different tenant
+          organizationId: tenant2.id, // Trying to inject into different tenant
           ownerId: user1.id,
           status: 'DRAFT',
         },
@@ -1239,7 +1239,7 @@ export enum Permission {
   REPORT_CREATE_CUSTOM = 'report:create_custom',
 
   // System Permissions
-  TENANT_MANAGE = 'tenant:manage',
+  ORGANIZATION_MANAGE = 'organization:manage',
   SETTINGS_MANAGE = 'settings:manage',
   AUDIT_VIEW = 'audit:view',
 
@@ -1493,7 +1493,7 @@ export class PolicyController {
 model Session {
   id                String    @id @default(uuid())
   userId            String
-  tenantId          String
+  organizationId          String
   userAgent         String?
   ipAddress         String?
   createdAt         DateTime  @default(now())
@@ -1503,10 +1503,10 @@ model Session {
   previousSessionId String?   // For token rotation tracking
 
   user              User      @relation(fields: [userId], references: [id])
-  tenant            Tenant    @relation(fields: [tenantId], references: [id])
+  tenant            Tenant    @relation(fields: [organizationId], references: [id])
 
   @@index([userId])
-  @@index([tenantId])
+  @@index([organizationId])
   @@index([expiresAt])
 }
 ```
@@ -1527,7 +1527,7 @@ export class SessionService {
     const session = await this.prisma.session.create({
       data: {
         userId: data.userId,
-        tenantId: data.tenantId,
+        organizationId: data.organizationId,
         userAgent: data.userAgent,
         ipAddress: data.ipAddress,
         expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
@@ -1643,7 +1643,7 @@ export class AuthController {
     await this.auditService.log({
       action: 'USER_LOGOUT',
       userId: req.userId,
-      tenantId: req.tenantId,
+      organizationId: req.organizationId,
     });
 
     res.json({ success: true });
@@ -1668,7 +1668,7 @@ export class AuthController {
     await this.auditService.log({
       action: 'USER_LOGOUT_ALL',
       userId: req.userId,
-      tenantId: req.tenantId,
+      organizationId: req.organizationId,
     });
 
     res.json({ success: true });
@@ -1710,12 +1710,12 @@ export class ExceptionAuthService {
   async canRequestException(
     userId: string,
     policyId: string,
-    tenantId: string
+    organizationId: string
   ): Promise<boolean> {
     // All authenticated users can request exceptions for their own needs
     // Verify user belongs to tenant
     const user = await this.prisma.user.findFirst({
-      where: { id: userId, tenantId },
+      where: { id: userId, organizationId },
     });
 
     if (!user || user.status !== 'ACTIVE') {
@@ -1724,7 +1724,7 @@ export class ExceptionAuthService {
 
     // Verify policy exists and is published
     const policy = await this.prisma.policy.findFirst({
-      where: { id: policyId, tenantId, status: 'PUBLISHED' },
+      where: { id: policyId, organizationId, status: 'PUBLISHED' },
     });
 
     return !!policy;
@@ -1733,10 +1733,10 @@ export class ExceptionAuthService {
   async canApproveException(
     userId: string,
     exceptionId: string,
-    tenantId: string
+    organizationId: string
   ): Promise<boolean> {
     const user = await this.prisma.user.findFirst({
-      where: { id: userId, tenantId },
+      where: { id: userId, organizationId },
       select: { id: true, role: true, departmentId: true },
     });
 
@@ -1749,7 +1749,7 @@ export class ExceptionAuthService {
 
     // Get exception details
     const exception = await this.prisma.policyException.findFirst({
-      where: { id: exceptionId, tenantId },
+      where: { id: exceptionId, organizationId },
       include: {
         policy: { select: { ownerId: true } },
         requestedBy: { select: { departmentId: true } },
@@ -1780,10 +1780,10 @@ export class ExceptionAuthService {
   async canViewException(
     userId: string,
     exceptionId: string,
-    tenantId: string
+    organizationId: string
   ): Promise<boolean> {
     const user = await this.prisma.user.findFirst({
-      where: { id: userId, tenantId },
+      where: { id: userId, organizationId },
       select: { id: true, role: true, departmentId: true },
     });
 
@@ -1795,7 +1795,7 @@ export class ExceptionAuthService {
     }
 
     const exception = await this.prisma.policyException.findFirst({
-      where: { id: exceptionId, tenantId },
+      where: { id: exceptionId, organizationId },
       include: {
         policy: { select: { ownerId: true } },
         requestedBy: { select: { id: true, departmentId: true } },
@@ -1825,11 +1825,11 @@ export class ExceptionAuthService {
 
   async getExceptionApprovers(
     policyId: string,
-    tenantId: string
+    organizationId: string
   ): Promise<ApproverInfo[]> {
     // Get policy owner
     const policy = await this.prisma.policy.findFirst({
-      where: { id: policyId, tenantId },
+      where: { id: policyId, organizationId },
       select: {
         ownerId: true,
         owner: { select: { id: true, firstName: true, lastName: true, email: true } },
@@ -1839,7 +1839,7 @@ export class ExceptionAuthService {
     // Get all users who can approve
     const approvers = await this.prisma.user.findMany({
       where: {
-        tenantId,
+        organizationId,
         status: 'ACTIVE',
         role: { in: [Role.COMPLIANCE_OFFICER, Role.SYSTEM_ADMIN] },
       },
@@ -1891,14 +1891,14 @@ export class ExceptionApprovalGuard implements CanActivate {
     const request = context.switchToHttp().getRequest<RequestWithTenant>();
     const exceptionId = request.params.id || request.params.exceptionId;
 
-    if (!exceptionId || !request.userId || !request.tenantId) {
+    if (!exceptionId || !request.userId || !request.organizationId) {
       throw new ForbiddenException('Missing required context');
     }
 
     const canApprove = await this.exceptionAuthService.canApproveException(
       request.userId,
       exceptionId,
-      request.tenantId
+      request.organizationId
     );
 
     if (!canApprove) {
@@ -2026,7 +2026,7 @@ interface ExternalAccessToken {
   sub: string;              // External user ID
   type: 'external_access';
   portalId: string;         // Portal ID
-  tenantId: string;         // Owner tenant
+  organizationId: string;         // Owner tenant
   email: string;            // External user email
   permissions: ExternalPermission[];
   policyIds: string[];      // Accessible policies
@@ -2038,7 +2038,7 @@ interface MagicLinkToken {
   sub: string;              // External user ID
   type: 'magic_link';
   portalId: string;
-  tenantId: string;
+  organizationId: string;
   inviteId: string;         // Invitation reference
   exp: number;              // Link expiration (24-48 hours)
   singleUse: boolean;       // If true, invalidated after first use
@@ -2075,11 +2075,11 @@ export class MagicLinkService {
   }
 
   async createInvitation(data: CreateInvitationDto): Promise<PortalInvitation> {
-    const { portalId, email, tenantId, expiresIn = 48 } = data;
+    const { portalId, email, organizationId, expiresIn = 48 } = data;
 
     // Verify portal exists
     const portal = await this.prisma.externalPortal.findFirst({
-      where: { id: portalId, tenantId, status: 'ACTIVE' },
+      where: { id: portalId, organizationId, status: 'ACTIVE' },
     });
 
     if (!portal) {
@@ -2088,14 +2088,14 @@ export class MagicLinkService {
 
     // Check if external user exists or create
     let externalUser = await this.prisma.externalUser.findFirst({
-      where: { email: email.toLowerCase(), tenantId },
+      where: { email: email.toLowerCase(), organizationId },
     });
 
     if (!externalUser) {
       externalUser = await this.prisma.externalUser.create({
         data: {
           email: email.toLowerCase(),
-          tenantId,
+          organizationId,
           status: 'PENDING',
         },
       });
@@ -2110,7 +2110,7 @@ export class MagicLinkService {
       data: {
         portalId,
         externalUserId: externalUser.id,
-        tenantId,
+        organizationId,
         token: this.hashToken(tokenValue),
         expiresAt,
         maxUses: 1,
@@ -2125,7 +2125,7 @@ export class MagicLinkService {
         sub: externalUser.id,
         type: 'magic_link',
         portalId,
-        tenantId,
+        organizationId,
         inviteId: invitation.id,
         singleUse: true,
       } as MagicLinkToken,
@@ -2222,7 +2222,7 @@ export class MagicLinkService {
       sub: user.id,
       type: 'external_access',
       portalId: portal.id,
-      tenantId: portal.tenantId,
+      organizationId: portal.organizationId,
       email: user.email,
       permissions,
       policyIds,
@@ -2251,7 +2251,7 @@ export class MagicLinkService {
 interface CreateInvitationDto {
   portalId: string;
   email: string;
-  tenantId: string;
+  organizationId: string;
   expiresIn?: number; // hours
   createdById: string;
 }
@@ -2306,7 +2306,7 @@ export class ExternalAccessGuard implements CanActivate {
       const portal = await this.prisma.externalPortal.findFirst({
         where: {
           id: payload.portalId,
-          tenantId: payload.tenantId,
+          organizationId: payload.organizationId,
           status: 'ACTIVE',
         },
       });
@@ -2320,7 +2320,7 @@ export class ExternalAccessGuard implements CanActivate {
         id: payload.sub,
         email: payload.email,
         portalId: payload.portalId,
-        tenantId: payload.tenantId,
+        organizationId: payload.organizationId,
         permissions: payload.permissions,
         policyIds: payload.policyIds,
       };
@@ -2433,7 +2433,7 @@ export class PortalSessionService {
   async createSession(
     externalUserId: string,
     portalId: string,
-    tenantId: string,
+    organizationId: string,
     ipAddress: string
   ): Promise<ExternalSession> {
     const sessionId = crypto.randomUUID();
@@ -2443,7 +2443,7 @@ export class PortalSessionService {
         id: sessionId,
         externalUserId,
         portalId,
-        tenantId,
+        organizationId,
         ipAddress,
         expiresAt: new Date(Date.now() + 60 * 60 * 1000), // 1 hour
       },
@@ -2515,7 +2515,7 @@ ALTER TABLE external_portals ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY external_portals_tenant_isolation ON external_portals
   FOR ALL
-  USING (tenant_id = current_tenant_id());
+  USING (organization_id = current_organization_id());
 
 -- ============================================
 -- EXTERNAL_USERS TABLE
@@ -2524,7 +2524,7 @@ ALTER TABLE external_users ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY external_users_tenant_isolation ON external_users
   FOR ALL
-  USING (tenant_id = current_tenant_id());
+  USING (organization_id = current_organization_id());
 
 -- ============================================
 -- PORTAL_INVITATIONS TABLE
@@ -2533,7 +2533,7 @@ ALTER TABLE portal_invitations ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY portal_invitations_tenant_isolation ON portal_invitations
   FOR ALL
-  USING (tenant_id = current_tenant_id());
+  USING (organization_id = current_organization_id());
 
 -- ============================================
 -- EXTERNAL_SESSIONS TABLE
@@ -2542,7 +2542,7 @@ ALTER TABLE external_sessions ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY external_sessions_tenant_isolation ON external_sessions
   FOR ALL
-  USING (tenant_id = current_tenant_id());
+  USING (organization_id = current_organization_id());
 
 -- ============================================
 -- EXTERNAL_ATTESTATIONS TABLE
@@ -2551,7 +2551,7 @@ ALTER TABLE external_attestations ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY external_attestations_tenant_isolation ON external_attestations
   FOR ALL
-  USING (tenant_id = current_tenant_id());
+  USING (organization_id = current_organization_id());
 ```
 
 ---
@@ -2663,7 +2663,7 @@ export class AuditService {
       data: {
         action: event.action,
         userId: event.userId,
-        tenantId: event.tenantId,
+        organizationId: event.organizationId,
         resourceType: event.resourceType,
         resourceId: event.resourceId,
         metadata: event.metadata,
@@ -3309,7 +3309,7 @@ model Tenant {
 
 model TenantDomain {
   id                  String    @id @default(uuid())
-  tenantId            String
+  organizationId            String
   domain              String    @unique
   verified            Boolean   @default(false)
   verificationToken   String?
@@ -3317,10 +3317,10 @@ model TenantDomain {
   verifiedAt          DateTime?
   createdAt           DateTime  @default(now())
 
-  tenant              Tenant    @relation(fields: [tenantId], references: [id])
+  tenant              Tenant    @relation(fields: [organizationId], references: [id])
 
   @@index([domain])
-  @@index([tenantId])
+  @@index([organizationId])
 }
 
 // ============================================
@@ -3329,7 +3329,7 @@ model TenantDomain {
 
 model User {
   id              String      @id @default(uuid())
-  tenantId        String
+  organizationId        String
   email           String
   passwordHash    String?
   firstName       String
@@ -3347,7 +3347,7 @@ model User {
   updatedAt       DateTime    @updatedAt
 
   // Relations
-  tenant          Tenant      @relation(fields: [tenantId], references: [id])
+  tenant          Tenant      @relation(fields: [organizationId], references: [id])
   manager         User?       @relation("UserManager", fields: [managerId], references: [id])
   directReports   User[]      @relation("UserManager")
   sessions        Session[]
@@ -3357,9 +3357,9 @@ model User {
   assignedTasks   Task[]      @relation("TaskAssignee")
   createdTasks    Task[]      @relation("TaskCreator")
 
-  @@unique([tenantId, email])
+  @@unique([organizationId, email])
   @@unique([ssoProvider, ssoId])
-  @@index([tenantId])
+  @@index([organizationId])
   @@index([email])
   @@index([role])
   @@index([status])
@@ -3372,7 +3372,7 @@ model User {
 model Session {
   id                String    @id @default(uuid())
   userId            String
-  tenantId          String
+  organizationId          String
   userAgent         String?
   ipAddress         String?
   createdAt         DateTime  @default(now())
@@ -3382,10 +3382,10 @@ model Session {
   previousSessionId String?
 
   user              User      @relation(fields: [userId], references: [id])
-  tenant            Tenant    @relation(fields: [tenantId], references: [id])
+  tenant            Tenant    @relation(fields: [organizationId], references: [id])
 
   @@index([userId])
-  @@index([tenantId])
+  @@index([organizationId])
   @@index([expiresAt])
 }
 
@@ -3395,7 +3395,7 @@ model Session {
 
 model AuditLog {
   id            String    @id @default(uuid())
-  tenantId      String
+  organizationId      String
   userId        String?
   action        String
   resourceType  String?
@@ -3405,7 +3405,7 @@ model AuditLog {
   userAgent     String?
   timestamp     DateTime  @default(now())
 
-  @@index([tenantId])
+  @@index([organizationId])
   @@index([userId])
   @@index([action])
   @@index([timestamp])
@@ -3426,7 +3426,7 @@ enum ExceptionStatus {
 
 model PolicyException {
   id                  String          @id @default(uuid())
-  tenantId            String
+  organizationId            String
   policyId            String
   requestedById       String
   status              ExceptionStatus @default(PENDING)
@@ -3447,12 +3447,12 @@ model PolicyException {
   createdAt           DateTime        @default(now())
   updatedAt           DateTime        @updatedAt
 
-  tenant              Tenant          @relation(fields: [tenantId], references: [id])
+  tenant              Tenant          @relation(fields: [organizationId], references: [id])
   policy              Policy          @relation(fields: [policyId], references: [id])
   requestedBy         User            @relation("ExceptionRequester", fields: [requestedById], references: [id])
   approvedBy          User?           @relation("ExceptionApprover", fields: [approvedById], references: [id])
 
-  @@index([tenantId])
+  @@index([organizationId])
   @@index([policyId])
   @@index([requestedById])
   @@index([status])
@@ -3477,7 +3477,7 @@ enum PortalAccessLevel {
 
 model ExternalPortal {
   id            String            @id @default(uuid())
-  tenantId      String
+  organizationId      String
   name          String
   description   String?
   status        PortalStatus      @default(ACTIVE)
@@ -3487,13 +3487,13 @@ model ExternalPortal {
   createdAt     DateTime          @default(now())
   updatedAt     DateTime          @updatedAt
 
-  tenant        Tenant            @relation(fields: [tenantId], references: [id])
+  tenant        Tenant            @relation(fields: [organizationId], references: [id])
   createdBy     User              @relation(fields: [createdById], references: [id])
   policies      PortalPolicy[]
   invitations   PortalInvitation[]
   sessions      ExternalSession[]
 
-  @@index([tenantId])
+  @@index([organizationId])
   @@index([status])
 }
 
@@ -3520,7 +3520,7 @@ enum ExternalUserStatus {
 
 model ExternalUser {
   id            String              @id @default(uuid())
-  tenantId      String
+  organizationId      String
   email         String
   firstName     String?
   lastName      String?
@@ -3530,13 +3530,13 @@ model ExternalUser {
   createdAt     DateTime            @default(now())
   updatedAt     DateTime            @updatedAt
 
-  tenant        Tenant              @relation(fields: [tenantId], references: [id])
+  tenant        Tenant              @relation(fields: [organizationId], references: [id])
   invitations   PortalInvitation[]
   sessions      ExternalSession[]
   attestations  ExternalAttestation[]
 
-  @@unique([tenantId, email])
-  @@index([tenantId])
+  @@unique([organizationId, email])
+  @@index([organizationId])
   @@index([email])
 }
 
@@ -3548,7 +3548,7 @@ model PortalInvitation {
   id              String       @id @default(uuid())
   portalId        String
   externalUserId  String
-  tenantId        String
+  organizationId        String
   token           String       // Hashed token
   expiresAt       DateTime
   maxUses         Int          @default(1)
@@ -3559,12 +3559,12 @@ model PortalInvitation {
 
   portal          ExternalPortal @relation(fields: [portalId], references: [id])
   externalUser    ExternalUser   @relation(fields: [externalUserId], references: [id])
-  tenant          Tenant         @relation(fields: [tenantId], references: [id])
+  tenant          Tenant         @relation(fields: [organizationId], references: [id])
   createdBy       User           @relation(fields: [createdById], references: [id])
 
   @@index([portalId])
   @@index([externalUserId])
-  @@index([tenantId])
+  @@index([organizationId])
   @@index([expiresAt])
 }
 
@@ -3576,7 +3576,7 @@ model ExternalSession {
   id              String       @id @default(uuid())
   externalUserId  String
   portalId        String
-  tenantId        String
+  organizationId        String
   ipAddress       String?
   userAgent       String?
   expiresAt       DateTime
@@ -3585,11 +3585,11 @@ model ExternalSession {
 
   externalUser    ExternalUser   @relation(fields: [externalUserId], references: [id])
   portal          ExternalPortal @relation(fields: [portalId], references: [id])
-  tenant          Tenant         @relation(fields: [tenantId], references: [id])
+  tenant          Tenant         @relation(fields: [organizationId], references: [id])
 
   @@index([externalUserId])
   @@index([portalId])
-  @@index([tenantId])
+  @@index([organizationId])
   @@index([expiresAt])
 }
 
@@ -3602,7 +3602,7 @@ model ExternalAttestation {
   policyId        String
   externalUserId  String
   portalId        String
-  tenantId        String
+  organizationId        String
   acknowledged    Boolean      @default(false)
   signature       String?
   comments        String?
@@ -3612,10 +3612,10 @@ model ExternalAttestation {
 
   policy          Policy         @relation(fields: [policyId], references: [id])
   externalUser    ExternalUser   @relation(fields: [externalUserId], references: [id])
-  tenant          Tenant         @relation(fields: [tenantId], references: [id])
+  tenant          Tenant         @relation(fields: [organizationId], references: [id])
 
   @@unique([policyId, externalUserId])
-  @@index([tenantId])
+  @@index([organizationId])
   @@index([policyId])
   @@index([externalUserId])
 }
@@ -3701,7 +3701,7 @@ MAGIC_LINK_SECRET=your-magic-link-secret-min-32-chars
 
 | Pitfall | Prevention |
 |---------|------------|
-| Forgetting tenant_id | TypeScript types enforce tenantId |
+| Forgetting organization_id | TypeScript types enforce organizationId |
 | RLS bypass in migrations | Use separate service role |
 | Token in localStorage | Use HTTP-only cookies only |
 | Weak JWT secrets | Enforce 32+ character secrets |

@@ -44,7 +44,7 @@ This separation enables:
 | Disclosure Form templates | Ethics Portal branding (PRD-003) |
 | Campaign engine | Web Form Builder core (PRD-004) |
 | RIU creation (type: disclosure_response) | Analytics dashboards (PRD-007) |
-| Conditional Case creation (thresholds) | HRIS integration core (PRD-010) |
+| Conditional Case creation (thresholds) | HRIS integration core (see `01-SHARED-INFRASTRUCTURE/TECH-SPEC-HRIS-INTEGRATION.md`) |
 | Disclosure lifecycle | Case Management core (PRD-005) |
 | Approval workflows | |
 | Conditions tracking | |
