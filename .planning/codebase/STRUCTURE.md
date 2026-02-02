@@ -1,323 +1,422 @@
 # Codebase Structure
 
-**Analysis Date:** 2026-01-30
+**Analysis Date:** 2026-02-02
 
 ## Directory Layout
 
 ```
 Risk Intelligence Platform/
-├── .claude/                    # Claude Code configuration
-├── .github/                    # GitHub Actions workflows
-├── .husky/                     # Git hooks (lint-staged, type check)
-├── .planning/
-│   └── codebase/              # GSD-generated documentation (ARCHITECTURE.md, etc.)
-├── 00-PLATFORM/               # Product/platform specs (external to code)
-├── 01-SHARED-INFRASTRUCTURE/  # Infrastructure/auth/AI specs (external to code)
-├── 02-MODULES/                # Module PRDs (external to code)
-├── 03-DEVELOPMENT/            # Development resources, task logs (external to code)
 ├── apps/
-│   ├── backend/               # NestJS API server
+│   ├── backend/                              # NestJS API server
 │   │   ├── src/
-│   │   │   ├── app.module.ts             # Root NestJS module
-│   │   │   ├── main.ts                   # Server bootstrap
+│   │   │   ├── main.ts                       # Application entry point
+│   │   │   ├── app.module.ts                 # Root NestJS module
 │   │   │   ├── config/
-│   │   │   │   └── configuration.ts      # Environment config
-│   │   │   ├── common/                   # Shared infrastructure
-│   │   │   │   ├── middleware/
-│   │   │   │   │   └── tenant.middleware.ts    # RLS session setup
-│   │   │   │   ├── guards/
-│   │   │   │   │   ├── jwt-auth.guard.ts       # JWT validation
-│   │   │   │   │   ├── tenant.guard.ts         # Tenant verification
-│   │   │   │   │   └── roles.guard.ts          # RBAC enforcement
-│   │   │   │   ├── decorators/
+│   │   │   │   └── configuration.ts          # Configuration object from env vars
+│   │   │   ├── common/                       # Shared infrastructure
+│   │   │   │   ├── controllers/
+│   │   │   │   │   └── activity.controller.ts # Audit log query endpoint
+│   │   │   │   ├── decorators/               # Custom decorators
 │   │   │   │   │   ├── current-user.decorator.ts
+│   │   │   │   │   ├── roles.decorator.ts
 │   │   │   │   │   ├── tenant-id.decorator.ts
-│   │   │   │   │   └── roles.decorator.ts
-│   │   │   │   ├── dto/
+│   │   │   │   │   └── index.ts
+│   │   │   │   ├── dto/                      # Common DTOs
 │   │   │   │   │   ├── activity-query.dto.ts
 │   │   │   │   │   ├── activity-response.dto.ts
-│   │   │   │   │   └── create-activity.dto.ts
+│   │   │   │   │   ├── create-activity.dto.ts
+│   │   │   │   │   └── index.ts
 │   │   │   │   ├── filters/
-│   │   │   │   │   └── http-exception.filter.ts    # Global error formatting
+│   │   │   │   │   └── http-exception.filter.ts # Global error handler
+│   │   │   │   ├── guards/                   # Route protection
+│   │   │   │   │   ├── jwt-auth.guard.ts
+│   │   │   │   │   ├── roles.guard.ts        # Role-based access control
+│   │   │   │   │   ├── tenant.guard.ts       # Tenant context validation
+│   │   │   │   │   └── index.ts
+│   │   │   │   ├── middleware/
+│   │   │   │   │   └── tenant.middleware.ts  # JWT → tenant context → RLS setup
 │   │   │   │   ├── services/
-│   │   │   │   │   ├── activity.service.ts         # Core audit logging
-│   │   │   │   │   ├── activity-description.service.ts
-│   │   │   │   │   ├── storage.service.ts          # File upload abstraction
-│   │   │   │   │   ├── local-storage.adapter.ts    # Local file storage
-│   │   │   │   │   └── storage.interface.ts
-│   │   │   │   ├── activity.module.ts              # Cross-cutting activity module
-│   │   │   │   └── storage.module.ts               # Cross-cutting storage module
-│   │   │   └── modules/                # Feature modules
+│   │   │   │   │   ├── activity.service.ts   # Audit log management
+│   │   │   │   │   ├── activity-description.service.ts # Natural language generation
+│   │   │   │   │   ├── storage.service.ts    # File storage abstraction
+│   │   │   │   │   ├── local-storage.adapter.ts
+│   │   │   │   │   ├── storage.interface.ts
+│   │   │   │   │   └── index.ts
+│   │   │   │   ├── activity.module.ts
+│   │   │   │   ├── storage.module.ts
+│   │   │   │   └── index.ts
+│   │   │   └── modules/                      # Feature modules
 │   │   │       ├── auth/
-│   │   │       │   ├── auth.module.ts
-│   │   │       │   ├── auth.controller.ts
+│   │   │       │   ├── auth.controller.ts    # POST /api/v1/auth/login, /refresh
 │   │   │       │   ├── auth.service.ts
+│   │   │       │   ├── auth.module.ts
 │   │   │       │   ├── dto/
 │   │   │       │   │   ├── login.dto.ts
 │   │   │       │   │   ├── auth-response.dto.ts
 │   │   │       │   │   └── index.ts
 │   │   │       │   ├── interfaces/
-│   │   │       │   │   └── jwt-payload.interface.ts
+│   │   │       │   │   └── jwt-payload.interface.ts # Token payload structure
 │   │   │       │   └── strategies/
-│   │   │       │       └── jwt.strategy.ts
-│   │   │       ├── prisma/
-│   │   │       │   ├── prisma.module.ts
-│   │   │       │   └── prisma.service.ts
-│   │   │       ├── health/
-│   │   │       │   ├── health.module.ts
-│   │   │       │   └── health.controller.ts
+│   │   │       │       └── jwt.strategy.ts    # Passport JWT strategy
 │   │   │       ├── users/
-│   │   │       │   ├── users.module.ts
-│   │   │       │   ├── users.controller.ts
+│   │   │       │   ├── users.controller.ts   # GET /api/v1/users, POST create
 │   │   │       │   ├── users.service.ts
+│   │   │       │   ├── users.module.ts
 │   │   │       │   └── dto/
-│   │   │       ├── cases/
-│   │   │       │   ├── cases.module.ts
-│   │   │       │   ├── cases.controller.ts             # HTTP routes
-│   │   │       │   ├── cases.service.ts                # Business logic + full-text search
-│   │   │       │   └── dto/
-│   │   │       │       ├── create-case.dto.ts
-│   │   │       │       ├── update-case.dto.ts
-│   │   │       │       ├── case-query.dto.ts
+│   │   │       │       ├── create-user.dto.ts
+│   │   │       │       ├── user-response.dto.ts
 │   │   │       │       └── index.ts
+│   │   │       ├── cases/
+│   │   │       │   ├── cases.controller.ts   # GET/POST /api/v1/cases, /api/v1/cases/:id
+│   │   │       │   ├── cases.service.ts      # Case CRUD, reference number generation
+│   │   │       │   ├── cases.module.ts
+│   │   │       │   ├── dto/
+│   │   │       │   │   ├── create-case.dto.ts
+│   │   │       │   │   ├── update-case.dto.ts
+│   │   │       │   │   ├── case-query.dto.ts
+│   │   │       │   │   ├── change-case-status.dto.ts
+│   │   │       │   │   └── index.ts
+│   │   │       │   └── index.ts
 │   │   │       ├── investigations/
-│   │   │       │   ├── investigations.module.ts
 │   │   │       │   ├── investigations.controller.ts
-│   │   │       │   ├── investigations.service.ts       # Status transitions, assignment history
+│   │   │       │   ├── investigations.service.ts
+│   │   │       │   ├── investigations.module.ts
 │   │   │       │   └── dto/
 │   │   │       │       ├── create-investigation.dto.ts
-│   │   │       │       ├── update-investigation.dto.ts
-│   │   │       │       ├── assign-investigation.dto.ts
-│   │   │       │       └── ...
+│   │   │       │       ├── investigation-response.dto.ts
+│   │   │       │       └── index.ts
 │   │   │       ├── investigation-notes/
-│   │   │       │   ├── investigation-notes.module.ts
 │   │   │       │   ├── investigation-notes.controller.ts
 │   │   │       │   ├── investigation-notes.service.ts
+│   │   │       │   ├── investigation-notes.module.ts
 │   │   │       │   └── dto/
-│   │   │       └── attachments/
-│   │   │           ├── attachments.module.ts
-│   │   │           ├── attachments.controller.ts
-│   │   │           ├── attachments.service.ts
-│   │   │           └── dto/
+│   │   │       │       ├── create-investigation-note.dto.ts
+│   │   │       │       ├── investigation-note-query.dto.ts
+│   │   │       │       └── index.ts
+│   │   │       ├── attachments/
+│   │   │       │   ├── attachments.controller.ts
+│   │   │       │   ├── attachments.service.ts
+│   │   │       │   ├── attachments.module.ts
+│   │   │       │   └── dto/
+│   │   │       │       ├── create-attachment.dto.ts
+│   │   │       │       ├── attachment-response.dto.ts
+│   │   │       │       └── index.ts
+│   │   │       ├── prisma/
+│   │   │       │   ├── prisma.service.ts     # Database connection + RLS control
+│   │   │       │   └── prisma.module.ts
+│   │   │       └── health/
+│   │   │           ├── health.controller.ts  # GET /health
+│   │   │           └── health.module.ts
 │   │   ├── prisma/
-│   │   │   ├── schema.prisma                  # Database schema (ALL entities, RLS, enums)
-│   │   │   └── migrations/
-│   │   │       ├── 20260129213317_init/       # Initial schema + RLS policies
+│   │   │   ├── schema.prisma                 # Data models (entities + RLS policies)
+│   │   │   ├── seed.ts                       # Test data seeding
+│   │   │   └── migrations/                   # Database migration history
+│   │   │       ├── 20260129213317_init/
 │   │   │       ├── 20260129221829_add_rls_policies/
 │   │   │       ├── 20260130012225_add_case_entity/
-│   │   │       └── 20260130024335_add_audit_log/
-│   │   ├── examples/                          # Reference implementations (patterns to follow)
-│   │   │   ├── entity-pattern.prisma
-│   │   │   ├── service-pattern.ts
-│   │   │   ├── controller-pattern.ts
-│   │   │   ├── dto-pattern.ts
-│   │   │   ├── test-pattern.spec.ts
-│   │   │   └── e2e-test-pattern.spec.ts
-│   │   ├── dist/                              # Compiled output (generated)
+│   │   │       ├── 20260130024335_add_audit_log/
+│   │   │       ├── 20260130041524_add_investigation/
+│   │   │       ├── 20260130133120_add_investigation_note/
+│   │   │       └── (more migrations...)
+│   │   ├── examples/                         # CANONICAL PATTERNS - READ FIRST
+│   │   │   ├── README.md                     # Pattern documentation
+│   │   │   ├── entity-pattern.prisma         # Prisma model template
+│   │   │   ├── service-pattern.ts            # NestJS service template
+│   │   │   ├── controller-pattern.ts         # NestJS controller template
+│   │   │   ├── dto-pattern.ts                # DTO template with validation
+│   │   │   ├── test-pattern.spec.ts          # Unit test template
+│   │   │   └── e2e-test-pattern.spec.ts      # E2E test with tenant isolation
+│   │   ├── dist/                             # Compiled output (generated)
 │   │   ├── package.json
-│   │   └── tsconfig.json
-│   └── frontend/               # Next.js React application
+│   │   ├── tsconfig.json
+│   │   ├── jest.config.js
+│   │   └── .eslintrc.json
+│   │
+│   └── frontend/                              # Next.js SPA
 │       ├── src/
-│       │   ├── app/                          # Next.js 14 App Router
-│       │   │   ├── layout.tsx                # Root layout + Providers
-│       │   │   ├── page.tsx                  # Dashboard/home
-│       │   │   ├── globals.css
-│       │   │   ├── login/
-│       │   │   │   └── page.tsx
-│       │   │   ├── cases/
-│       │   │   │   ├── page.tsx              # Cases list
-│       │   │   │   ├── new/
-│       │   │   │   │   └── page.tsx          # New case form
-│       │   │   │   └── [id]/
-│       │   │   │       └── page.tsx          # Case detail + investigations
-│       │   │   ├── dashboard/
-│       │   │   │   └── page.tsx
-│       │   │   └── settings/
-│       │   │       └── users/
-│       │   │           └── page.tsx
-│       │   ├── components/                   # Reusable React components
-│       │   │   ├── ui/                       # shadcn/ui base components (Button, Dialog, etc.)
-│       │   │   ├── cases/                    # Case-specific components
-│       │   │   │   ├── form-sections/        # Form subsections (Reporter, Location, etc.)
-│       │   │   │   └── __tests__/
-│       │   │   ├── investigations/           # Investigation-specific components
-│       │   │   ├── rich-text/                # ProseMirror editor component
-│       │   │   ├── files/                    # File upload/display components
-│       │   │   ├── users/                    # User management components
-│       │   │   └── dashboard/                # Dashboard-specific components
-│       │   ├── hooks/                        # Custom React hooks
-│       │   │   ├── use-case-form-draft.ts    # Draft management for case form
-│       │   │   ├── use-case-filters.ts       # Filter state management
+│       │   ├── app/                          # Next.js app router
+│       │   │   ├── layout.tsx                # Root layout wrapper
+│       │   │   ├── page.tsx                  # Dashboard home page
+│       │   │   ├── providers.tsx             # Context providers setup
+│       │   │   └── globals.css               # Global styles
+│       │   ├── components/                   # React components
+│       │   │   ├── cases/                    # Case-related components
+│       │   │   │   ├── case-form.tsx
+│       │   │   │   ├── case-list.tsx
+│       │   │   │   ├── case-detail.tsx
+│       │   │   │   └── (more components...)
+│       │   │   ├── investigations/           # Investigation components
+│       │   │   │   ├── investigation-form.tsx
+│       │   │   │   ├── investigation-detail.tsx
+│       │   │   │   └── (more components...)
+│       │   │   ├── dashboard/                # Dashboard widgets
+│       │   │   ├── files/                    # File upload/management
+│       │   │   ├── rich-text/                # Rich text editor
+│       │   │   └── ui/                       # shadcn/ui components
+│       │   ├── contexts/
+│       │   │   └── auth-context.tsx          # Auth state management (tokens, user)
+│       │   ├── hooks/
+│       │   │   ├── use-case-filters.ts       # Case filtering logic
+│       │   │   ├── use-case-form-draft.ts    # Form draft persistence
 │       │   │   └── use-draft.ts              # Generic draft hook
-│       │   ├── contexts/                     # React Context providers
-│       │   │   └── (empty for now; will contain auth context, theme, etc.)
-│       │   ├── lib/                          # Utilities and helpers
-│       │   │   ├── api.ts                    # Axios client with interceptors + token refresh
-│       │   │   ├── auth-storage.ts           # localStorage for JWT tokens
-│       │   │   ├── api-*.ts                  # Domain-specific API clients (cases-api, investigation-api, etc.)
+│       │   ├── lib/
+│       │   │   ├── api.ts                    # Axios client with auth interceptor
+│       │   │   ├── auth-storage.ts           # Token persistence (localStorage)
+│       │   │   ├── cases-api.ts              # Case API calls
+│       │   │   ├── investigation-api.ts      # Investigation API calls
+│       │   │   ├── investigation-notes-api.ts
+│       │   │   ├── attachments-api.ts
+│       │   │   ├── users-api.ts
+│       │   │   ├── activity-icons.tsx        # Audit log icon mappings
 │       │   │   ├── date-utils.ts
-│       │   │   ├── utils.ts
-│       │   │   └── validations/
-│       │   │       └── case-schema.ts        # Zod validation schemas
-│       │   ├── types/                        # TypeScript type definitions
+│       │   │   └── utils.ts
+│       │   ├── types/
+│       │   │   ├── activity.ts
+│       │   │   ├── attachment.ts
 │       │   │   ├── auth.ts
 │       │   │   ├── case.ts
 │       │   │   ├── investigation.ts
-│       │   │   ├── activity.ts
 │       │   │   ├── user.ts
-│       │   │   └── attachment.ts
-│       │   ├── test/
-│       │   │   └── setup.ts                  # Test configuration
-│       │   └── providers.tsx                 # Client-side providers (Auth, Query, Theme)
-│       ├── e2e/                              # Playwright E2E tests
-│       │   ├── tests/                        # Test files
-│       │   ├── pages/                        # Page objects for UI automation
-│       │   ├── fixtures/                     # Test fixtures (users, data)
-│       │   └── playwright.config.ts
-│       ├── .next/                            # Build output (generated)
-│       ├── next.config.js
-│       ├── tailwind.config.js
-│       ├── tsconfig.json
+│       │   │   └── (more types...)
+│       │   └── test/
+│       │       └── setup.ts                  # Vitest configuration
+│       ├── e2e/
+│       │   ├── tests/                        # Playwright E2E tests
+│       │   ├── pages/                        # Page object models
+│       │   └── fixtures/                     # Test fixtures
+│       ├── .next/                            # Next.js build output (generated)
+│       ├── node_modules/                     # Dependencies (not committed)
 │       ├── package.json
-│       └── vitest.config.ts
-└── docker-compose.yml                    # Local dev services (PostgreSQL, Redis, Mailhog)
-└── package.json                          # Root workspace config
+│       ├── tsconfig.json
+│       ├── next.config.js
+│       ├── tailwind.config.ts
+│       └── .eslintrc.json
+│
+├── packages/
+│   └── types/                                 # Shared type definitions
+│       ├── package.json
+│       └── (type files - planned)
+│
+├── .planning/                                 # GSD planning documents
+│   ├── codebase/                             # Architecture analysis (this folder)
+│   │   ├── ARCHITECTURE.md
+│   │   └── STRUCTURE.md (this file)
+│   ├── research/
+│   └── (planning files)
+│
+├── 00-PLATFORM/                              # Product specifications
+│   ├── 01-PLATFORM-VISION.md
+│   ├── WORKING-DECISIONS.md
+│   ├── MEGA-PROMPT-FEB-2026.md
+│   └── (other vision docs)
+│
+├── 01-SHARED-INFRASTRUCTURE/                 # Cross-module tech specs
+│   ├── TECH-SPEC-AUTH-MULTITENANCY.md
+│   ├── TECH-SPEC-AI-INTEGRATION.md
+│   ├── INFRASTRUCTURE-SPEC.md
+│   └── (other specs)
+│
+├── 02-MODULES/                               # Feature PRDs
+│   ├── 02-OPERATOR-CONSOLE/
+│   ├── 03-ETHICS-PORTAL/
+│   ├── 04-WEB-FORM-CONFIGURATION/
+│   ├── 05-CASE-MANAGEMENT/
+│   ├── 06-DISCLOSURES/
+│   ├── 07-ANALYTICS-REPORTING/
+│   ├── 08-EMPLOYEE-CHATBOT/
+│   ├── 09-POLICY-MANAGEMENT/
+│   └── (more modules...)
+│
+├── 03-DEVELOPMENT/                          # Development tracking
+│   ├── SECURITY-GUARDRAILS.md
+│   ├── RALPH-TASKS-SLICE-*.md
+│   ├── TASK-LOG.md
+│   └── BLOCKERS.md
+│
+├── docker-compose.yml                        # Local dev environment
+├── .git/                                     # Git repository
+├── .github/workflows/                        # CI/CD workflows
+├── .husky/                                   # Git hooks
+├── .claude/                                  # Claude Code configuration
+├── CLAUDE.md                                 # Project instructions for Claude
+├── PROJECT.md                                # Project overview document
+└── package.json                              # Root workspace definition
 ```
 
 ## Directory Purposes
 
-**`.planning/codebase/`:**
-- Purpose: Generated documentation for code navigation
-- Contains: ARCHITECTURE.md, STRUCTURE.md, CONVENTIONS.md, TESTING.md, STACK.md, INTEGRATIONS.md, CONCERNS.md
-- Generated: Yes (by /gsd:map-codebase command)
-- Committed: Yes
+**`apps/backend/src/`:**
+- Purpose: Core API server using NestJS framework
+- Contains: Feature modules, infrastructure, configuration
+- Key patterns: One module per feature, service + controller per entity, dependency injection
 
 **`apps/backend/src/common/`:**
-- Purpose: Cross-cutting infrastructure shared by all modules
-- Contains: Middleware (tenant context), guards (auth, roles), decorators, DTOs, filters, services (activity, storage)
-- Pattern: Modules import from `common` for reusable functionality
+- Purpose: Shared cross-module infrastructure (not feature-specific)
+- Contains: Guards, middleware, decorators, global filters, shared services (activity, storage)
+- Usage: Imported by all modules, not module-specific
 
 **`apps/backend/src/modules/`:**
-- Purpose: Feature modules implementing domain logic
-- Contains: One directory per feature (auth, cases, investigations, users, etc.)
-- Pattern: Each module has controller, service, module file, and dto/ subdirectory
+- Purpose: Feature modules - each module is self-contained
+- Contains: Service (business logic), Controller (HTTP handler), Module (NestJS wiring), DTO (validation)
+- Pattern: One folder per entity/feature, no cross-module imports except to common
 
 **`apps/backend/prisma/`:**
 - Purpose: Database schema and migrations
-- Contains: schema.prisma (source of truth for schema), migrations/ (immutable history of schema changes)
-- Pattern: All changes via `npx prisma migrate dev` to generate new migration files
+- Contains: Prisma schema file (entities + RLS policies), migration files, seed script
+- Updates: Schema changes tracked in migrations, never modify manually
+
+**`apps/backend/examples/`:**
+- Purpose: Canonical patterns for new code
+- Contains: Templates for services, controllers, DTOs, tests, Prisma models
+- Usage: MUST follow these patterns when creating new entities/features
 
 **`apps/frontend/src/app/`:**
-- Purpose: Route definitions and page templates (Next.js App Router)
-- Contains: layout.tsx (root layout), page.tsx files in route directories, globals.css
-- Pattern: File-based routing; [id] syntax for dynamic routes
+- Purpose: Next.js app router pages and layouts
+- Contains: Page files (page.tsx), layout wrapper, provider setup
+- Pattern: File-based routing, special file names (page.tsx, layout.tsx, error.tsx)
 
 **`apps/frontend/src/components/`:**
-- Purpose: Reusable React components
-- Contains: Feature-specific subdirectories (cases, investigations, users, etc.), ui/ for shadcn/ui primitives
-- Pattern: Each component is a single file or directory with index.ts export
+- Purpose: React components organized by feature
+- Contains: Feature-specific component folders (cases, investigations, etc.), UI folder (shadcn/ui)
+- Pattern: One folder per feature, components export ready for use
 
 **`apps/frontend/src/lib/`:**
-- Purpose: Utility functions and adapters
-- Contains: API client (axios), auth token storage, validation schemas, domain-specific API wrappers (cases-api.ts, investigation-api.ts)
-- Pattern: Organized by concern (api.ts for HTTP, auth-storage.ts for tokens, validations/ for schemas)
+- Purpose: Utility functions and API clients
+- Contains: API client configuration (axios), API call wrappers per entity, helpers
+- Pattern: `*-api.ts` files wrap API calls, `*-utils.ts` for generic helpers
+
+**`apps/frontend/src/contexts/`:**
+- Purpose: React context for state management
+- Contains: AuthContext (tokens, current user), other global state
+- Pattern: Context + custom hooks for managing state
 
 **`apps/frontend/src/types/`:**
-- Purpose: Shared TypeScript type definitions
-- Contains: Domain types (Case, Investigation, User, etc.), mirroring backend entities
-- Pattern: Types match API response shapes from backend DTOs
+- Purpose: TypeScript type definitions
+- Contains: Entity types, API response types, component props interfaces
+- Pattern: One file per entity type, matches backend Prisma models
 
 ## Key File Locations
 
 **Entry Points:**
-- Backend server: `apps/backend/src/main.ts` - NestJS bootstrap
-- Frontend app: `apps/frontend/src/app/layout.tsx` - Next.js root layout
-- Database schema: `apps/backend/prisma/schema.prisma` - Single source of truth for entities
+- `apps/backend/src/main.ts`: Backend application startup
+- `apps/frontend/src/app/layout.tsx`: Frontend root layout
+- `apps/frontend/src/app/page.tsx`: Frontend home page
 
 **Configuration:**
-- Backend config: `apps/backend/src/config/configuration.ts` - Environment variable loading
-- Frontend config: `apps/frontend/next.config.js`, `tailwind.config.js`
-- TypeScript: `apps/backend/tsconfig.json`, `apps/frontend/tsconfig.json`
-- Database: `apps/backend/prisma/schema.prisma`
+- `apps/backend/src/config/configuration.ts`: Environment variables → config object
+- `apps/frontend/.env.local`: Frontend environment (NEXT_PUBLIC_API_URL, etc.)
+- `docker-compose.yml`: Local development services (PostgreSQL, Redis, Elasticsearch)
 
 **Core Logic:**
-- Cases: `apps/backend/src/modules/cases/` (controller, service, DTO)
-- Investigations: `apps/backend/src/modules/investigations/` (controller, service, DTO)
-- Activity logging: `apps/backend/src/common/services/activity.service.ts`
-- Tenant isolation: `apps/backend/src/common/middleware/tenant.middleware.ts`
-- Auth: `apps/backend/src/modules/auth/` (JWT strategy, controller, service)
+- `apps/backend/src/common/middleware/tenant.middleware.ts`: Organization context extraction
+- `apps/backend/src/modules/cases/cases.service.ts`: Case business logic
+- `apps/backend/src/common/services/activity.service.ts`: Audit logging
+- `apps/frontend/src/lib/api.ts`: API client with token refresh
 
 **Testing:**
-- Backend unit tests: `apps/backend/src/modules/**/*.spec.ts`
-- Backend E2E tests: `apps/backend/test/` (if exists)
-- Frontend unit tests: `apps/frontend/src/components/**/__tests__/*.test.tsx`
-- Frontend E2E tests: `apps/frontend/e2e/tests/*.spec.ts`
+- `apps/backend/src/**/*.spec.ts`: Unit tests (co-located with source)
+- `apps/backend/src/**/*.e2e.spec.ts`: E2E tests
+- `apps/frontend/src/test/setup.ts`: Vitest configuration
+- `apps/frontend/e2e/`: Playwright E2E tests
+
+**Database:**
+- `apps/backend/prisma/schema.prisma`: All entity models and relationships
+- `apps/backend/prisma/migrations/`: Timestamped migration files
 
 ## Naming Conventions
 
 **Files:**
-- Services: `[feature].service.ts` (e.g., `cases.service.ts`)
-- Controllers: `[feature].controller.ts` (e.g., `cases.controller.ts`)
-- Modules: `[feature].module.ts` (e.g., `cases.module.ts`)
-- DTOs: `[action]-[entity].dto.ts` (e.g., `create-case.dto.ts`, `update-case.dto.ts`)
-- Query DTOs: `[entity]-query.dto.ts` (e.g., `case-query.dto.ts`)
-- Tests: `[name].spec.ts` for unit, `[name].spec.ts` for E2E
-- React components: PascalCase (e.g., `CaseForm.tsx`, `InvestigationDetails.tsx`)
-- React hooks: `use[Feature].ts` (e.g., `useCaseFilters.ts`)
-- API clients: `[feature]-api.ts` (e.g., `cases-api.ts`, `investigations-api.ts`)
+- Services: `{entity}.service.ts` (e.g., `cases.service.ts`)
+- Controllers: `{entity}.controller.ts` (e.g., `cases.controller.ts`)
+- Modules: `{entity}.module.ts` (e.g., `cases.module.ts`)
+- DTOs: `{action}-{entity}.dto.ts` (e.g., `create-case.dto.ts`, `case-query.dto.ts`)
+- Tests: `{entity}.spec.ts` for unit, `{entity}.e2e.spec.ts` for E2E
+- API wrappers: `{entity}-api.ts` (e.g., `cases-api.ts`)
+- Hooks: `use-{feature}.ts` (e.g., `use-case-filters.ts`)
+- Utilities: `{feature}-utils.ts` or `{feature}.ts`
 
 **Directories:**
-- Feature modules: kebab-case (e.g., `investigation-notes`, `auth`)
-- Component groups: kebab-case (e.g., `form-sections`, `rich-text`)
-- Test subdirectories: `__tests__`
+- Feature modules: kebab-case (e.g., `investigation-notes`, `case-management`)
+- Domain folders: kebab-case, plural when collection (e.g., `src/modules`, `src/components/cases`)
+- Type folders: `types/`, `dto/`, `interfaces/`
+
+**Functions/Variables:**
+- Services: camelCase, action prefix (e.g., `createCase()`, `findById()`)
+- Components: PascalCase (e.g., `CaseForm`, `InvestigationDetail`)
+- Hooks: camelCase, `use` prefix (e.g., `useCaseFilters`)
+- Constants: UPPER_SNAKE_CASE (e.g., `DEFAULT_PAGE_SIZE`)
+- Prisma enums: PascalCase (e.g., `UserRole`, `CaseStatus`)
 
 ## Where to Add New Code
 
-**New Feature (e.g., Attestations):**
-1. Create module directory: `apps/backend/src/modules/attestations/`
-2. Add files:
-   - `attestations.module.ts` - NestJS module importing PrismaModule
-   - `attestations.controller.ts` - Routes with guards/decorators
-   - `attestations.service.ts` - Business logic with organizationId filtering
-   - `dto/` directory with CreateAttestationDto, UpdateAttestationDto, etc.
-3. Register in `apps/backend/src/app.module.ts` imports
-4. Frontend: Create page in `apps/frontend/src/app/attestations/page.tsx`
-5. Frontend: Create API client `apps/frontend/src/lib/attestations-api.ts`
-6. Frontend: Create components in `apps/frontend/src/components/attestations/`
+**New Feature/Module:**
 
-**New Component/Module:**
-- If standalone page: `apps/frontend/src/app/[feature]/page.tsx`
-- If reusable component: `apps/frontend/src/components/[feature]/ComponentName.tsx`
-- If hook: `apps/frontend/src/hooks/use[Feature].ts`
+1. Backend:
+   - Create folder: `apps/backend/src/modules/{feature-name}/`
+   - Add files:
+     - `{feature-name}.service.ts` (copy from `examples/service-pattern.ts`)
+     - `{feature-name}.controller.ts` (copy from `examples/controller-pattern.ts`)
+     - `{feature-name}.module.ts` (import service, controller)
+     - `dto/{action}-{feature-name}.dto.ts` (copy from `examples/dto-pattern.ts`)
+     - `{feature-name}.service.spec.ts` (copy from `examples/test-pattern.spec.ts`)
+   - Register module in `apps/backend/src/app.module.ts` imports array
+   - Add Prisma model to `apps/backend/prisma/schema.prisma` (copy from `examples/entity-pattern.prisma`)
 
-**Utilities:**
-- Shared helpers: `apps/frontend/src/lib/` (for frontend) or `apps/backend/src/common/services/` (for backend)
-- Validation schemas: `apps/frontend/src/lib/validations/[entity]-schema.ts`
+2. Frontend:
+   - Create folder: `apps/frontend/src/components/{feature-name}/`
+   - Add components (Form, Detail, List, etc.)
+   - Add API wrapper: `apps/frontend/src/lib/{feature-name}-api.ts`
+   - Add types: `apps/frontend/src/types/{feature-name}.ts`
+   - Add hooks if needed: `apps/frontend/src/hooks/use-{feature-name}.ts`
+
+**New Endpoint:**
+- Add method to service: `apps/backend/src/modules/{entity}/{entity}.service.ts`
+- Add handler to controller: `apps/backend/src/modules/{entity}/{entity}.controller.ts`
+- Add DTO if needed: `apps/backend/src/modules/{entity}/dto/{action}-{entity}.dto.ts`
+- Add tests: `apps/backend/src/modules/{entity}/{entity}.spec.ts`
+- Frontend wraps call: `apps/frontend/src/lib/{entity}-api.ts`
+
+**Utilities/Helpers:**
+- Shared (backend): `apps/backend/src/common/services/`
+- Shared (frontend): `apps/frontend/src/lib/`
+- Entity-specific (backend): `apps/backend/src/modules/{entity}/`
+- Feature-specific (frontend): `apps/frontend/src/components/{feature}/`
 
 ## Special Directories
 
 **`apps/backend/examples/`:**
-- Purpose: Reference implementations for developers to follow
-- Generated: No
-- Committed: Yes
-- Contains: entity-pattern.prisma, service-pattern.ts, controller-pattern.ts, etc. showing established patterns
+- Purpose: Canonical patterns - MANDATORY to follow
+- Generated: No (source of truth)
+- Committed: Yes (reference templates)
+- Update: Rare - changes require PR review and update all code matching pattern
 
 **`apps/backend/dist/`:**
 - Purpose: Compiled TypeScript output
-- Generated: Yes (by `npm run build`)
-- Committed: No
+- Generated: Yes (npm run build)
+- Committed: No (in .gitignore)
+- Usage: npm run start points to dist/
 
 **`apps/frontend/.next/`:**
-- Purpose: Next.js build cache and compiled pages
-- Generated: Yes (by `npm run build`)
-- Committed: No
+- Purpose: Next.js build output
+- Generated: Yes (next build)
+- Committed: No (in .gitignore)
+- Usage: next start serves from .next/
 
 **`apps/backend/prisma/migrations/`:**
-- Purpose: Immutable history of schema changes
-- Generated: Yes (by `npx prisma migrate dev`)
+- Purpose: Database migration history
+- Generated: Yes (prisma migrate dev)
+- Committed: Yes (source of truth for schema history)
+- Usage: Replayed on database setup
+
+**`.planning/codebase/`:**
+- Purpose: Architecture analysis documents (generated by GSD mapper)
+- Generated: Yes (by /gsd:map-codebase)
 - Committed: Yes
-- Pattern: Each migration is timestamped directory with `migration.sql` file containing SQL
+- Update: Running /gsd:map-codebase overwrites these documents
 
----
+**`03-DEVELOPMENT/`:**
+- Purpose: Development task tracking
+- Generated: Yes (as tasks are created/completed)
+- Committed: Yes
+- Update: Updated by developers/Ralph Loop as work progresses
 
-*Structure analysis: 2026-01-30*

@@ -1,226 +1,224 @@
 # Architecture
 
-**Analysis Date:** 2026-01-30
+**Analysis Date:** 2026-02-02
 
 ## Pattern Overview
 
-**Overall:** Multi-tenant SaaS with modular NestJS backend and Next.js frontend. Implements **shared database with PostgreSQL Row-Level Security (RLS)** for tenant isolation (HubSpot/Salesforce pattern).
+**Overall:** Layered monolith with modular NestJS backend and Next.js frontend, enforcing multi-tenancy at the database layer through PostgreSQL Row-Level Security (RLS).
 
 **Key Characteristics:**
-- **Tenant context enforcement**: JWT token contains `organizationId`, extracted by middleware, enforced at database level via PostgreSQL session variables
-- **Modular service architecture**: Feature-based modules (Cases, Investigations, Users, Auth) with dependency injection
-- **Activity-first logging**: All mutations log to unified `AuditLog` table with natural language descriptions for AI context
-- **API-first design**: RESTful backend with Swagger documentation; frontend consumes exclusively via API
+- **Multi-tenant isolation:** Shared database with RLS policies enforcing per-organization data segregation
+- **Modular backend:** Feature modules (auth, cases, investigations, users) with shared infrastructure
+- **Middleware-driven tenant context:** All requests scoped to organization via middleware before route handlers
+- **Activity-driven audit logging:** All mutations logged with natural language descriptions for compliance
+- **Service-oriented data access:** Prisma ORM with transaction support for complex operations
 
 ## Layers
 
-**Presentation Layer (Frontend):**
-- Purpose: Next.js React application serving end users
-- Location: `apps/frontend/src`
-- Contains: Pages (route handlers), components, hooks, API client, type definitions
-- Depends on: Axios client with JWT handling, localStorage for auth tokens
-- Used by: Browser clients (operators, compliance officers, investigators)
+**Request/Presentation Layer:**
+- Purpose: Handle HTTP requests, validate inputs, enforce authentication/authorization
+- Location: `apps/backend/src/modules/*/controllers/`, `apps/frontend/src/app/`, `apps/frontend/src/components/`
+- Contains: NestJS controllers, Next.js pages/layouts, React components, UI logic
+- Depends on: Services (business logic), DTOs (validation), guards/decorators (auth)
+- Used by: Client applications (browser, mobile)
 
-**API Layer (Controller):**
-- Purpose: HTTP request routing and validation
-- Location: `apps/backend/src/modules/*/[name].controller.ts`
-- Contains: Route definitions with Swagger decorators, guard/decorator application, parameter validation
-- Depends on: Service layer, DTOs, custom guards/decorators
-- Used by: HTTP clients (frontend, third-party integrations)
-- Pattern: Controllers use `@UseGuards(JwtAuthGuard, TenantGuard, RolesGuard)` for multi-layer security
-
-**Business Logic Layer (Service):**
-- Purpose: Core domain logic, database operations, audit logging
-- Location: `apps/backend/src/modules/*/[name].service.ts`
-- Contains: CRUD operations, validation, activity logging, state transitions
-- Depends on: PrismaService (ORM), ActivityService (logging)
+**Business Logic Layer (Services):**
+- Purpose: Implement core business operations, coordinate across data and infrastructure
+- Location: `apps/backend/src/modules/*/services/`, `apps/backend/src/common/services/`
+- Contains: CasesService, InvestigationsService, AuthService, ActivityService, StorageService
+- Depends on: PrismaService (data access), configuration, external APIs
 - Used by: Controllers, other services
-- Pattern: All queries explicitly filter by `organizationId`; all mutations log activity with `actionDescription`
 
-**Data Access Layer (Prisma ORM):**
-- Purpose: Database abstraction and query building
-- Location: `apps/backend/src/modules/prisma/` and `apps/backend/prisma/schema.prisma`
-- Contains: Prisma client, migrations, schema definitions
-- Depends on: PostgreSQL driver
+**Data Access Layer (Prisma + RLS):**
+- Purpose: Abstract database queries, enforce multi-tenant isolation at database level
+- Location: `apps/backend/src/modules/prisma/`, `apps/backend/prisma/schema.prisma`
+- Contains: PrismaService (connection + RLS control), schema definitions, migrations
+- Depends on: PostgreSQL configuration, environment variables
 - Used by: All services
-- Pattern: All tables include `organizationId` column; RLS policies enforce filtering
 
-**Cross-Cutting Infrastructure:**
-- **Middleware**: `apps/backend/src/common/middleware/tenant.middleware.ts` - extracts organizationId from JWT and sets PostgreSQL session variable
-- **Guards**: `apps/backend/src/common/guards/` - JWT validation (JwtAuthGuard), tenant verification (TenantGuard), role-based access (RolesGuard)
-- **Decorators**: `apps/backend/src/common/decorators/` - @CurrentUser, @TenantId, @Roles for endpoint metadata
-- **Activity Service**: `apps/backend/src/common/services/activity.service.ts` - centralized audit logging with natural language descriptions
+**Infrastructure/Cross-Cutting Layer:**
+- Purpose: Provide shared utilities, security, logging, authentication
+- Location: `apps/backend/src/common/`
+- Contains: Guards (auth/tenant/roles), middleware, decorators, filters, Activity service
+- Depends on: Prisma, configuration
+- Used by: All modules
+
+**Storage Layer:**
+- Purpose: Abstract file storage operations (local or Azure Blob)
+- Location: `apps/backend/src/common/services/storage.service.ts`
+- Contains: StorageService, adapters (LocalStorageAdapter, AzureStorageAdapter)
+- Depends on: Configuration, file system or Azure SDK
+- Used by: AttachmentsService, attachment endpoints
 
 ## Data Flow
 
-**Case Creation Flow:**
+**Request Inbound - Case Creation:**
 
-1. Frontend form submission → `POST /api/v1/cases` (with JWT token in Authorization header)
-2. **Middleware** (TenantMiddleware) extracts `organizationId` from JWT, sets PostgreSQL session variable `SET LOCAL app.current_organization = $1`
-3. **Controller** (CasesController.create) receives request, guards validate JWT + tenant + role
-4. **Service** (CasesService.create) builds Prisma input, creates Case record with auto-generated reference number (ETH-YYYY-NNNNN)
-5. **Service** calls ActivityService.log() to record "Created case ETH-2026-00001" in AuditLog table
-6. Response returned with Case object
-7. Frontend receives response, updates local state
+1. Client sends POST `/api/v1/cases` with Bearer token
+2. **TenantMiddleware** (runs BEFORE guards):
+   - Extracts `organizationId` from JWT payload
+   - Sets PostgreSQL session var: `SET LOCAL app.current_organization = {organizationId}`
+   - Stores in `req.organizationId` and `req.userId`
+3. **JwtAuthGuard** validates token is valid/not expired
+4. **TenantGuard** verifies request has valid organization context
+5. **RolesGuard** checks user has COMPLIANCE_OFFICER or INVESTIGATOR role
+6. **Controller handler** receives validated request
+7. **CasesService.create()** called with organizationId from request
+   - Generates unique reference number
+   - Creates Case record via Prisma
+   - All Prisma queries automatically filtered by organization via RLS
+8. **ActivityService.log()** called to record action with natural language description
+9. **Response** returned as JSON with 201 Created
 
-**Investigation Assignment Flow:**
+**Database Query (RLS Enforcement):**
 
-1. Frontend triggers assignment → `PATCH /api/v1/investigations/:id/assign`
-2. **Controller** validates request, extracts current user and organization
-3. **Service** (InvestigationsService.assign) validates status transition, updates assignee list, records assignment history in JSON field
-4. **Service** calls ActivityService.log() with natural language description: "Sarah assigned investigation to John"
-5. **Service** returns updated Investigation
-6. Frontend updates UI, displays updated assignee
+```
+SELECT * FROM cases
+WHERE organization_id = current_setting('app.current_organization')
+  AND is_active = true;
+```
 
-**Search with Full-Text Query:**
+Every query automatically includes the RLS filter at the database level - even if app code forgets to filter by organization_id, the database enforces isolation.
 
-1. Frontend sends search request → `GET /api/v1/cases?search=urgent+fraud`
-2. **Service** (CasesService.findAll) detects search query, routes to findAllWithFullTextSearch()
-3. **Service** builds PostgreSQL tsvector query with:
-   - Full-text search condition: `c.search_vector @@ to_tsquery('english', 'urgent:* & fraud:*')`
-   - Filter conditions: AND organizationId, status, severity, etc. (all parameterized)
-4. Executes raw SQL with parameterized inputs (RLS enforced at middleware level)
-5. Returns ranked results ordered by relevance
-6. Frontend displays results
+**State Management (Frontend):**
 
-**Activity Timeline Retrieval:**
-
-1. Frontend requests case activity → `GET /api/v1/cases/:id/activity`
-2. **Controller** verifies case exists (confirms access via RLS)
-3. **Service** (ActivityService.getEntityTimeline) queries AuditLog filtered by:
-   - organizationId (tenant isolation)
-   - entityType = CASE
-   - entityId = case.id
-4. Returns paginated list of activity records with denormalized actor names, actionDescription
-5. Frontend displays timeline for audit trail
-
-**State Management:**
-- **Backend state**: Database is source of truth; all mutations are immediately persisted
-- **Frontend state**: React component state for forms, React Query/SWR for API caching (not yet implemented)
-- **Session state**: JWT tokens stored in localStorage with refresh token rotation pattern (401 → refresh → retry)
+1. AuthContext stores tokens in localStorage + state
+2. API client (axios instance) auto-injects Bearer token in Authorization header
+3. Response interceptor handles 401 with token refresh
+4. Hooks (useCaseFilters, useCaseFormDraft) manage component state
+5. Components render with fetched data scoped to current organization
 
 ## Key Abstractions
 
-**Module:**
-- Purpose: Feature container grouping controller, service, DTOs, and related logic
-- Examples: `CasesModule`, `InvestigationsModule`, `UsersModule` in `apps/backend/src/modules/*/[name].module.ts`
-- Pattern: Exports service for use by other modules; imports PrismaModule for database access
+**RiskIntelligenceUnit (RIU):**
+- Purpose: Immutable intake record - a report filed, form submitted, disclosure made
+- Examples: `apps/backend/src/modules/cases/` (RIU created from cases), schema definitions in prisma/schema.prisma
+- Pattern: Created once, never updated; content is immutable; Case tracks corrections
 
-**Service:**
-- Purpose: Encapsulate domain logic and persistence operations
-- Examples: `CasesService`, `InvestigationsService` in `apps/backend/src/modules/*/[name].service.ts`
-- Pattern: Constructor injects PrismaService and ActivityService; all public methods accept userId and organizationId
+**Case:**
+- Purpose: Mutable work container for investigation and tracking
+- Examples: `apps/backend/src/modules/cases/cases.service.ts`, `apps/backend/src/modules/cases/cases.controller.ts`
+- Pattern: Can be updated, status tracked, linked to investigations
 
-**DTO (Data Transfer Object):**
-- Purpose: Define input/output contract and validation rules
-- Examples: `CreateCaseDto`, `UpdateCaseDto`, `CaseQueryDto` in `apps/backend/src/modules/*/dto/`
-- Pattern: Use class-validator decorators for automatic validation in ValidationPipe
+**Investigation:**
+- Purpose: Structured investigation tied to a Case
+- Examples: `apps/backend/src/modules/investigations/investigations.service.ts`
+- Pattern: Contains notes, findings, status, primary investigator assignment
 
-**Entity:**
-- Purpose: Database model representation
-- Examples: Case, Investigation, InvestigationNote, Attachment in `apps/backend/prisma/schema.prisma`
-- Pattern: All entities include organizationId, createdById, updatedById, createdAt, updatedAt; AI-enriched entities include aiSummary, aiModelVersion fields
+**Activity/AuditLog:**
+- Purpose: Immutable ledger of all entity mutations for compliance
+- Examples: `apps/backend/src/common/services/activity.service.ts`
+- Pattern: Automatically logged on all creates/updates, includes actor ID, timestamp, natural language description, changes
 
-**Guard:**
-- Purpose: Enforce authentication and authorization rules
-- Examples: JwtAuthGuard, TenantGuard, RolesGuard in `apps/backend/src/common/guards/`
-- Pattern: Implement CanActivate interface; JwtAuthGuard wraps Passport JWT strategy
-
-**Decorator:**
-- Purpose: Attach metadata to route handlers and extract contextual values
-- Examples: @CurrentUser(), @TenantId(), @Roles(...) in `apps/backend/src/common/decorators/`
-- Pattern: Used with reflector-based guards to extract context
+**TenantContext:**
+- Purpose: Organization isolation enforced at request boundary
+- Examples: `apps/backend/src/common/middleware/tenant.middleware.ts`, `apps/backend/src/common/guards/tenant.guard.ts`
+- Pattern: Extracted from JWT, set as PostgreSQL session variable, enforces RLS for all queries
 
 ## Entry Points
 
-**Backend Server:**
+**Backend:**
 - Location: `apps/backend/src/main.ts`
-- Triggers: `npm run start:dev` or deployment
-- Responsibilities:
-  - Bootstrap NestJS application with ConfigModule, ValidationPipe, CORS
-  - Configure Swagger/OpenAPI documentation at `/api/docs`
-  - Set global prefix to `/api/v1`
-  - Start HTTP server on port 3000 (configurable)
+- Triggers: Application startup (npm run start:dev)
+- Responsibilities: Bootstrap NestJS app, configure middleware, setup Swagger docs, listen on port
 
-**Frontend Application:**
-- Location: `apps/frontend/src/app/layout.tsx` (root) and route-specific pages in `src/app/[route]/page.tsx`
-- Triggers: User navigation or `npm run dev`
-- Responsibilities:
-  - Render HTML layout with providers (auth context, query client, theme)
-  - Route-specific pages handle data loading and rendering
-  - Login page handles auth flow
+**Frontend:**
+- Location: `apps/frontend/src/app/layout.tsx`, `apps/frontend/src/app/page.tsx`
+- Triggers: Page navigation, initial load
+- Responsibilities: Layout wrapper, page content, provider setup
 
-**API Endpoints (by module):**
-- Auth: `POST /api/v1/auth/login`, `POST /api/v1/auth/refresh`
-- Cases: `POST /api/v1/cases`, `GET /api/v1/cases`, `GET /api/v1/cases/:id`, `PUT /api/v1/cases/:id`, `PATCH /api/v1/cases/:id/status`, `POST /api/v1/cases/:id/close`
-- Investigations: `POST /api/v1/investigations`, `GET /api/v1/investigations`, `GET /api/v1/investigations/:id`, similar CRUD + workflow operations
-- Investigation Notes: `POST /api/v1/investigation-notes`, `GET /api/v1/investigation-notes`
-- Attachments: `POST /api/v1/attachments`, `GET /api/v1/attachments`
-- Health: `GET /health`
+**API Endpoints:**
+- `POST /api/v1/auth/login` - User authentication (no tenant context required)
+- `POST /api/v1/cases` - Create case (requires auth + organization context)
+- `GET /api/v1/cases` - List cases (paginated, filtered by organization)
+- `GET /api/v1/cases/{id}` - Get single case
+- `PUT /api/v1/cases/{id}` - Update case
+- `POST /api/v1/investigations` - Create investigation
+- `GET /api/v1/investigations/{id}` - Get investigation details
+- `POST /api/v1/investigations/{id}/notes` - Add investigation note
+- `GET /api/v1/activity` - List audit log entries (filtered by organization)
+- `GET /health` - Health check (public endpoint)
 
 ## Error Handling
 
-**Strategy:** Layered exception handling with global exception filter
+**Strategy:** Global exception filter with standardized error responses, non-blocking activity logging
 
 **Patterns:**
 
-1. **Service layer**: Throws NestJS exceptions
-   ```typescript
-   throw new NotFoundException(`Case with ID ${id} not found`);
-   throw new BadRequestException(`Case is already in ${status} status`);
-   ```
+**HTTP Exceptions (NestJS):**
+```typescript
+// In controllers or services
+throw new NotFoundException(`Case ${id} not found`);
+throw new BadRequestException('Invalid case status transition');
+throw new ForbiddenException('User lacks required role');
+```
 
-2. **Controller/Guard**: Exceptions bubble up to global filter
-   ```typescript
-   // JwtAuthGuard
-   throw new UnauthorizedException("Invalid or expired token");
-   ```
+Response format standardized by `HttpExceptionFilter`:
+```json
+{
+  "statusCode": 400,
+  "message": "Validation failed",
+  "error": "Bad Request",
+  "timestamp": "2024-01-15T10:30:00.000Z",
+  "path": "/api/v1/cases"
+}
+```
 
-3. **Global Exception Filter** (`apps/backend/src/common/filters/http-exception.filter.ts`): Formats errors consistently
-   ```json
-   {
-     "statusCode": 404,
-     "message": "Case with ID abc123 not found",
-     "error": "Not Found",
-     "timestamp": "2026-01-30T12:00:00Z",
-     "path": "/api/v1/cases/abc123"
-   }
-   ```
+**Activity Logging (Non-Blocking):**
+- Errors caught and logged but never thrown to caller
+- Ensures failed activity logging doesn't fail the user's operation
+- Log failures only logged to application logger, not exposed to client
 
-4. **Frontend**: Axios interceptors handle HTTP errors, redirect to login on 401
+**Tenant Isolation Errors:**
+- TenantGuard verifies organization context exists
+- Returns 403 Forbidden if missing
+- TenantMiddleware gracefully skips public paths
+- RLS enforces at database level - queries fail silently if filtering would return 0 rows
 
 ## Cross-Cutting Concerns
 
 **Logging:**
-- Backend: Pino logger with pretty-printing in development (via `src/main.ts` configuration)
-- Frontend: Browser console (not yet structured; future: structured logging to backend)
-- Pattern: All services log important operations; InvestigationsService uses Logger for debugging
+
+Framework: Pino logger configured in `main.ts`
+- Development: Pretty-printed output with colors
+- Production: JSON format
+- All modules use NestJS Logger service which integrates with Pino
 
 **Validation:**
-- Backend: Class-validator decorators on DTOs + global ValidationPipe (whitelist, forbid non-whitelisted, transform types)
-- Frontend: Zod schemas on form inputs (e.g., `apps/frontend/src/lib/validations/case-schema.ts`)
-- Pattern: All inputs validated before reaching service layer
+
+Framework: class-validator + ValidationPipe
+- Configured globally in `main.ts` with whitelist mode (reject unknown fields)
+- DTOs in each module's `dto/` directory use decorators (@IsString, @IsUUID, @IsEnum, etc.)
+- Errors automatically formatted as validation error array
 
 **Authentication:**
-- Strategy: JWT with refresh token rotation
-- Token payload: `{ sub: userId, organizationId, type: 'access' | 'refresh' }`
-- Extraction: TenantMiddleware decodes JWT and sets Postgres session variable
-- Refresh: Axios interceptor detects 401, calls `/api/v1/auth/refresh`, retries request with new token
-- Frontend storage: localStorage with `access_token`, `refresh_token` keys
 
-**Tenant Isolation (CRITICAL):**
-- Every table has `organizationId` column (denormalized on child entities for query efficiency)
-- TenantMiddleware sets `SET LOCAL app.current_organization = $organizationId` for RLS enforcement
-- Services explicitly filter by organizationId on all queries (defense in depth)
-- Cache keys prefixed: `org:{organizationId}:...`
-- Elasticsearch indices (future): `org_{organizationId}_{type}`
+Framework: JWT via @nestjs/jwt + custom JwtAuthGuard
+- Token verified in guard before route handler
+- Payload extracted and passed to controller via @CurrentUser decorator
+- Refresh token rotation implemented in auth service
+- Session tracking for token revocation support
 
-**Audit & Compliance:**
-- Activity logging: All mutations call ActivityService.log() with natural language descriptions
-- AuditLog table: Append-only (no updates/deletes), stores entity changes with context
-- Immutable timestamp: createdAt only, no updatedAt on audit logs
-- Denormalization: Actor names stored on AuditLog for display without joins
+**Authorization:**
 
----
+Framework: Role-Based Access Control (RBAC) via RolesGuard
+- Roles defined in Prisma enum: `UserRole` (SYSTEM_ADMIN, COMPLIANCE_OFFICER, INVESTIGATOR, etc.)
+- Applied via @Roles decorator on controller methods
+- RolesGuard checks user.role against required roles
 
-*Architecture analysis: 2026-01-30*
+**Multi-Tenancy:**
+
+Framework: PostgreSQL RLS + session variables
+- Tenant context set per-request via middleware
+- All queries filtered at database level
+- No application-level filtering required (database enforces)
+- Cache keys prefixed with organization_id (future implementation)
+
+**Activity Audit:**
+
+Framework: Custom ActivityService with audit log table
+- All mutations trigger activity log entry
+- Includes entity type, entity ID, action, actor, timestamp, changes
+- Supports filtering by organization, entity type, date range
+- Query endpoint at GET /api/v1/activity
+

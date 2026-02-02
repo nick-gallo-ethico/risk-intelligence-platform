@@ -1,407 +1,493 @@
 # Codebase Concerns
 
-**Analysis Date:** 2026-01-30
+**Analysis Date:** 2026-02-02
 
 ## Tech Debt
 
-**Email Notification System (Stubbed):**
-- Issue: Welcome email functionality is stubbed with TODO comment
-- Files: `apps/backend/src/modules/users/users.service.ts:99`
-- Impact: Users are created but not notified via email; no onboarding communication sent
-- Fix approach: Implement email service module (integration with SendGrid or Azure Email Service), add email templates for welcome and password reset, queue async email jobs to prevent blocking request
+### Large Service Classes (600+ Lines)
 
-**Add Note Modal Implementation (Frontend Placeholder):**
-- Issue: Add note functionality in case activity timeline has placeholder implementation
-- Files: `apps/frontend/src/components/cases/case-activity-timeline.tsx:108`
-- Impact: Users cannot add notes directly from activity timeline; feature is incomplete
-- Fix approach: Complete modal component, wire to investigation notes API endpoint (`POST /api/v1/investigations/:id/notes`), add form validation and error handling
+**Area:** Backend service layer
+- Issue: Multiple services exceed 595 lines, increasing complexity and testing burden
+- Files:
+  - `apps/backend/src/modules/investigations/investigations.service.ts` (611 lines)
+  - `apps/backend/src/modules/investigation-notes/investigation-notes.service.ts` (595 lines)
+  - `apps/backend/src/modules/cases/cases.service.ts` (595 lines)
+  - `apps/backend/src/modules/attachments/attachments.service.ts` (592 lines)
+  - `apps/backend/src/common/services/activity.service.ts` (580 lines)
+- Impact: Difficult to maintain, hard to test, cognitive load for new developers
+- Fix approach: Extract utility classes and helper methods. Break into focused service classes per responsibility (e.g., search service, validation service, state machine service)
 
-**Entity Fields Pending Department/Business Unit Relations:**
-- Issue: Multiple service files have comments indicating departmentId and businessUnitId fields will be added later
-- Files: `apps/backend/src/modules/users/users.service.ts:84,401` | `apps/backend/src/modules/cases/cases.service.ts` (multiple locations)
-- Impact: User management and case filtering by organizational unit incomplete; organizational hierarchy not enforced
-- Fix approach: Create Department and BusinessUnit entities, add relationships, update User and Case schemas, add migration, implement filtering by organizational unit in queries
+### Missing Entity Models (Entity Gap)
+
+**Area:** Prisma schema incomplete relative to PRD
+- Issue: 9 of 19 PRD-defined entities are missing from schema
+- Missing entities:
+  - `Employee` - HRIS-synced individuals required for cross-case pattern detection
+  - `BusinessUnit` - Required for organizational scoping and visibility
+  - `Location` - Currently inline on Case; needs reusable entity
+  - `Category` - Taxonomy system missing; cases reference non-existent FK
+  - `Subject` - People named in cases; required for pattern detection and regulatory reporting
+  - `InvestigationTemplate` - Category-specific checklists missing
+  - `InvestigationInterview` - Structured interview records missing
+  - `RemediationPlan` + `RemediationStep` - Corrective action tracking missing
+  - `TenantDomain` - Required for domain verification and SSO
+
+- Files affected:
+  - `apps/backend/prisma/schema.prisma` - Missing model definitions
+  - All feature modules that depend on these entities have partial implementations
+
+- Impact: Cannot implement RFI (Request for Information) workflow, cannot track subjects across cases, missing critical features for Tier 2
+- Fix approach: Implement entities in priority order: Subject, Category, Interaction, BusinessUnit, Location. Add RLS policies and indexes. Minimal PR per entity.
+
+### Partial Entity Implementation
+
+**Area:** Core entity models
+- Issue: Organization and User models missing required fields from CORE-DATA-MODEL.md
+- Missing on Organization:
+  - domain, additionalDomains, tier, billingStatus, logoUrl, primaryColor, settings JSON structure, timezone, defaultLanguage, industry, employeeCountRange
+- Missing on User:
+  - ssoProvider, ssoId, mfaEnabled, mfaSecret, avatarUrl, phone, jobTitle, department, locationId, businessUnitIds[], customPermissions, employeeId link, preferences JSON
+- Files: `apps/backend/prisma/schema.prisma`
+- Impact: SSO implementation blocked, multi-language support incomplete, branding features cannot be added
+- Fix approach: Extend schema migration by migration. Avoid large backwards-incompatible changes.
+
+### RLS Bypass Risk Pattern
+
+**Area:** Authentication and database access
+- Issue: `enableBypassRLS()` method in `apps/backend/src/modules/prisma/prisma.service.ts` can be called anywhere in application
+- Problem: Developers could bypass tenant isolation for convenience, creating data leak risks
+- Files: `apps/backend/src/modules/prisma/prisma.service.ts` (lines 38-60)
+- Current usage: Only in AuthService.login() for legitimate cross-tenant search
+- Impact: If misused, complete data isolation failure; RLS becomes unenforceable
+- Fix approach: Create audit trail for bypass calls. Add compile-time allowlist. Create dedicated BypassableAuthService that logs all bypass usage. Remove general `enableBypassRLS()` from PrismaService public API.
+
+### Activity Service Complexity
+
+**Area:** Audit logging
+- Issue: Activity service mixes concerns: database persistence, natural language generation, filtering, pagination
+- Files:
+  - `apps/backend/src/common/services/activity.service.ts` (580 lines)
+  - `apps/backend/src/common/services/activity-description.service.ts` (386 lines)
+  - These should be 3-4 smaller classes
+- Impact: Hard to test, hard to extend with new entity types
+- Fix approach: Extract: PersistenceService, DescriptionGenerator, QueryBuilder. One job each.
 
 ---
 
 ## Known Bugs
 
-**Activity Fallback on Fetch Failure:**
-- Symptoms: When activity list fails to load, frontend creates synthetic fallback activity entry
-- Files: `apps/frontend/src/components/cases/case-activity-timeline.tsx:45-62`
-- Trigger: Any API error when fetching activities for a case; user sees "Failed to load activities" toast but timeline still displays
-- Workaround: The fallback activity shows only case creation; user can refresh page to retry API call
-- Root cause: Defensive programming that masks underlying API failure rather than surfacing it clearly
-- Recommendation: Remove fallback synthetic activity; show empty state with retry button instead; investigate why activity endpoint fails
+### Incomplete Full-Text Search Implementation
 
-**Search Vector Not Auto-Populated:**
-- Symptoms: Full-text search on cases may return incomplete results or fail silently
-- Files: `apps/backend/prisma/schema.prisma:286` | `apps/backend/src/modules/cases/cases.service.ts:228-255`
-- Trigger: New cases created or updated; search_vector tsvector field not maintained automatically
-- Root cause: Schema comment indicates auto-population by database trigger, but trigger not found in migrations
-- Impact: Search feature degraded; some recent cases unfindable by keyword
-- Fix approach: Verify trigger exists in PostgreSQL; if missing, create trigger on Case insert/update to populate search_vector from details, summary, reference_number fields
+**Bug description:** PostgreSQL tsvector column missing on Case table despite full-text search implementation
+- Symptoms: Search endpoint works in tests but relies on raw SQL with LIKE fallback
+- Files:
+  - `apps/backend/src/modules/cases/cases.service.ts` (lines 141-240) - findAllWithFullTextSearch implementation
+  - `apps/backend/prisma/schema.prisma` - No tsvector field on Case model
+- Trigger: Running `npm run db:migrate` and then using search feature
+- Current state: Works because raw SQL constructs search on the fly, but no index optimization
+- Workaround: Queries don't fail but are slower than they should be
+- Fix approach: Add `searchVector String?` field to Case model. Create migration to populate. Update migration strategy to auto-update on case changes.
+
+### Missing Email Welcome Notification
+
+**Bug description:** User creation flow has stub for welcome email
+- Symptoms: New users created via admin panel receive no email confirmation
+- Files: `apps/backend/src/modules/users/users.service.ts` (TODO comment "Send welcome email (stub for now)")
+- Trigger: Admin creates user via POST /users
+- Impact: Users don't know their temporary password or account exists
+- Workaround: Manually communicate password to users
+- Fix approach: Implement email service (Sendgrid/Mailgun integration) and send welcome email with temporary password
 
 ---
 
 ## Security Considerations
 
-**RLS Bypass Mechanism (Medium Risk):**
-- Risk: PrismaService has `withBypassRLS()` method that disables Row-Level Security for cross-tenant operations
-- Files: `apps/backend/src/modules/prisma/prisma.service.ts:53-60` | `apps/backend/src/modules/auth/auth.service.ts:44`
-- Current mitigation: Used only in AuthService for login (legitimate); has try-finally to ensure re-enable; no other service uses it currently
-- Recommendations:
-  - Document all uses of `withBypassRLS()` in code comments
-  - Implement audit logging when bypass is used
-  - Add unit tests verifying RLS is re-enabled even on exceptions
-  - Consider alternative: separate read-only query for login without bypassing RLS
+### Rate Limiting Not Implemented
 
-**Tenant Context Isolation in Middleware (Medium Risk):**
-- Risk: TenantMiddleware sets PostgreSQL session variable, but doesn't verify token is valid before setting context
-- Files: `apps/backend/src/common/middleware/tenant.middleware.ts:78-81`
-- Current mitigation: Exceptions during token verification are silently caught; routes/guards validate JWT later
-- Scenarios where this could fail:
-  - Middleware executes successfully and sets invalid organization context
-  - Invalid token skips middleware but reaches unprotected route
-  - Timing: RLS context set before guard validates JWT
+**Area:** Authentication and API endpoints
+- Risk: Brute force attacks possible on login endpoint; no protection against credential stuffing
+- Files: Middleware missing in main.ts and auth routes
+- Current mitigation: None
+- Attack vector: POST /auth/login with dictionary of emails/passwords
 - Recommendations:
-  - Add logging when token verification fails
-  - Consider moving RLS context-setting to AuthGuard (after validation)
-  - Test tenant context isolation with invalid/modified JWT tokens
+  1. Add `@nestjs/throttler` package
+  2. Implement rate limiting: 5 attempts per 15 minutes per IP for login
+  3. Add exponential backoff (lock account after 10 failed attempts for 30 mins)
+  4. Log failed login attempts to AuditLog with flagging
 
-**Raw SQL Queries in Full-Text Search (Medium Risk):**
-- Risk: `findAllWithFullTextSearch()` builds SQL with parameterized queries, but manually constructs WHERE clause
-- Files: `apps/backend/src/modules/cases/cases.service.ts:141-256`
-- Current mitigation: Uses parameterized queries ($1, $2, etc.); special characters stripped from search terms; organizationId always first condition
-- Potential issues:
-  - Manual condition building could introduce logic errors
-  - Enum filter values passed as parameters but not validated against Prisma enums
-  - `$queryRawUnsafe` used (should be `$queryRaw` with template literals for compile-time safety)
-- Recommendations:
-  - Replace `$queryRawUnsafe` with `$queryRaw` and template literals
-  - Validate enum filter values against known enum values
-  - Add integration tests for edge cases (special characters, injection attempts)
+### Audit Trail for Failed Login Attempts Incomplete
 
-**Reporter PII Fields Not Encrypted:**
-- Risk: Reporter name, email, phone stored in plain text in database
-- Files: `apps/backend/prisma/schema.prisma:213-215` (comments indicate Encrypted but not implemented)
-- Impact: Data breach could expose PII of anonymous reporters; GDPR/CCPA violation risk
-- Recommendations:
-  - Implement field-level encryption using pgcrypto or application-level encryption
-  - Add migration to encrypt existing data
-  - Create accessor methods in CasesService to decrypt transparently
-  - Log access to encrypted fields
+**Area:** Security logging
+- Risk: Cannot detect coordinated attack patterns or account compromise
+- Current state: Only successful logins logged
+- Impact: Compliance issue for regulated customers; no incident response trail
+- Recommendation: Log all authentication attempts (success/fail) with status and reason
 
-**Anonymous Access Code Not Rate-Limited:**
-- Risk: `anonymousAccessCode` field exists for anonymous reporter follow-up, but no rate limiting on endpoint that uses it
-- Files: `apps/backend/prisma/schema.prisma:217` | No implementation yet
-- Impact: Brute-force attack possible to guess anonymous access codes
+### File Upload Validation Incomplete
+
+**Area:** File attachment storage
+- Risk: Arbitrary file types could be uploaded; no virus scanning
+- Files: `apps/backend/src/modules/attachments/attachments.service.ts`
+- Current mitigation: MIME type validation on upload
+- Missing controls:
+  - No file size limits enforced
+  - No virus/malware scanning (ClamAV integration missing)
+  - No content inspection to verify MIME type matches actual content
 - Recommendations:
-  - Implement rate limiting by IP address for anonymous access
-  - Add failed attempt logging and alerting
-  - Use cryptographically secure random generation for codes
+  1. Enforce max file size (10MB)
+  2. Implement ClamAV virus scanning on upload
+  3. Use file magic/signature validation, not just MIME type
+  4. Quarantine suspicious files
+
+### Session Management Token Rotation
+
+**Area:** JWT and session handling
+- Risk: Refresh token compromise could extend attack surface
+- Current: Token rotation implemented but no refresh token revocation on new token generation
+- Files: `apps/backend/src/modules/auth/auth.service.ts`
+- Issue: Old refresh tokens remain valid after rotation; should invalidate previous session
+- Impact: If refresh token leaked, attacker maintains long-term access
+- Fix approach: On token refresh, mark previous session as revoked and log rotation event
+
+### Input Validation on Custom Fields
+
+**Area:** Case creation and updates
+- Risk: Custom fields stored as JSON without validation; could allow injection attacks
+- Files: `apps/backend/src/modules/cases/cases.service.ts` (lines 73-74 use `as Prisma.InputJsonValue`)
+- Issue: No schema validation for custom fields or custom questions JSON
+- Impact: Could store malicious nested structures or very large payloads
+- Recommendations:
+  1. Define JSON schema for custom fields
+  2. Validate before storage using `ajv` library
+  3. Enforce max size limits on JSON payloads
 
 ---
 
 ## Performance Bottlenecks
 
-**Full-Text Search Without Index Hints:**
-- Problem: `findAllWithFullTextSearch()` queries without specifying GIN index usage
-- Files: `apps/backend/src/modules/cases/cases.service.ts:220`
-- Cause: PostgreSQL may choose suboptimal execution plan; search_vector GIN index not explicitly hinted
-- Current impact: Large case tables (>100k rows) will have slow queries
-- Improvement path:
-  - Add index hint: `USING GIN` after search_vector column reference
-  - Benchmark before/after with EXPLAIN ANALYZE
-  - Consider adding `search_rank` as secondary sort (already done, good)
+### Full-Text Search Without Index
 
-**N+1 Query Risk in Case Details:**
-- Problem: Including related users (createdBy, updatedBy, intakeOperator) on case loads extra queries
-- Files: `apps/backend/src/modules/cases/cases.service.ts:268-278`
-- Current impact: Listing cases with findMany includes relations; select limits to id, firstName, lastName, email (efficient)
-- Risk: If more relations added (e.g., investigations), query cost grows linearly
+**Slow operation:** Case search queries
+- Problem: Full-text search implemented but no PostgreSQL index optimization
+- Files: `apps/backend/src/modules/cases/cases.service.ts` (lines 141-240)
+- Cause: Raw SQL query constructs tsvector on-the-fly without pre-computed index
+- Current behavior: Works for small datasets (<1000 cases) but degrades linearly
+- Scaling limit: Beyond 10K cases, search response times will exceed 500ms
 - Improvement path:
-  - Continue selective use of `include` with `select` on relations
-  - Add service-level caching for frequently accessed users
-  - Profile with slow query logs
+  1. Add `searchVector String? @db.Tsvector` to Case model
+  2. Add GIN index on searchVector
+  3. Create trigger to auto-update searchVector on case.details/summary changes
+  4. Replace raw SQL with indexed query
 
-**Activity Log Query Performance:**
-- Problem: No indexes on frequently queried fields in AuditLog
-- Files: `apps/backend/prisma/schema.prisma:340-343`
-- Existing indexes: [organizationId, createdAt], [organizationId, entityType, entityId, createdAt], [organizationId, actorUserId, createdAt], [organizationId, actionCategory, createdAt]
-- Current indexes look adequate; watch for:
-  - Queries filtering by multiple fields not in composite indexes
-  - Pagination beyond 1000 pages (offset performance degrades)
+### Activity Log Unbounded Growth
+
+**Slow operation:** Dashboard activity timeline queries
+- Problem: No pagination or archival strategy for activity logs
+- Files:
+  - `apps/backend/src/common/services/activity.service.ts` (findByEntity method)
+  - `apps/backend/prisma/schema.prisma` (AuditLog model)
+- Cause: All activity logs kept live; no hard delete, no partitioning
+- Current behavior: First 100 cases queried slowly; response times degrade with org age
+- Scaling limit: After 6 months at 50 cases/day = 9000 activity entries; queries slow to 200-300ms
 - Improvement path:
-  - Monitor slow queries in production
-  - Consider materialized views for dashboard queries
-  - Add cursor-based pagination for large datasets
+  1. Implement 90-day hot/30-day warm archival strategy
+  2. Add archive table for cold data
+  3. Add date-range filter to queries by default
+  4. Consider partitioning AuditLog by organization and month
+
+### Investigation Eager Loading
+
+**Slow operation:** Case detail page with investigations
+- Problem: Loading case with all related investigations, notes, and attachments without pagination
+- Files: `apps/backend/src/modules/cases/cases.service.ts` (findById - includes all investigation relations)
+- Cause: No pagination on investigation notes or attachments; could load 1000s of records
+- Current behavior: Works for cases with <20 investigations; slow for busy cases
+- Scaling limit: Case with 50+ investigations + 500+ notes causes >2s response time
+- Improvement path:
+  1. Paginate investigation notes in frontend (only load 20 at a time)
+  2. Implement lazy loading for investigation details
+  3. Remove automatic attachment list from case query; make separate endpoint
+  4. Cache investigation counts separately
 
 ---
 
 ## Fragile Areas
 
-**Investigation Status Workflow:**
-- Files: `apps/backend/src/modules/investigations/investigations.service.ts:47-76`
-- Why fragile: validTransitions map is hardcoded; if new status added, map must be manually updated
-- Safe modification:
-  - Add test for all status transitions
-  - Use `as const` for status values
-  - Test that adding new status without adding transition rule breaks test
-- Test coverage: Likely has basic coverage but may lack exhaustive transition testing
+### Tenant Context Middleware Order Dependency
 
-**Case Reference Number Generation (Race Condition):**
-- Files: `apps/backend/src/modules/cases/cases.service.ts:31` (calls `generateReferenceNumber()`)
-- Issue: Reference numbers generated by querying max value and incrementing; no database-level uniqueness constraint shown in retrieved code
-- Why fragile: Race condition possible if two requests generate simultaneously; unique constraint exists in schema but auto-increment logic is application-level
+**Component:** Request middleware chain
+- Files: `apps/backend/src/common/middleware/tenant.middleware.ts`, `apps/backend/src/app.module.ts`
+- Why fragile: Middleware must run BEFORE all guards and controllers; off-by-one in app.module could break RLS
+- Current implementation: Works because middleware registered in correct order but no explicit documentation
 - Safe modification:
-  - Use PostgreSQL sequence or stored procedure for generation
-  - Test concurrent case creation
-- Test coverage: Likely missing concurrent creation tests
+  - Add tests that verify tenant context is set before reaching service layer
+  - Document middleware order in app.module
+  - Add compile-time check (lint rule) to prevent reordering
 
-**Prisma Schema with Unsupported tsvector Type:**
-- Files: `apps/backend/prisma/schema.prisma:286`
-- Why fragile: `Unsupported("tsvector")` not handled by Prisma client; any attempt to access searchVector from ORM will fail
-- Impact: Full-text search works only via raw SQL; cannot use searchVector in Prisma queries
-- Safe modification:
-  - Keep searchVector raw-SQL-only (current approach)
-  - Document that searchVector is database-managed only
-  - Add comment explaining why Unsupported is used
+### RLS Policy Enforcement Silent Failures
 
-**Exception Handling in Middleware:**
-- Files: `apps/backend/src/common/middleware/tenant.middleware.ts:78-81`
-- Why fragile: Silently catches and ignores all exceptions during token verification
+**Component:** PostgreSQL RLS with PrismaService
+- Files:
+  - `apps/backend/src/modules/prisma/prisma.service.ts`
+  - RLS policies in migration files
+- Why fragile: If RLS policies are not set correctly (e.g., wrong column name in policy), queries silently return 0 rows instead of error
+- Test coverage: Need explicit tests that verify RLS prevents cross-tenant access; cannot rely on implicit behavior
 - Safe modification:
-  - Log caught exceptions with debug level
-  - Add metrics/observability for how many tokens fail verification
-  - Test that invalid tokens don't cause crashes downstream
+  1. Add query logging to detect "0 rows returned when expecting results" anomalies
+  2. Create integration tests that verify RLS on every table (not just Case)
+  3. Add RLS validation function to PrismaService that checks policies are active
+
+### Activity Service Description Generation
+
+**Component:** Natural language activity descriptions
+- Files: `apps/backend/src/common/services/activity-description.service.ts`
+- Why fragile: Hard-coded entity type to description format mapping; adding new entity type requires changing two files (service + description)
+- Current coverage: Only handles 10-15 common actions; unknown actions have fallback but lose context
+- Safe modification:
+  1. Move description templates to separate configuration file or database table
+  2. Add validation tests for all entity types × action combinations
+  3. Use template system (Handlebars) instead of switch statements
+
+### Investigation Status Workflow Validation
+
+**Component:** Status transitions
+- Files: `apps/backend/src/modules/investigations/investigations.service.ts` (transition method)
+- Why fragile: Transition logic inline in service; no explicit state machine
+- Test coverage: Transitions tested but no explicit test for invalid transitions
+- Example fragile scenario: If someone adds new investigation status without updating validation logic, broken transitions not caught
+- Safe modification:
+  1. Extract state machine to separate class (XState or simple enum-based FSM)
+  2. Define valid transitions as immutable configuration
+  3. Add tests for every invalid transition that should fail
 
 ---
 
 ## Scaling Limits
 
-**PostgreSQL Row-Level Security Scalability:**
-- Current capacity: RLS works efficiently up to millions of rows per organization
-- Limit: Each query adds `WHERE organization_id = $1` overhead; with thousands of concurrent users, connection pool saturation risk
-- Impact: Performance degrades linearly as organizations grow
-- Scaling path:
-  - Implement connection pooling (PgBouncer)
-  - Use read replicas for analytics queries
-  - Consider query result caching (Redis)
-  - Monitor connection pool usage
+### Database Connection Pool
 
-**Activity Log Table Growth:**
-- Current capacity: Append-only table will grow indefinitely
-- Limit: After ~100M rows, queries slow significantly; disk space becomes issue
-- Impact: Audit trail queries slow down; backup times increase
-- Scaling path:
-  - Implement table partitioning by organization_id and createdAt
-  - Archive old logs (>1 year) to cold storage
-  - Create materialized views for common dashboard queries
-  - Monitor table size weekly
+**Resource/System:** PostgreSQL connections
+- Current capacity: Default NestJS connection pool = 10 connections per backend instance
+- Scaling limit: With 3 activity service queries per case operation, pool exhausts at ~1000 concurrent users
+- Improvement path:
+  1. Increase pool size to 20 for single-instance, monitor
+  2. Implement read replica for activity queries
+  3. For multi-instance deployment, use pgBouncer connection pooler
 
-**Search Vector Index Growth:**
-- Current capacity: GIN index efficient for ~1M documents per organization
-- Limit: As case count grows, index size and insert performance degrade
-- Impact: Adding new cases becomes slower
-- Scaling path:
-  - Use partial GIN index (only index active cases)
-  - Consider denormalized search_summary field instead of full tsvector
-  - Implement Elasticsearch for full-text search at scale
+### Attachment File Storage
+
+**Resource/System:** Local disk upload folder
+- Files: `apps/backend/src/modules/attachments/attachments.service.ts`, `apps/backend/uploads/`
+- Current capacity: Local filesystem on App Service; grows unbounded
+- Scaling limit: App Service disk fills after 1000 medium files (~1GB)
+- Production issue: Crashes when disk full, no graceful degradation
+- Improvement path:
+  1. Migrate to Azure Blob Storage (already in CLAUDE.md, not implemented yet)
+  2. Implement upload size quotas per organization
+  3. Add cleanup job for orphaned attachments (deleted but files remain)
+  4. Enable Blob Storage lifecycle policy to archive files >1 year old
+
+### JWT Token Size
+
+**Resource/System:** Session storage and HTTP headers
+- Issue: JWT payload grows with claims; large organization contexts could exceed cookie size limit
+- Current fields in JWT: userId, organizationId, role, email, name
+- Scaling limit: If custom permissions or business unit arrays added, token exceeds 4KB; browsers reject
+- Improvement path:
+  1. Keep JWT minimal (userId, organizationId, role only)
+  2. Store full user context in Session table
+  3. Fetch user details on demand or cache in Redis
 
 ---
 
 ## Dependencies at Risk
 
-**bcrypt Hashing (Medium Risk):**
-- Risk: `bcrypt` is CPU-intensive; 12 salt rounds is standard but may cause 500ms+ delays during peak load
-- Current impact: User creation/password change endpoints can timeout under load
-- Files: `apps/backend/src/modules/users/users.service.ts:29,71` | `apps/backend/src/modules/auth/auth.service.ts:68`
-- Mitigation: Consider async bcrypt or background job for password hashing
-- Alternative: Argon2 library (more resistant to GPU attacks; still slower)
+### bcrypt Async Behavior Inconsistency
 
-**jsonwebtoken Library (Low Risk):**
-- Risk: Older JWT library; security advisories possible
-- Current status: Used for token generation and verification
-- Files: `apps/backend/src/common/middleware/tenant.middleware.ts:4` | `apps/backend/src/modules/auth/auth.service.ts`
-- Migration path: NestJS already provides JwtModule (uses jsonwebtoken under hood); no action needed unless advisories appear
+**Package:** `bcrypt` (password hashing)
+- Risk: Inconsistent API (some sync, some async) can cause race conditions
+- Files: `apps/backend/src/modules/auth/auth.service.ts` (bcrypt.compare used correctly, but pattern fragile)
+- Better approach: Migrate to `argon2` which is async-only and faster
+- Migration plan:
+  1. Add argon2 as dependency
+  2. Implement dual-hash verification (verify against both bcrypt and argon2)
+  3. On successful login with bcrypt, rehash password with argon2
+  4. After migration period, remove bcrypt support
+  5. Estimated effort: 2-3 hours
 
-**Prisma ORM (Low Risk):**
-- Risk: Prisma client generated code can be large and may have performance implications
-- Current status: No known issues; widely used in production
-- Mitigation: Monitor Prisma updates; test major version upgrades in staging
+### Prisma Client Code Generation
+
+**Package:** `@prisma/client`
+- Risk: Code generation happens at build time; out-of-sync schema causes type errors
+- Files: `apps/backend/prisma/schema.prisma`
+- Current mitigation: Pre-commit hook runs `prisma generate` but not verified in CI
+- Issue: If developer forgets to run `npm run db:migrate` locally before commit, CI generates different client
+- Improvement:
+  1. Add `prisma generate` to pretest hook in package.json
+  2. Add CI step to verify generated client matches committed version
+  3. Run `npm audit` on Prisma to catch security updates
+
+### Outdated Dependencies
+
+**Package:** General
+- Risk: npm dependencies may have security vulnerabilities
+- Files: `apps/backend/package.json`, `apps/frontend/package.json`
+- Current state: No automatic vulnerability scanning in CI
+- Recommendation:
+  1. Add Dependabot or Renovate bot
+  2. Run `npm audit` in CI pipeline with threshold for critical/high
+  3. Weekly dependency update PRs with security focus
 
 ---
 
 ## Missing Critical Features
 
-**Email Notification System:**
-- Problem: No email service implemented
-- Blocks: User onboarding, password reset, case status notifications, investigation assignments
-- Priority: HIGH - Core workflow depends on notifications
-- See also: Tech Debt section - Email Notification System
+### SSO Integration Gap
 
-**Case Status Derived vs. Admin Override:**
-- Problem: Schema comment indicates status is derived from investigations but admin-overridable; no logic found
-- Blocks: Cannot close case independently of investigations; status management unclear
-- Files: CLAUDE.md mentions this design decision
-- Needed: Clarify status transition rules and implement override logic
+**Feature gap:** Azure AD and Google OAuth not implemented
+- Problem: Enterprise customers cannot use organization-wide SSO; blocks sales deals
+- Files affected:
+  - Auth module missing passport strategies
+  - User model missing ssoProvider and ssoId fields
+  - No TenantDomain entity for domain verification
+- Blocks: Tier 2 implementation (Operator Console requires SSO for multi-tenant safety)
+- Priority: P0 - Must complete before production deployment
+- Effort: 20-30 hours (strategy implementation, domain verification, JIT provisioning)
 
-**Encryption for Sensitive Fields:**
-- Problem: Reporter PII (name, email, phone) stored plain text
-- Blocks: Compliance features; GDPR compliance
-- Priority: CRITICAL - Data protection requirement
-- See also: Security Considerations section - Reporter PII Fields Not Encrypted
+### Two-Way Reporter Communication
+
+**Feature gap:** CaseMessage entity and anonymous communication relay missing
+- Problem: Cannot send follow-up messages to reporters; cannot implement RFI workflow
+- Files affected: No CaseMessage model; no message relay service; no email service
+- Blocks: Core compliance workflow (follow-ups required for 80% of cases)
+- Priority: P0 - Required for product viability
+- Effort: 24-30 hours (entity, notification service, portal, anonymous relay)
+
+### Investigation Templates
+
+**Feature gap:** Category-specific investigation checklists missing
+- Problem: Investigators must manually recreate same questions for each case; inconsistent findings
+- Files affected: No InvestigationTemplate model; no template service
+- Blocks: Standardization and audit trail for investigation quality
+- Priority: P1 - Needed for Tier 2
+- Effort: 16-20 hours
+
+### Remediation Tracking
+
+**Feature gap:** RemediationPlan and RemediationStep entities missing
+- Problem: Cannot track corrective actions; compliance reporting incomplete
+- Files affected: No remediation models; no remediation endpoints; no UI
+- Blocks: Full case closure and regulatory reporting
+- Priority: P1 - Needed by compliance teams
+- Effort: 20-24 hours
+
+### Multi-Language Support
+
+**Feature gap:** Translation service stubs exist but not integrated to cases
+- Problem: Large healthcare systems need multi-language case content; currently English only
+- Files affected: Case model has `originalLanguage` field but no translation workflow
+- Blocks: International customer expansion
+- Priority: P2 - Future feature
+- Effort: 30-40 hours (including UI for translation review)
 
 ---
 
 ## Test Coverage Gaps
 
-**Tenant Isolation E2E Tests (Medium Priority):**
-- What's not tested: Cross-tenant data access attempts; verifying RLS prevents data leakage
-- Files: `apps/frontend/e2e/tests/tenant-isolation.spec.ts` exists but scope unknown
-- Risk: Core security feature untested leads to silent data leaks
-- Recommendation:
-  - Ensure tests create data in Organization A, attempt access from Organization B token
-  - Test all endpoints (list, get, update, delete)
-  - Test nested relationships (investigation under case from different org)
+### RLS Isolation Not Tested Per Table
 
-**Activity Log Entries Verification:**
-- What's not tested: Whether all mutations create corresponding activity entries
-- Files: `apps/backend/src/common/services/activity.service.spec.ts` (unit test exists; integration gaps likely)
-- Risk: Audit trail incomplete for compliance; untracked changes
-- Recommendation:
-  - Add tests for every mutation endpoint
-  - Verify activity entry created after each operation
-  - Test activity description accuracy
+**Untested area:** Row-Level Security policies
+- What's not tested: Only Case and Investigation RLS tested; not verified for AuditLog, Session, Attachment, Category tables
+- Files:
+  - `apps/backend/test/` - Tenant isolation tests exist but incomplete
+  - `apps/backend/prisma/migrations/` - RLS policies created but not validated
+- Risk: Breaking data isolation on secondary tables could leak audit logs or session data
+- Priority: P1 - Security critical
+- Approach:
+  1. Create parameterized test suite for all tables with multi-tenant data
+  2. Verify organization_id filter on all RLS policies
+  3. Add to CI pipeline as mandatory check
 
-**Error Handling in RLS Bypass:**
-- What's not tested: Behavior when RLS bypass fails to re-enable
-- Files: `apps/backend/src/modules/prisma/prisma.service.ts:53-60`
-- Risk: Silent security failure; subsequent requests execute without RLS protection
-- Recommendation:
-  - Add test that verifies RLS is re-enabled even after callback exception
-  - Add test that confirms bypass actually works (query results differ with/without bypass)
+### Edge Cases in Investigation Workflow
 
-**Full-Text Search Edge Cases:**
-- What's not tested: SQL injection attempts; special character handling; empty search terms
-- Files: `apps/backend/src/modules/cases/cases.service.ts:141-256`
-- Risk: Search endpoint vulnerable to injection; crashes on edge cases
-- Recommendation:
-  - Add parameterized query test
-  - Test search with SQL keywords (';--', 'DROP TABLE', etc.)
-  - Test with unicode, emoji, very long strings
+**Untested area:** Complex investigation status transitions
+- What's not tested: Transitions between non-adjacent states, cancellation after closure, reassignment during closure
+- Files: `apps/backend/src/modules/investigations/investigations.service.ts` (transition method)
+- Risk: Invalid state combinations could silently persist to database
+- Priority: P2 - Data integrity
+- Approach:
+  1. Add comprehensive state machine tests covering all invalid transitions
+  2. Add integration tests for real-world workflows (assign → investigate → findings → close)
 
-**Frontend API Error Handling:**
-- What's not tested: What happens when API returns 401, 403, 500; token refresh flow
-- Files: `apps/frontend/src/lib/api.ts` (not fully reviewed)
-- Risk: User experience breaks silently; auth state becomes invalid
-- Recommendation:
-  - Test 401 response triggers logout
-  - Test token refresh flow
-  - Test 403 shows appropriate error message
+### File Upload Virus Scanning
 
----
+**Untested area:** Attachment validation
+- What's not tested: Large file handling, concurrent upload limits, disk space error handling
+- Files: `apps/backend/src/modules/attachments/attachments.service.ts`, `apps/backend/uploads/`
+- Risk: Large file uploads could hang requests or fill disk; no error recovery
+- Priority: P2 - Operational stability
+- Approach:
+  1. Add tests for max file size enforcement
+  2. Test concurrent upload handling with thread pool exhaustion
+  3. Test graceful failure when disk full
 
-## Data Model Concerns
+### Custom Field Validation
 
-**Case Can Have ParentCase (Self-Reference):**
-- Issue: Recursive relationship for case splitting implemented, but no validation preventing circular references
-- Files: `apps/backend/prisma/schema.prisma:262,281-282`
-- Impact: Data corruption possible; query performance degraded with circular references
-- Fix approach: Add CHECK constraint in migration: `parentCaseId != id`; implement validation in service
+**Untested area:** JSON schema validation for custom fields
+- What's not tested: Custom field validation rules, malformed JSON, deeply nested structures
+- Files: `apps/backend/src/modules/cases/cases.service.ts` (lines 73-74)
+- Risk: Malicious payloads could be stored; very large payloads cause memory issues
+- Priority: P2 - Security/stability
+- Approach:
+  1. Add JSON schema validation tests
+  2. Add max payload size tests (5MB limit)
+  3. Test reserved field names rejection
 
-**Investigation Has Manual History vs. Activity Log:**
-- Issue: Assignment history stored as JSON in `assignmentHistory` field; same data also in AuditLog
-- Files: `apps/backend/src/modules/investigations/investigations.service.ts:28-33` (interface)
-- Impact: Duplication; risk of inconsistency; two sources of truth
-- Fix approach: Consolidate - use AuditLog as source of truth; remove assignmentHistory JSON field; query audit log for history
+### Frontend Authentication Edge Cases
 
----
-
-## Code Quality Observations
-
-**Console.log in Production Code:**
-- Files: `apps/frontend/src/components/cases/case-activity-timeline.tsx:109`
-- Issue: TODO placeholder logs to console in production
-- Fix: Remove console.log or replace with logger service
-
-**Comment on Unimplemented Feature:**
-- Files: `apps/backend/src/modules/users/users.service.ts:99-100` (TODO comment with logger.debug)
-- Issue: Welcome email not implemented; logger statement is debugging aid
-- Fix: Replace with actual email service call
+**Untested area:** Token expiration and refresh flow
+- What's not tested: Refresh token expiration, simultaneous requests during token refresh, logout during refresh
+- Files: `apps/frontend/src/services/auth-context.tsx`
+- Risk: Race conditions could leave user with expired token; requests mysteriously fail
+- Priority: P2 - User experience
+- Approach:
+  1. Add tests for concurrent request handling during token refresh
+  2. Add tests for refresh token expiration (try to use expired token)
+  3. Add tests for logout during in-flight refresh request
 
 ---
 
-## Monitoring & Observability Gaps
+## Additional Concerns
 
-**Missing Structured Logging:**
-- Issue: Most services use NestJS Logger with unstructured log messages
-- Impact: Difficult to parse logs; can't filter by correlation ID
-- Recommendation: Implement structured logging (Winston/Pino) with request ID propagation
+### Documentation Drift
 
-**No Request Tracing:**
-- Issue: HTTP requests don't have correlation IDs propagated through services
-- Impact: Can't trace request across services; debugging distributed issues difficult
-- Files: Error filter has support for `requestId` but middleware doesn't set it
-- Recommendation: Add middleware to generate/propagate X-Request-ID header
+**Area:** Code and documentation consistency
+- Issue: CLAUDE.md references features (SSO, email, remediation) not yet implemented
+- Risk: Developers follow instructions for non-existent code paths
+- Fix: Add "Tier 1 Complete" marker in CLAUDE.md with list of implemented vs planned features
 
-**Missing Database Query Monitoring:**
-- Issue: No slow query logging configured; Prisma doesn't expose query metrics
-- Impact: Performance regressions not detected; N+1 queries silent
-- Recommendation: Enable Prisma debug logging in development; use pg_stat_statements in production
+### Logging Verbosity Inconsistent
 
-**No Error Rate Monitoring:**
-- Issue: No mention of error tracking (Sentry, DataDog)
-- Impact: Production errors go unnoticed until users report
-- Recommendation: Integrate Sentry for error tracking and performance monitoring
+**Area:** Debug and application logs
+- Issue: No centralized logging configuration; some services log extensively, others not at all
+- Risk: Cannot debug issues in production; too much noise in dev
+- Fix: Implement Winston or Pino logger with environment-based levels
 
----
+### Error Messages Expose Internal Details
 
-## Deployment & Infrastructure Concerns
+**Area:** API error responses
+- Issue: Some error messages include technical details (SQL, file paths) that leak information
+- Risk: Attackers learn system internals; information disclosure
+- Example: File upload error might expose full file path
+- Fix: Use generic error messages in API responses; log full details internally
 
-**No Environment Variable Validation:**
-- Issue: Configuration loads but doesn't validate required env vars at startup
-- Files: `apps/backend/src/config/configuration.ts` (not fully reviewed)
-- Impact: Missing credentials discovered at runtime during request
-- Recommendation: Validate all required env vars in app bootstrap
+### No Graceful Degradation for External Services
 
-**Database Migration Strategy Unclear:**
-- Issue: Prisma migrations exist but deployment strategy not documented
-- Impact: Blue-green deployment risky; migration rollback unclear
-- Recommendation: Document migration approach; ensure migrations are idempotent; test rollback procedure
+**Area:** Attachment and storage operations
+- Issue: If file storage fails, entire case update fails with no fallback
+- Risk: Temporary file system issues block case creation
+- Fix: Implement async file processing; store case, queue file upload asynchronously, notify if fails
 
 ---
 
-## Documentation Gaps
-
-**No Architectural Decision Record (ADR) for Multi-Tenancy:**
-- Issue: TenantMiddleware, RLS bypass pattern, tenant context setting scattered across files
-- Impact: New developers may not understand tenant isolation strategy
-- Files: Implemented in middleware, service, schema - hard to see holistically
-- Recommendation: Create ADR documenting multi-tenancy approach, why RLS bypass needed, when allowed
-
-**No API Documentation:**
-- Issue: No OpenAPI/Swagger documentation generated
-- Impact: Frontend developers must read controller code to understand API
-- Recommendation: Add @nestjs/swagger decorators to controllers; generate OpenAPI spec
-
----
-
-## Summary Table
-
-| Category | Count | Severity | Notes |
-|----------|-------|----------|-------|
-| Tech Debt Items | 3 | MEDIUM | Email system, modal stub, pending relations |
-| Known Bugs | 2 | MEDIUM | Activity fallback, search vector |
-| Security Risks | 4 | MEDIUM | RLS bypass, tenant context, raw SQL, PII encryption |
-| Performance Bottlenecks | 3 | MEDIUM | Search indexing, N+1 queries, activity log growth |
-| Fragile Components | 5 | MEDIUM | Status workflow, reference number, tsvector, middleware, RLS |
-| Scaling Limits | 3 | MEDIUM | RLS, activity log, search index |
-| Dependency Risks | 3 | LOW-MEDIUM | bcrypt, jwt, prisma |
-| Missing Features | 3 | HIGH | Email notifications, status override, encryption |
-| Test Gaps | 6 | MEDIUM | Tenant isolation, activity logs, RLS bypass, search, errors, API |
-
----
-
-*Concerns audit: 2026-01-30*
+*Concerns audit: 2026-02-02*
