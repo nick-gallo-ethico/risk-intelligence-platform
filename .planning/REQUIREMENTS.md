@@ -1,174 +1,282 @@
 # Requirements: Ethico Risk Intelligence Platform
 
-**Defined:** 2026-01-31
-**Core Value:** Investigators can track cases from intake through investigation, findings, and remediation in a unified, AI-native platform.
+**Defined:** 2026-02-02
+**Core Value:** Users can manage their entire compliance workflow—from anonymous report intake to investigation closure to board reporting—in one AI-assisted platform, with every task unified into a single "My Work" view.
 
-## v1.0 Requirements
+## v1 Requirements
 
-Requirements for platform v1.0 release, organized by tier/phase.
+Requirements for Q1 2026 release. Organized by HubSpot-inspired architecture with AI-first capabilities.
 
-### Tier 1.5 - Foundation Completion
+### Foundation Infrastructure
 
-Entities and features missing from Tier 1 that are required for downstream modules.
+- [ ] **FOUND-01**: Event bus with @nestjs/event-emitter for async operations
+- [ ] **FOUND-02**: BullMQ job queue with Redis for background processing
+- [ ] **FOUND-03**: Unified AUDIT_LOG table capturing all mutations with natural language descriptions
+- [ ] **FOUND-04**: Demo tenant ("Acme Co.") with 3 years of realistic seed data
+- [ ] **FOUND-05**: Seed data generator covering all RIU types, categories, and sources
+- [ ] **FOUND-06**: Workflow engine with configurable pipelines and stages
+- [ ] **FOUND-07**: SLA tracking with due dates and escalation triggers
+- [ ] **FOUND-08**: Assignment rules engine (auto-routing by category, location, etc.)
+- [ ] **FOUND-09**: Search infrastructure with Elasticsearch indexing pipeline
+- [ ] **FOUND-10**: Form/schema engine for dynamic form creation
+- [ ] **FOUND-11**: Reporting engine with query builder and export framework
+- [ ] **FOUND-12**: File storage with Azure Blob and document processing
 
-- [ ] **ENT-01**: Subject entity with case linkage, HRIS lookup, cross-case pattern detection
-- [ ] **ENT-02**: Category entity with unified taxonomy across modules (CASE, DISCLOSURE, POLICY)
-- [ ] **ENT-03**: Location entity with hierarchy, address fields, HRIS mapping
-- [ ] **ENT-04**: BusinessUnit entity with hierarchy, organizational scoping
-- [ ] **ENT-05**: Employee entity with HRIS sync, manager hierarchy, employment status
-- [ ] **ENT-06**: Interaction entity for follow-up calls/contacts with QA workflow
-- [ ] **ENT-07**: CaseMessage entity for two-way anonymous communication
-- [ ] **ENT-08**: RemediationPlan and RemediationStep entities for corrective actions
-- [ ] **ENT-09**: InvestigationTemplate entity for category-specific checklists
-- [ ] **AUTH-05**: Azure AD SSO strategy with JIT user provisioning
-- [ ] **AUTH-06**: Google OAuth 2.0 strategy with JIT user provisioning
-- [ ] **AUTH-07**: TenantDomain entity for domain verification
-- [ ] **ORG-01**: Organization model enhancement (domain, branding, settings JSON, tier)
-- [ ] **USER-01**: User model enhancement (ssoProvider, ssoId, mfaEnabled, preferences)
-- [ ] **CASE-01**: Case soft delete endpoint with archival
+### Authentication & Multi-tenancy
 
-### Tier 2 - Operator Console
+- [ ] **AUTH-01**: Azure AD SSO with JIT user provisioning
+- [ ] **AUTH-02**: Google OAuth SSO integration
+- [ ] **AUTH-03**: SAML 2.0 SSO for enterprise customers
+- [ ] **AUTH-04**: Domain verification for SSO tenant mapping
+- [ ] **AUTH-05**: Multi-factor authentication (TOTP)
+- [ ] **AUTH-06**: Rate limiting on authentication endpoints
+- [ ] **AUTH-07**: RLS policies enforced on all new entities
 
-Ethico internal tool for hotline operators and QA staff.
+### Core Entities (HubSpot Pattern)
 
-- [ ] **OPC-01**: ClientProfile entity with phone numbers, branding, directives
-- [ ] **OPC-02**: Directive entity with types, triggers, versioning
-- [ ] **OPC-03**: OperatorSession entity for call tracking
-- [ ] **OPC-04**: Client profile auto-load from phone number lookup
-- [ ] **OPC-05**: Client profile manual search
-- [ ] **OPC-06**: Hotline intake workflow with structured form sections
-- [ ] **OPC-07**: Subject addition with HRIS employee lookup
-- [ ] **OPC-08**: Directives panel with contextual display (opening/closing, category-specific)
-- [ ] **OPC-09**: QA queue with severity/age sorting, claim/unclaim
-- [ ] **OPC-10**: QA review screen with edit capabilities, checklist
-- [ ] **OPC-11**: Case release to client with routing preview
-- [ ] **OPC-12**: Follow-up call identification (access code or name lookup)
-- [ ] **OPC-13**: Follow-up capture as Interaction (not new case)
-- [ ] **OPC-14**: Operator dashboard with recent cases, metrics
-- [ ] **AI-01**: AI category suggestions during intake
-- [ ] **AI-02**: AI note cleanup (bullets to formal narrative)
-- [ ] **AI-03**: AI summary generation (2-3 sentences)
-- [ ] **AI-04**: AI keyword detection for escalation triggers
+#### Person (Contact equivalent)
 
-### Tier 2 - Ethics Portal (Public)
+- [ ] **PERS-01**: Person entity for employees and external contacts
+- [ ] **PERS-02**: Person types: 'employee', 'external_contact'
+- [ ] **PERS-03**: Person sources: 'hris_sync', 'manual', 'intake_created'
+- [ ] **PERS-04**: Employee fields: business_unit_id, manager_id, job_title, status
+- [ ] **PERS-05**: HRIS sync via Merge.dev for 50+ systems
+- [ ] **PERS-06**: Manager hierarchy for org charts and routing
 
-Public-facing landing page for anonymous and identified reporting.
+#### RIU - Risk Intelligence Unit (Ticket equivalent)
 
-- [ ] **EPL-01**: EthicsPortalConfig entity with branding, content, settings
-- [ ] **EPL-02**: Public landing page with client branding
-- [ ] **EPL-03**: Crisis escalation section (prominent, non-dismissible)
-- [ ] **EPL-04**: Anonymous report submission without login
-- [ ] **EPL-05**: Access code generation and display
-- [ ] **EPL-06**: Status check via access code
-- [ ] **EPL-07**: Follow-up submission via access code
-- [ ] **EPL-08**: Two-way messaging via portal (anonymous relay)
-- [ ] **EPL-09**: Confidentiality statement display before form
-- [ ] **EPL-10**: Configurable reporter visibility levels
+- [ ] **RIU-01**: RIU entity with immutability enforcement (no updatedAt)
+- [ ] **RIU-02**: RIU types: hotline_report, web_form_submission, disclosure_response, attestation_response, incident_form, proxy_report, chatbot_transcript
+- [ ] **RIU-03**: Source channels: phone, web_form, chatbot, email, proxy
+- [ ] **RIU-04**: RIU content is frozen at intake (corrections go on Case)
+- [ ] **RIU-05**: AI enrichment fields: ai_summary, ai_risk_score, ai_category_suggestion
+- [ ] **RIU-06**: Anonymous access code generation for status checking
+- [ ] **RIU-07**: Type-specific extension tables (riu_hotline_details, riu_disclosure_details, etc.)
 
-### Tier 2 - Employee Portal (Authenticated)
+#### Case (Deal equivalent)
 
-Self-service interface for employees.
+- [ ] **CASE-01**: Case entity with mutable status and classification
+- [ ] **CASE-02**: Pipeline stages configurable per tenant
+- [ ] **CASE-03**: Case classification may differ from RIU (corrected values)
+- [ ] **CASE-04**: Case merge with full audit trail (merged case becomes read-only tombstone)
+- [ ] **CASE-05**: Two-way anonymous communication relay
+- [ ] **CASE-06**: Case outcomes: Substantiated, Unsubstantiated, Inconclusive
 
-- [ ] **EMP-01**: SSO authentication (SAML/OIDC) flow
-- [ ] **EMP-02**: Email magic link authentication
-- [ ] **EMP-03**: Dashboard with action items, recent activity
-- [ ] **EMP-04**: My Cases list (submitted cases only)
-- [ ] **EMP-05**: Case detail view with configurable visibility
-- [ ] **EMP-06**: Follow-up submission on existing case
-- [ ] **EMP-07**: Two-way messaging with investigators
-- [ ] **EMP-08**: File attachments on messages (up to 25MB)
-- [ ] **EMP-09**: Notification inbox (in-app)
-- [ ] **EMP-10**: Manager team dashboard (direct reports compliance)
-- [ ] **EMP-11**: Proxy report submission by manager
+#### Campaign (Sequence equivalent)
 
-### Tier 3 - Disclosures Module (MVP)
+- [ ] **CAMP-01**: Campaign entity for outbound requests
+- [ ] **CAMP-02**: Campaign types: disclosure, attestation, survey
+- [ ] **CAMP-03**: Target audience builder (by business unit, location, role, etc.)
+- [ ] **CAMP-04**: Due dates and reminder schedules
+- [ ] **CAMP-05**: Campaign assignment generation for target employees
+- [ ] **CAMP-06**: Auto-case creation rules (thresholds, flagged responses)
 
-Core disclosure management capabilities.
+#### Associations (HubSpot Association Labels)
 
-- [ ] **DIS-01**: DisclosureForm entity with questions, triggers, settings
-- [ ] **DIS-02**: Standard disclosure library (7 types: COI, Gift, Outside Employment, etc.)
-- [ ] **DIS-03**: Disclosure entity with versioning, status, conditions
-- [ ] **DIS-04**: Ad-hoc disclosure submission (authenticated)
-- [ ] **DIS-05**: Ad-hoc disclosure submission (unauthenticated with employee ID)
-- [ ] **DIS-06**: Single-stage approval workflow
-- [ ] **DIS-07**: Reviewer decision (clear, reject, approve with conditions)
-- [ ] **DIS-08**: Condition entity with due dates, reminders
-- [ ] **DIS-09**: Employee condition completion flow
-- [ ] **DIS-10**: Employee Portal: My Disclosures view
-- [ ] **DIS-11**: Disclosure → Case escalation
-- [ ] **DIS-12**: ExternalParty entity for cross-disclosure linking
-- [ ] **DIS-13**: Disclosure activity timeline
+- [ ] **ASSOC-01**: PersonRiuAssociation with role labels (reporter, subject, witness, mentioned)
+- [ ] **ASSOC-02**: PersonCaseAssociation with role labels (subject, witness, investigator, approver)
+- [ ] **ASSOC-03**: RiuCaseAssociation with types (primary, related, merged_from)
+- [ ] **ASSOC-04**: Pattern detection via role-based queries (same person across multiple cases)
 
-### Tier 3 - Disclosures Campaign Engine
+### Investigation Module
 
-Campaign-driven disclosure collection.
+- [ ] **INV-01**: Investigation entity tied to Cases
+- [ ] **INV-02**: Investigation templates by category (checklists)
+- [ ] **INV-03**: Structured interviews with InvestigationInterview model
+- [ ] **INV-04**: Investigation notes with rich text
+- [ ] **INV-05**: Evidence/document attachment
+- [ ] **INV-06**: Findings documentation
+- [ ] **INV-07**: Remediation plans with step tracking
+- [ ] **INV-08**: Remediation step assignment to users or non-users (email)
 
-- [ ] **CMP-01**: Campaign entity (point-in-time and rolling)
-- [ ] **CMP-02**: CampaignAssignment entity with HRIS snapshot
-- [ ] **CMP-03**: HRIS-driven targeting (include/exclude rules)
-- [ ] **CMP-04**: Campaign launch with target preview
-- [ ] **CMP-05**: Campaign progress dashboard
-- [ ] **CMP-06**: Reminder schedule (configurable intervals)
-- [ ] **CMP-07**: Campaign exceptions (prior completion, terminated, manual)
-- [ ] **CMP-08**: Multi-stage approval workflow (up to 4 stages)
-- [ ] **CMP-09**: Conditional routing rules
-- [ ] **CMP-10**: Auto-clear and auto-reject rules
+### Disclosures & COI
 
-### Tier 4 - AI Features
-
-AI-powered assistance throughout platform.
-
-- [ ] **AI-05**: AI translation with original preservation
-- [ ] **AI-06**: AI risk scoring for cases
-- [ ] **AI-07**: Case Q&A (ask questions about specific case)
-- [ ] **AI-08**: Subject summary across cases
-- [ ] **AI-09**: Policy Q&A chatbot (Employee Portal)
-
-### Tier 5 - Analytics & Notifications
-
-Dashboards, reporting, and communication.
-
-- [ ] **RPT-01**: Case operational dashboard
-- [ ] **RPT-02**: Campaign completion dashboard
-- [ ] **RPT-03**: Disclosure metrics dashboard
-- [ ] **RPT-04**: Saved views with custom columns/filters
-- [ ] **RPT-05**: Export to CSV
-- [ ] **NTF-01**: Email notifications (case assigned, status change, messages)
-- [ ] **NTF-02**: Email notifications (campaign invite, reminders, overdue)
-- [ ] **NTF-03**: In-app notification preferences
-- [ ] **NTF-04**: Manager notifications (team member overdue)
-
-## v2.0 Requirements
-
-Deferred to future release. Tracked but not in current roadmap.
+- [ ] **DISC-01**: COI disclosure forms
+- [ ] **DISC-02**: Gifts & entertainment tracking
+- [ ] **DISC-03**: Outside employment disclosure
+- [ ] **DISC-04**: Threshold-based auto-case creation
+- [ ] **DISC-05**: Conflict detection across disclosures
+- [ ] **DISC-06**: Approval workflows for flagged disclosures
+- [ ] **DISC-07**: Disclosure history per Person
 
 ### Policy Management
 
-- **POL-01**: Policy entity with versioning, approval workflows
-- **POL-02**: Policy distribution campaigns
-- **POL-03**: Attestation tracking
-- **POL-04**: Policy translation
+- [ ] **POL-01**: Policy entity with rich text content
+- [ ] **POL-02**: Policy version control and history
+- [ ] **POL-03**: Approval workflows with multi-step review
+- [ ] **POL-04**: Attestation campaigns (creates RIUs when employees respond)
+- [ ] **POL-05**: AI-powered translation with original preserved
+- [ ] **POL-06**: Policy-to-case linking for violations
+- [ ] **POL-07**: Policy search with full-text indexing
 
-### Advanced Features
+### Operator Console (Ethico Internal)
 
-- **ADV-01**: Real-time AI assist during calls
-- **ADV-02**: Document AI analysis (vector search)
-- **ADV-03**: SMS communication relay
-- **ADV-04**: Slack/Teams notifications
-- **ADV-05**: PWA offline mode
-- **ADV-06**: Advanced duplicate detection
+- [ ] **OPER-01**: Phone number → client profile loading
+- [ ] **OPER-02**: Hotline intake form with all metadata fields
+- [ ] **OPER-03**: Directives system (opening/closing statements, guidance)
+- [ ] **OPER-04**: Category-specific question triggering
+- [ ] **OPER-05**: Subject search (HRIS lookup or manual entry)
+- [ ] **OPER-06**: QA review queue (high severity first)
+- [ ] **OPER-07**: QA edit capabilities and release workflow
+- [ ] **OPER-08**: Follow-up handling via access code
+
+### Ethics Portal (Anonymous Reporting)
+
+- [ ] **ETHIC-01**: Public anonymous report submission
+- [ ] **ETHIC-02**: Access code generation for status checking
+- [ ] **ETHIC-03**: Two-way anonymous messaging
+- [ ] **ETHIC-04**: White-label branding per tenant
+- [ ] **ETHIC-05**: PWA for mobile installation
+- [ ] **ETHIC-06**: Multi-language support
+
+### Employee Portal (Authenticated Self-Service)
+
+- [ ] **EMP-01**: SSO login with tenant routing
+- [ ] **EMP-02**: My reports view (submitted RIUs)
+- [ ] **EMP-03**: My disclosures view (completed campaigns)
+- [ ] **EMP-04**: My attestations view (pending/completed)
+- [ ] **EMP-05**: My tasks view (assigned items)
+- [ ] **EMP-06**: Manager proxy reporting
+
+### Client Platform (Main Work Interface)
+
+- [ ] **CLIENT-01**: Case list with filtering and sorting
+- [ ] **CLIENT-02**: Case detail view with linked RIUs
+- [ ] **CLIENT-03**: Investigation management UI
+- [ ] **CLIENT-04**: Campaign builder and dashboard
+- [ ] **CLIENT-05**: Policy management UI
+- [ ] **CLIENT-06**: User management and RBAC
+- [ ] **CLIENT-07**: Organization settings
+
+### Sales Demo Environment
+
+- [ ] **DEMO-01**: "Acme Co." demo tenant provisioning
+- [ ] **DEMO-02**: Pre-populated with 3 years of historical data
+- [ ] **DEMO-03**: Multiple user accounts with different roles
+- [ ] **DEMO-04**: Hundreds of cases from various sources
+- [ ] **DEMO-05**: Multiple completed disclosure campaigns
+- [ ] **DEMO-06**: Cases in various investigation stages
+- [ ] **DEMO-07**: Resettable demo environment
+- [ ] **DEMO-08**: Sales rep personal demo instance creation
+
+### Project Management & Unified Tasks
+
+- [ ] **PROJ-01**: Unified "My Work" queue across all modules
+- [ ] **PROJ-02**: Task aggregation from Cases, Investigations, Disclosures, Policies
+- [ ] **PROJ-03**: Priority-based ordering with due dates
+- [ ] **PROJ-04**: Project milestones and tracking
+- [ ] **PROJ-05**: Cross-module task dependencies
+- [ ] **PROJ-06**: Gantt chart visualization
+
+### AI Integration (Core Differentiator)
+
+#### AI Infrastructure
+
+- [ ] **AI-01**: Claude API integration with @anthropic-ai/sdk
+- [ ] **AI-02**: Provider abstraction for multi-LLM support
+- [ ] **AI-03**: Rate limiting per tenant with visibility dashboard
+- [ ] **AI-04**: Prompt versioning and template management
+- [ ] **AI-05**: AI conversation logging (AI_CONVERSATION table)
+- [ ] **AI-06**: Context hierarchy loading (platform → org → team → user → entity)
+
+#### AI Features
+
+- [ ] **AI-07**: Note cleanup (bullet notes → formal narrative)
+- [ ] **AI-08**: Case/investigation summary generation
+- [ ] **AI-09**: Real-time category suggestion during intake
+- [ ] **AI-10**: AI risk scoring
+- [ ] **AI-11**: Translation service with original preserved
+- [ ] **AI-12**: Natural language queries for dashboards
+
+#### AI Agent Capabilities (Claude Code Pattern)
+
+- [ ] **AI-13**: AI panel (slide-over drawer) on all entity pages
+- [ ] **AI-14**: Scoped agents per view (Investigation Agent, Case Agent, Compliance Manager Agent)
+- [ ] **AI-15**: Skills registry with platform/org/team/user levels
+- [ ] **AI-16**: Action catalog with permission validation
+- [ ] **AI-17**: Preview-then-execute pattern for multi-step actions
+- [ ] **AI-18**: AI can create summaries/documents and add to activity feed
+- [ ] **AI-19**: AI can send emails (disclosure reminders, approval requests)
+- [ ] **AI-20**: AI can move cases/policies through workflow stages
+- [ ] **AI-21**: AI can suggest workflow/approval changes
+- [ ] **AI-22**: Undo trail for reversible AI actions
+
+### Analytics & Reporting (Differentiator)
+
+- [ ] **ANAL-01**: Pre-built dashboards (RIU, Case, Campaign, Compliance)
+- [ ] **ANAL-02**: Custom dashboard builder with drag-drop widgets
+- [ ] **ANAL-03**: Robust dataset builder for custom queries
+- [ ] **ANAL-04**: PDF report generation (Puppeteer)
+- [ ] **ANAL-05**: Excel export with streaming (ExcelJS)
+- [ ] **ANAL-06**: Board report templates
+- [ ] **ANAL-07**: AI natural language queries ("show me harassment cases from Q4")
+- [ ] **ANAL-08**: Scheduled report delivery
+
+### HubSpot-Style UX (Differentiator)
+
+- [ ] **UX-01**: Saved views (user-created filtered views across entities)
+- [ ] **UX-02**: Custom properties (tenant-configurable fields on entities)
+- [ ] **UX-03**: Unified search across all entities
+- [ ] **UX-04**: Activity timeline on all entities
+- [ ] **UX-05**: Inline editing where appropriate
+- [ ] **UX-06**: Keyboard shortcuts
+
+### Notifications
+
+- [ ] **NOTIF-01**: Email notifications with templates
+- [ ] **NOTIF-02**: In-app notification center
+- [ ] **NOTIF-03**: User notification preferences
+- [ ] **NOTIF-04**: Event-driven notification triggers
+- [ ] **NOTIF-05**: Delivery tracking and retry logic
+
+### Data Migration & Import
+
+- [ ] **MIG-01**: File upload for historical data import
+- [ ] **MIG-02**: Screenshot/image upload for form recreation (AI-assisted draft)
+- [ ] **MIG-03**: NAVEX import connector
+- [ ] **MIG-04**: EQS/Conversant import connector
+- [ ] **MIG-05**: Generic CSV import with field mapping
+- [ ] **MIG-06**: Preview before import
+- [ ] **MIG-07**: Migration rollback capability
+
+## v2 Requirements
+
+Deferred to future release. Tracked but not in current roadmap.
+
+### Real-Time Collaboration
+
+- **COLLAB-01**: Y.js CRDT for collaborative document editing
+- **COLLAB-02**: Live cursors on shared documents
+- **COLLAB-03**: Presence indicators (who's viewing)
+
+### Employee Chatbot
+
+- **CHAT-01**: Chatbot widget for policy Q&A
+- **CHAT-02**: AI-guided intake conversation
+- **CHAT-03**: Escalation to human when needed
+
+### Client Success Dashboard (Ethico Internal)
+
+- **CS-01**: Customer health scoring
+- **CS-02**: Usage metrics per client
+- **CS-03**: Churn risk indicators
+
+### Support Portal (Ethico Internal)
+
+- **SUPP-01**: Ticket management for customer issues
+- **SUPP-02**: Knowledge base integration
 
 ## Out of Scope
 
-Explicitly excluded. Documented to prevent scope creep.
+Explicitly excluded from v1. Documented to prevent scope creep.
 
 | Feature | Reason |
 |---------|--------|
-| Mobile native apps | Web-first strategy, PWA for mobile |
-| Video calling | Outside core compliance workflow |
-| Custom workflow builder UI | Admin-configured workflows sufficient |
-| Real-time chat | Async messaging matches compliance staffing |
-| Blockchain audit trail | Overkill for compliance use case |
+| Video attachments | Storage/bandwidth costs, processing complexity |
+| Mobile native apps | PWA sufficient for v1 |
+| SMS notifications | Email + in-app sufficient for v1; add in v1.x |
+| Slack/Teams integration | Not core workflow; defer to v2 |
+| API for third-party integrations | Internal use first; public API in v2 |
 
 ## Traceability
 
@@ -176,24 +284,13 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| ENT-01 to ENT-09 | Phase 1 | Pending |
-| AUTH-05 to AUTH-07 | Phase 1 | Pending |
-| ORG-01, USER-01, CASE-01 | Phase 1 | Pending |
-| OPC-01 to OPC-14 | Phase 2 | Pending |
-| AI-01 to AI-04 | Phase 2 | Pending |
-| EPL-01 to EPL-10 | Phase 3 | Pending |
-| EMP-01 to EMP-11 | Phase 3 | Pending |
-| DIS-01 to DIS-13 | Phase 4 | Pending |
-| CMP-01 to CMP-10 | Phase 5 | Pending |
-| AI-05 to AI-09 | Phase 6 | Pending |
-| RPT-01 to RPT-05 | Phase 7 | Pending |
-| NTF-01 to NTF-04 | Phase 7 | Pending |
+| (To be filled by roadmapper) | | |
 
 **Coverage:**
-- v1.0 requirements: 73 total
-- Mapped to phases: 73
-- Unmapped: 0 ✓
+- v1 requirements: ~120 total
+- Mapped to phases: (pending)
+- Unmapped: (pending)
 
 ---
-*Requirements defined: 2026-01-31*
-*Last updated: 2026-01-31 after extraction from PRDs*
+*Requirements defined: 2026-02-02*
+*Last updated: 2026-02-02 after stakeholder scoping*
