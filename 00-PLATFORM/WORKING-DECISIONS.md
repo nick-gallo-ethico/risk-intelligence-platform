@@ -2701,6 +2701,10 @@ Recipients: Sarah Chen, Mike Rodriguez, ... [+10 more]
 | AA.15 | AI Agent | Visible context usage with compact/clear/fresh actions | Confirmed |
 | AA.16 | AI Agent | Skill lifecycle from personal to community marketplace | Confirmed |
 | AA.17 | AI Agent | Scoped agents per view (Investigation, Case, Compliance Manager, etc.) | Confirmed |
+| AA.18 | AI Agent | Tiered limits + full visibility hybrid for cost management | Confirmed |
+| AA.19 | AI Agent | Task-based model routing with tier upgrades | Confirmed |
+| AA.20 | AI Agent | Graceful degradation with offline queue and fallbacks | Confirmed |
+| AA.21 | AI Agent | Comprehensive AI analytics for quality, usage, and improvement | Confirmed |
 
 #### AA.8 AI Interaction Model
 
@@ -3878,6 +3882,600 @@ User clicks [Open Case →]
 - **Clear user mental model** - "I'm talking to the Investigation Assistant"
 - **Smooth handoffs** - Agents know how to summarize for each other
 - **Skill targeting** - Investigation skills for investigations, not dashboards
+
+---
+
+#### AA.18 AI Rate Limiting & Cost Management
+
+**Decision:** Tiered Limits (by plan) + Full Visibility hybrid. Tiers set expectations; visibility empowers admins; soft limits preserve UX.
+
+**Tier Structure:**
+| Tier | Monthly AI Budget | Skills Access | Marketplace | At-Limit Behavior |
+|------|------------------|---------------|-------------|-------------------|
+| Starter | 10k requests | Platform skills only | Browse only | Soft warning → Admin approval to continue |
+| Professional | 100k requests | Full skills + create | Install skills | Soft warning → 20% overage buffer → Admin notification |
+| Enterprise | Custom/Unlimited | Full + priority models | Full + publish | Visibility only, no limits |
+
+**What Counts as a "Request":**
+```typescript
+interface AIUsageEvent {
+  type: 'chat_turn' | 'skill_execution' | 'action' | 'generation';
+  tokensIn: number;
+  tokensOut: number;
+  model: string;              // Different models have different costs
+
+  // Weighted cost (normalize across models)
+  normalizedCost: number;     // 1.0 = standard, 2.0 = premium model
+}
+
+// Simple requests (1 credit each)
+// - Chat turn (question + response)
+// - Inline suggestion
+
+// Heavy requests (weighted by tokens)
+// - Long document summarization
+// - Multi-entity queries
+// - Skill executions with complex prompts
+```
+
+**Visibility Dashboard (for Org Admins):**
+```
+┌─────────────────────────────────────────────────────────┐
+│ AI Usage - February 2026                    [Export]    │
+├─────────────────────────────────────────────────────────┤
+│ Plan: Professional (100k requests/month)                │
+│                                                         │
+│ Usage: ████████████████░░░░░░░░  67,450 / 100,000      │
+│                                 67% used, 12 days left  │
+│                                                         │
+│ Projected: ~95,000 by month end (within budget ✓)       │
+│                                                         │
+│ By Feature:                      By Team:               │
+│ ├─ Chat interactions  45%       ├─ Investigations  52% │
+│ ├─ Skill executions   30%       ├─ Case Mgmt       28% │
+│ ├─ Document summary   15%       ├─ Policy          12% │
+│ └─ Actions            10%       └─ Other            8% │
+│                                                         │
+│ Top Users:                       Top Skills:            │
+│ 1. Sarah Chen    12,400         1. /case-summary  8,200 │
+│ 2. John Doe       9,800         2. /interview-prep 5,100│
+│                                                         │
+│ [Set Alerts]  [User Limits]  [Feature Controls]         │
+└─────────────────────────────────────────────────────────┘
+```
+
+**Alert Configuration:**
+- Alert at 50% usage → Notify admins
+- Alert at 80% usage → Notify admins + show banner to users
+- Alert at 100% usage → Require admin approval (Starter/Professional)
+- Weekly usage summary emails
+
+**User-Level Controls:**
+- Restrict AI access by role (Investigators, Case Managers, etc.)
+- Per-user monthly caps (optional)
+- Feature restrictions (skill creation, marketplace, AI actions)
+
+**AI Cost-Awareness Behaviors:**
+```
+// When context is expensive
+AI: "This case has extensive history (200+ events). I've
+    loaded the most recent 50. Want me to load more?
+    [Load all] [Search timeframe] [Keep recent only]"
+
+// When approaching user limit
+AI: "You're at 90% of your monthly AI limit. I can help:
+    • [Compact conversation] - Reduce context usage
+    • [Request limit increase] - Send to admin"
+
+// When expensive operation requested
+AI: "Summarizing 150 cases. Options:
+    • By category (5 summaries) - ~500 tokens
+    • Full individual - ~15,000 tokens
+    • Export for offline - No AI cost"
+```
+
+**At-Limit Experience by Tier:**
+
+Starter (hard-ish limit):
+```
+⚠️ AI limit reached. Options:
+• Wait for reset (March 1)
+• Request admin approval
+• Upgrade to Professional
+```
+
+Professional (soft limit with buffer):
+```
+⚠️ Budget exceeded. 20% overage buffer available.
+Current: 102,400 / 100,000 (+2.4% overage)
+Admin notified. AI features remain available.
+```
+
+Enterprise: No interruption, visibility-only dashboard.
+
+**Overage Billing:**
+Organizations can purchase additional AI capacity:
+```
+┌─────────────────────────────────────────────────────────┐
+│ ⚠️ AI budget reached                                    │
+│                                                         │
+│ Your organization has used 100% of this month's AI     │
+│ budget (100,000 requests).                              │
+│                                                         │
+│ Options:                                                │
+│ • Purchase additional capacity: $X per 10k requests     │
+│ • Wait for reset (March 1)                              │
+│ • Upgrade to higher tier                                │
+│                                                         │
+│ [Purchase More]  [Request Admin Approval]  [Upgrade]    │
+└─────────────────────────────────────────────────────────┘
+```
+
+**Pricing Model: Beyond Per-Seat Licensing**
+
+As AI agents increasingly replace human workflows, pricing must evolve beyond traditional per-seat models:
+
+```typescript
+interface PricingModel {
+  // Traditional component (shrinking over time)
+  seatLicenses: {
+    count: number;
+    pricePerSeat: number;
+  };
+
+  // AI consumption component (growing over time)
+  aiConsumption: {
+    includedRequests: number;      // Included in base tier
+    overageRate: number;           // $ per additional request
+    tokenRate?: number;            // $ per 1k tokens (granular)
+  };
+
+  // Value-based component (future)
+  outcomePricing?: {
+    perCaseClosed?: number;        // $ per case resolved
+    perInvestigation?: number;     // $ per investigation completed
+    perReport?: number;            // $ per report generated
+  };
+}
+```
+
+**Pricing Evolution Path:**
+| Phase | Model | Rationale |
+|-------|-------|-----------|
+| **Now** | Seats + AI tier | Familiar to buyers, easy adoption |
+| **Near-term** | Seats + consumption overage | Capture AI-heavy usage fairly |
+| **Future** | Consumption-primary + outcome bonuses | Aligns with "1 human + N agents" reality |
+
+**The "1 Human + N Agents" Scenario:**
+When a customer reduces from 10 investigators to 1 investigator + AI agents:
+- Old model: Revenue drops 90% (9 fewer seats)
+- New model: Revenue maintained via AI consumption or outcome pricing
+
+```
+Traditional Team:           AI-Augmented Team:
+10 investigators            1 investigator + AI agents
+$10k/month (seats)          $2k/month (1 seat) +
+                            $8k/month (AI consumption)
+                            ─────────────────────────
+                            Same value delivered,
+                            same revenue captured
+```
+
+**Consumption Tracking for Billing:**
+```typescript
+interface BillableUsage {
+  organizationId: string;
+  billingPeriod: string;         // '2026-02'
+
+  // Included in tier
+  tierIncludedRequests: number;
+  tierUsedRequests: number;
+
+  // Overage (billable)
+  overageRequests: number;
+  overageTokensIn: number;
+  overageTokensOut: number;
+  overageCost: number;
+
+  // Outcome tracking (future billing)
+  casesClosedWithAI: number;
+  investigationsCompletedWithAI: number;
+  reportsGeneratedWithAI: number;
+}
+```
+
+**Admin Billing Controls:**
+```
+┌─────────────────────────────────────────────────────────┐
+│ AI Billing Settings                                     │
+├─────────────────────────────────────────────────────────┤
+│ Current Plan: Professional                              │
+│ Included: 100,000 requests/month                        │
+│                                                         │
+│ Overage Handling:                                       │
+│ ○ Hard stop at limit (require approval)                 │
+│ ● Auto-purchase overage up to: [$500 ▼] /month         │
+│ ○ Unlimited overage (bill to account)                   │
+│                                                         │
+│ Overage Rate: $0.01 per request                         │
+│ Current Month Overage: $127.40 (12,740 requests)        │
+│                                                         │
+│ [View Invoice Preview]  [Change Plan]                   │
+└─────────────────────────────────────────────────────────┘
+```
+
+**Key Principles:**
+- **Never hard-stop critical work** - Compliance is important; prefer warnings over blocks
+- **Transparency over surprise** - Users and admins always know where they stand
+- **AI helps manage itself** - Suggests compact, warns on expensive ops
+- **Tier = behavior, not just numbers** - Higher tiers get softer limits
+- **Granular controls** - Admins can restrict by role, feature, or user
+- **Value capture evolves** - Pricing model transitions from seats to consumption to outcomes as AI adoption grows
+
+#### AA.19 AI Model Selection Strategy
+
+**Decision:** Task-based automatic model routing with tier-based access to premium models.
+
+**Model Tiers:**
+| Model Tier | Use Cases | Speed | Cost | Example |
+|------------|-----------|-------|------|---------|
+| Fast | Inline suggestions, autocomplete, simple Q&A | <1s | $ | Claude Haiku / GPT-4-mini |
+| Standard | Chat, skill execution, summaries, most work | 2-5s | $$ | Claude Sonnet |
+| Premium | Complex analysis, large documents, nuanced judgment | 5-15s | $$$ | Claude Opus |
+
+**Automatic Routing Rules:**
+```typescript
+interface ModelRoutingRule {
+  taskType: string;
+  defaultModel: 'fast' | 'standard' | 'premium';
+  upgradeConditions?: string[];  // When to use higher tier
+}
+
+const routingRules: ModelRoutingRule[] = [
+  // Fast model (Haiku)
+  { taskType: 'inline_suggestion', defaultModel: 'fast' },
+  { taskType: 'autocomplete', defaultModel: 'fast' },
+  { taskType: 'simple_lookup', defaultModel: 'fast' },
+
+  // Standard model (Sonnet)
+  { taskType: 'chat_response', defaultModel: 'standard' },
+  { taskType: 'skill_execution', defaultModel: 'standard' },
+  { taskType: 'entity_summary', defaultModel: 'standard' },
+  { taskType: 'action_planning', defaultModel: 'standard' },
+
+  // Premium model (Opus) - or upgrade to premium when:
+  {
+    taskType: 'complex_analysis',
+    defaultModel: 'premium',
+    upgradeConditions: [
+      'document_length > 50000 tokens',
+      'cross_entity_count > 20',
+      'requires_nuanced_judgment',
+      'legal_or_regulatory_context',
+    ]
+  },
+  { taskType: 'document_generation', defaultModel: 'standard',
+    upgradeConditions: ['formal_report', 'external_facing'] },
+];
+```
+
+**Tier Access by Plan:**
+| Plan | Fast | Standard | Premium |
+|------|------|----------|---------|
+| Starter | ✓ | ✓ (limited) | ✗ |
+| Professional | ✓ | ✓ | ✓ (quota) |
+| Enterprise | ✓ | ✓ | ✓ (unlimited) |
+
+**User-Visible Model Indicator:**
+```
+┌─────────────────────────────────────────────────────────┐
+│ 🔍 Investigation Assistant          [Context: 48%]     │
+│ Model: Sonnet (Standard)                    [Change ▼] │
+├─────────────────────────────────────────────────────────┤
+│ ...                                                     │
+└─────────────────────────────────────────────────────────┘
+```
+
+**Manual Override (Professional/Enterprise):**
+Users can request premium model for specific tasks:
+```
+User: "Use the best model to analyze this complex case"
+
+AI: "Switching to Opus (Premium) for this analysis.
+    Note: Premium model uses 3x credits.
+    [Continue with Opus] [Stay with Sonnet]"
+```
+
+**Skill-Level Model Hints:**
+Skills can specify model requirements:
+```typescript
+interface Skill {
+  // ... other fields
+  modelHint?: 'fast' | 'standard' | 'premium' | 'auto';
+  modelJustification?: string;  // "Requires nuanced legal analysis"
+}
+```
+
+**Key Principles:**
+- **Invisible by default** - Users don't need to think about models
+- **Right-size automatically** - Fast for simple, premium for complex
+- **Transparency when it matters** - Show model on premium usage
+- **Plan respects access** - Premium only for higher tiers
+- **Cost-aware routing** - Prefer cheaper model when quality equivalent
+
+---
+
+#### AA.20 AI Offline & Degraded Mode
+
+**Decision:** Graceful degradation with clear user communication, offline queue for non-urgent tasks, and fallback behaviors.
+
+**Degradation Levels:**
+| Level | Condition | AI Behavior |
+|-------|-----------|-------------|
+| **Healthy** | All systems normal | Full functionality |
+| **Slow** | API latency >5s | Show loading indicator, suggest simpler queries |
+| **Degraded** | Intermittent failures, >50% error rate | Disable non-essential AI, queue retries |
+| **Offline** | No AI API connectivity | Queue requests, show cached suggestions, manual fallbacks |
+
+**User Communication:**
+```
+Healthy (no indicator)
+
+Slow:
+┌─────────────────────────────────────────────────────────┐
+│ 🔍 Investigation Assistant          [Context: 48%]     │
+│ ⚠️ AI is responding slowly. Simpler queries recommended.│
+└─────────────────────────────────────────────────────────┘
+
+Degraded:
+┌─────────────────────────────────────────────────────────┐
+│ 🔍 Investigation Assistant          [Context: 48%]     │
+│ ⚠️ AI features limited. Some requests may fail.        │
+│ [Check Status]                                          │
+└─────────────────────────────────────────────────────────┘
+
+Offline:
+┌─────────────────────────────────────────────────────────┐
+│ 🔍 Investigation Assistant                    [Offline] │
+│ AI is temporarily unavailable.                          │
+│                                                         │
+│ You can:                                                │
+│ • Continue working manually                             │
+│ • Queue AI requests for later                           │
+│ • Use cached/template responses                         │
+│                                                         │
+│ [Queue for Later]  [Use Template]  [Dismiss]            │
+└─────────────────────────────────────────────────────────┘
+```
+
+**Offline Queue:**
+```typescript
+interface QueuedAIRequest {
+  id: string;
+  userId: string;
+  entityType: string;
+  entityId: string;
+
+  request: {
+    type: 'skill' | 'chat' | 'action';
+    content: string;
+    skillId?: string;
+  };
+
+  queuedAt: DateTime;
+  priority: 'high' | 'normal' | 'low';
+  expiresAt: DateTime;  // Request no longer relevant after this
+
+  status: 'queued' | 'processing' | 'completed' | 'expired' | 'failed';
+  result?: string;
+  notifyOnComplete: boolean;
+}
+```
+
+**Queue UX:**
+```
+User (while offline): "/summarize this case"
+
+AI: "I'm offline, but I can queue this request.
+    When AI is back, I'll summarize Case #1234 and notify you.
+
+    [Queue & Notify Me]  [Cancel]"
+
+--- Later, when AI returns ---
+
+🔔 Notification: "Your queued summary for Case #1234 is ready"
+[View Summary]
+```
+
+**Fallback Behaviors:**
+| Feature | Degraded Fallback | Offline Fallback |
+|---------|-------------------|------------------|
+| Inline suggestions | Disabled | Disabled |
+| Chat | Slower, retry on failure | Queue or template responses |
+| Skills | Retry with backoff | Queue |
+| Actions | Execute without AI confirmation | Manual workflow only |
+| Search | Non-AI search only | Non-AI search only |
+
+**Cached/Template Responses:**
+For common requests, offer pre-built templates when AI unavailable:
+```
+User: "/summarize" (while offline)
+
+AI: "I can't generate a custom summary right now, but here's
+    a template you can fill in:
+
+    [Case Summary Template]
+    Case #: ___
+    Status: ___
+    Key Issues: ___
+    Next Steps: ___
+
+    [Use Template]  [Queue AI Summary Instead]"
+```
+
+**Health Check & Recovery:**
+- Background health checks every 30 seconds when degraded
+- Automatic recovery when API responds
+- Process queued requests in priority order on recovery
+- Notify users of completed queued requests
+
+**Key Principles:**
+- **Never block work** - Users can always continue manually
+- **Transparent status** - Clear indication of AI health
+- **Queue, don't lose** - Important requests survive outages
+- **Graceful recovery** - Automatic processing when back online
+- **Fallbacks available** - Templates and manual workflows always work
+
+---
+
+#### AA.21 AI Analytics & Telemetry
+
+**Decision:** Comprehensive analytics tracking for AI quality improvement, usage optimization, and user experience insights.
+
+**What We Track:**
+
+**1. Usage Metrics:**
+```typescript
+interface AIUsageMetrics {
+  // Volume
+  totalRequests: number;
+  requestsByType: Record<string, number>;  // chat, skill, action
+  requestsByAgent: Record<string, number>; // Investigation, Case, etc.
+
+  // Performance
+  averageLatency: number;
+  p95Latency: number;
+  errorRate: number;
+
+  // Cost
+  totalTokensIn: number;
+  totalTokensOut: number;
+  estimatedCost: number;
+  costByModel: Record<string, number>;
+}
+```
+
+**2. Quality Signals:**
+```typescript
+interface AIQualityMetrics {
+  // User feedback
+  helpfulnessRating: number;      // 1-5 when user rates
+  acceptanceRate: number;         // % of suggestions accepted
+  editRate: number;               // % of AI outputs edited before use
+  undoRate: number;               // % of AI actions undone
+
+  // Implicit signals
+  conversationLength: number;     // Longer = harder problem or poor responses?
+  reformulationRate: number;      // User rephrasing = AI didn't understand
+  abandonmentRate: number;        // Started AI interaction but left
+
+  // Skill-specific
+  skillSuccessRate: Record<string, number>;
+  skillUsageFrequency: Record<string, number>;
+}
+```
+
+**3. Context & Behavior:**
+```typescript
+interface AIBehaviorMetrics {
+  // Context efficiency
+  averageContextUsage: number;    // % of context window used
+  compactFrequency: number;       // How often users compact
+
+  // Feature adoption
+  featureUsageByRole: Record<string, Record<string, number>>;
+  skillAdoptionCurve: TimeSeriesData;
+
+  // Patterns
+  peakUsageHours: number[];
+  commonQueryPatterns: string[];
+  frequentErrorTypes: Record<string, number>;
+}
+```
+
+**User-Visible Feedback:**
+After AI interactions, occasionally prompt for feedback:
+```
+┌─────────────────────────────────────────────────────────┐
+│ Was this helpful?                                       │
+│                                                         │
+│ 👍 Yes    👎 No    [Skip]                                │
+│                                                         │
+│ (Asked occasionally, not every time)                    │
+└─────────────────────────────────────────────────────────┘
+```
+
+**For negative feedback:**
+```
+┌─────────────────────────────────────────────────────────┐
+│ What went wrong?                                        │
+│                                                         │
+│ ○ Didn't understand my question                         │
+│ ○ Response was inaccurate                               │
+│ ○ Too slow                                              │
+│ ○ Didn't do what I expected                             │
+│ ○ Other: _______________                                │
+│                                                         │
+│ [Submit]  [Skip]                                        │
+└─────────────────────────────────────────────────────────┘
+```
+
+**Admin Analytics Dashboard:**
+```
+┌─────────────────────────────────────────────────────────┐
+│ AI Insights - February 2026                             │
+├─────────────────────────────────────────────────────────┤
+│ Quality Score: 4.2/5 ⭐ (↑0.3 from last month)          │
+│                                                         │
+│ ┌─────────────────────────────────────────────────────┐ │
+│ │ Helpfulness Trend                                   │ │
+│ │ ⭐⭐⭐⭐☆ ████████████████████░░░░ 84% positive       │ │
+│ └─────────────────────────────────────────────────────┘ │
+│                                                         │
+│ Top Performing Skills:        Needs Improvement:        │
+│ 1. /case-summary (4.8⭐)      1. /legal-analysis (3.1⭐) │
+│ 2. /interview-prep (4.6⭐)    2. /bulk-assign (3.4⭐)    │
+│                                                         │
+│ Common Issues:                                          │
+│ • 23% of chat abandonments after entity confusion       │
+│ • /translate skill: 15% error rate (API timeout)        │
+│                                                         │
+│ Recommendations:                                        │
+│ • Improve entity confirmation before actions            │
+│ • Add retry logic to translation skill                  │
+│                                                         │
+│ [Export Report]  [Set Alerts]  [Configure Tracking]     │
+└─────────────────────────────────────────────────────────┘
+```
+
+**Privacy & Data Handling:**
+| Data Type | Stored | Retention | Access |
+|-----------|--------|-----------|--------|
+| Usage counts | Yes | Indefinite (aggregated) | Admins |
+| Quality ratings | Yes | 1 year | Admins |
+| Query content | No* | N/A | N/A |
+| Error details | Yes (sanitized) | 90 days | Support |
+
+*Query content NOT stored for analytics. Only used real-time for AI response.
+
+**Improvement Loop:**
+```
+Collect Metrics → Identify Patterns → Update Skills/Prompts → Measure Impact
+       ↑                                                            │
+       └────────────────────────────────────────────────────────────┘
+```
+
+- Weekly automated reports identify underperforming skills
+- Skill authors notified of quality issues
+- Platform skills updated based on aggregate patterns
+- A/B testing for prompt improvements
+
+**Key Principles:**
+- **Privacy first** - Never store raw user queries for analytics
+- **Actionable insights** - Track what helps improve the product
+- **User feedback valued** - Make it easy to report issues
+- **Continuous improvement** - Metrics drive skill/prompt updates
+- **Transparency** - Admins see what we track and why
 
 ---
 
