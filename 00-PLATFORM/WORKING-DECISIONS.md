@@ -3,7 +3,7 @@
 **Document Purpose:** This document captures all product decisions made during discovery sessions. Load this into a new Claude chat to continue where we left off.
 
 **Last Updated:** February 2026
-**Session Coverage:** Platform architecture, RII→Case entity model, Campaigns, Operator Console, Client Platform investigation workflow, permissions, remediation plans, Employee Chatbot, Ethics Portal, Q12-Q16 decisions, Platform Harmonization (workflow engine, navigation, AI experience, audit, integrations, custom fields, API design, saved views, templates, campaigns, imports, notifications, reporting, bulk operations, permissions, localization, MFA, session management)
+**Session Coverage:** Platform architecture, RIU→Case entity model, Campaigns, Operator Console, Client Platform investigation workflow, permissions, remediation plans, Employee Chatbot, Ethics Portal, Q12-Q16 decisions, Platform Harmonization (workflow engine, navigation, AI experience, audit, integrations, custom fields, API design, saved views, templates, campaigns, imports, notifications, reporting, bulk operations, permissions, localization, MFA, session management)
 
 ---
 
@@ -61,23 +61,23 @@ The platform uses a clear separation between **immutable inputs** and **mutable 
 
 | HubSpot Concept | Ethico Concept | What It Does |
 |-----------------|----------------|--------------|
-| Contact | Risk Intelligence Item (RII) | Immutable input - something happened. A report was filed, a form submitted, a disclosure made. |
+| Contact | Risk Intelligence Item (RIU) | Immutable input - something happened. A report was filed, a form submitted, a disclosure made. |
 | Deal | Case | Mutable work container. Has status, assignee, investigations, outcomes. Represents "what we're doing about it." |
-| Association | RII-Case Link | Links RIIs to Cases. Many RIIs can link to one Case. |
+| Association | RIU-Case Link | Links RIUs to Cases. Many RIUs can link to one Case. |
 | Pipeline | Pipeline/Workflow | Defines stages and required actions for different case types |
 | Properties | Custom Fields | Tenant-configurable fields on any entity |
 
 ### The Critical Separation: Input vs. Response
 
 **Risk Intelligence Items are immutable inputs.**
-They represent facts: "On Jan 15, an anonymous caller reported X" or "Employee Jane Doe disclosed a financial interest in Vendor ABC." The RII doesn't change - it's the record of what was received.
+They represent facts: "On Jan 15, an anonymous caller reported X" or "Employee Jane Doe disclosed a financial interest in Vendor ABC." The RIU doesn't change - it's the record of what was received.
 
 **Cases are mutable work containers.**
 They represent the organization's response: "We investigated, found it substantiated, and implemented remediation." Cases have status, assignees, due dates, outcomes.
 
-### RII Types
+### RIU Types
 
-| RII Type | Source | Description |
+| RIU Type | Source | Description |
 |----------|--------|-------------|
 | Hotline Report | Phone call | Called into call center, operator-entered |
 | Web Form Submission | Employee portal | Employee self-service submission |
@@ -88,9 +88,9 @@ They represent the organization's response: "We investigated, found it substanti
 | Chatbot Transcript | Employee portal | AI-guided intake conversation |
 | Survey Response | Campaign | Compliance surveys |
 
-### RII → Case Creation Rules
+### RIU → Case Creation Rules
 
-| RII Type | Default Behavior | Configurable? |
+| RIU Type | Default Behavior | Configurable? |
 |----------|------------------|---------------|
 | Hotline Report | Always creates Case | Yes |
 | Web Form | Always creates Case | Yes |
@@ -101,15 +101,15 @@ They represent the organization's response: "We investigated, found it substanti
 | Chatbot Transcript | Depends on outcome | Yes |
 | Survey Response | Case only if flagged response | Yes |
 
-### Many-to-One: RIIs to Cases
+### Many-to-One: RIUs to Cases
 
-**Critical requirement:** Multiple RIIs can be linked to a single Case.
+**Critical requirement:** Multiple RIUs can be linked to a single Case.
 
 Example: Three hotline calls about the same issue combine into one Case:
 ```
-RII #1: Hotline Report (Jan 10) ──┐
-RII #2: Hotline Report (Jan 12) ──┼──► CASE #100: "Warehouse Safety Investigation"
-RII #3: Hotline Report (Jan 15) ──┘         ├── Investigation A (Safety)
+RIU #1: Hotline Report (Jan 10) ──┐
+RIU #2: Hotline Report (Jan 12) ──┼──► CASE #100: "Warehouse Safety Investigation"
+RIU #3: Hotline Report (Jan 15) ──┘         ├── Investigation A (Safety)
                                             ├── Investigation B (Retaliation)
                                             └── Remediation Plan
 ```
@@ -121,7 +121,7 @@ CASE (work container)
 ├── Basic Info (number, category, severity, status)
 ├── Pipeline Stage (workflow position)
 ├── Assignment (user and/or team)
-├── Linked RIIs (source reports - many allowed)
+├── Linked RIUs (source reports - many allowed)
 ├── Related Subjects (people involved)
 ├── Related Policies (if violation)
 ├── Investigations (children - one to many)
@@ -141,11 +141,11 @@ CASE (work container)
 
 ### Case Merging
 
-**Decision: Support both linking RIIs to existing Cases AND merging Cases**
+**Decision: Support both linking RIUs to existing Cases AND merging Cases**
 
 **Merge behavior:**
 - Merged case becomes read-only tombstone (can still view history)
-- All RIIs, investigations, and content move to primary case
+- All RIUs, investigations, and content move to primary case
 - Merged case redirects to primary if accessed
 - Full audit trail of merge action
 
@@ -153,8 +153,8 @@ CASE (work container)
 
 | Decision | Choice |
 |----------|--------|
-| RII vs. Case | Separate: RII is immutable input, Case is mutable work container |
-| RII-to-Case relationship | Many-to-one (multiple RIIs can link to one Case) |
+| RIU vs. Case | Separate: RIU is immutable input, Case is mutable work container |
+| RIU-to-Case relationship | Many-to-one (multiple RIUs can link to one Case) |
 | Case status | Derived from child investigations (open until all closed), but overridable by admin |
 | Subjects | Linked at Case level, searchable across all cases |
 | Follow-ups | Stored as Interactions, linked to parent Case, don't appear as separate cases |
@@ -187,7 +187,7 @@ CASE (if action required)
 
 ### Campaign Scenarios
 
-| Scenario | Campaign Assignment | RII | Case |
+| Scenario | Campaign Assignment | RIU | Case |
 |----------|---------------------|-----|------|
 | Employee hasn't responded yet | ✓ Pending | ✗ Not yet | ✗ No |
 | Employee responds "No conflicts" | ✓ Completed | ✓ Created (clean) | ✗ No |
@@ -1197,7 +1197,7 @@ features/     # Module-specific components
 
 ## 14. Resolved Decisions Q12-Q16 (February 2026)
 
-These questions were resolved in the February 2026 session during RII→Case architecture refinement.
+These questions were resolved in the February 2026 session during RIU→Case architecture refinement.
 
 ### Q12: Campaign Non-Response Handling ✓
 
@@ -1242,8 +1242,8 @@ Each client can define who has case merge rights. Options include:
 **Decision: Smart inheritance with no-overwrite**
 
 Custom fields follow these rules:
-1. **Auto-match by field name**: When an RII has a custom field, and a Case has a field with the same name, the value copies automatically
-2. **No overwrite**: If the Case field already has data, RII data does not replace it
+1. **Auto-match by field name**: When an RIU has a custom field, and a Case has a field with the same name, the value copies automatically
+2. **No overwrite**: If the Case field already has data, RIU data does not replace it
 3. **Explicit configuration**: Admins can set up additional inheritance rules beyond name-matching
 
 ---
@@ -1252,8 +1252,8 @@ Custom fields follow these rules:
 
 | Term | Definition |
 |------|------------|
-| **RII** | Risk Intelligence Item - immutable input representing something that happened (hotline report, disclosure, attestation, etc.) |
-| **Case** | Mutable work container for tracking the organization's response to one or more RIIs |
+| **RIU** | Risk Intelligence Item - immutable input representing something that happened (hotline report, disclosure, attestation, etc.) |
+| **Case** | Mutable work container for tracking the organization's response to one or more RIUs |
 | **Campaign** | Outbound request for information (disclosure, attestation, survey) sent to employees |
 | **Campaign Assignment** | Individual employee's obligation to respond to a campaign |
 | **Chatbot Conversation** | A conversational session with the AI assistant |
@@ -1265,7 +1265,7 @@ Custom fields follow these rules:
 | **Directive** | Client-specific guidance/script for operators |
 | **Subject** | A person named in a Case (from HRIS or manual) |
 | **Remediation Plan** | Checklist of corrective action steps post-investigation |
-| **Proxy Report** | RII submitted by a manager on behalf of an employee |
+| **Proxy Report** | RIU submitted by a manager on behalf of an employee |
 | **Pipeline** | Workflow stages for case progression |
 | **Tier 1/2/3** | AI response confidence levels determining direct answer vs. escalation |
 | **Ethics Portal** | Unified employee-facing experience layer (public landing, employee portal, manager portal) |
