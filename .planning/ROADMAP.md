@@ -36,18 +36,18 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. All mutations across the platform log to AUDIT_LOG with natural language descriptions queryable by entity
   4. Search queries against Elasticsearch return results from indexed entities within 500ms
   5. Workflow engine can transition entity states according to configurable pipeline definitions
-**Plans**: TBD
+**Plans**: 9 plans in 4 waves
 
 Plans:
-- [ ] 01-01: Event bus setup with @nestjs/event-emitter
-- [ ] 01-02: BullMQ job queue infrastructure with Redis
-- [ ] 01-03: Unified AUDIT_LOG service with natural language descriptions
-- [ ] 01-04: Workflow engine with pipeline/stage/transition models
-- [ ] 01-05: SLA tracking and assignment rules engine
-- [ ] 01-06: Elasticsearch indexing pipeline and search service
-- [ ] 01-07: Form/schema engine for dynamic forms
-- [ ] 01-08: Reporting engine with query builder framework
-- [ ] 01-09: File storage service with Azure Blob integration
+- [ ] 01-01-PLAN.md (Wave 1) - Event bus setup with @nestjs/event-emitter
+- [ ] 01-02-PLAN.md (Wave 2) - BullMQ job queue infrastructure with Redis
+- [ ] 01-03-PLAN.md (Wave 2) - Unified AUDIT_LOG service with natural language descriptions
+- [ ] 01-04-PLAN.md (Wave 3) - Workflow engine with pipeline/stage/transition models
+- [ ] 01-05-PLAN.md (Wave 4) - SLA tracking and assignment rules engine
+- [ ] 01-06-PLAN.md (Wave 3) - Elasticsearch indexing pipeline and search service
+- [ ] 01-07-PLAN.md (Wave 3) - Form/schema engine for dynamic forms
+- [ ] 01-08-PLAN.md (Wave 3) - Reporting engine with query builder framework
+- [ ] 01-09-PLAN.md (Wave 2) - File storage service with Azure Blob integration
 
 ### Phase 2: Demo Tenant & Seed Data
 **Goal**: Create "Acme Co." demo tenant with 3 years of realistic compliance data - the living test bed that proves features work and enables sales demonstrations.
