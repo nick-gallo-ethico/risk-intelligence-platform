@@ -5488,7 +5488,7 @@ export class AITenantIsolation {
 }
 ```
 
-### 10.3 Audit Logging
+### 15.3 Audit Logging
 
 ```typescript
 // apps/backend/src/modules/ai/audit/ai-audit.service.ts
@@ -5562,7 +5562,7 @@ export class AIAuditService {
 
 ## 16. Error Handling
 
-### 11.1 AI Error Types
+### 16.1 AI Error Types
 
 ```typescript
 // apps/backend/src/modules/ai/errors/ai-errors.ts
@@ -5633,7 +5633,7 @@ export class AITimeoutError extends AIError {
 }
 ```
 
-### 11.2 Error Handler
+### 16.2 Error Handler
 
 ```typescript
 // apps/backend/src/modules/ai/errors/error-handler.ts
@@ -5698,7 +5698,7 @@ export class AIErrorHandler {
 
 ## 17. API Specifications
 
-### 12.1 Policy Generation API
+### 17.1 Policy Generation API
 
 ```yaml
 /api/ai/generate:
@@ -5759,7 +5759,7 @@ export class AIErrorHandler {
               type: string
 ```
 
-### 12.2 Bulk Update API
+### 17.2 Bulk Update API
 
 ```yaml
 /api/ai/bulk-update:
@@ -5825,7 +5825,7 @@ export class AIErrorHandler {
         description: Changes applied
 ```
 
-### 12.3 Translation API
+### 17.3 Translation API
 
 ```yaml
 /api/ai/translate:
@@ -5864,7 +5864,7 @@ export class AIErrorHandler {
     summary: Create translation glossary
 ```
 
-### 12.4 Analysis API
+### 17.4 Analysis API
 
 ```yaml
 /api/ai/analyze:
@@ -5911,7 +5911,7 @@ export class AIErrorHandler {
         description: Comparison results
 ```
 
-### 12.5 Usage API
+### 17.5 Usage API
 
 ```yaml
 /api/ai/usage:
@@ -5933,7 +5933,7 @@ export class AIErrorHandler {
         description: Rate limit status
 ```
 
-### 16.6 Auto-Tagging API
+### 17.6 Auto-Tagging API
 
 ```yaml
 /api/ai/auto-tag:
@@ -6026,7 +6026,7 @@ export class AIErrorHandler {
         description: Bulk tagging job started
 ```
 
-### 16.7 Summarization API
+### 17.7 Summarization API
 
 ```yaml
 /api/ai/summarize:
@@ -6092,7 +6092,7 @@ export class AIErrorHandler {
         description: New summary generated
 ```
 
-### 16.8 Quiz Generation API
+### 17.8 Quiz Generation API
 
 ```yaml
 /api/ai/quiz/generate:
@@ -6192,7 +6192,7 @@ export class AIErrorHandler {
         description: Certificate information
 ```
 
-### 16.9 Regulatory Mapping API
+### 17.9 Regulatory Mapping API
 
 ```yaml
 /api/ai/regulatory-mapping/analyze:
@@ -6273,11 +6273,294 @@ export class AIErrorHandler {
                 $ref: '#/components/schemas/PolicySuggestion'
 ```
 
+### 17.10 Agent & Chat API (v3.0)
+
+```yaml
+# Agent Chat API
+/api/ai/chat:
+  post:
+    summary: Send message to AI agent
+    description: Main endpoint for AI conversations. Agent type is determined by current view/context.
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [message]
+            properties:
+              message:
+                type: string
+                description: User's message to the AI
+              agentType:
+                type: string
+                enum: [investigation, case, riu, compliance-manager, policy]
+                description: Override automatic agent selection
+              entityType:
+                type: string
+                description: Current entity type (case, investigation, etc.)
+              entityId:
+                type: string
+                description: Current entity ID
+              sessionId:
+                type: string
+                description: Continue existing session
+              modelOverride:
+                type: string
+                enum: [fast, standard, premium]
+                description: Request specific model tier (professional/enterprise only)
+    responses:
+      200:
+        description: AI response
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AgentChatResponse'
+
+/api/ai/chat/stream:
+  post:
+    summary: Send message with streaming response
+    description: Same as /chat but returns Server-Sent Events stream
+    responses:
+      200:
+        description: Server-sent events stream
+        content:
+          text/event-stream:
+            schema:
+              type: string
+
+# Skills API
+/api/ai/skills:
+  get:
+    summary: Get available skills
+    description: Returns skills available to user in current context
+    parameters:
+      - name: entityType
+        in: query
+        schema:
+          type: string
+      - name: category
+        in: query
+        schema:
+          type: string
+    responses:
+      200:
+        description: Available skills
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/Skill'
+
+  post:
+    summary: Create new skill
+    description: Create personal, team, or org skill (based on permissions)
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/CreateSkillRequest'
+    responses:
+      201:
+        description: Skill created
+
+/api/ai/skills/{skillId}/execute:
+  post:
+    summary: Execute a skill
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              parameters:
+                type: object
+                description: Skill-specific parameters
+              entityType:
+                type: string
+              entityId:
+                type: string
+    responses:
+      200:
+        description: Skill execution result
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SkillExecutionResult'
+
+/api/ai/skills/marketplace:
+  get:
+    summary: Browse skill marketplace
+    parameters:
+      - name: category
+        in: query
+        schema:
+          type: string
+      - name: sort
+        in: query
+        schema:
+          type: string
+          enum: [popular, rating, recent]
+    responses:
+      200:
+        description: Marketplace skills
+
+/api/ai/skills/{skillId}/install:
+  post:
+    summary: Install skill from marketplace
+    responses:
+      200:
+        description: Skill installed
+
+# Actions API
+/api/ai/actions:
+  get:
+    summary: Get available actions
+    description: Returns actions available to AI in current context
+    parameters:
+      - name: entityType
+        in: query
+        schema:
+          type: string
+      - name: entityId
+        in: query
+        schema:
+          type: string
+    responses:
+      200:
+        description: Available actions
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/AIAction'
+
+/api/ai/actions/preview:
+  post:
+    summary: Preview action before execution
+    description: Returns what would happen without executing
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ActionExecutionRequest'
+    responses:
+      200:
+        description: Action preview
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActionPreview'
+
+/api/ai/actions/execute:
+  post:
+    summary: Execute an action
+    description: Execute action (with confirmation token from preview if required)
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ActionExecutionRequest'
+    responses:
+      200:
+        description: Action result
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActionExecutionResult'
+
+/api/ai/actions/undo/{undoRecordId}:
+  post:
+    summary: Undo a previous action
+    description: Reverse action if within undo window
+    responses:
+      200:
+        description: Action undone
+      410:
+        description: Undo window expired
+
+# Context API
+/api/ai/context:
+  get:
+    summary: Get current context breakdown
+    description: Shows what context is loaded and token usage
+    responses:
+      200:
+        description: Context breakdown
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContextBreakdown'
+
+/api/ai/context/compact:
+  post:
+    summary: Compact conversation context
+    description: Summarize conversation to reduce token usage
+    responses:
+      200:
+        description: Context compacted
+
+/api/ai/context/clear:
+  post:
+    summary: Clear conversation context
+    description: Start fresh conversation (keeps entity context)
+    responses:
+      200:
+        description: Context cleared
+
+# Session API
+/api/ai/sessions:
+  get:
+    summary: Get active sessions
+    description: Sessions with saved context/drafts for entities
+    responses:
+      200:
+        description: Active sessions
+
+/api/ai/sessions/{sessionId}/resume:
+  post:
+    summary: Resume a paused session
+    responses:
+      200:
+        description: Session resumed with context
+
+/api/ai/sessions/{sessionId}/notes:
+  post:
+    summary: Save session note
+    description: Pin important context for future sessions
+    requestBody:
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              decisions:
+                type: array
+                items:
+                  type: string
+              pendingActions:
+                type: array
+                items:
+                  type: string
+              draftContent:
+                type: string
+    responses:
+      200:
+        description: Note saved
+```
+
 ---
 
 ## 18. Implementation Guide
 
-### 17.1 Phase 1: Core Infrastructure (Week 1)
+### 18.1 Phase 1: Core Infrastructure (Week 1)
 
 | Day | Task | Deliverable |
 |-----|------|-------------|
@@ -6287,7 +6570,7 @@ export class AIErrorHandler {
 | 4 | Audit logging and security | Compliance infrastructure |
 | 5 | Error handling and retries | Resilient AI calls |
 
-### 17.2 Phase 2: Generation Features (Week 2)
+### 18.2 Phase 2: Generation Features (Week 2)
 
 | Day | Task | Deliverable |
 |-----|------|-------------|
@@ -6296,7 +6579,7 @@ export class AIErrorHandler {
 | 4 | Template integration | Template-based generation |
 | 5 | Generation UI components | Complete generation feature |
 
-### 17.3 Phase 3: Advanced Features (Week 3)
+### 18.3 Phase 3: Advanced Features (Week 3)
 
 | Day | Task | Deliverable |
 |-----|------|-------------|
@@ -6305,7 +6588,7 @@ export class AIErrorHandler {
 | 4 | Analysis service | Policy analysis features |
 | 5 | Usage dashboard | Admin visibility |
 
-### 17.4 Phase 4: AI Enhancement Features (Week 4)
+### 18.4 Phase 4: AI Enhancement Features (Week 4)
 
 | Day | Task | Deliverable |
 |-----|------|-------------|
@@ -6315,7 +6598,7 @@ export class AIErrorHandler {
 | 4 | Regulatory mapping service | Framework compliance analysis |
 | 5 | Integration and testing | End-to-end AI feature testing |
 
-### 17.5 Dependencies
+### 18.5 Dependencies
 
 ```json
 // apps/backend/package.json
@@ -6330,7 +6613,7 @@ export class AIErrorHandler {
 }
 ```
 
-### 17.6 Environment Variables
+### 18.6 Environment Variables
 
 ```bash
 # AI Providers
@@ -6352,7 +6635,7 @@ AI_DEFAULT_RPD=1000
 AI_MAX_COST_PER_DAY=100
 ```
 
-### 17.7 New Prisma Models
+### 18.7 New Prisma Models
 
 ```prisma
 // prisma/schema.prisma additions
@@ -6477,6 +6760,293 @@ model RegulatoryMappingSuggestion {
 }
 ```
 
+### 18.8 AI Agent Prisma Models (v3.0)
+
+```prisma
+// prisma/schema.prisma - AI Agent Architecture models
+
+// Skills Registry (AA.12, AA.16)
+model Skill {
+  id                   String   @id @default(uuid())
+  name                 String
+  description          String
+  scope                String   // 'platform', 'organization', 'team', 'user'
+
+  // Ownership
+  organizationId       String?
+  teamId               String?
+  createdById          String
+
+  // Skill definition
+  promptTemplate       String   @db.Text
+  requiredContext      String[] // ['case', 'investigation']
+  requiredPermissions  String[]
+  requiredFeatures     String[]
+  parameters           Json?    // SkillParameter[]
+  allowedActions       String[] // Action IDs from catalog
+
+  // Model preferences
+  modelHint            String?  // 'fast', 'standard', 'premium', 'auto'
+  modelJustification   String?
+
+  // Versioning
+  version              String   @default("1.0.0")
+  changelog            String?
+  previousVersionId    String?
+
+  // Marketplace
+  publishedAt          DateTime?
+  category             String?
+  tags                 String[]
+  installCount         Int      @default(0)
+  rating               Float?
+  reviewCount          Int      @default(0)
+
+  // Timestamps
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  // Relations
+  organization         Organization? @relation(fields: [organizationId], references: [id])
+  team                 Team?         @relation(fields: [teamId], references: [id])
+  createdBy            User          @relation(fields: [createdById], references: [id])
+  installations        InstalledSkill[]
+  executions           SkillExecution[]
+
+  @@index([scope])
+  @@index([organizationId])
+  @@index([category])
+}
+
+model InstalledSkill {
+  id              String   @id @default(uuid())
+  skillId         String
+  organizationId  String
+  installedById   String
+  installedAt     DateTime @default(now())
+  isActive        Boolean  @default(true)
+
+  skill           Skill        @relation(fields: [skillId], references: [id])
+  organization    Organization @relation(fields: [organizationId], references: [id])
+  installedBy     User         @relation(fields: [installedById], references: [id])
+
+  @@unique([skillId, organizationId])
+}
+
+model SkillExecution {
+  id              String   @id @default(uuid())
+  skillId         String
+  userId          String
+  organizationId  String
+  entityType      String?
+  entityId        String?
+
+  // Execution details
+  parameters      Json?
+  result          Json?    // SkillExecutionResult
+  success         Boolean
+  tokensUsed      Int
+  model           String
+  latencyMs       Int
+
+  // Timestamps
+  executedAt      DateTime @default(now())
+
+  skill           Skill        @relation(fields: [skillId], references: [id])
+  user            User         @relation(fields: [userId], references: [id])
+  organization    Organization @relation(fields: [organizationId], references: [id])
+
+  @@index([organizationId, userId])
+  @@index([skillId])
+}
+
+// Action Undo Records (AA.14)
+model UndoRecord {
+  id              String   @id @default(uuid())
+  actionId        String
+  entityType      String
+  entityId        String
+  userId          String
+  organizationId  String
+
+  // State snapshots
+  previousState   Json
+  newState        Json
+
+  // Timing
+  executedAt      DateTime @default(now())
+  undoExpiresAt   DateTime
+  undoneAt        DateTime?
+
+  // Status
+  status          String   @default("available") // 'available', 'executed', 'expired'
+
+  user            User         @relation(fields: [userId], references: [id])
+  organization    Organization @relation(fields: [organizationId], references: [id])
+
+  @@index([organizationId, entityType, entityId])
+  @@index([undoExpiresAt])
+}
+
+// AI Sessions (AA.13)
+model AISession {
+  id              String   @id @default(uuid())
+  userId          String
+  organizationId  String
+  entityType      String?
+  entityId        String?
+
+  // Session state
+  agentType       String   // 'investigation', 'case', 'riu', etc.
+  contextTokens   Int      @default(0)
+  conversationSummary String? @db.Text
+
+  // Status
+  status          String   @default("active") // 'active', 'paused', 'closed'
+  pausedAt        DateTime?
+  closedAt        DateTime?
+
+  // Timestamps
+  createdAt       DateTime @default(now())
+  lastActivityAt  DateTime @default(now())
+
+  user            User         @relation(fields: [userId], references: [id])
+  organization    Organization @relation(fields: [organizationId], references: [id])
+  notes           SessionNote[]
+
+  @@index([userId, status])
+  @@index([entityType, entityId])
+}
+
+model SessionNote {
+  id              String   @id @default(uuid())
+  sessionId       String
+  entityType      String
+  entityId        String
+
+  // Structured content
+  decisions       String[]
+  pendingActions  String[]
+  draftContent    String?  @db.Text
+  contextSummary  String?  @db.Text
+
+  // Lifecycle
+  status          String   @default("active") // 'active', 'resolved', 'archived'
+  resolvedAt      DateTime?
+
+  // Timestamps
+  createdAt       DateTime @default(now())
+  createdById     String
+
+  session         AISession @relation(fields: [sessionId], references: [id])
+  createdBy       User      @relation(fields: [createdById], references: [id])
+
+  @@index([entityType, entityId])
+  @@index([sessionId])
+}
+
+// AI Conversation Logs (for feedback and improvement)
+model AIConversation {
+  id              String   @id @default(uuid())
+  sessionId       String?
+  userId          String
+  organizationId  String
+  entityType      String?
+  entityId        String?
+
+  // Request
+  agentType       String
+  userMessage     String   @db.Text
+  taskType        String?
+
+  // Response
+  aiResponse      String   @db.Text
+  model           String
+  tokensIn        Int
+  tokensOut       Int
+  latencyMs       Int
+
+  // Actions taken
+  actionsExecuted Json?    // ExecutedAction[]
+
+  // Feedback
+  wasHelpful      Boolean?
+  feedbackReason  String?
+  feedbackAt      DateTime?
+
+  // Timestamps
+  createdAt       DateTime @default(now())
+
+  user            User         @relation(fields: [userId], references: [id])
+  organization    Organization @relation(fields: [organizationId], references: [id])
+
+  @@index([organizationId, userId])
+  @@index([agentType])
+  @@index([wasHelpful])
+}
+
+// Organization AI Context (AA.12)
+model OrganizationAIContext {
+  id                  String   @id @default(uuid())
+  organizationId      String   @unique
+
+  // Context document (like CLAUDE.md)
+  contextDocument     String?  @db.Text
+
+  // Terminology overrides
+  terminology         Json?    // Record<string, string>
+
+  // Style guide
+  styleGuide          String?  @db.Text
+
+  // Business rules
+  businessRules       String[]
+
+  // Timestamps
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  updatedById         String?
+
+  organization        Organization @relation(fields: [organizationId], references: [id])
+  updatedBy           User?        @relation(fields: [updatedById], references: [id])
+}
+
+model TeamAIContext {
+  id                  String   @id @default(uuid())
+  teamId              String   @unique
+  organizationId      String
+
+  // Context document
+  contextDocument     String?  @db.Text
+
+  // Workflow customizations
+  workflows           String[]
+
+  // Timestamps
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  updatedById         String?
+
+  team                Team         @relation(fields: [teamId], references: [id])
+  organization        Organization @relation(fields: [organizationId], references: [id])
+  updatedBy           User?        @relation(fields: [updatedById], references: [id])
+}
+
+model UserAIContext {
+  id                  String   @id @default(uuid())
+  userId              String   @unique
+
+  // Personal context/preferences
+  contextDocument     String?  @db.Text
+
+  // Timestamps
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  user                User @relation(fields: [userId], references: [id])
+}
+```
+
 ---
 
 ## Document History
@@ -6485,6 +7055,7 @@ model RegulatoryMappingSuggestion {
 |---------|------|--------|---------|
 | 1.0 | January 2026 | Architecture Team | Initial specification |
 | 2.0 | January 2026 | Architecture Team | Added AI Auto-Tagging (Section 8), Policy Summarization (Section 9), Quiz Generation (Section 10), Regulatory Mapping Assistance (Section 11), extended prompt builder, new API endpoints, new Prisma models |
+| 3.0 | February 2026 | Architecture Team | **AI Agent Architecture** (Section 3): Added Context Hierarchy Schema (3.1), Skills Registry Interface (3.2), Action Framework (3.3), Model Selection Strategy (3.4), Scoped Agents (3.5). Expanded AICompletionRequest interface with contextHierarchy, availableActions, activeSkills, agentType, modelOverride, taskType, and sessionContext fields. Added agent-related operation types. Aligned with WORKING-DECISIONS.md sections AA.1-AA.21. |
 
 ---
 
