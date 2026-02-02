@@ -2572,20 +2572,580 @@ Healthcare clients (HIPAA) require 15-minute idle timeouts; retail can allow 8 h
 
 The platform AI is not just a chatbot - it's an **action agent** that can execute operations on behalf of users, similar to how Claude Code operates for developers.
 
-#### AA.1 Core Capability
+## AI Architecture Decisions
 
-**Decision:** AI can take real actions in the platform, not just answer questions
+### AA.1: Tiered AI Interaction Model
 
-**Action Categories:**
-| Category | Examples | Confirm Required? |
-|----------|----------|-------------------|
-| **Read/Summarize** | "Summarize this case", "Show overdue tasks" | No |
-| **Draft/Propose** | "Draft follow-up emails to managers", "Suggest remediation steps" | Preview only |
-| **Execute (Low Risk)** | "Add a note to this case", "Create a task for myself" | Yes (single click) |
-| **Execute (High Risk)** | "Send emails to 15 managers", "Close this investigation" | Yes (explicit confirm + preview) |
-| **Modify Settings** | "Update the approval workflow", "Change notification rules" | Yes (admin only, full preview) |
+**Decision:** Three-tier interaction model with progressive depth.
 
-#### AA.2 Context Awareness
+**Rationale:** Balances AI accessibility with screen real estate. Users get help where they are without mandatory chat panels consuming space.
+
+| Tier | Interaction | Trigger | Example |
+|------|-------------|---------|---------|
+| **Tier 1: Inline** | Ghost text, autocomplete | Typing in fields | Tab to accept suggested case title |
+| **Tier 2: Contextual** | Popover/tooltip panels | Hover, click, or keyboard shortcut | "Summarize this" button on case detail |
+| **Tier 3: Slide-over** | Full conversational drawer | User-initiated or complex tasks | Multi-step investigation planning |
+
+**Key Behaviors:**
+- Tier 3 slide-over is **optional**, not ever-present by default
+- User can pin slide-over open if they prefer persistent chat
+- Context automatically scopes to current view/entity
+- Keyboard shortcut (Cmd+K or similar) opens appropriate tier
+
+**Interface:**
+```typescript
+type AIInteractionTier = 'inline' | 'contextual' | 'slideOver';
+
+interface AIInteraction {
+  tier: AIInteractionTier;
+  contextEntityType: string;
+  contextEntityId: string;
+  userPrefersPinned: boolean;
+}
+```
+
+### AA.2: AI Action Discovery (Static Catalog with Dynamic Filtering)
+
+**Decision:** Maintain a static, auditable catalog of all AI actions. Filter dynamically at runtime based on permissions, features, context, and workflow state.
+
+**Rationale:**
+- Security/compliance teams can audit what AI can do
+- No "magic" actions appearing unexpectedly
+- Dynamic filtering keeps UI clean without limiting capability
+
+**Catalog Structure:**
+```typescript
+interface AIAction {
+  id: string;                    // 'summarize_case', 'draft_finding', etc.
+  name: string;                  // Human-readable name
+  description: string;           // What it does
+  category: AIActionCategory;    // 'analysis', 'drafting', 'automation', etc.
+
+  // Filtering criteria
+  requiredPermissions: Permission[];
+  requiredFeatureFlags: string[];
+  applicableEntityTypes: string[];  // ['case', 'investigation', 'riu']
+  applicableWorkflowStates?: string[];
+
+  // Execution
+  inputSchema: JSONSchema;
+  outputType: 'text' | 'structured' | 'action';
+  requiresConfirmation: boolean;
+  reversibility: 'full' | 'soft' | 'none';
+}
+```
+
+**Filtering Logic:**
+```typescript
+function getAvailableActions(context: AIContext): AIAction[] {
+  return AI_ACTION_CATALOG.filter(action =>
+    hasPermissions(context.user, action.requiredPermissions) &&
+    hasFeatureFlags(context.org, action.requiredFeatureFlags) &&
+    action.applicableEntityTypes.includes(context.entityType) &&
+    matchesWorkflowState(context, action.applicableWorkflowStates)
+  );
+}
+```
+
+### AA.3: AI Multi-Step Actions (Preview-then-Execute)
+
+**Decision:** AI prepares actions invisibly, presents editable preview, user confirms with single action.
+
+**Rationale:**
+- No "working..." spinners blocking the UI
+- User sees exactly what will happen before it happens
+- Single confirmation reduces friction while maintaining control
+- Editable previews let users refine without starting over
+
+**Pattern:**
+```
+User triggers action → AI prepares (background) → Preview appears → User edits/confirms → Execute
+```
+
+**Preview Interface:**
+```typescript
+interface ActionPreview {
+  actionId: string;
+  preparedAt: Date;
+
+  // What will happen
+  changes: ProposedChange[];
+
+  // User control
+  isEditable: boolean;
+  editableFields: string[];
+
+  // Execution
+  confirmLabel: string;        // "Update Case", "Send Email", etc.
+  cancelLabel: string;
+  estimatedDuration?: string;  // Only if > 5 seconds
+}
+
+interface ProposedChange {
+  entityType: string;
+  entityId: string;
+  field: string;
+  currentValue: any;
+  proposedValue: any;
+  changeType: 'create' | 'update' | 'delete';
+}
+```
+
+**UI Behavior:**
+- Preview appears as modal or inline expansion (context-dependent)
+- Changes highlighted with diff-style visualization
+- "Edit" opens inline editing of proposed values
+- "Confirm" executes all changes atomically
+- "Cancel" discards with no side effects
+
+### AA.4: Owned Narratives (User-Owned AI-Assisted Summaries)
+
+**Decision:** Users own their narrative fields (summaries, findings, notes). AI assists through three modes: Generate, Suggest, Augment.
+
+**Rationale:**
+- Summaries are professional work product, not disposable AI output
+- Users build on AI suggestions rather than accepting/rejecting wholesale
+- "Conversations over time" - each interaction improves the narrative
+- Preserves accountability (user owns final content)
+
+**Interaction Modes:**
+
+| Mode | Trigger | Behavior |
+|------|---------|----------|
+| Generate | Empty field + user request | AI creates initial draft from entity data |
+| Suggest | User highlights text | AI offers alternatives/improvements for selection |
+| Augment | User types partial content | AI extends or enhances existing content |
+
+**Interface:**
+```typescript
+interface EntityNarrative {
+  entityType: string;
+  entityId: string;
+  fieldName: string;              // 'summary', 'finding', 'notes'
+
+  // Content
+  content: string;                // Current user-owned content
+  lastEditedBy: string;           // Always a user, never 'AI'
+  lastEditedAt: Date;
+
+  // AI assistance tracking
+  aiContributionHistory: AIContribution[];
+}
+
+interface AIContribution {
+  mode: 'generate' | 'suggest' | 'augment';
+  timestamp: Date;
+  aiModelVersion: string;
+  promptSummary: string;          // What user asked for
+  aiOutput: string;               // What AI provided
+  userAccepted: boolean;          // Did user use it?
+  userModified: boolean;          // Did user edit it?
+}
+```
+
+**Key Principle:** The `lastEditedBy` field is ALWAYS a user ID, never "AI" or "system". AI contributes, users own.
+
+### AA.5: Context Hierarchy (Claude.md Pattern)
+
+**Decision:** Five-level context hierarchy loaded automatically based on user and navigation state.
+
+**Rationale:**
+- Mirrors Claude Code's CLAUDE.md pattern that works well
+- AI understands organizational conventions without repetition
+- Users can customize AI behavior at appropriate levels
+- Reduces prompt engineering burden on end users
+
+**Hierarchy:**
+```
+Platform Context (Ethico defaults)
+    → overrides/extends
+Organization Context (customer-specific)
+    → overrides/extends
+Team Context (department-specific)
+    → overrides/extends
+User Context (personal preferences)
+    → combined with
+Entity Context (current case/investigation/etc.)
+```
+
+**Context Structure:**
+```typescript
+interface AIContext {
+  // Hierarchy levels (each can override previous)
+  platform: PlatformContext;      // Ethico defaults, compliance rules
+  organization: OrgContext;       // Customer terminology, policies
+  team: TeamContext;              // Department-specific guidance
+  user: UserContext;              // Personal preferences, shortcuts
+  entity: EntityContext;          // Current case, investigation, etc.
+
+  // Computed
+  effectiveContext: MergedContext;  // Flattened with overrides applied
+}
+
+interface OrgContext {
+  organizationId: string;
+
+  // Custom terminology
+  terminology: Record<string, string>;  // {'case': 'incident', etc.}
+
+  // Behavioral rules
+  aiGuidelines: string;           // "Always mention HIPAA when healthcare"
+  prohibitedTopics: string[];     // Topics AI should not discuss
+  requiredDisclosures: string[];  // Must include in AI outputs
+
+  // Preferences
+  defaultTone: 'formal' | 'professional' | 'conversational';
+  defaultLanguage: string;
+}
+```
+
+**Loading Behavior:**
+- Platform context: Bundled with application
+- Org context: Loaded on login, cached
+- Team context: Loaded when team assignment known
+- User context: Loaded on login, user-editable in settings
+- Entity context: Loaded on navigation to entity
+
+### AA.6: Native Skills System
+
+**Decision:** Hierarchical skills system with four levels (Platform, Organization, Team, User) plus community marketplace.
+
+**Rationale:**
+- Skills are reusable AI workflows users can invoke
+- Hierarchy allows customization at appropriate levels
+- Marketplace enables community sharing and "getting good at" the platform
+- Mirrors Claude Code's slash commands but with enterprise controls
+
+**Skill Hierarchy:**
+
+| Level | Examples | Who Creates | Who Uses |
+|-------|----------|-------------|----------|
+| Platform | /summarize, /translate, /find-similar | Ethico | Everyone |
+| Organization | /our-investigation-checklist, /hipaa-review | Org admins | Org members |
+| Team | /hr-case-template, /legal-review-request | Team leads | Team members |
+| User | /my-weekly-report, /quick-triage | Individual users | Just that user |
+
+**Skill Interface:**
+```typescript
+interface Skill {
+  id: string;
+  name: string;                   // Display name
+  command: string;                // Slash command trigger
+  description: string;
+
+  // Hierarchy
+  level: 'platform' | 'organization' | 'team' | 'user';
+  ownerId: string;                // orgId, teamId, or userId
+
+  // Definition
+  promptTemplate: string;         // The AI prompt with {{variables}}
+  inputSchema: JSONSchema;        // Required inputs
+  outputFormat: 'text' | 'structured' | 'action';
+
+  // Marketplace (if shared)
+  isPublished: boolean;
+  marketplaceMetadata?: {
+    author: string;
+    downloads: number;
+    rating: number;
+    category: string;
+    tags: string[];
+    price: 'free' | number;       // Future: paid skills
+  };
+}
+```
+
+**Marketplace Features:**
+- Browse by category, popularity, rating
+- "Install" org/team skills from marketplace
+- Fork and customize existing skills
+- Version control for skill updates
+- Usage analytics (which skills are actually used)
+
+**Discovery:**
+- Type `/` to see available skills (filtered by hierarchy)
+- Fuzzy search across skill names and descriptions
+- Recently used skills appear first
+- AI can suggest relevant skills based on context
+
+### AA.7: Session Notes & Pause/Resume
+
+**Decision:** Capture structured session notes (not raw transcripts) for pause/resume functionality.
+
+**Rationale:**
+- Raw chat logs are noisy and consume context
+- Structured notes capture intent and state
+- Enables seamless handoff between sessions
+- Avoids "where were we?" repetition
+
+**Session Note Structure:**
+```typescript
+interface SessionNote {
+  sessionId: string;
+  userId: string;
+  entityType: string;
+  entityId: string;
+
+  // Captured state
+  createdAt: Date;
+  pauseReason?: string;           // User's note on why pausing
+
+  // Structured context (not raw transcript)
+  workingHypothesis?: string;     // Current theory/direction
+  completedSteps: string[];       // What's been done
+  pendingQuestions: string[];     // Unresolved questions
+  nextSteps: string[];            // Planned actions
+  keyDecisions: Decision[];       // Decisions made with rationale
+  relevantFindings: string[];     // Important discoveries
+
+  // Resume helpers
+  suggestedResumePrompt: string;  // AI-generated "continue from..."
+  entityStateSnapshot: object;    // Key field values at pause time
+}
+
+interface Decision {
+  decision: string;
+  rationale: string;
+  madeAt: Date;
+  alternatives: string[];         // What was considered
+}
+```
+
+**Pause Behavior:**
+1. User triggers pause (button or `/pause`)
+2. AI summarizes session into structured note
+3. User can edit/add pause reason
+4. Note saved to entity's session history
+
+**Resume Behavior:**
+1. User returns to entity (or triggers `/resume`)
+2. System loads most recent session note
+3. AI presents: "Last session: [summary]. Continue with [suggested next step]?"
+4. User confirms or redirects
+
+### AA.8: Undo Trail (Reversibility Framework)
+
+**Decision:** Classify all AI actions by reversibility. Provide time-limited undo for reversible actions.
+
+**Rationale:**
+- Users need confidence to use AI features
+- Not all actions are equally reversible
+- Clear reversibility signals inform user decisions
+- Undo trail provides safety net without blocking workflows
+
+**Reversibility Classification:**
+
+| Level | Description | Undo Window | Examples |
+|-------|-------------|-------------|----------|
+| Full | Complete restore possible | 24 hours | Field updates, status changes |
+| Soft | Partial restore, may need manual cleanup | 1 hour | Email drafts (before send), assignments |
+| None | Cannot be undone | N/A | Sent emails, external API calls, published reports |
+
+**Undo Interface:**
+```typescript
+interface UndoRecord {
+  id: string;
+  actionId: string;
+  userId: string;
+  organizationId: string;
+
+  // What was done
+  actionType: string;
+  entityType: string;
+  entityId: string;
+  timestamp: Date;
+
+  // Reversibility
+  reversibility: 'full' | 'soft' | 'none';
+  undoDeadline?: Date;            // When undo expires
+
+  // Restore data
+  previousState: object;          // Snapshot before action
+  currentState: object;           // State after action
+
+  // Status
+  undoneAt?: Date;
+  undoneBy?: string;
+}
+```
+
+**UI Behavior:**
+- Toast after AI actions: "Case updated. [Undo]" (with countdown for time-limited)
+- Undo history accessible in entity activity log
+- "None" reversibility actions show warning before confirmation
+- Expired undo options show "Manual restore required" with instructions
+
+### AA.9: Context Window Visibility
+
+**Decision:** Expose context window state to users with compact/clear controls.
+
+**Rationale:**
+- Power users want to understand what AI "knows"
+- Transparency builds trust
+- Compact/clear controls prevent context pollution
+- Mirrors Claude Code's `/context` command
+
+**Visibility Features:**
+```typescript
+interface ContextWindowState {
+  // Usage
+  tokensUsed: number;
+  tokenLimit: number;
+  percentUsed: number;
+
+  // Breakdown
+  segments: ContextSegment[];
+
+  // User controls
+  canCompact: boolean;
+  canClear: boolean;
+  lastCompactedAt?: Date;
+}
+
+interface ContextSegment {
+  type: 'system' | 'orgContext' | 'entityContext' | 'conversation' | 'skills';
+  name: string;
+  tokens: number;
+  isCompressible: boolean;
+  isRemovable: boolean;
+}
+```
+
+**UI Components:**
+- **Indicator:** Small token usage badge (e.g., "42%" or progress ring)
+- **Expanded View:** Breakdown by segment type (click indicator to expand)
+- **Compact Button:** Summarizes conversation history, preserves essential context
+- **Clear Button:** Resets to base context (with confirmation)
+
+**Compact Behavior:**
+1. AI summarizes conversation into key points
+2. Raw messages replaced with summary
+3. Decisions and outcomes preserved
+4. Entity context unchanged
+
+### AA.10: Scoped Agents
+
+**Decision:** Different AI agent configurations for different platform views. Each agent has specialized context, skills, and personality.
+
+**Rationale:**
+- Investigation work needs different AI than dashboard overview
+- Specialized agents can be optimized for their domain
+- Reduces cognitive load (agent knows what view needs)
+- Enables role-specific AI experiences
+
+**Agent Types:**
+
+| Agent | View/Context | Specialization |
+|-------|--------------|----------------|
+| Triage Agent | Case inbox, new RIUs | Quick categorization, routing suggestions, duplicate detection |
+| Investigation Agent | Active investigation | Evidence analysis, interview prep, finding synthesis |
+| Case Manager Agent | Case detail view | Status tracking, stakeholder communication, timeline management |
+| Compliance Manager Agent | Dashboard, reports | Trend analysis, risk patterns, executive summaries |
+| Policy Agent | Policy editor | Drafting, compliance checking, translation |
+| Admin Agent | Settings, configuration | Setup assistance, best practices, troubleshooting |
+
+**Agent Interface:**
+```typescript
+interface AgentType {
+  id: string;
+  name: string;
+  description: string;
+
+  // When this agent activates
+  activationViews: string[];      // Routes/views that trigger this agent
+  activationEntityTypes: string[];
+
+  // Agent configuration
+  systemPrompt: string;           // Agent's base personality/instructions
+  availableSkills: string[];      // Subset of skills this agent can use
+  contextPriorities: string[];    // What context to emphasize
+
+  // UI customization
+  avatarIcon: string;
+  accentColor: string;
+  greeting: string;               // What agent says when activated
+}
+```
+
+**Activation Behavior:**
+- Agent switches automatically based on navigation
+- Subtle indicator shows current agent (icon + name)
+- Agent greets user with context-aware message on switch
+- User can manually switch agents if needed (power user feature)
+
+### AA.11: Rate Limiting & Cost Management
+
+**Decision:** Tiered usage limits with visibility dashboards, soft limits, and graceful degradation.
+
+**Rationale:**
+- AI costs are real and need management
+- Visibility prevents surprise bills
+- Soft limits don't block critical work
+- Tier structure aligns cost with value
+
+**Tier Structure:**
+
+| Tier | Monthly AI Tokens | Overage | Target Customer |
+|------|-------------------|---------|-----------------|
+| Starter | 10,000 | Hard limit | Small orgs, trials |
+| Professional | 100,000 | Soft limit + $X/1K | Mid-market |
+| Enterprise | Unlimited | Included | Large orgs |
+
+**Soft Limit Behavior (Professional):**
+- At 80%: Dashboard warning, admin notification
+- At 100%: User-facing notice, work continues
+- At 150%: Requires admin acknowledgment to continue
+- Monthly reset, no rollover
+
+**Visibility Dashboard:**
+```typescript
+interface AIUsageDashboard {
+  // Current period
+  periodStart: Date;
+  periodEnd: Date;
+  tokensUsed: number;
+  tokenLimit: number;
+  percentUsed: number;
+
+  // Breakdown
+  usageByUser: UserUsage[];
+  usageByFeature: FeatureUsage[];
+  usageByDay: DailyUsage[];
+
+  // Projections
+  projectedEndOfMonth: number;
+  projectedOverage: number;
+
+  // Alerts
+  alertThresholds: number[];      // [80, 100, 150]
+  alertRecipients: string[];
+}
+```
+
+**User-Level Controls:**
+- Per-user monthly limits (optional)
+- Per-user daily limits (optional)
+- Feature-specific limits (e.g., "translation limited to 1000 tokens/doc")
+- Admin can grant temporary limit increases
+
+**AI Cost-Awareness:**
+When approaching limits, AI adjusts behavior:
+- Suggests more efficient alternatives
+- Offers to use smaller models for simple tasks
+- Prioritizes high-value actions
+- Caches and reuses where possible
+
+**At-Limit Experience by Tier:**
+
+| Tier | At Hard/Soft Limit |
+|------|-------------------|
+| Starter | "Upgrade to continue" modal with tier comparison |
+| Professional | "Limit reached" notice with one-click admin approval |
+| Enterprise | N/A (unlimited) |
+
+---
+
+*End of Working Decisions Document*
 
 **Decision:** AI context adapts based on what user is viewing
 
