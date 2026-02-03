@@ -26,6 +26,9 @@ import { CampaignsModule } from "./modules/campaigns/campaigns.module";
 import { AssociationsModule } from "./modules/associations/associations.module";
 import { RiusModule } from "./modules/rius/rius.module";
 import { AiModule } from "./modules/ai/ai.module";
+import { CustomPropertiesModule } from "./modules/custom-properties/custom-properties.module";
+import { SavedViewsModule } from "./modules/saved-views/saved-views.module";
+import { RemediationModule } from "./modules/remediation/remediation.module";
 import { ActivityModule } from "./common/activity.module";
 import { StorageModule } from "./common/storage.module";
 import { TenantMiddleware } from "./common/middleware/tenant.middleware";
@@ -83,6 +86,9 @@ import configuration from "./config/configuration";
     AssociationsModule, // First-class association entities (Person-Case, Person-RIU, Case-Case, Person-Person)
     RiusModule, // RIU management with immutability enforcement and anonymous access codes
     AiModule, // AI infrastructure - Claude API client with streaming support
+    CustomPropertiesModule, // Tenant-configurable custom fields for Cases, Investigations, Persons, RIUs
+    SavedViewsModule, // Saved filter views for Cases, RIUs, Investigations, Persons, Campaigns
+    RemediationModule, // Post-investigation remediation plans and step tracking
     HealthModule,
   ],
   controllers: [],
