@@ -25,7 +25,10 @@
     "db:seed": "ts-node prisma/seed.ts",
     "db:studio": "prisma studio",
     "db:generate": "prisma generate",
-    "db:reset": "prisma migrate reset"
+    "db:reset": "prisma migrate reset",
+    "seed:reset": "ts-node prisma/reset-demo.ts",
+    "demo:cleanup": "ts-node prisma/reset-demo.ts --cleanup",
+    "demo:stats": "ts-node prisma/reset-demo.ts --stats"
   },
   "dependencies": {
     "@azure/identity": "^4.13.0",
