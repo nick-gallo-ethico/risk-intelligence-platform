@@ -240,6 +240,11 @@ Recent decisions affecting current work:
 - 05-07: Skill factory pattern with dependency injection for providerRegistry, rateLimiter, promptService
 - 05-07: zodToJsonSchema helper converts Zod schemas to JSON Schema for Claude tools
 - 05-07: Skills check rate limits before execution and record usage after completion
+- 05-10: Actions use factory pattern for Prisma dependency injection
+- 05-10: Undo windows per CONTEXT.md: QUICK 30s, STANDARD 5min, SIGNIFICANT 30min, EXTENDED 24h
+- 05-10: add-note action supports investigation only (CaseNote model TBD)
+- 05-10: Status transitions validated via state machine pattern in canExecute
+- 05-10: AiAction model tracks all AI mutations for audit and undo
 - 05-11: WebSocket gateway at /ai namespace for streaming chat
 - 05-11: Auth context extracted from handshake (organizationId, userId, userRole, permissions)
 - 05-11: Action categories: QUICK (30s), STANDARD (5m), CRITICAL (30m), EXTERNAL (no undo)
