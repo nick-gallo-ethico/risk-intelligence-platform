@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 4 of 11 (Core Entities)
-Plan: 7 of 10 in current phase (Wave 3 in progress)
+Plan: 8 of 10 in current phase (Wave 3 in progress)
 Status: In progress
-Last activity: 2026-02-03 - Completed 04-06-PLAN.md (Anonymous Access Code Operations)
+Last activity: 2026-02-03 - Completed 04-03-PLAN.md (HRIS Sync Service)
 
-Progress: [================================] 32% (32 of ~99 total plans)
+Progress: [=================================] 33% (33 of ~99 total plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 27
+- Total plans completed: 28
 - Average duration: 13 min
-- Total execution time: 5.35 hours
+- Total execution time: 5.5 hours
 
 **By Phase:**
 
@@ -30,11 +30,11 @@ Progress: [================================] 32% (32 of ~99 total plans)
 | 01-foundation | 9 | 123 min | 14 min |
 | 02-demo-tenant-seed-data | 7 | 84 min | 12 min |
 | 03-authentication-sso | 8 | 69 min | 9 min |
-| 04-core-entities | 5 | 60 min | 12 min |
+| 04-core-entities | 6 | 71 min | 12 min |
 
 **Recent Trend:**
-- Last 5 plans: 04-06 (9 min), 04-07 (14 min), 04-02 (10 min), 04-04 (18 min), 04-01 (9 min)
-- Trend: Phase 4 Core Entities Wave 3 in progress. Anonymous access code operations added.
+- Last 5 plans: 04-03 (11 min), 04-06 (9 min), 04-07 (14 min), 04-02 (10 min), 04-04 (18 min)
+- Trend: Phase 4 Core Entities Wave 3 in progress. HRIS sync service added.
 
 *Updated after each plan completion*
 
@@ -186,6 +186,11 @@ Recent decisions affecting current work:
 - 04-06: Rate limits: status 10/min, messages 20/min, send 5/min
 - 04-06: Outbound messages (TO reporter) marked as read when retrieved via getMessages()
 - 04-06: Event case.message.received emitted on anonymous message send
+- 04-03: Merge.dev unified API abstracts 50+ HRIS systems via MergeClientService
+- 04-03: Topological sort ensures managers created before their reports
+- 04-03: Sync is idempotent - running twice produces same result
+- 04-03: Error resilient sync - collects errors without stopping, emits completion event
+- 04-03: Account token per organization for multi-tenant HRIS connections
 
 ### Pending Todos
 
@@ -199,6 +204,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-03T09:46:05Z
-Stopped at: Completed 04-06-PLAN.md (Anonymous Access Code Operations)
+Last session: 2026-02-03T09:48:50Z
+Stopped at: Completed 04-03-PLAN.md (HRIS Sync Service)
 Resume file: None
