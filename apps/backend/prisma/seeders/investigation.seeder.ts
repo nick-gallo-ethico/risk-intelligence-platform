@@ -131,7 +131,7 @@ interface InvestigationRecord {
 // Findings Generation
 // ============================================
 
-const FINDINGS_SUMMARIES = {
+const FINDINGS_SUMMARIES: Record<InvestigationOutcome, string[]> = {
   [InvestigationOutcome.SUBSTANTIATED]: [
     'Investigation found sufficient evidence to support the allegations.',
     'Witness statements and documentary evidence corroborate the reported concerns.',
@@ -152,6 +152,27 @@ const FINDINGS_SUMMARIES = {
     'Evidence is insufficient to support or refute the allegations.',
     'Due to passage of time, key evidence is no longer available.',
     'Parties provided contradictory statements that could not be reconciled.',
+  ],
+  [InvestigationOutcome.POLICY_VIOLATION]: [
+    'Investigation confirmed a policy violation occurred.',
+    'Evidence clearly establishes a violation of company policy.',
+    'The reported conduct constitutes a policy violation.',
+    'Policy violation confirmed with documented evidence.',
+    'Investigation substantiated the policy violation allegation.',
+  ],
+  [InvestigationOutcome.NO_VIOLATION]: [
+    'Investigation found no policy violation occurred.',
+    'The reported conduct does not constitute a policy violation.',
+    'No violation of company policy was identified.',
+    'Evidence does not support a finding of policy violation.',
+    'Investigation determined no policy violation took place.',
+  ],
+  [InvestigationOutcome.INSUFFICIENT_EVIDENCE]: [
+    'Insufficient evidence to make a determination.',
+    'Available evidence is not sufficient to reach a conclusion.',
+    'More evidence would be needed to substantiate the allegations.',
+    'The investigation was unable to gather sufficient evidence.',
+    'Due to lack of evidence, no determination could be made.',
   ],
 };
 

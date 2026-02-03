@@ -1,10 +1,21 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, CaseStatus, InvestigationStatus, InvestigationOutcome } from '@prisma/client';
 import { seedCategories } from './seeders/category.seeder';
 import { seedLocations, LOCATIONS } from './seeders/location.seeder';
 import { seedDivisions } from './seeders/division.seeder';
 import { seedEmployees } from './seeders/employee.seeder';
 import { seedDemoUsers } from './seeders/user.seeder';
 import { seedRius } from './seeders/riu.seeder';
+import { seedCases, createRecentUnreadCases } from './seeders/case.seeder';
+import { seedInvestigations, getInvestigationStats } from './seeders/investigation.seeder';
+import {
+  generateRepeatSubjectPool,
+  generateManagerHotspots,
+  generateRetaliationPatterns,
+  FLAGSHIP_CASES,
+  getFlagshipStats,
+  getRetaliationStats,
+  getHotspotStats,
+} from './seeders/patterns';
 
 const prisma = new PrismaClient();
 
@@ -96,15 +107,33 @@ async function main() {
     }
   }
 
+  // Build category name to ID map for pattern generation
+  const categoryNameToIdMap = new Map<string, string>();
+  for (const cat of categories) {
+    categoryNameToIdMap.set(cat.name, cat.id);
+  }
+
   // Build employee map with locationId for regional timestamp adjustment
   const employees = await prisma.employee.findMany({
     where: { organizationId: organization.id },
     select: { id: true, email: true, locationId: true },
   });
   const employeeMap = new Map<string, { id: string; locationId: string | null }>();
+  const employeeIds: string[] = [];
   for (const emp of employees) {
     employeeMap.set(emp.email, { id: emp.id, locationId: emp.locationId });
+    employeeIds.push(emp.id);
   }
+
+  // Get manager IDs for hotspot pattern
+  const managers = await prisma.employee.findMany({
+    where: {
+      organizationId: organization.id,
+      jobLevel: { in: ['MANAGER', 'DIRECTOR', 'VP'] },
+    },
+    select: { id: true },
+  });
+  const managerIds = managers.map((m) => m.id);
 
   // ========================================
   // Seed RIUs (5,000 historical intake records)
@@ -120,9 +149,100 @@ async function main() {
   );
   console.log(`Created ${riuIds.length} RIUs (${linkedIncidents.filter((i) => i.riusCreated > 0).length} linked incidents)`);
 
+  // ========================================
+  // Generate patterns for realistic data
+  // ========================================
+  console.log('\nGenerating data patterns...');
+
+  // Generate repeat subjects pool (~50 employees appearing in multiple cases)
+  const categoryIds = Array.from(categoryNameToIdMap.values());
+  const repeatSubjects = generateRepeatSubjectPool(employeeIds, categoryIds, 50);
+  console.log(`  Repeat subjects pool: ${repeatSubjects.length} employees`);
+
+  // Generate manager hotspots (~15 managers with elevated team case rates)
+  const managerHotspots = generateManagerHotspots(managerIds, 15, categoryNameToIdMap);
+  console.log(`  Manager hotspots: ${managerHotspots.length} managers`);
+
+  // Flagship cases are predefined
+  console.log(`  Flagship cases: ${FLAGSHIP_CASES.length} named cases`);
+
+  // ========================================
+  // Seed Cases (4,500 from RIUs with patterns)
+  // ========================================
+  console.log('\nSeeding Cases (4,500 from RIUs with patterns)...');
+  const { caseIds, caseData } = await seedCases(
+    prisma,
+    organization.id,
+    riuIds,
+    userIds,
+    employeeIds,
+    categoryMap,
+    {
+      repeatSubjects,
+      managerHotspots,
+      flagshipCases: FLAGSHIP_CASES,
+    },
+  );
+  console.log(`Created ${caseIds.length} Cases (target: 4,500)`);
+
+  // Create recent unread cases for live triage demo
+  const recentUnreadCount = await createRecentUnreadCases(prisma, organization.id, caseIds);
+  console.log(`  Recent unread cases: ${recentUnreadCount}`);
+
+  // Generate retaliation patterns from closed cases
+  const closedCaseIds = caseData
+    .filter((c) => c.status === CaseStatus.CLOSED)
+    .map((c) => c.id);
+  const retaliationChains = generateRetaliationPatterns(closedCaseIds, 50);
+  console.log(`  Retaliation patterns planned: ${retaliationChains.length}`);
+
+  // ========================================
+  // Seed Investigations (~5,000)
+  // ========================================
+  console.log('\nSeeding Investigations (~5,000 with outcomes and timelines)...');
+  await seedInvestigations(
+    prisma,
+    organization.id,
+    caseData.map((c) => ({
+      id: c.id,
+      status: c.status,
+      createdAt: c.createdAt,
+      categoryId: c.categoryId,
+      priority: c.priority,
+      isFlagship: c.isFlagship,
+    })),
+    userIds,
+  );
+
+  // ========================================
+  // Calculate Demo Metrics
+  // ========================================
+  console.log('\nCalculating demo metrics...');
+
+  // Case metrics
+  const totalCases = await prisma.case.count({ where: { organizationId: organization.id } });
+  const openCases = await prisma.case.count({
+    where: { organizationId: organization.id, status: { in: [CaseStatus.NEW, CaseStatus.OPEN] } },
+  });
+  const closedCases = await prisma.case.count({
+    where: { organizationId: organization.id, status: CaseStatus.CLOSED },
+  });
+  const openCasePercent = Math.round((openCases / totalCases) * 100);
+
+  // Investigation metrics
+  const investigationStats = await getInvestigationStats(prisma, organization.id);
+
+  // Pattern metrics
+  const flagshipStats = getFlagshipStats();
+  const hotspotStats = getHotspotStats(managerHotspots);
+  const retaliationStats = getRetaliationStats(retaliationChains);
+
   const duration = Math.round((Date.now() - startTime) / 1000);
   console.log(`\nSeed completed successfully in ${duration} seconds!`);
 
+  // ========================================
+  // Demo Data Summary
+  // ========================================
   console.log('\n========================================');
   console.log('DEMO DATA SUMMARY');
   console.log('========================================');
@@ -137,6 +257,28 @@ async function main() {
   console.log(`Demo Users: ${demoUserIds.length}`);
   console.log(`RIUs: ${riuIds.length}`);
   console.log(`Linked Incidents: ${linkedIncidents.filter((i) => i.riusCreated > 0).length}`);
+
+  console.log('\n--- CASES ---');
+  console.log(`Total Cases: ${totalCases} (target: 4,500)`);
+  console.log(`Open Cases: ${openCases} (~${openCasePercent}%, target: ~10%)`);
+  console.log(`Closed Cases: ${closedCases} (~${100 - openCasePercent}%, target: ~90%)`);
+  console.log(`Recent Unread: ${recentUnreadCount}`);
+
+  console.log('\n--- INVESTIGATIONS ---');
+  console.log(`Total Investigations: ${investigationStats.total} (target: ~5,000)`);
+  console.log(`Open Investigations: ${investigationStats.open}`);
+  console.log(`Closed Investigations: ${investigationStats.closed}`);
+  console.log(`Substantiation Rate: ${investigationStats.substantiationRate}% (target: ~60%)`);
+  console.log(`Avg Duration: ${investigationStats.avgDuration} days (target: <22)`);
+
+  console.log('\n--- PATTERNS ---');
+  console.log(`Repeat Subjects: ${repeatSubjects.length} employees in 2-5 cases each`);
+  console.log(`Manager Hotspots: ${hotspotStats.totalHotspots} managers with ${hotspotStats.avgTeamCaseRate}x case rate`);
+  console.log(`Retaliation Chains: ${retaliationStats.total} follow-up cases planned`);
+  console.log(`Flagship Cases: ${flagshipStats.total} (${flagshipStats.open} open, ${flagshipStats.closed} closed)`);
+  console.log(`  - With CCO Escalation: ${flagshipStats.withEscalation}`);
+  console.log(`  - With External Party: ${flagshipStats.withExternalParty}`);
+  console.log(`  - Avg Risk Score: ${flagshipStats.avgRiskScore}`);
 
   console.log('\n========================================');
   console.log('DEMO CREDENTIALS');
