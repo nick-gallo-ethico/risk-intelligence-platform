@@ -1,26 +1,31 @@
-import { Injectable, Logger, OnModuleInit } from "@nestjs/common";
-import { ActionDefinition, ActionCategory } from "./action.types";
+import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { PrismaService } from '../../prisma/prisma.service';
+import { ActionDefinition, ActionCategory } from './action.types';
+import { createAddNoteAction } from './actions/add-note.action';
+import { createChangeStatusAction } from './actions/change-status.action';
 
 /**
  * ActionCatalog manages the registry of available actions.
  *
- * Actions are operations that modify data with preview and confirmation.
+ * Actions are mutations with permission validation, preview capability, and undo support.
  * The catalog provides:
- * - Action registration
- * - Permission-based filtering
+ * - Action registration at module initialization
+ * - Permission-based filtering for available actions
  * - Entity-type filtering
- * - Category grouping
+ * - Category-based preview requirements
+ *
+ * Built-in actions are registered via factory functions that receive PrismaService.
  *
  * Usage:
  * ```typescript
  * // Get actions for an entity
  * const actions = catalog.getAvailableActions({
  *   entityType: 'case',
- *   userPermissions: ['case:update', 'case:assign'],
+ *   userPermissions: ['cases:update', 'notes:create'],
  * });
  *
  * // Check if action requires preview
- * const needsPreview = catalog.requiresPreview('assign-case');
+ * const needsPreview = catalog.requiresPreview('change-status');
  * ```
  */
 @Injectable()
@@ -28,9 +33,13 @@ export class ActionCatalog implements OnModuleInit {
   private readonly logger = new Logger(ActionCatalog.name);
   private readonly actions = new Map<string, ActionDefinition>();
 
+  constructor(private readonly prisma: PrismaService) {}
+
   onModuleInit() {
-    // Actions will be registered by domain modules
-    // e.g., CaseModule registers case actions
+    // Register built-in actions with Prisma dependency
+    this.registerAction(createAddNoteAction(this.prisma));
+    this.registerAction(createChangeStatusAction(this.prisma));
+
     this.logger.log(
       `ActionCatalog initialized with ${this.actions.size} actions`,
     );
@@ -66,25 +75,22 @@ export class ActionCatalog implements OnModuleInit {
    * @returns Array of available action definitions
    */
   getAvailableActions(params: {
-    entityType?: string;
+    entityType: string;
     userPermissions: string[];
     category?: ActionCategory;
   }): ActionDefinition[] {
     return Array.from(this.actions.values()).filter((action) => {
-      // Filter by entity type
-      if (
-        params.entityType &&
-        !action.entityTypes.includes(params.entityType)
-      ) {
+      // Check entity type
+      if (!action.entityTypes.includes(params.entityType)) {
         return false;
       }
 
-      // Filter by category
+      // Check category filter
       if (params.category && action.category !== params.category) {
         return false;
       }
 
-      // Filter by permissions
+      // Check permissions
       return action.requiredPermissions.every((p) =>
         params.userPermissions.includes(p),
       );
@@ -92,26 +98,29 @@ export class ActionCatalog implements OnModuleInit {
   }
 
   /**
-   * Check if an action requires preview.
-   * Per CONTEXT.md:
-   * - QUICK actions: no preview needed
-   * - STANDARD actions: preview recommended
-   * - CRITICAL/EXTERNAL actions: preview required
+   * List all registered action IDs.
+   *
+   * @returns Array of action IDs
+   */
+  listActions(): string[] {
+    return Array.from(this.actions.keys());
+  }
+
+  /**
+   * Check if an action requires preview before execution.
+   * Per CONTEXT.md: QUICK actions don't need preview, others do.
    *
    * @param actionId - Action identifier
-   * @returns true if preview is recommended/required
+   * @returns true if preview is required or action not found
    */
   requiresPreview(actionId: string): boolean {
     const action = this.actions.get(actionId);
     if (!action) return true;
-
-    // Quick actions don't need preview
-    if (action.category === ActionCategory.QUICK) {
-      return false;
-    }
-
-    // All other categories benefit from preview
-    return true;
+    return (
+      action.category === ActionCategory.STANDARD ||
+      action.category === ActionCategory.CRITICAL ||
+      action.category === ActionCategory.EXTERNAL
+    );
   }
 
   /**
@@ -137,18 +146,9 @@ export class ActionCatalog implements OnModuleInit {
   }
 
   /**
-   * List all registered action IDs.
-   *
-   * @returns Array of action IDs
-   */
-  listActions(): string[] {
-    return Array.from(this.actions.keys());
-  }
-
-  /**
    * Get actions grouped by category.
    *
-   * @returns Object with arrays of actions per category
+   * @returns Record mapping categories to action arrays
    */
   getActionsByCategory(): Record<ActionCategory, ActionDefinition[]> {
     const result: Record<ActionCategory, ActionDefinition[]> = {
