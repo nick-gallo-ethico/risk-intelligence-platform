@@ -674,6 +674,9 @@ async function flushCaseBatch(
       updatedAt: c.updatedAt,
       createdById: c.createdById,
       updatedById: c.updatedById,
+      // Demo reset support: mark as immutable base data
+      isBaseData: true,
+      demoUserSessionId: null,
     })),
     skipDuplicates: true,
   });

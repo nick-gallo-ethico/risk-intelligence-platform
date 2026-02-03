@@ -619,6 +619,9 @@ async function flushInvestigationBatch(
       updatedAt: inv.updatedAt,
       createdById: inv.createdById,
       updatedById: inv.updatedById,
+      // Demo reset support: mark as immutable base data
+      isBaseData: true,
+      demoUserSessionId: null,
     })),
     skipDuplicates: true,
   });

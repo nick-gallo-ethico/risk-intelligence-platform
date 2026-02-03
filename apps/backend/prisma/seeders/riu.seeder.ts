@@ -772,6 +772,9 @@ export async function seedRius(
         customFields: riu.customFields ? JSON.parse(JSON.stringify(riu.customFields)) : undefined,
         createdAt: riu.createdAt,
         createdById: riu.createdById,
+        // Demo reset support: mark as immutable base data
+        isBaseData: true,
+        demoUserSessionId: null,
       })),
       skipDuplicates: true,
     });
