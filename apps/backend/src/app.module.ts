@@ -29,6 +29,7 @@ import { AiModule } from "./modules/ai/ai.module";
 import { CustomPropertiesModule } from "./modules/custom-properties/custom-properties.module";
 import { SavedViewsModule } from "./modules/saved-views/saved-views.module";
 import { RemediationModule } from "./modules/remediation/remediation.module";
+import { MessagingModule } from "./modules/messaging/messaging.module";
 import { ActivityModule } from "./common/activity.module";
 import { StorageModule } from "./common/storage.module";
 import { TenantMiddleware } from "./common/middleware/tenant.middleware";
@@ -89,6 +90,7 @@ import configuration from "./config/configuration";
     CustomPropertiesModule, // Tenant-configurable custom fields for Cases, Investigations, Persons, RIUs
     SavedViewsModule, // Saved filter views for Cases, RIUs, Investigations, Persons, Campaigns
     RemediationModule, // Post-investigation remediation plans and step tracking
+    MessagingModule, // Two-way anonymous messaging with PII detection
     HealthModule,
   ],
   controllers: [],
@@ -102,10 +104,10 @@ import configuration from "./config/configuration";
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    // Apply tenant middleware to all routes except health check, auth, and admin
+    // Apply tenant middleware to all routes except health check, auth, public endpoints, and admin
     consumer
       .apply(TenantMiddleware)
-      .exclude("health", "api/v1/auth/(.*)", "admin/(.*)")
+      .exclude("health", "api/v1/auth/(.*)", "api/v1/public/(.*)", "admin/(.*)")
       .forRoutes("*");
   }
 }
