@@ -133,6 +133,11 @@ Recent decisions affecting current work:
 - 03-04: SSO user lookup order: SSO ID first, then email, then JIT provision
 - 03-04: Single SSO provider per user - prevents confusion about which SSO to use
 - 03-04: SSO config endpoints require SYSTEM_ADMIN role
+- 03-05: Use "common" endpoint for multi-tenant Azure AD (any tenant can authenticate)
+- 03-05: Extract email from profile._json with fallback: email > preferred_username > upn
+- 03-05: Use profile.oid as stable SSO ID (Azure object identifier)
+- 03-05: passport-azure-ad deprecated but functional - MSAL migration tracked for future
+- 03-05: createSsoSession() in AuthService shared by all SSO callback handlers
 - 03-07: Use @node-saml/passport-saml v5+ (not deprecated passport-saml) for CVE-2022-39299 fix
 - 03-07: Tenant slug in URL path for multi-tenant SAML routing (/saml/:tenant)
 - 03-07: 60-second clock skew tolerance for IdP compatibility
