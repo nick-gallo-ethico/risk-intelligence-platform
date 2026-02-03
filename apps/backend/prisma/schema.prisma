@@ -3042,3 +3042,106 @@ model AiMessage {
   @@index([conversationId, createdAt])
   @@map("ai_messages")
 }
+
+// ===========================================
+// AI Context Files
+// ===========================================
+
+/// AiContextFile stores CLAUDE.md-like context files for organizations and users.
+/// Platform context is stored in code; org/user context is stored in database.
+/// Context files enable organization-specific brand voice, terminology, and custom rules.
+model AiContextFile {
+  id             String  @id @default(uuid())
+  organizationId String? @map("organization_id") // null = platform level (but stored in code)
+  userId         String? @map("user_id") // null = org-level, set = user-level
+
+  // Context file content
+  name        String // Display name
+  content     String  @db.Text // Markdown content (like CLAUDE.md)
+  description String?
+
+  // Scope
+  scope  String  @default("org") // 'org', 'team', 'user'
+  teamId String? @map("team_id") // For team-scoped context
+
+  // Metadata
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([organizationId, userId, name])
+  @@index([organizationId, scope, isActive])
+  @@index([userId, isActive])
+  @@map("ai_context_files")
+}
+
+// ===========================================
+// AI Usage Tracking
+// ===========================================
+
+/// AiUsage tracks token consumption per organization for billing and analytics.
+/// Each record represents a single AI API call with its token counts.
+model AiUsage {
+  id              String   @id @default(uuid())
+  organizationId  String   @map("organization_id")
+  userId          String?  @map("user_id") // User who triggered the AI call
+
+  // Token counts
+  inputTokens     Int      @map("input_tokens")
+  outputTokens    Int      @map("output_tokens")
+  cacheReadTokens Int      @default(0) @map("cache_read_tokens")
+  cacheWriteTokens Int     @default(0) @map("cache_write_tokens")
+
+  // Request metadata
+  model           String   // Model used (e.g., 'claude-sonnet-4-5')
+  provider        String   @default("claude") // Provider name
+  featureType     String?  @map("feature_type") // e.g., 'summary', 'note-cleanup', 'chat'
+  entityType      String?  @map("entity_type") // Entity context (case, investigation)
+  entityId        String?  @map("entity_id")
+
+  // Timing
+  durationMs      Int?     @map("duration_ms") // Request duration in milliseconds
+  timestamp       DateTime @default(now())
+
+  @@index([organizationId, timestamp])
+  @@index([organizationId, featureType])
+  @@index([userId, timestamp])
+  @@map("ai_usage")
+}
+
+/// PromptTemplate stores versioned prompt templates.
+/// Allows A/B testing, rollback, and organization-specific overrides.
+model PromptTemplate {
+  id             String   @id @default(uuid())
+  organizationId String?  @map("organization_id") // null = platform default
+  name           String   // e.g., 'system/investigation-agent', 'skills/summarize'
+  version        Int      @default(1)
+  content        String   @db.Text // Handlebars template content
+  description    String?
+  isActive       Boolean  @default(true) @map("is_active")
+  variables      Json?    // Schema for expected variables
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  @@unique([organizationId, name, version])
+  @@index([organizationId, name, isActive])
+  @@index([name, isActive])
+  @@map("prompt_templates")
+}
+
+/// AiRateLimit stores per-organization rate limit configuration.
+/// Allows customizing limits per customer tier.
+model AiRateLimit {
+  id               String @id @default(uuid())
+  organizationId   String @unique @map("organization_id")
+
+  requestsPerMinute Int    @default(60) @map("requests_per_minute")
+  tokensPerMinute   Int    @default(100000) @map("tokens_per_minute")
+  requestsPerDay    Int    @default(10000) @map("requests_per_day")
+  tokensPerDay      Int    @default(5000000) @map("tokens_per_day")
+
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  @@map("ai_rate_limits")
+}
