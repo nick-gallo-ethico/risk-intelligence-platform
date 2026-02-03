@@ -9,6 +9,7 @@ import {
   Prisma,
   RiskIntelligenceUnit,
   RiuStatus,
+  RiuType,
   AuditEntityType,
 } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
@@ -18,6 +19,15 @@ import {
   IMMUTABLE_RIU_FIELDS,
   getImmutableFieldsInObject,
 } from './types/riu.types';
+import {
+  HotlineRiuService,
+  CreateHotlineExtensionDto,
+  DisclosureRiuService,
+  CreateDisclosureExtensionDto,
+  ThresholdConfig,
+  WebFormRiuService,
+  CreateWebFormExtensionDto,
+} from './extensions';
 
 /**
  * Service for managing Risk Intelligence Units (RIUs).
@@ -38,6 +48,9 @@ export class RiusService {
     private prisma: PrismaService,
     private readonly activityService: ActivityService,
     private readonly eventEmitter: EventEmitter2,
+    private readonly hotlineRiuService: HotlineRiuService,
+    private readonly disclosureRiuService: DisclosureRiuService,
+    private readonly webFormRiuService: WebFormRiuService,
   ) {}
 
   /**
@@ -414,6 +427,98 @@ export class RiusService {
     });
 
     return updated;
+  }
+
+  /**
+   * Returns a single RIU by ID with its type-specific extension.
+   * Includes the appropriate extension based on RIU type.
+   */
+  async findOneWithExtension(
+    id: string,
+    organizationId: string,
+  ): Promise<RiskIntelligenceUnit & {
+    hotlineExtension?: unknown;
+    disclosureExtension?: unknown;
+    webFormExtension?: unknown;
+  }> {
+    const riu = await this.prisma.riskIntelligenceUnit.findFirst({
+      where: {
+        id,
+        organizationId,
+      },
+      include: {
+        createdBy: {
+          select: { id: true, firstName: true, lastName: true, email: true },
+        },
+        category: {
+          select: { id: true, name: true, code: true },
+        },
+        caseAssociations: {
+          include: {
+            case: {
+              select: { id: true, referenceNumber: true, status: true },
+            },
+          },
+        },
+        hotlineExtension: true,
+        disclosureExtension: true,
+        webFormExtension: true,
+      },
+    });
+
+    if (!riu) {
+      throw new NotFoundException(`RIU with ID ${id} not found`);
+    }
+
+    return riu;
+  }
+
+  /**
+   * Creates a type-specific extension for an RIU based on its type.
+   * Factory method that routes to the appropriate extension service.
+   *
+   * @param riuId - The RIU ID
+   * @param type - The RIU type
+   * @param extensionData - Type-specific extension data
+   * @param organizationId - The organization ID
+   * @param thresholdConfig - Optional threshold config for disclosures
+   */
+  async createExtension(
+    riuId: string,
+    type: RiuType,
+    extensionData: CreateHotlineExtensionDto | CreateDisclosureExtensionDto | CreateWebFormExtensionDto,
+    organizationId: string,
+    thresholdConfig?: ThresholdConfig,
+  ): Promise<unknown> {
+    switch (type) {
+      case RiuType.HOTLINE_REPORT:
+        return this.hotlineRiuService.createExtension(
+          riuId,
+          extensionData as CreateHotlineExtensionDto,
+          organizationId,
+        );
+
+      case RiuType.DISCLOSURE_RESPONSE:
+        return this.disclosureRiuService.createExtension(
+          riuId,
+          extensionData as CreateDisclosureExtensionDto,
+          organizationId,
+          thresholdConfig,
+        );
+
+      case RiuType.WEB_FORM_SUBMISSION:
+        return this.webFormRiuService.createExtension(
+          riuId,
+          extensionData as CreateWebFormExtensionDto,
+          organizationId,
+        );
+
+      default:
+        this.logger.debug(
+          `No extension required for RIU type ${type}`,
+        );
+        return null;
+    }
   }
 
   /**
