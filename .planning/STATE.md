@@ -10,28 +10,28 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 2 of 11 (Demo Tenant & Seed Data)
-Plan: 3 of 7 in current phase (02-03 complete, 02-04, 02-05, 02-07 pending)
+Plan: 4 of 7 in current phase (02-04 complete, 02-05, 02-07 pending)
 Status: In progress
-Last activity: 2026-02-03 - Completed 02-03-PLAN.md (Organization Structure Seeder)
+Last activity: 2026-02-03 - Completed 02-04-PLAN.md (RIU Seeder)
 
-Progress: [================    ] 16% (16 of ~99 total plans)
+Progress: [=================   ] 17% (17 of ~99 total plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 13
+- Total plans completed: 14
 - Average duration: 13 min
-- Total execution time: 2.9 hours
+- Total execution time: 3.0 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01-foundation | 9 | 123 min | 14 min |
-| 02-demo-tenant-seed-data | 4 | 49 min | 12 min |
+| 02-demo-tenant-seed-data | 5 | 58 min | 12 min |
 
 **Recent Trend:**
-- Last 5 plans: 02-03 (18 min), 02-06 (11 min), 02-02 (8 min), 02-01 (12 min), 01-05 (12 min)
+- Last 5 plans: 02-04 (9 min), 02-03 (18 min), 02-06 (11 min), 02-02 (8 min), 02-01 (12 min)
 - Trend: Phase 2 seed data plans executing at ~12 min avg
 
 *Updated after each plan completion*
@@ -103,6 +103,10 @@ Recent decisions affecting current work:
 - 02-03: Employee batch insert (500/batch) for 20K performance
 - 02-03: Division work modes: Healthcare=onsite, Tech=remote, Retail/Energy=hybrid
 - 02-03: Multi-language workforce: region-appropriate language distribution
+- 02-04: Seasonality spikes: post-holiday (1.4x), Q1 reorg (1.3x), policy changes (1.35x)
+- 02-04: Category-based anonymity: retaliation 70%, harassment 55%, COI 25%
+- 02-04: ~5% linked incidents with 2-4 reporters for case consolidation demos
+- 02-04: Edge cases at fixed indices: 100-149 long, 200-299 unicode, 500-519 boundary, 1000-1009 minimal
 
 ### Pending Todos
 
@@ -116,6 +120,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-03T07:09:00Z
-Stopped at: Completed 02-03-PLAN.md (Organization Structure Seeder)
+Last session: 2026-02-03T07:17:00Z
+Stopped at: Completed 02-04-PLAN.md (RIU Seeder)
 Resume file: None
