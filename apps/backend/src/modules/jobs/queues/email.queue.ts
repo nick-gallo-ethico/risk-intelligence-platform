@@ -5,13 +5,13 @@
  * Higher priority (2) since emails are often time-sensitive.
  * Exponential backoff: 1s, 2s, 4s
  */
-export const EMAIL_QUEUE_NAME = 'email';
+export const EMAIL_QUEUE_NAME = "email";
 
 export const EMAIL_QUEUE_OPTIONS = {
   defaultJobOptions: {
     attempts: 3,
     backoff: {
-      type: 'exponential' as const,
+      type: "exponential" as const,
       delay: 1000, // 1s, 2s, 4s
     },
     priority: 2, // Higher priority than general tasks

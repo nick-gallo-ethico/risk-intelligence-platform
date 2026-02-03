@@ -8,7 +8,11 @@ import {
   CaseStatusChangedEvent,
   CaseAssignedEvent,
 } from "../../events/events";
-import { AuditEntityType, AuditActionCategory, ActorType } from "@prisma/client";
+import {
+  AuditEntityType,
+  AuditActionCategory,
+  ActorType,
+} from "@prisma/client";
 
 /**
  * Event handler for Case audit logging.

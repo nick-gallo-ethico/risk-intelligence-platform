@@ -1,4 +1,4 @@
 /**
  * Job types barrel export
  */
-export * from './job-data.types';
+export * from "./job-data.types";

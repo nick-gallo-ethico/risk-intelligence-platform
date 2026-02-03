@@ -7,7 +7,11 @@ import {
   InvestigationStatusChangedEvent,
   InvestigationAssignedEvent,
 } from "../../events/events";
-import { AuditEntityType, AuditActionCategory, ActorType } from "@prisma/client";
+import {
+  AuditEntityType,
+  AuditActionCategory,
+  ActorType,
+} from "@prisma/client";
 
 /**
  * Event handler for Investigation audit logging.

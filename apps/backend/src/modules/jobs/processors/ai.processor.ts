@@ -1,8 +1,8 @@
-import { Processor, WorkerHost, OnWorkerEvent } from '@nestjs/bullmq';
-import { Logger } from '@nestjs/common';
-import { Job } from 'bullmq';
-import { AI_QUEUE_NAME } from '../queues/ai.queue';
-import { AiJobData } from '../types/job-data.types';
+import { Processor, WorkerHost, OnWorkerEvent } from "@nestjs/bullmq";
+import { Logger } from "@nestjs/common";
+import { Job } from "bullmq";
+import { AI_QUEUE_NAME } from "../queues/ai.queue";
+import { AiJobData } from "../types/job-data.types";
 
 /**
  * AI Processing Queue Worker
@@ -26,13 +26,13 @@ export class AiProcessor extends WorkerHost {
     );
 
     switch (job.data.type) {
-      case 'generate-summary':
+      case "generate-summary":
         return this.generateSummary(job.data);
-      case 'translate':
+      case "translate":
         return this.translate(job.data);
-      case 'categorize':
+      case "categorize":
         return this.categorize(job.data);
-      case 'note-cleanup':
+      case "note-cleanup":
         return this.noteCleanup(job.data);
       default:
         throw new Error(`Unknown AI job type: ${(job.data as AiJobData).type}`);
@@ -44,7 +44,7 @@ export class AiProcessor extends WorkerHost {
     this.logger.log(
       `Would generate summary for ${data.entityType}:${data.entityId}`,
     );
-    return { summary: 'AI summary placeholder' };
+    return { summary: "AI summary placeholder" };
   }
 
   private async translate(
@@ -52,29 +52,29 @@ export class AiProcessor extends WorkerHost {
   ): Promise<{ translation: string; targetLanguage: string }> {
     this.logger.log(`Would translate to ${data.targetLanguage}`);
     return {
-      translation: 'Translation placeholder',
-      targetLanguage: data.targetLanguage || 'en',
+      translation: "Translation placeholder",
+      targetLanguage: data.targetLanguage || "en",
     };
   }
 
   private async categorize(data: AiJobData): Promise<{ categoryId: string }> {
     this.logger.log(`Would categorize ${data.entityType}:${data.entityId}`);
-    return { categoryId: 'placeholder-category' };
+    return { categoryId: "placeholder-category" };
   }
 
   private async noteCleanup(
     data: AiJobData,
   ): Promise<{ cleanedContent: string }> {
     this.logger.log(`Would clean up notes for ${data.entityId}`);
-    return { cleanedContent: data.content || '' };
+    return { cleanedContent: data.content || "" };
   }
 
-  @OnWorkerEvent('completed')
+  @OnWorkerEvent("completed")
   onCompleted(job: Job<AiJobData>) {
     this.logger.log(`AI job ${job.id} completed successfully`);
   }
 
-  @OnWorkerEvent('failed')
+  @OnWorkerEvent("failed")
   onFailed(job: Job<AiJobData>, error: Error) {
     this.logger.error(
       `AI job ${job.id} failed after ${job.attemptsMade} attempts: ${error.message}`,

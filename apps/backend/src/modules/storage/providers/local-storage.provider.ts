@@ -204,10 +204,7 @@ export class LocalStorageProvider implements StorageProvider, OnModuleInit {
   private async cleanupEmptyDirectories(directory: string): Promise<void> {
     try {
       // Don't delete above base path
-      if (
-        !directory.startsWith(this.basePath) ||
-        directory === this.basePath
-      ) {
+      if (!directory.startsWith(this.basePath) || directory === this.basePath) {
         return;
       }
 

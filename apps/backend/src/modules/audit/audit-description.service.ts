@@ -35,7 +35,9 @@ export class AuditDescriptionService {
     const newAssignee = await this.getActorName(event.newAssigneeId);
 
     if (event.previousAssigneeId) {
-      const previousAssignee = await this.getActorName(event.previousAssigneeId);
+      const previousAssignee = await this.getActorName(
+        event.previousAssigneeId,
+      );
       return `${actor} reassigned case from ${previousAssignee} to ${newAssignee}`;
     }
     return `${actor} assigned case to ${newAssignee}`;
@@ -49,7 +51,9 @@ export class AuditDescriptionService {
     rationale?: string;
   }): Promise<string> {
     const actor = await this.getActorName(event.actorUserId);
-    const caseRef = event.referenceNumber ? ` for case ${event.referenceNumber}` : "";
+    const caseRef = event.referenceNumber
+      ? ` for case ${event.referenceNumber}`
+      : "";
     const base = `${actor} changed case status from ${event.previousStatus} to ${event.newStatus}${caseRef}`;
     return event.rationale ? `${base}: "${event.rationale}"` : base;
   }

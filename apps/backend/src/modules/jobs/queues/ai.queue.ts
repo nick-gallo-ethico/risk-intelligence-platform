@@ -5,13 +5,13 @@
  * Higher retry count (5) due to potential API rate limiting.
  * Exponential backoff: 2s, 4s, 8s, 16s, 32s
  */
-export const AI_QUEUE_NAME = 'ai-processing';
+export const AI_QUEUE_NAME = "ai-processing";
 
 export const AI_QUEUE_OPTIONS = {
   defaultJobOptions: {
     attempts: 5, // AI calls get more retries (rate limiting, transient failures)
     backoff: {
-      type: 'exponential' as const,
+      type: "exponential" as const,
       delay: 2000, // 2s, 4s, 8s, 16s, 32s
     },
     removeOnComplete: {

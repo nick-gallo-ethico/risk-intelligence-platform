@@ -89,7 +89,9 @@ export class AzureBlobProvider implements StorageProvider, OnModuleInit {
   private getContainerName(organizationId: string): string {
     // Azure container names: lowercase letters, numbers, hyphens only
     // Must be 3-63 characters, start with letter or number
-    const sanitizedOrgId = organizationId.toLowerCase().replace(/[^a-z0-9-]/g, "");
+    const sanitizedOrgId = organizationId
+      .toLowerCase()
+      .replace(/[^a-z0-9-]/g, "");
     return `${this.containerPrefix}-org-${sanitizedOrgId}`.substring(0, 63);
   }
 

@@ -1,8 +1,8 @@
-import { Processor, WorkerHost, OnWorkerEvent } from '@nestjs/bullmq';
-import { Logger } from '@nestjs/common';
-import { Job } from 'bullmq';
-import { EMAIL_QUEUE_NAME } from '../queues/email.queue';
-import { EmailJobData } from '../types/job-data.types';
+import { Processor, WorkerHost, OnWorkerEvent } from "@nestjs/bullmq";
+import { Logger } from "@nestjs/common";
+import { Job } from "bullmq";
+import { EMAIL_QUEUE_NAME } from "../queues/email.queue";
+import { EmailJobData } from "../types/job-data.types";
 
 /**
  * Email Queue Worker
@@ -25,21 +25,19 @@ export class EmailProcessor extends WorkerHost {
       `Processing email job ${job.id}: template=${job.data.templateId} for org:${job.data.organizationId}`,
     );
 
-    const recipients = Array.isArray(job.data.to)
-      ? job.data.to
-      : [job.data.to];
-    this.logger.log(`Would send to: ${recipients.join(', ')}`);
+    const recipients = Array.isArray(job.data.to) ? job.data.to : [job.data.to];
+    this.logger.log(`Would send to: ${recipients.join(", ")}`);
 
     // Placeholder - actual email delivery in Phase 7
     return { messageId: `msg-${job.id}` };
   }
 
-  @OnWorkerEvent('completed')
+  @OnWorkerEvent("completed")
   onCompleted(job: Job<EmailJobData>) {
     this.logger.log(`Email job ${job.id} completed successfully`);
   }
 
-  @OnWorkerEvent('failed')
+  @OnWorkerEvent("failed")
   onFailed(job: Job<EmailJobData>, error: Error) {
     this.logger.error(
       `Email job ${job.id} failed after ${job.attemptsMade} attempts: ${error.message}`,
