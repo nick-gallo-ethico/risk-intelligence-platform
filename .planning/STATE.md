@@ -168,6 +168,14 @@ Recent decisions affecting current work:
 - 04-02: createFromEmployee recursively creates manager's Person if missing
 - 04-02: syncFromEmployee updates denormalized fields without changing type/source
 - 04-02: getManagerChain has maxDepth=10 to prevent infinite loops
+- 04-05: Extension tables per RIU type for database-level constraints and efficient queries
+- 04-05: RiuQaStatus enum: PENDING, IN_REVIEW, APPROVED, REJECTED, NEEDS_REVISION
+- 04-05: DisclosureType enum: COI, GIFT, OUTSIDE_EMPLOYMENT, POLITICAL, CHARITABLE, TRAVEL
+- 04-05: Decimal(12,2) for monetary disclosure values
+- 04-05: QA status transitions validated via state machine pattern
+- 04-05: HotlineRiuService manages QA workflow with pending queue retrieval
+- 04-05: DisclosureRiuService provides threshold checking and conflict detection
+- 04-05: WebFormRiuService tracks form version at submission time
 
 ### Pending Todos
 
