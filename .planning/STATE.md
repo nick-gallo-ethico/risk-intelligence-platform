@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 6 of 11 (Case Management) - IN PROGRESS
-Plan: 5 of 16 in current phase
+Plan: 6 of 16 in current phase
 Status: In progress
-Last activity: 2026-02-03 - Completed 06-05-PLAN.md (Custom Properties)
+Last activity: 2026-02-03 - Completed 06-03-PLAN.md (Remediation Plans)
 
-Progress: [===============================================] 38% (47 of ~125 total plans)
+Progress: [===============================================] 38% (48 of ~125 total plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 47
-- Average duration: 13 min
-- Total execution time: 10.8 hours
+- Total plans completed: 48
+- Average duration: 14 min
+- Total execution time: 11.4 hours
 
 **By Phase:**
 
@@ -34,8 +34,8 @@ Progress: [===============================================] 38% (47 of ~125 tota
 | 05-ai-infrastructure | 11 | 143 min | 13 min |
 
 **Recent Trend:**
-- Last 5 plans: 06-05 (33 min), 06-04 (30 min), 05-10 (12 min), 05-11 (12 min), 05-07 (14 min)
-- Trend: Phase 6 in progress. Custom properties infrastructure complete.
+- Last 5 plans: 06-03 (39 min), 06-05 (33 min), 06-04 (30 min), 05-10 (12 min), 05-11 (12 min)
+- Trend: Phase 6 in progress. Remediation management infrastructure complete.
 
 *Updated after each plan completion*
 
@@ -259,6 +259,10 @@ Recent decisions affecting current work:
 - 06-05: Key format enforced: must start with letter, alphanumeric + underscore only
 - 06-05: Soft delete pattern: isActive flag instead of hard delete for existing value preservation
 - 06-05: Unknown keys in validation preserved but not validated (backward compatible)
+- 06-03: DAG dependency validation uses DFS cycle detection for step ordering
+- 06-03: External assignees use email + name fields for non-user step assignments
+- 06-03: requiresCoApproval flag enables secondary approval workflow for compliance-critical steps
+- 06-03: Denormalized step counts (total, completed, overdue) on plan for query performance
 
 ### Pending Todos
 
@@ -275,6 +279,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-02-03T22:55:00Z
-Stopped at: Completed 06-05-PLAN.md (Custom Properties)
+Last session: 2026-02-03T23:00:00Z
+Stopped at: Completed 06-03-PLAN.md (Remediation Plans)
 Resume file: None
