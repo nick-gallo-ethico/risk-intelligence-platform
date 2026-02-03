@@ -234,6 +234,9 @@ Recent decisions affecting current work:
 - 05-09: Agent instances cached by context key (agent:org:user:entityType:entityId)
 - 05-09: BaseAgent uses async generators for streaming chat responses
 - 05-09: Three specialized agents: Investigation, Case, ComplianceManager
+- 05-08: JSON response parsing uses regex extraction to handle AI explanatory text
+- 05-08: Risk score confidence derived from evidence factor (lower evidence = lower confidence)
+- 05-08: Translation language detection uses first 500 chars to minimize tokens
 
 ### Pending Todos
 
