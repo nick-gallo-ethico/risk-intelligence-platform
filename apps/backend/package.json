@@ -31,6 +31,7 @@
     "demo:stats": "ts-node prisma/reset-demo.ts --stats"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.72.1",
     "@azure/identity": "^4.13.0",
     "@azure/storage-blob": "^12.30.0",
     "@bull-board/api": "^6.16.4",
