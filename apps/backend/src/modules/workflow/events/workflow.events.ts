@@ -69,7 +69,33 @@ export class WorkflowCompletedEvent extends BaseEvent {
 }
 
 /**
- * Event emitted when a workflow instance breaches or approaches SLA.
+ * Event emitted when a workflow instance is at risk of SLA breach.
+ * Triggered when warningThresholdPercent (default 80%) of time is used.
+ */
+export class WorkflowSlaWarningEvent extends BaseEvent {
+  static readonly eventName = "workflow.sla_warning";
+
+  readonly instanceId: string;
+  readonly entityType: string;
+  readonly entityId: string;
+  readonly stage: string;
+  readonly dueDate: Date;
+  readonly percentUsed: number;
+
+  constructor(data: Partial<WorkflowSlaWarningEvent>) {
+    super(data);
+    this.instanceId = data.instanceId!;
+    this.entityType = data.entityType!;
+    this.entityId = data.entityId!;
+    this.stage = data.stage!;
+    this.dueDate = data.dueDate!;
+    this.percentUsed = data.percentUsed!;
+  }
+}
+
+/**
+ * Event emitted when a workflow instance breaches SLA.
+ * Breach levels: 'breached' (just past due) or 'critical' (24h+ past due).
  */
 export class WorkflowSlaBreachEvent extends BaseEvent {
   static readonly eventName = "workflow.sla_breach";
@@ -78,9 +104,8 @@ export class WorkflowSlaBreachEvent extends BaseEvent {
   readonly entityType: string;
   readonly entityId: string;
   readonly stage: string;
-  readonly breachLevel: "warning" | "breached" | "critical";
-  readonly dueDate: Date;
-  readonly daysPastDue?: number;
+  readonly breachLevel: "breached" | "critical";
+  readonly hoursOverdue: number;
 
   constructor(data: Partial<WorkflowSlaBreachEvent>) {
     super(data);
@@ -89,8 +114,7 @@ export class WorkflowSlaBreachEvent extends BaseEvent {
     this.entityId = data.entityId!;
     this.stage = data.stage!;
     this.breachLevel = data.breachLevel!;
-    this.dueDate = data.dueDate!;
-    this.daysPastDue = data.daysPastDue;
+    this.hoursOverdue = data.hoursOverdue!;
   }
 }
 
