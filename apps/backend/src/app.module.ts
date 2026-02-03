@@ -24,6 +24,7 @@ import { PersonsModule } from "./modules/persons/persons.module";
 import { HrisModule } from "./modules/hris/hris.module";
 import { CampaignsModule } from "./modules/campaigns/campaigns.module";
 import { AssociationsModule } from "./modules/associations/associations.module";
+import { RiusModule } from "./modules/rius/rius.module";
 import { ActivityModule } from "./common/activity.module";
 import { StorageModule } from "./common/storage.module";
 import { TenantMiddleware } from "./common/middleware/tenant.middleware";
@@ -79,6 +80,7 @@ import configuration from "./config/configuration";
     HrisModule, // HRIS integration via Merge.dev unified API
     CampaignsModule, // Outbound compliance campaigns (disclosures, attestations, surveys)
     AssociationsModule, // First-class association entities (Person-Case, Person-RIU, Case-Case, Person-Person)
+    RiusModule, // RIU management with immutability enforcement and anonymous access codes
     HealthModule,
   ],
   controllers: [],
