@@ -13,6 +13,7 @@ import {
   PersonStatus,
   AnonymityTier,
   AuditEntityType,
+  Employee,
 } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
 import { ActivityService } from "../../common/services/activity.service";
@@ -62,6 +63,17 @@ export class PersonsService {
       email: dto.email,
       phone: dto.phone,
       employeeId: dto.employeeId,
+      // Denormalized Employee fields
+      businessUnitId: dto.businessUnitId,
+      businessUnitName: dto.businessUnitName,
+      jobTitle: dto.jobTitle,
+      employmentStatus: dto.employmentStatus,
+      locationId: dto.locationId,
+      locationName: dto.locationName,
+      // Manager hierarchy
+      managerId: dto.managerId,
+      managerName: dto.managerName,
+      // External contact details
       company: dto.company,
       title: dto.title,
       relationship: dto.relationship,
@@ -194,6 +206,19 @@ export class PersonsService {
     if (dto.email !== undefined) data.email = dto.email;
     if (dto.phone !== undefined) data.phone = dto.phone;
     if (dto.employeeId !== undefined) data.employeeId = dto.employeeId;
+    // Denormalized Employee fields
+    if (dto.businessUnitId !== undefined) data.businessUnitId = dto.businessUnitId;
+    if (dto.businessUnitName !== undefined)
+      data.businessUnitName = dto.businessUnitName;
+    if (dto.jobTitle !== undefined) data.jobTitle = dto.jobTitle;
+    if (dto.employmentStatus !== undefined)
+      data.employmentStatus = dto.employmentStatus;
+    if (dto.locationId !== undefined) data.locationId = dto.locationId;
+    if (dto.locationName !== undefined) data.locationName = dto.locationName;
+    // Manager hierarchy
+    if (dto.managerId !== undefined) data.managerId = dto.managerId;
+    if (dto.managerName !== undefined) data.managerName = dto.managerName;
+    // External contact details
     if (dto.company !== undefined) data.company = dto.company;
     if (dto.title !== undefined) data.title = dto.title;
     if (dto.relationship !== undefined) data.relationship = dto.relationship;
@@ -294,6 +319,335 @@ export class PersonsService {
 
     return placeholder;
   }
+
+  // ===========================================
+  // Employee Linkage Methods
+  // ===========================================
+
+  /**
+   * Creates a Person record from an Employee, including manager chain.
+   * Used during HRIS sync to create Person records for employees.
+   * If the employee's manager doesn't have a Person record, recursively creates it.
+   *
+   * @param employee - The Employee record to create a Person from
+   * @param userId - The user initiating the creation
+   * @param organizationId - The organization ID
+   * @returns The created Person record
+   */
+  async createFromEmployee(
+    employee: Employee,
+    userId: string,
+    organizationId: string,
+  ): Promise<Person> {
+    // Check if Person already exists for this employee
+    const existing = await this.findByEmployeeId(employee.id, organizationId);
+    if (existing) {
+      this.logger.debug(
+        `Person already exists for employee ${employee.id}, returning existing`,
+      );
+      return existing;
+    }
+
+    // If employee has a manager, ensure manager's Person record exists first
+    let managerPersonId: string | undefined;
+    let managerPersonName: string | undefined;
+
+    if (employee.managerId) {
+      const managerEmployee = await this.prisma.employee.findFirst({
+        where: {
+          id: employee.managerId,
+          organizationId,
+        },
+      });
+
+      if (managerEmployee) {
+        // Recursively create manager's Person record if needed
+        const managerPerson = await this.createFromEmployee(
+          managerEmployee,
+          userId,
+          organizationId,
+        );
+        managerPersonId = managerPerson.id;
+        managerPersonName = this.getDisplayName(managerPerson);
+      }
+    }
+
+    // Get business unit name if business unit ID exists
+    let businessUnitName: string | undefined;
+    if (employee.businessUnitId) {
+      const businessUnit = await this.prisma.businessUnit.findFirst({
+        where: { id: employee.businessUnitId },
+      });
+      businessUnitName = businessUnit?.name;
+    }
+
+    // Get location name if location ID exists
+    let locationNameValue: string | undefined;
+    if (employee.locationId) {
+      const location = await this.prisma.location.findFirst({
+        where: { id: employee.locationId },
+      });
+      locationNameValue = location?.name;
+    }
+
+    // Create the Person record
+    const person = await this.prisma.person.create({
+      data: {
+        organizationId,
+        type: PersonType.EMPLOYEE,
+        source: PersonSource.HRIS_SYNC,
+        firstName: employee.firstName,
+        lastName: employee.lastName,
+        email: employee.email,
+        phone: employee.phone ?? undefined,
+        employeeId: employee.id,
+        // Denormalized Employee fields
+        businessUnitId: employee.businessUnitId ?? undefined,
+        businessUnitName: businessUnitName,
+        jobTitle: employee.jobTitle,
+        employmentStatus: employee.employmentStatus,
+        locationId: employee.locationId ?? undefined,
+        locationName: locationNameValue,
+        // Manager hierarchy
+        managerId: managerPersonId,
+        managerName: managerPersonName,
+        anonymityTier: AnonymityTier.OPEN,
+        createdById: userId,
+        updatedById: userId,
+      },
+    });
+
+    // Log activity
+    const displayName = this.getDisplayName(person);
+    await this.activityService.log({
+      entityType: AuditEntityType.PERSON,
+      entityId: person.id,
+      action: "created",
+      actionDescription: `Created person ${displayName} from HRIS employee record`,
+      actorUserId: userId,
+      organizationId,
+    });
+
+    // Emit event
+    this.emitEvent("person.created", {
+      organizationId,
+      actorUserId: userId,
+      personId: person.id,
+      type: person.type,
+      source: person.source,
+      employeeId: employee.id,
+    });
+
+    this.logger.log(
+      `Created Person ${person.id} from Employee ${employee.id}`,
+    );
+
+    return person;
+  }
+
+  /**
+   * Syncs a Person record with updates from its linked Employee.
+   * Used when HRIS data changes (job title, manager, location, etc.).
+   * Does NOT change type or source (they remain EMPLOYEE/HRIS_SYNC).
+   *
+   * @param personId - The Person ID to sync
+   * @param employee - The updated Employee data
+   * @param userId - The user initiating the sync
+   * @param organizationId - The organization ID
+   * @returns The updated Person record
+   */
+  async syncFromEmployee(
+    personId: string,
+    employee: Employee,
+    userId: string,
+    organizationId: string,
+  ): Promise<Person> {
+    // Verify person exists
+    const existing = await this.findOne(personId, organizationId);
+
+    if (existing.type !== PersonType.EMPLOYEE) {
+      throw new ConflictException(
+        `Cannot sync non-employee Person ${personId} from Employee data`,
+      );
+    }
+
+    // Resolve manager Person ID if manager changed
+    let managerPersonId: string | null = null;
+    let managerPersonName: string | null = null;
+
+    if (employee.managerId) {
+      const managerPerson = await this.findByEmployeeId(
+        employee.managerId,
+        organizationId,
+      );
+      if (managerPerson) {
+        managerPersonId = managerPerson.id;
+        managerPersonName = this.getDisplayName(managerPerson);
+      } else {
+        // Manager's Person doesn't exist yet - create it
+        const managerEmployee = await this.prisma.employee.findFirst({
+          where: { id: employee.managerId, organizationId },
+        });
+        if (managerEmployee) {
+          const newManagerPerson = await this.createFromEmployee(
+            managerEmployee,
+            userId,
+            organizationId,
+          );
+          managerPersonId = newManagerPerson.id;
+          managerPersonName = this.getDisplayName(newManagerPerson);
+        }
+      }
+    }
+
+    // Get business unit name
+    let businessUnitName: string | null = null;
+    if (employee.businessUnitId) {
+      const businessUnit = await this.prisma.businessUnit.findFirst({
+        where: { id: employee.businessUnitId },
+      });
+      businessUnitName = businessUnit?.name ?? null;
+    }
+
+    // Get location name
+    let locationNameValue: string | null = null;
+    if (employee.locationId) {
+      const location = await this.prisma.location.findFirst({
+        where: { id: employee.locationId },
+      });
+      locationNameValue = location?.name ?? null;
+    }
+
+    // Update the Person record
+    const updated = await this.prisma.person.update({
+      where: { id: personId },
+      data: {
+        firstName: employee.firstName,
+        lastName: employee.lastName,
+        email: employee.email,
+        phone: employee.phone,
+        businessUnitId: employee.businessUnitId,
+        businessUnitName: businessUnitName,
+        jobTitle: employee.jobTitle,
+        employmentStatus: employee.employmentStatus,
+        locationId: employee.locationId,
+        locationName: locationNameValue,
+        managerId: managerPersonId,
+        managerName: managerPersonName,
+        updatedById: userId,
+      },
+    });
+
+    // Log activity
+    const displayName = this.getDisplayName(updated);
+    await this.activityService.log({
+      entityType: AuditEntityType.PERSON,
+      entityId: personId,
+      action: "synced_from_hris",
+      actionDescription: `Synced person ${displayName} from HRIS employee update`,
+      actorUserId: userId,
+      organizationId,
+    });
+
+    // Emit event
+    this.emitEvent("person.updated", {
+      organizationId,
+      actorUserId: userId,
+      personId: personId,
+      syncedFromEmployee: true,
+      employeeId: employee.id,
+    });
+
+    this.logger.log(`Synced Person ${personId} from Employee ${employee.id}`);
+
+    return updated;
+  }
+
+  /**
+   * Finds a Person by their linked Employee ID.
+   * Returns null if no Person exists for this Employee.
+   *
+   * @param employeeId - The Employee ID to search for
+   * @param organizationId - The organization ID
+   * @returns The Person record or null
+   */
+  async findByEmployeeId(
+    employeeId: string,
+    organizationId: string,
+  ): Promise<Person | null> {
+    return this.prisma.person.findFirst({
+      where: {
+        employeeId,
+        organizationId,
+        type: PersonType.EMPLOYEE,
+      },
+    });
+  }
+
+  /**
+   * Gets the manager chain for a Person, traversing up the hierarchy.
+   * Useful for org chart navigation and escalation paths.
+   * Returns an array starting with the Person's direct manager up to the top.
+   *
+   * @param personId - The Person ID to get the manager chain for
+   * @param organizationId - The organization ID
+   * @param maxDepth - Maximum depth to traverse (default 10, prevents infinite loops)
+   * @returns Array of Person records representing the manager chain
+   */
+  async getManagerChain(
+    personId: string,
+    organizationId: string,
+    maxDepth: number = 10,
+  ): Promise<Person[]> {
+    const chain: Person[] = [];
+    let currentPerson = await this.findOne(personId, organizationId);
+    let depth = 0;
+
+    while (currentPerson.managerId && depth < maxDepth) {
+      const manager = await this.prisma.person.findFirst({
+        where: {
+          id: currentPerson.managerId,
+          organizationId,
+        },
+      });
+
+      if (!manager) {
+        break;
+      }
+
+      chain.push(manager);
+      currentPerson = manager;
+      depth++;
+    }
+
+    return chain;
+  }
+
+  /**
+   * Gets direct reports for a Person (people who have this Person as their manager).
+   * Useful for org chart navigation and team views.
+   *
+   * @param personId - The Person ID to get direct reports for
+   * @param organizationId - The organization ID
+   * @returns Array of Person records who report to this Person
+   */
+  async getDirectReports(
+    personId: string,
+    organizationId: string,
+  ): Promise<Person[]> {
+    return this.prisma.person.findMany({
+      where: {
+        managerId: personId,
+        organizationId,
+        status: PersonStatus.ACTIVE,
+      },
+      orderBy: [{ lastName: "asc" }, { firstName: "asc" }],
+    });
+  }
+
+  // ===========================================
+  // Private Helper Methods
+  // ===========================================
 
   /**
    * Builds Prisma where clause from query parameters.

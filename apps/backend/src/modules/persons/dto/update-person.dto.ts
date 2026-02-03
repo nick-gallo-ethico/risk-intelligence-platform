@@ -64,6 +64,82 @@ export class UpdatePersonDto {
   @IsOptional()
   employeeId?: string;
 
+  // Denormalized Employee fields (can be updated via syncFromEmployee)
+  @ApiPropertyOptional({
+    description: "Business unit ID (denormalized from Employee)",
+    example: "550e8400-e29b-41d4-a716-446655440001",
+  })
+  @IsString()
+  @IsOptional()
+  businessUnitId?: string;
+
+  @ApiPropertyOptional({
+    description: "Business unit name (denormalized for display)",
+    maxLength: 255,
+    example: "Hospital Services",
+  })
+  @IsString()
+  @IsOptional()
+  @MaxLength(255)
+  businessUnitName?: string;
+
+  @ApiPropertyOptional({
+    description: "Job title (denormalized from Employee)",
+    maxLength: 255,
+    example: "Senior Analyst",
+  })
+  @IsString()
+  @IsOptional()
+  @MaxLength(255)
+  jobTitle?: string;
+
+  @ApiPropertyOptional({
+    description: "Employment status (denormalized from Employee)",
+    maxLength: 50,
+    example: "ACTIVE",
+  })
+  @IsString()
+  @IsOptional()
+  @MaxLength(50)
+  employmentStatus?: string;
+
+  @ApiPropertyOptional({
+    description: "Location ID (denormalized from Employee)",
+    example: "550e8400-e29b-41d4-a716-446655440002",
+  })
+  @IsString()
+  @IsOptional()
+  locationId?: string;
+
+  @ApiPropertyOptional({
+    description: "Location name (denormalized for display)",
+    maxLength: 255,
+    example: "New York Headquarters",
+  })
+  @IsString()
+  @IsOptional()
+  @MaxLength(255)
+  locationName?: string;
+
+  // Manager hierarchy
+  @ApiPropertyOptional({
+    description: "Manager's Person ID (for org chart navigation)",
+    example: "550e8400-e29b-41d4-a716-446655440003",
+  })
+  @IsString()
+  @IsOptional()
+  managerId?: string;
+
+  @ApiPropertyOptional({
+    description: "Manager name (denormalized for display)",
+    maxLength: 255,
+    example: "Jane Smith",
+  })
+  @IsString()
+  @IsOptional()
+  @MaxLength(255)
+  managerName?: string;
+
   // External contact details (for EXTERNAL_CONTACT type)
   @ApiPropertyOptional({
     description: "Company/organization name (for external contacts)",
