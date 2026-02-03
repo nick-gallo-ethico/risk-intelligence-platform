@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 4 of 11 (Core Entities)
-Plan: 4 of 10 in current phase (Wave 1 in progress)
+Plan: 5 of 10 in current phase (Wave 2 in progress)
 Status: In progress
-Last activity: 2026-02-03 - Completed 04-04-PLAN.md (RIU Immutability Enhancement)
+Last activity: 2026-02-03 - Completed 04-02-PLAN.md (Person-Employee Linkage)
 
-Progress: [============================] 29% (29 of ~99 total plans)
+Progress: [==============================] 30% (30 of ~99 total plans)
 
 ## Performance Metrics
 
@@ -30,11 +30,11 @@ Progress: [============================] 29% (29 of ~99 total plans)
 | 01-foundation | 9 | 123 min | 14 min |
 | 02-demo-tenant-seed-data | 7 | 84 min | 12 min |
 | 03-authentication-sso | 8 | 69 min | 9 min |
-| 04-core-entities | 2 | 27 min | 14 min |
+| 04-core-entities | 3 | 37 min | 12 min |
 
 **Recent Trend:**
-- Last 5 plans: 04-04 (18 min), 04-01 (9 min), 03-08 (15 min), 03-07 (17 min), 03-06 (est)
-- Trend: Phase 4 Core Entities in progress. RIU immutability enforcement added.
+- Last 5 plans: 04-02 (10 min), 04-04 (18 min), 04-01 (9 min), 03-08 (15 min), 03-07 (17 min)
+- Trend: Phase 4 Core Entities Wave 2 in progress. Person-Employee linkage added.
 
 *Updated after each plan completion*
 
@@ -162,6 +162,12 @@ Recent decisions affecting current work:
 - 04-04: RiuStatus expanded: QA_REJECTED, LINKED, CLOSED for full lifecycle
 - 04-04: Status tracking: statusChangedAt and statusChangedById for audit
 - 04-04: RIU reference number format: RIU-YYYY-NNNNN
+- 04-02: Person-Employee linkage via employeeId FK with Employee relation
+- 04-02: Denormalized Employee fields on Person: businessUnitId/Name, jobTitle, employmentStatus, locationId/Name
+- 04-02: Manager hierarchy via PersonManager self-reference (managerId references another Person)
+- 04-02: createFromEmployee recursively creates manager's Person if missing
+- 04-02: syncFromEmployee updates denormalized fields without changing type/source
+- 04-02: getManagerChain has maxDepth=10 to prevent infinite loops
 
 ### Pending Todos
 
@@ -175,6 +181,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-03T10:18:00Z
-Stopped at: Completed 04-04-PLAN.md (RIU Immutability Enhancement)
+Last session: 2026-02-03T09:28:51Z
+Stopped at: Completed 04-02-PLAN.md (Person-Employee Linkage)
 Resume file: None
