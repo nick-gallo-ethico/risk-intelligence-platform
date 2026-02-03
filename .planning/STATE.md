@@ -12,9 +12,9 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 Phase: 5 of 11 (AI Infrastructure) - In progress
 Plan: 6 of 11 in current phase
 Status: Executing Wave 2
-Last activity: 2026-02-03 - Completed 05-02-PLAN.md (AI Provider Abstraction)
+Last activity: 2026-02-03 - Completed 05-06-PLAN.md (Context Hierarchy Loading)
 
-Progress: [==========================================] 45% (47 of ~106 total plans)
+Progress: [==========================================] 46% (48 of ~106 total plans)
 
 ## Performance Metrics
 
@@ -33,8 +33,8 @@ Progress: [==========================================] 45% (47 of ~106 total pla
 | 04-core-entities | 10 | 112 min | 11 min |
 
 **Recent Trend:**
-- Last 5 plans: 05-02 (8 min), 05-05 (12 min), 05-01 (9 min), 04-10 (14 min), 04-09 (13 min)
-- Trend: Phase 5 AI Infrastructure progressing. Provider abstraction complete.
+- Last 5 plans: 05-06 (14 min), 05-02 (8 min), 05-05 (12 min), 05-01 (9 min), 04-10 (14 min)
+- Trend: Phase 5 AI Infrastructure progressing. Context hierarchy loading complete.
 
 *Updated after each plan completion*
 
@@ -217,6 +217,11 @@ Recent decisions affecting current work:
 - 05-02: AIProvider interface uses async iterables for streaming (not callbacks)
 - 05-02: Provider registry resolves by name string for runtime configuration
 - 05-02: tryGetProvider() returns null for graceful feature degradation
+- 05-06: Context hierarchy: platform -> org -> team -> user -> entity
+- 05-06: Cache TTLs by level: platform 1hr, org/team/user 5min, entity 1min
+- 05-06: AiContextFile model for CLAUDE.md-like context files at org/team/user levels
+- 05-06: Entity-specific context loaders for case, investigation, campaign
+- 05-06: System prompt built from assembled context with agent-type instructions
 
 ### Pending Todos
 
@@ -230,6 +235,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-03T19:34:13Z
-Stopped at: Completed 05-02-PLAN.md (AI Provider Abstraction)
+Last session: 2026-02-03T19:42:15Z
+Stopped at: Completed 05-06-PLAN.md (Context Hierarchy Loading)
 Resume file: None
