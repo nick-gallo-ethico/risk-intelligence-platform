@@ -12,28 +12,28 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 Phase: 3 of 11 (Authentication & SSO)
 Plan: 2 of 8 in current phase (03-02 complete)
 Status: In progress
-Last activity: 2026-02-03 - Completed 03-02-PLAN.md (Rate Limiting)
+Last activity: 2026-02-03 - Completed 02-05-PLAN.md (Case & Investigation Seeder)
 
-Progress: [==================  ] 19% (19 of ~99 total plans)
+Progress: [===================  ] 20% (20 of ~99 total plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 16
+- Total plans completed: 17
 - Average duration: 13 min
-- Total execution time: 3.2 hours
+- Total execution time: 3.4 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01-foundation | 9 | 123 min | 14 min |
-| 02-demo-tenant-seed-data | 5 | 58 min | 12 min |
+| 02-demo-tenant-seed-data | 6 | 70 min | 12 min |
 | 03-authentication-sso | 2 | 16 min | 8 min |
 
 **Recent Trend:**
-- Last 5 plans: 03-02 (8 min), 03-01 (8 min), 02-04 (9 min), 02-03 (18 min), 02-06 (11 min)
-- Trend: Phase 3 auth plans executing quickly (~8 min avg)
+- Last 5 plans: 02-05 (12 min), 03-02 (8 min), 03-01 (8 min), 02-04 (9 min), 02-03 (18 min)
+- Trend: Phase 2 seed data completing steadily at ~12 min avg
 
 *Updated after each plan completion*
 
@@ -108,6 +108,10 @@ Recent decisions affecting current work:
 - 02-04: Category-based anonymity: retaliation 70%, harassment 55%, COI 25%
 - 02-04: ~5% linked incidents with 2-4 reporters for case consolidation demos
 - 02-04: Edge cases at fixed indices: 100-149 long, 200-299 unicode, 500-519 boundary, 1000-1009 minimal
+- 02-05: Pattern injection: repeat subjects, manager hotspots generated before case creation
+- 02-05: 90% RIU-to-Case ratio: 4,500 cases from 5,000 RIUs (some consolidate, some don't create)
+- 02-05: 60% substantiation rate on closed investigations per CONTEXT.md
+- 02-05: 10 flagship cases with curated narratives for sales demo walkthroughs
 - 03-01: DNS TXT record as primary domain verification method (industry standard)
 - 03-01: One TenantSsoConfig per organization (unique constraint) for simplified management
 - 03-01: TOTP secret stored encrypted, recovery codes stored as hashed array
@@ -128,6 +132,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-03T07:32:00Z
-Stopped at: Completed 03-02-PLAN.md (Rate Limiting)
+Last session: 2026-02-03T07:45:00Z
+Stopped at: Completed 02-05-PLAN.md (Case & Investigation Seeder)
 Resume file: None
