@@ -28,17 +28,19 @@ model Organization {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relations
-  users          User[]
-  sessions       Session[]
-  cases          Case[]
-  investigations Investigation[]
-  auditLogs      AuditLog[]
-  attachments    Attachment[]
-  categories     Category[]
-  rius           RiskIntelligenceUnit[]
-  subjects       Subject[]
-  caseMessages   CaseMessage[]
-  interactions   Interaction[]
+  users             User[]
+  sessions          Session[]
+  cases             Case[]
+  investigations    Investigation[]
+  auditLogs         AuditLog[]
+  attachments       Attachment[]
+  categories        Category[]
+  rius              RiskIntelligenceUnit[]
+  subjects          Subject[]
+  caseMessages      CaseMessage[]
+  interactions      Interaction[]
+  workflowTemplates WorkflowTemplate[]
+  workflowInstances WorkflowInstance[]
 
   @@index([slug])
   @@index([isActive])
@@ -1192,4 +1194,116 @@ enum InteractionQaStatus {
   RELEASED
 
   @@map("interaction_qa_status")
+}
+
+// ===========================================
+// Workflow Engine Entities
+// ===========================================
+
+/// WorkflowTemplate defines a reusable workflow pipeline.
+/// Templates are versioned - version increments on publish.
+/// entityType determines which entities this workflow applies to.
+model WorkflowTemplate {
+  id             String @id @default(uuid())
+  organizationId String @map("organization_id")
+
+  // Identity
+  name        String
+  description String?
+  entityType  WorkflowEntityType @map("entity_type") // CASE, INVESTIGATION, DISCLOSURE, etc.
+  version     Int                @default(1)
+  isActive    Boolean            @default(true) @map("is_active")
+  isDefault   Boolean            @default(false) @map("is_default") // Default workflow for this entity type
+
+  // Configuration (JSON)
+  stages       Json // Array of WorkflowStage definitions
+  transitions  Json // Array of allowed transitions
+  initialStage String @map("initial_stage") // Stage ID to start at
+
+  // SLA Configuration
+  defaultSlaDays Int?  @map("default_sla_days")
+  slaConfig      Json? @map("sla_config") // Stage-level SLA overrides
+
+  // Metadata
+  sourceTemplateId String?  @map("source_template_id") // If cloned from Ethico library
+  tags             String[] @default([])
+
+  // Audit
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  createdById String?  @map("created_by_id")
+
+  // Relations
+  organization Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  instances    WorkflowInstance[]
+
+  @@unique([organizationId, name, version])
+  @@index([organizationId])
+  @@index([organizationId, entityType])
+  @@index([organizationId, isActive])
+  @@map("workflow_templates")
+}
+
+/// WorkflowInstance tracks an entity's progress through a workflow.
+/// Links to the specific template VERSION to ensure in-flight stability.
+model WorkflowInstance {
+  id              String @id @default(uuid())
+  organizationId  String @map("organization_id")
+  templateId      String @map("template_id")
+  templateVersion Int    @map("template_version")
+
+  // Entity Reference (polymorphic)
+  entityType WorkflowEntityType @map("entity_type")
+  entityId   String             @map("entity_id")
+
+  // Current State
+  currentStage String                 @map("current_stage")
+  currentStep  String?                @map("current_step")
+  status       WorkflowInstanceStatus @default(ACTIVE)
+  stepStates   Json                   @default("{}") @map("step_states") // { stepId: { status, completedAt, assignee } }
+
+  // SLA Tracking
+  dueDate       DateTime? @map("due_date")
+  slaStatus     SlaStatus @default(ON_TRACK) @map("sla_status")
+  slaBreachedAt DateTime? @map("sla_breached_at")
+
+  // Completion
+  completedAt DateTime? @map("completed_at")
+  outcome     String? // Final outcome (if workflow has outcomes)
+
+  // Audit
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  startedById String?  @map("started_by_id")
+
+  // Relations
+  organization Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  template     WorkflowTemplate @relation(fields: [templateId], references: [id])
+
+  @@unique([entityType, entityId]) // One active workflow per entity
+  @@index([organizationId])
+  @@index([organizationId, entityType])
+  @@index([organizationId, status])
+  @@index([organizationId, currentStage])
+  @@index([organizationId, slaStatus])
+  @@map("workflow_instances")
+}
+
+enum WorkflowEntityType {
+  CASE
+  INVESTIGATION
+  DISCLOSURE
+  POLICY
+  CAMPAIGN
+
+  @@map("workflow_entity_type")
+}
+
+enum WorkflowInstanceStatus {
+  ACTIVE
+  COMPLETED
+  CANCELLED
+  PAUSED
+
+  @@map("workflow_instance_status")
 }
