@@ -1,4 +1,4 @@
-import { Module } from "@nestjs/common";
+import { Module, forwardRef } from "@nestjs/common";
 import { BullModule } from "@nestjs/bullmq";
 import { ConfigService } from "@nestjs/config";
 import { BullBoardModule } from "@bull-board/nestjs";
@@ -7,10 +7,7 @@ import { BullMQAdapter } from "@bull-board/api/bullMQAdapter";
 
 import { AI_QUEUE_NAME, AI_QUEUE_OPTIONS } from "./queues/ai.queue";
 import { EMAIL_QUEUE_NAME, EMAIL_QUEUE_OPTIONS } from "./queues/email.queue";
-import {
-  EXPORT_QUEUE_NAME,
-  EXPORT_QUEUE_OPTIONS,
-} from "./queues/export.queue";
+import { EXPORT_QUEUE_NAME, EXPORT_QUEUE_OPTIONS } from "./queues/export.queue";
 import {
   INDEXING_QUEUE_NAME,
   INDEXING_QUEUE_OPTIONS,
@@ -19,6 +16,7 @@ import { AiProcessor } from "./processors/ai.processor";
 import { EmailProcessor } from "./processors/email.processor";
 import { ExportProcessor } from "./processors/export.processor";
 import { IndexingProcessor } from "./processors/indexing.processor";
+import { SearchModule } from "../search/search.module";
 
 /**
  * Jobs Module
@@ -90,6 +88,9 @@ import { IndexingProcessor } from "./processors/indexing.processor";
       name: INDEXING_QUEUE_NAME,
       adapter: BullMQAdapter,
     }),
+
+    // SearchModule provides IndexingService for IndexingProcessor
+    forwardRef(() => SearchModule),
   ],
   providers: [AiProcessor, EmailProcessor, ExportProcessor, IndexingProcessor],
   exports: [BullModule],

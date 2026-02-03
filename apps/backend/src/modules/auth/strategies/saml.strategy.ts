@@ -1,15 +1,15 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { PassportStrategy } from '@nestjs/passport';
+import { Injectable, Logger } from "@nestjs/common";
+import { PassportStrategy } from "@nestjs/passport";
 import {
   Strategy,
   Profile,
   PassportSamlConfig,
   VerifiedCallback,
-} from '@node-saml/passport-saml';
-import { Request } from 'express';
-import { SsoService } from '../sso/sso.service';
-import { SsoConfigService } from '../sso/sso-config.service';
-import { SsoUserData } from '../interfaces';
+} from "@node-saml/passport-saml";
+import { Request } from "express";
+import { SsoService } from "../sso/sso.service";
+import { SsoConfigService } from "../sso/sso-config.service";
+import { SsoUserData } from "../interfaces";
 
 /**
  * SAML 2.0 Strategy with multi-tenant support.
@@ -24,7 +24,7 @@ import { SsoUserData } from '../interfaces';
  * - CVE-2022-39299: Ensure using @node-saml/passport-saml v5+
  */
 @Injectable()
-export class SamlStrategy extends PassportStrategy(Strategy, 'saml') {
+export class SamlStrategy extends PassportStrategy(Strategy, "saml") {
   private readonly logger = new Logger(SamlStrategy.name);
 
   constructor(
@@ -32,7 +32,12 @@ export class SamlStrategy extends PassportStrategy(Strategy, 'saml') {
     private ssoService: SsoService,
   ) {
     // Multi-tenant SAML uses getSamlOptions callback for per-request configuration
+    // Provide default callbackUrl and issuer to satisfy @node-saml requirements
+    // These are overridden per-request by getSamlOptions
     super({
+      callbackUrl: "http://localhost:3000/api/v1/auth/saml/default/callback",
+      issuer: "ethico-platform",
+      idpCert: "placeholder", // Required but overridden by getSamlOptions
       passReqToCallback: true,
       getSamlOptions: async (
         req: Request,
@@ -43,7 +48,10 @@ export class SamlStrategy extends PassportStrategy(Strategy, 'saml') {
           const tenant = req.params.tenant;
 
           if (!tenant) {
-            return done(new Error('Tenant identifier required for SAML SSO'), null);
+            return done(
+              new Error("Tenant identifier required for SAML SSO"),
+              null,
+            );
           }
 
           // Load tenant-specific SAML configuration
@@ -69,6 +77,8 @@ export class SamlStrategy extends PassportStrategy(Strategy, 'saml') {
         }
       },
     });
+
+    this.logger.log("SAML strategy initialized (multi-tenant mode)");
   }
 
   /**
@@ -91,8 +101,12 @@ export class SamlStrategy extends PassportStrategy(Strategy, 'saml') {
       this.logger.log(`SAML callback for user: ${email} (tenant: ${tenant})`);
 
       if (!email) {
-        this.logger.error('SAML assertion missing email');
-        return done(new Error('Email not provided in SAML assertion'), undefined, undefined);
+        this.logger.error("SAML assertion missing email");
+        return done(
+          new Error("Email not provided in SAML assertion"),
+          undefined,
+          undefined,
+        );
       }
 
       // Extract user data from SAML profile
@@ -100,7 +114,7 @@ export class SamlStrategy extends PassportStrategy(Strategy, 'saml') {
         email: email.toLowerCase(),
         firstName: this.extractFirstName(profile),
         lastName: this.extractLastName(profile),
-        provider: 'saml',
+        provider: "saml",
         ssoId: profile.nameID || email, // Use nameID as stable identifier
         rawProfile: profile as unknown as Record<string, unknown>,
       };
@@ -123,9 +137,13 @@ export class SamlStrategy extends PassportStrategy(Strategy, 'saml') {
     return (
       profile.nameID ||
       profile.email ||
-      (profile as any)['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'] ||
-      (profile as any)['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/upn'] ||
-      ''
+      (profile as any)[
+        "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"
+      ] ||
+      (profile as any)[
+        "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/upn"
+      ] ||
+      ""
     );
   }
 
@@ -136,8 +154,10 @@ export class SamlStrategy extends PassportStrategy(Strategy, 'saml') {
     return (
       profile.firstName ||
       (profile as any).givenName ||
-      (profile as any)['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname'] ||
-      ''
+      (profile as any)[
+        "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname"
+      ] ||
+      ""
     );
   }
 
@@ -148,8 +168,10 @@ export class SamlStrategy extends PassportStrategy(Strategy, 'saml') {
     return (
       profile.lastName ||
       (profile as any).surname ||
-      (profile as any)['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname'] ||
-      ''
+      (profile as any)[
+        "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname"
+      ] ||
+      ""
     );
   }
 }
