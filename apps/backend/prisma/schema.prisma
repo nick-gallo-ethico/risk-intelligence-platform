@@ -2037,7 +2037,7 @@ model Employee {
   reports            Employee[]   @relation("EmployeeManager")
   teamAssignment     Team?        @relation(fields: [teamId], references: [id])
   locationAssignment Location?    @relation(fields: [locationId], references: [id])
-  Person             Person[]
+  personRecords      Person[] // Person records linked to this Employee
 
   @@unique([organizationId, hrisEmployeeId])
   @@unique([organizationId, email])
