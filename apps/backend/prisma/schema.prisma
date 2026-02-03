@@ -46,6 +46,12 @@ model Organization {
   reportTemplates   ReportTemplate[]
   reportExecutions  ReportExecution[]
   demoAccounts      DemoAccount[]
+  locations         Location[]
+  divisions         Division[]
+  businessUnits     BusinessUnit[]
+  departments       Department[]
+  teams             Team[]
+  employees         Employee[]
 
   @@index([slug])
   @@index([isActive])
@@ -426,6 +432,7 @@ enum AuditEntityType {
   SUBJECT
   CASE_MESSAGE
   INTERACTION
+  DEMO_ACCOUNT
 
   @@map("audit_entity_type")
 }
@@ -1588,4 +1595,336 @@ enum DemoAccountStatus {
   REVOKED
 
   @@map("demo_account_status")
+}
+
+// ===========================================
+// Location Entity (Global Offices)
+// ===========================================
+
+/// Location represents a physical office or work site.
+/// Real cities with fictional addresses for demo realism.
+model Location {
+  id             String @id @default(uuid())
+  organizationId String @map("organization_id")
+
+  // Location Identity
+  code String // e.g., "NYC-HQ", "LON-01", "TKY-01"
+  name String // e.g., "New York Headquarters"
+
+  // Address
+  addressLine1  String  @map("address_line_1") // Fictional address
+  addressLine2  String? @map("address_line_2")
+  city          String // Real city name
+  stateProvince String? @map("state_province")
+  postalCode    String? @map("postal_code")
+  country       String // ISO country code
+  countryName   String  @map("country_name")
+
+  // Geographic Classification
+  region   String // "US", "EMEA", "APAC"
+  timezone String // e.g., "America/New_York"
+
+  // Metadata
+  isHeadquarters Boolean @default(false) @map("is_headquarters")
+  isActive       Boolean @default(true) @map("is_active")
+
+  // Timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  employees    Employee[]
+  teams        Team[]
+
+  @@unique([organizationId, code])
+  @@index([organizationId])
+  @@index([organizationId, region])
+  @@index([organizationId, country])
+  @@map("locations")
+}
+
+// ===========================================
+// Division Entity (Top Level - 4 Divisions)
+// ===========================================
+
+/// Division represents a major business segment.
+/// Acme Co. has 4 divisions: Healthcare (50%), Tech, Retail, Energy
+model Division {
+  id             String @id @default(uuid())
+  organizationId String @map("organization_id")
+
+  code        String  // e.g., "HLTH", "TECH", "RETL", "ENRG"
+  name        String  // e.g., "Healthcare Division"
+  description String?
+
+  // Division Head (named persona)
+  headEmployeeId String? @map("head_employee_id")
+
+  // Distribution weight for employee generation
+  employeeWeight Int @default(25) @map("employee_weight") // Percentage of total
+
+  // Work mode defaults
+  defaultWorkMode WorkMode @default(HYBRID) @map("default_work_mode")
+
+  // Timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  organization  Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  businessUnits BusinessUnit[]
+
+  @@unique([organizationId, code])
+  @@index([organizationId])
+  @@map("divisions")
+}
+
+// ===========================================
+// Business Unit Entity (Level 2)
+// ===========================================
+
+/// BusinessUnit is a sub-segment within a Division.
+/// Example: Within Healthcare -> "Hospital Services", "Pharma", "Medical Devices"
+model BusinessUnit {
+  id             String @id @default(uuid())
+  organizationId String @map("organization_id")
+  divisionId     String @map("division_id")
+
+  code        String  // e.g., "HOSP", "PHRM"
+  name        String  // e.g., "Hospital Services"
+  description String?
+
+  // BU Head
+  headEmployeeId String? @map("head_employee_id")
+
+  // Timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  division     Division     @relation(fields: [divisionId], references: [id], onDelete: Cascade)
+  departments  Department[]
+
+  @@unique([organizationId, code])
+  @@index([organizationId])
+  @@index([divisionId])
+  @@map("business_units")
+}
+
+// ===========================================
+// Department Entity (Level 3)
+// ===========================================
+
+/// Department is a functional area within a Business Unit.
+/// Example: Within Hospital Services -> "Nursing", "Administration", "Clinical"
+model Department {
+  id             String @id @default(uuid())
+  organizationId String @map("organization_id")
+  businessUnitId String @map("business_unit_id")
+
+  code        String  // e.g., "NURS", "ADMN"
+  name        String  // e.g., "Nursing"
+  description String?
+
+  // Department Head (Director level)
+  headEmployeeId String? @map("head_employee_id")
+
+  // HRBP Assignment (for case routing)
+  hrbpEmployeeId String? @map("hrbp_employee_id")
+
+  // Timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  businessUnit BusinessUnit @relation(fields: [businessUnitId], references: [id], onDelete: Cascade)
+  teams        Team[]
+
+  @@unique([organizationId, code])
+  @@index([organizationId])
+  @@index([businessUnitId])
+  @@map("departments")
+}
+
+// ===========================================
+// Team Entity (Level 4 - Lowest)
+// ===========================================
+
+/// Team is the smallest organizational unit.
+/// Example: Within Nursing -> "ICU Team", "ER Team", "Pediatrics Team"
+model Team {
+  id             String @id @default(uuid())
+  organizationId String @map("organization_id")
+  departmentId   String @map("department_id")
+
+  code        String  // e.g., "ICU", "ER"
+  name        String  // e.g., "ICU Team"
+  description String?
+
+  // Team Lead (Manager level)
+  leadEmployeeId String? @map("lead_employee_id")
+
+  // Primary location for this team
+  locationId String? @map("location_id")
+
+  // Timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  department   Department   @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+  location     Location?    @relation(fields: [locationId], references: [id])
+  employees    Employee[]
+
+  @@unique([organizationId, code])
+  @@index([organizationId])
+  @@index([departmentId])
+  @@map("teams")
+}
+
+// ===========================================
+// Employee Entity (HRIS Sync)
+// ===========================================
+
+/// Employee represents HRIS-synced employee data.
+/// 20,000 employees with full reporting chains.
+/// Distinct from User - an Employee may or may not have a User account.
+model Employee {
+  id             String @id @default(uuid())
+  organizationId String @map("organization_id")
+
+  // HRIS Identity
+  hrisEmployeeId String  @map("hris_employee_id") // External HRIS ID
+  firstName      String  @map("first_name")
+  lastName       String  @map("last_name")
+  preferredName  String? @map("preferred_name") // For named personas
+  email          String
+  phone          String?
+
+  // Position
+  jobTitle String   @map("job_title")
+  jobLevel JobLevel @default(IC) @map("job_level")
+
+  // Organizational Placement
+  divisionId     String? @map("division_id")
+  businessUnitId String? @map("business_unit_id")
+  departmentId   String? @map("department_id")
+  teamId         String? @map("team_id")
+  locationId     String? @map("location_id")
+
+  // Legacy fields for backward compatibility
+  department     String? // Denormalized department name
+  departmentCode String? @map("department_code")
+  location       String? // Denormalized location name
+  locationCode   String? @map("location_code")
+  costCenter     String? @map("cost_center")
+
+  // Hierarchy
+  managerId   String? @map("manager_id") // Self-reference to manager Employee
+  managerName String? @map("manager_name") // Denormalized for display
+
+  // Work Arrangement
+  workMode WorkMode @default(HYBRID) @map("work_mode")
+
+  // Language (for multi-language workforce)
+  primaryLanguage String @default("en") @map("primary_language") // ISO 639-1 code
+
+  // Compliance Role (for case routing)
+  complianceRole ComplianceRole? @map("compliance_role")
+
+  // Employment
+  employmentStatus EmploymentStatus @default(ACTIVE) @map("employment_status")
+  employmentType   EmploymentType   @default(FULL_TIME) @map("employment_type")
+  hireDate         DateTime?        @map("hire_date")
+  terminationDate  DateTime?        @map("termination_date")
+
+  // Named Persona Flag (for executives with memorable names)
+  isNamedPersona Boolean @default(false) @map("is_named_persona")
+  personaRole    String? @map("persona_role") // e.g., "CCO", "Division VP Healthcare"
+
+  // Sync Metadata
+  sourceSystem   String    @default("MANUAL") @map("source_system")
+  syncedAt       DateTime  @default(now()) @map("synced_at")
+  lastSyncStatus String?   @map("last_sync_status")
+  rawHrisData    Json?     @map("raw_hris_data")
+
+  // Timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  organization       Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  manager            Employee?    @relation("EmployeeManager", fields: [managerId], references: [id])
+  reports            Employee[]   @relation("EmployeeManager")
+  teamAssignment     Team?        @relation(fields: [teamId], references: [id])
+  locationAssignment Location?    @relation(fields: [locationId], references: [id])
+
+  @@unique([organizationId, hrisEmployeeId])
+  @@unique([organizationId, email])
+  @@index([organizationId])
+  @@index([organizationId, divisionId])
+  @@index([organizationId, departmentId])
+  @@index([organizationId, teamId])
+  @@index([organizationId, locationId])
+  @@index([organizationId, employmentStatus])
+  @@index([organizationId, managerId])
+  @@index([organizationId, jobLevel])
+  @@index([organizationId, complianceRole])
+  @@map("employees")
+}
+
+// ===========================================
+// Enums for Organization Structure
+// ===========================================
+
+enum JobLevel {
+  IC // Individual Contributor
+  MANAGER // First-line manager
+  DIRECTOR // Department head
+  VP // Division/BU head
+  SVP // Senior VP
+  C_SUITE // C-level executive
+
+  @@map("job_level")
+}
+
+enum WorkMode {
+  ONSITE // Full-time office
+  REMOTE // Full-time remote
+  HYBRID // Mix of onsite/remote
+
+  @@map("work_mode")
+}
+
+enum ComplianceRole {
+  CCO // Chief Compliance Officer
+  INVESTIGATOR // Compliance Investigator
+  HRBP // HR Business Partner (case routing)
+  LEGAL_COUNSEL // Legal team member
+  ETHICS_COMMITTEE // Ethics committee member
+
+  @@map("compliance_role")
+}
+
+enum EmploymentStatus {
+  ACTIVE
+  INACTIVE
+  ON_LEAVE
+  TERMINATED
+
+  @@map("employment_status")
+}
+
+enum EmploymentType {
+  FULL_TIME
+  PART_TIME
+  CONTRACTOR
+  TEMPORARY
+  INTERN
+
+  @@map("employment_type")
 }
