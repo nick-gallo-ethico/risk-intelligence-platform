@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 3 of 11 (Authentication & SSO)
-Plan: 1 of 8 in current phase (03-01 complete)
+Plan: 2 of 8 in current phase (03-02 complete)
 Status: In progress
-Last activity: 2026-02-03 - Completed 03-01-PLAN.md (SSO Database Models)
+Last activity: 2026-02-03 - Completed 03-02-PLAN.md (Rate Limiting)
 
-Progress: [==================  ] 18% (18 of ~99 total plans)
+Progress: [==================  ] 19% (19 of ~99 total plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 15
+- Total plans completed: 16
 - Average duration: 13 min
-- Total execution time: 3.1 hours
+- Total execution time: 3.2 hours
 
 **By Phase:**
 
@@ -29,11 +29,11 @@ Progress: [==================  ] 18% (18 of ~99 total plans)
 |-------|-------|-------|----------|
 | 01-foundation | 9 | 123 min | 14 min |
 | 02-demo-tenant-seed-data | 5 | 58 min | 12 min |
-| 03-authentication-sso | 1 | 8 min | 8 min |
+| 03-authentication-sso | 2 | 16 min | 8 min |
 
 **Recent Trend:**
-- Last 5 plans: 03-01 (8 min), 02-04 (9 min), 02-03 (18 min), 02-06 (11 min), 02-02 (8 min)
-- Trend: SSO foundation plan executed quickly due to schema-only changes
+- Last 5 plans: 03-02 (8 min), 03-01 (8 min), 02-04 (9 min), 02-03 (18 min), 02-06 (11 min)
+- Trend: Phase 3 auth plans executing quickly (~8 min avg)
 
 *Updated after each plan completion*
 
@@ -111,6 +111,10 @@ Recent decisions affecting current work:
 - 03-01: DNS TXT record as primary domain verification method (industry standard)
 - 03-01: One TenantSsoConfig per organization (unique constraint) for simplified management
 - 03-01: TOTP secret stored encrypted, recovery codes stored as hashed array
+- 03-02: Global rate limit: 100 requests/minute, configurable via THROTTLE_TTL and THROTTLE_LIMIT env vars
+- 03-02: Auth endpoint tiered limits: login 5/min (strict), refresh 30/min (moderate), logout 10/min
+- 03-02: Per-target throttling: login tracks by email, MFA tracks by user ID to prevent distributed attacks
+- 03-02: Proxy IP extraction: X-Forwarded-For > X-Real-IP > direct IP for accurate rate limiting behind load balancers
 
 ### Pending Todos
 
@@ -124,6 +128,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-03T07:35:00Z
-Stopped at: Completed 03-01-PLAN.md (SSO Database Models)
+Last session: 2026-02-03T07:32:00Z
+Stopped at: Completed 03-02-PLAN.md (Rate Limiting)
 Resume file: None
