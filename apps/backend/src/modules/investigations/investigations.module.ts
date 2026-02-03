@@ -11,6 +11,8 @@ import { InvestigationInterviewController } from './interviews/interview.control
 import { InvestigationTemplateService } from './templates/template.service';
 import { TemplateAssignmentService } from './templates/template-assignment.service';
 import { InvestigationTemplateController } from './templates/template.controller';
+import { InvestigationChecklistService } from './checklists/checklist.service';
+import { InvestigationChecklistController } from './checklists/checklist.controller';
 
 /**
  * Module for investigation management.
@@ -20,6 +22,7 @@ import { InvestigationTemplateController } from './templates/template.controller
  * - InvestigationsController: Standalone routes at /investigations/:id
  * - InvestigationInterviewController: Routes at /investigation-interviews
  * - InvestigationTemplateController: Routes at /investigation-templates
+ * - InvestigationChecklistController: Routes at /investigation-checklists
  */
 @Module({
   imports: [
@@ -31,18 +34,21 @@ import { InvestigationTemplateController } from './templates/template.controller
     InvestigationsController,
     InvestigationInterviewController,
     InvestigationTemplateController,
+    InvestigationChecklistController,
   ],
   providers: [
     InvestigationsService,
     InvestigationInterviewService,
     InvestigationTemplateService,
     TemplateAssignmentService,
+    InvestigationChecklistService,
   ],
   exports: [
     InvestigationsService,
     InvestigationInterviewService,
     InvestigationTemplateService,
     TemplateAssignmentService,
+    InvestigationChecklistService,
   ],
 })
 export class InvestigationsModule {}
