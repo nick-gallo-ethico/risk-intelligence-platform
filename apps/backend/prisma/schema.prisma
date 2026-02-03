@@ -3145,3 +3145,58 @@ model AiRateLimit {
 
   @@map("ai_rate_limits")
 }
+
+// ===========================================
+// AI Action System
+// ===========================================
+
+/// AiActionStatus tracks the lifecycle of AI-initiated actions.
+enum AiActionStatus {
+  PENDING
+  EXECUTING
+  COMPLETED
+  FAILED
+  UNDONE
+
+  @@map("ai_action_status")
+}
+
+/// AiAction records AI-initiated mutations for audit and undo capability.
+/// Actions have configurable undo windows based on their severity.
+model AiAction {
+  id              String         @id @default(uuid())
+  organizationId  String         @map("organization_id")
+  conversationId  String?        @map("conversation_id") // Links to AI conversation
+  userId          String         @map("user_id") // User who triggered the action
+
+  // Action details
+  actionType      String         @map("action_type") // e.g., 'add-note', 'change-status'
+  entityType      String         @map("entity_type") // Target entity type
+  entityId        String         @map("entity_id") // Target entity ID
+
+  // Input and result
+  input           Json           // Action input parameters
+  result          Json?          // Action result (for undo)
+  previousState   Json?          @map("previous_state") // State before action (for undo)
+
+  // Status tracking
+  status          AiActionStatus @default(PENDING)
+  error           String?        // Error message if failed
+
+  // Undo configuration
+  undoWindowSeconds Int?         @map("undo_window_seconds") // 0 = non-undoable
+  undoExpiresAt   DateTime?      @map("undo_expires_at")
+
+  // Timestamps
+  createdAt       DateTime       @default(now()) @map("created_at")
+  executedAt      DateTime?      @map("executed_at")
+  completedAt     DateTime?      @map("completed_at")
+  undoneAt        DateTime?      @map("undone_at")
+  undoneByUserId  String?        @map("undone_by_user_id")
+
+  @@index([organizationId, entityType, entityId])
+  @@index([organizationId, userId])
+  @@index([conversationId])
+  @@index([status, undoExpiresAt])
+  @@map("ai_actions")
+}
