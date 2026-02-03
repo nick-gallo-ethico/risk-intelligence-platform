@@ -12,16 +12,16 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 Phase: 6 of 11 (Case Management) - IN PROGRESS
 Plan: 9 of 16 in current phase
 Status: In progress
-Last activity: 2026-02-03 - Completed 06-09-PLAN.md (Anonymous Messaging Relay)
+Last activity: 2026-02-03 - Completed 06-08-PLAN.md (Remediation Notifications)
 
-Progress: [===============================================] 41% (51 of ~125 total plans)
+Progress: [===============================================] 42% (52 of ~125 total plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 50
+- Total plans completed: 52
 - Average duration: 14 min
-- Total execution time: 12.5 hours
+- Total execution time: 12.9 hours
 
 **By Phase:**
 
@@ -34,8 +34,8 @@ Progress: [===============================================] 41% (51 of ~125 tota
 | 05-ai-infrastructure | 11 | 143 min | 13 min |
 
 **Recent Trend:**
-- Last 5 plans: 06-09 (17 min), 06-01 (44 min), 06-03 (39 min), 06-05 (33 min), 06-04 (30 min)
-- Trend: Phase 6 in progress. Anonymous messaging relay complete.
+- Last 5 plans: 06-08 (27 min), 06-09 (17 min), 06-01 (44 min), 06-03 (39 min), 06-05 (33 min)
+- Trend: Phase 6 in progress. Remediation notifications complete.
 
 *Updated after each plan completion*
 
@@ -280,6 +280,10 @@ Recent decisions affecting current work:
 - 06-09: Outbound messages marked as read when reporter retrieves (not when sent)
 - 06-09: Inbound messages marked as read when investigator retrieves
 - 06-09: Chinese Wall pattern: Reporter contact on RIU only accessed for notification, never exposed to investigator
+- 06-08: Default reminder config: pre-due [3, 1] days, overdue [3, 7] days, escalation 7 days
+- 06-08: Processor in remediation module for domain co-location (not jobs module)
+- 06-08: forwardRef for circular dependency between processor and notification service
+- 06-08: REMEDIATION_PLAN and REMEDIATION_STEP added to AuditEntityType enum
 
 ### Pending Todos
 
@@ -296,3 +300,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
+Last session: 2026-02-03T23:54:16Z
+Stopped at: Completed 06-08-PLAN.md (Remediation Notifications)
+Resume file: None
