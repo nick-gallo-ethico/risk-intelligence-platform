@@ -151,25 +151,25 @@ Plans:
   3. Remediation plans track steps with assignees, due dates, and completion status
   4. Two-way anonymous communication works via relay without revealing reporter identity
   5. Users can create and save custom filtered views across Cases and RIUs
-**Plans**: TBD
+**Plans**: 16 plans in 5 waves
 
 Plans:
-- [ ] 06-01: Investigation template model and builder
-- [ ] 06-02: Category-specific template assignment
-- [ ] 06-03: Structured interview model and UI
-- [ ] 06-04: Remediation plan and step models
-- [ ] 06-05: Remediation step assignment (users and non-users)
-- [ ] 06-06: Subject model for pattern detection
-- [ ] 06-07: Anonymous communication relay service
-- [ ] 06-08: CaseMessage model and API
-- [ ] 06-09: Client platform Case list with advanced filtering
-- [ ] 06-10: Case detail view with linked RIUs
-- [ ] 06-11: Investigation management UI enhancements
-- [ ] 06-12: Saved views infrastructure
-- [ ] 06-13: Custom properties (tenant-configurable fields)
-- [ ] 06-14: Unified search across entities
-- [ ] 06-15: Activity timeline component
-- [ ] 06-16: Keyboard shortcuts
+- [ ] 06-01-PLAN.md (Wave 1) - Investigation template model and service with versioning
+- [ ] 06-02-PLAN.md (Wave 1) - Structured interview model and service
+- [ ] 06-03-PLAN.md (Wave 1) - Remediation plan and step models with DAG validation
+- [ ] 06-04-PLAN.md (Wave 1) - Saved views infrastructure with filter persistence
+- [ ] 06-05-PLAN.md (Wave 1) - Custom properties infrastructure for tenant-configurable fields
+- [ ] 06-06-PLAN.md (Wave 2) - Template assignment by category with recommendation logic
+- [ ] 06-07-PLAN.md (Wave 2) - Checklist progress tracking with item completion
+- [ ] 06-08-PLAN.md (Wave 2) - Remediation step assignment and notifications
+- [ ] 06-09-PLAN.md (Wave 2) - Anonymous message relay with PII detection
+- [ ] 06-10-PLAN.md (Wave 3) - Unified search enhancement with custom properties
+- [ ] 06-11-PLAN.md (Wave 3) - Activity timeline service and component
+- [ ] 06-12-PLAN.md (Wave 4) - Case list page with advanced filtering and saved views
+- [ ] 06-13-PLAN.md (Wave 4) - Case detail page with linked RIUs and tabs
+- [ ] 06-14-PLAN.md (Wave 4) - Investigation detail page with checklist panel
+- [ ] 06-15-PLAN.md (Wave 5) - Keyboard shortcuts and command palette
+- [ ] 06-16-PLAN.md (Wave 5) - Final integration and human verification checkpoint
 
 ### Phase 7: Notifications & Email
 **Goal**: Deliver event-driven notifications through multiple channels (email, in-app) with user preferences, template management, and delivery tracking.
@@ -318,7 +318,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 | 3. Authentication & SSO | 8/8 | Complete | 2026-02-03 |
 | 4. Core Entities | 10/10 | Complete | 2026-02-03 |
 | 5. AI Infrastructure | 0/11 | Planned | - |
-| 6. Case Management | 0/16 | Not started | - |
+| 6. Case Management | 0/16 | Planned | - |
 | 7. Notifications & Email | 0/7 | Not started | - |
 | 8. Portals | 0/19 | Not started | - |
 | 9. Campaigns & Disclosures | 0/9 | Not started | - |
