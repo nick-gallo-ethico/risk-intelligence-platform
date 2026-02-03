@@ -87,7 +87,9 @@ model Organization {
   savedViews SavedView[]
 
   // Investigation template relations
-  investigationTemplates InvestigationTemplate[]
+  investigationTemplates       InvestigationTemplate[]
+  categoryTemplateMappings     CategoryTemplateMapping[]
+  checklistProgress            InvestigationChecklistProgress[]
 
   @@index([slug])
   @@index([isActive])
@@ -833,8 +835,9 @@ model Investigation {
   demoUserSession     DemoUserSession? @relation("DemoSessionInvestigations", fields: [demoUserSessionId], references: [id])
 
   // Child entities
-  notes      InvestigationNote[]
-  interviews InvestigationInterview[]
+  notes             InvestigationNote[]
+  interviews        InvestigationInterview[]
+  checklistProgress InvestigationChecklistProgress?
 
   @@unique([caseId, investigationNumber])
   // Indexes for query patterns
@@ -1111,6 +1114,9 @@ model Category {
 
   // RIU relations
   rius RiskIntelligenceUnit[]
+
+  // Investigation template mappings
+  templateMappings CategoryTemplateMapping[]
 
   // Unique constraints
   @@unique([organizationId, module, code])
@@ -3711,9 +3717,113 @@ model InvestigationTemplate {
   // Relations
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
+  // Category mappings for auto-assignment
+  categoryMappings   CategoryTemplateMapping[]
+  checklistInstances InvestigationChecklistProgress[]
+
   @@unique([organizationId, name, version])
   @@index([organizationId, tier])
   @@index([organizationId, categoryId])
   @@index([organizationId, isActive, isArchived])
   @@map("investigation_templates")
+}
+
+// ===========================================
+// Category-Template Mapping
+// ===========================================
+
+/// TemplateRequirement defines how strictly a template should be applied
+/// when creating an investigation for a mapped category.
+enum TemplateRequirement {
+  REQUIRED // Investigation cannot proceed without template
+  RECOMMENDED // Auto-applies but can be removed
+  OPTIONAL // Investigator chooses
+
+  @@map("template_requirement")
+}
+
+/// CategoryTemplateMapping links categories to investigation templates.
+/// Enables auto-assignment of templates based on case/investigation category.
+/// Multiple templates can map to a category with different requirement levels.
+model CategoryTemplateMapping {
+  id             String @id @default(uuid())
+  organizationId String @map("organization_id")
+
+  // Category link
+  categoryId String @map("category_id")
+
+  // Template link
+  templateId String @map("template_id")
+
+  // Requirement level
+  requirement TemplateRequirement @default(RECOMMENDED)
+
+  // Priority (for multiple mappings per category, lower = higher priority)
+  priority Int @default(0)
+
+  isActive Boolean @default(true) @map("is_active")
+
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  createdById String   @map("created_by_id")
+
+  // Relations
+  organization Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  category     Category              @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  template     InvestigationTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, categoryId, templateId])
+  @@index([organizationId, categoryId])
+  @@map("category_template_mappings")
+}
+
+// ===========================================
+// Investigation Checklist Progress Entity
+// ===========================================
+
+/// InvestigationChecklistProgress tracks per-investigation completion of checklist items.
+/// Each investigation can have one checklist progress record, capturing the template version
+/// at creation time (immutable) and all item/section states.
+/// Supports custom items added by investigators and skipped items with reasons.
+model InvestigationChecklistProgress {
+  id              String @id @default(uuid())
+  investigationId String @unique @map("investigation_id")
+  organizationId  String @map("organization_id")
+  templateId      String @map("template_id")
+  templateVersion Int    @map("template_version")
+
+  // Current state (JSON)
+  itemStates    Json @map("item_states") // { [itemId]: ChecklistItemState }
+  sectionStates Json @map("section_states") // { [sectionId]: SectionState }
+
+  // Customizations (investigator changes)
+  customItems  Json? @map("custom_items") // Items added by investigator
+  skippedItems Json? @map("skipped_items") // Items marked N/A with reason
+  itemOrder    Json? @map("item_order") // Custom ordering
+
+  // Summary metrics (denormalized for queries)
+  totalItems      Int @map("total_items")
+  completedItems  Int @default(0) @map("completed_items")
+  skippedCount    Int @default(0) @map("skipped_count")
+  customCount     Int @default(0) @map("custom_count")
+
+  // Progress percentage (0-100)
+  progressPercent Int @default(0) @map("progress_percent")
+
+  // Timestamps
+  startedAt      DateTime? @map("started_at")
+  completedAt    DateTime? @map("completed_at")
+  lastActivityAt DateTime? @map("last_activity_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  organization  Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  investigation Investigation         @relation(fields: [investigationId], references: [id], onDelete: Cascade)
+  template      InvestigationTemplate @relation(fields: [templateId], references: [id])
+
+  @@index([organizationId])
+  @@index([organizationId, templateId])
+  @@map("investigation_checklist_progress")
 }
