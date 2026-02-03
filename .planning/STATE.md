@@ -267,6 +267,10 @@ Recent decisions affecting current work:
 - 06-01: TemplateTier enum (OFFICIAL, TEAM, PERSONAL) controls template visibility
 - 06-01: Version-on-publish pattern preserves in-flight checklists on original version
 - 06-01: Events emitted for all template mutations (audit integration)
+- 06-02: IntervieweeType enum: PERSON, EXTERNAL, ANONYMOUS for flexible interviewee tracking
+- 06-02: Interview lifecycle: SCHEDULED -> IN_PROGRESS -> COMPLETED (or CANCELLED)
+- 06-02: Template questions copied to interview at creation (copy-on-use pattern)
+- 06-02: Person-linked interviews enable cross-case pattern detection
 
 ### Pending Todos
 
@@ -283,6 +287,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-02-03T23:04:00Z
-Stopped at: Completed 06-01-PLAN.md (Investigation Templates)
+Last session: 2026-02-03T23:07:00Z
+Stopped at: Completed 06-02-PLAN.md (Investigation Interviews)
 Resume file: None
