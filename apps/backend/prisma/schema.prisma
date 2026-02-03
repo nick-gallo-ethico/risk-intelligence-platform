@@ -72,6 +72,13 @@ model Organization {
   caseCaseAssociations     CaseCaseAssociation[]
   personPersonAssociations PersonPersonAssociation[]
 
+  // Custom properties
+  customPropertyDefinitions CustomPropertyDefinition[]
+
+  // Investigation interview relations
+  investigationInterviews InvestigationInterview[]
+  interviewTemplates      InterviewTemplate[]
+
   @@index([slug])
   @@index([isActive])
   @@map("organizations")
@@ -700,6 +707,29 @@ enum NoteVisibility {
 }
 
 // ===========================================
+// Investigation Interview Enums
+// ===========================================
+
+/// InterviewStatus tracks the lifecycle of an investigation interview.
+enum InterviewStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+
+  @@map("interview_status")
+}
+
+/// IntervieweeType classifies how the interviewee is identified.
+enum IntervieweeType {
+  PERSON // Linked to Person record
+  EXTERNAL // Freeform name (not in system)
+  ANONYMOUS // Anonymous participant
+
+  @@map("interviewee_type")
+}
+
+// ===========================================
 // Attachment Enums
 // ===========================================
 
@@ -790,7 +820,8 @@ model Investigation {
   demoUserSession     DemoUserSession? @relation("DemoSessionInvestigations", fields: [demoUserSessionId], references: [id])
 
   // Child entities
-  notes InvestigationNote[]
+  notes      InvestigationNote[]
+  interviews InvestigationInterview[]
 
   @@unique([caseId, investigationNumber])
   // Indexes for query patterns
@@ -858,6 +889,109 @@ model InvestigationNote {
   @@index([organizationId, authorId]) // Author filtering
   @@index([createdAt]) // Timeline sorting
   @@map("investigation_notes")
+}
+
+// ===========================================
+// Investigation Interview Entity
+// ===========================================
+
+/// InvestigationInterview records structured interviews during investigations.
+/// Supports Person-linked, external (freeform), and anonymous interviewees.
+/// Template questions enable consistent documentation across investigations.
+model InvestigationInterview {
+  id              String @id @default(uuid())
+  organizationId  String @map("organization_id")
+  investigationId String @map("investigation_id")
+
+  // Interviewee (either link to Person OR freeform)
+  intervieweeType     IntervieweeType @map("interviewee_type")
+  intervieweePersonId String?         @map("interviewee_person_id")
+  intervieweeName     String?         @map("interviewee_name") // For EXTERNAL type
+  intervieweeTitle    String?         @map("interviewee_title")
+  intervieweeEmail    String?         @map("interviewee_email")
+  intervieweePhone    String?         @map("interviewee_phone")
+
+  // Interview metadata
+  status      InterviewStatus @default(SCHEDULED)
+  scheduledAt DateTime?       @map("scheduled_at")
+  startedAt   DateTime?       @map("started_at")
+  completedAt DateTime?       @map("completed_at")
+  duration    Int?            // Duration in minutes
+  location    String?         // Physical location or "Video Call"
+
+  // Interviewer(s)
+  conductedById           String   @map("conducted_by_id")
+  secondaryInterviewerIds String[] @default([]) @map("secondary_interviewer_ids")
+
+  // Content
+  purpose     String? // Purpose/scope of interview
+  notes       String? @db.Text // Rich text notes
+  summary     String? // Brief summary
+  keyFindings String? @map("key_findings") // Important findings
+
+  // Template Questions (JSON)
+  templateId String? @map("template_id") // Reference to interview template
+  questions  Json?   // Array of { questionId, question, response, isRequired }
+
+  // Checklist linking (can link to specific checklist item as evidence)
+  checklistItemId String? @map("checklist_item_id")
+
+  // Recording
+  hasRecording  Boolean @default(false) @map("has_recording")
+  recordingUrl  String? @map("recording_url")
+  transcriptUrl String? @map("transcript_url")
+
+  // Consent
+  consentObtained Boolean @default(false) @map("consent_obtained")
+  consentNotes    String? @map("consent_notes")
+
+  // Timestamps
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  createdById String   @map("created_by_id")
+
+  // Relations
+  organization  Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  investigation Investigation @relation(fields: [investigationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([organizationId, investigationId])
+  @@index([organizationId, intervieweePersonId])
+  @@index([organizationId, status])
+  @@map("investigation_interviews")
+}
+
+// ===========================================
+// Interview Template Entity
+// ===========================================
+
+/// InterviewTemplate stores reusable question sets for structured interviews.
+/// Can be scoped to specific categories for category-specific interview workflows.
+model InterviewTemplate {
+  id             String @id @default(uuid())
+  organizationId String @map("organization_id")
+
+  name        String
+  description String?
+  categoryId  String? @map("category_id") // For category-specific templates
+
+  // Questions (JSON array)
+  questions Json // Array of { id, question, isRequired, guidance, order }
+
+  isActive Boolean @default(true) @map("is_active")
+  isSystem Boolean @default(false) @map("is_system")
+
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  createdById String   @map("created_by_id")
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, name])
+  @@index([organizationId])
+  @@index([organizationId, categoryId])
+  @@map("interview_templates")
 }
 
 // ===========================================
@@ -3199,4 +3333,88 @@ model AiAction {
   @@index([conversationId])
   @@index([status, undoExpiresAt])
   @@map("ai_actions")
+}
+
+// ===========================================
+// Custom Properties System
+// ===========================================
+
+/// CustomPropertyEntityType defines which entities can have custom properties.
+enum CustomPropertyEntityType {
+  CASE
+  INVESTIGATION
+  PERSON
+  RIU
+
+  @@map("custom_property_entity_type")
+}
+
+/// PropertyDataType defines the data types supported for custom properties.
+enum PropertyDataType {
+  TEXT
+  NUMBER
+  DATE
+  DATETIME
+  SELECT
+  MULTI_SELECT
+  BOOLEAN
+  URL
+  EMAIL
+  PHONE
+
+  @@map("property_data_type")
+}
+
+/// CustomPropertyDefinition defines tenant-configurable fields for Cases, Investigations, and Persons.
+/// Properties allow organizations to capture industry-specific or compliance-specific data.
+model CustomPropertyDefinition {
+  id             String   @id @default(uuid())
+  organizationId String   @map("organization_id")
+
+  // Target entity
+  entityType CustomPropertyEntityType @map("entity_type")
+
+  // Property definition
+  name        String
+  key         String // Unique key within entity type, used in customFields JSON
+  description String?
+
+  // Type and validation
+  dataType   PropertyDataType @map("data_type")
+  isRequired Boolean          @default(false) @map("is_required")
+  defaultValue Json?          @map("default_value")
+
+  // Options for SELECT/MULTI_SELECT
+  options Json? // Array of { value: string, label: string, color?: string }
+
+  // Validation rules
+  validationRules Json? @map("validation_rules")
+  // For TEXT: { minLength?, maxLength?, pattern? }
+  // For NUMBER: { min?, max?, decimals? }
+  // For DATE: { minDate?, maxDate?, allowFuture?, allowPast? }
+
+  // Display configuration
+  displayOrder Int      @default(0) @map("display_order")
+  groupName    String?  @map("group_name") // For grouping related properties
+  isVisible    Boolean  @default(true) @map("is_visible")
+  helpText     String?  @map("help_text")
+
+  // UI hints
+  placeholder String?
+  width       String? // 'full', 'half', 'third'
+
+  // Status
+  isActive Boolean @default(true) @map("is_active")
+
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  createdById String   @map("created_by_id")
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, entityType, key])
+  @@index([organizationId, entityType])
+  @@index([organizationId, entityType, isActive])
+  @@map("custom_property_definitions")
 }
