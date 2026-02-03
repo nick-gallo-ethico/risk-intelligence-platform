@@ -67,8 +67,12 @@ export class ClaudeProvider implements AIProvider, OnModuleInit {
   async createMessage(params: CreateMessageParams): Promise<AIMessageResponse> {
     this.ensureReady();
 
-    const { system, userMessages } = this.separateSystemMessage(params.messages);
-    const claudeTools = params.tools ? this.convertTools(params.tools) : undefined;
+    const { system, userMessages } = this.separateSystemMessage(
+      params.messages,
+    );
+    const claudeTools = params.tools
+      ? this.convertTools(params.tools)
+      : undefined;
 
     const response = await this.client!.messages.create({
       model: params.model || this.defaultModel,
@@ -88,8 +92,12 @@ export class ClaudeProvider implements AIProvider, OnModuleInit {
   ): AsyncIterable<AIStreamEvent> {
     this.ensureReady();
 
-    const { system, userMessages } = this.separateSystemMessage(params.messages);
-    const claudeTools = params.tools ? this.convertTools(params.tools) : undefined;
+    const { system, userMessages } = this.separateSystemMessage(
+      params.messages,
+    );
+    const claudeTools = params.tools
+      ? this.convertTools(params.tools)
+      : undefined;
 
     const stream = this.client!.messages.stream(
       {
