@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 6 of 11 (Case Management) - IN PROGRESS
-Plan: 8 of 16 in current phase
+Plan: 9 of 16 in current phase
 Status: In progress
-Last activity: 2026-02-03 - Completed 06-06-PLAN.md (Category Template Mapping)
+Last activity: 2026-02-03 - Completed 06-09-PLAN.md (Anonymous Messaging Relay)
 
-Progress: [===============================================] 40% (50 of ~125 total plans)
+Progress: [===============================================] 41% (51 of ~125 total plans)
 
 ## Performance Metrics
 
@@ -34,8 +34,8 @@ Progress: [===============================================] 40% (50 of ~125 tota
 | 05-ai-infrastructure | 11 | 143 min | 13 min |
 
 **Recent Trend:**
-- Last 5 plans: 06-06 (26 min), 06-01 (44 min), 06-03 (39 min), 06-05 (33 min), 06-04 (30 min)
-- Trend: Phase 6 in progress. Template category mapping complete.
+- Last 5 plans: 06-09 (17 min), 06-01 (44 min), 06-03 (39 min), 06-05 (33 min), 06-04 (30 min)
+- Trend: Phase 6 in progress. Anonymous messaging relay complete.
 
 *Updated after each plan completion*
 
@@ -275,6 +275,11 @@ Recent decisions affecting current work:
 - 06-06: CategoryTemplateMapping priority field enables multiple templates per category
 - 06-06: Parent category inheritance for template recommendations when no direct mapping
 - 06-06: isTemplateRequired() check validates template presence on investigation creation
+- 06-09: PII detection warns but doesn't block - investigator can acknowledge and send
+- 06-09: Reporter notifications don't include message content - only status check link
+- 06-09: Outbound messages marked as read when reporter retrieves (not when sent)
+- 06-09: Inbound messages marked as read when investigator retrieves
+- 06-09: Chinese Wall pattern: Reporter contact on RIU only accessed for notification, never exposed to investigator
 
 ### Pending Todos
 
@@ -291,6 +296,3 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-02-03T23:46:00Z
-Stopped at: Completed 06-06-PLAN.md (Category Template Mapping)
-Resume file: None
