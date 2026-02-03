@@ -5,6 +5,7 @@ import { AuditModule } from '../audit/audit.module';
 import { RemediationService } from './remediation.service';
 import { RemediationStepService } from './remediation-step.service';
 import { RemediationNotificationService } from './remediation-notification.service';
+import { RemediationProcessor } from './remediation.processor';
 import { RemediationEventHandler } from './handlers/remediation-event.handler';
 import { RemediationController } from './remediation.controller';
 import { EMAIL_QUEUE_NAME } from '../jobs/queues/email.queue';
@@ -18,9 +19,10 @@ import { EMAIL_QUEUE_NAME } from '../jobs/queues/email.queue';
  * - Step completion and approval workflow
  * - Notification scheduling and sending
  * - Event-driven audit logging
+ * - Job processing for scheduled reminders and escalations
  *
  * Integrates with:
- * - Email queue for notification delivery
+ * - Email queue for notification delivery and job processing
  * - Audit module for activity logging
  * - Events module for event-driven notifications
  */
@@ -35,6 +37,7 @@ import { EMAIL_QUEUE_NAME } from '../jobs/queues/email.queue';
     RemediationService,
     RemediationStepService,
     RemediationNotificationService,
+    RemediationProcessor,
     RemediationEventHandler,
   ],
   exports: [
