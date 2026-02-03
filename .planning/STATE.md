@@ -253,7 +253,10 @@ Recent decisions affecting current work:
 
 ### Pending Todos
 
-None yet.
+**AI Infrastructure Polish (Phase 6):**
+- WebSocket /ai namespace needs integration testing with real client
+- Skills/Actions endpoints return [] without auth - consider adding demo mode or public skill list
+- AiGateway authentication flow needs E2E testing
 
 ### Blockers/Concerns
 

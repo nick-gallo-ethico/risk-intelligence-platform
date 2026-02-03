@@ -44,7 +44,7 @@ interface AuthenticatedRequest {
  *
  * @see AiGateway for WebSocket streaming endpoints
  */
-@Controller("api/v1/ai")
+@Controller("ai")
 // @UseGuards(JwtAuthGuard) // Uncomment when auth module available
 export class AiController {
   constructor(
@@ -410,13 +410,24 @@ export class AiController {
     @Query("entityId") entityId: string,
     @Request() req: AuthenticatedRequest,
   ) {
-    const context = await this.contextLoader.loadContext({
-      organizationId: req.user?.organizationId || "demo",
-      userId: req.user?.id || "demo",
-      entityType,
-      entityId,
-    });
+    try {
+      const context = await this.contextLoader.loadContext({
+        organizationId: req.user?.organizationId || "demo",
+        userId: req.user?.id || "demo",
+        entityType,
+        entityId,
+      });
 
-    return context;
+      return context;
+    } catch (error) {
+      // Return partial context on error instead of 500
+      return {
+        error: error.message || "Failed to load context",
+        platform: { name: "Ethico Risk Intelligence Platform" },
+        organization: null,
+        user: null,
+        entity: null,
+      };
+    }
   }
 }

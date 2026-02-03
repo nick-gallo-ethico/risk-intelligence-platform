@@ -151,7 +151,7 @@ Plans:
   3. Remediation plans track steps with assignees, due dates, and completion status
   4. Two-way anonymous communication works via relay without revealing reporter identity
   5. Users can create and save custom filtered views across Cases and RIUs
-**Plans**: 16 plans in 5 waves
+**Plans**: 17 plans in 5 waves
 
 Plans:
 - [ ] 06-01-PLAN.md (Wave 1) - Investigation template model and service with versioning
@@ -165,11 +165,12 @@ Plans:
 - [ ] 06-09-PLAN.md (Wave 2) - Anonymous message relay with PII detection
 - [ ] 06-10-PLAN.md (Wave 3) - Unified search enhancement with custom properties
 - [ ] 06-11-PLAN.md (Wave 3) - Activity timeline service and component
-- [ ] 06-12-PLAN.md (Wave 4) - Case list page with advanced filtering and saved views
-- [ ] 06-13-PLAN.md (Wave 4) - Case detail page with linked RIUs and tabs
-- [ ] 06-14-PLAN.md (Wave 4) - Investigation detail page with checklist panel
-- [ ] 06-15-PLAN.md (Wave 5) - Keyboard shortcuts and command palette
-- [ ] 06-16-PLAN.md (Wave 5) - Final integration and human verification checkpoint
+- [ ] 06-12-PLAN.md (Wave 3) - AI infrastructure polish (WebSocket E2E, auth integration)
+- [ ] 06-13-PLAN.md (Wave 4) - Case list page with advanced filtering and saved views
+- [ ] 06-14-PLAN.md (Wave 4) - Case detail page with linked RIUs and tabs
+- [ ] 06-15-PLAN.md (Wave 4) - Investigation detail page with checklist panel
+- [ ] 06-16-PLAN.md (Wave 5) - Keyboard shortcuts and command palette
+- [ ] 06-17-PLAN.md (Wave 5) - Final integration and human verification checkpoint
 
 ### Phase 7: Notifications & Email
 **Goal**: Deliver event-driven notifications through multiple channels (email, in-app) with user preferences, template management, and delivery tracking.
@@ -181,16 +182,17 @@ Plans:
   3. Users can configure notification preferences per event type (email, in-app, none)
   4. Failed email deliveries retry with exponential backoff and log to delivery tracking
   5. Notification templates support entity context rendering (case title, due date, assignee)
-**Plans**: TBD
+**Plans**: 8 plans in 4 waves
 
 Plans:
-- [ ] 07-01: Email service with Resend integration
-- [ ] 07-02: Email template service with Handlebars
-- [ ] 07-03: NotificationPreference model per user/event type
-- [ ] 07-04: Event-driven notification triggers
-- [ ] 07-05: In-app notification service with Socket.IO push
-- [ ] 07-06: Notification center UI component
-- [ ] 07-07: Delivery tracking and retry logic
+- [ ] 07-01-PLAN.md (Wave 1) - Database schema: Notification, NotificationPreference, NotificationDelivery, OrgNotificationSettings models
+- [ ] 07-02-PLAN.md (Wave 1) - Email template service with MJML and Handlebars integration
+- [ ] 07-03-PLAN.md (Wave 2) - Notification preference service with 5-min cache and org enforcement
+- [ ] 07-04-PLAN.md (Wave 2) - NotificationService core and event listeners (case, SLA, workflow)
+- [ ] 07-05-PLAN.md (Wave 3) - In-app notification WebSocket gateway with tenant-isolated rooms
+- [ ] 07-06-PLAN.md (Wave 3) - Daily digest service with smart aggregation and scheduling
+- [ ] 07-07-PLAN.md (Wave 3) - Delivery tracking service and email processor (replaces Phase 1 placeholder)
+- [ ] 07-08-PLAN.md (Wave 4) - REST API controllers for notifications and preferences
 
 ### Phase 8: Portals
 **Goal**: Launch the three user-facing portals - Ethics Portal (anonymous reporting), Employee Portal (self-service), and Operator Console (hotline intake with AI assistance).
@@ -318,8 +320,8 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 | 3. Authentication & SSO | 8/8 | Complete | 2026-02-03 |
 | 4. Core Entities | 10/10 | Complete | 2026-02-03 |
 | 5. AI Infrastructure | 11/11 | Complete | 2026-02-03 |
-| 6. Case Management | 0/16 | Planned | - |
-| 7. Notifications & Email | 0/7 | Not started | - |
+| 6. Case Management | 0/17 | Planned | - |
+| 7. Notifications & Email | 0/8 | Planned | - |
 | 8. Portals | 0/19 | Not started | - |
 | 9. Campaigns & Disclosures | 0/9 | Not started | - |
 | 10. Policy Management | 0/10 | Not started | - |
@@ -329,5 +331,5 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 *Roadmap created: 2026-02-02*
 *Depth: Comprehensive (8-12 phases)*
 *Total phases: 11*
-*Total plans: 125 (estimated)*
+*Total plans: 126 (estimated)*
 *Total v1 requirements: 149*
