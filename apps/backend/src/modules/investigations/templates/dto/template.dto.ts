@@ -9,7 +9,7 @@ import {
   Min,
 } from 'class-validator';
 import { Type } from 'class-transformer';
-import { TemplateTier } from '@prisma/client';
+import { TemplateTier, TemplateRequirement, InvestigationTemplate } from '@prisma/client';
 
 // ===========================================
 // JSON Schema Types for Template Structure
@@ -178,4 +178,56 @@ export class DuplicateTemplateDto {
   @IsString()
   @IsOptional()
   name?: string;
+}
+
+// ===========================================
+// Category-Template Mapping DTOs
+// ===========================================
+
+/**
+ * DTO for creating a category-to-template mapping.
+ * Links a category to a template with a requirement level.
+ */
+export class CreateCategoryMappingDto {
+  @IsUUID()
+  categoryId: string;
+
+  @IsUUID()
+  templateId: string;
+
+  @IsEnum(TemplateRequirement)
+  @IsOptional()
+  requirement?: TemplateRequirement;
+
+  @IsInt()
+  @Min(0)
+  @IsOptional()
+  priority?: number;
+}
+
+/**
+ * DTO for updating a category-to-template mapping.
+ */
+export class UpdateCategoryMappingDto {
+  @IsEnum(TemplateRequirement)
+  @IsOptional()
+  requirement?: TemplateRequirement;
+
+  @IsInt()
+  @Min(0)
+  @IsOptional()
+  priority?: number;
+
+  @IsBoolean()
+  @IsOptional()
+  isActive?: boolean;
+}
+
+/**
+ * Template recommendation with requirement level and reason.
+ */
+export interface TemplateRecommendation {
+  template: InvestigationTemplate;
+  requirement: TemplateRequirement;
+  reason: string;
 }
