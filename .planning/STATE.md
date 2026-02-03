@@ -19,9 +19,9 @@ Progress: [======================] 23% (23 of ~99 total plans)
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 19
+- Total plans completed: 20
 - Average duration: 13 min
-- Total execution time: 3.8 hours
+- Total execution time: 3.9 hours
 
 **By Phase:**
 
@@ -29,11 +29,11 @@ Progress: [======================] 23% (23 of ~99 total plans)
 |-------|-------|-------|----------|
 | 01-foundation | 9 | 123 min | 14 min |
 | 02-demo-tenant-seed-data | 7 | 84 min | 12 min |
-| 03-authentication-sso | 3 | 26 min | 9 min |
+| 03-authentication-sso | 4 | 37 min | 9 min |
 
 **Recent Trend:**
-- Last 5 plans: 02-07 (14 min), 03-03 (10 min), 02-05 (12 min), 03-02 (8 min), 03-01 (8 min)
-- Trend: Phase 2 complete! Demo tenant fully ready for testing.
+- Last 5 plans: 03-04 (11 min), 02-07 (14 min), 03-03 (10 min), 02-05 (12 min), 03-02 (8 min)
+- Trend: SSO core services complete, ready for strategy implementations.
 
 *Updated after each plan completion*
 
@@ -129,6 +129,10 @@ Recent decisions affecting current work:
 - 02-07: 24-hour undo window via DemoArchivedChange table
 - 02-07: Confirmation token required for reset (CONFIRM_RESET)
 - 02-07: FK-safe deletion order: children before parents
+- 03-04: JIT provisioning blocks SYSTEM_ADMIN and COMPLIANCE_OFFICER roles (security guardrail)
+- 03-04: SSO user lookup order: SSO ID first, then email, then JIT provision
+- 03-04: Single SSO provider per user - prevents confusion about which SSO to use
+- 03-04: SSO config endpoints require SYSTEM_ADMIN role
 
 ### Pending Todos
 
@@ -142,6 +146,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-03T07:52:44Z
-Stopped at: Completed 02-07-PLAN.md (Demo User Reset System) - Phase 2 COMPLETE
+Last session: 2026-02-03T07:52:47Z
+Stopped at: Completed 03-04-PLAN.md (Core SSO Service)
 Resume file: None
