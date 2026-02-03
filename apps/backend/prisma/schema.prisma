@@ -2960,3 +2960,85 @@ model PersonPersonAssociation {
   @@index([organizationId, label])
   @@map("person_person_associations")
 }
+
+// ===========================================
+// AI Conversation Tracking
+// ===========================================
+
+/// Conversation status tracks the lifecycle
+enum AiConversationStatus {
+  ACTIVE
+  PAUSED
+  ARCHIVED
+
+  @@map("ai_conversation_status")
+}
+
+/// AiConversation tracks a conversation session with the AI.
+/// Conversations are scoped to organization, user, and optionally an entity.
+model AiConversation {
+  id             String               @id @default(uuid())
+  organizationId String               @map("organization_id")
+  userId         String               @map("user_id")
+
+  // Entity context (optional - can have org-wide conversations)
+  entityType String? @map("entity_type") // 'case', 'investigation', 'campaign'
+  entityId   String? @map("entity_id")
+
+  // Conversation metadata
+  title  String?              // AI-generated or user-provided
+  status AiConversationStatus @default(ACTIVE)
+
+  // Agent type used for this conversation
+  agentType String? @map("agent_type") // 'investigation', 'case', 'compliance-manager'
+
+  // Timestamps
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  pausedAt      DateTime? @map("paused_at")
+  archivedAt    DateTime? @map("archived_at")
+  lastMessageAt DateTime? @map("last_message_at")
+
+  // Token tracking for this conversation
+  totalInputTokens  Int @default(0) @map("total_input_tokens")
+  totalOutputTokens Int @default(0) @map("total_output_tokens")
+
+  // Relations
+  messages AiMessage[]
+
+  @@index([organizationId, userId, status])
+  @@index([organizationId, entityType, entityId])
+  @@index([userId, status])
+  @@index([status, lastMessageAt])
+  @@map("ai_conversations")
+}
+
+/// AiMessage represents a single message in a conversation.
+/// Stores both user and assistant messages with optional tool use data.
+model AiMessage {
+  id             String @id @default(uuid())
+  conversationId String @map("conversation_id")
+
+  // Message content
+  role    String // 'user', 'assistant'
+  content String @db.Text
+
+  // Tool use tracking (for assistant messages)
+  toolCalls   Json? @map("tool_calls") // Array of {id, name, input}
+  toolResults Json? @map("tool_results") // Array of {toolUseId, result}
+
+  // Token counts for this message
+  inputTokens  Int? @map("input_tokens")
+  outputTokens Int? @map("output_tokens")
+
+  // Metadata
+  model     String? // Model used for this response
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  conversation AiConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId])
+  @@index([conversationId, createdAt])
+  @@map("ai_messages")
+}
