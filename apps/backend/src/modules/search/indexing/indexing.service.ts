@@ -2,9 +2,11 @@ import { Injectable, Logger, OnModuleInit } from "@nestjs/common";
 import { ElasticsearchService } from "@nestjs/elasticsearch";
 import { InjectQueue } from "@nestjs/bullmq";
 import { Queue } from "bullmq";
+import { OnEvent } from "@nestjs/event-emitter";
 import { INDEXING_QUEUE_NAME } from "../../jobs/queues/indexing.queue";
 import { IndexingJobData } from "../../jobs/types/job-data.types";
-import { CASE_INDEX_MAPPING, RIU_INDEX_MAPPING } from "./index-mappings";
+import { CASE_INDEX_MAPPING, CaseDocument, RIU_INDEX_MAPPING } from "./index-mappings";
+import { PrismaService } from "../../prisma/prisma.service";
 
 /**
  * IndexingService manages Elasticsearch indices and document indexing.
@@ -26,6 +28,7 @@ export class IndexingService implements OnModuleInit {
   constructor(
     private readonly esService: ElasticsearchService,
     @InjectQueue(INDEXING_QUEUE_NAME) private readonly indexingQueue: Queue,
+    private readonly prisma: PrismaService,
   ) {}
 
   async onModuleInit() {
@@ -232,5 +235,269 @@ export class IndexingService implements OnModuleInit {
           settings: { number_of_shards: 1, number_of_replicas: 0 },
         };
     }
+  }
+
+  // ===========================================
+  // CASE INDEXING WITH ASSOCIATIONS
+  // ===========================================
+
+  /**
+   * Build association data for a Case document.
+   *
+   * Gathers all Person-Case, RIU-Case, and Case-Case associations
+   * and formats them for Elasticsearch indexing.
+   *
+   * Per CONTEXT.md: "Association search is a wow moment in demos."
+   * Pre-indexing associations enables sub-second pattern detection queries.
+   */
+  private async buildCaseAssociations(
+    caseId: string,
+    organizationId: string,
+  ): Promise<CaseDocument["associations"]> {
+    // Get person-case associations
+    const personAssocs = await this.prisma.personCaseAssociation.findMany({
+      where: { caseId, organizationId },
+      include: { person: true },
+    });
+
+    // Get RIU associations
+    const riuAssocs = await this.prisma.riuCaseAssociation.findMany({
+      where: { caseId },
+      include: { riu: true },
+    });
+
+    // Get case-case associations (both directions)
+    const caseAssocs = await this.prisma.caseCaseAssociation.findMany({
+      where: {
+        organizationId,
+        OR: [{ sourceCaseId: caseId }, { targetCaseId: caseId }],
+      },
+      include: { sourceCase: true, targetCase: true },
+    });
+
+    return {
+      persons: personAssocs.map((a) => ({
+        personId: a.personId,
+        personName: a.person
+          ? `${a.person.firstName || ""} ${a.person.lastName || ""}`.trim()
+          : "",
+        personEmail: a.person?.email || undefined,
+        label: a.label,
+        evidentiaryStatus: a.evidentiaryStatus || undefined,
+        isActive: !a.endedAt,
+      })),
+      rius: riuAssocs.map((a) => ({
+        riuId: a.riuId,
+        riuReferenceNumber: a.riu.referenceNumber,
+        associationType: a.associationType,
+        riuType: a.riu.type,
+      })),
+      linkedCases: caseAssocs.map((a) => {
+        const isSource = a.sourceCaseId === caseId;
+        const linked = isSource ? a.targetCase : a.sourceCase;
+        return {
+          caseId: linked.id,
+          caseReferenceNumber: linked.referenceNumber,
+          label: a.label,
+        };
+      }),
+    };
+  }
+
+  /**
+   * Index a Case with all its associations.
+   *
+   * This method loads the Case entity and its associations,
+   * builds a complete CaseDocument, and indexes it to Elasticsearch.
+   *
+   * Called by:
+   * - Case creation/update handlers
+   * - Association change event handlers (to re-index when associations change)
+   */
+  async indexCase(caseId: string, organizationId: string): Promise<void> {
+    const caseData = await this.prisma.case.findUnique({
+      where: { id: caseId },
+      include: {
+        primaryCategory: true,
+        secondaryCategory: true,
+        createdBy: true,
+        intakeOperator: true,
+      },
+    });
+
+    if (!caseData) {
+      this.logger.warn(`Case ${caseId} not found for indexing`);
+      return;
+    }
+
+    // Build associations
+    const associations = await this.buildCaseAssociations(caseId, organizationId);
+
+    // Get assignee from personAssociations if exists
+    const assignedInvestigator = associations.persons.find(
+      (p) => p.label === "ASSIGNED_INVESTIGATOR" && p.isActive,
+    );
+
+    // Build complete CaseDocument
+    const document: CaseDocument = {
+      id: caseData.id,
+      organizationId: caseData.organizationId,
+      referenceNumber: caseData.referenceNumber,
+      status: caseData.status,
+      severity: caseData.severity || "MEDIUM",
+      caseType: caseData.caseType,
+      categoryId: caseData.primaryCategoryId || undefined,
+      categoryName: caseData.primaryCategory?.name || undefined,
+      primaryCategoryId: caseData.primaryCategoryId || undefined,
+      primaryCategoryName: caseData.primaryCategory?.name || undefined,
+      secondaryCategoryId: caseData.secondaryCategoryId || undefined,
+      pipelineStage: caseData.pipelineStage || undefined,
+      outcome: caseData.outcome || undefined,
+      details: caseData.details,
+      summary: caseData.summary || undefined,
+      aiSummary: caseData.aiSummary || undefined,
+      reporterType: caseData.reporterType,
+      reporterRelationship: caseData.reporterRelationship || undefined,
+      sourceChannel: caseData.sourceChannel,
+      // Assignee comes from person-case associations (ASSIGNED_INVESTIGATOR)
+      assigneeId: assignedInvestigator?.personId || undefined,
+      assigneeName: assignedInvestigator?.personName || undefined,
+      intakeOperatorId: caseData.intakeOperatorId || undefined,
+      // Location fields are denormalized on Case
+      locationName: caseData.locationName || undefined,
+      locationCity: caseData.locationCity || undefined,
+      locationState: caseData.locationState || undefined,
+      locationCountry: caseData.locationCountry || undefined,
+      locationAddress: caseData.locationAddress || undefined,
+      createdById: caseData.createdById,
+      createdByName: caseData.createdBy
+        ? `${caseData.createdBy.firstName || ""} ${caseData.createdBy.lastName || ""}`.trim()
+        : undefined,
+      createdAt: caseData.createdAt.toISOString(),
+      updatedAt: caseData.updatedAt.toISOString(),
+      intakeTimestamp: caseData.intakeTimestamp.toISOString(),
+      releasedAt: caseData.releasedAt?.toISOString() || undefined,
+      associations,
+      // Flattened arrays for faceting
+      personIds: associations.persons.map((p) => p.personId),
+      subjectPersonIds: associations.persons
+        .filter((p) => p.label === "SUBJECT")
+        .map((p) => p.personId),
+      witnessPersonIds: associations.persons
+        .filter((p) => p.label === "WITNESS")
+        .map((p) => p.personId),
+      reporterPersonIds: associations.persons
+        .filter((p) => p.label === "REPORTER")
+        .map((p) => p.personId),
+      investigatorPersonIds: associations.persons
+        .filter((p) => p.label === "ASSIGNED_INVESTIGATOR")
+        .map((p) => p.personId),
+    };
+
+    // Index the document
+    await this.indexDocument(
+      organizationId,
+      "cases",
+      caseId,
+      document as unknown as Record<string, unknown>,
+    );
+
+    this.logger.debug(
+      `Indexed case ${caseData.referenceNumber} with ${associations.persons.length} person associations`,
+    );
+  }
+
+  // ===========================================
+  // ASSOCIATION CHANGE EVENT HANDLERS
+  // ===========================================
+
+  /**
+   * Re-index Case when a person-case association is created.
+   */
+  @OnEvent("association.person-case.created")
+  async handlePersonCaseCreated(payload: {
+    caseId: string;
+    organizationId: string;
+  }) {
+    await this.queueIndex({
+      organizationId: payload.organizationId,
+      entityType: "cases",
+      entityId: payload.caseId,
+      operation: "update",
+    });
+  }
+
+  /**
+   * Re-index Case when a person-case association status changes.
+   */
+  @OnEvent("association.person-case.status-changed")
+  async handlePersonCaseStatusChanged(payload: {
+    caseId: string;
+    organizationId: string;
+  }) {
+    await this.queueIndex({
+      organizationId: payload.organizationId,
+      entityType: "cases",
+      entityId: payload.caseId,
+      operation: "update",
+    });
+  }
+
+  /**
+   * Re-index Case when a person-case association ends.
+   */
+  @OnEvent("association.person-case.ended")
+  async handlePersonCaseEnded(payload: {
+    caseId: string;
+    organizationId: string;
+  }) {
+    await this.queueIndex({
+      organizationId: payload.organizationId,
+      entityType: "cases",
+      entityId: payload.caseId,
+      operation: "update",
+    });
+  }
+
+  /**
+   * Re-index Case when an RIU-case association is created.
+   */
+  @OnEvent("association.riu-case.created")
+  async handleRiuCaseCreated(payload: {
+    caseId: string;
+    organizationId: string;
+  }) {
+    await this.queueIndex({
+      organizationId: payload.organizationId,
+      entityType: "cases",
+      entityId: payload.caseId,
+      operation: "update",
+    });
+  }
+
+  /**
+   * Re-index both Cases when a case-case association is created.
+   */
+  @OnEvent("association.case-case.created")
+  async handleCaseCaseCreated(payload: {
+    sourceCaseId: string;
+    targetCaseId: string;
+    organizationId: string;
+  }) {
+    // Re-index both cases involved in the association
+    await Promise.all([
+      this.queueIndex({
+        organizationId: payload.organizationId,
+        entityType: "cases",
+        entityId: payload.sourceCaseId,
+        operation: "update",
+      }),
+      this.queueIndex({
+        organizationId: payload.organizationId,
+        entityType: "cases",
+        entityId: payload.targetCaseId,
+        operation: "update",
+      }),
+    ]);
   }
 }
