@@ -1,9 +1,10 @@
 import { PrismaClient } from '@prisma/client';
 import { seedCategories } from './seeders/category.seeder';
-import { seedLocations } from './seeders/location.seeder';
+import { seedLocations, LOCATIONS } from './seeders/location.seeder';
 import { seedDivisions } from './seeders/division.seeder';
 import { seedEmployees } from './seeders/employee.seeder';
 import { seedDemoUsers } from './seeders/user.seeder';
+import { seedRius } from './seeders/riu.seeder';
 
 const prisma = new PrismaClient();
 
@@ -35,13 +36,23 @@ async function main() {
 
   // Seed categories (required for RIUs and Cases)
   console.log('\nSeeding categories...');
-  const categoryMap = await seedCategories(prisma, organization.id);
-  console.log(`Created ${categoryMap.size} categories`);
+  const categoryNameToId = await seedCategories(prisma, organization.id);
+  console.log(`Created ${categoryNameToId.size} categories`);
 
   // Seed locations (52 global locations across US, EMEA, APAC)
   console.log('\nSeeding locations...');
-  const locationMap = await seedLocations(prisma, organization.id);
-  console.log(`Created ${locationMap.size} locations`);
+  const locationCodeToId = await seedLocations(prisma, organization.id);
+  console.log(`Created ${locationCodeToId.size} locations`);
+
+  // Build location ID to region map for RIU timezone adjustment
+  const locationIdToRegion = new Map<string, string>();
+  const allLocations = [...LOCATIONS.US, ...LOCATIONS.EMEA, ...LOCATIONS.APAC];
+  for (const loc of allLocations) {
+    const locationId = locationCodeToId.get(loc.code);
+    if (locationId) {
+      locationIdToRegion.set(locationId, loc.region);
+    }
+  }
 
   // Seed divisions and org structure (4 divisions, ~10 BUs, ~25 depts, ~60 teams)
   console.log('\nSeeding divisions and org structure...');
@@ -50,16 +61,82 @@ async function main() {
 
   // Seed employees (20,000 with full hierarchy - this takes a few minutes)
   console.log('\nSeeding employees (this may take a few minutes)...');
-  const employeeMap = await seedEmployees(prisma, organization.id, locationMap, orgStructure);
-  console.log(`Created ${employeeMap.size} employees`);
+  const employeeEmailToId = await seedEmployees(prisma, organization.id, locationCodeToId, orgStructure);
+  console.log(`Created ${employeeEmailToId.size} employees`);
 
   // Seed demo users (9 permanent sales rep accounts with role presets)
   console.log('\nSeeding demo users...');
   const demoUserIds = await seedDemoUsers(prisma, organization.id);
   console.log(`Created ${demoUserIds.length} demo users`);
 
+  // ========================================
+  // Prepare data for RIU seeding
+  // ========================================
+
+  // Get all user IDs for createdBy field
+  const users = await prisma.user.findMany({
+    where: { organizationId: organization.id },
+    select: { id: true },
+  });
+  const userIds = users.map((u) => u.id);
+
+  // Build category map with id and code for RIU seeder
+  // Fetch categories from DB to get both id and code
+  const categories = await prisma.category.findMany({
+    where: { organizationId: organization.id },
+    select: { id: true, code: true, name: true },
+  });
+  const categoryMap = new Map<string, { id: string; code: string; name?: string }>();
+  for (const cat of categories) {
+    // Key by name for easy lookup
+    categoryMap.set(cat.name, { id: cat.id, code: cat.code || cat.name, name: cat.name });
+    // Also key by code for direct lookup
+    if (cat.code) {
+      categoryMap.set(cat.code, { id: cat.id, code: cat.code, name: cat.name });
+    }
+  }
+
+  // Build employee map with locationId for regional timestamp adjustment
+  const employees = await prisma.employee.findMany({
+    where: { organizationId: organization.id },
+    select: { id: true, email: true, locationId: true },
+  });
+  const employeeMap = new Map<string, { id: string; locationId: string | null }>();
+  for (const emp of employees) {
+    employeeMap.set(emp.email, { id: emp.id, locationId: emp.locationId });
+  }
+
+  // ========================================
+  // Seed RIUs (5,000 historical intake records)
+  // ========================================
+  console.log('\nSeeding RIUs (5,000 historical intake records)...');
+  const { riuIds, linkedIncidents } = await seedRius(
+    prisma,
+    organization.id,
+    userIds,
+    categoryMap,
+    employeeMap,
+    locationIdToRegion,
+  );
+  console.log(`Created ${riuIds.length} RIUs (${linkedIncidents.filter((i) => i.riusCreated > 0).length} linked incidents)`);
+
   const duration = Math.round((Date.now() - startTime) / 1000);
   console.log(`\nSeed completed successfully in ${duration} seconds!`);
+
+  console.log('\n========================================');
+  console.log('DEMO DATA SUMMARY');
+  console.log('========================================');
+  console.log(`\nOrganization: ${organization.name}`);
+  console.log(`Categories: ${categoryMap.size}`);
+  console.log(`Locations: ${locationCodeToId.size}`);
+  console.log(`Divisions: ${orgStructure.divisions.size}`);
+  console.log(`Business Units: ${orgStructure.businessUnits.size}`);
+  console.log(`Departments: ${orgStructure.departments.size}`);
+  console.log(`Teams: ${orgStructure.teams.size}`);
+  console.log(`Employees: ${employeeMap.size}`);
+  console.log(`Demo Users: ${demoUserIds.length}`);
+  console.log(`RIUs: ${riuIds.length}`);
+  console.log(`Linked Incidents: ${linkedIncidents.filter((i) => i.riusCreated > 0).length}`);
 
   console.log('\n========================================');
   console.log('DEMO CREDENTIALS');
