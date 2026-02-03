@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 4 of 11 (Core Entities)
-Plan: 6 of 10 in current phase (Wave 2 in progress)
+Plan: 7 of 10 in current phase (Wave 3 in progress)
 Status: In progress
-Last activity: 2026-02-03 - Completed 04-07-PLAN.md (Case Pipeline and Merge Support)
+Last activity: 2026-02-03 - Completed 04-06-PLAN.md (Anonymous Access Code Operations)
 
-Progress: [==============================] 31% (31 of ~99 total plans)
+Progress: [================================] 32% (32 of ~99 total plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 26
+- Total plans completed: 27
 - Average duration: 13 min
-- Total execution time: 5.2 hours
+- Total execution time: 5.35 hours
 
 **By Phase:**
 
@@ -30,11 +30,11 @@ Progress: [==============================] 31% (31 of ~99 total plans)
 | 01-foundation | 9 | 123 min | 14 min |
 | 02-demo-tenant-seed-data | 7 | 84 min | 12 min |
 | 03-authentication-sso | 8 | 69 min | 9 min |
-| 04-core-entities | 4 | 51 min | 13 min |
+| 04-core-entities | 5 | 60 min | 12 min |
 
 **Recent Trend:**
-- Last 5 plans: 04-07 (14 min), 04-02 (10 min), 04-04 (18 min), 04-01 (9 min), 03-08 (15 min)
-- Trend: Phase 4 Core Entities Wave 2 in progress. Case pipeline and merge support added.
+- Last 5 plans: 04-06 (9 min), 04-07 (14 min), 04-02 (10 min), 04-04 (18 min), 04-01 (9 min)
+- Trend: Phase 4 Core Entities Wave 3 in progress. Anonymous access code operations added.
 
 *Updated after each plan completion*
 
@@ -181,6 +181,11 @@ Recent decisions affecting current work:
 - 04-07: Merged cases become tombstones: isMerged=true, CLOSED status, mergedIntoCaseId pointer
 - 04-07: RIU associations change to MERGED_FROM type when merged
 - 04-07: Pipeline stages as strings (tenant-configurable via pipelineStage field)
+- 04-06: Access codes use custom nanoid alphabet (ABCDEFGHJKMNPQRSTUVWXYZ23456789) excluding confusing chars
+- 04-06: Public endpoints at /api/v1/public/access require no authentication
+- 04-06: Rate limits: status 10/min, messages 20/min, send 5/min
+- 04-06: Outbound messages (TO reporter) marked as read when retrieved via getMessages()
+- 04-06: Event case.message.received emitted on anonymous message send
 
 ### Pending Todos
 
@@ -194,6 +199,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-03T09:31:01Z
-Stopped at: Completed 04-07-PLAN.md (Case Pipeline and Merge Support)
+Last session: 2026-02-03T09:46:05Z
+Stopped at: Completed 04-06-PLAN.md (Anonymous Access Code Operations)
 Resume file: None
