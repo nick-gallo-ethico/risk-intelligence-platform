@@ -7,6 +7,7 @@ import { AuthController } from "./auth.controller";
 import { JwtStrategy, AzureAdStrategy, GoogleStrategy, SamlStrategy } from "./strategies";
 import { DomainModule } from "./domain";
 import { SsoModule } from "./sso";
+import { MfaModule } from "./mfa";
 
 @Module({
   imports: [
@@ -23,9 +24,10 @@ import { SsoModule } from "./sso";
     }),
     DomainModule,
     SsoModule,
+    MfaModule,
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy, AzureAdStrategy, GoogleStrategy, SamlStrategy],
-  exports: [AuthService, JwtModule, DomainModule, SsoModule],
+  exports: [AuthService, JwtModule, DomainModule, SsoModule, MfaModule],
 })
 export class AuthModule {}
