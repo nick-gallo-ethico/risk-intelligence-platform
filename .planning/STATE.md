@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 4 of 11 (Core Entities)
-Plan: 5 of 10 in current phase (Wave 2 in progress)
+Plan: 6 of 10 in current phase (Wave 2 in progress)
 Status: In progress
-Last activity: 2026-02-03 - Completed 04-02-PLAN.md (Person-Employee Linkage)
+Last activity: 2026-02-03 - Completed 04-07-PLAN.md (Case Pipeline and Merge Support)
 
-Progress: [==============================] 30% (30 of ~99 total plans)
+Progress: [==============================] 31% (31 of ~99 total plans)
 
 ## Performance Metrics
 
@@ -30,11 +30,11 @@ Progress: [==============================] 30% (30 of ~99 total plans)
 | 01-foundation | 9 | 123 min | 14 min |
 | 02-demo-tenant-seed-data | 7 | 84 min | 12 min |
 | 03-authentication-sso | 8 | 69 min | 9 min |
-| 04-core-entities | 3 | 37 min | 12 min |
+| 04-core-entities | 4 | 51 min | 13 min |
 
 **Recent Trend:**
-- Last 5 plans: 04-02 (10 min), 04-04 (18 min), 04-01 (9 min), 03-08 (15 min), 03-07 (17 min)
-- Trend: Phase 4 Core Entities Wave 2 in progress. Person-Employee linkage added.
+- Last 5 plans: 04-07 (14 min), 04-02 (10 min), 04-04 (18 min), 04-01 (9 min), 03-08 (15 min)
+- Trend: Phase 4 Core Entities Wave 2 in progress. Case pipeline and merge support added.
 
 *Updated after each plan completion*
 
@@ -176,6 +176,11 @@ Recent decisions affecting current work:
 - 04-05: HotlineRiuService manages QA workflow with pending queue retrieval
 - 04-05: DisclosureRiuService provides threshold checking and conflict detection
 - 04-05: WebFormRiuService tracks form version at submission time
+- 04-07: CaseOutcome enum: SUBSTANTIATED, UNSUBSTANTIATED, INCONCLUSIVE, POLICY_VIOLATION, NO_VIOLATION
+- 04-07: Classification on Case can differ from RIU - corrections tracked with notes, timestamp, user
+- 04-07: Merged cases become tombstones: isMerged=true, CLOSED status, mergedIntoCaseId pointer
+- 04-07: RIU associations change to MERGED_FROM type when merged
+- 04-07: Pipeline stages as strings (tenant-configurable via pipelineStage field)
 
 ### Pending Todos
 
@@ -189,6 +194,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-03T09:28:51Z
-Stopped at: Completed 04-02-PLAN.md (Person-Employee Linkage)
+Last session: 2026-02-03T09:31:01Z
+Stopped at: Completed 04-07-PLAN.md (Case Pipeline and Merge Support)
 Resume file: None
