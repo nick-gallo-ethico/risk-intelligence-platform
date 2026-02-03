@@ -138,6 +138,9 @@ Recent decisions affecting current work:
 - 03-05: Use profile.oid as stable SSO ID (Azure object identifier)
 - 03-05: passport-azure-ad deprecated but functional - MSAL migration tracked for future
 - 03-05: createSsoSession() in AuthService shared by all SSO callback handlers
+- 03-06: Graceful degradation: Google strategy registers but returns error if GOOGLE_CLIENT_ID/SECRET not set
+- 03-06: GET callback (not POST): Google OAuth uses authorization code in query params
+- 03-06: Same pattern as Azure AD: buildGoogleOptions helper for super() call
 - 03-07: Use @node-saml/passport-saml v5+ (not deprecated passport-saml) for CVE-2022-39299 fix
 - 03-07: Tenant slug in URL path for multi-tenant SAML routing (/saml/:tenant)
 - 03-07: 60-second clock skew tolerance for IdP compatibility
@@ -155,6 +158,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-03T08:14:07Z
-Stopped at: Completed 03-07-PLAN.md (SAML SSO Strategy)
+Last session: 2026-02-03T08:16:29Z
+Stopped at: Completed 03-06-PLAN.md (Google OAuth SSO Strategy)
 Resume file: None
