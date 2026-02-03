@@ -6,6 +6,7 @@
  * - Prospect account provisioning (sales reps create time-limited accounts)
  * - Automatic expiry of prospect accounts
  * - Activity logging for all demo operations
+ * - Demo reset system with session isolation and undo support
  *
  * The module depends on:
  * - PrismaModule for database access
@@ -18,6 +19,9 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { DemoService } from './demo.service';
 import { DemoController } from './demo.controller';
 import { DemoScheduler } from './demo.scheduler';
+import { DemoSessionService } from './demo-session.service';
+import { DemoResetService } from './demo-reset.service';
+import { DemoResetController } from './demo-reset.controller';
 import { PrismaModule } from '../prisma/prisma.module';
 
 @Module({
@@ -27,8 +31,8 @@ import { PrismaModule } from '../prisma/prisma.module';
     // it here in case it's not already registered
     ScheduleModule.forRoot(),
   ],
-  controllers: [DemoController],
-  providers: [DemoService, DemoScheduler],
-  exports: [DemoService],
+  controllers: [DemoController, DemoResetController],
+  providers: [DemoService, DemoScheduler, DemoSessionService, DemoResetService],
+  exports: [DemoService, DemoSessionService, DemoResetService],
 })
 export class DemoModule {}

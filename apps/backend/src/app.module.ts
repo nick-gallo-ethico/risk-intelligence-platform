@@ -19,6 +19,7 @@ import { SearchModule } from "./modules/search/search.module";
 import { WorkflowModule } from "./modules/workflow/workflow.module";
 import { FormsModule } from "./modules/forms/forms.module";
 import { ReportingModule } from "./modules/reporting/reporting.module";
+import { DemoModule } from "./modules/demo/demo.module";
 import { ActivityModule } from "./common/activity.module";
 import { StorageModule } from "./common/storage.module";
 import { TenantMiddleware } from "./common/middleware/tenant.middleware";
@@ -69,6 +70,7 @@ import configuration from "./config/configuration";
     InvestigationsModule,
     InvestigationNotesModule,
     AttachmentsModule,
+    DemoModule, // Demo reset system for sales demonstrations
     HealthModule,
   ],
   controllers: [],
