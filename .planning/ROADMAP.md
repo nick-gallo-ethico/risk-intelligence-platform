@@ -62,13 +62,13 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 02-01: Demo tenant provisioning service and "Acme Co." organization
-- [ ] 02-02: Seed data generator for employees, business units, locations
-- [ ] 02-03: Historical RIU generator (all types, all sources, 3-year spread)
-- [ ] 02-04: Historical Case generator with realistic investigation progression
-- [ ] 02-05: Historical Campaign generator (disclosures, attestations)
-- [ ] 02-06: Demo user accounts with role variety
-- [ ] 02-07: Demo reset command and verification
+- [x] 02-01: Demo tenant provisioning service and "Acme Co." organization
+- [x] 02-02: Seed data generator for employees, business units, locations
+- [x] 02-03: Historical RIU generator (all types, all sources, 3-year spread)
+- [x] 02-04: Historical Case generator with realistic investigation progression
+- [x] 02-05: Historical Campaign generator (disclosures, attestations)
+- [x] 02-06: Demo user accounts with role variety
+- [x] 02-07: Demo reset command and verification
 
 ### Phase 3: Authentication & SSO
 **Goal**: Enable enterprise customers to use their identity providers (Azure AD, Google, SAML) with just-in-time provisioning, domain verification, and multi-factor authentication.
@@ -80,16 +80,17 @@ Plans:
   3. Enterprise customers can configure SAML 2.0 with their IdP
   4. Organization admins can verify domain ownership and configure SSO settings
   5. Users can enable TOTP-based MFA on their accounts
-**Plans**: TBD
+**Plans**: 8 plans in 4 waves
 
 Plans:
-- [ ] 03-01: Azure AD passport strategy with JIT provisioning
-- [ ] 03-02: Google OAuth passport strategy
-- [ ] 03-03: SAML 2.0 generic strategy with IdP metadata
-- [ ] 03-04: TenantDomain model and domain verification workflow
-- [ ] 03-05: MFA/TOTP implementation with recovery codes
-- [ ] 03-06: Rate limiting on auth endpoints
-- [ ] 03-07: RLS policy verification for all new entities
+- [ ] 03-01-PLAN.md (Wave 1) - Database schema: TenantDomain, TenantSsoConfig, User SSO/MFA fields
+- [ ] 03-02-PLAN.md (Wave 1) - Rate limiting infrastructure with @nestjs/throttler
+- [ ] 03-03-PLAN.md (Wave 2) - Domain verification service with DNS TXT validation
+- [ ] 03-04-PLAN.md (Wave 2) - SSO service core with JIT user provisioning
+- [ ] 03-05-PLAN.md (Wave 3) - Azure AD SSO strategy with passport-azure-ad
+- [ ] 03-06-PLAN.md (Wave 3) - Google OAuth SSO strategy with passport-google-oauth20
+- [ ] 03-07-PLAN.md (Wave 3) - SAML 2.0 multi-tenant strategy with @node-saml/passport-saml
+- [ ] 03-08-PLAN.md (Wave 4) - MFA/TOTP implementation with recovery codes
 
 ### Phase 4: Core Entities
 **Goal**: Implement the HubSpot-inspired data model - Person (Contact), RIU (Ticket), Case (Deal), Campaign (Sequence), and labeled Associations that enable pattern detection and unified workflows.
@@ -320,8 +321,8 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation Infrastructure | 9/9 | Complete ✓ | 2026-02-02 |
-| 2. Demo Tenant & Seed Data | 0/7 | Not started | - |
-| 3. Authentication & SSO | 0/7 | Not started | - |
+| 2. Demo Tenant & Seed Data | 7/7 | Complete ✓ | 2026-02-03 |
+| 3. Authentication & SSO | 0/8 | Not started | - |
 | 4. Core Entities | 0/10 | Not started | - |
 | 5. AI Infrastructure | 0/18 | Not started | - |
 | 6. Case Management | 0/16 | Not started | - |
