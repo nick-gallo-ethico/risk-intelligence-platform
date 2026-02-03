@@ -54,8 +54,11 @@ model Organization {
   employees         Employee[]
 
   // SSO relations
-  tenantDomains    TenantDomain[]
-  tenantSsoConfig  TenantSsoConfig?
+  tenantDomains   TenantDomain[]
+  tenantSsoConfig TenantSsoConfig?
+
+  // Demo reset relations
+  demoUserSessions DemoUserSession[]
 
   @@index([slug])
   @@index([isActive])
@@ -77,8 +80,8 @@ model User {
   lastLoginAt     DateTime? @map("last_login_at")
 
   // SSO fields
-  ssoProvider String?   @map("sso_provider") // 'azure-ad', 'google', 'saml'
-  ssoId       String?   @map("sso_id") // Provider-specific unique ID (oid for Azure, sub for Google, nameID for SAML)
+  ssoProvider String? @map("sso_provider") // 'azure-ad', 'google', 'saml'
+  ssoId       String? @map("sso_id") // Provider-specific unique ID (oid for Azure, sub for Google, nameID for SAML)
 
   // MFA fields
   mfaEnabled       Boolean   @default(false) @map("mfa_enabled")
@@ -133,6 +136,9 @@ model User {
   // Demo account relations (for sales rep provisioning)
   prospectDemoAccounts DemoAccount[] @relation("ProspectUser")
   salesRepDemoAccounts DemoAccount[] @relation("SalesRepUser")
+
+  // Demo reset relations
+  demoUserSessions DemoUserSession[]
 
   // Unique constraint: email must be unique within an organization
   @@unique([organizationId, email])
@@ -209,10 +215,10 @@ model TenantSsoConfig {
   azureTenantId String? @map("azure_tenant_id")
 
   // SAML specific
-  samlIdpEntityId   String? @map("saml_idp_entity_id")
-  samlIdpEntryPoint String? @map("saml_idp_entry_point")
+  samlIdpEntityId    String? @map("saml_idp_entity_id")
+  samlIdpEntryPoint  String? @map("saml_idp_entry_point")
   samlIdpCertificate String? @map("saml_idp_certificate") @db.Text // PEM format certificate
-  samlSpEntityId    String? @map("saml_sp_entity_id")
+  samlSpEntityId     String? @map("saml_sp_entity_id")
 
   // MFA settings
   mfaRequired Boolean @default(false) @map("mfa_required")
@@ -380,6 +386,10 @@ model Case {
   releasedById String?   @map("released_by_id")
   qaNotes      String?   @map("qa_notes")
 
+  // Demo Reset Support
+  demoUserSessionId String? @map("demo_user_session_id")
+  isBaseData        Boolean @default(false) @map("is_base_data") // true = immutable base data
+
   // Audit
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
@@ -387,15 +397,16 @@ model Case {
   updatedById String   @map("updated_by_id")
 
   // Relations
-  organization   Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  createdBy      User            @relation("CaseCreatedBy", fields: [createdById], references: [id])
-  updatedBy      User            @relation("CaseUpdatedBy", fields: [updatedById], references: [id])
-  intakeOperator User?           @relation("CaseIntakeOperator", fields: [intakeOperatorId], references: [id])
-  releasedBy     User?           @relation("CaseReleasedBy", fields: [releasedById], references: [id])
-  proxySubmitter User?           @relation("CaseProxySubmitter", fields: [proxySubmitterId], references: [id])
-  parentCase     Case?           @relation("CaseSplits", fields: [parentCaseId], references: [id])
-  splitCases     Case[]          @relation("CaseSplits")
-  investigations Investigation[] // Cases can have multiple investigations
+  organization    Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdBy       User             @relation("CaseCreatedBy", fields: [createdById], references: [id])
+  updatedBy       User             @relation("CaseUpdatedBy", fields: [updatedById], references: [id])
+  intakeOperator  User?            @relation("CaseIntakeOperator", fields: [intakeOperatorId], references: [id])
+  releasedBy      User?            @relation("CaseReleasedBy", fields: [releasedById], references: [id])
+  proxySubmitter  User?            @relation("CaseProxySubmitter", fields: [proxySubmitterId], references: [id])
+  parentCase      Case?            @relation("CaseSplits", fields: [parentCaseId], references: [id])
+  splitCases      Case[]           @relation("CaseSplits")
+  demoUserSession DemoUserSession? @relation("DemoSessionCases", fields: [demoUserSessionId], references: [id])
+  investigations  Investigation[] // Cases can have multiple investigations
 
   // Category relations
   primaryCategory   Category? @relation("CasePrimaryCategory", fields: [primaryCategoryId], references: [id])
@@ -679,6 +690,10 @@ model Investigation {
   sourceRecordId String?   @map("source_record_id")
   migratedAt     DateTime? @map("migrated_at")
 
+  // Demo Reset Support
+  demoUserSessionId String? @map("demo_user_session_id")
+  isBaseData        Boolean @default(false) @map("is_base_data") // true = immutable base data
+
   // Audit
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
@@ -686,14 +701,15 @@ model Investigation {
   updatedById String   @map("updated_by_id")
 
   // Relations
-  case                Case         @relation(fields: [caseId], references: [id], onDelete: Cascade)
-  organization        Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  primaryInvestigator User?        @relation("InvestigationPrimaryInvestigator", fields: [primaryInvestigatorId], references: [id])
-  assignedBy          User?        @relation("InvestigationAssignedBy", fields: [assignedById], references: [id])
-  closedBy            User?        @relation("InvestigationClosedBy", fields: [closedById], references: [id])
-  closureApprovedBy   User?        @relation("InvestigationClosureApprovedBy", fields: [closureApprovedById], references: [id])
-  createdBy           User         @relation("InvestigationCreatedBy", fields: [createdById], references: [id])
-  updatedBy           User         @relation("InvestigationUpdatedBy", fields: [updatedById], references: [id])
+  case                Case             @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  organization        Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  primaryInvestigator User?            @relation("InvestigationPrimaryInvestigator", fields: [primaryInvestigatorId], references: [id])
+  assignedBy          User?            @relation("InvestigationAssignedBy", fields: [assignedById], references: [id])
+  closedBy            User?            @relation("InvestigationClosedBy", fields: [closedById], references: [id])
+  closureApprovedBy   User?            @relation("InvestigationClosureApprovedBy", fields: [closureApprovedById], references: [id])
+  createdBy           User             @relation("InvestigationCreatedBy", fields: [createdById], references: [id])
+  updatedBy           User             @relation("InvestigationUpdatedBy", fields: [updatedById], references: [id])
+  demoUserSession     DemoUserSession? @relation("DemoSessionInvestigations", fields: [demoUserSessionId], references: [id])
 
   // Child entities
   notes InvestigationNote[]
@@ -956,14 +972,19 @@ model RiskIntelligenceUnit {
   sourceRecordId String?   @map("source_record_id")
   migratedAt     DateTime? @map("migrated_at")
 
+  // Demo Reset Support
+  demoUserSessionId String? @map("demo_user_session_id")
+  isBaseData        Boolean @default(false) @map("is_base_data") // true = immutable base data
+
   // Audit (NO updatedAt - emphasizes immutability)
   createdAt   DateTime @default(now()) @map("created_at")
   createdById String   @map("created_by_id")
 
   // Relations
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  createdBy    User         @relation("RiuCreatedBy", fields: [createdById], references: [id])
-  category     Category?    @relation(fields: [categoryId], references: [id])
+  organization    Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdBy       User             @relation("RiuCreatedBy", fields: [createdById], references: [id])
+  category        Category?        @relation(fields: [categoryId], references: [id])
+  demoUserSession DemoUserSession? @relation("DemoSessionRius", fields: [demoUserSessionId], references: [id])
 
   // Case associations
   caseAssociations RiuCaseAssociation[]
@@ -2003,4 +2024,71 @@ enum EmploymentType {
   INTERN
 
   @@map("employment_type")
+}
+
+// ===========================================
+// Demo Reset System Entities
+// ===========================================
+
+/// Tracks a demo user's session and their isolated changes.
+/// Each user has exactly one session per organization.
+/// Base data has demoUserSessionId: null and isBaseData: true.
+/// User changes have demoUserSessionId: {id} and isBaseData: false.
+model DemoUserSession {
+  id             String @id @default(uuid())
+  organizationId String @map("organization_id")
+  userId         String @map("user_id")
+
+  /// When this session was created
+  createdAt      DateTime @default(now()) @map("created_at")
+  /// Last activity in this session
+  lastActivityAt DateTime @default(now()) @map("last_activity_at")
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  /// User's isolated changes (copy-on-write records)
+  cases          Case[]                 @relation("DemoSessionCases")
+  investigations Investigation[]        @relation("DemoSessionInvestigations")
+  rius           RiskIntelligenceUnit[] @relation("DemoSessionRius")
+
+  /// Archived changes for undo
+  archivedChanges DemoArchivedChange[]
+
+  @@unique([organizationId, userId])
+  @@index([organizationId])
+  @@index([userId])
+  @@index([lastActivityAt])
+  @@map("demo_user_sessions")
+}
+
+/// Archives user changes during reset for 24-hour undo window.
+/// After reset, changes are stored here temporarily before permanent deletion.
+model DemoArchivedChange {
+  id                String @id @default(uuid())
+  demoUserSessionId String @map("demo_user_session_id")
+
+  /// The type of entity archived
+  entityType String @map("entity_type") // 'Case', 'Investigation', 'RIU', etc.
+  /// The original entity ID
+  entityId   String @map("entity_id")
+  /// Complete JSON snapshot of the entity
+  entityData Json   @map("entity_data")
+
+  /// When the change was archived (for 24-hour expiry)
+  archivedAt DateTime @default(now()) @map("archived_at")
+  /// When this archive expires and can be cleaned up
+  expiresAt  DateTime @map("expires_at")
+
+  /// Whether this has been restored
+  restoredAt DateTime? @map("restored_at")
+
+  demoUserSession DemoUserSession @relation(fields: [demoUserSessionId], references: [id], onDelete: Cascade)
+
+  @@index([demoUserSessionId])
+  @@index([archivedAt])
+  @@index([expiresAt])
+  @@index([entityType, entityId])
+  @@map("demo_archived_changes")
 }
