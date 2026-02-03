@@ -10,29 +10,29 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 2 of 11 (Demo Tenant & Seed Data)
-Plan: 6 of 7 in current phase
+Plan: 3 of 7 in current phase (02-03 complete, 02-04, 02-05, 02-07 pending)
 Status: In progress
-Last activity: 2026-02-03 - Completed 02-06-PLAN.md (Demo User System & Prospect Provisioning)
+Last activity: 2026-02-03 - Completed 02-03-PLAN.md (Organization Structure Seeder)
 
-Progress: [===============     ] 15% (15 of ~99 total plans)
+Progress: [================    ] 16% (16 of ~99 total plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 15
-- Average duration: 12 min
-- Total execution time: 3.0 hours
+- Total plans completed: 13
+- Average duration: 13 min
+- Total execution time: 2.9 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01-foundation | 9 | 123 min | 14 min |
-| 02-demo-tenant-seed-data | 6 | 57 min | 10 min |
+| 02-demo-tenant-seed-data | 4 | 49 min | 12 min |
 
 **Recent Trend:**
-- Last 5 plans: 02-06 (11 min), 02-05 (~10 min), 02-04 (~10 min), 02-03 (~10 min), 02-02 (8 min)
-- Trend: Phase 2 seed data plans executing quickly (~10 min avg)
+- Last 5 plans: 02-03 (18 min), 02-06 (11 min), 02-02 (8 min), 02-01 (12 min), 01-05 (12 min)
+- Trend: Phase 2 seed data plans executing at ~12 min avg
 
 *Updated after each plan completion*
 
@@ -97,6 +97,12 @@ Recent decisions affecting current work:
 - 02-06: Prospect accounts default to 14-day expiry (typical sales demo cycle)
 - 02-06: Hourly cron job expires past-due prospect accounts
 - 02-06: Sales rep identification via email pattern matching (demo-*@acme.local)
+- 02-03: 52 locations (25 US, 15 EMEA, 12 APAC) with real cities and fictional addresses
+- 02-03: 4-level org hierarchy: Division -> BusinessUnit -> Department -> Team
+- 02-03: Named executive personas with memorable names for demo walkthroughs
+- 02-03: Employee batch insert (500/batch) for 20K performance
+- 02-03: Division work modes: Healthcare=onsite, Tech=remote, Retail/Energy=hybrid
+- 02-03: Multi-language workforce: region-appropriate language distribution
 
 ### Pending Todos
 
@@ -110,6 +116,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-03T07:03:00Z
-Stopped at: Completed 02-06-PLAN.md (Demo User System & Prospect Provisioning)
+Last session: 2026-02-03T07:09:00Z
+Stopped at: Completed 02-03-PLAN.md (Organization Structure Seeder)
 Resume file: None
