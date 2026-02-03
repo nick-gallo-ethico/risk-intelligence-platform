@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 4 of 11 (Core Entities)
-Plan: 1 of TBD in current phase
+Plan: 4 of 10 in current phase (Wave 1 in progress)
 Status: In progress
-Last activity: 2026-02-03 - Completed 04-01-PLAN.md (Person Entity)
+Last activity: 2026-02-03 - Completed 04-04-PLAN.md (RIU Immutability Enhancement)
 
-Progress: [===========================] 28% (28 of ~99 total plans)
+Progress: [============================] 29% (29 of ~99 total plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 25
+- Total plans completed: 26
 - Average duration: 13 min
-- Total execution time: 4.9 hours
+- Total execution time: 5.2 hours
 
 **By Phase:**
 
@@ -30,11 +30,11 @@ Progress: [===========================] 28% (28 of ~99 total plans)
 | 01-foundation | 9 | 123 min | 14 min |
 | 02-demo-tenant-seed-data | 7 | 84 min | 12 min |
 | 03-authentication-sso | 8 | 69 min | 9 min |
-| 04-core-entities | 1 | 9 min | 9 min |
+| 04-core-entities | 2 | 27 min | 14 min |
 
 **Recent Trend:**
-- Last 5 plans: 04-01 (9 min), 03-08 (15 min), 03-07 (17 min), 03-06 (est), 03-05 (est)
-- Trend: Phase 4 Core Entities started. Person entity for pattern detection.
+- Last 5 plans: 04-04 (18 min), 04-01 (9 min), 03-08 (15 min), 03-07 (17 min), 03-06 (est)
+- Trend: Phase 4 Core Entities in progress. RIU immutability enforcement added.
 
 *Updated after each plan completion*
 
@@ -156,6 +156,12 @@ Recent decisions affecting current work:
 - 04-01: type and source fields immutable after Person creation
 - 04-01: Email unique within organization (PostgreSQL allows multiple NULLs)
 - 04-01: Anonymous placeholder singleton per organization for pattern detection
+- 04-04: IMMUTABLE_RIU_FIELDS const array defines fields frozen at intake
+- 04-04: RiusService throws BadRequestException on immutable field update attempts
+- 04-04: languageEffective computed: confirmed ?? detected ?? 'en'
+- 04-04: RiuStatus expanded: QA_REJECTED, LINKED, CLOSED for full lifecycle
+- 04-04: Status tracking: statusChangedAt and statusChangedById for audit
+- 04-04: RIU reference number format: RIU-YYYY-NNNNN
 
 ### Pending Todos
 
@@ -169,6 +175,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-03T09:10:00Z
-Stopped at: Completed 04-01-PLAN.md (Person Entity)
+Last session: 2026-02-03T10:18:00Z
+Stopped at: Completed 04-04-PLAN.md (RIU Immutability Enhancement)
 Resume file: None
