@@ -584,6 +584,9 @@ enum AuditEntityType {
   INTERACTION
   DEMO_ACCOUNT
   PERSON
+  SEGMENT
+  CAMPAIGN
+  CAMPAIGN_ASSIGNMENT
 
   @@map("audit_entity_type")
 }
