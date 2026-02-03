@@ -12,6 +12,9 @@ import { InvestigationsModule } from "./modules/investigations/investigations.mo
 import { InvestigationNotesModule } from "./modules/investigation-notes/investigation-notes.module";
 import { AttachmentsModule } from "./modules/attachments/attachments.module";
 import { ModuleStorageModule } from "./modules/storage/storage.module";
+import { SearchModule } from "./modules/search/search.module";
+import { WorkflowModule } from "./modules/workflow/workflow.module";
+import { FormsModule } from "./modules/forms/forms.module";
 import { ActivityModule } from "./common/activity.module";
 import { StorageModule } from "./common/storage.module";
 import { TenantMiddleware } from "./common/middleware/tenant.middleware";
@@ -31,6 +34,9 @@ import configuration from "./config/configuration";
     ActivityModule,
     StorageModule, // Low-level file storage (used by AttachmentsModule)
     ModuleStorageModule, // High-level storage with Attachment tracking and document processing
+    SearchModule, // Elasticsearch search with per-tenant indices and permission filtering
+    WorkflowModule, // Workflow engine for entity lifecycle management
+    FormsModule, // Dynamic form engine (intake, disclosures, attestations)
     AuthModule,
     UsersModule,
     CasesModule,
