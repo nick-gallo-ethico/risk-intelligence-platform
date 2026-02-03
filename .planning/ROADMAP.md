@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Foundation Infrastructure** - Event bus, job queues, audit logging, search infrastructure
 - [x] **Phase 2: Demo Tenant & Seed Data** - "Acme Co." demo with 3 years of realistic data as test bed
 - [x] **Phase 3: Authentication & SSO** - Multi-provider SSO, domain verification, MFA
-- [ ] **Phase 4: Core Entities** - Person, RIU, Case, Campaign, Associations (HubSpot pattern)
+- [x] **Phase 4: Core Entities** - Person, RIU, Case, Campaign, Associations (HubSpot pattern)
 - [ ] **Phase 5: AI Infrastructure** - Claude API integration, context hierarchy, skills registry, agents
 - [ ] **Phase 6: Case Management** - Investigation workflows, templates, subjects, anonymous communication
 - [ ] **Phase 7: Notifications & Email** - Event-driven notifications, templates, user preferences
@@ -105,16 +105,16 @@ Plans:
 **Plans**: 10 plans in 4 waves
 
 Plans:
-- [ ] 04-01-PLAN.md (Wave 1) - Person entity with types and sources
-- [ ] 04-02-PLAN.md (Wave 2) - Employee fields and manager hierarchy
-- [ ] 04-03-PLAN.md (Wave 3) - HRIS sync service with Merge.dev integration
-- [ ] 04-04-PLAN.md (Wave 1) - RIU immutability enforcement and expanded status
-- [ ] 04-05-PLAN.md (Wave 2) - RIU type-specific extension tables
-- [ ] 04-06-PLAN.md (Wave 3) - RIU access code generation and status checking
-- [ ] 04-07-PLAN.md (Wave 2) - Case pipeline stages and merge support
-- [ ] 04-08-PLAN.md (Wave 3) - Campaign and CampaignAssignment entities with segment targeting
-- [ ] 04-09-PLAN.md (Wave 4) - Association entities with role labels (Person-Case, Person-RIU, Case-Case, Person-Person)
-- [ ] 04-10-PLAN.md (Wave 4) - Pattern detection queries and Elasticsearch denormalization
+- [x] 04-01-PLAN.md (Wave 1) - Person entity with types and sources
+- [x] 04-02-PLAN.md (Wave 2) - Employee fields and manager hierarchy
+- [x] 04-03-PLAN.md (Wave 3) - HRIS sync service with Merge.dev integration
+- [x] 04-04-PLAN.md (Wave 1) - RIU immutability enforcement and expanded status
+- [x] 04-05-PLAN.md (Wave 2) - RIU type-specific extension tables
+- [x] 04-06-PLAN.md (Wave 3) - RIU access code generation and status checking
+- [x] 04-07-PLAN.md (Wave 2) - Case pipeline stages and merge support
+- [x] 04-08-PLAN.md (Wave 3) - Campaign and CampaignAssignment entities with segment targeting
+- [x] 04-09-PLAN.md (Wave 4) - Association entities with role labels (Person-Case, Person-RIU, Case-Case, Person-Person)
+- [x] 04-10-PLAN.md (Wave 4) - Pattern detection queries and Elasticsearch denormalization
 
 ### Phase 5: AI Infrastructure
 **Goal**: Build the AI integration layer that all features consume - Claude API client, context hierarchy loading, skills registry, action catalog, and scoped agents per view.
@@ -323,7 +323,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 | 1. Foundation Infrastructure | 9/9 | Complete | 2026-02-02 |
 | 2. Demo Tenant & Seed Data | 7/7 | Complete | 2026-02-03 |
 | 3. Authentication & SSO | 8/8 | Complete | 2026-02-03 |
-| 4. Core Entities | 0/10 | Planned | - |
+| 4. Core Entities | 10/10 | Complete | 2026-02-03 |
 | 5. AI Infrastructure | 0/18 | Not started | - |
 | 6. Case Management | 0/16 | Not started | - |
 | 7. Notifications & Email | 0/7 | Not started | - |
