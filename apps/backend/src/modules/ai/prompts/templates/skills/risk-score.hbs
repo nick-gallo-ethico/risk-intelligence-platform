@@ -1,0 +1,45 @@
+Assess the risk level of the following compliance matter.
+
+## Content
+{{{content}}}
+
+{{#if entity}}
+## Entity Context
+Type: {{entity.type}}
+{{#if entity.category}}Category: {{entity.category}}{{/if}}
+{{#if entity.status}}Status: {{entity.status}}{{/if}}
+{{/if}}
+
+## Risk Assessment Framework
+Consider these factors:
+1. **Severity**: How serious is the alleged behavior?
+2. **Scope**: How many people/departments are affected?
+3. **Legal Exposure**: Potential regulatory or legal consequences
+4. **Reputation Risk**: Impact on organization's reputation
+5. **Recurrence**: Is this a pattern or isolated incident?
+6. **Evidence**: Quality and clarity of evidence
+7. **Urgency**: Time sensitivity of response needed
+
+## Instructions
+Analyze the content against each factor and provide:
+1. An overall risk score (1-10, where 10 is highest risk)
+2. Breakdown scores for each factor
+3. Key concerns driving the risk assessment
+4. Recommended priority level
+
+Respond in JSON format:
+{
+  "overallScore": 7,
+  "factors": {
+    "severity": { "score": 8, "notes": "explanation" },
+    "scope": { "score": 5, "notes": "explanation" },
+    "legalExposure": { "score": 7, "notes": "explanation" },
+    "reputationRisk": { "score": 6, "notes": "explanation" },
+    "recurrence": { "score": 4, "notes": "explanation" },
+    "evidence": { "score": 7, "notes": "explanation" },
+    "urgency": { "score": 8, "notes": "explanation" }
+  },
+  "keyConcerns": ["concern 1", "concern 2"],
+  "priority": "HIGH",
+  "summary": "Brief risk assessment summary"
+}
