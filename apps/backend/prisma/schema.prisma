@@ -52,6 +52,7 @@ model Organization {
   departments       Department[]
   teams             Team[]
   employees         Employee[]
+  persons           Person[]
 
   // SSO relations
   tenantDomains   TenantDomain[]
@@ -520,6 +521,7 @@ enum AuditEntityType {
   CASE_MESSAGE
   INTERACTION
   DEMO_ACCOUNT
+  PERSON
 
   @@map("audit_entity_type")
 }
@@ -923,11 +925,11 @@ model RiskIntelligenceUnit {
   // === IMMUTABLE FIELDS (set at creation, never modified) ===
 
   // Type Classification
-  type          RiuType          // hotline_report, web_form_submission, etc.
+  type          RiuType // hotline_report, web_form_submission, etc.
   sourceChannel RiuSourceChannel @map("source_channel") // phone, web_form, chatbot, etc.
 
   // Core Content
-  details String  // Reporter's narrative (rich text)
+  details String // Reporter's narrative (rich text)
   summary String? // Brief summary
 
   // Reporter Information
@@ -969,12 +971,12 @@ model RiskIntelligenceUnit {
   // === MUTABLE FIELDS (can change after creation) ===
 
   // Status Workflow
-  status            RiuStatus  @default(PENDING_QA)
-  statusChangedAt   DateTime?  @map("status_changed_at")
-  statusChangedById String?    @map("status_changed_by_id")
+  status            RiuStatus @default(PENDING_QA)
+  statusChangedAt   DateTime? @map("status_changed_at")
+  statusChangedById String?   @map("status_changed_by_id")
 
   // Language Handling (per CONTEXT.md decision)
-  languageDetected  String? @map("language_detected")  // Auto-detected from content
+  languageDetected  String? @map("language_detected") // Auto-detected from content
   languageConfirmed String? @map("language_confirmed") // Manual override by user
   languageEffective String? @map("language_effective") // confirmed ?? detected ?? 'en'
 
@@ -988,8 +990,8 @@ model RiskIntelligenceUnit {
   aiConfidenceScore  Int?      @map("ai_confidence_score") // 0-100
 
   // === DEMO SUPPORT ===
-  demoUserSessionId String?  @map("demo_user_session_id")
-  isBaseData        Boolean  @default(false) @map("is_base_data") // true = immutable base data
+  demoUserSessionId String? @map("demo_user_session_id")
+  isBaseData        Boolean @default(false) @map("is_base_data") // true = immutable base data
 
   // Relations
   organization    Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
@@ -1050,18 +1052,18 @@ enum RiuReporterType {
 
 enum RiuStatus {
   // QA workflow states
-  PENDING_QA  // Awaiting QA review (hotline reports)
-  IN_QA       // Currently being reviewed by QA
+  PENDING_QA // Awaiting QA review (hotline reports)
+  IN_QA // Currently being reviewed by QA
   QA_REJECTED // QA found issues, needs rework
 
   // Post-QA states
-  RELEASED    // QA approved, ready for Case creation
-  LINKED      // Associated with one or more Cases
-  CLOSED      // RIU closed without creating Case (valid per HubSpot pattern)
+  RELEASED // QA approved, ready for Case creation
+  LINKED // Associated with one or more Cases
+  CLOSED // RIU closed without creating Case (valid per HubSpot pattern)
 
   // Campaign/web form responses (no QA needed)
-  RECEIVED    // Web form - no QA needed
-  COMPLETED   // Campaign response completed
+  RECEIVED // Web form - no QA needed
+  COMPLETED // Campaign response completed
 
   @@map("riu_status")
 }
@@ -1991,6 +1993,109 @@ model Employee {
   @@index([organizationId, jobLevel])
   @@index([organizationId, complianceRole])
   @@map("employees")
+}
+
+// ===========================================
+// Person Entity (HubSpot Contact Equivalent)
+// ===========================================
+
+/// PersonType classifies the type of person record.
+/// EMPLOYEE links to HRIS data, EXTERNAL_CONTACT for non-employees,
+/// ANONYMOUS_PLACEHOLDER is a singleton per org for anonymous pattern detection.
+enum PersonType {
+  EMPLOYEE // Linked to HRIS Employee record
+  EXTERNAL_CONTACT // Vendor, contractor, customer, etc.
+  ANONYMOUS_PLACEHOLDER // Special record for anonymous reports
+
+  @@map("person_type")
+}
+
+/// PersonSource tracks how the person record was created.
+enum PersonSource {
+  HRIS_SYNC // Created/updated from HRIS integration
+  MANUAL // Manually created by user
+  INTAKE_CREATED // Auto-created during RIU intake
+
+  @@map("person_source")
+}
+
+/// AnonymityTier controls identity visibility on person records.
+/// Used for reporters who want different levels of identity protection.
+enum AnonymityTier {
+  ANONYMOUS // No identifying info shared
+  CONFIDENTIAL // Identity known to limited roles
+  OPEN // Identity visible to case team
+
+  @@map("anonymity_tier")
+}
+
+/// PersonStatus tracks the lifecycle of a person record.
+enum PersonStatus {
+  ACTIVE
+  INACTIVE
+  MERGED // Merged into another person record
+
+  @@map("person_status")
+}
+
+/// Person represents any individual associated with compliance matters.
+/// This is the foundation for people-based pattern detection.
+/// Employees, external contacts, and anonymous reporters all become Person records.
+/// Person is the "Contact" parallel to HubSpot's architecture.
+model Person {
+  id             String @id @default(uuid())
+  organizationId String @map("organization_id")
+
+  // Classification
+  type   PersonType
+  source PersonSource
+
+  // Identity (optional for anonymous)
+  firstName String? @map("first_name")
+  lastName  String? @map("last_name")
+  email     String?
+  phone     String?
+
+  // Link to Employee (when type = EMPLOYEE)
+  employeeId String? @map("employee_id")
+
+  // External contact details (when type = EXTERNAL_CONTACT)
+  company      String? // Company/organization name
+  title        String? // Job title
+  relationship String? // Vendor, contractor, customer, etc.
+
+  // Anonymity
+  anonymityTier AnonymityTier @default(OPEN) @map("anonymity_tier")
+
+  // Status and merge tracking
+  status              PersonStatus @default(ACTIVE)
+  mergedIntoPrimaryId String?      @map("merged_into_primary_id")
+  mergedAt            DateTime?    @map("merged_at")
+  mergedById          String?      @map("merged_by_id")
+
+  // Notes
+  notes String? // Additional context about this person
+
+  // Audit
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  createdById String?  @map("created_by_id")
+  updatedById String?  @map("updated_by_id")
+
+  // Relations
+  organization      Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  mergedIntoPrimary Person?      @relation("PersonMerge", fields: [mergedIntoPrimaryId], references: [id])
+  mergedPersons     Person[]     @relation("PersonMerge")
+
+  // Unique constraint: email must be unique within an organization when not null
+  // Note: PostgreSQL allows multiple NULLs for unique constraints
+  @@unique([organizationId, email])
+  // Indexes for query patterns
+  @@index([organizationId])
+  @@index([organizationId, type])
+  @@index([organizationId, status])
+  @@index([organizationId, employeeId])
+  @@map("persons")
 }
 
 // ===========================================
