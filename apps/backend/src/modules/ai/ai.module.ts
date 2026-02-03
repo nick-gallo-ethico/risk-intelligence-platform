@@ -9,6 +9,8 @@ import { ProviderRegistryService } from "./services/provider-registry.service";
 import { PromptService } from "./services/prompt.service";
 import { AiRateLimiterService } from "./services/rate-limiter.service";
 import { ClaudeProvider } from "./providers/claude.provider";
+import { SkillRegistry } from "./skills/skill.registry";
+import { AgentRegistry } from "./agents/agent.registry";
 
 @Module({
   imports: [
@@ -26,6 +28,8 @@ import { ClaudeProvider } from "./providers/claude.provider";
     ContextLoaderService,
     PromptService,
     AiRateLimiterService,
+    SkillRegistry,
+    AgentRegistry,
   ],
   exports: [
     AiClientService,
@@ -35,6 +39,8 @@ import { ClaudeProvider } from "./providers/claude.provider";
     PromptService,
     AiRateLimiterService,
     ClaudeProvider,
+    SkillRegistry,
+    AgentRegistry,
   ],
 })
 export class AiModule {}
