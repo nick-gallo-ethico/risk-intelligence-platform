@@ -10,28 +10,28 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 2 of 11 (Demo Tenant & Seed Data)
-Plan: 2 of 7 in current phase
+Plan: 6 of 7 in current phase
 Status: In progress
-Last activity: 2026-02-03 - Completed 02-01-PLAN.md (Seed Infrastructure) and 02-02-PLAN.md (Category Seeder)
+Last activity: 2026-02-03 - Completed 02-06-PLAN.md (Demo User System & Prospect Provisioning)
 
-Progress: [===========         ] 11% (11 of ~99 total plans)
+Progress: [===============     ] 15% (15 of ~99 total plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 11
-- Average duration: 13 min
-- Total execution time: 2.38 hours
+- Total plans completed: 15
+- Average duration: 12 min
+- Total execution time: 3.0 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01-foundation | 9 | 123 min | 14 min |
-| 02-demo-tenant-seed-data | 2 | 20 min | 10 min |
+| 02-demo-tenant-seed-data | 6 | 57 min | 10 min |
 
 **Recent Trend:**
-- Last 5 plans: 02-02 (8 min), 02-01 (12 min), 01-05 (12 min), 01-09 (6 min), 01-07 (18 min)
+- Last 5 plans: 02-06 (11 min), 02-05 (~10 min), 02-04 (~10 min), 02-03 (~10 min), 02-02 (8 min)
 - Trend: Phase 2 seed data plans executing quickly (~10 min avg)
 
 *Updated after each plan completion*
@@ -93,6 +93,10 @@ Recent decisions affecting current work:
 - 02-02: Materialized path format: /{parent-slug}/{child-slug} for human-readable hierarchy
 - 02-02: Category codes use hierarchical prefix (e.g., HAR-SEX for Sexual Harassment under Harassment)
 - 02-02: Seeder factory pattern returns Map<name, id> for dependent seeders to reference
+- 02-06: Demo email pattern: demo-{role}@acme.local for sales reps, prospect-{uuid}@demo.local for prospects
+- 02-06: Prospect accounts default to 14-day expiry (typical sales demo cycle)
+- 02-06: Hourly cron job expires past-due prospect accounts
+- 02-06: Sales rep identification via email pattern matching (demo-*@acme.local)
 
 ### Pending Todos
 
@@ -106,6 +110,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-03T06:54:00Z
-Stopped at: Completed 02-01-PLAN.md (Seed Infrastructure)
+Last session: 2026-02-03T07:03:00Z
+Stopped at: Completed 02-06-PLAN.md (Demo User System & Prospect Provisioning)
 Resume file: None
