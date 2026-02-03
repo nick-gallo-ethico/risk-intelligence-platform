@@ -3,7 +3,15 @@
  *
  * This mapping defines the structure for indexing Case entities
  * to enable full-text search with fuzzy matching, compliance synonyms,
- * and highlighting.
+ * highlighting, and pattern detection via denormalized associations.
+ *
+ * Association Denormalization Strategy:
+ * - associations.persons: Nested for complex queries ("Person X as SUBJECT AND Person Y as WITNESS")
+ * - associations.rius: Nested for RIU-to-Case link queries
+ * - associations.linkedCases: Nested for case-to-case relationship queries
+ * - Flattened arrays (personIds, subjectPersonIds, etc.): For simple faceting and aggregations
+ *
+ * Per CONTEXT.md: "Association search is a wow moment in demos" - pre-indexed for instant results.
  */
 export const CASE_INDEX_MAPPING = {
   mappings: {
@@ -11,6 +19,7 @@ export const CASE_INDEX_MAPPING = {
       // Identifiers
       referenceNumber: { type: "keyword" },
       id: { type: "keyword" },
+      organizationId: { type: "keyword" },
 
       // Status and Classification
       status: { type: "keyword" },
@@ -19,7 +28,15 @@ export const CASE_INDEX_MAPPING = {
       categoryName: { type: "keyword" },
       categoryId: { type: "keyword" },
       primaryCategoryId: { type: "keyword" },
+      primaryCategoryName: {
+        type: "text",
+        fields: { keyword: { type: "keyword" } },
+      },
       secondaryCategoryId: { type: "keyword" },
+
+      // Pipeline
+      pipelineStage: { type: "keyword" },
+      outcome: { type: "keyword" },
 
       // Searchable text fields
       details: { type: "text", analyzer: "compliance_analyzer" },
@@ -59,6 +76,65 @@ export const CASE_INDEX_MAPPING = {
       updatedAt: { type: "date" },
       intakeTimestamp: { type: "date" },
       releasedAt: { type: "date" },
+
+      // ===========================================
+      // DENORMALIZED ASSOCIATIONS for Pattern Detection
+      // ===========================================
+      // Nested types enable complex boolean queries like:
+      // "Cases where Person A was SUBJECT AND Person B was WITNESS"
+
+      associations: {
+        properties: {
+          // Person-to-Case associations (nested for complex queries)
+          persons: {
+            type: "nested",
+            properties: {
+              personId: { type: "keyword" },
+              personName: {
+                type: "text",
+                fields: { keyword: { type: "keyword" } },
+              },
+              personEmail: { type: "keyword" },
+              label: { type: "keyword" }, // REPORTER, SUBJECT, WITNESS, ASSIGNED_INVESTIGATOR, etc.
+              evidentiaryStatus: { type: "keyword" }, // ACTIVE, CLEARED, SUBSTANTIATED, WITHDRAWN
+              isActive: { type: "boolean" },
+            },
+          },
+
+          // RIU-to-Case associations (nested for RIU type filtering)
+          rius: {
+            type: "nested",
+            properties: {
+              riuId: { type: "keyword" },
+              riuReferenceNumber: { type: "keyword" },
+              associationType: { type: "keyword" }, // PRIMARY, RELATED, MERGED_FROM
+              riuType: { type: "keyword" }, // HOTLINE_REPORT, WEB_FORM_SUBMISSION, etc.
+            },
+          },
+
+          // Case-to-Case associations (nested for relationship queries)
+          linkedCases: {
+            type: "nested",
+            properties: {
+              caseId: { type: "keyword" },
+              caseReferenceNumber: { type: "keyword" },
+              label: { type: "keyword" }, // PARENT, CHILD, SPLIT_FROM, MERGED_INTO, RELATED, etc.
+            },
+          },
+        },
+      },
+
+      // ===========================================
+      // FLATTENED ARRAYS for Simple Faceting
+      // ===========================================
+      // Duplicates nested data for efficient aggregations and simple filters.
+      // Use these for "show all cases with this person" style queries.
+
+      personIds: { type: "keyword" },
+      subjectPersonIds: { type: "keyword" },
+      witnessPersonIds: { type: "keyword" },
+      reporterPersonIds: { type: "keyword" },
+      investigatorPersonIds: { type: "keyword" },
     },
   },
   settings: {
@@ -94,3 +170,97 @@ export const CASE_INDEX_MAPPING = {
     },
   },
 };
+
+/**
+ * TypeScript type for Case documents indexed in Elasticsearch.
+ * Mirrors the CASE_INDEX_MAPPING structure for type safety.
+ */
+export interface CaseDocument {
+  // Identifiers
+  id: string;
+  organizationId: string;
+  referenceNumber: string;
+
+  // Status and Classification
+  status: string;
+  severity: string;
+  caseType?: string;
+  categoryId?: string;
+  categoryName?: string;
+  primaryCategoryId?: string;
+  primaryCategoryName?: string;
+  secondaryCategoryId?: string;
+
+  // Pipeline
+  pipelineStage?: string;
+  outcome?: string;
+
+  // Content
+  details: string;
+  summary?: string;
+  aiSummary?: string;
+  addendum?: string;
+
+  // Reporter
+  reporterType?: string;
+  reporterRelationship?: string;
+
+  // Location
+  locationName?: string;
+  locationCity?: string;
+  locationState?: string;
+  locationCountry?: string;
+  locationAddress?: string;
+
+  // Source
+  sourceChannel?: string;
+
+  // Assignment
+  assigneeId?: string;
+  assigneeName?: string;
+  intakeOperatorId?: string;
+
+  // Organization scope
+  businessUnitId?: string;
+
+  // Metadata
+  tags?: string[];
+  createdById?: string;
+  createdByName?: string;
+
+  // Timestamps
+  createdAt: string;
+  updatedAt: string;
+  intakeTimestamp?: string;
+  releasedAt?: string;
+
+  // Denormalized Associations
+  associations: {
+    persons: Array<{
+      personId: string;
+      personName: string;
+      personEmail?: string;
+      label: string;
+      evidentiaryStatus?: string;
+      isActive: boolean;
+    }>;
+    rius: Array<{
+      riuId: string;
+      riuReferenceNumber: string;
+      associationType: string;
+      riuType: string;
+    }>;
+    linkedCases: Array<{
+      caseId: string;
+      caseReferenceNumber: string;
+      label: string;
+    }>;
+  };
+
+  // Flattened arrays for faceting
+  personIds: string[];
+  subjectPersonIds: string[];
+  witnessPersonIds: string[];
+  reporterPersonIds: string[];
+  investigatorPersonIds: string[];
+}
