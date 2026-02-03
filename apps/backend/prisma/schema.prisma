@@ -45,6 +45,7 @@ model Organization {
   formSubmissions   FormSubmission[]
   reportTemplates   ReportTemplate[]
   reportExecutions  ReportExecution[]
+  demoAccounts      DemoAccount[]
 
   @@index([slug])
   @@index([isActive])
@@ -107,6 +108,10 @@ model User {
   // Interaction relations
   interactionsConducted  Interaction[] @relation("InteractionConductedBy")
   interactionsQaReviewed Interaction[] @relation("InteractionQaReviewedBy")
+
+  // Demo account relations (for sales rep provisioning)
+  prospectDemoAccounts DemoAccount[] @relation("ProspectUser")
+  salesRepDemoAccounts DemoAccount[] @relation("SalesRepUser")
 
   // Unique constraint: email must be unique within an organization
   @@unique([organizationId, email])
@@ -1530,4 +1535,57 @@ enum ReportExecutionStatus {
   FAILED
 
   @@map("report_execution_status")
+}
+
+// ===========================================
+// Demo Account Entity (Sales Rep Provisioning)
+// ===========================================
+
+/// DemoAccount tracks prospect account provisioning for sales demonstrations.
+/// Sales reps provision time-limited prospect accounts for customer demos.
+/// All prospect access is attributed to the originating sales rep.
+model DemoAccount {
+  id             String @id @default(uuid())
+  organizationId String @map("organization_id")
+
+  // Prospect user details
+  prospectUserId String @unique @map("prospect_user_id")
+  prospectEmail  String @map("prospect_email")
+  prospectName   String? @map("prospect_name")
+  prospectCompany String? @map("prospect_company")
+
+  // Attribution to sales rep
+  salesRepUserId String @map("sales_rep_user_id")
+
+  // Expiry configuration
+  expiresAt DateTime  @map("expires_at")
+  expiredAt DateTime? @map("expired_at") // When actually expired (null if still active)
+
+  // Status tracking
+  status       DemoAccountStatus @default(ACTIVE)
+  lastAccessAt DateTime?         @map("last_access_at")
+  accessCount  Int               @default(0) @map("access_count")
+
+  // Metadata
+  notes     String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  prospectUser User         @relation("ProspectUser", fields: [prospectUserId], references: [id])
+  salesRepUser User         @relation("SalesRepUser", fields: [salesRepUserId], references: [id])
+
+  @@index([organizationId])
+  @@index([salesRepUserId])
+  @@index([status, expiresAt])
+  @@map("demo_accounts")
+}
+
+enum DemoAccountStatus {
+  ACTIVE
+  EXPIRED
+  REVOKED
+
+  @@map("demo_account_status")
 }
