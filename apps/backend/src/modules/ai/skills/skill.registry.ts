@@ -15,6 +15,9 @@ import { AITool } from "../interfaces/ai-provider.interface";
 // Import platform skills
 import { noteCleanupSkill } from "./platform/note-cleanup.skill";
 import { summarizeSkill } from "./platform/summarize.skill";
+import { categorySuggestSkill } from "./platform/category-suggest.skill";
+import { riskScoreSkill } from "./platform/risk-score.skill";
+import { translateSkill } from "./platform/translate.skill";
 
 /**
  * SkillRegistry manages registration and execution of AI skills.
@@ -74,6 +77,27 @@ export class SkillRegistry implements OnModuleInit {
     );
     this.registerSkill(
       summarizeSkill(
+        this.providerRegistry,
+        this.rateLimiter,
+        this.promptService,
+      ),
+    );
+    this.registerSkill(
+      categorySuggestSkill(
+        this.providerRegistry,
+        this.rateLimiter,
+        this.promptService,
+      ),
+    );
+    this.registerSkill(
+      riskScoreSkill(
+        this.providerRegistry,
+        this.rateLimiter,
+        this.promptService,
+      ),
+    );
+    this.registerSkill(
+      translateSkill(
         this.providerRegistry,
         this.rateLimiter,
         this.promptService,
