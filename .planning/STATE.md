@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 6 of 11 (Case Management) - IN PROGRESS
-Plan: 4 of 16 in current phase
+Plan: 5 of 16 in current phase
 Status: In progress
-Last activity: 2026-02-03 - Completed 06-04-PLAN.md (Saved Views)
+Last activity: 2026-02-03 - Completed 06-05-PLAN.md (Custom Properties)
 
-Progress: [===============================================] 37% (46 of ~125 total plans)
+Progress: [===============================================] 38% (47 of ~125 total plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 46
+- Total plans completed: 47
 - Average duration: 13 min
-- Total execution time: 10.3 hours
+- Total execution time: 10.8 hours
 
 **By Phase:**
 
@@ -34,8 +34,8 @@ Progress: [===============================================] 37% (46 of ~125 tota
 | 05-ai-infrastructure | 11 | 143 min | 13 min |
 
 **Recent Trend:**
-- Last 5 plans: 06-04 (30 min), 05-10 (12 min), 05-11 (12 min), 05-07 (14 min), 05-08 (16 min)
-- Trend: Phase 6 started. Saved views infrastructure complete.
+- Last 5 plans: 06-05 (33 min), 06-04 (30 min), 05-10 (12 min), 05-11 (12 min), 05-07 (14 min)
+- Trend: Phase 6 in progress. Custom properties infrastructure complete.
 
 *Updated after each plan completion*
 
@@ -254,6 +254,11 @@ Recent decisions affecting current work:
 - 06-04: Filter validation against current enum values at create/update/apply time
 - 06-04: Invalid filters returned in array instead of throwing errors on apply (graceful degradation)
 - 06-04: Default view management: one default per (user, entityType) with auto-deselection
+- 06-05: CustomPropertyEntityType enum: CASE, INVESTIGATION, PERSON, RIU
+- 06-05: PropertyDataType enum: TEXT, NUMBER, DATE, DATETIME, SELECT, MULTI_SELECT, BOOLEAN, URL, EMAIL, PHONE
+- 06-05: Key format enforced: must start with letter, alphanumeric + underscore only
+- 06-05: Soft delete pattern: isActive flag instead of hard delete for existing value preservation
+- 06-05: Unknown keys in validation preserved but not validated (backward compatible)
 
 ### Pending Todos
 
@@ -270,6 +275,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-02-03T22:50:00Z
-Stopped at: Completed 06-04-PLAN.md (Saved Views)
+Last session: 2026-02-03T22:55:00Z
+Stopped at: Completed 06-05-PLAN.md (Custom Properties)
 Resume file: None
