@@ -20,7 +20,7 @@ export interface BaseJobData {
  * AI Processing job data
  */
 export interface AiJobData extends BaseJobData {
-  type: 'generate-summary' | 'translate' | 'categorize' | 'note-cleanup';
+  type: "generate-summary" | "translate" | "categorize" | "note-cleanup";
   entityType: string;
   entityId: string;
   content?: string;
@@ -38,10 +38,24 @@ export interface EmailJobData extends BaseJobData {
 }
 
 /**
+ * Report export job data
+ */
+export interface ExportJobData extends BaseJobData {
+  /** Report execution record ID */
+  executionId: string;
+  /** Report template ID */
+  templateId: string;
+  /** Filters to apply */
+  filters?: Array<{ field: string; operator: string; value: unknown }>;
+  /** Export format */
+  format: "excel" | "csv";
+}
+
+/**
  * Search indexing job data
  */
 export interface IndexingJobData extends BaseJobData {
-  operation: 'create' | 'update' | 'delete' | 'reindex';
+  operation: "create" | "update" | "delete" | "reindex";
   entityType: string;
   entityId: string;
   data?: Record<string, unknown>;
