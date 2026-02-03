@@ -51,6 +51,12 @@ export default () => ({
     requestTimeout: 30000,
   },
 
+  ai: {
+    anthropicApiKey: process.env.ANTHROPIC_API_KEY || "",
+    defaultModel: process.env.AI_DEFAULT_MODEL || "claude-sonnet-4-5",
+    maxTokens: parseInt(process.env.AI_MAX_TOKENS || "4096", 10),
+  },
+
   storage: {
     // Provider selection: 'local' for development, 'azure' for production
     provider: (process.env.STORAGE_PROVIDER || "local") as "local" | "azure",

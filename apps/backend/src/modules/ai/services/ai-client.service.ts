@@ -36,8 +36,7 @@ export class AiClientService implements OnModuleInit {
   constructor(private readonly configService: ConfigService) {
     this.defaultModel =
       this.configService.get<string>("AI_DEFAULT_MODEL") || "claude-sonnet-4-5";
-    this.maxTokens =
-      this.configService.get<number>("AI_MAX_TOKENS") || 4096;
+    this.maxTokens = this.configService.get<number>("AI_MAX_TOKENS") || 4096;
   }
 
   onModuleInit() {
@@ -303,10 +302,14 @@ Guidelines:
       return new Error("AI service authentication failed - check API key");
     }
     if (err.status === 429) {
-      return new Error("AI service rate limit exceeded - please try again later");
+      return new Error(
+        "AI service rate limit exceeded - please try again later",
+      );
     }
     if (err.status === 500 || err.status === 503) {
-      return new Error("AI service temporarily unavailable - please try again later");
+      return new Error(
+        "AI service temporarily unavailable - please try again later",
+      );
     }
     if (err.code === "ECONNREFUSED" || err.code === "ETIMEDOUT") {
       return new Error("AI service connection failed - please try again later");
