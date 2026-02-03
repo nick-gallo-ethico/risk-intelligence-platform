@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 5 of 11 (AI Infrastructure) - In progress
-Plan: 9 of 11 in current phase
+Plan: 10 of 11 in current phase
 Status: Executing Wave 3
-Last activity: 2026-02-03 - Completed 05-09-PLAN.md (Scoped Agent System)
+Last activity: 2026-02-03 - Completed 05-07-PLAN.md (Skill Registry and Platform Skills)
 
-Progress: [==========================================] 48% (51 of ~106 total plans)
+Progress: [==========================================] 49% (52 of ~106 total plans)
 
 ## Performance Metrics
 
@@ -33,8 +33,8 @@ Progress: [==========================================] 48% (51 of ~106 total pla
 | 04-core-entities | 10 | 112 min | 11 min |
 
 **Recent Trend:**
-- Last 5 plans: 05-09 (11 min), 05-04 (18 min), 05-03 (12 min), 05-06 (14 min), 05-02 (8 min)
-- Trend: Phase 5 Wave 3 executing. Scoped agent system complete.
+- Last 5 plans: 05-07 (14 min), 05-09 (11 min), 05-04 (18 min), 05-03 (12 min), 05-06 (14 min)
+- Trend: Phase 5 Wave 3 executing. Skill registry and platform skills complete.
 
 *Updated after each plan completion*
 
@@ -237,6 +237,9 @@ Recent decisions affecting current work:
 - 05-08: JSON response parsing uses regex extraction to handle AI explanatory text
 - 05-08: Risk score confidence derived from evidence factor (lower evidence = lower confidence)
 - 05-08: Translation language detection uses first 500 chars to minimize tokens
+- 05-07: Skill factory pattern with dependency injection for providerRegistry, rateLimiter, promptService
+- 05-07: zodToJsonSchema helper converts Zod schemas to JSON Schema for Claude tools
+- 05-07: Skills check rate limits before execution and record usage after completion
 
 ### Pending Todos
 
@@ -250,6 +253,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-03T20:05:00Z
-Stopped at: Completed 05-09-PLAN.md (Scoped Agent System)
+Last session: 2026-02-03T20:07:42Z
+Stopped at: Completed 05-07-PLAN.md (Skill Registry and Platform Skills)
 Resume file: None
