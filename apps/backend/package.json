@@ -51,9 +51,11 @@
     "@nestjs/mapped-types": "^2.1.0",
     "@nestjs/passport": "^10.0.3",
     "@nestjs/platform-express": "^10.3.0",
+    "@nestjs/platform-socket.io": "^10.4.22",
     "@nestjs/schedule": "^6.1.0",
     "@nestjs/swagger": "^7.4.2",
     "@nestjs/throttler": "^6.5.0",
+    "@nestjs/websockets": "^10.4.22",
     "@node-saml/passport-saml": "^5.1.0",
     "@prisma/client": "^5.8.0",
     "@types/passport-azure-ad": "^4.3.6",
@@ -88,6 +90,7 @@
     "reflect-metadata": "^0.2.1",
     "rxjs": "^7.8.1",
     "sanitize-html": "^2.17.0",
+    "socket.io": "^4.8.3",
     "uuid": "^13.0.0"
   },
   "devDependencies": {
