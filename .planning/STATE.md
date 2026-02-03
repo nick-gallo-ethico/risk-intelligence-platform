@@ -10,28 +10,29 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 2 of 11 (Demo Tenant & Seed Data)
-Plan: 0 of 7 in current phase
-Status: Ready to plan
-Last activity: 2026-02-03 - Phase 1 verified and complete (9/9 plans, 5/5 success criteria)
+Plan: 2 of 7 in current phase
+Status: In progress
+Last activity: 2026-02-03 - Completed 02-02-PLAN.md (Category Seeder)
 
-Progress: [==========          ] 9% (9 of ~99 total plans)
+Progress: [===========         ] 11% (11 of ~99 total plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 9
-- Average duration: 14 min
-- Total execution time: 2.05 hours
+- Total plans completed: 11
+- Average duration: 13 min
+- Total execution time: 2.38 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01-foundation | 9 | 123 min | 14 min |
+| 02-demo-tenant-seed-data | 2 | 20 min | 10 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-05 (12 min), 01-09 (6 min), 01-07 (18 min), 01-04 (24 min), 01-06 (12 min)
-- Trend: Variable (larger scope plans take longer, as expected)
+- Last 5 plans: 02-02 (8 min), 02-01 (12 min), 01-05 (12 min), 01-09 (6 min), 01-07 (18 min)
+- Trend: Phase 2 seed data plans executing quickly (~10 min avg)
 
 *Updated after each plan completion*
 
@@ -84,6 +85,10 @@ Recent decisions affecting current work:
 - 01-05: SLA scheduler runs every 5 minutes via @Cron decorator
 - 01-05: Assignment strategies use pluggable pattern - registerStrategy() for custom strategies
 - 01-05: Category routingRules JSON can specify strategy type and config
+- 02-02: Children inherit parent severity/SLA defaults for consistency within category families
+- 02-02: Materialized path format: /{parent-slug}/{child-slug} for human-readable hierarchy
+- 02-02: Category codes use hierarchical prefix (e.g., HAR-SEX for Sexual Harassment under Harassment)
+- 02-02: Seeder factory pattern returns Map<name, id> for dependent seeders to reference
 
 ### Pending Todos
 
@@ -97,6 +102,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-03T02:49:32Z
-Stopped at: Completed 01-05-PLAN.md (SLA Tracking and Assignment Rules) - Phase 1 complete
+Last session: 2026-02-03T06:50:00Z
+Stopped at: Completed 02-02-PLAN.md (Category Seeder)
 Resume file: None
