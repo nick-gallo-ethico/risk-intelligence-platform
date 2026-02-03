@@ -1,0 +1,43 @@
+Generate a {{style}} summary of the following content.
+
+{{#if (eq style "brief")}}
+Provide a 1-2 paragraph summary covering the key points. Focus on:
+- Main issue or allegation
+- Key parties involved
+- Current status
+- Recommended actions (if applicable)
+{{else}}
+Provide a comprehensive summary with the following sections:
+## Background
+Explain the context and how this came to our attention.
+
+## Key Facts
+List the relevant facts in chronological order.
+
+## Parties Involved
+Describe each party's role without judgment.
+
+## Findings (if applicable)
+Summarize any findings or conclusions reached.
+
+## Status and Next Steps
+Current status and recommended actions.
+{{/if}}
+
+{{#if entity.type}}
+Entity Type: {{entity.type}}
+{{/if}}
+
+---
+Content to summarize:
+
+{{{content}}}
+
+---
+
+{{#if additionalContext}}
+Additional Context:
+{{{additionalContext}}}
+{{/if}}
+
+Provide the summary in clear, professional language. If any information seems incomplete or unclear, note it.

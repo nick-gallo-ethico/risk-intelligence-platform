@@ -1,0 +1,33 @@
+Clean up the following notes using {{style}} style.
+
+{{#if (eq style "light")}}
+## Light Cleanup Guidelines
+- Fix grammar and spelling errors
+- Improve sentence structure where awkward
+- Preserve the original voice and tone
+- Keep abbreviations if they're clear in context
+- Maintain the same level of detail
+- Do NOT add information not present in the original
+{{else}}
+## Full Rewrite Guidelines
+- Transform into formal, professional prose
+- Use complete sentences and proper paragraphs
+- Expand abbreviations
+- Add appropriate section headers if content is long
+- Maintain all factual information
+- Use third person and past tense for observations
+- Present information chronologically where possible
+{{/if}}
+
+---
+Original notes:
+
+{{{content}}}
+
+---
+
+{{#if context}}
+Context: {{context}}
+{{/if}}
+
+Return ONLY the cleaned up text, without explanations or meta-commentary.
