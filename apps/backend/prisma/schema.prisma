@@ -53,6 +53,10 @@ model Organization {
   teams             Team[]
   employees         Employee[]
 
+  // SSO relations
+  tenantDomains    TenantDomain[]
+  tenantSsoConfig  TenantSsoConfig?
+
   @@index([slug])
   @@index([isActive])
   @@map("organizations")
@@ -71,8 +75,19 @@ model User {
   isActive        Boolean   @default(true) @map("is_active")
   emailVerifiedAt DateTime? @map("email_verified_at")
   lastLoginAt     DateTime? @map("last_login_at")
-  createdAt       DateTime  @default(now()) @map("created_at")
-  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  // SSO fields
+  ssoProvider String?   @map("sso_provider") // 'azure-ad', 'google', 'saml'
+  ssoId       String?   @map("sso_id") // Provider-specific unique ID (oid for Azure, sub for Google, nameID for SAML)
+
+  // MFA fields
+  mfaEnabled       Boolean   @default(false) @map("mfa_enabled")
+  mfaSecret        String?   @map("mfa_secret") // TOTP secret (encrypted at rest)
+  mfaVerifiedAt    DateTime? @map("mfa_verified_at")
+  mfaRecoveryCodes String[]  @default([]) @map("mfa_recovery_codes") // Hashed recovery codes
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relations
   organization        Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
@@ -124,6 +139,7 @@ model User {
   @@index([organizationId])
   @@index([organizationId, role])
   @@index([organizationId, isActive])
+  @@index([ssoProvider, ssoId]) // SSO lookup index
   @@map("users")
 }
 
@@ -149,6 +165,66 @@ model Session {
   @@index([revokedAt])
   @@index([expiresAt])
   @@map("sessions")
+}
+
+// ===========================================
+// SSO and Domain Verification Entities
+// ===========================================
+
+/// TenantDomain maps email domains to organizations for SSO tenant routing.
+/// Domains must be verified via DNS TXT record before SSO can be enabled.
+/// Each organization can have multiple domains, with one marked as primary.
+model TenantDomain {
+  id                 String    @id @default(uuid())
+  organizationId     String    @map("organization_id")
+  domain             String    @unique // e.g., "acme.com"
+  verified           Boolean   @default(false)
+  verifiedAt         DateTime? @map("verified_at")
+  verificationToken  String    @map("verification_token") // Random token for DNS TXT record
+  verificationMethod String    @default("DNS_TXT") @map("verification_method") // DNS_TXT, META_TAG, FILE
+  isPrimary          Boolean   @default(false) @map("is_primary")
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([domain])
+  @@map("tenant_domains")
+}
+
+/// TenantSsoConfig stores per-tenant SSO provider configuration.
+/// One config per organization (unique constraint on organizationId).
+/// Supports Azure AD, Google, and generic SAML providers.
+model TenantSsoConfig {
+  id                     String   @id @default(uuid())
+  organizationId         String   @unique @map("organization_id")
+  ssoProvider            String?  @map("sso_provider") // 'azure-ad', 'google', 'saml'
+  ssoEnabled             Boolean  @default(false) @map("sso_enabled")
+  jitProvisioningEnabled Boolean  @default(true) @map("jit_provisioning_enabled") // Just-in-time user provisioning
+  defaultRole            UserRole @default(EMPLOYEE) @map("default_role") // Role for JIT-provisioned users
+
+  // Azure AD specific
+  azureTenantId String? @map("azure_tenant_id")
+
+  // SAML specific
+  samlIdpEntityId   String? @map("saml_idp_entity_id")
+  samlIdpEntryPoint String? @map("saml_idp_entry_point")
+  samlIdpCertificate String? @map("saml_idp_certificate") @db.Text // PEM format certificate
+  samlSpEntityId    String? @map("saml_sp_entity_id")
+
+  // MFA settings
+  mfaRequired Boolean @default(false) @map("mfa_required")
+
+  // Timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@map("tenant_sso_configs")
 }
 
 // ===========================================
