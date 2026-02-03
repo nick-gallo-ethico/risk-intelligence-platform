@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 4 of 11 (Core Entities)
-Plan: 9 of 10 in current phase (Wave 4 in progress)
-Status: In progress
-Last activity: 2026-02-03 - Completed 04-09-PLAN.md (First-Class Association Entities)
+Plan: 10 of 10 in current phase (Wave 4 complete, Phase 4 complete)
+Status: Phase complete
+Last activity: 2026-02-03 - Completed 04-10-PLAN.md (Pattern Detection and Association Denormalization)
 
-Progress: [===================================] 35% (35 of ~99 total plans)
+Progress: [====================================] 36% (36 of ~99 total plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 30
+- Total plans completed: 31
 - Average duration: 13 min
-- Total execution time: 6.0 hours
+- Total execution time: 6.2 hours
 
 **By Phase:**
 
@@ -30,11 +30,11 @@ Progress: [===================================] 35% (35 of ~99 total plans)
 | 01-foundation | 9 | 123 min | 14 min |
 | 02-demo-tenant-seed-data | 7 | 84 min | 12 min |
 | 03-authentication-sso | 8 | 69 min | 9 min |
-| 04-core-entities | 8 | 98 min | 12 min |
+| 04-core-entities | 10 | 112 min | 11 min |
 
 **Recent Trend:**
-- Last 5 plans: 04-09 (13 min), 04-08 (14 min), 04-03 (11 min), 04-06 (9 min), 04-07 (14 min)
-- Trend: Phase 4 Core Entities Wave 4 associations complete. One plan remaining.
+- Last 5 plans: 04-10 (14 min), 04-09 (13 min), 04-08 (14 min), 04-03 (11 min), 04-06 (9 min)
+- Trend: Phase 4 Core Entities complete. Ready for Phase 5 AI Infrastructure.
 
 *Updated after each plan completion*
 
@@ -201,6 +201,10 @@ Recent decisions affecting current work:
 - 04-09: PersonPersonAssociation normalizes symmetric relationships (personAId < personBId)
 - 04-09: All association tables have RLS policies for tenant isolation
 - 04-09: Evidentiary associations are permanent records - never "end", only status changes
+- 04-10: Nested ES type for associations.persons enables complex boolean queries (A as SUBJECT AND B as WITNESS)
+- 04-10: Flattened arrays (personIds, subjectPersonIds) duplicate data for efficient faceting
+- 04-10: History badge uses Prisma count query on PersonRiuAssociation (not ES)
+- 04-10: Event-driven re-indexing via OnEvent handlers keeps ES in sync
 
 ### Pending Todos
 
@@ -214,6 +218,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-03T10:10:24Z
-Stopped at: Completed 04-09-PLAN.md (First-Class Association Entities)
+Last session: 2026-02-03T10:10:13Z
+Stopped at: Completed 04-10-PLAN.md (Pattern Detection and Association Denormalization)
 Resume file: None
