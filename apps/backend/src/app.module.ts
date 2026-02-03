@@ -23,6 +23,7 @@ import { DemoModule } from "./modules/demo/demo.module";
 import { PersonsModule } from "./modules/persons/persons.module";
 import { HrisModule } from "./modules/hris/hris.module";
 import { CampaignsModule } from "./modules/campaigns/campaigns.module";
+import { AssociationsModule } from "./modules/associations/associations.module";
 import { ActivityModule } from "./common/activity.module";
 import { StorageModule } from "./common/storage.module";
 import { TenantMiddleware } from "./common/middleware/tenant.middleware";
@@ -77,6 +78,7 @@ import configuration from "./config/configuration";
     PersonsModule, // Person entity for people-based pattern detection
     HrisModule, // HRIS integration via Merge.dev unified API
     CampaignsModule, // Outbound compliance campaigns (disclosures, attestations, surveys)
+    AssociationsModule, // First-class association entities (Person-Case, Person-RIU, Case-Case, Person-Person)
     HealthModule,
   ],
   controllers: [],
