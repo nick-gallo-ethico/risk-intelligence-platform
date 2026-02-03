@@ -45,6 +45,12 @@ export default () => ({
     from: process.env.EMAIL_FROM || "noreply@ethico.local",
   },
 
+  elasticsearch: {
+    node: process.env.ELASTICSEARCH_NODE || "http://localhost:9200",
+    maxRetries: 3,
+    requestTimeout: 30000,
+  },
+
   storage: {
     // Provider selection: 'local' for development, 'azure' for production
     provider: (process.env.STORAGE_PROVIDER || "local") as "local" | "azure",
