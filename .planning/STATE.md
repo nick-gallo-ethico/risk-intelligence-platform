@@ -12,7 +12,7 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 Phase: 2 of 11 (Demo Tenant & Seed Data)
 Plan: 2 of 7 in current phase
 Status: In progress
-Last activity: 2026-02-03 - Completed 02-02-PLAN.md (Category Seeder)
+Last activity: 2026-02-03 - Completed 02-01-PLAN.md (Seed Infrastructure) and 02-02-PLAN.md (Category Seeder)
 
 Progress: [===========         ] 11% (11 of ~99 total plans)
 
@@ -85,6 +85,10 @@ Recent decisions affecting current work:
 - 01-05: SLA scheduler runs every 5 minutes via @Cron decorator
 - 01-05: Assignment strategies use pluggable pattern - registerStrategy() for custom strategies
 - 01-05: Category routingRules JSON can specify strategy type and config
+- 02-01: Master seed 20260202 ensures fully reproducible demo data across runs
+- 02-01: Reference date 2026-02-02 anchors all historical data calculations
+- 02-01: SEED_CONFIG is single source of truth for volumes, distributions, organization structure
+- 02-01: Exponential distribution with 0.3 recency bias for realistic historical date patterns
 - 02-02: Children inherit parent severity/SLA defaults for consistency within category families
 - 02-02: Materialized path format: /{parent-slug}/{child-slug} for human-readable hierarchy
 - 02-02: Category codes use hierarchical prefix (e.g., HAR-SEX for Sexual Harassment under Harassment)
@@ -102,6 +106,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-03T06:50:00Z
-Stopped at: Completed 02-02-PLAN.md (Category Seeder)
+Last session: 2026-02-03T06:54:00Z
+Stopped at: Completed 02-01-PLAN.md (Seed Infrastructure)
 Resume file: None
