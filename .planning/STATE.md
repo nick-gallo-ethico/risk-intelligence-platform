@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 5 of 11 (AI Infrastructure) - In progress
-Plan: 1 of 11 in current phase
+Plan: 5 of 11 in current phase
 Status: Executing Wave 1
-Last activity: 2026-02-03 - Completed 05-01-PLAN.md (AI Client Infrastructure)
+Last activity: 2026-02-03 - Completed 05-05-PLAN.md (AI Conversation Persistence)
 
-Progress: [==========================================] 43% (45 of ~106 total plans)
+Progress: [==========================================] 44% (46 of ~106 total plans)
 
 ## Performance Metrics
 
@@ -33,8 +33,8 @@ Progress: [==========================================] 43% (45 of ~106 total pla
 | 04-core-entities | 10 | 112 min | 11 min |
 
 **Recent Trend:**
-- Last 5 plans: 05-01 (9 min), 04-10 (14 min), 04-09 (13 min), 04-08 (14 min), 04-03 (11 min)
-- Trend: Phase 5 AI Infrastructure started. 05-01 completed in 9 min.
+- Last 5 plans: 05-05 (12 min), 05-01 (9 min), 04-10 (14 min), 04-09 (13 min), 04-08 (14 min)
+- Trend: Phase 5 AI Infrastructure progressing. Conversation persistence complete.
 
 *Updated after each plan completion*
 
@@ -209,6 +209,11 @@ Recent decisions affecting current work:
 - 05-01: AI features disabled gracefully when ANTHROPIC_API_KEY not set (warn, isConfigured()=false)
 - 05-01: organizationId passed via CreateChatDto - callers enforce tenant isolation
 - 05-01: Streaming via async generators with AbortController support
+- 05-05: Conversations scoped to organization + user + optional entity (case, investigation)
+- 05-05: AiConversationStatus enum: ACTIVE, PAUSED, ARCHIVED for lifecycle management
+- 05-05: Token counts tracked at both message and conversation level for cost monitoring
+- 05-05: getOrCreate pattern: Return existing active or create new conversation
+- 05-05: Search uses Prisma contains with case-insensitive mode (not ES for conversation data)
 
 ### Pending Todos
 
@@ -222,6 +227,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-03T19:15:51Z
-Stopped at: Completed 05-01-PLAN.md (AI Client Infrastructure)
+Last session: 2026-02-03T19:20:48Z
+Stopped at: Completed 05-05-PLAN.md (AI Conversation Persistence)
 Resume file: None
