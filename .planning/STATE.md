@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 5 of 11 (AI Infrastructure) - In progress
-Plan: 6 of 11 in current phase
+Plan: 7 of 11 in current phase
 Status: Executing Wave 2
-Last activity: 2026-02-03 - Completed 05-06-PLAN.md (Context Hierarchy Loading)
+Last activity: 2026-02-03 - Completed 05-03-PLAN.md (Per-Tenant AI Rate Limiting)
 
-Progress: [==========================================] 46% (48 of ~106 total plans)
+Progress: [==========================================] 47% (49 of ~106 total plans)
 
 ## Performance Metrics
 
@@ -33,8 +33,8 @@ Progress: [==========================================] 46% (48 of ~106 total pla
 | 04-core-entities | 10 | 112 min | 11 min |
 
 **Recent Trend:**
-- Last 5 plans: 05-06 (14 min), 05-02 (8 min), 05-05 (12 min), 05-01 (9 min), 04-10 (14 min)
-- Trend: Phase 5 AI Infrastructure progressing. Context hierarchy loading complete.
+- Last 5 plans: 05-03 (12 min), 05-06 (14 min), 05-02 (8 min), 05-05 (12 min), 05-01 (9 min)
+- Trend: Phase 5 AI Infrastructure progressing. Rate limiting complete.
 
 *Updated after each plan completion*
 
@@ -222,6 +222,10 @@ Recent decisions affecting current work:
 - 05-06: AiContextFile model for CLAUDE.md-like context files at org/team/user levels
 - 05-06: Entity-specific context loaders for case, investigation, campaign
 - 05-06: System prompt built from assembled context with agent-type instructions
+- 05-03: Redis sorted sets for sliding window rate limiting (RPM/TPM)
+- 05-03: Per-organization rate limit configuration with 1-minute cache
+- 05-03: 25-hour daily counter expiry for timezone edge cases
+- 05-03: AiUsage model for billing analytics with feature-type breakdown
 
 ### Pending Todos
 
@@ -235,6 +239,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-03T19:42:15Z
-Stopped at: Completed 05-06-PLAN.md (Context Hierarchy Loading)
+Last session: 2026-02-03T19:45:09Z
+Stopped at: Completed 05-03-PLAN.md (Per-Tenant AI Rate Limiting)
 Resume file: None
