@@ -2,6 +2,7 @@ import {
   Controller,
   Post,
   Get,
+  Patch,
   Body,
   HttpCode,
   HttpStatus,
@@ -24,9 +25,15 @@ import {
   UserProfileDto,
 } from "./dto";
 import { Public } from "../../common/guards/jwt-auth.guard";
-import { JwtAuthGuard } from "../../common/guards";
-import { CurrentUser } from "../../common/decorators";
+import { JwtAuthGuard, RolesGuard } from "../../common/guards";
+import { CurrentUser, Roles } from "../../common/decorators";
+import { UserRole } from "../../common/decorators/roles.decorator";
 import { RequestUser } from "./interfaces/jwt-payload.interface";
+import {
+  SsoConfigService,
+  UpdateSsoConfigDto,
+  SsoConfigResponseDto,
+} from "./sso";
 
 // Rate limit tiers for auth endpoints:
 // - Login: 5/min (strict - protects against brute force)
@@ -39,7 +46,10 @@ import { RequestUser } from "./interfaces/jwt-payload.interface";
 @ApiTags("Auth")
 @Controller("auth")
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly ssoConfigService: SsoConfigService,
+  ) {}
 
   /**
    * POST /api/v1/auth/login
@@ -177,5 +187,66 @@ export class AuthController {
       role: user.role,
       organizationId: user.organizationId,
     };
+  }
+
+  // ===========================================
+  // SSO Configuration Endpoints
+  // ===========================================
+
+  /**
+   * GET /api/v1/auth/sso/config
+   * Get SSO configuration for the current organization.
+   * Restricted to SYSTEM_ADMIN role.
+   */
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.SYSTEM_ADMIN)
+  @Get("sso/config")
+  @ApiBearerAuth("JWT")
+  @ApiOperation({
+    summary: "Get SSO configuration",
+    description: "Get SSO configuration for the current organization",
+  })
+  @ApiResponse({
+    status: 200,
+    description: "SSO configuration",
+    type: SsoConfigResponseDto,
+  })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  @ApiResponse({ status: 403, description: "Forbidden - requires SYSTEM_ADMIN" })
+  async getSsoConfig(
+    @CurrentUser() user: { organizationId: string },
+  ): Promise<SsoConfigResponseDto> {
+    return this.ssoConfigService.getConfig(user.organizationId);
+  }
+
+  /**
+   * PATCH /api/v1/auth/sso/config
+   * Update SSO configuration for the current organization.
+   * Restricted to SYSTEM_ADMIN role.
+   */
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.SYSTEM_ADMIN)
+  @Patch("sso/config")
+  @ApiBearerAuth("JWT")
+  @ApiOperation({
+    summary: "Update SSO configuration",
+    description: "Update SSO configuration for the current organization",
+  })
+  @ApiResponse({
+    status: 200,
+    description: "SSO configuration updated",
+    type: SsoConfigResponseDto,
+  })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  @ApiResponse({ status: 403, description: "Forbidden - requires SYSTEM_ADMIN" })
+  async updateSsoConfig(
+    @Body() dto: UpdateSsoConfigDto,
+    @CurrentUser() user: { sub: string; organizationId: string },
+  ): Promise<SsoConfigResponseDto> {
+    return this.ssoConfigService.updateConfig(
+      user.organizationId,
+      dto,
+      user.sub,
+    );
   }
 }

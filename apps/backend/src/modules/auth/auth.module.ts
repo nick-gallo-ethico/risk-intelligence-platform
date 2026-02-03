@@ -6,6 +6,7 @@ import { AuthService } from "./auth.service";
 import { AuthController } from "./auth.controller";
 import { JwtStrategy } from "./strategies/jwt.strategy";
 import { DomainModule } from "./domain";
+import { SsoModule } from "./sso";
 
 @Module({
   imports: [
@@ -21,9 +22,10 @@ import { DomainModule } from "./domain";
       }),
     }),
     DomainModule,
+    SsoModule,
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy],
-  exports: [AuthService, JwtModule, DomainModule],
+  exports: [AuthService, JwtModule, DomainModule, SsoModule],
 })
 export class AuthModule {}
