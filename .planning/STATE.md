@@ -9,19 +9,19 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 
 ## Current Position
 
-Phase: 6 of 11 (Case Management) - READY
-Plan: 0 of 16 in current phase
-Status: Ready to begin Phase 6
-Last activity: 2026-02-03 - Completed Phase 5 (AI Infrastructure) - all 11 plans
+Phase: 6 of 11 (Case Management) - IN PROGRESS
+Plan: 4 of 16 in current phase
+Status: In progress
+Last activity: 2026-02-03 - Completed 06-04-PLAN.md (Saved Views)
 
-Progress: [=============================================] 36% (45 of ~125 total plans)
+Progress: [===============================================] 37% (46 of ~125 total plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 45
+- Total plans completed: 46
 - Average duration: 13 min
-- Total execution time: 9.8 hours
+- Total execution time: 10.3 hours
 
 **By Phase:**
 
@@ -34,8 +34,8 @@ Progress: [=============================================] 36% (45 of ~125 total 
 | 05-ai-infrastructure | 11 | 143 min | 13 min |
 
 **Recent Trend:**
-- Last 5 plans: 05-10 (12 min), 05-11 (12 min), 05-07 (14 min), 05-08 (16 min), 05-09 (11 min)
-- Trend: Phase 5 COMPLETE. AI infrastructure fully operational.
+- Last 5 plans: 06-04 (30 min), 05-10 (12 min), 05-11 (12 min), 05-07 (14 min), 05-08 (16 min)
+- Trend: Phase 6 started. Saved views infrastructure complete.
 
 *Updated after each plan completion*
 
@@ -250,6 +250,10 @@ Recent decisions affecting current work:
 - 05-11: Auth context extracted from handshake (organizationId, userId, userRole, permissions)
 - 05-11: Action categories: QUICK (30s), STANDARD (5m), CRITICAL (30m), EXTERNAL (no undo)
 - 05-11: REST endpoints at /api/v1/ai/* for skills, actions, conversations, agents, usage
+- 06-04: ViewEntityType enum: CASES, RIUS, INVESTIGATIONS, PERSONS, CAMPAIGNS, REMEDIATION_PLANS
+- 06-04: Filter validation against current enum values at create/update/apply time
+- 06-04: Invalid filters returned in array instead of throwing errors on apply (graceful degradation)
+- 06-04: Default view management: one default per (user, entityType) with auto-deselection
 
 ### Pending Todos
 
@@ -266,6 +270,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-02-03T20:22:00Z
-Stopped at: Completed 05-11-PLAN.md (AI API Layer) - Phase 5 COMPLETE
+Last session: 2026-02-03T22:50:00Z
+Stopped at: Completed 06-04-PLAN.md (Saved Views)
 Resume file: None
