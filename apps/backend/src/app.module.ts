@@ -1,5 +1,6 @@
 import { Module, MiddlewareConsumer, NestModule } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
+import { EventsModule } from "./modules/events/events.module";
 import { HealthModule } from "./modules/health/health.module";
 import { PrismaModule } from "./modules/prisma/prisma.module";
 import { AuthModule } from "./modules/auth/auth.module";
@@ -20,6 +21,7 @@ import configuration from "./config/configuration";
       load: [configuration],
       envFilePath: [".env", ".env.local"],
     }),
+    EventsModule,
     PrismaModule,
     ActivityModule,
     StorageModule,

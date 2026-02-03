@@ -1,12 +1,19 @@
 import {
   Injectable,
+  Logger,
   NotFoundException,
   BadRequestException,
 } from "@nestjs/common";
+import { EventEmitter2 } from "@nestjs/event-emitter";
 import { Prisma, Case, CaseStatus, AuditEntityType } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
 import { ActivityService } from "../../common/services/activity.service";
 import { CreateCaseDto, UpdateCaseDto, CaseQueryDto } from "./dto";
+import {
+  CaseCreatedEvent,
+  CaseUpdatedEvent,
+  CaseStatusChangedEvent,
+} from "../events/events";
 
 /**
  * Service for managing compliance cases.
@@ -14,9 +21,12 @@ import { CreateCaseDto, UpdateCaseDto, CaseQueryDto } from "./dto";
  */
 @Injectable()
 export class CasesService {
+  private readonly logger = new Logger(CasesService.name);
+
   constructor(
     private prisma: PrismaService,
     private readonly activityService: ActivityService,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   /**
@@ -88,6 +98,21 @@ export class CasesService {
       actorUserId: userId,
       organizationId,
     });
+
+    // Emit event for subscribers (audit, search indexing, notifications)
+    this.emitEvent(
+      CaseCreatedEvent.eventName,
+      new CaseCreatedEvent({
+        organizationId,
+        actorUserId: userId,
+        actorType: "USER",
+        caseId: caseRecord.id,
+        referenceNumber: caseRecord.referenceNumber,
+        sourceChannel: caseRecord.sourceChannel,
+        categoryId: caseRecord.primaryCategoryId ?? undefined,
+        severity: caseRecord.severity,
+      }),
+    );
 
     return caseRecord;
   }
@@ -406,6 +431,26 @@ export class CasesService {
       },
     });
 
+    // Emit event for subscribers (audit, search re-indexing)
+    // Build changes object with old/new values
+    const changes: Record<string, { old: unknown; new: unknown }> = {};
+    for (const field of changedFields) {
+      changes[field] = {
+        old: existing[field as keyof Case],
+        new: dto[field as keyof UpdateCaseDto],
+      };
+    }
+    this.emitEvent(
+      CaseUpdatedEvent.eventName,
+      new CaseUpdatedEvent({
+        organizationId,
+        actorUserId: userId,
+        actorType: "USER",
+        caseId: id,
+        changes,
+      }),
+    );
+
     return updated;
   }
 
@@ -450,6 +495,20 @@ export class CasesService {
       },
     });
 
+    // Emit event for subscribers (workflow engine, notifications, SLA tracking)
+    this.emitEvent(
+      CaseStatusChangedEvent.eventName,
+      new CaseStatusChangedEvent({
+        organizationId,
+        actorUserId: userId,
+        actorType: "USER",
+        caseId: id,
+        previousStatus: oldStatus,
+        newStatus: status,
+        rationale,
+      }),
+    );
+
     return updated;
   }
 
@@ -491,6 +550,20 @@ export class CasesService {
         newValue: { status: CaseStatus.CLOSED, rationale },
       },
     });
+
+    // Emit event for subscribers (workflow engine, notifications)
+    this.emitEvent(
+      CaseStatusChangedEvent.eventName,
+      new CaseStatusChangedEvent({
+        organizationId,
+        actorUserId: userId,
+        actorType: "USER",
+        caseId: id,
+        previousStatus: existing.status,
+        newStatus: CaseStatus.CLOSED,
+        rationale,
+      }),
+    );
 
     return updated;
   }
@@ -590,6 +663,22 @@ export class CasesService {
   ): void {
     if (current === next) {
       throw new BadRequestException(`Case is already in ${current} status`);
+    }
+  }
+
+  /**
+   * Safely emits an event. Failures are logged but don't crash the request.
+   * Events are fire-and-forget - request success is independent of event delivery.
+   */
+  private emitEvent(eventName: string, event: object): void {
+    try {
+      this.eventEmitter.emit(eventName, event);
+    } catch (error) {
+      this.logger.error(
+        `Failed to emit event ${eventName}: ${error instanceof Error ? error.message : String(error)}`,
+        error instanceof Error ? error.stack : undefined,
+      );
+      // Don't rethrow - request should succeed even if event emission fails
     }
   }
 }
