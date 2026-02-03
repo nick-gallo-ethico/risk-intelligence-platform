@@ -11,6 +11,7 @@ import { CasesModule } from "./modules/cases/cases.module";
 import { InvestigationsModule } from "./modules/investigations/investigations.module";
 import { InvestigationNotesModule } from "./modules/investigation-notes/investigation-notes.module";
 import { AttachmentsModule } from "./modules/attachments/attachments.module";
+import { ModuleStorageModule } from "./modules/storage/storage.module";
 import { ActivityModule } from "./common/activity.module";
 import { StorageModule } from "./common/storage.module";
 import { TenantMiddleware } from "./common/middleware/tenant.middleware";
@@ -28,7 +29,8 @@ import configuration from "./config/configuration";
     AuditModule, // After EventsModule to subscribe to domain events
     PrismaModule,
     ActivityModule,
-    StorageModule,
+    StorageModule, // Low-level file storage (used by AttachmentsModule)
+    ModuleStorageModule, // High-level storage with Attachment tracking and document processing
     AuthModule,
     UsersModule,
     CasesModule,
