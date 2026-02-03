@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 6 of 11 (Case Management) - IN PROGRESS
-Plan: 7 of 16 in current phase
+Plan: 8 of 16 in current phase
 Status: In progress
-Last activity: 2026-02-03 - Completed 06-01-PLAN.md (Investigation Templates)
+Last activity: 2026-02-03 - Completed 06-06-PLAN.md (Category Template Mapping)
 
-Progress: [===============================================] 39% (49 of ~125 total plans)
+Progress: [===============================================] 40% (50 of ~125 total plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 49
+- Total plans completed: 50
 - Average duration: 14 min
-- Total execution time: 12.1 hours
+- Total execution time: 12.5 hours
 
 **By Phase:**
 
@@ -34,8 +34,8 @@ Progress: [===============================================] 39% (49 of ~125 tota
 | 05-ai-infrastructure | 11 | 143 min | 13 min |
 
 **Recent Trend:**
-- Last 5 plans: 06-01 (44 min), 06-03 (39 min), 06-05 (33 min), 06-04 (30 min), 05-10 (12 min)
-- Trend: Phase 6 in progress. Investigation template system complete.
+- Last 5 plans: 06-06 (26 min), 06-01 (44 min), 06-03 (39 min), 06-05 (33 min), 06-04 (30 min)
+- Trend: Phase 6 in progress. Template category mapping complete.
 
 *Updated after each plan completion*
 
@@ -271,6 +271,10 @@ Recent decisions affecting current work:
 - 06-02: Interview lifecycle: SCHEDULED -> IN_PROGRESS -> COMPLETED (or CANCELLED)
 - 06-02: Template questions copied to interview at creation (copy-on-use pattern)
 - 06-02: Person-linked interviews enable cross-case pattern detection
+- 06-06: TemplateRequirement enum: REQUIRED, RECOMMENDED, OPTIONAL for mapping flexibility
+- 06-06: CategoryTemplateMapping priority field enables multiple templates per category
+- 06-06: Parent category inheritance for template recommendations when no direct mapping
+- 06-06: isTemplateRequired() check validates template presence on investigation creation
 
 ### Pending Todos
 
@@ -287,6 +291,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-02-03T23:07:00Z
-Stopped at: Completed 06-02-PLAN.md (Investigation Interviews)
+Last session: 2026-02-03T23:46:00Z
+Stopped at: Completed 06-06-PLAN.md (Category Template Mapping)
 Resume file: None
