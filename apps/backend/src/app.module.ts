@@ -1,5 +1,8 @@
 import { Module, MiddlewareConsumer, NestModule } from "@nestjs/common";
-import { ConfigModule } from "@nestjs/config";
+import { ConfigModule, ConfigService } from "@nestjs/config";
+import { ThrottlerModule, ThrottlerGuard } from "@nestjs/throttler";
+import { ThrottlerStorageRedisService } from "@nest-lab/throttler-storage-redis";
+import { APP_GUARD } from "@nestjs/core";
 import { EventsModule } from "./modules/events/events.module";
 import { JobsModule } from "./modules/jobs/jobs.module";
 import { AuditModule } from "./modules/audit/audit.module";
@@ -21,12 +24,33 @@ import { StorageModule } from "./common/storage.module";
 import { TenantMiddleware } from "./common/middleware/tenant.middleware";
 import configuration from "./config/configuration";
 
+// Rate limiting configuration:
+// THROTTLE_TTL: Window duration in milliseconds (default: 60000)
+// THROTTLE_LIMIT: Max requests per window (default: 100)
+// Uses REDIS_URL for distributed rate limiting across instances
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
       load: [configuration],
       envFilePath: [".env", ".env.local"],
+    }),
+    // Global rate limiting with Redis storage for multi-instance deployments
+    ThrottlerModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        throttlers: [
+          {
+            name: "default",
+            ttl: configService.get<number>("THROTTLE_TTL", 60000), // 1 minute window
+            limit: configService.get<number>("THROTTLE_LIMIT", 100), // 100 requests per minute globally
+          },
+        ],
+        storage: new ThrottlerStorageRedisService(
+          configService.get<string>("REDIS_URL", "redis://localhost:6379"),
+        ),
+      }),
     }),
     EventsModule,
     JobsModule,
@@ -48,7 +72,13 @@ import configuration from "./config/configuration";
     HealthModule,
   ],
   controllers: [],
-  providers: [],
+  providers: [
+    // Enable global rate limiting for all endpoints
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+  ],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
