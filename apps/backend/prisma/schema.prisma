@@ -1344,7 +1344,7 @@ model FormDefinition {
   isPublished Boolean  @default(false) @map("is_published")
 
   // JSON Schema
-  schema        Json  // JSON Schema definition
+  schema        Json // JSON Schema definition
   uiSchema      Json? @map("ui_schema") // UI hints (ordering, widgets, conditionals)
   defaultValues Json? @map("default_values")
 
@@ -1377,12 +1377,12 @@ model FormDefinition {
 }
 
 enum FormType {
-  INTAKE        // Anonymous/identified report intake
-  DISCLOSURE    // COI, gifts, outside employment
-  ATTESTATION   // Policy acknowledgment
-  SURVEY        // Compliance surveys
+  INTAKE // Anonymous/identified report intake
+  DISCLOSURE // COI, gifts, outside employment
+  ATTESTATION // Policy acknowledgment
+  SURVEY // Compliance surveys
   WORKFLOW_TASK // Embedded workflow step form
-  CUSTOM        // General purpose
+  CUSTOM // General purpose
 
   @@map("form_type")
 }
@@ -1460,8 +1460,8 @@ model ReportTemplate {
   columns      Json // Array of column definitions
   filters      Json? // Default filters
   aggregations Json? // Sum, count, avg, group by
-  sortBy       String? @map("sort_by")
-  sortOrder    String? @map("sort_order")
+  sortBy       String?          @map("sort_by")
+  sortOrder    String?          @map("sort_order")
 
   // Display
   chartType   String? @map("chart_type") // 'bar', 'pie', 'line', 'table'
@@ -1556,9 +1556,9 @@ model DemoAccount {
   organizationId String @map("organization_id")
 
   // Prospect user details
-  prospectUserId String @unique @map("prospect_user_id")
-  prospectEmail  String @map("prospect_email")
-  prospectName   String? @map("prospect_name")
+  prospectUserId  String  @unique @map("prospect_user_id")
+  prospectEmail   String  @map("prospect_email")
+  prospectName    String? @map("prospect_name")
   prospectCompany String? @map("prospect_company")
 
   // Attribution to sales rep
@@ -1654,8 +1654,8 @@ model Division {
   id             String @id @default(uuid())
   organizationId String @map("organization_id")
 
-  code        String  // e.g., "HLTH", "TECH", "RETL", "ENRG"
-  name        String  // e.g., "Healthcare Division"
+  code        String // e.g., "HLTH", "TECH", "RETL", "ENRG"
+  name        String // e.g., "Healthcare Division"
   description String?
 
   // Division Head (named persona)
@@ -1691,8 +1691,8 @@ model BusinessUnit {
   organizationId String @map("organization_id")
   divisionId     String @map("division_id")
 
-  code        String  // e.g., "HOSP", "PHRM"
-  name        String  // e.g., "Hospital Services"
+  code        String // e.g., "HOSP", "PHRM"
+  name        String // e.g., "Hospital Services"
   description String?
 
   // BU Head
@@ -1724,8 +1724,8 @@ model Department {
   organizationId String @map("organization_id")
   businessUnitId String @map("business_unit_id")
 
-  code        String  // e.g., "NURS", "ADMN"
-  name        String  // e.g., "Nursing"
+  code        String // e.g., "NURS", "ADMN"
+  name        String // e.g., "Nursing"
   description String?
 
   // Department Head (Director level)
@@ -1760,8 +1760,8 @@ model Team {
   organizationId String @map("organization_id")
   departmentId   String @map("department_id")
 
-  code        String  // e.g., "ICU", "ER"
-  name        String  // e.g., "ICU Team"
+  code        String // e.g., "ICU", "ER"
+  name        String // e.g., "ICU Team"
   description String?
 
   // Team Lead (Manager level)
@@ -1847,10 +1847,10 @@ model Employee {
   personaRole    String? @map("persona_role") // e.g., "CCO", "Division VP Healthcare"
 
   // Sync Metadata
-  sourceSystem   String    @default("MANUAL") @map("source_system")
-  syncedAt       DateTime  @default(now()) @map("synced_at")
-  lastSyncStatus String?   @map("last_sync_status")
-  rawHrisData    Json?     @map("raw_hris_data")
+  sourceSystem   String   @default("MANUAL") @map("source_system")
+  syncedAt       DateTime @default(now()) @map("synced_at")
+  lastSyncStatus String?  @map("last_sync_status")
+  rawHrisData    Json?    @map("raw_hris_data")
 
   // Timestamps
   createdAt DateTime @default(now()) @map("created_at")
