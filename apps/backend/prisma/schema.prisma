@@ -66,6 +66,12 @@ model Organization {
   campaigns           Campaign[]
   campaignAssignments CampaignAssignment[]
 
+  // Association relations
+  personCaseAssociations   PersonCaseAssociation[]
+  personRiuAssociations    PersonRiuAssociation[]
+  caseCaseAssociations     CaseCaseAssociation[]
+  personPersonAssociations PersonPersonAssociation[]
+
   @@index([slug])
   @@index([isActive])
   @@map("organizations")
@@ -481,6 +487,11 @@ model Case {
 
   // Follow-up interactions
   interactions Interaction[]
+
+  // First-class association relations (HubSpot V4 pattern)
+  personAssociations   PersonCaseAssociation[]
+  caseAssociationsFrom CaseCaseAssociation[]   @relation("CaseAssociationSource")
+  caseAssociationsTo   CaseCaseAssociation[]   @relation("CaseAssociationTarget")
 
   // Full-text search vector (auto-populated by database trigger)
   /// @db.Unsupported("tsvector")
@@ -1072,6 +1083,9 @@ model RiskIntelligenceUnit {
 
   // Interactions (follow-up contacts)
   interactions Interaction[]
+
+  // First-class Person-RIU associations (HubSpot V4 pattern)
+  personAssociations PersonRiuAssociation[]
 
   // Type-specific extensions (1:1 relations)
   hotlineExtension    RiuHotlineExtension?
@@ -2334,6 +2348,12 @@ model Person {
   manager       Person?  @relation("PersonManager", fields: [managerId], references: [id])
   directReports Person[] @relation("PersonManager")
 
+  // Association relations
+  caseAssociations       PersonCaseAssociation[]
+  riuAssociations        PersonRiuAssociation[]
+  personRelationshipsAsA PersonPersonAssociation[] @relation("PersonARelation")
+  personRelationshipsAsB PersonPersonAssociation[] @relation("PersonBRelation")
+
   // Unique constraint: email must be unique within an organization when not null
   // Note: PostgreSQL allows multiple NULLs for unique constraints
   @@unique([organizationId, email])
@@ -2671,4 +2691,272 @@ model CampaignAssignment {
   @@index([organizationId, status])
   @@index([organizationId, dueDate])
   @@map("campaign_assignments")
+}
+
+// ===========================================
+// Association Entity Enums
+// ===========================================
+
+/// Labels for Person-to-Case associations per ASSOC-02.
+/// Evidentiary labels (REPORTER, SUBJECT, WITNESS) use status field.
+/// Role labels (ASSIGNED_INVESTIGATOR, etc.) use validity periods.
+enum PersonCaseLabel {
+  // Evidentiary associations (use EvidentiaryStatus)
+  REPORTER
+  SUBJECT
+  WITNESS
+
+  // Role associations (use validity periods)
+  ASSIGNED_INVESTIGATOR
+  APPROVER
+  STAKEHOLDER
+  MANAGER_OF_SUBJECT
+  REVIEWER
+  LEGAL_COUNSEL
+
+  @@map("person_case_label")
+}
+
+/// Labels for Person-to-RIU associations per ASSOC-01.
+/// Tracks who is mentioned in an RIU intake record.
+enum PersonRiuLabel {
+  REPORTER
+  SUBJECT_MENTIONED
+  WITNESS_MENTIONED
+
+  @@map("person_riu_label")
+}
+
+/// Labels for Case-to-Case associations per CONTEXT.md decision.
+/// Supports hierarchy (parent/child), splits, escalations, merges.
+enum CaseCaseLabel {
+  PARENT
+  CHILD
+  SPLIT_FROM
+  SPLIT_TO
+  RELATED
+  ESCALATED_TO
+  SUPERSEDES
+  FOLLOW_UP_TO
+  MERGED_INTO
+
+  @@map("case_case_label")
+}
+
+/// Labels for Person-to-Person relationships.
+/// Sources: HRIS (manager_of), Disclosure (spouse, business_partner), Investigation.
+/// Used for COI detection.
+enum PersonPersonLabel {
+  MANAGER_OF
+  REPORTS_TO
+  SPOUSE
+  DOMESTIC_PARTNER
+  FAMILY_MEMBER
+  FORMER_COLLEAGUE
+  BUSINESS_PARTNER
+  CLOSE_PERSONAL_FRIEND
+
+  @@map("person_person_label")
+}
+
+/// Status for evidentiary associations (subject, witness, reporter).
+/// Per CONTEXT.md: Evidentiary associations use STATUS, not validity periods.
+/// "Person X was the subject of Case Y" is permanently true - only outcome changes.
+enum EvidentiaryStatus {
+  ACTIVE // Investigation ongoing
+  CLEARED // Not substantiated
+  SUBSTANTIATED // Investigation confirmed
+  WITHDRAWN // Reporter withdrew
+
+  @@map("evidentiary_status")
+}
+
+/// Source of Person-Person relationship knowledge.
+enum PersonPersonSource {
+  HRIS // From HRIS manager hierarchy sync
+  DISCLOSURE // From disclosure form (spouse, business_partner)
+  INVESTIGATION // Discovered during investigation
+  MANUAL // Manually entered by user
+
+  @@map("person_person_source")
+}
+
+// ===========================================
+// Person-Case Association Entity
+// ===========================================
+
+/// PersonCaseAssociation links Person to Case with role labels per ASSOC-02.
+/// First-class entity following HubSpot V4 Associations pattern.
+///
+/// Evidentiary associations (REPORTER, SUBJECT, WITNESS):
+///   - Use evidentiaryStatus field (ACTIVE, CLEARED, SUBSTANTIATED, WITHDRAWN)
+///   - Never "end" - they are permanent records with changing outcomes
+///   - Status changes tracked with timestamp, user, and reason
+///
+/// Role associations (ASSIGNED_INVESTIGATOR, LEGAL_COUNSEL, etc.):
+///   - Use validity periods (startedAt, endedAt)
+///   - Can end when person leaves the role
+model PersonCaseAssociation {
+  id             String @id @default(uuid())
+  organizationId String @map("organization_id")
+  personId       String @map("person_id")
+  caseId         String @map("case_id")
+
+  // Role label
+  label PersonCaseLabel
+
+  // === EVIDENTIARY STATUS (for REPORTER, SUBJECT, WITNESS) ===
+  // Per CONTEXT.md: evidentiary associations use status, not validity periods
+  evidentiaryStatus     EvidentiaryStatus? @map("evidentiary_status")
+  evidentiaryStatusAt   DateTime?          @map("evidentiary_status_at")
+  evidentiaryStatusById String?            @map("evidentiary_status_by_id")
+  evidentiaryReason     String?            @map("evidentiary_reason")
+
+  // === VALIDITY PERIOD (for role associations like ASSIGNED_INVESTIGATOR) ===
+  // Role associations can end when person leaves the role
+  startedAt   DateTime  @default(now()) @map("started_at")
+  endedAt     DateTime? @map("ended_at")
+  endedReason String?   @map("ended_reason")
+
+  // Notes
+  notes String?
+
+  // Audit
+  createdAt   DateTime @default(now()) @map("created_at")
+  createdById String   @map("created_by_id")
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  person       Person       @relation(fields: [personId], references: [id], onDelete: Cascade)
+  case         Case         @relation(fields: [caseId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, personId, caseId, label])
+  @@index([organizationId])
+  @@index([organizationId, personId])
+  @@index([organizationId, caseId])
+  @@index([organizationId, label])
+  @@index([organizationId, evidentiaryStatus])
+  @@map("person_case_associations")
+}
+
+// ===========================================
+// Person-RIU Association Entity
+// ===========================================
+
+/// PersonRiuAssociation links Person to RIU per ASSOC-01.
+/// Tracks who is mentioned in an RIU (reporter, subject, witness).
+/// RIUs are immutable, so these associations are created at intake.
+model PersonRiuAssociation {
+  id             String @id @default(uuid())
+  organizationId String @map("organization_id")
+  personId       String @map("person_id")
+  riuId          String @map("riu_id")
+
+  // Role label
+  label PersonRiuLabel
+
+  // Notes (how they were identified in the RIU)
+  notes          String?
+  mentionContext String? @map("mention_context") // Quote from RIU where person was mentioned
+
+  // Audit
+  createdAt   DateTime @default(now()) @map("created_at")
+  createdById String   @map("created_by_id")
+
+  // Relations
+  organization Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  person       Person               @relation(fields: [personId], references: [id], onDelete: Cascade)
+  riu          RiskIntelligenceUnit @relation(fields: [riuId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, personId, riuId, label])
+  @@index([organizationId])
+  @@index([organizationId, personId])
+  @@index([organizationId, riuId])
+  @@map("person_riu_associations")
+}
+
+// ===========================================
+// Case-Case Association Entity
+// ===========================================
+
+/// CaseCaseAssociation links Case to Case per CONTEXT.md decision.
+/// Supports hierarchy (parent/child), splits, escalations, merges.
+/// Direction matters: sourceCase -> targetCase with specific label.
+model CaseCaseAssociation {
+  id             String @id @default(uuid())
+  organizationId String @map("organization_id")
+  sourceCaseId   String @map("source_case_id") // "From" case
+  targetCaseId   String @map("target_case_id") // "To" case
+
+  // Directional label (source -> target)
+  label CaseCaseLabel
+
+  // Notes
+  notes String?
+
+  // Audit
+  createdAt   DateTime @default(now()) @map("created_at")
+  createdById String   @map("created_by_id")
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  sourceCase   Case         @relation("CaseAssociationSource", fields: [sourceCaseId], references: [id], onDelete: Cascade)
+  targetCase   Case         @relation("CaseAssociationTarget", fields: [targetCaseId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, sourceCaseId, targetCaseId, label])
+  @@index([organizationId])
+  @@index([organizationId, sourceCaseId])
+  @@index([organizationId, targetCaseId])
+  @@map("case_case_associations")
+}
+
+// ===========================================
+// Person-Person Association Entity
+// ===========================================
+
+/// PersonPersonAssociation tracks relationships between people.
+/// Sources: HRIS (manager_of), Disclosure (spouse, business_partner), Investigation.
+/// Used for COI detection and relationship mapping.
+///
+/// For symmetric relationships (spouse, friend), personAId < personBId alphabetically.
+/// For asymmetric relationships (manager_of), isDirectional=true with aToB/bToA descriptors.
+model PersonPersonAssociation {
+  id             String @id @default(uuid())
+  organizationId String @map("organization_id")
+  personAId      String @map("person_a_id")
+  personBId      String @map("person_b_id")
+
+  // Relationship label
+  label PersonPersonLabel
+
+  // Source of relationship knowledge
+  source PersonPersonSource
+
+  // Directional flag (for asymmetric relationships like manager_of)
+  isDirectional Boolean @default(false) @map("is_directional")
+  aToB          String? @map("a_to_b") // A's relationship to B (e.g., "manager_of")
+  bToA          String? @map("b_to_a") // B's relationship to A (e.g., "reports_to")
+
+  // Validity
+  effectiveFrom  DateTime  @default(now()) @map("effective_from")
+  effectiveUntil DateTime? @map("effective_until")
+
+  // Notes
+  notes String?
+
+  // Audit
+  createdAt   DateTime @default(now()) @map("created_at")
+  createdById String   @map("created_by_id")
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  personA      Person       @relation("PersonARelation", fields: [personAId], references: [id], onDelete: Cascade)
+  personB      Person       @relation("PersonBRelation", fields: [personBId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, personAId, personBId, label])
+  @@index([organizationId])
+  @@index([organizationId, personAId])
+  @@index([organizationId, personBId])
+  @@index([organizationId, label])
+  @@map("person_person_associations")
 }
