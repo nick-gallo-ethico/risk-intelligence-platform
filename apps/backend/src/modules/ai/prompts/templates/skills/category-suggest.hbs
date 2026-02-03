@@ -1,0 +1,32 @@
+Analyze the following content and suggest the most appropriate compliance category.
+
+{{#if categories}}
+## Available Categories
+{{#each categories}}
+- {{this.name}}{{#if this.description}}: {{this.description}}{{/if}}
+{{/each}}
+{{/if}}
+
+## Content to Categorize
+{{{content}}}
+
+## Instructions
+1. Analyze the content for key indicators of compliance issues
+2. Match to the most appropriate category from the available list
+3. Provide a confidence score (0.0 to 1.0)
+4. Explain your reasoning briefly
+
+Respond in the following JSON format:
+{
+  "suggestions": [
+    {
+      "categoryId": "category-id",
+      "categoryName": "Category Name",
+      "confidence": 0.85,
+      "reasoning": "Brief explanation of why this category fits"
+    }
+  ],
+  "indicators": ["key", "indicator", "phrases", "found"]
+}
+
+Return up to 3 suggestions, ranked by confidence.
