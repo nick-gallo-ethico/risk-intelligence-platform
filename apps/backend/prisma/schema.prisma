@@ -920,15 +920,17 @@ model RiskIntelligenceUnit {
   organizationId  String @map("organization_id")
   referenceNumber String @unique @map("reference_number") // RIU-2024-001
 
+  // === IMMUTABLE FIELDS (set at creation, never modified) ===
+
   // Type Classification
-  type          RiuType // hotline_report, web_form_submission, etc.
+  type          RiuType          // hotline_report, web_form_submission, etc.
   sourceChannel RiuSourceChannel @map("source_channel") // phone, web_form, chatbot, etc.
 
-  // Core Content (IMMUTABLE after creation)
-  details String // Reporter's narrative (rich text)
+  // Core Content
+  details String  // Reporter's narrative (rich text)
   summary String? // Brief summary
 
-  // Reporter Information (IMMUTABLE)
+  // Reporter Information
   reporterType        RiuReporterType @map("reporter_type") // anonymous, confidential, identified
   anonymousAccessCode String?         @map("anonymous_access_code") // For anonymous status checks
   reporterName        String?         @map("reporter_name") // Encrypted if identified
@@ -939,9 +941,6 @@ model RiskIntelligenceUnit {
   categoryId String?  @map("category_id")
   severity   Severity @default(MEDIUM)
 
-  // Status (only field that can change)
-  status RiuStatus @default(PENDING_QA)
-
   // Location Information
   locationName    String? @map("location_name")
   locationAddress String? @map("location_address")
@@ -949,15 +948,6 @@ model RiskIntelligenceUnit {
   locationState   String? @map("location_state")
   locationZip     String? @map("location_zip")
   locationCountry String? @map("location_country")
-
-  // AI Enrichment (can be regenerated)
-  aiSummary          String?   @map("ai_summary")
-  aiRiskScore        Decimal?  @map("ai_risk_score") @db.Decimal(3, 2) // 0.00 to 1.00
-  aiTranslation      String?   @map("ai_translation")
-  aiLanguageDetected String?   @map("ai_language_detected")
-  aiModelVersion     String?   @map("ai_model_version")
-  aiGeneratedAt      DateTime? @map("ai_generated_at")
-  aiConfidenceScore  Int?      @map("ai_confidence_score") // 0-100
 
   // Campaign linkage (for disclosure/attestation responses)
   campaignId           String? @map("campaign_id")
@@ -967,18 +957,39 @@ model RiskIntelligenceUnit {
   customFields  Json? @map("custom_fields")
   formResponses Json? @map("form_responses") // Structured form data
 
-  // Migration Support
+  // Migration Support (immutable - captured at import time)
   sourceSystem   String?   @map("source_system") // 'NAVEX', 'EQS', 'MANUAL'
   sourceRecordId String?   @map("source_record_id")
   migratedAt     DateTime? @map("migrated_at")
 
-  // Demo Reset Support
-  demoUserSessionId String? @map("demo_user_session_id")
-  isBaseData        Boolean @default(false) @map("is_base_data") // true = immutable base data
-
   // Audit (NO updatedAt - emphasizes immutability)
   createdAt   DateTime @default(now()) @map("created_at")
   createdById String   @map("created_by_id")
+
+  // === MUTABLE FIELDS (can change after creation) ===
+
+  // Status Workflow
+  status            RiuStatus  @default(PENDING_QA)
+  statusChangedAt   DateTime?  @map("status_changed_at")
+  statusChangedById String?    @map("status_changed_by_id")
+
+  // Language Handling (per CONTEXT.md decision)
+  languageDetected  String? @map("language_detected")  // Auto-detected from content
+  languageConfirmed String? @map("language_confirmed") // Manual override by user
+  languageEffective String? @map("language_effective") // confirmed ?? detected ?? 'en'
+
+  // === AI ENRICHMENT (can be regenerated) ===
+  aiSummary          String?   @map("ai_summary")
+  aiRiskScore        Decimal?  @map("ai_risk_score") @db.Decimal(3, 2) // 0.00 to 1.00
+  aiTranslation      String?   @map("ai_translation")
+  aiLanguageDetected String?   @map("ai_language_detected")
+  aiModelVersion     String?   @map("ai_model_version")
+  aiGeneratedAt      DateTime? @map("ai_generated_at")
+  aiConfidenceScore  Int?      @map("ai_confidence_score") // 0-100
+
+  // === DEMO SUPPORT ===
+  demoUserSessionId String?  @map("demo_user_session_id")
+  isBaseData        Boolean  @default(false) @map("is_base_data") // true = immutable base data
 
   // Relations
   organization    Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
@@ -1038,11 +1049,19 @@ enum RiuReporterType {
 }
 
 enum RiuStatus {
-  PENDING_QA // Awaiting QA review (hotline reports)
-  IN_QA // Currently being reviewed by QA
-  RELEASED // QA approved, Case created (or will be)
-  RECEIVED // Web form - no QA needed
-  COMPLETED // Campaign response completed
+  // QA workflow states
+  PENDING_QA  // Awaiting QA review (hotline reports)
+  IN_QA       // Currently being reviewed by QA
+  QA_REJECTED // QA found issues, needs rework
+
+  // Post-QA states
+  RELEASED    // QA approved, ready for Case creation
+  LINKED      // Associated with one or more Cases
+  CLOSED      // RIU closed without creating Case (valid per HubSpot pattern)
+
+  // Campaign/web form responses (no QA needed)
+  RECEIVED    // Web form - no QA needed
+  COMPLETED   // Campaign response completed
 
   @@map("riu_status")
 }
