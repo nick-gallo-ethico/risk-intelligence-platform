@@ -79,6 +79,16 @@ model Organization {
   investigationInterviews InvestigationInterview[]
   interviewTemplates      InterviewTemplate[]
 
+  // Remediation relations
+  remediationPlans     RemediationPlan[]
+  remediationTemplates RemediationTemplate[]
+
+  // Saved views
+  savedViews SavedView[]
+
+  // Investigation template relations
+  investigationTemplates InvestigationTemplate[]
+
   @@index([slug])
   @@index([isActive])
   @@map("organizations")
@@ -504,6 +514,9 @@ model Case {
   /// @db.Unsupported("tsvector")
   searchVector Unsupported("tsvector")? @map("search_vector")
 
+  // Remediation plans
+  remediationPlans RemediationPlan[]
+
   // Indexes for performance
   @@index([organizationId])
   @@index([organizationId, status])
@@ -916,8 +929,8 @@ model InvestigationInterview {
   scheduledAt DateTime?       @map("scheduled_at")
   startedAt   DateTime?       @map("started_at")
   completedAt DateTime?       @map("completed_at")
-  duration    Int?            // Duration in minutes
-  location    String?         // Physical location or "Video Call"
+  duration    Int? // Duration in minutes
+  location    String? // Physical location or "Video Call"
 
   // Interviewer(s)
   conductedById           String   @map("conducted_by_id")
@@ -931,7 +944,7 @@ model InvestigationInterview {
 
   // Template Questions (JSON)
   templateId String? @map("template_id") // Reference to interview template
-  questions  Json?   // Array of { questionId, question, response, isRequired }
+  questions  Json? // Array of { questionId, question, response, isRequired }
 
   // Checklist linking (can link to specific checklist item as evidence)
   checklistItemId String? @map("checklist_item_id")
@@ -3111,16 +3124,16 @@ enum AiConversationStatus {
 /// AiConversation tracks a conversation session with the AI.
 /// Conversations are scoped to organization, user, and optionally an entity.
 model AiConversation {
-  id             String               @id @default(uuid())
-  organizationId String               @map("organization_id")
-  userId         String               @map("user_id")
+  id             String @id @default(uuid())
+  organizationId String @map("organization_id")
+  userId         String @map("user_id")
 
   // Entity context (optional - can have org-wide conversations)
   entityType String? @map("entity_type") // 'case', 'investigation', 'campaign'
   entityId   String? @map("entity_id")
 
   // Conversation metadata
-  title  String?              // AI-generated or user-provided
+  title  String? // AI-generated or user-provided
   status AiConversationStatus @default(ACTIVE)
 
   // Agent type used for this conversation
@@ -3216,26 +3229,26 @@ model AiContextFile {
 /// AiUsage tracks token consumption per organization for billing and analytics.
 /// Each record represents a single AI API call with its token counts.
 model AiUsage {
-  id              String   @id @default(uuid())
-  organizationId  String   @map("organization_id")
-  userId          String?  @map("user_id") // User who triggered the AI call
+  id             String  @id @default(uuid())
+  organizationId String  @map("organization_id")
+  userId         String? @map("user_id") // User who triggered the AI call
 
   // Token counts
-  inputTokens     Int      @map("input_tokens")
-  outputTokens    Int      @map("output_tokens")
-  cacheReadTokens Int      @default(0) @map("cache_read_tokens")
-  cacheWriteTokens Int     @default(0) @map("cache_write_tokens")
+  inputTokens      Int @map("input_tokens")
+  outputTokens     Int @map("output_tokens")
+  cacheReadTokens  Int @default(0) @map("cache_read_tokens")
+  cacheWriteTokens Int @default(0) @map("cache_write_tokens")
 
   // Request metadata
-  model           String   // Model used (e.g., 'claude-sonnet-4-5')
-  provider        String   @default("claude") // Provider name
-  featureType     String?  @map("feature_type") // e.g., 'summary', 'note-cleanup', 'chat'
-  entityType      String?  @map("entity_type") // Entity context (case, investigation)
-  entityId        String?  @map("entity_id")
+  model       String // Model used (e.g., 'claude-sonnet-4-5')
+  provider    String  @default("claude") // Provider name
+  featureType String? @map("feature_type") // e.g., 'summary', 'note-cleanup', 'chat'
+  entityType  String? @map("entity_type") // Entity context (case, investigation)
+  entityId    String? @map("entity_id")
 
   // Timing
-  durationMs      Int?     @map("duration_ms") // Request duration in milliseconds
-  timestamp       DateTime @default(now())
+  durationMs Int?     @map("duration_ms") // Request duration in milliseconds
+  timestamp  DateTime @default(now())
 
   @@index([organizationId, timestamp])
   @@index([organizationId, featureType])
@@ -3248,12 +3261,12 @@ model AiUsage {
 model PromptTemplate {
   id             String   @id @default(uuid())
   organizationId String?  @map("organization_id") // null = platform default
-  name           String   // e.g., 'system/investigation-agent', 'skills/summarize'
+  name           String // e.g., 'system/investigation-agent', 'skills/summarize'
   version        Int      @default(1)
   content        String   @db.Text // Handlebars template content
   description    String?
   isActive       Boolean  @default(true) @map("is_active")
-  variables      Json?    // Schema for expected variables
+  variables      Json? // Schema for expected variables
   createdAt      DateTime @default(now()) @map("created_at")
   updatedAt      DateTime @updatedAt @map("updated_at")
 
@@ -3266,16 +3279,16 @@ model PromptTemplate {
 /// AiRateLimit stores per-organization rate limit configuration.
 /// Allows customizing limits per customer tier.
 model AiRateLimit {
-  id               String @id @default(uuid())
-  organizationId   String @unique @map("organization_id")
+  id             String @id @default(uuid())
+  organizationId String @unique @map("organization_id")
 
-  requestsPerMinute Int    @default(60) @map("requests_per_minute")
-  tokensPerMinute   Int    @default(100000) @map("tokens_per_minute")
-  requestsPerDay    Int    @default(10000) @map("requests_per_day")
-  tokensPerDay      Int    @default(5000000) @map("tokens_per_day")
+  requestsPerMinute Int @default(60) @map("requests_per_minute")
+  tokensPerMinute   Int @default(100000) @map("tokens_per_minute")
+  requestsPerDay    Int @default(10000) @map("requests_per_day")
+  tokensPerDay      Int @default(5000000) @map("tokens_per_day")
 
-  createdAt        DateTime @default(now()) @map("created_at")
-  updatedAt        DateTime @updatedAt @map("updated_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("ai_rate_limits")
 }
@@ -3298,35 +3311,35 @@ enum AiActionStatus {
 /// AiAction records AI-initiated mutations for audit and undo capability.
 /// Actions have configurable undo windows based on their severity.
 model AiAction {
-  id              String         @id @default(uuid())
-  organizationId  String         @map("organization_id")
-  conversationId  String?        @map("conversation_id") // Links to AI conversation
-  userId          String         @map("user_id") // User who triggered the action
+  id             String  @id @default(uuid())
+  organizationId String  @map("organization_id")
+  conversationId String? @map("conversation_id") // Links to AI conversation
+  userId         String  @map("user_id") // User who triggered the action
 
   // Action details
-  actionType      String         @map("action_type") // e.g., 'add-note', 'change-status'
-  entityType      String         @map("entity_type") // Target entity type
-  entityId        String         @map("entity_id") // Target entity ID
+  actionType String @map("action_type") // e.g., 'add-note', 'change-status'
+  entityType String @map("entity_type") // Target entity type
+  entityId   String @map("entity_id") // Target entity ID
 
   // Input and result
-  input           Json           // Action input parameters
-  result          Json?          // Action result (for undo)
-  previousState   Json?          @map("previous_state") // State before action (for undo)
+  input         Json // Action input parameters
+  result        Json? // Action result (for undo)
+  previousState Json? @map("previous_state") // State before action (for undo)
 
   // Status tracking
-  status          AiActionStatus @default(PENDING)
-  error           String?        // Error message if failed
+  status AiActionStatus @default(PENDING)
+  error  String? // Error message if failed
 
   // Undo configuration
-  undoWindowSeconds Int?         @map("undo_window_seconds") // 0 = non-undoable
-  undoExpiresAt   DateTime?      @map("undo_expires_at")
+  undoWindowSeconds Int?      @map("undo_window_seconds") // 0 = non-undoable
+  undoExpiresAt     DateTime? @map("undo_expires_at")
 
   // Timestamps
-  createdAt       DateTime       @default(now()) @map("created_at")
-  executedAt      DateTime?      @map("executed_at")
-  completedAt     DateTime?      @map("completed_at")
-  undoneAt        DateTime?      @map("undone_at")
-  undoneByUserId  String?        @map("undone_by_user_id")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  executedAt     DateTime? @map("executed_at")
+  completedAt    DateTime? @map("completed_at")
+  undoneAt       DateTime? @map("undone_at")
+  undoneByUserId String?   @map("undone_by_user_id")
 
   @@index([organizationId, entityType, entityId])
   @@index([organizationId, userId])
@@ -3368,8 +3381,8 @@ enum PropertyDataType {
 /// CustomPropertyDefinition defines tenant-configurable fields for Cases, Investigations, and Persons.
 /// Properties allow organizations to capture industry-specific or compliance-specific data.
 model CustomPropertyDefinition {
-  id             String   @id @default(uuid())
-  organizationId String   @map("organization_id")
+  id             String @id @default(uuid())
+  organizationId String @map("organization_id")
 
   // Target entity
   entityType CustomPropertyEntityType @map("entity_type")
@@ -3380,9 +3393,9 @@ model CustomPropertyDefinition {
   description String?
 
   // Type and validation
-  dataType   PropertyDataType @map("data_type")
-  isRequired Boolean          @default(false) @map("is_required")
-  defaultValue Json?          @map("default_value")
+  dataType     PropertyDataType @map("data_type")
+  isRequired   Boolean          @default(false) @map("is_required")
+  defaultValue Json?            @map("default_value")
 
   // Options for SELECT/MULTI_SELECT
   options Json? // Array of { value: string, label: string, color?: string }
@@ -3394,10 +3407,10 @@ model CustomPropertyDefinition {
   // For DATE: { minDate?, maxDate?, allowFuture?, allowPast? }
 
   // Display configuration
-  displayOrder Int      @default(0) @map("display_order")
-  groupName    String?  @map("group_name") // For grouping related properties
-  isVisible    Boolean  @default(true) @map("is_visible")
-  helpText     String?  @map("help_text")
+  displayOrder Int     @default(0) @map("display_order")
+  groupName    String? @map("group_name") // For grouping related properties
+  isVisible    Boolean @default(true) @map("is_visible")
+  helpText     String? @map("help_text")
 
   // UI hints
   placeholder String?
@@ -3417,4 +3430,290 @@ model CustomPropertyDefinition {
   @@index([organizationId, entityType])
   @@index([organizationId, entityType, isActive])
   @@map("custom_property_definitions")
+}
+
+// ===========================================
+// Remediation Management
+// ===========================================
+
+/// RemediationStatus tracks the lifecycle of a remediation plan.
+enum RemediationStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  COMPLETED
+  CANCELLED
+
+  @@map("remediation_status")
+}
+
+/// StepStatus tracks individual remediation step progress.
+enum StepStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  SKIPPED
+  BLOCKED
+
+  @@map("step_status")
+}
+
+/// RemediationPlan tracks post-investigation remediation activities.
+/// Plans continue independently after case closure for complete audit trail.
+/// Each plan is linked to a case and optionally to a specific finding.
+model RemediationPlan {
+  id             String @id @default(uuid())
+  organizationId String @map("organization_id")
+  caseId         String @map("case_id")
+
+  // Link to specific finding (not just case)
+  findingId          String? @map("finding_id")
+  findingDescription String? @map("finding_description")
+
+  // Plan details
+  title       String
+  description String?
+
+  // Template (optional)
+  templateId      String? @map("template_id")
+  templateVersion Int?    @map("template_version")
+
+  // Status
+  status        RemediationStatus @default(DRAFT)
+  dueDate       DateTime?         @map("due_date")
+  completedAt   DateTime?         @map("completed_at")
+  completedById String?           @map("completed_by_id")
+
+  // Summary (denormalized for queries)
+  totalSteps     Int @default(0) @map("total_steps")
+  completedSteps Int @default(0) @map("completed_steps")
+  overdueSteps   Int @default(0) @map("overdue_steps")
+
+  // Owner
+  ownerId String @map("owner_id")
+
+  // Timestamps
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  createdById String   @map("created_by_id")
+
+  // Relations
+  organization Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  case         Case              @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  steps        RemediationStep[]
+
+  @@index([organizationId])
+  @@index([organizationId, caseId])
+  @@index([organizationId, status])
+  @@index([organizationId, ownerId])
+  @@index([organizationId, dueDate])
+  @@map("remediation_plans")
+}
+
+/// RemediationStep represents individual tasks within a remediation plan.
+/// Steps can be assigned to internal users OR external contacts via email.
+/// Dependencies form a DAG (directed acyclic graph) for ordering.
+model RemediationStep {
+  id             String @id @default(uuid())
+  planId         String @map("plan_id")
+  organizationId String @map("organization_id")
+
+  // Step details
+  order       Int
+  title       String
+  description String?
+  dueDate     DateTime? @map("due_date")
+
+  // Assignment (user OR external contact)
+  assigneeUserId String? @map("assignee_user_id")
+  assigneeEmail  String? @map("assignee_email") // For non-users
+  assigneeName   String? @map("assignee_name")
+
+  // Completion
+  status             StepStatus @default(PENDING)
+  requiresCoApproval Boolean    @default(false) @map("requires_co_approval")
+  completedAt        DateTime?  @map("completed_at")
+  completedById      String?    @map("completed_by_id")
+  completionNotes    String?    @map("completion_notes") @db.Text
+  completionEvidence Json?      @map("completion_evidence") // Attachment IDs, links
+
+  // Approval (if requiresCoApproval)
+  approvedById  String?   @map("approved_by_id")
+  approvedAt    DateTime? @map("approved_at")
+  approvalNotes String?   @map("approval_notes")
+
+  // Dependencies (other step IDs that must complete first)
+  dependsOnStepIds String[] @default([]) @map("depends_on_step_ids")
+
+  // Notifications
+  reminderSentAt DateTime? @map("reminder_sent_at")
+  escalatedAt    DateTime? @map("escalated_at")
+
+  // Timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  plan RemediationPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  @@index([planId])
+  @@index([organizationId])
+  @@index([organizationId, assigneeUserId])
+  @@index([organizationId, status, dueDate])
+  @@map("remediation_steps")
+}
+
+/// RemediationTemplate provides reusable remediation plans.
+/// Templates store step configurations that are applied when creating new plans.
+model RemediationTemplate {
+  id             String @id @default(uuid())
+  organizationId String @map("organization_id")
+
+  name        String
+  description String?
+  categoryId  String? @map("category_id")
+
+  // Steps template (JSON)
+  steps Json // Array of { order, title, description, roleSlug, requiresCoApproval, dueDaysOffset }
+
+  isActive Boolean @default(true) @map("is_active")
+  isSystem Boolean @default(false) @map("is_system")
+
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  createdById String   @map("created_by_id")
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, name])
+  @@index([organizationId])
+  @@index([organizationId, categoryId])
+  @@map("remediation_templates")
+}
+
+// ===========================================
+// Saved Views System
+// ===========================================
+
+/// ViewEntityType defines which entity lists can have saved views.
+enum ViewEntityType {
+  CASES
+  RIUS
+  INVESTIGATIONS
+  PERSONS
+  CAMPAIGNS
+  REMEDIATION_PLANS
+
+  @@map("view_entity_type")
+}
+
+/// SavedView persists user-created filtered views for quick access.
+/// Users can save filter combinations, column layouts, and sort preferences.
+/// Views can be personal or shared with the organization.
+model SavedView {
+  id             String @id @default(uuid())
+  organizationId String @map("organization_id")
+
+  // Ownership
+  createdById      String  @map("created_by_id")
+  isShared         Boolean @default(false) @map("is_shared")
+  sharedWithTeamId String? @map("shared_with_team_id")
+
+  // View definition
+  name        String
+  description String?
+  entityType  ViewEntityType @map("entity_type")
+
+  // Filter configuration (JSON)
+  filters   Json // Filter criteria
+  sortBy    String? @map("sort_by")
+  sortOrder String? @map("sort_order") // 'asc' or 'desc'
+  columns   Json? // Column visibility and order
+
+  // User preferences
+  isDefault    Boolean @default(false) @map("is_default")
+  isPinned     Boolean @default(false) @map("is_pinned")
+  displayOrder Int     @default(0) @map("display_order")
+  color        String? // Optional color for visual distinction
+
+  // Usage tracking
+  lastUsedAt DateTime? @map("last_used_at")
+  useCount   Int       @default(0) @map("use_count")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, createdById, entityType, name])
+  @@index([organizationId, createdById])
+  @@index([organizationId, entityType])
+  @@index([organizationId, isShared])
+  @@map("saved_views")
+}
+
+// ===========================================
+// Investigation Template System
+// ===========================================
+
+/// TemplateTier defines the visibility/scope of investigation templates.
+/// OFFICIAL templates are admin-created and org-wide.
+/// TEAM templates are shared with specific teams.
+/// PERSONAL templates are creator-only, typically saved from cases.
+enum TemplateTier {
+  OFFICIAL // Admin-created, org-wide
+  TEAM // Shared with specific team
+  PERSONAL // Creator-only, save-as from cases
+
+  @@map("template_tier")
+}
+
+/// InvestigationTemplate defines reusable investigation checklists.
+/// Templates standardize investigation processes while allowing customization.
+/// Supports versioning (version-on-publish pattern) and export/import for sharing.
+model InvestigationTemplate {
+  id             String @id @default(uuid())
+  organizationId String @map("organization_id")
+
+  // Identity
+  name        String
+  description String?
+  categoryId  String? @map("category_id") // Optional category binding
+
+  // Template tier
+  tier             TemplateTier @default(PERSONAL)
+  createdById      String       @map("created_by_id")
+  sharedWithTeamId String?      @map("shared_with_team_id")
+
+  // Versioning (same pattern as WorkflowTemplate)
+  version    Int     @default(1)
+  isActive   Boolean @default(true) @map("is_active")
+  isArchived Boolean @default(false) @map("is_archived")
+  isDefault  Boolean @default(false) @map("is_default")
+
+  // Schema (JSON)
+  sections           Json // Array of ChecklistSection
+  suggestedDurations Json? @map("suggested_durations")
+  conditionalRules   Json? @map("conditional_rules")
+
+  // Import/Export
+  isSystemTemplate Boolean @default(false) @map("is_system_template")
+  sourceTemplateId String? @map("source_template_id")
+
+  // Analytics tracking
+  usageCount Int @default(0) @map("usage_count")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, name, version])
+  @@index([organizationId, tier])
+  @@index([organizationId, categoryId])
+  @@index([organizationId, isActive, isArchived])
+  @@map("investigation_templates")
 }
