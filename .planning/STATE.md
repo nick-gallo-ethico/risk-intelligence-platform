@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 4 of 11 (Core Entities)
-Plan: 8 of 10 in current phase (Wave 3 in progress)
+Plan: 8 of 10 in current phase (Wave 3 complete)
 Status: In progress
-Last activity: 2026-02-03 - Completed 04-03-PLAN.md (HRIS Sync Service)
+Last activity: 2026-02-03 - Completed 04-08-PLAN.md (Campaign and Segment-Based Targeting)
 
-Progress: [=================================] 33% (33 of ~99 total plans)
+Progress: [==================================] 34% (34 of ~99 total plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 28
+- Total plans completed: 29
 - Average duration: 13 min
-- Total execution time: 5.5 hours
+- Total execution time: 5.8 hours
 
 **By Phase:**
 
@@ -30,11 +30,11 @@ Progress: [=================================] 33% (33 of ~99 total plans)
 | 01-foundation | 9 | 123 min | 14 min |
 | 02-demo-tenant-seed-data | 7 | 84 min | 12 min |
 | 03-authentication-sso | 8 | 69 min | 9 min |
-| 04-core-entities | 6 | 71 min | 12 min |
+| 04-core-entities | 7 | 85 min | 12 min |
 
 **Recent Trend:**
-- Last 5 plans: 04-03 (11 min), 04-06 (9 min), 04-07 (14 min), 04-02 (10 min), 04-04 (18 min)
-- Trend: Phase 4 Core Entities Wave 3 in progress. HRIS sync service added.
+- Last 5 plans: 04-08 (14 min), 04-03 (11 min), 04-06 (9 min), 04-07 (14 min), 04-02 (10 min)
+- Trend: Phase 4 Core Entities Wave 3 complete. Campaign targeting ready.
 
 *Updated after each plan completion*
 
@@ -191,6 +191,11 @@ Recent decisions affecting current work:
 - 04-03: Sync is idempotent - running twice produces same result
 - 04-03: Error resilient sync - collects errors without stopping, emits completion event
 - 04-03: Account token per organization for multi-tenant HRIS connections
+- 04-08: SegmentQueryBuilder converts JSON criteria to Prisma where clauses with nested AND/OR
+- 04-08: Employee snapshots captured at CampaignAssignment time for audit trail integrity
+- 04-08: Campaign statistics denormalized: totalAssignments, completedAssignments, overdueAssignments
+- 04-08: Three audience modes: SEGMENT (query builder), MANUAL (explicit IDs), ALL (all active)
+- 04-08: Campaign lifecycle: DRAFT -> SCHEDULED/ACTIVE -> PAUSED -> COMPLETED/CANCELLED
 
 ### Pending Todos
 
@@ -204,6 +209,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-03T09:48:50Z
-Stopped at: Completed 04-03-PLAN.md (HRIS Sync Service)
+Last session: 2026-02-03T09:51:49Z
+Stopped at: Completed 04-08-PLAN.md (Campaign and Segment-Based Targeting)
 Resume file: None
