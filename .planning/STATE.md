@@ -10,28 +10,28 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 1 of 11 (Foundation Infrastructure)
-Plan: 0 of 9 in current phase
-Status: Ready to execute
-Last activity: 2026-02-02 - Phase 1 planned with 9 plans in 4 waves
+Plan: 1 of 9 in current phase
+Status: In progress
+Last activity: 2026-02-03 - Completed 01-01-PLAN.md (Event Bus Infrastructure)
 
-Progress: [                    ] 0%
+Progress: [=                   ] 1% (1 of ~99 total plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 0
-- Average duration: -
-- Total execution time: 0 hours
+- Total plans completed: 1
+- Average duration: 8 min
+- Total execution time: 0.13 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| - | - | - | - |
+| 01-foundation | 1 | 8 min | 8 min |
 
 **Recent Trend:**
-- Last 5 plans: none yet
-- Trend: N/A
+- Last 5 plans: 01-01 (8 min)
+- Trend: N/A (need more data)
 
 *Updated after each plan completion*
 
@@ -45,6 +45,10 @@ Recent decisions affecting current work:
 - Roadmap: Demo tenant (Phase 2) built early to serve as continuous test bed
 - Roadmap: AI infrastructure (Phase 5) before domain modules so features can leverage it
 - Roadmap: 11 phases derived from 149 requirements with comprehensive depth setting
+- 01-01: EventsModule is @Global() - EventEmitter2 injectable everywhere without explicit imports
+- 01-01: Dot-notation event names (case.created) enable wildcard subscriptions (case.*)
+- 01-01: BaseEvent requires organizationId - enforces tenant isolation at event level
+- 01-01: Event emission wrapped in try-catch - request success independent of event delivery
 
 ### Pending Todos
 
@@ -58,6 +62,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-02
-Stopped at: Phase 1 planned, ready to execute
-Resume file: .planning/phases/01-foundation-infrastructure/01-01-PLAN.md
+Last session: 2026-02-03T01:04:27Z
+Stopped at: Completed 01-01-PLAN.md (Event Bus Infrastructure)
+Resume file: .planning/phases/01-foundation-infrastructure/01-02-PLAN.md
