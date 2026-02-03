@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 4 of 11 (Core Entities)
-Plan: 8 of 10 in current phase (Wave 3 complete)
+Plan: 9 of 10 in current phase (Wave 4 in progress)
 Status: In progress
-Last activity: 2026-02-03 - Completed 04-08-PLAN.md (Campaign and Segment-Based Targeting)
+Last activity: 2026-02-03 - Completed 04-09-PLAN.md (First-Class Association Entities)
 
-Progress: [==================================] 34% (34 of ~99 total plans)
+Progress: [===================================] 35% (35 of ~99 total plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 29
+- Total plans completed: 30
 - Average duration: 13 min
-- Total execution time: 5.8 hours
+- Total execution time: 6.0 hours
 
 **By Phase:**
 
@@ -30,11 +30,11 @@ Progress: [==================================] 34% (34 of ~99 total plans)
 | 01-foundation | 9 | 123 min | 14 min |
 | 02-demo-tenant-seed-data | 7 | 84 min | 12 min |
 | 03-authentication-sso | 8 | 69 min | 9 min |
-| 04-core-entities | 7 | 85 min | 12 min |
+| 04-core-entities | 8 | 98 min | 12 min |
 
 **Recent Trend:**
-- Last 5 plans: 04-08 (14 min), 04-03 (11 min), 04-06 (9 min), 04-07 (14 min), 04-02 (10 min)
-- Trend: Phase 4 Core Entities Wave 3 complete. Campaign targeting ready.
+- Last 5 plans: 04-09 (13 min), 04-08 (14 min), 04-03 (11 min), 04-06 (9 min), 04-07 (14 min)
+- Trend: Phase 4 Core Entities Wave 4 associations complete. One plan remaining.
 
 *Updated after each plan completion*
 
@@ -196,6 +196,11 @@ Recent decisions affecting current work:
 - 04-08: Campaign statistics denormalized: totalAssignments, completedAssignments, overdueAssignments
 - 04-08: Three audience modes: SEGMENT (query builder), MANUAL (explicit IDs), ALL (all active)
 - 04-08: Campaign lifecycle: DRAFT -> SCHEDULED/ACTIVE -> PAUSED -> COMPLETED/CANCELLED
+- 04-09: Evidentiary labels (REPORTER, SUBJECT, WITNESS) use status field per CONTEXT.md
+- 04-09: Role labels (ASSIGNED_INVESTIGATOR, LEGAL_COUNSEL) use validity periods (startedAt, endedAt)
+- 04-09: PersonPersonAssociation normalizes symmetric relationships (personAId < personBId)
+- 04-09: All association tables have RLS policies for tenant isolation
+- 04-09: Evidentiary associations are permanent records - never "end", only status changes
 
 ### Pending Todos
 
@@ -209,6 +214,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-03T09:51:49Z
-Stopped at: Completed 04-08-PLAN.md (Campaign and Segment-Based Targeting)
+Last session: 2026-02-03T10:10:24Z
+Stopped at: Completed 04-09-PLAN.md (First-Class Association Entities)
 Resume file: None
