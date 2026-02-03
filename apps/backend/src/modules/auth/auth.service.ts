@@ -201,6 +201,67 @@ export class AuthService {
   }
 
   /**
+   * Creates session and tokens for SSO-authenticated user.
+   * Used by SSO callback handlers (Azure AD, Google, SAML).
+   *
+   * @param user - User object from SSO strategy (includes organization)
+   * @param userAgent - Request user agent
+   * @param ipAddress - Request IP address
+   * @returns Auth response with tokens and user info
+   */
+  async createSsoSession(
+    user: {
+      id: string;
+      email: string;
+      firstName: string;
+      lastName: string;
+      role: string;
+      organizationId: string;
+    },
+    userAgent?: string,
+    ipAddress?: string,
+  ): Promise<AuthResponseDto> {
+    // Create session
+    const session = await this.createSession(
+      user.id,
+      user.organizationId,
+      userAgent,
+      ipAddress,
+    );
+
+    // Generate tokens
+    const tokens = await this.generateTokens(user, session.id);
+
+    return {
+      ...tokens,
+      user: {
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        role: user.role as any,
+        organizationId: user.organizationId,
+      },
+    };
+  }
+
+  /**
+   * Get organization by slug.
+   * Used for SAML tenant verification to ensure the user
+   * authenticated via the correct organization's IdP.
+   *
+   * @param slug - Organization slug (e.g., "acme")
+   * @returns Organization or null if not found
+   */
+  async getOrganizationBySlug(slug: string) {
+    return this.prisma.withBypassRLS(async () => {
+      return this.prisma.organization.findUnique({
+        where: { slug },
+      });
+    });
+  }
+
+  /**
    * Creates a new session record.
    */
   private async createSession(

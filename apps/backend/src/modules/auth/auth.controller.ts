@@ -3,20 +3,27 @@ import {
   Post,
   Get,
   Patch,
+  Param,
   Body,
   HttpCode,
   HttpStatus,
   Req,
+  Res,
   UseGuards,
+  UnauthorizedException,
 } from "@nestjs/common";
 import {
   ApiTags,
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
+  ApiParam,
+  ApiProduces,
 } from "@nestjs/swagger";
 import { Throttle, SkipThrottle } from "@nestjs/throttler";
-import { Request } from "express";
+import { AuthGuard } from "@nestjs/passport";
+import { ConfigService } from "@nestjs/config";
+import { Request, Response } from "express";
 import { AuthService } from "./auth.service";
 import {
   LoginDto,
@@ -49,6 +56,7 @@ export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly ssoConfigService: SsoConfigService,
+    private readonly configService: ConfigService,
   ) {}
 
   /**
@@ -187,6 +195,167 @@ export class AuthController {
       role: user.role,
       organizationId: user.organizationId,
     };
+  }
+
+  // ===========================================
+  // Azure AD SSO Endpoints
+  // ===========================================
+
+  /**
+   * GET /api/v1/auth/azure-ad
+   * Initiate Azure AD SSO login.
+   * Redirects user to Microsoft login page.
+   * Rate limited: 10 requests per minute (moderate - redirect-based, less abuse risk)
+   */
+  @Get("azure-ad")
+  @UseGuards(AuthGuard("azure-ad"))
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
+  @Public()
+  @ApiOperation({ summary: "Initiate Azure AD SSO login" })
+  @ApiResponse({ status: 302, description: "Redirects to Microsoft login" })
+  azureAdLogin(): void {
+    // Passport handles the redirect to Azure AD
+    // This method body never executes
+  }
+
+  /**
+   * POST /api/v1/auth/azure-ad/callback
+   * Handle Azure AD SSO callback.
+   * Validates the authentication and issues JWT tokens.
+   * Rate limited: 20 requests per minute (moderate - callback from Azure)
+   */
+  @Post("azure-ad/callback")
+  @UseGuards(AuthGuard("azure-ad"))
+  @Throttle({ default: { limit: 20, ttl: 60000 } })
+  @Public()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Azure AD SSO callback" })
+  @ApiResponse({ status: 200, type: AuthResponseDto })
+  async azureAdCallback(
+    @Req() req: Request,
+  ): Promise<AuthResponseDto> {
+    // User is already validated by AzureAdStrategy
+    const user = req.user as any;
+
+    if (!user) {
+      throw new UnauthorizedException("Azure AD authentication failed");
+    }
+
+    const userAgent = req.headers["user-agent"];
+    const ipAddress =
+      req.ip || req.headers["x-forwarded-for"]?.toString() || "unknown";
+
+    // Create session and generate JWT tokens using existing auth service
+    return this.authService.createSsoSession(user, userAgent, ipAddress);
+  }
+
+  // ===========================================
+  // SAML SSO Endpoints
+  // ===========================================
+
+  /**
+   * GET /api/v1/auth/saml/:tenant
+   * Initiate SAML SSO login for a specific tenant.
+   * Redirects user to their organization's IdP.
+   * Rate limited: 10 requests per minute (moderate - redirect-based)
+   *
+   * @param tenant - Organization slug (e.g., "acme")
+   */
+  @Get("saml/:tenant")
+  @UseGuards(AuthGuard("saml"))
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
+  @Public()
+  @ApiOperation({ summary: "Initiate SAML SSO login for tenant" })
+  @ApiParam({ name: "tenant", description: "Organization slug" })
+  @ApiResponse({ status: 302, description: "Redirects to IdP login" })
+  samlLogin(@Param("tenant") tenant: string): void {
+    // Passport handles the redirect to IdP
+    // Tenant is used by SamlStrategy to load correct configuration
+  }
+
+  /**
+   * POST /api/v1/auth/saml/:tenant/callback
+   * Handle SAML SSO callback (Assertion Consumer Service).
+   * Validates the SAML assertion and issues JWT tokens.
+   * Rate limited: 20 requests per minute (moderate - callback from IdP)
+   *
+   * @param tenant - Organization slug
+   */
+  @Post("saml/:tenant/callback")
+  @UseGuards(AuthGuard("saml"))
+  @Throttle({ default: { limit: 20, ttl: 60000 } })
+  @Public()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "SAML SSO callback (ACS)" })
+  @ApiParam({ name: "tenant", description: "Organization slug" })
+  @ApiResponse({ status: 200, type: AuthResponseDto })
+  async samlCallback(
+    @Param("tenant") tenant: string,
+    @Req() req: Request,
+  ): Promise<AuthResponseDto> {
+    // User is already validated by SamlStrategy
+    const user = req.user as any;
+
+    if (!user) {
+      throw new UnauthorizedException("SAML authentication failed");
+    }
+
+    // Verify user belongs to the correct tenant
+    const organization = await this.authService.getOrganizationBySlug(tenant);
+    if (!organization || user.organizationId !== organization.id) {
+      throw new UnauthorizedException(
+        "User does not belong to this organization",
+      );
+    }
+
+    const userAgent = req.headers["user-agent"];
+    const ipAddress =
+      req.ip || req.headers["x-forwarded-for"]?.toString() || "unknown";
+
+    // Create session and generate JWT tokens using existing auth service
+    return this.authService.createSsoSession(user, userAgent, ipAddress);
+  }
+
+  /**
+   * GET /api/v1/auth/saml/:tenant/metadata
+   * Get SAML metadata for a tenant (SP metadata).
+   * IdP administrators use this to configure the Service Provider.
+   */
+  @Get("saml/:tenant/metadata")
+  @Public()
+  @ApiOperation({ summary: "Get SAML SP metadata for tenant" })
+  @ApiParam({ name: "tenant", description: "Organization slug" })
+  @ApiProduces("application/xml")
+  @ApiResponse({
+    status: 200,
+    description: "SAML SP metadata XML",
+    content: { "application/xml": {} },
+  })
+  async getSamlMetadata(
+    @Param("tenant") tenant: string,
+    @Res() res: Response,
+  ): Promise<void> {
+    // Generate SAML SP metadata XML for IdP configuration
+    const apiUrl = this.configService.get<string>(
+      "API_URL",
+      "http://localhost:3000",
+    );
+
+    const metadata = `<?xml version="1.0"?>
+<EntityDescriptor xmlns="urn:oasis:names:tc:SAML:2.0:metadata"
+                  entityID="${apiUrl}/saml/${tenant}">
+  <SPSSODescriptor AuthnRequestsSigned="false"
+                   WantAssertionsSigned="true"
+                   protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol">
+    <NameIDFormat>urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress</NameIDFormat>
+    <AssertionConsumerService Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
+                              Location="${apiUrl}/api/v1/auth/saml/${tenant}/callback"
+                              index="0" isDefault="true"/>
+  </SPSSODescriptor>
+</EntityDescriptor>`;
+
+    res.set("Content-Type", "application/xml");
+    res.send(metadata);
   }
 
   // ===========================================

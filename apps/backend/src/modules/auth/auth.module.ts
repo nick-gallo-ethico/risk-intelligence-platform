@@ -4,7 +4,7 @@ import { PassportModule } from "@nestjs/passport";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { AuthService } from "./auth.service";
 import { AuthController } from "./auth.controller";
-import { JwtStrategy } from "./strategies/jwt.strategy";
+import { JwtStrategy, AzureAdStrategy, SamlStrategy } from "./strategies";
 import { DomainModule } from "./domain";
 import { SsoModule } from "./sso";
 
@@ -25,7 +25,7 @@ import { SsoModule } from "./sso";
     SsoModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy],
+  providers: [AuthService, JwtStrategy, AzureAdStrategy, SamlStrategy],
   exports: [AuthService, JwtModule, DomainModule, SsoModule],
 })
 export class AuthModule {}
