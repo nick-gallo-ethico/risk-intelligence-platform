@@ -126,27 +126,20 @@ Plans:
   3. Case and investigation summaries generate automatically with confidence scores
   4. AI panel (slide-over drawer) is available on Case and Investigation detail pages
   5. Scoped agents (Investigation Agent, Case Agent) have different skills and action permissions
-**Plans**: TBD
+**Plans**: 11 plans in 4 waves
 
 Plans:
-- [ ] 05-01: Claude API integration with @anthropic-ai/sdk
-- [ ] 05-02: AIProvider abstraction for multi-LLM support
-- [ ] 05-03: Rate limiting per tenant with token bucket
-- [ ] 05-04: Prompt versioning and template management
-- [ ] 05-05: AI conversation logging (AI_CONVERSATION table)
-- [ ] 05-06: Context hierarchy loading (platform/org/team/user/entity)
-- [ ] 05-07: Note cleanup service
-- [ ] 05-08: Summary generation service (case, investigation)
-- [ ] 05-09: Category suggestion service (real-time)
-- [ ] 05-10: Risk scoring service
-- [ ] 05-11: Translation service with original preserved
-- [ ] 05-12: Natural language query service
-- [ ] 05-13: AI panel frontend component
-- [ ] 05-14: Scoped agents and skills registry
-- [ ] 05-15: Action catalog with permission validation
-- [ ] 05-16: Preview-then-execute pattern
-- [ ] 05-17: AI-triggered workflow actions (emails, stage changes)
-- [ ] 05-18: Undo trail for reversible actions
+- [ ] 05-01-PLAN.md (Wave 1) - Claude API integration with @anthropic-ai/sdk
+- [ ] 05-02-PLAN.md (Wave 2) - AIProvider abstraction for multi-LLM support
+- [ ] 05-03-PLAN.md (Wave 2) - Per-tenant rate limiting with Redis sorted sets
+- [ ] 05-04-PLAN.md (Wave 2) - Prompt versioning and template management with Handlebars
+- [ ] 05-05-PLAN.md (Wave 1) - AI conversation logging (AiConversation, AiMessage tables)
+- [ ] 05-06-PLAN.md (Wave 2) - Context hierarchy loading (platform/org/team/user/entity)
+- [ ] 05-07-PLAN.md (Wave 3) - Skills registry with note-cleanup and summarize skills
+- [ ] 05-08-PLAN.md (Wave 3) - Additional skills: category-suggest, risk-score, translate
+- [ ] 05-09-PLAN.md (Wave 3) - Scoped agents (Investigation, Case, ComplianceManager)
+- [ ] 05-10-PLAN.md (Wave 4) - Action catalog with preview-then-execute pattern
+- [ ] 05-11-PLAN.md (Wave 4) - WebSocket gateway and REST controller for AI API
 
 ### Phase 6: Case Management
 **Goal**: Complete the Case lifecycle - investigation workflows with templates, structured interviews, remediation plans, subject tracking, and two-way anonymous communication.
@@ -324,7 +317,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 | 2. Demo Tenant & Seed Data | 7/7 | Complete | 2026-02-03 |
 | 3. Authentication & SSO | 8/8 | Complete | 2026-02-03 |
 | 4. Core Entities | 10/10 | Complete | 2026-02-03 |
-| 5. AI Infrastructure | 0/18 | Not started | - |
+| 5. AI Infrastructure | 0/11 | Planned | - |
 | 6. Case Management | 0/16 | Not started | - |
 | 7. Notifications & Email | 0/7 | Not started | - |
 | 8. Portals | 0/19 | Not started | - |
@@ -336,5 +329,5 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 *Roadmap created: 2026-02-02*
 *Depth: Comprehensive (8-12 phases)*
 *Total phases: 11*
-*Total plans: 132 (estimated)*
+*Total plans: 125 (estimated)*
 *Total v1 requirements: 149*
