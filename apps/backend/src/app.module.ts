@@ -21,6 +21,7 @@ import { FormsModule } from "./modules/forms/forms.module";
 import { ReportingModule } from "./modules/reporting/reporting.module";
 import { DemoModule } from "./modules/demo/demo.module";
 import { PersonsModule } from "./modules/persons/persons.module";
+import { HrisModule } from "./modules/hris/hris.module";
 import { ActivityModule } from "./common/activity.module";
 import { StorageModule } from "./common/storage.module";
 import { TenantMiddleware } from "./common/middleware/tenant.middleware";
@@ -73,6 +74,7 @@ import configuration from "./config/configuration";
     AttachmentsModule,
     DemoModule, // Demo reset system for sales demonstrations
     PersonsModule, // Person entity for people-based pattern detection
+    HrisModule, // HRIS integration via Merge.dev unified API
     HealthModule,
   ],
   controllers: [],
