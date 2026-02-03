@@ -250,6 +250,61 @@ export class AuthController {
   }
 
   // ===========================================
+  // Google OAuth SSO Endpoints
+  // ===========================================
+
+  /**
+   * GET /api/v1/auth/google
+   * Initiate Google OAuth SSO login.
+   * Redirects user to Google login page.
+   * Rate limited: 10 requests per minute (moderate - redirect-based, less abuse risk)
+   */
+  @Get("google")
+  @UseGuards(AuthGuard("google"))
+  @Throttle({ default: { limit: 10, ttl: 60000 } })
+  @Public()
+  @ApiOperation({ summary: "Initiate Google OAuth SSO login" })
+  @ApiResponse({ status: 302, description: "Redirects to Google login" })
+  googleLogin(): void {
+    // Passport handles the redirect to Google
+    // This method body never executes
+  }
+
+  /**
+   * GET /api/v1/auth/google/callback
+   * Handle Google OAuth SSO callback.
+   * Validates the authentication and issues JWT tokens.
+   * Rate limited: 20 requests per minute (moderate - callback from Google)
+   *
+   * Note: Google OAuth uses GET (not POST) for the callback endpoint.
+   * The authorization code is received in query params, which Passport
+   * exchanges for tokens automatically.
+   */
+  @Get("google/callback")
+  @UseGuards(AuthGuard("google"))
+  @Throttle({ default: { limit: 20, ttl: 60000 } })
+  @Public()
+  @ApiOperation({ summary: "Google OAuth SSO callback" })
+  @ApiResponse({ status: 200, type: AuthResponseDto })
+  async googleCallback(
+    @Req() req: Request,
+  ): Promise<AuthResponseDto> {
+    // User is already validated by GoogleStrategy
+    const user = req.user as any;
+
+    if (!user) {
+      throw new UnauthorizedException("Google OAuth authentication failed");
+    }
+
+    const userAgent = req.headers["user-agent"];
+    const ipAddress =
+      req.ip || req.headers["x-forwarded-for"]?.toString() || "unknown";
+
+    // Create session and generate JWT tokens using existing auth service
+    return this.authService.createSsoSession(user, userAgent, ipAddress);
+  }
+
+  // ===========================================
   // SAML SSO Endpoints
   // ===========================================
 
