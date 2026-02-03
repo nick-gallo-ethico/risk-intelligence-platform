@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-02)
 
 **Core value:** Users can manage their entire compliance workflow - from anonymous report intake to investigation closure to board reporting - in one AI-assisted platform, with every task unified into a single "My Work" view.
-**Current focus:** Phase 3 - Authentication & SSO
+**Current focus:** Phase 4 - Core Entities
 
 ## Current Position
 
-Phase: 3 of 11 (Authentication & SSO)
-Plan: 8 of 8 in current phase (03-08 complete - Phase Complete)
-Status: Phase complete
-Last activity: 2026-02-03 - Completed 03-08-PLAN.md (MFA/TOTP with Recovery Codes)
+Phase: 4 of 11 (Core Entities)
+Plan: 1 of TBD in current phase
+Status: In progress
+Last activity: 2026-02-03 - Completed 04-01-PLAN.md (Person Entity)
 
-Progress: [=========================] 27% (27 of ~99 total plans)
+Progress: [===========================] 28% (28 of ~99 total plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 24
+- Total plans completed: 25
 - Average duration: 13 min
-- Total execution time: 4.75 hours
+- Total execution time: 4.9 hours
 
 **By Phase:**
 
@@ -30,10 +30,11 @@ Progress: [=========================] 27% (27 of ~99 total plans)
 | 01-foundation | 9 | 123 min | 14 min |
 | 02-demo-tenant-seed-data | 7 | 84 min | 12 min |
 | 03-authentication-sso | 8 | 69 min | 9 min |
+| 04-core-entities | 1 | 9 min | 9 min |
 
 **Recent Trend:**
-- Last 5 plans: 03-08 (15 min), 03-07 (17 min), 03-06 (est), 03-05 (est), 03-04 (11 min)
-- Trend: Phase 3 Authentication complete. MFA, SSO (Azure AD, Google, SAML), domain verification all done.
+- Last 5 plans: 04-01 (9 min), 03-08 (15 min), 03-07 (17 min), 03-06 (est), 03-05 (est)
+- Trend: Phase 4 Core Entities started. Person entity for pattern detection.
 
 *Updated after each plan completion*
 
@@ -149,6 +150,12 @@ Recent decisions affecting current work:
 - 03-08: 10 recovery codes, 8 hex chars each, SHA-256 hashed for secure storage
 - 03-08: verify(token, {secret}) 2-argument signature for otplib v13 API
 - 03-08: Rate limits: 3/min for verify, 5-10/hour for setup operations
+- 04-01: PersonType enum: EMPLOYEE, EXTERNAL_CONTACT, ANONYMOUS_PLACEHOLDER
+- 04-01: PersonSource enum: HRIS_SYNC, MANUAL, INTAKE_CREATED
+- 04-01: AnonymityTier enum: ANONYMOUS, CONFIDENTIAL, OPEN
+- 04-01: type and source fields immutable after Person creation
+- 04-01: Email unique within organization (PostgreSQL allows multiple NULLs)
+- 04-01: Anonymous placeholder singleton per organization for pattern detection
 
 ### Pending Todos
 
@@ -162,6 +169,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-03T08:36:00Z
-Stopped at: Completed 03-08-PLAN.md (MFA/TOTP with Recovery Codes) - Phase 3 Complete
+Last session: 2026-02-03T09:10:00Z
+Stopped at: Completed 04-01-PLAN.md (Person Entity)
 Resume file: None
