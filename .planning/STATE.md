@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 5 of 11 (AI Infrastructure) - In progress
-Plan: 5 of 11 in current phase
-Status: Executing Wave 1
-Last activity: 2026-02-03 - Completed 05-05-PLAN.md (AI Conversation Persistence)
+Plan: 6 of 11 in current phase
+Status: Executing Wave 2
+Last activity: 2026-02-03 - Completed 05-02-PLAN.md (AI Provider Abstraction)
 
-Progress: [==========================================] 44% (46 of ~106 total plans)
+Progress: [==========================================] 45% (47 of ~106 total plans)
 
 ## Performance Metrics
 
@@ -33,8 +33,8 @@ Progress: [==========================================] 44% (46 of ~106 total pla
 | 04-core-entities | 10 | 112 min | 11 min |
 
 **Recent Trend:**
-- Last 5 plans: 05-05 (12 min), 05-01 (9 min), 04-10 (14 min), 04-09 (13 min), 04-08 (14 min)
-- Trend: Phase 5 AI Infrastructure progressing. Conversation persistence complete.
+- Last 5 plans: 05-02 (8 min), 05-05 (12 min), 05-01 (9 min), 04-10 (14 min), 04-09 (13 min)
+- Trend: Phase 5 AI Infrastructure progressing. Provider abstraction complete.
 
 *Updated after each plan completion*
 
@@ -214,6 +214,9 @@ Recent decisions affecting current work:
 - 05-05: Token counts tracked at both message and conversation level for cost monitoring
 - 05-05: getOrCreate pattern: Return existing active or create new conversation
 - 05-05: Search uses Prisma contains with case-insensitive mode (not ES for conversation data)
+- 05-02: AIProvider interface uses async iterables for streaming (not callbacks)
+- 05-02: Provider registry resolves by name string for runtime configuration
+- 05-02: tryGetProvider() returns null for graceful feature degradation
 
 ### Pending Todos
 
@@ -227,6 +230,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-03T19:20:48Z
-Stopped at: Completed 05-05-PLAN.md (AI Conversation Persistence)
+Last session: 2026-02-03T19:34:13Z
+Stopped at: Completed 05-02-PLAN.md (AI Provider Abstraction)
 Resume file: None
