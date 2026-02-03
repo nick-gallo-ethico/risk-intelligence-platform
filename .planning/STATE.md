@@ -10,30 +10,30 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 3 of 11 (Authentication & SSO)
-Plan: 3 of 8 in current phase (03-03 complete)
+Plan: 4 of 8 in current phase (03-04 complete)
 Status: In progress
-Last activity: 2026-02-03 - Completed 03-03-PLAN.md (Domain Verification Workflow)
+Last activity: 2026-02-03 - Completed 03-04-PLAN.md (Core SSO Service)
 
-Progress: [====================|] 21% (21 of ~99 total plans)
+Progress: [======================] 23% (23 of ~99 total plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 18
+- Total plans completed: 19
 - Average duration: 13 min
-- Total execution time: 3.6 hours
+- Total execution time: 3.8 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01-foundation | 9 | 123 min | 14 min |
-| 02-demo-tenant-seed-data | 6 | 70 min | 12 min |
+| 02-demo-tenant-seed-data | 7 | 84 min | 12 min |
 | 03-authentication-sso | 3 | 26 min | 9 min |
 
 **Recent Trend:**
-- Last 5 plans: 03-03 (10 min), 02-05 (12 min), 03-02 (8 min), 03-01 (8 min), 02-04 (9 min)
-- Trend: Phase 3 auth completing efficiently at ~9 min avg
+- Last 5 plans: 02-07 (14 min), 03-03 (10 min), 02-05 (12 min), 03-02 (8 min), 03-01 (8 min)
+- Trend: Phase 2 complete! Demo tenant fully ready for testing.
 
 *Updated after each plan completion*
 
@@ -124,6 +124,11 @@ Recent decisions affecting current work:
 - 03-03: Rate limiting: 10 domain adds/hour, 20 verify attempts/hour
 - 03-03: SYSTEM_ADMIN role required for domain modification, COMPLIANCE_OFFICER can view
 - 03-03: findOrganizationByEmailDomain() pattern for SSO tenant routing
+- 02-07: Copy-on-write pattern with demoUserSessionId field for session isolation
+- 02-07: isBaseData boolean flag distinguishes immutable seed data from user changes
+- 02-07: 24-hour undo window via DemoArchivedChange table
+- 02-07: Confirmation token required for reset (CONFIRM_RESET)
+- 02-07: FK-safe deletion order: children before parents
 
 ### Pending Todos
 
@@ -137,6 +142,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-03T07:47:45Z
-Stopped at: Completed 03-03-PLAN.md (Domain Verification Workflow)
+Last session: 2026-02-03T07:52:44Z
+Stopped at: Completed 02-07-PLAN.md (Demo User Reset System) - Phase 2 COMPLETE
 Resume file: None
