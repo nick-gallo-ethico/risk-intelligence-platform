@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 6 of 11 (Case Management) - IN PROGRESS
-Plan: 9 of 16 in current phase
+Plan: 10 of 16 in current phase
 Status: In progress
-Last activity: 2026-02-03 - Completed 06-08-PLAN.md (Remediation Notifications)
+Last activity: 2026-02-03 - Completed 06-07-PLAN.md (Checklist Progress)
 
-Progress: [===============================================] 42% (52 of ~125 total plans)
+Progress: [===============================================] 42% (53 of ~125 total plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 52
-- Average duration: 14 min
-- Total execution time: 12.9 hours
+- Total plans completed: 53
+- Average duration: 15 min
+- Total execution time: 13.4 hours
 
 **By Phase:**
 
@@ -34,8 +34,8 @@ Progress: [===============================================] 42% (52 of ~125 tota
 | 05-ai-infrastructure | 11 | 143 min | 13 min |
 
 **Recent Trend:**
-- Last 5 plans: 06-08 (27 min), 06-09 (17 min), 06-01 (44 min), 06-03 (39 min), 06-05 (33 min)
-- Trend: Phase 6 in progress. Remediation notifications complete.
+- Last 5 plans: 06-07 (32 min), 06-08 (27 min), 06-09 (17 min), 06-01 (44 min), 06-03 (39 min)
+- Trend: Phase 6 in progress. Checklist progress tracking complete.
 
 *Updated after each plan completion*
 
@@ -284,6 +284,10 @@ Recent decisions affecting current work:
 - 06-08: Processor in remediation module for domain co-location (not jobs module)
 - 06-08: forwardRef for circular dependency between processor and notification service
 - 06-08: REMEDIATION_PLAN and REMEDIATION_STEP added to AuditEntityType enum
+- 06-07: Template version captured at apply time - in-flight checklists continue on original version
+- 06-07: Progress percentage excludes skipped items: completedItems / (totalItems - skippedCount)
+- 06-07: Required items cannot be skipped - validation enforced at service layer
+- 06-07: Custom items added to sections with generated IDs, appear after template items
 
 ### Pending Todos
 
@@ -300,6 +304,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-02-03T23:54:16Z
-Stopped at: Completed 06-08-PLAN.md (Remediation Notifications)
+Last session: 2026-02-03T23:55:39Z
+Stopped at: Completed 06-07-PLAN.md (Checklist Progress)
 Resume file: None
