@@ -10,28 +10,28 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 1 of 11 (Foundation Infrastructure)
-Plan: 6 of 9 in current phase
+Plan: 7 of 9 in current phase
 Status: In progress
-Last activity: 2026-02-03 - Completed 01-04-PLAN.md (Workflow Engine)
+Last activity: 2026-02-03 - Completed 01-06-PLAN.md (Elasticsearch Search)
 
-Progress: [======              ] 6% (6 of ~99 total plans)
+Progress: [=======             ] 7% (7 of ~99 total plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 6
+- Total plans completed: 7
 - Average duration: 11 min
-- Total execution time: 1.13 hours
+- Total execution time: 1.33 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 01-foundation | 6 | 68 min | 11 min |
+| 01-foundation | 7 | 80 min | 11 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-02 (8 min), 01-03 (4 min), 01-09 (6 min), 01-07 (18 min), 01-04 (24 min)
-- Trend: Slightly up (01-04 was larger scope with workflow engine)
+- Last 5 plans: 01-03 (4 min), 01-09 (6 min), 01-07 (18 min), 01-04 (24 min), 01-06 (12 min)
+- Trend: Variable (larger scope plans take longer, as expected)
 
 *Updated after each plan completion*
 
@@ -70,6 +70,11 @@ Recent decisions affecting current work:
 - 01-04: Event-driven workflow - emits events for audit and notification integration
 - 01-04: Version-on-publish pattern - creates new version if active instances exist
 - 01-04: Stage gates placeholder - full validation deferred to domain modules
+- 01-06: Per-tenant index naming: org_{organizationId}_{entityType}
+- 01-06: Permission filters injected at ES query time (non-negotiable for security)
+- 01-06: 500ms search timeout per CONTEXT.md requirements
+- 01-06: Compliance synonyms in analyzer: harassment->bullying, fraud->deception, etc.
+- 01-06: Role-based search: admin=all, investigator=assigned, employee=own
 
 ### Pending Todos
 
@@ -83,6 +88,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-03T02:25:28Z
-Stopped at: Completed 01-04-PLAN.md (Workflow Engine)
+Last session: 2026-02-03T05:42:00Z
+Stopped at: Completed 01-06-PLAN.md (Elasticsearch Search)
 Resume file: None
