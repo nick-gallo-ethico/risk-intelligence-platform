@@ -10,28 +10,28 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 1 of 11 (Foundation Infrastructure)
-Plan: 5 of 9 in current phase
+Plan: 6 of 9 in current phase
 Status: In progress
-Last activity: 2026-02-03 - Completed 01-07-PLAN.md (Form Engine)
+Last activity: 2026-02-03 - Completed 01-04-PLAN.md (Workflow Engine)
 
-Progress: [=====               ] 5% (5 of ~99 total plans)
+Progress: [======              ] 6% (6 of ~99 total plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 5
-- Average duration: 9 min
-- Total execution time: 0.73 hours
+- Total plans completed: 6
+- Average duration: 11 min
+- Total execution time: 1.13 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 01-foundation | 5 | 44 min | 9 min |
+| 01-foundation | 6 | 68 min | 11 min |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (8 min), 01-02 (8 min), 01-03 (4 min), 01-09 (6 min), 01-07 (18 min)
-- Trend: Slightly up (01-07 was larger scope with 3 comprehensive tasks)
+- Last 5 plans: 01-02 (8 min), 01-03 (4 min), 01-09 (6 min), 01-07 (18 min), 01-04 (24 min)
+- Trend: Slightly up (01-04 was larger scope with workflow engine)
 
 *Updated after each plan completion*
 
@@ -66,6 +66,10 @@ Recent decisions affecting current work:
 - 01-07: Form versioning creates new version on publish if submissions exist
 - 01-07: Anonymous access codes generated with nanoid (12 chars)
 - 01-07: Conditional rules support show/hide/require/unrequire with multiple operators
+- 01-04: Instances locked to template VERSION - in-flight items complete on their version
+- 01-04: Event-driven workflow - emits events for audit and notification integration
+- 01-04: Version-on-publish pattern - creates new version if active instances exist
+- 01-04: Stage gates placeholder - full validation deferred to domain modules
 
 ### Pending Todos
 
@@ -79,6 +83,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-03T02:23:06Z
-Stopped at: Completed 01-07-PLAN.md (Form Engine)
+Last session: 2026-02-03T02:25:28Z
+Stopped at: Completed 01-04-PLAN.md (Workflow Engine)
 Resume file: None
