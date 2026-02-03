@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 3 of 11 (Authentication & SSO)
-Plan: 2 of 8 in current phase (03-02 complete)
+Plan: 3 of 8 in current phase (03-03 complete)
 Status: In progress
-Last activity: 2026-02-03 - Completed 02-05-PLAN.md (Case & Investigation Seeder)
+Last activity: 2026-02-03 - Completed 03-03-PLAN.md (Domain Verification Workflow)
 
-Progress: [===================  ] 20% (20 of ~99 total plans)
+Progress: [====================|] 21% (21 of ~99 total plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 17
+- Total plans completed: 18
 - Average duration: 13 min
-- Total execution time: 3.4 hours
+- Total execution time: 3.6 hours
 
 **By Phase:**
 
@@ -29,11 +29,11 @@ Progress: [===================  ] 20% (20 of ~99 total plans)
 |-------|-------|-------|----------|
 | 01-foundation | 9 | 123 min | 14 min |
 | 02-demo-tenant-seed-data | 6 | 70 min | 12 min |
-| 03-authentication-sso | 2 | 16 min | 8 min |
+| 03-authentication-sso | 3 | 26 min | 9 min |
 
 **Recent Trend:**
-- Last 5 plans: 02-05 (12 min), 03-02 (8 min), 03-01 (8 min), 02-04 (9 min), 02-03 (18 min)
-- Trend: Phase 2 seed data completing steadily at ~12 min avg
+- Last 5 plans: 03-03 (10 min), 02-05 (12 min), 03-02 (8 min), 03-01 (8 min), 02-04 (9 min)
+- Trend: Phase 3 auth completing efficiently at ~9 min avg
 
 *Updated after each plan completion*
 
@@ -119,6 +119,11 @@ Recent decisions affecting current work:
 - 03-02: Auth endpoint tiered limits: login 5/min (strict), refresh 30/min (moderate), logout 10/min
 - 03-02: Per-target throttling: login tracks by email, MFA tracks by user ID to prevent distributed attacks
 - 03-02: Proxy IP extraction: X-Forwarded-For > X-Real-IP > direct IP for accurate rate limiting behind load balancers
+- 03-03: DNS TXT record prefix _ethico-verify for domain verification
+- 03-03: 32-byte (64 hex) cryptographically secure verification tokens
+- 03-03: Rate limiting: 10 domain adds/hour, 20 verify attempts/hour
+- 03-03: SYSTEM_ADMIN role required for domain modification, COMPLIANCE_OFFICER can view
+- 03-03: findOrganizationByEmailDomain() pattern for SSO tenant routing
 
 ### Pending Todos
 
@@ -132,6 +137,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-03T07:45:00Z
-Stopped at: Completed 02-05-PLAN.md (Case & Investigation Seeder)
+Last session: 2026-02-03T07:47:45Z
+Stopped at: Completed 03-03-PLAN.md (Domain Verification Workflow)
 Resume file: None
