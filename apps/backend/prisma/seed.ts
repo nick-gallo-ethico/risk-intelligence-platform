@@ -1,5 +1,6 @@
 import { PrismaClient, UserRole } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
+import { seedCategories } from './seeders/category.seeder';
 
 const prisma = new PrismaClient();
 
@@ -29,6 +30,11 @@ async function main() {
   });
 
   console.log(`Created organization: ${organization.name} (${organization.id})`);
+
+  // Seed categories (required for RIUs and Cases)
+  console.log('\nSeeding categories...');
+  const categoryMap = await seedCategories(prisma, organization.id);
+  console.log(`Created ${categoryMap.size} categories`);
 
   // Hash passwords
   const passwordHash = await bcrypt.hash('Password123!', BCRYPT_ROUNDS);
