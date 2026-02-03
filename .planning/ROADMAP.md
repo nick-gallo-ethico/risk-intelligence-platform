@@ -13,8 +13,8 @@ This roadmap delivers a unified, AI-native compliance management platform ("HubS
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Foundation Infrastructure** - Event bus, job queues, audit logging, search infrastructure
-- [ ] **Phase 2: Demo Tenant & Seed Data** - "Acme Co." demo with 3 years of realistic data as test bed
-- [ ] **Phase 3: Authentication & SSO** - Multi-provider SSO, domain verification, MFA
+- [x] **Phase 2: Demo Tenant & Seed Data** - "Acme Co." demo with 3 years of realistic data as test bed
+- [x] **Phase 3: Authentication & SSO** - Multi-provider SSO, domain verification, MFA
 - [ ] **Phase 4: Core Entities** - Person, RIU, Case, Campaign, Associations (HubSpot pattern)
 - [ ] **Phase 5: AI Infrastructure** - Claude API integration, context hierarchy, skills registry, agents
 - [ ] **Phase 6: Case Management** - Investigation workflows, templates, subjects, anonymous communication
@@ -59,7 +59,7 @@ Plans:
   3. Cases exist in all investigation stages with realistic progression timestamps
   4. Multiple user accounts with different roles can log in and see appropriate data
   5. Demo can be reset to fresh state with single command (for repeated sales demos)
-**Plans**: TBD
+**Plans**: 7 plans
 
 Plans:
 - [x] 02-01: Demo tenant provisioning service and "Acme Co." organization
@@ -83,14 +83,14 @@ Plans:
 **Plans**: 8 plans in 4 waves
 
 Plans:
-- [ ] 03-01-PLAN.md (Wave 1) - Database schema: TenantDomain, TenantSsoConfig, User SSO/MFA fields
-- [ ] 03-02-PLAN.md (Wave 1) - Rate limiting infrastructure with @nestjs/throttler
-- [ ] 03-03-PLAN.md (Wave 2) - Domain verification service with DNS TXT validation
-- [ ] 03-04-PLAN.md (Wave 2) - SSO service core with JIT user provisioning
-- [ ] 03-05-PLAN.md (Wave 3) - Azure AD SSO strategy with passport-azure-ad
-- [ ] 03-06-PLAN.md (Wave 3) - Google OAuth SSO strategy with passport-google-oauth20
-- [ ] 03-07-PLAN.md (Wave 3) - SAML 2.0 multi-tenant strategy with @node-saml/passport-saml
-- [ ] 03-08-PLAN.md (Wave 4) - MFA/TOTP implementation with recovery codes
+- [x] 03-01-PLAN.md (Wave 1) - Database schema: TenantDomain, TenantSsoConfig, User SSO/MFA fields
+- [x] 03-02-PLAN.md (Wave 1) - Rate limiting infrastructure with @nestjs/throttler
+- [x] 03-03-PLAN.md (Wave 2) - Domain verification service with DNS TXT validation
+- [x] 03-04-PLAN.md (Wave 2) - SSO service core with JIT user provisioning
+- [x] 03-05-PLAN.md (Wave 3) - Azure AD SSO strategy with passport-azure-ad
+- [x] 03-06-PLAN.md (Wave 3) - Google OAuth SSO strategy with passport-google-oauth20
+- [x] 03-07-PLAN.md (Wave 3) - SAML 2.0 multi-tenant strategy with @node-saml/passport-saml
+- [x] 03-08-PLAN.md (Wave 4) - MFA/TOTP implementation with recovery codes
 
 ### Phase 4: Core Entities
 **Goal**: Implement the HubSpot-inspired data model - Person (Contact), RIU (Ticket), Case (Deal), Campaign (Sequence), and labeled Associations that enable pattern detection and unified workflows.
@@ -102,19 +102,19 @@ Plans:
   3. Cases can have multiple RIUs linked with association types (primary, related, merged_from)
   4. Campaigns can target audiences by business unit, location, role and generate assignments for each employee
   5. Pattern detection queries can find all Cases involving the same Person across different roles (reporter, subject, witness)
-**Plans**: TBD
+**Plans**: 10 plans in 4 waves
 
 Plans:
-- [ ] 04-01: Person entity with types and sources
-- [ ] 04-02: Employee fields and manager hierarchy
-- [ ] 04-03: HRIS sync service with Merge.dev integration
-- [ ] 04-04: RIU entity with immutability enforcement
-- [ ] 04-05: RIU type-specific extension tables
-- [ ] 04-06: RIU access code generation and status checking
-- [ ] 04-07: Case entity enhancements (pipeline, merge support)
-- [ ] 04-08: Campaign and CampaignAssignment entities
-- [ ] 04-09: Association entities with role labels
-- [ ] 04-10: Pattern detection queries and APIs
+- [ ] 04-01-PLAN.md (Wave 1) - Person entity with types and sources
+- [ ] 04-02-PLAN.md (Wave 2) - Employee fields and manager hierarchy
+- [ ] 04-03-PLAN.md (Wave 3) - HRIS sync service with Merge.dev integration
+- [ ] 04-04-PLAN.md (Wave 1) - RIU immutability enforcement and expanded status
+- [ ] 04-05-PLAN.md (Wave 2) - RIU type-specific extension tables
+- [ ] 04-06-PLAN.md (Wave 3) - RIU access code generation and status checking
+- [ ] 04-07-PLAN.md (Wave 2) - Case pipeline stages and merge support
+- [ ] 04-08-PLAN.md (Wave 3) - Campaign and CampaignAssignment entities with segment targeting
+- [ ] 04-09-PLAN.md (Wave 4) - Association entities with role labels (Person-Case, Person-RIU, Case-Case, Person-Person)
+- [ ] 04-10-PLAN.md (Wave 4) - Pattern detection queries and Elasticsearch denormalization
 
 ### Phase 5: AI Infrastructure
 **Goal**: Build the AI integration layer that all features consume - Claude API client, context hierarchy loading, skills registry, action catalog, and scoped agents per view.
@@ -320,10 +320,10 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation Infrastructure | 9/9 | Complete ✓ | 2026-02-02 |
-| 2. Demo Tenant & Seed Data | 7/7 | Complete ✓ | 2026-02-03 |
-| 3. Authentication & SSO | 0/8 | Not started | - |
-| 4. Core Entities | 0/10 | Not started | - |
+| 1. Foundation Infrastructure | 9/9 | Complete | 2026-02-02 |
+| 2. Demo Tenant & Seed Data | 7/7 | Complete | 2026-02-03 |
+| 3. Authentication & SSO | 8/8 | Complete | 2026-02-03 |
+| 4. Core Entities | 0/10 | Planned | - |
 | 5. AI Infrastructure | 0/18 | Not started | - |
 | 6. Case Management | 0/16 | Not started | - |
 | 7. Notifications & Email | 0/7 | Not started | - |
