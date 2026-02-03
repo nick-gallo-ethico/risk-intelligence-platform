@@ -1062,6 +1062,11 @@ model RiskIntelligenceUnit {
   // Interactions (follow-up contacts)
   interactions Interaction[]
 
+  // Type-specific extensions (1:1 relations)
+  hotlineExtension    RiuHotlineExtension?
+  disclosureExtension RiuDisclosureExtension?
+  webFormExtension    RiuWebFormExtension?
+
   // Indexes
   @@index([organizationId])
   @@index([organizationId, type])
@@ -1123,6 +1128,157 @@ enum RiuStatus {
   COMPLETED // Campaign response completed
 
   @@map("riu_status")
+}
+
+// ===========================================
+// RIU Extension Enums
+// ===========================================
+
+/// QA status for hotline RIU quality assurance workflow
+enum RiuQaStatus {
+  PENDING
+  IN_REVIEW
+  APPROVED
+  REJECTED
+  NEEDS_REVISION
+
+  @@map("riu_qa_status")
+}
+
+/// Types of disclosures that can be submitted
+enum DisclosureType {
+  COI // Conflict of Interest
+  GIFT // Gifts & Entertainment
+  OUTSIDE_EMPLOYMENT // Outside business activities
+  POLITICAL // Political contributions
+  CHARITABLE // Charitable donations
+  TRAVEL // Travel & hospitality
+
+  @@map("disclosure_type")
+}
+
+// ===========================================
+// RIU Extension Tables
+// ===========================================
+
+/// Hotline-specific fields for RIU type = HOTLINE_REPORT
+/// Extension table pattern: base RIU + type-specific data for database-level constraints
+model RiuHotlineExtension {
+  id             String @id @default(uuid())
+  riuId          String @unique @map("riu_id")
+  organizationId String @map("organization_id")
+
+  // Call metadata
+  callDuration        Int?    @map("call_duration") // seconds
+  interpreterUsed     Boolean @default(false) @map("interpreter_used")
+  interpreterLanguage String? @map("interpreter_language")
+  callerDemeanor      String? @map("caller_demeanor") // calm, distressed, angry, fearful
+  transferredFrom     String? @map("transferred_from") // phone number if transferred
+  recordingUrl        String? @map("recording_url")
+  callbackRequested   Boolean @default(false) @map("callback_requested")
+  callbackNumber      String? @map("callback_number")
+
+  // Operator notes
+  operatorNotes String? @map("operator_notes")
+
+  // QA workflow
+  qaStatus          RiuQaStatus @default(PENDING) @map("qa_status")
+  qaReviewerId      String?     @map("qa_reviewer_id")
+  qaReviewedAt      DateTime?   @map("qa_reviewed_at")
+  qaNotes           String?     @map("qa_notes")
+  qaRejectionReason String?     @map("qa_rejection_reason")
+
+  // Timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  riu RiskIntelligenceUnit @relation(fields: [riuId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([qaStatus])
+  @@map("riu_hotline_extensions")
+}
+
+/// Disclosure-specific fields for RIU type = DISCLOSURE_RESPONSE
+/// Tracks value thresholds and conflict detection for compliance review
+model RiuDisclosureExtension {
+  id             String @id @default(uuid())
+  riuId          String @unique @map("riu_id")
+  organizationId String @map("organization_id")
+
+  // Disclosure classification
+  disclosureType    DisclosureType @map("disclosure_type")
+  disclosureSubtype String?        @map("disclosure_subtype") // e.g., "vendor relationship"
+
+  // Value tracking
+  disclosureValue      Decimal? @map("disclosure_value") @db.Decimal(12, 2)
+  disclosureCurrency   String?  @map("disclosure_currency") // ISO 4217
+  estimatedAnnualValue Decimal? @map("estimated_annual_value") @db.Decimal(12, 2)
+
+  // Threshold and conflict detection
+  thresholdTriggered Boolean  @default(false) @map("threshold_triggered")
+  thresholdAmount    Decimal? @map("threshold_amount") @db.Decimal(12, 2)
+  conflictDetected   Boolean  @default(false) @map("conflict_detected")
+  conflictReason     String?  @map("conflict_reason")
+
+  // Related party (who the disclosure involves)
+  relatedPersonId   String? @map("related_person_id")
+  relatedPersonName String? @map("related_person_name")
+  relatedCompany    String? @map("related_company")
+  relationshipType  String? @map("relationship_type") // spouse, family, business_partner
+
+  // Dates
+  effectiveDate  DateTime? @map("effective_date")
+  expirationDate DateTime? @map("expiration_date")
+
+  // Timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  riu RiskIntelligenceUnit @relation(fields: [riuId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([disclosureType])
+  @@index([thresholdTriggered])
+  @@index([conflictDetected])
+  @@map("riu_disclosure_extensions")
+}
+
+/// Web form-specific fields for RIU type = WEB_FORM_SUBMISSION
+/// Tracks form version, submission metadata, and validation state
+model RiuWebFormExtension {
+  id             String @id @default(uuid())
+  riuId          String @unique @map("riu_id")
+  organizationId String @map("organization_id")
+
+  // Form metadata
+  formDefinitionId      String  @map("form_definition_id")
+  formDefinitionVersion Int     @map("form_definition_version")
+  formName              String? @map("form_name")
+
+  // Submission metadata
+  submissionSource   String? @map("submission_source") // portal, embed, api
+  submitterIpAddress String? @map("submitter_ip_address")
+  submitterUserAgent String? @map("submitter_user_agent")
+  submissionDuration Int?    @map("submission_duration") // seconds from start to submit
+
+  // Validation
+  validationPassed Boolean @default(true) @map("validation_passed")
+  validationErrors Json?   @map("validation_errors")
+
+  // Attachments summary
+  attachmentCount     Int @default(0) @map("attachment_count")
+  totalAttachmentSize Int @default(0) @map("total_attachment_size") // bytes
+
+  // Timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  riu RiskIntelligenceUnit @relation(fields: [riuId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([formDefinitionId])
+  @@map("riu_web_form_extensions")
 }
 
 // ===========================================
