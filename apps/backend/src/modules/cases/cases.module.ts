@@ -1,12 +1,14 @@
 import { Module } from "@nestjs/common";
 import { CasesController } from "./cases.controller";
 import { CasesService } from "./cases.service";
+import { CasePipelineService } from "./case-pipeline.service";
+import { CaseMergeService } from "./case-merge.service";
 import { PrismaModule } from "../prisma/prisma.module";
 
 @Module({
   imports: [PrismaModule],
   controllers: [CasesController],
-  providers: [CasesService],
-  exports: [CasesService],
+  providers: [CasesService, CasePipelineService, CaseMergeService],
+  exports: [CasesService, CasePipelineService, CaseMergeService],
 })
 export class CasesModule {}
