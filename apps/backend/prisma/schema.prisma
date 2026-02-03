@@ -1425,3 +1425,109 @@ enum FormSubmissionStatus {
 
   @@map("form_submission_status")
 }
+
+// ===========================================
+// Reporting Entities
+// ===========================================
+
+/// ReportTemplate defines reusable report configurations.
+/// Templates specify data source, columns, filters, and aggregations.
+model ReportTemplate {
+  id             String  @id @default(uuid())
+  organizationId String? @map("organization_id") // Null for system templates
+
+  // Identity
+  name        String
+  description String?
+  category    String? // 'compliance', 'operational', 'board', etc.
+  isSystem    Boolean @default(false) @map("is_system") // Ethico-provided
+  isPublic    Boolean @default(false) @map("is_public") // Visible to all users
+
+  // Configuration
+  dataSource   ReportDataSource @map("data_source") // CASES, RIUS, INVESTIGATIONS, etc.
+  columns      Json // Array of column definitions
+  filters      Json? // Default filters
+  aggregations Json? // Sum, count, avg, group by
+  sortBy       String? @map("sort_by")
+  sortOrder    String? @map("sort_order")
+
+  // Display
+  chartType   String? @map("chart_type") // 'bar', 'pie', 'line', 'table'
+  chartConfig Json?   @map("chart_config")
+
+  // Access
+  allowedRoles String[] @default([]) @map("allowed_roles")
+
+  // Audit
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  createdById String?  @map("created_by_id")
+
+  // Relations
+  organization Organization?     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  executions   ReportExecution[]
+
+  @@index([organizationId])
+  @@index([dataSource])
+  @@index([isSystem])
+  @@map("report_templates")
+}
+
+enum ReportDataSource {
+  CASES
+  RIUS
+  INVESTIGATIONS
+  DISCLOSURES
+  POLICIES
+  AUDIT_LOGS
+  USERS
+  CAMPAIGNS
+
+  @@map("report_data_source")
+}
+
+/// ReportExecution tracks report generation history.
+/// Used for async report generation and download links.
+model ReportExecution {
+  id             String @id @default(uuid())
+  organizationId String @map("organization_id")
+  templateId     String @map("template_id")
+
+  // Execution details
+  status     ReportExecutionStatus @default(PENDING)
+  filters    Json? // Filters used for this execution
+  parameters Json? // Additional parameters
+
+  // Results
+  rowCount  Int?      @map("row_count")
+  fileKey   String?   @map("file_key") // Storage key for exported file
+  fileUrl   String?   @map("file_url") // Signed URL (temporary)
+  expiresAt DateTime? @map("expires_at")
+
+  // Timing
+  startedAt    DateTime? @map("started_at")
+  completedAt  DateTime? @map("completed_at")
+  errorMessage String?   @map("error_message")
+
+  // Audit
+  createdAt     DateTime @default(now()) @map("created_at")
+  requestedById String   @map("requested_by_id")
+
+  // Relations
+  organization Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  template     ReportTemplate @relation(fields: [templateId], references: [id])
+
+  @@index([organizationId])
+  @@index([organizationId, status])
+  @@index([templateId])
+  @@map("report_executions")
+}
+
+enum ReportExecutionStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+
+  @@map("report_execution_status")
+}
