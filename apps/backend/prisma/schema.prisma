@@ -340,6 +340,14 @@ model Case {
 /// AuditLog provides unified activity tracking across all entities.
 /// This is an append-only table - records are never updated or deleted.
 /// Used for compliance audit trails and AI context building.
+///
+/// PARTITIONING: Partition by created_at in production (monthly partitions)
+/// recommended partition command:
+///   CREATE TABLE audit_logs_y2026m01 PARTITION OF audit_logs
+///   FOR VALUES FROM ('2026-01-01') TO ('2026-02-01');
+///
+/// RETENTION: 7 years per compliance requirements (HIPAA, SOX)
+/// ARCHIVAL: Old partitions can be moved to cold storage after 2 years
 model AuditLog {
   id             String @id @default(uuid())
   organizationId String @map("organization_id")
