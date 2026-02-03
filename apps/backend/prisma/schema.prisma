@@ -61,6 +61,11 @@ model Organization {
   // Demo reset relations
   demoUserSessions DemoUserSession[]
 
+  // Campaign relations
+  segments            Segment[]
+  campaigns           Campaign[]
+  campaignAssignments CampaignAssignment[]
+
   @@index([slug])
   @@index([isActive])
   @@map("organizations")
@@ -1010,7 +1015,7 @@ model RiskIntelligenceUnit {
 
   // Campaign linkage (for disclosure/attestation responses)
   campaignId           String? @map("campaign_id")
-  campaignAssignmentId String? @map("campaign_assignment_id")
+  campaignAssignmentId String? @map("campaign_assignment_id") // Links to specific assignment
 
   // Custom Data (JSONB)
   customFields  Json? @map("custom_fields")
@@ -1056,6 +1061,9 @@ model RiskIntelligenceUnit {
   category        Category?        @relation(fields: [categoryId], references: [id])
   demoUserSession DemoUserSession? @relation("DemoSessionRius", fields: [demoUserSessionId], references: [id])
 
+  // Campaign relation (for campaign responses)
+  campaign Campaign? @relation("CampaignRius", fields: [campaignId], references: [id])
+
   // Case associations
   caseAssociations RiuCaseAssociation[]
 
@@ -1076,6 +1084,7 @@ model RiskIntelligenceUnit {
   @@index([organizationId, categoryId])
   @@index([organizationId, severity])
   @@index([anonymousAccessCode])
+  @@index([organizationId, campaignId])
   @@map("risk_intelligence_units")
 }
 
@@ -2195,6 +2204,9 @@ model Employee {
   locationAssignment Location?    @relation(fields: [locationId], references: [id])
   personRecords      Person[] // Person records linked to this Employee
 
+  // Campaign assignment relations
+  campaignAssignments CampaignAssignment[]
+
   @@unique([organizationId, hrisEmployeeId])
   @@unique([organizationId, email])
   @@index([organizationId])
@@ -2449,4 +2461,211 @@ model DemoArchivedChange {
   @@index([expiresAt])
   @@index([entityType, entityId])
   @@map("demo_archived_changes")
+}
+
+// ===========================================
+// Campaign Entities (Outbound Compliance)
+// ===========================================
+
+/// CampaignType defines what kind of outbound request this campaign sends.
+enum CampaignType {
+  DISCLOSURE // Request for COI, gifts, outside employment disclosures
+  ATTESTATION // Policy acknowledgment or certification
+  SURVEY // Compliance survey or assessment
+
+  @@map("campaign_type")
+}
+
+/// CampaignStatus tracks the lifecycle of a campaign.
+enum CampaignStatus {
+  DRAFT // Being designed, not yet launched
+  SCHEDULED // Scheduled for future launch
+  ACTIVE // Currently running, assignments being sent
+  PAUSED // Temporarily paused
+  COMPLETED // All assignments completed or expired
+  CANCELLED // Cancelled before completion
+
+  @@map("campaign_status")
+}
+
+/// AudienceMode determines how campaign targets are selected.
+enum AudienceMode {
+  SEGMENT // Uses segment criteria for dynamic targeting
+  MANUAL // Manually selected employees
+  ALL // All active employees
+
+  @@map("audience_mode")
+}
+
+/// AssignmentStatus tracks individual employee assignment progress.
+enum AssignmentStatus {
+  PENDING // Assignment created, not yet notified
+  NOTIFIED // Initial notification sent
+  IN_PROGRESS // Employee has started but not completed
+  COMPLETED // Successfully completed
+  OVERDUE // Past due date, not completed
+  SKIPPED // Skipped (exempted by admin)
+  EXPIRED // Campaign ended before completion
+
+  @@map("assignment_status")
+}
+
+/// Segment defines a reusable audience filter for campaigns.
+/// Segments use JSON criteria that are converted to Prisma where clauses.
+/// Segments can be shared across multiple campaigns.
+model Segment {
+  id             String @id @default(uuid())
+  organizationId String @map("organization_id")
+
+  // Identity
+  name        String
+  description String?
+
+  // Criteria (JSON format for query builder)
+  // Structure: { logic: 'AND'|'OR', conditions: [...] }
+  // Condition: { field: string, operator: string, value: any }
+  criteria Json
+
+  // Cache for audience size (updated on save)
+  estimatedAudienceSize Int?      @map("estimated_audience_size")
+  audienceSizeUpdatedAt DateTime? @map("audience_size_updated_at")
+
+  // Status
+  isActive Boolean @default(true) @map("is_active")
+
+  // Audit
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  createdById String?  @map("created_by_id")
+  updatedById String?  @map("updated_by_id")
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  campaigns    Campaign[]
+
+  @@index([organizationId])
+  @@index([organizationId, isActive])
+  @@map("segments")
+}
+
+/// Campaign represents an outbound compliance request (disclosures, attestations, surveys).
+/// HubSpot Sequence equivalent - sends requests to a targeted audience.
+/// Campaign launch creates CampaignAssignment for each target employee.
+model Campaign {
+  id             String @id @default(uuid())
+  organizationId String @map("organization_id")
+
+  // Identity
+  name        String
+  description String?
+  type        CampaignType
+
+  // Status and lifecycle
+  status     CampaignStatus @default(DRAFT)
+  statusNote String?        @map("status_note")
+
+  // Audience targeting
+  audienceMode AudienceMode @map("audience_mode")
+  segmentId    String?      @map("segment_id") // When audienceMode = SEGMENT
+  manualIds    String[]     @default([]) @map("manual_ids") // When audienceMode = MANUAL
+
+  // Scheduling
+  launchAt     DateTime? @map("launch_at") // When to start sending
+  launchedAt   DateTime? @map("launched_at") // When actually launched
+  launchedById String?   @map("launched_by_id")
+  dueDate      DateTime  @map("due_date") // Deadline for completion
+  expiresAt    DateTime? @map("expires_at") // When campaign auto-closes
+
+  // Form linkage
+  formDefinitionId String? @map("form_definition_id")
+
+  // Reminders
+  reminderDays        Int[]     @default([7, 3, 1]) @map("reminder_days") // Days before due to remind
+  lastReminderSentAt  DateTime? @map("last_reminder_sent_at")
+  escalationAfterDays Int?      @map("escalation_after_days") // Days overdue before escalation
+  escalateToUserId    String?   @map("escalate_to_user_id")
+
+  // Auto-case rules (when response should trigger case creation)
+  autoCreateCase        Boolean @default(false) @map("auto_create_case")
+  caseCreationThreshold Json?   @map("case_creation_threshold") // { field: 'value', operator: '>', threshold: X }
+
+  // Statistics (denormalized for performance)
+  totalAssignments     Int @default(0) @map("total_assignments")
+  completedAssignments Int @default(0) @map("completed_assignments")
+  overdueAssignments   Int @default(0) @map("overdue_assignments")
+  completionPercentage Int @default(0) @map("completion_percentage") // 0-100
+
+  // Audit
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  createdById String?  @map("created_by_id")
+  updatedById String?  @map("updated_by_id")
+
+  // Relations
+  organization Organization           @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  segment      Segment?               @relation(fields: [segmentId], references: [id])
+  assignments  CampaignAssignment[]
+  rius         RiskIntelligenceUnit[] @relation("CampaignRius")
+
+  @@index([organizationId])
+  @@index([organizationId, status])
+  @@index([organizationId, type])
+  @@index([organizationId, dueDate])
+  @@map("campaigns")
+}
+
+/// CampaignAssignment tracks an individual employee's assignment within a campaign.
+/// Created when campaign is launched, one per target employee.
+/// Snapshots employee data at creation for historical accuracy.
+model CampaignAssignment {
+  id             String @id @default(uuid())
+  organizationId String @map("organization_id")
+  campaignId     String @map("campaign_id")
+  employeeId     String @map("employee_id")
+
+  // Status tracking
+  status AssignmentStatus @default(PENDING)
+
+  // Timeline
+  assignedAt  DateTime  @default(now()) @map("assigned_at")
+  notifiedAt  DateTime? @map("notified_at")
+  startedAt   DateTime? @map("started_at")
+  completedAt DateTime? @map("completed_at")
+  dueDate     DateTime  @map("due_date") // Copied from campaign at assignment time
+
+  // Notifications
+  reminderCount      Int       @default(0) @map("reminder_count")
+  lastReminderSentAt DateTime? @map("last_reminder_sent_at")
+
+  // Response linkage
+  riuId            String? @map("riu_id") // Links to RIU created by response
+  formSubmissionId String? @map("form_submission_id")
+
+  // Employee snapshot (captured at assignment time for audit trail)
+  // This ensures historical accuracy even if employee data changes
+  employeeSnapshot Json @map("employee_snapshot")
+  // Snapshot contains: { firstName, lastName, email, jobTitle, department, businessUnit, location, manager }
+
+  // Admin notes
+  notes      String?
+  skippedBy  String? @map("skipped_by")
+  skipReason String? @map("skip_reason")
+
+  // Audit
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  campaign     Campaign     @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  employee     Employee     @relation(fields: [employeeId], references: [id])
+
+  // Unique constraint: one assignment per employee per campaign
+  @@unique([campaignId, employeeId])
+  @@index([organizationId])
+  @@index([organizationId, campaignId])
+  @@index([organizationId, employeeId])
+  @@index([organizationId, status])
+  @@index([organizationId, dueDate])
+  @@map("campaign_assignments")
 }
