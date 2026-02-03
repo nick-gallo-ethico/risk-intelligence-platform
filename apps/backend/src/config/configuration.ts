@@ -46,18 +46,30 @@ export default () => ({
   },
 
   storage: {
-    type: (process.env.STORAGE_TYPE || "local") as "local" | "azure",
-    localPath: process.env.STORAGE_PATH || "./uploads",
+    // Provider selection: 'local' for development, 'azure' for production
+    provider: (process.env.STORAGE_PROVIDER || "local") as "local" | "azure",
+
+    // File size and type restrictions
     maxFileSize: parseInt(
-      process.env.MAX_FILE_SIZE ?? String(10 * 1024 * 1024),
+      process.env.MAX_FILE_SIZE ?? String(50 * 1024 * 1024),
       10,
-    ), // 10MB default
+    ), // 50MB default
     allowedMimeTypes: (
       process.env.ALLOWED_MIME_TYPES ||
       "image/*,application/pdf,text/*,application/msword,application/vnd.openxmlformats-officedocument.*,application/vnd.ms-excel,application/vnd.ms-powerpoint"
     ).split(","),
-    // Azure Blob Storage settings (for production)
-    azureConnectionString: process.env.AZURE_STORAGE_CONNECTION_STRING || "",
-    azureContainerName: process.env.AZURE_STORAGE_CONTAINER || "uploads",
+
+    // Azure Blob Storage configuration
+    azure: {
+      accountName: process.env.AZURE_STORAGE_ACCOUNT_NAME || "",
+      accountKey: process.env.AZURE_STORAGE_ACCOUNT_KEY || "",
+      connectionString: process.env.AZURE_STORAGE_CONNECTION_STRING || "",
+      containerPrefix: process.env.AZURE_STORAGE_CONTAINER_PREFIX || "ethico",
+    },
+
+    // Local storage configuration (for development)
+    local: {
+      basePath: process.env.LOCAL_STORAGE_PATH || "./uploads",
+    },
   },
 });
