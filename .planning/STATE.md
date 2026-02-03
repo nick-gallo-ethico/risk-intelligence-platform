@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-02)
 
 **Core value:** Users can manage their entire compliance workflow - from anonymous report intake to investigation closure to board reporting - in one AI-assisted platform, with every task unified into a single "My Work" view.
-**Current focus:** Phase 4 - Core Entities
+**Current focus:** Phase 5 - AI Infrastructure
 
 ## Current Position
 
-Phase: 5 of 11 (AI Infrastructure) - Ready to start
-Plan: 0 of 18 in current phase
-Status: Phase 4 verified and complete
-Last activity: 2026-02-03 - Completed Phase 4 verification, fixed RiusModule wiring
+Phase: 5 of 11 (AI Infrastructure) - In progress
+Plan: 1 of 11 in current phase
+Status: Executing Wave 1
+Last activity: 2026-02-03 - Completed 05-01-PLAN.md (AI Client Infrastructure)
 
-Progress: [=========================================] 42% (44 of ~106 total plans)
+Progress: [==========================================] 43% (45 of ~106 total plans)
 
 ## Performance Metrics
 
@@ -33,8 +33,8 @@ Progress: [=========================================] 42% (44 of ~106 total plan
 | 04-core-entities | 10 | 112 min | 11 min |
 
 **Recent Trend:**
-- Last 5 plans: 04-10 (14 min), 04-09 (13 min), 04-08 (14 min), 04-03 (11 min), 04-06 (9 min)
-- Trend: Phase 4 Core Entities verified complete. Ready for Phase 5 AI Infrastructure.
+- Last 5 plans: 05-01 (9 min), 04-10 (14 min), 04-09 (13 min), 04-08 (14 min), 04-03 (11 min)
+- Trend: Phase 5 AI Infrastructure started. 05-01 completed in 9 min.
 
 *Updated after each plan completion*
 
@@ -205,6 +205,10 @@ Recent decisions affecting current work:
 - 04-10: Flattened arrays (personIds, subjectPersonIds) duplicate data for efficient faceting
 - 04-10: History badge uses Prisma count query on PersonRiuAssociation (not ES)
 - 04-10: Event-driven re-indexing via OnEvent handlers keeps ES in sync
+- 05-01: claude-sonnet-4-5 as default model for good balance of speed/quality
+- 05-01: AI features disabled gracefully when ANTHROPIC_API_KEY not set (warn, isConfigured()=false)
+- 05-01: organizationId passed via CreateChatDto - callers enforce tenant isolation
+- 05-01: Streaming via async generators with AbortController support
 
 ### Pending Todos
 
@@ -218,6 +222,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-03T11:15:00Z
-Stopped at: Phase 4 complete, verified, ready for Phase 5
+Last session: 2026-02-03T19:15:51Z
+Stopped at: Completed 05-01-PLAN.md (AI Client Infrastructure)
 Resume file: None
