@@ -41,6 +41,10 @@ model Organization {
   interactions      Interaction[]
   workflowTemplates WorkflowTemplate[]
   workflowInstances WorkflowInstance[]
+  formDefinitions   FormDefinition[]
+  formSubmissions   FormSubmission[]
+  reportTemplates   ReportTemplate[]
+  reportExecutions  ReportExecution[]
 
   @@index([slug])
   @@index([isActive])
@@ -1306,4 +1310,118 @@ enum WorkflowInstanceStatus {
   PAUSED
 
   @@map("workflow_instance_status")
+}
+
+// ===========================================
+// Form Engine Entities
+// ===========================================
+
+/// FormDefinition stores JSON Schema definitions for dynamic forms.
+/// Used for intake forms, disclosure forms, workflow tasks, surveys.
+/// Definitions are versioned - version increments on publish.
+model FormDefinition {
+  id             String @id @default(uuid())
+  organizationId String @map("organization_id")
+
+  // Identity
+  name        String
+  description String?
+  formType    FormType @map("form_type")
+  version     Int      @default(1)
+  isActive    Boolean  @default(true) @map("is_active")
+  isPublished Boolean  @default(false) @map("is_published")
+
+  // JSON Schema
+  schema        Json  // JSON Schema definition
+  uiSchema      Json? @map("ui_schema") // UI hints (ordering, widgets, conditionals)
+  defaultValues Json? @map("default_values")
+
+  // Behavior
+  allowAnonymous   Boolean  @default(false) @map("allow_anonymous")
+  requiresApproval Boolean  @default(false) @map("requires_approval")
+  notifyOnSubmit   String[] @default([]) @map("notify_on_submit") // User IDs
+
+  // Category linkage (optional)
+  categoryId String? @map("category_id")
+
+  // Metadata
+  tags String[] @default([])
+
+  // Audit
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  createdById String?   @map("created_by_id")
+  publishedAt DateTime? @map("published_at")
+
+  // Relations
+  organization Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  submissions  FormSubmission[]
+
+  @@unique([organizationId, name, version])
+  @@index([organizationId])
+  @@index([organizationId, formType])
+  @@index([organizationId, isActive])
+  @@map("form_definitions")
+}
+
+enum FormType {
+  INTAKE        // Anonymous/identified report intake
+  DISCLOSURE    // COI, gifts, outside employment
+  ATTESTATION   // Policy acknowledgment
+  SURVEY        // Compliance surveys
+  WORKFLOW_TASK // Embedded workflow step form
+  CUSTOM        // General purpose
+
+  @@map("form_type")
+}
+
+/// FormSubmission stores completed form submissions.
+/// Links to FormDefinition by version for historical accuracy.
+model FormSubmission {
+  id                    String @id @default(uuid())
+  organizationId        String @map("organization_id")
+  formDefinitionId      String @map("form_definition_id")
+  formDefinitionVersion Int    @map("form_definition_version")
+
+  // Submission Data
+  data             Json // Submitted form data
+  status           FormSubmissionStatus @default(SUBMITTED)
+  validationErrors Json?                @map("validation_errors")
+
+  // Entity linkage (optional - links to what this form is for)
+  entityType String? @map("entity_type") // 'CASE', 'RIU', 'CAMPAIGN_ASSIGNMENT'
+  entityId   String? @map("entity_id")
+
+  // Submitter
+  submittedById  String?  @map("submitted_by_id") // Null for anonymous
+  submittedAt    DateTime @default(now()) @map("submitted_at")
+  submitterIp    String?  @map("submitter_ip")
+  submitterAgent String?  @map("submitter_agent")
+
+  // Anonymous support
+  anonymousAccessCode String? @map("anonymous_access_code")
+
+  // Audit
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  organization   Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  formDefinition FormDefinition @relation(fields: [formDefinitionId], references: [id])
+
+  @@index([organizationId])
+  @@index([organizationId, formDefinitionId])
+  @@index([organizationId, entityType, entityId])
+  @@index([anonymousAccessCode])
+  @@map("form_submissions")
+}
+
+enum FormSubmissionStatus {
+  DRAFT
+  SUBMITTED
+  APPROVED
+  REJECTED
+  PROCESSED
+
+  @@map("form_submission_status")
 }
