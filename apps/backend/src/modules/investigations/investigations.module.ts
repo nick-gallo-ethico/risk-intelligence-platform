@@ -9,6 +9,7 @@ import { CasesModule } from '../cases/cases.module';
 import { InvestigationInterviewService } from './interviews/interview.service';
 import { InvestigationInterviewController } from './interviews/interview.controller';
 import { InvestigationTemplateService } from './templates/template.service';
+import { TemplateAssignmentService } from './templates/template-assignment.service';
 import { InvestigationTemplateController } from './templates/template.controller';
 
 /**
@@ -35,11 +36,13 @@ import { InvestigationTemplateController } from './templates/template.controller
     InvestigationsService,
     InvestigationInterviewService,
     InvestigationTemplateService,
+    TemplateAssignmentService,
   ],
   exports: [
     InvestigationsService,
     InvestigationInterviewService,
     InvestigationTemplateService,
+    TemplateAssignmentService,
   ],
 })
 export class InvestigationsModule {}
