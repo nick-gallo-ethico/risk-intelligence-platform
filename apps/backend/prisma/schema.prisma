@@ -94,14 +94,18 @@ model User {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relations
-  organization        Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  sessions            Session[]
-  casesCreated        Case[]       @relation("CaseCreatedBy")
-  casesUpdated        Case[]       @relation("CaseUpdatedBy")
-  casesIntakeOperator Case[]       @relation("CaseIntakeOperator")
-  casesReleased       Case[]       @relation("CaseReleasedBy")
-  casesProxySubmitter Case[]       @relation("CaseProxySubmitter")
-  auditLogsActed      AuditLog[] // Audit logs where this user was the actor
+  organization                 Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  sessions                     Session[]
+  casesCreated                 Case[]       @relation("CaseCreatedBy")
+  casesUpdated                 Case[]       @relation("CaseUpdatedBy")
+  casesIntakeOperator          Case[]       @relation("CaseIntakeOperator")
+  casesReleased                Case[]       @relation("CaseReleasedBy")
+  casesProxySubmitter          Case[]       @relation("CaseProxySubmitter")
+  casesPipelineStageBy         Case[]       @relation("CasePipelineStageBy")
+  casesClassificationChangedBy Case[]       @relation("CaseClassificationChangedBy")
+  casesOutcomeBy               Case[]       @relation("CaseOutcomeBy")
+  casesMergedBy                Case[]       @relation("CaseMergedBy")
+  auditLogsActed               AuditLog[] // Audit logs where this user was the actor
 
   // Investigation relations
   investigationsPrimaryInvestigator Investigation[] @relation("InvestigationPrimaryInvestigator")
@@ -305,6 +309,16 @@ enum Severity {
   @@map("severity")
 }
 
+enum CaseOutcome {
+  SUBSTANTIATED
+  UNSUBSTANTIATED
+  INCONCLUSIVE
+  POLICY_VIOLATION
+  NO_VIOLATION
+
+  @@map("case_outcome")
+}
+
 // ===========================================
 // Case Management Entities
 // ===========================================
@@ -319,6 +333,30 @@ model Case {
   // Status
   status          CaseStatus @default(NEW)
   statusRationale String?    @map("status_rationale")
+
+  // Pipeline (configurable workflow stages per tenant)
+  pipelineId        String?   @map("pipeline_id") // Reference to pipeline config (future)
+  pipelineStage     String?   @map("pipeline_stage") // Current stage name
+  pipelineStageAt   DateTime? @map("pipeline_stage_at") // When entered current stage
+  pipelineStageById String?   @map("pipeline_stage_by_id") // Who moved to current stage
+
+  // Classification Tracking (corrections to RIU classification)
+  classificationNotes       String?   @map("classification_notes") // Why classification differs from RIU
+  classificationChangedAt   DateTime? @map("classification_changed_at")
+  classificationChangedById String?   @map("classification_changed_by_id")
+
+  // Outcome
+  outcome      CaseOutcome? // Final outcome of case
+  outcomeNotes String?      @map("outcome_notes") // Explanation of outcome determination
+  outcomeAt    DateTime?    @map("outcome_at") // When outcome was set
+  outcomeById  String?      @map("outcome_by_id") // Who set the outcome
+
+  // Merge Support (tombstone pattern for merged cases)
+  mergedIntoCaseId String?   @map("merged_into_case_id") // Points to primary case if merged
+  mergedAt         DateTime? @map("merged_at")
+  mergedById       String?   @map("merged_by_id")
+  mergedReason     String?   @map("merged_reason") // Why cases were merged
+  isMerged         Boolean   @default(false) @map("is_merged") // True = tombstone record
 
   // Intake Information
   sourceChannel    SourceChannel @map("source_channel")
@@ -409,6 +447,20 @@ model Case {
   demoUserSession DemoUserSession? @relation("DemoSessionCases", fields: [demoUserSessionId], references: [id])
   investigations  Investigation[] // Cases can have multiple investigations
 
+  // Pipeline relations
+  pipelineStageBy User? @relation("CasePipelineStageBy", fields: [pipelineStageById], references: [id])
+
+  // Classification tracking relations
+  classificationChangedBy User? @relation("CaseClassificationChangedBy", fields: [classificationChangedById], references: [id])
+
+  // Outcome relations
+  outcomeBy User? @relation("CaseOutcomeBy", fields: [outcomeById], references: [id])
+
+  // Merge relations (self-referential)
+  mergedIntoCase Case?  @relation("CaseMerge", fields: [mergedIntoCaseId], references: [id])
+  mergedCases    Case[] @relation("CaseMerge") // Cases that were merged into this one
+  mergedBy       User?  @relation("CaseMergedBy", fields: [mergedById], references: [id])
+
   // Category relations
   primaryCategory   Category? @relation("CasePrimaryCategory", fields: [primaryCategoryId], references: [id])
   secondaryCategory Category? @relation("CaseSecondaryCategory", fields: [secondaryCategoryId], references: [id])
@@ -435,6 +487,11 @@ model Case {
   @@index([organizationId, createdAt])
   @@index([organizationId, severity])
   @@index([referenceNumber])
+  // Pipeline, outcome, and merge indexes
+  @@index([organizationId, pipelineStage])
+  @@index([organizationId, outcome])
+  @@index([organizationId, isMerged])
+  @@index([mergedIntoCaseId])
   @@map("cases")
 }
 
@@ -1980,6 +2037,7 @@ model Employee {
   reports            Employee[]   @relation("EmployeeManager")
   teamAssignment     Team?        @relation(fields: [teamId], references: [id])
   locationAssignment Location?    @relation(fields: [locationId], references: [id])
+  Person             Person[]
 
   @@unique([organizationId, hrisEmployeeId])
   @@unique([organizationId, email])
@@ -2059,6 +2117,19 @@ model Person {
   // Link to Employee (when type = EMPLOYEE)
   employeeId String? @map("employee_id")
 
+  // Denormalized Employee fields (copied when Person created from Employee)
+  // These fields are denormalized for filtering and display without joining to Employee table
+  businessUnitId   String? @map("business_unit_id")
+  businessUnitName String? @map("business_unit_name")
+  jobTitle         String? @map("job_title")
+  employmentStatus String? @map("employment_status")
+  locationId       String? @map("location_id")
+  locationName     String? @map("location_name")
+
+  // Manager hierarchy (self-referential for org chart navigation)
+  managerId   String? @map("manager_id") // FK to another Person
+  managerName String? @map("manager_name") // Denormalized for display
+
   // External contact details (when type = EXTERNAL_CONTACT)
   company      String? // Company/organization name
   title        String? // Job title
@@ -2084,8 +2155,13 @@ model Person {
 
   // Relations
   organization      Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  employee          Employee?    @relation(fields: [employeeId], references: [id])
   mergedIntoPrimary Person?      @relation("PersonMerge", fields: [mergedIntoPrimaryId], references: [id])
   mergedPersons     Person[]     @relation("PersonMerge")
+
+  // Manager self-reference for org chart navigation
+  manager       Person?  @relation("PersonManager", fields: [managerId], references: [id])
+  directReports Person[] @relation("PersonManager")
 
   // Unique constraint: email must be unique within an organization when not null
   // Note: PostgreSQL allows multiple NULLs for unique constraints
@@ -2095,6 +2171,8 @@ model Person {
   @@index([organizationId, type])
   @@index([organizationId, status])
   @@index([organizationId, employeeId])
+  @@index([organizationId, managerId])
+  @@index([organizationId, businessUnitId])
   @@map("persons")
 }
 
