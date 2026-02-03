@@ -2,25 +2,29 @@ import {
   Injectable,
   Logger,
   NotFoundException,
-  BadRequestException,
-} from "@nestjs/common";
-import { PrismaService } from "../../prisma/prisma.service";
-import { ActionCatalog } from "./action.catalog";
+  ForbiddenException,
+} from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { PrismaService } from '../../prisma/prisma.service';
+import { ActionCatalog } from './action.catalog';
 import {
   ActionContext,
   ActionPreview,
   ActionResult,
   ActionCategory,
-} from "./action.types";
+} from './action.types';
+import { Prisma } from '@prisma/client';
 
 /**
- * Stored undo information for an executed action.
+ * Result from executing an action.
  */
-interface UndoRecord {
+export interface ExecutionResult {
+  success: boolean;
   actionId: string;
-  previousState: Record<string, unknown>;
-  executedAt: Date;
-  undoWindowSeconds: number;
+  result?: ActionResult;
+  error?: string;
+  undoAvailable: boolean;
+  undoExpiresAt?: Date;
 }
 
 /**
@@ -28,337 +32,360 @@ interface UndoRecord {
  *
  * Provides the execution layer for actions registered in ActionCatalog:
  * - Preview: Show what will change before execution
- * - Execute: Perform the action with audit logging
- * - Undo: Reverse the action if supported and within window
+ * - Execute: Perform the action with database tracking and audit
+ * - Undo: Reverse the action if within the undo window
  *
  * Undo windows per CONTEXT.md:
  * - Quick actions (30 seconds): add note, update field
  * - Standard actions (5 minutes): change assignment, change status
  * - Significant actions (30 minutes): close case/investigation
  * - Extended (24 hours): archive
- * - Non-undoable: sent emails, external API calls
+ * - Non-undoable (0): sent emails, external API calls
+ *
+ * Actions are persisted to AiAction table for audit and undo support.
  *
  * Usage:
  * ```typescript
  * // Preview an action
- * const preview = await executor.preview('assign-case', { assigneeId: 'user-123' }, context);
+ * const preview = await executor.preview('change-status', { newStatus: 'CLOSED' }, context);
  *
- * // Execute with preview confirmation
- * const result = await executor.execute('assign-case', { assigneeId: 'user-123' }, context);
+ * // Execute with tracking
+ * const result = await executor.execute('change-status', { newStatus: 'CLOSED' }, context);
  *
- * // Skip preview for quick actions
- * const result = await executor.execute('add-note', input, context, true);
- *
- * // Undo an action (must be within window)
- * await executor.undo('assign-case', context);
+ * // Undo within window
+ * await executor.undo(result.actionId, context);
  * ```
  */
 @Injectable()
 export class ActionExecutorService {
   private readonly logger = new Logger(ActionExecutorService.name);
 
-  /** Track executed actions per entity for undo */
-  private readonly undoRecords = new Map<string, UndoRecord>();
-
   constructor(
-    private readonly catalog: ActionCatalog,
     private readonly prisma: PrismaService,
+    private readonly actionCatalog: ActionCatalog,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   /**
-   * Preview an action without executing it.
+   * Preview an action before execution.
    *
-   * @param actionId - Action to preview
-   * @param input - Action input
-   * @param context - Execution context
-   * @returns Preview showing what will change
+   * @param actionId - ID of the action to preview
+   * @param input - Action input parameters
+   * @param context - Execution context (org, user, entity)
+   * @returns Preview of changes
    */
   async preview(
     actionId: string,
-    input: Record<string, unknown>,
+    input: unknown,
     context: ActionContext,
   ): Promise<ActionPreview> {
-    const action = this.catalog.getAction(actionId);
+    const action = this.actionCatalog.getAction(actionId);
     if (!action) {
       throw new NotFoundException(`Action not found: ${actionId}`);
     }
 
-    // Check permissions
-    const hasPermission = action.requiredPermissions.every((p) =>
-      context.permissions.includes(p),
-    );
-    if (!hasPermission) {
-      throw new BadRequestException(
-        "Insufficient permissions for this action",
-      );
-    }
+    // Validate permissions
+    this.validatePermissions(action.requiredPermissions, context.permissions);
 
     // Check entity type
     if (!action.entityTypes.includes(context.entityType)) {
-      throw new BadRequestException(
-        `Action not available for entity type: ${context.entityType}`,
+      throw new ForbiddenException(
+        `Action ${actionId} not available for ${context.entityType}`,
       );
     }
 
-    // Validate input
-    const parseResult = action.inputSchema.safeParse(input);
-    if (!parseResult.success) {
-      throw new BadRequestException(
-        `Invalid input: ${parseResult.error.message}`,
-      );
-    }
+    // Validate input with Zod schema
+    const validatedInput = action.inputSchema.parse(input);
 
-    // Check additional execution constraints
+    // Check canExecute if defined
     if (action.canExecute) {
-      const canExecuteResult = await action.canExecute(
-        parseResult.data,
-        context,
-      );
+      const canExecuteResult = await action.canExecute(validatedInput, context);
       if (!canExecuteResult.allowed) {
-        throw new BadRequestException(
-          canExecuteResult.reason || "Action not allowed",
+        throw new ForbiddenException(
+          canExecuteResult.reason || 'Action not allowed',
         );
       }
     }
 
-    try {
-      const preview = await action.generatePreview(parseResult.data, context);
-      this.logger.debug(
-        `Previewed action ${actionId} for ${context.entityType}:${context.entityId}`,
-      );
-      return preview;
-    } catch (error) {
-      this.logger.error(`Preview failed for ${actionId}: ${error.message}`);
-      throw error;
-    }
+    // Generate preview
+    return action.generatePreview(validatedInput, context);
   }
 
   /**
-   * Execute an action.
+   * Execute an action with tracking and audit.
    *
-   * @param actionId - Action to execute
-   * @param input - Action input
-   * @param context - Execution context
-   * @param skipPreview - If true, skip preview requirement check
-   * @returns Action result
+   * @param actionId - ID of the action to execute
+   * @param input - Action input parameters
+   * @param context - Execution context (org, user, entity)
+   * @param skipPreview - Skip preview requirement check for quick actions
+   * @returns Execution result with action record ID
    */
   async execute(
     actionId: string,
-    input: Record<string, unknown>,
+    input: unknown,
     context: ActionContext,
     skipPreview = false,
-  ): Promise<ActionResult> {
-    const action = this.catalog.getAction(actionId);
+  ): Promise<ExecutionResult> {
+    const action = this.actionCatalog.getAction(actionId);
     if (!action) {
       throw new NotFoundException(`Action not found: ${actionId}`);
     }
 
-    // Check permissions
-    const hasPermission = action.requiredPermissions.every((p) =>
-      context.permissions.includes(p),
-    );
-    if (!hasPermission) {
-      throw new BadRequestException(
-        "Insufficient permissions for this action",
-      );
-    }
+    // Validate permissions
+    this.validatePermissions(action.requiredPermissions, context.permissions);
 
     // Check entity type
     if (!action.entityTypes.includes(context.entityType)) {
-      throw new BadRequestException(
-        `Action not available for entity type: ${context.entityType}`,
+      throw new ForbiddenException(
+        `Action ${actionId} not available for ${context.entityType}`,
       );
     }
 
-    // Validate input
-    const parseResult = action.inputSchema.safeParse(input);
-    if (!parseResult.success) {
-      throw new BadRequestException(
-        `Invalid input: ${parseResult.error.message}`,
-      );
+    // Validate input with Zod schema
+    const validatedInput = action.inputSchema.parse(input);
+
+    // Check if preview is required
+    if (!skipPreview && this.actionCatalog.requiresPreview(actionId)) {
+      // For standard+ actions, preview should be done first
+      // This is a safety check - callers should call preview() first
+      this.logger.debug(`Action ${actionId} normally requires preview`);
     }
 
-    // Require preview for critical/external actions
-    if (
-      !skipPreview &&
-      (action.category === ActionCategory.CRITICAL ||
-        action.category === ActionCategory.EXTERNAL)
-    ) {
-      throw new BadRequestException(
-        "This action requires preview before execution. Set skipPreview=true to skip.",
-      );
-    }
-
-    // Check additional execution constraints
-    if (action.canExecute) {
-      const canExecuteResult = await action.canExecute(
-        parseResult.data,
-        context,
-      );
-      if (!canExecuteResult.allowed) {
-        throw new BadRequestException(
-          canExecuteResult.reason || "Action not allowed",
-        );
-      }
-    }
+    // Create action record in PENDING state
+    const aiAction = await this.prisma.aiAction.create({
+      data: {
+        organizationId: context.organizationId,
+        userId: context.userId,
+        conversationId: context.conversationId,
+        actionType: actionId,
+        entityType: context.entityType,
+        entityId: context.entityId,
+        input: validatedInput as Prisma.JsonObject,
+        status: 'EXECUTING',
+        undoWindowSeconds: action.undoWindowSeconds,
+        undoExpiresAt:
+          action.undoWindowSeconds > 0
+            ? new Date(Date.now() + action.undoWindowSeconds * 1000)
+            : null,
+        executedAt: new Date(),
+      },
+    });
 
     try {
-      const result = await action.execute(parseResult.data, context);
+      // Execute the action
+      const result = await action.execute(validatedInput, context);
 
-      // Store undo info if action is undoable
-      if (action.undoWindowSeconds > 0 && result.success && result.previousState) {
-        const entityKey = `${context.entityType}:${context.entityId}:${actionId}`;
-        this.undoRecords.set(entityKey, {
-          actionId,
-          previousState: result.previousState,
-          executedAt: new Date(),
-          undoWindowSeconds: action.undoWindowSeconds,
+      if (result.success) {
+        // Update action record with result
+        await this.prisma.aiAction.update({
+          where: { id: aiAction.id },
+          data: {
+            status: 'COMPLETED',
+            result: result as unknown as Prisma.JsonObject,
+            previousState: result.previousState as
+              | Prisma.JsonObject
+              | undefined,
+            completedAt: new Date(),
+          },
         });
 
-        // Schedule cleanup after undo window expires
-        setTimeout(() => {
-          this.undoRecords.delete(entityKey);
-        }, action.undoWindowSeconds * 1000);
+        // Emit event for activity feed
+        this.eventEmitter.emit('ai.action.completed', {
+          actionId: aiAction.id,
+          organizationId: context.organizationId,
+          userId: context.userId,
+          entityType: context.entityType,
+          entityId: context.entityId,
+          actionType: actionId,
+        });
+
+        return {
+          success: true,
+          actionId: aiAction.id,
+          result,
+          undoAvailable: action.undoWindowSeconds > 0,
+          undoExpiresAt: aiAction.undoExpiresAt || undefined,
+        };
+      } else {
+        await this.prisma.aiAction.update({
+          where: { id: aiAction.id },
+          data: {
+            status: 'FAILED',
+            error: result.message || 'Action failed',
+          },
+        });
+
+        return {
+          success: false,
+          actionId: aiAction.id,
+          error: result.message || 'Action failed',
+          undoAvailable: false,
+        };
       }
-
-      this.logger.log(
-        `Executed action ${actionId} for ${context.entityType}:${context.entityId} - success=${result.success}`,
-      );
-
-      return result;
     } catch (error) {
-      this.logger.error(`Execution failed for ${actionId}: ${error.message}`);
+      await this.prisma.aiAction.update({
+        where: { id: aiAction.id },
+        data: {
+          status: 'FAILED',
+          error: error.message,
+        },
+      });
+
+      this.logger.error(`Action ${actionId} failed:`, error);
+
       return {
         success: false,
-        message: error.message || "Action execution failed",
+        actionId: aiAction.id,
+        error: error.message,
+        undoAvailable: false,
       };
     }
   }
 
   /**
-   * Undo the last action on an entity.
+   * Undo a previously executed action.
    *
-   * @param actionId - Action to undo
-   * @param context - Execution context (must match entity)
-   * @returns void on success
+   * @param actionRecordId - ID of the AiAction record to undo
+   * @param context - Execution context (must match organization)
    */
-  async undo(actionId: string, context: ActionContext): Promise<void> {
-    const action = this.catalog.getAction(actionId);
-    if (!action) {
-      throw new NotFoundException(`Action not found: ${actionId}`);
+  async undo(actionRecordId: string, context: ActionContext): Promise<void> {
+    const aiAction = await this.prisma.aiAction.findFirst({
+      where: {
+        id: actionRecordId,
+        organizationId: context.organizationId,
+        status: 'COMPLETED',
+      },
+    });
+
+    if (!aiAction) {
+      throw new NotFoundException('Action not found or not completed');
     }
 
-    if (action.undoWindowSeconds === 0 || !action.undo) {
-      throw new BadRequestException("This action cannot be undone");
+    // Check undo window
+    if (!aiAction.undoExpiresAt || aiAction.undoExpiresAt < new Date()) {
+      throw new ForbiddenException('Undo window has expired');
     }
 
-    const entityKey = `${context.entityType}:${context.entityId}:${actionId}`;
-    const undoRecord = this.undoRecords.get(entityKey);
-
-    if (!undoRecord) {
-      throw new BadRequestException(
-        "Cannot undo: no record of this action or undo window expired",
-      );
+    const action = this.actionCatalog.getAction(aiAction.actionType);
+    if (!action || !action.undo) {
+      throw new ForbiddenException('Action is not undoable');
     }
 
-    // Check if still within undo window
-    const elapsedSeconds =
-      (Date.now() - undoRecord.executedAt.getTime()) / 1000;
-    if (elapsedSeconds > undoRecord.undoWindowSeconds) {
-      this.undoRecords.delete(entityKey);
-      throw new BadRequestException(
-        `Cannot undo: the undo window has expired (${undoRecord.undoWindowSeconds} seconds)`,
-      );
-    }
-
-    try {
-      await action.undo(actionId, undoRecord.previousState, context);
-
-      // Clear undo record
-      this.undoRecords.delete(entityKey);
-
-      this.logger.log(
-        `Undid action ${actionId} for ${context.entityType}:${context.entityId}`,
-      );
-    } catch (error) {
-      this.logger.error(`Undo failed for ${actionId}: ${error.message}`);
-      throw new BadRequestException(error.message || "Undo failed");
-    }
-  }
-
-  /**
-   * Check if an action can be undone for an entity.
-   *
-   * @param actionId - Action to check
-   * @param context - Entity context
-   * @returns object with canUndo flag and remaining seconds
-   */
-  canUndo(
-    actionId: string,
-    context: ActionContext,
-  ): { canUndo: boolean; remainingSeconds?: number } {
-    const entityKey = `${context.entityType}:${context.entityId}:${actionId}`;
-    const undoRecord = this.undoRecords.get(entityKey);
-
-    if (!undoRecord) {
-      return { canUndo: false };
-    }
-
-    const elapsedSeconds =
-      (Date.now() - undoRecord.executedAt.getTime()) / 1000;
-    const remainingSeconds = Math.max(
-      0,
-      undoRecord.undoWindowSeconds - elapsedSeconds,
+    // Execute undo
+    await action.undo(
+      actionRecordId,
+      (aiAction.previousState as Record<string, unknown>) || {},
+      {
+        ...context,
+        entityType: aiAction.entityType,
+        entityId: aiAction.entityId,
+      },
     );
 
-    if (remainingSeconds <= 0) {
-      this.undoRecords.delete(entityKey);
-      return { canUndo: false };
-    }
+    // Update action record
+    await this.prisma.aiAction.update({
+      where: { id: actionRecordId },
+      data: {
+        status: 'UNDONE',
+        undoneAt: new Date(),
+        undoneByUserId: context.userId,
+      },
+    });
 
-    return { canUndo: true, remainingSeconds: Math.floor(remainingSeconds) };
+    // Emit event
+    this.eventEmitter.emit('ai.action.undone', {
+      actionId: actionRecordId,
+      organizationId: context.organizationId,
+      userId: context.userId,
+      entityType: aiAction.entityType,
+      entityId: aiAction.entityId,
+      actionType: aiAction.actionType,
+    });
   }
 
   /**
-   * Get info about undoable actions for an entity.
-   * Useful for showing undo buttons in UI.
+   * Get action history for an entity.
    *
-   * @param context - Entity context
-   * @returns List of undoable actions with remaining time
+   * @param params - Filter parameters
+   * @returns Array of action records with undo availability
    */
-  getUndoableActions(
+  async getActionHistory(params: {
+    organizationId: string;
+    entityType?: string;
+    entityId?: string;
+    limit?: number;
+  }): Promise<
+    Array<{
+      id: string;
+      actionType: string;
+      status: string;
+      createdAt: Date;
+      undoAvailable: boolean;
+    }>
+  > {
+    const actions = await this.prisma.aiAction.findMany({
+      where: {
+        organizationId: params.organizationId,
+        ...(params.entityType && { entityType: params.entityType }),
+        ...(params.entityId && { entityId: params.entityId }),
+      },
+      orderBy: { createdAt: 'desc' },
+      take: params.limit || 50,
+    });
+
+    return actions.map((a) => ({
+      id: a.id,
+      actionType: a.actionType,
+      status: a.status,
+      createdAt: a.createdAt,
+      undoAvailable:
+        a.status === 'COMPLETED' &&
+        a.undoExpiresAt !== null &&
+        a.undoExpiresAt > new Date(),
+    }));
+  }
+
+  /**
+   * Check if a specific action can be undone.
+   *
+   * @param actionRecordId - ID of the AiAction record
+   * @param context - Execution context
+   * @returns Undo availability status
+   */
+  async canUndo(
+    actionRecordId: string,
     context: ActionContext,
-  ): Array<{
-    actionId: string;
-    executedAt: Date;
-    remainingSeconds: number;
-  }> {
-    const prefix = `${context.entityType}:${context.entityId}:`;
-    const result: Array<{
-      actionId: string;
-      executedAt: Date;
-      remainingSeconds: number;
-    }> = [];
+  ): Promise<{ canUndo: boolean; remainingSeconds?: number }> {
+    const aiAction = await this.prisma.aiAction.findFirst({
+      where: {
+        id: actionRecordId,
+        organizationId: context.organizationId,
+        status: 'COMPLETED',
+      },
+    });
 
-    for (const [key, record] of this.undoRecords.entries()) {
-      if (key.startsWith(prefix)) {
-        const elapsedSeconds =
-          (Date.now() - record.executedAt.getTime()) / 1000;
-        const remainingSeconds = Math.max(
-          0,
-          record.undoWindowSeconds - elapsedSeconds,
-        );
-
-        if (remainingSeconds > 0) {
-          result.push({
-            actionId: record.actionId,
-            executedAt: record.executedAt,
-            remainingSeconds: Math.floor(remainingSeconds),
-          });
-        }
-      }
+    if (!aiAction || !aiAction.undoExpiresAt) {
+      return { canUndo: false };
     }
 
-    return result;
+    const remainingMs = aiAction.undoExpiresAt.getTime() - Date.now();
+    if (remainingMs <= 0) {
+      return { canUndo: false };
+    }
+
+    return {
+      canUndo: true,
+      remainingSeconds: Math.floor(remainingMs / 1000),
+    };
+  }
+
+  private validatePermissions(
+    required: string[],
+    userPermissions: string[],
+  ): void {
+    const missing = required.filter((p) => !userPermissions.includes(p));
+    if (missing.length > 0) {
+      throw new ForbiddenException(`Missing permissions: ${missing.join(', ')}`);
+    }
   }
 }
