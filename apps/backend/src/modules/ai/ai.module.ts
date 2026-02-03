@@ -7,6 +7,7 @@ import { ConversationService } from "./services/conversation.service";
 import { ContextLoaderService } from "./services/context-loader.service";
 import { ProviderRegistryService } from "./services/provider-registry.service";
 import { PromptService } from "./services/prompt.service";
+import { AiRateLimiterService } from "./services/rate-limiter.service";
 import { ClaudeProvider } from "./providers/claude.provider";
 
 @Module({
@@ -24,6 +25,7 @@ import { ClaudeProvider } from "./providers/claude.provider";
     ConversationService,
     ContextLoaderService,
     PromptService,
+    AiRateLimiterService,
   ],
   exports: [
     AiClientService,
@@ -31,6 +33,7 @@ import { ClaudeProvider } from "./providers/claude.provider";
     ContextLoaderService,
     ProviderRegistryService,
     PromptService,
+    AiRateLimiterService,
     ClaudeProvider,
   ],
 })

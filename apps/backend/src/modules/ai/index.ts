@@ -4,6 +4,7 @@ export * from "./services/conversation.service";
 export * from "./services/context-loader.service";
 export * from "./services/provider-registry.service";
 export * from "./services/prompt.service";
+export * from "./services/rate-limiter.service";
 export * from "./providers";
 export * from "./interfaces";
 export * from "./dto";
