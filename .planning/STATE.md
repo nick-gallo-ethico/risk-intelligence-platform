@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 5 of 11 (AI Infrastructure) - In progress
-Plan: 7 of 11 in current phase
+Plan: 8 of 11 in current phase
 Status: Executing Wave 2
-Last activity: 2026-02-03 - Completed 05-03-PLAN.md (Per-Tenant AI Rate Limiting)
+Last activity: 2026-02-03 - Completed 05-04-PLAN.md (Prompt Template Management)
 
-Progress: [==========================================] 47% (49 of ~106 total plans)
+Progress: [==========================================] 47% (50 of ~106 total plans)
 
 ## Performance Metrics
 
@@ -33,8 +33,8 @@ Progress: [==========================================] 47% (49 of ~106 total pla
 | 04-core-entities | 10 | 112 min | 11 min |
 
 **Recent Trend:**
-- Last 5 plans: 05-03 (12 min), 05-06 (14 min), 05-02 (8 min), 05-05 (12 min), 05-01 (9 min)
-- Trend: Phase 5 AI Infrastructure progressing. Rate limiting complete.
+- Last 5 plans: 05-04 (18 min), 05-03 (12 min), 05-06 (14 min), 05-02 (8 min), 05-05 (12 min)
+- Trend: Phase 5 AI Infrastructure progressing. Prompt templating complete.
 
 *Updated after each plan completion*
 
@@ -226,6 +226,10 @@ Recent decisions affecting current work:
 - 05-03: Per-organization rate limit configuration with 1-minute cache
 - 05-03: 25-hour daily counter expiry for timezone edge cases
 - 05-03: AiUsage model for billing analytics with feature-type breakdown
+- 05-04: Templates loaded from filesystem, database overrides for organizations
+- 05-04: Register all templates as Handlebars partials for composition
+- 05-04: Versioned templates with isActive flag for A/B testing and rollback
+- 05-04: Handlebars helpers: eq, neq, gt, lt, and, or, json, formatDate, etc.
 
 ### Pending Todos
 
@@ -239,6 +243,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-03T19:45:09Z
-Stopped at: Completed 05-03-PLAN.md (Per-Tenant AI Rate Limiting)
+Last session: 2026-02-03T19:46:31Z
+Stopped at: Completed 05-04-PLAN.md (Prompt Template Management)
 Resume file: None
