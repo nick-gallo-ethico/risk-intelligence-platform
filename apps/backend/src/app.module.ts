@@ -32,6 +32,8 @@ import { RemediationModule } from "./modules/remediation/remediation.module";
 import { MessagingModule } from "./modules/messaging/messaging.module";
 import { ActivityTimelineModule } from "./modules/activity/activity.module";
 import { NotificationsModule } from "./modules/notifications/notifications.module";
+import { BrandingModule } from "./modules/branding/branding.module";
+import { PortalsModule } from "./modules/portals/portals.module";
 import { ActivityModule } from "./common/activity.module";
 import { StorageModule } from "./common/storage.module";
 import { TenantMiddleware } from "./common/middleware/tenant.middleware";
@@ -95,6 +97,8 @@ import configuration from "./config/configuration";
     MessagingModule, // Two-way anonymous messaging with PII detection
     ActivityTimelineModule, // Activity timeline aggregation from audit logs
     NotificationsModule, // Email and in-app notifications with preferences and digest
+    BrandingModule, // White-label branding configuration and CSS generation (Phase 8)
+    PortalsModule, // Employee and Operator portal services (Phase 8)
     HealthModule,
   ],
   controllers: [],
