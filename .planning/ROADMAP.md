@@ -17,8 +17,8 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 3: Authentication & SSO** - Multi-provider SSO, domain verification, MFA
 - [x] **Phase 4: Core Entities** - Person, RIU, Case, Campaign, Associations (HubSpot pattern)
 - [x] **Phase 5: AI Infrastructure** - Claude API integration, context hierarchy, skills registry, agents
-- [ ] **Phase 6: Case Management** - Investigation workflows, templates, subjects, anonymous communication
-- [ ] **Phase 7: Notifications & Email** - Event-driven notifications, templates, user preferences
+- [x] **Phase 6: Case Management** - Investigation workflows, templates, subjects, anonymous communication
+- [x] **Phase 7: Notifications & Email** - Event-driven notifications, templates, user preferences
 - [ ] **Phase 8: Portals** - Ethics (anonymous), Employee (self-service), Operator Console
 - [ ] **Phase 9: Campaigns & Disclosures** - COI, gifts, outside employment, attestations
 - [ ] **Phase 10: Policy Management** - Documents, versioning, approval workflows, AI translation
@@ -185,14 +185,14 @@ Plans:
 **Plans**: 8 plans in 4 waves
 
 Plans:
-- [ ] 07-01-PLAN.md (Wave 1) - Database schema: Notification, NotificationPreference, NotificationDelivery, OrgNotificationSettings models
-- [ ] 07-02-PLAN.md (Wave 1) - Email template service with MJML and Handlebars integration
-- [ ] 07-03-PLAN.md (Wave 2) - Notification preference service with 5-min cache and org enforcement
-- [ ] 07-04-PLAN.md (Wave 2) - NotificationService core and event listeners (case, SLA, workflow)
-- [ ] 07-05-PLAN.md (Wave 3) - In-app notification WebSocket gateway with tenant-isolated rooms
-- [ ] 07-06-PLAN.md (Wave 3) - Daily digest service with smart aggregation and scheduling
-- [ ] 07-07-PLAN.md (Wave 3) - Delivery tracking service and email processor (replaces Phase 1 placeholder)
-- [ ] 07-08-PLAN.md (Wave 4) - REST API controllers for notifications and preferences
+- [x] 07-01-PLAN.md (Wave 1) - Database schema: Notification, NotificationPreference, NotificationDelivery, OrgNotificationSettings models
+- [x] 07-02-PLAN.md (Wave 1) - Email template service with MJML and Handlebars integration
+- [x] 07-03-PLAN.md (Wave 2) - Notification preference service with 5-min cache and org enforcement
+- [x] 07-04-PLAN.md (Wave 2) - NotificationService core and event listeners (case, SLA, workflow)
+- [x] 07-05-PLAN.md (Wave 3) - In-app notification WebSocket gateway with tenant-isolated rooms
+- [x] 07-06-PLAN.md (Wave 3) - Daily digest service with smart aggregation and scheduling
+- [x] 07-07-PLAN.md (Wave 3) - Delivery tracking service and email processor (replaces Phase 1 placeholder)
+- [x] 07-08-PLAN.md (Wave 4) - REST API controllers for notifications and preferences
 
 ### Phase 8: Portals
 **Goal**: Launch the three user-facing portals - Ethics Portal (anonymous reporting), Employee Portal (self-service), and Operator Console (hotline intake with AI assistance).
@@ -204,51 +204,57 @@ Plans:
   3. Employees can log in via SSO and see their reports, disclosures, attestations, and tasks
   4. Managers can submit proxy reports on behalf of employees
   5. Operators can load client profiles by phone number and create RIUs with AI-assisted note cleanup
-**Plans**: TBD
+**Plans**: 17 plans in 7 waves
 
 Plans:
-- [ ] 08-01: Anonymous report submission endpoint and UI
-- [ ] 08-02: Access code generation and validation
-- [ ] 08-03: Anonymous status checker and messaging
-- [ ] 08-04: White-label branding configuration
-- [ ] 08-05: PWA manifest and service worker
-- [ ] 08-06: Multi-language support for Ethics Portal
-- [ ] 08-07: Employee Portal SSO login with tenant routing
-- [ ] 08-08: My reports view
-- [ ] 08-09: My disclosures view
-- [ ] 08-10: My attestations view
-- [ ] 08-11: My tasks view
-- [ ] 08-12: Manager proxy reporting UI
-- [ ] 08-13: Operator phone-to-client lookup
-- [ ] 08-14: Hotline intake form
-- [ ] 08-15: Directives system (opening/closing statements)
-- [ ] 08-16: Category-specific question triggering
-- [ ] 08-17: Subject search (HRIS lookup + manual)
-- [ ] 08-18: QA review queue and workflow
-- [ ] 08-19: Follow-up handling via access code
+- [ ] 08-01-PLAN.md (Wave 1) - White-label branding service with CSS custom properties
+- [ ] 08-02-PLAN.md (Wave 1) - Directives service for client-specific operator scripts
+- [ ] 08-03-PLAN.md (Wave 1) - Client profile service with phone lookup and QA config
+- [ ] 08-04-PLAN.md (Wave 1) - Employee tasks aggregation service
+- [ ] 08-05-PLAN.md (Wave 2) - Ethics Portal API endpoints for public report submission
+- [ ] 08-06-PLAN.md (Wave 2) - Employee Portal history views and manager proxy
+- [ ] 08-07-PLAN.md (Wave 2) - Operator Console intake and QA queue APIs
+- [ ] 08-08-PLAN.md (Wave 3) - Ethics Portal PWA setup with offline storage and i18n
+- [ ] 08-09-PLAN.md (Wave 3) - Operator Console layout and client lookup UI
+- [ ] 08-10-PLAN.md (Wave 4) - Anonymous report submission UI
+- [ ] 08-11-PLAN.md (Wave 4) - Status check and messaging UI
+- [ ] 08-12-PLAN.md (Wave 4) - White-label theming integration and home page
+- [ ] 08-13-PLAN.md (Wave 5) - Employee dashboard with role-aware tabs
+- [ ] 08-14-PLAN.md (Wave 5) - Manager proxy reporting UI
+- [ ] 08-15-PLAN.md (Wave 6) - Hotline intake form with AI note cleanup
+- [ ] 08-16-PLAN.md (Wave 6) - QA queue and review UI
+- [ ] 08-17-PLAN.md (Wave 7) - Final integration and verification checkpoint
 
 ### Phase 9: Campaigns & Disclosures
 **Goal**: Enable outbound compliance campaigns - COI disclosures, gift tracking, outside employment, attestations - with threshold-based auto-case creation and conflict detection.
 **Depends on**: Phase 4 (needs Campaign entity), Phase 7 (needs notifications for reminders), Phase 8 (needs Employee Portal for submission)
-**Requirements**: DISC-01, DISC-02, DISC-03, DISC-04, DISC-05, DISC-06, DISC-07
+**Requirements**: RS.22-RS.60 (Disclosure Forms, Thresholds, Conflicts, Campaign Engine, AI Triage)
 **Success Criteria** (what must be TRUE):
   1. Compliance officers can create campaigns targeting employees by business unit, location, or role
   2. Employees receive campaign assignments and can complete disclosure forms
   3. Gift disclosures exceeding configured thresholds automatically create Cases for review
   4. Conflict detection flags potential issues across a person's disclosure history
   5. Campaign dashboards show completion rates, overdue counts, and send reminders
-**Plans**: TBD
+**Plans**: 17 plans in 5 waves
 
 Plans:
-- [ ] 09-01: COI disclosure form template
-- [ ] 09-02: Gifts & entertainment tracking form
-- [ ] 09-03: Outside employment disclosure form
-- [ ] 09-04: Threshold configuration and auto-case rules
-- [ ] 09-05: Conflict detection service
-- [ ] 09-06: Approval workflow for flagged disclosures
-- [ ] 09-07: Disclosure history per Person
-- [ ] 09-08: Campaign builder UI enhancements
-- [ ] 09-09: Campaign dashboard with completion tracking
+- [ ] 09-01-PLAN.md (Wave 1) - Disclosure form schema engine (Prisma models, field types, DTOs)
+- [ ] 09-02-PLAN.md (Wave 2) - Form template CRUD service with version-on-publish
+- [ ] 09-03-PLAN.md (Wave 1) - Threshold configuration engine with json-rules-engine
+- [ ] 09-04-PLAN.md (Wave 1) - Conflict detection service with fuzzy matching
+- [ ] 09-05-PLAN.md (Wave 2) - Conflict surfacing and dismissal API
+- [ ] 09-06-PLAN.md (Wave 2) - Disclosure submission service orchestrating all services
+- [ ] 09-07-PLAN.md (Wave 1) - Campaign targeting service (mom-test UX)
+- [ ] 09-08-PLAN.md (Wave 1) - Campaign scheduling with waves and blackouts
+- [ ] 09-09-PLAN.md (Wave 2) - Reminder sequence engine with repeat non-responder tracking
+- [ ] 09-10-PLAN.md (Wave 2) - Campaign translation service with stale detection
+- [ ] 09-11-PLAN.md (Wave 3) - AI triage service with preview-then-execute safeguard
+- [ ] 09-12-PLAN.md (Wave 3) - User-created tables feature
+- [ ] 09-13-PLAN.md (Wave 2) - Campaign enhanced controller and dashboard service
+- [ ] 09-14-PLAN.md (Wave 4) - Form builder UI with drag-drop sections
+- [ ] 09-15-PLAN.md (Wave 4) - Campaign builder UI with segment builder
+- [ ] 09-16-PLAN.md (Wave 4) - Disclosure submission UI with auto-save
+- [ ] 09-17-PLAN.md (Wave 5) - Conflict review UI with entity timeline
 
 ### Phase 10: Policy Management
 **Goal**: Complete policy lifecycle - document management with versioning, approval workflows, attestation campaigns, and AI-powered translation.
@@ -320,10 +326,10 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 | 3. Authentication & SSO | 8/8 | Complete | 2026-02-03 |
 | 4. Core Entities | 10/10 | Complete | 2026-02-03 |
 | 5. AI Infrastructure | 11/11 | Complete | 2026-02-03 |
-| 6. Case Management | 0/17 | Planned | - |
-| 7. Notifications & Email | 0/8 | Planned | - |
-| 8. Portals | 0/19 | Not started | - |
-| 9. Campaigns & Disclosures | 0/9 | Not started | - |
+| 6. Case Management | 11/17 | Complete | 2026-02-04 |
+| 7. Notifications & Email | 8/8 | Complete | 2026-02-04 |
+| 8. Portals | 0/17 | Planned | - |
+| 9. Campaigns & Disclosures | 0/17 | Planned | - |
 | 10. Policy Management | 0/10 | Not started | - |
 | 11. Analytics & Reporting | 0/20 | Not started | - |
 
@@ -331,5 +337,5 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 *Roadmap created: 2026-02-02*
 *Depth: Comprehensive (8-12 phases)*
 *Total phases: 11*
-*Total plans: 126 (estimated)*
+*Total plans: 134 (estimated)*
 *Total v1 requirements: 149*
