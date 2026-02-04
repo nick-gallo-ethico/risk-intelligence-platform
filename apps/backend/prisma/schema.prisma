@@ -95,6 +95,7 @@ model Organization {
   notifications            Notification[]
   notificationPreferences  NotificationPreference[]
   orgNotificationSettings  OrgNotificationSettings?
+  emailTemplates           EmailTemplate[]
 
   @@index([slug])
   @@index([isActive])
@@ -3983,6 +3984,29 @@ model OrgNotificationSettings {
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@map("org_notification_settings")
+}
+
+/// EmailTemplate stores versioned MJML email templates.
+/// Allows organization-specific overrides with version history.
+model EmailTemplate {
+  id             String  @id @default(uuid())
+  organizationId String  @map("organization_id")
+  name           String // e.g., 'assignment/case-assigned', 'deadline/sla-warning'
+  version        Int     @default(1)
+  mjmlContent    String  @map("mjml_content") @db.Text // MJML template content
+  subjectTemplate String @map("subject_template") // Handlebars subject line template
+  description    String?
+  isActive       Boolean @default(true) @map("is_active")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, name, version])
+  @@index([organizationId, name, isActive])
+  @@index([name, isActive])
+  @@map("email_templates")
 }
 
 // ===========================================
