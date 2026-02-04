@@ -18,8 +18,6 @@
  * - SlaEventListener (07-04): Handles sla.warning, sla.breached, sla.critical events
  * - WorkflowEventListener (07-04): Handles workflow step and approval events
  *
- * Remaining services to be added:
- * - WebhookController (07-07): Email provider webhooks
  */
 
 import { Module } from '@nestjs/common';
@@ -43,6 +41,9 @@ import { DeliveryTrackerService } from './services/delivery-tracker.service';
 
 // Gateway (07-05)
 import { NotificationGateway } from './gateways/notification.gateway';
+
+// Controllers
+import { WebhookController } from './controllers/webhook.controller';
 
 // Event listeners
 import { CaseEventListener } from './listeners/case.listener';
@@ -98,8 +99,9 @@ import { WorkflowEventListener } from './listeners/workflow.listener';
     WorkflowEventListener,
   ],
   controllers: [
+    // Webhook controller for email provider callbacks (07-07)
+    WebhookController,
     // Controllers to be added in subsequent plans:
-    // - WebhookController (07-07): Email provider webhooks
     // - NotificationController (07-08)
     // - PreferenceController (07-08)
   ],
@@ -122,6 +124,9 @@ import { WorkflowEventListener } from './listeners/workflow.listener';
 
     // Delivery tracking
     DeliveryTrackerService,
+
+    // MailerModule for EmailProcessor in JobsModule
+    MailerModule,
   ],
 })
 export class NotificationsModule {}
