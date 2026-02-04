@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-02)
 
 **Core value:** Users can manage their entire compliance workflow - from anonymous report intake to investigation closure to board reporting - in one AI-assisted platform, with every task unified into a single "My Work" view.
-**Current focus:** Phase 7 - Notifications & Email
+**Current focus:** Phase 8 - Portals
 
 ## Current Position
 
-Phase: 7 of 11 (Notifications & Email) - IN PROGRESS
-Plan: 7 of 8 in current phase
-Status: In progress
-Last activity: 2026-02-04 - Completed 07-07-PLAN.md (Email Delivery & Tracking)
+Phase: 7 of 11 (Notifications & Email) - COMPLETE
+Plan: 8 of 8 in current phase
+Status: Phase complete
+Last activity: 2026-02-04 - Completed 07-08-PLAN.md (API Controllers)
 
-Progress: [==================================================] 52% (65 of ~125 total plans)
+Progress: [==================================================] 53% (66 of ~125 total plans)
 
 ## Performance Metrics
 
@@ -33,11 +33,11 @@ Progress: [==================================================] 52% (65 of ~125 t
 | 04-core-entities | 10 | 112 min | 11 min |
 | 05-ai-infrastructure | 11 | 143 min | 13 min |
 | 06-case-management | 11 | ~211 min | ~19 min |
-| 07-notifications-email | 7 | ~106 min | ~15 min |
+| 07-notifications-email | 8 | ~112 min | ~14 min |
 
 **Recent Trend:**
-- Last 5 plans: 07-07 (23 min), 07-06 (19 min), 07-05 (17 min), 06-15 (11 min), 07-04 (12 min)
-- Trend: Email delivery and tracking complete. Phase 7 final plan remaining.
+- Last 5 plans: 07-08 (6 min), 07-07 (23 min), 07-06 (19 min), 07-05 (17 min), 07-04 (12 min)
+- Trend: Phase 7 complete. Ready for Phase 8 (Portals).
 
 *Updated after each plan completion*
 
@@ -341,6 +341,9 @@ Recent decisions affecting current work:
 - 07-07: Optional signature verification for webhooks (security without breaking dev)
 - 07-07: recordPermanentFailure() logs to AuditLog with NOTIFICATION entity type
 - 07-07: EmailProcessor uses forwardRef for circular dependency with DeliveryTrackerService
+- 07-08: Preferences response includes enforcedCategories from org settings for UI display
+- 07-08: Effective quiet hours computed from user prefs + org defaults
+- 07-08: Org settings update requires SYSTEM_ADMIN role via RolesGuard
 
 ### Pending Todos
 
@@ -357,6 +360,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-02-04T01:44:00Z
-Stopped at: Completed 07-07-PLAN.md (Email Delivery & Tracking)
+Last session: 2026-02-04T01:55:00Z
+Stopped at: Completed 07-08-PLAN.md (API Controllers) - Phase 7 COMPLETE
 Resume file: None
