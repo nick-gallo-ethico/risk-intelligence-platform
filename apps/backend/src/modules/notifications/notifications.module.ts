@@ -9,6 +9,9 @@
  * - PreferenceService (07-03): User notification preferences with caching
  * - OrgNotificationSettingsService (07-03): Org-level notification config
  * - NotificationService (07-04): Core notification dispatch
+ * - NotificationGateway (07-05): WebSocket gateway for real-time in-app notifications
+ * - DigestService (07-06): Daily digest compilation and scheduling
+ * - DeliveryTrackerService (07-07): Email delivery status tracking
  *
  * Listeners:
  * - CaseEventListener (07-04): Handles case.assigned, case.status_changed events
@@ -16,22 +19,30 @@
  * - WorkflowEventListener (07-04): Handles workflow step and approval events
  *
  * Remaining services to be added:
- * - InAppNotificationService (07-05)
- * - DigestService (07-06)
- * - DeliveryTrackerService (07-07)
+ * - WebhookController (07-07): Email provider webhooks
  */
 
 import { Module } from '@nestjs/common';
 import { CacheModule } from '@nestjs/cache-manager';
 import { BullModule } from '@nestjs/bullmq';
+import { ScheduleModule } from '@nestjs/schedule';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+import { MailerModule } from '@nestjs-modules/mailer';
 import { PrismaModule } from '../prisma/prisma.module';
+import { AuthModule } from '../auth/auth.module';
 import { EMAIL_QUEUE_NAME } from '../jobs/queues/email.queue';
+import { mailerConfig } from './mailer.config';
 
 // Services
 import { EmailTemplateService } from './services/email-template.service';
 import { PreferenceService } from './services/preference.service';
 import { OrgNotificationSettingsService } from './services/org-settings.service';
 import { NotificationService } from './services/notification.service';
+import { DigestService } from './services/digest.service';
+import { DeliveryTrackerService } from './services/delivery-tracker.service';
+
+// Gateway (07-05)
+import { NotificationGateway } from './gateways/notification.gateway';
 
 // Event listeners
 import { CaseEventListener } from './listeners/case.listener';
@@ -41,6 +52,11 @@ import { WorkflowEventListener } from './listeners/workflow.listener';
 @Module({
   imports: [
     PrismaModule,
+    ConfigModule,
+    // AuthModule for JwtService (WebSocket authentication)
+    AuthModule,
+    // ScheduleModule for digest cron scheduling (07-06)
+    ScheduleModule.forRoot(),
     // Cache module for preference caching (5-minute TTL default)
     CacheModule.register({
       ttl: 5 * 60 * 1000, // 5 minutes in milliseconds
@@ -48,6 +64,12 @@ import { WorkflowEventListener } from './listeners/workflow.listener';
     // Register email queue for notification delivery
     BullModule.registerQueue({
       name: EMAIL_QUEUE_NAME,
+    }),
+    // MailerModule for SMTP email delivery (07-07)
+    MailerModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: mailerConfig,
     }),
   ],
   providers: [
@@ -61,18 +83,23 @@ import { WorkflowEventListener } from './listeners/workflow.listener';
     // Core notification dispatch (07-04)
     NotificationService,
 
+    // WebSocket gateway for real-time in-app notifications (07-05)
+    NotificationGateway,
+
+    // Daily digest compilation and scheduling (07-06)
+    DigestService,
+
+    // Delivery tracking (07-07)
+    DeliveryTrackerService,
+
     // Event listeners (07-04)
     CaseEventListener,
     SlaEventListener,
     WorkflowEventListener,
-
-    // Services to be added in subsequent plans:
-    // - InAppNotificationService (07-05): Real-time in-app notifications via WebSocket
-    // - DigestService (07-06): Daily digest compilation and scheduling
-    // - DeliveryTrackerService (07-07): Email delivery status tracking
   ],
   controllers: [
-    // Controllers will be added in subsequent plans:
+    // Controllers to be added in subsequent plans:
+    // - WebhookController (07-07): Email provider webhooks
     // - NotificationController (07-08)
     // - PreferenceController (07-08)
   ],
@@ -86,6 +113,15 @@ import { WorkflowEventListener } from './listeners/workflow.listener';
 
     // Core notification dispatch
     NotificationService,
+
+    // WebSocket gateway (for other modules to check connection status)
+    NotificationGateway,
+
+    // Daily digest
+    DigestService,
+
+    // Delivery tracking
+    DeliveryTrackerService,
   ],
 })
 export class NotificationsModule {}
