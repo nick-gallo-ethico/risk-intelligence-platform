@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 8 of 11 (Portals)
-Plan: 7 of 17 in current phase
+Plan: 8 of 17 in current phase
 Status: In progress
-Last activity: 2026-02-04 - Completed 08-07-PLAN.md (Hotline Intake & QA Queue)
+Last activity: 2026-02-04 - Completed 08-08-PLAN.md (Ethics Portal PWA & Offline Infrastructure)
 
-Progress: [====================================================] 58% (73 of ~125 total plans)
+Progress: [======================================================] 59% (74 of ~125 total plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 72
+- Total plans completed: 74
 - Average duration: 15 min
-- Total execution time: 18.5 hours
+- Total execution time: 18.7 hours
 
 **By Phase:**
 
@@ -34,11 +34,11 @@ Progress: [====================================================] 58% (73 of ~125
 | 05-ai-infrastructure | 11 | 143 min | 13 min |
 | 06-case-management | 11 | ~211 min | ~19 min |
 | 07-notifications-email | 8 | ~112 min | ~14 min |
-| 08-portals | 7 | 83 min | 12 min |
+| 08-portals | 8 | 92 min | 12 min |
 
 **Recent Trend:**
-- Last 5 plans: 08-07 (17 min), 08-06 (16 min), 08-05 (14 min), 08-04 (14 min), 08-03 (13 min)
-- Trend: Phase 8 progressing well. Intake and QA queue complete.
+- Last 5 plans: 08-08 (9 min), 08-07 (17 min), 08-06 (16 min), 08-05 (14 min), 08-04 (14 min)
+- Trend: Phase 8 progressing well. Ethics Portal PWA infrastructure in place.
 
 *Updated after each plan completion*
 
@@ -378,6 +378,11 @@ Recent decisions affecting current work:
 - 08-07: Follow-up call notes stored as Interaction records (not InvestigationNote)
 - 08-07: qaClaimedAt returns null (schema lacks field; use qaReviewerId presence)
 - 08-07: QA queue sorts by severity DESC (HIGH first), then createdAt ASC (oldest first)
+- 08-08: @ducanh2912/next-pwa with Workbox for service worker generation (maintained App Router fork)
+- 08-08: Device-specific XOR encryption for IndexedDB drafts (casual protection, true security via server)
+- 08-08: react-i18next with namespace-based lazy loading for efficient translation delivery
+- 08-08: 8 supported languages including RTL (Arabic, Hebrew) with document.dir updates
+- 08-08: Auto-save debounce at 1 second, draft expiration at 7 days
 
 ### Pending Todos
 
@@ -394,6 +399,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-02-04T05:55:50Z
-Stopped at: Completed 08-07-PLAN.md (Hotline Intake & QA Queue)
+Last session: 2026-02-04T06:13:00Z
+Stopped at: Completed 08-08-PLAN.md (Ethics Portal PWA & Offline Infrastructure)
 Resume file: None
