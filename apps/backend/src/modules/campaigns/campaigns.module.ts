@@ -5,6 +5,7 @@ import { CampaignsController } from "./campaigns.controller";
 import { SegmentService } from "./targeting/segment.service";
 import { SegmentQueryBuilder } from "./targeting/segment-query.builder";
 import { CampaignAssignmentService } from "./assignments/campaign-assignment.service";
+import { CampaignTargetingService } from "./campaign-targeting.service";
 
 /**
  * CampaignsModule provides outbound compliance request functionality.
@@ -30,12 +31,14 @@ import { CampaignAssignmentService } from "./assignments/campaign-assignment.ser
     SegmentService,
     SegmentQueryBuilder,
     CampaignAssignmentService,
+    CampaignTargetingService,
   ],
   exports: [
     CampaignsService,
     SegmentService,
     SegmentQueryBuilder,
     CampaignAssignmentService,
+    CampaignTargetingService,
   ],
 })
 export class CampaignsModule {}

@@ -1,6 +1,7 @@
 export * from "./campaigns.module";
 export * from "./campaigns.service";
 export * from "./campaigns.controller";
+export * from "./campaign-targeting.service";
 export * from "./dto";
 export * from "./targeting";
 export * from "./assignments";
