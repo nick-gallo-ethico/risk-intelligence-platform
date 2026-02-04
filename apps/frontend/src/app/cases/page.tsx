@@ -4,7 +4,8 @@ import { useEffect, useState, useCallback, Suspense } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/auth-context';
 import { casesApi } from '@/lib/cases-api';
-import { useCaseFilters } from '@/hooks/use-case-filters';
+import { useCaseFilters, filtersToViewData } from '@/hooks/use-case-filters';
+import { useSavedViews } from '@/hooks/use-saved-views';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -19,6 +20,7 @@ import {
 import { CaseListFilters } from '@/components/cases/case-list-filters';
 import { FilterChips } from '@/components/cases/filter-chips';
 import { Pagination } from '@/components/cases/pagination';
+import { SavedViewSelector } from '@/components/common/saved-view-selector';
 import type { Case, CaseStatus, Severity, CaseQueryParams } from '@/types/case';
 
 const STATUS_COLORS: Record<CaseStatus, string> = {
@@ -37,8 +39,25 @@ const SEVERITY_COLORS: Record<Severity, string> = {
 function CasesContent() {
   const router = useRouter();
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
-  const { filters, updateFilters, clearAllFilters, clearFilter, hasActiveFilters } =
-    useCaseFilters();
+  const {
+    filters,
+    updateFilters,
+    clearAllFilters,
+    clearFilter,
+    hasActiveFilters,
+    applyFiltersFromView,
+  } = useCaseFilters();
+
+  // Saved views integration - auto-apply default view disabled since we manage filters via URL
+  const {
+    views,
+    loading: viewsLoading,
+    activeView,
+    applyView,
+    saveCurrentView,
+    deleteView,
+    clearActiveView,
+  } = useSavedViews('CASES', { autoApplyDefault: false });
 
   const [cases, setCases] = useState<Case[]>([]);
   const [total, setTotal] = useState(0);
@@ -119,6 +138,45 @@ function CasesContent() {
     });
   };
 
+  /**
+   * Handler for applying a saved view.
+   * Fetches the view filters from API and applies them to the URL params.
+   */
+  const handleApplyView = useCallback(
+    async (viewId: string) => {
+      try {
+        const viewData = await applyView(viewId);
+        applyFiltersFromView(viewData);
+      } catch (error) {
+        console.error('Failed to apply view:', error);
+      }
+    },
+    [applyView, applyFiltersFromView]
+  );
+
+  /**
+   * Handler for saving current filters as a new view.
+   */
+  const handleSaveView = useCallback(
+    async (name: string, isShared: boolean, isPinned: boolean) => {
+      await saveCurrentView(name, filtersToViewData(filters), {
+        isShared,
+        isPinned,
+        sortBy: filters.sortBy,
+        sortOrder: filters.sortOrder,
+      });
+    },
+    [filters, saveCurrentView]
+  );
+
+  /**
+   * Handler for clearing the active view and all filters.
+   */
+  const handleClearView = useCallback(() => {
+    clearActiveView();
+    clearAllFilters();
+  }, [clearActiveView, clearAllFilters]);
+
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -177,7 +235,19 @@ function CasesContent() {
               Manage and track compliance cases
             </p>
           </div>
-          <Button onClick={() => router.push('/cases/new')}>+ New Case</Button>
+          <div className="flex items-center gap-3">
+            <SavedViewSelector
+              views={views}
+              activeView={activeView}
+              onApplyView={handleApplyView}
+              onSaveView={handleSaveView}
+              onDeleteView={deleteView}
+              onClearView={handleClearView}
+              hasActiveFilters={hasActiveFilters}
+              loading={viewsLoading}
+            />
+            <Button onClick={() => router.push('/cases/new')}>+ New Case</Button>
+          </div>
         </div>
 
         {/* Filters */}

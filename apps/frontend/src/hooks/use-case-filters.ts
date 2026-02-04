@@ -18,6 +18,39 @@ export interface CaseFilters {
   pageSize: number;
 }
 
+/**
+ * Converts CaseFilters to a plain object for saved views.
+ * Excludes pagination fields since those shouldn't be saved.
+ */
+export function filtersToViewData(filters: CaseFilters): Record<string, unknown> {
+  return {
+    statuses: filters.statuses,
+    severities: filters.severities,
+    sourceChannel: filters.sourceChannel,
+    caseType: filters.caseType,
+    dateFrom: filters.dateFrom,
+    dateTo: filters.dateTo,
+    search: filters.search,
+  };
+}
+
+/**
+ * Converts saved view filter data back to CaseFilters.
+ */
+export function viewDataToFilters(
+  data: Record<string, unknown>
+): Partial<CaseFilters> {
+  return {
+    statuses: (data.statuses as CaseStatus[]) || [],
+    severities: (data.severities as Severity[]) || [],
+    sourceChannel: (data.sourceChannel as SourceChannel | null) || null,
+    caseType: (data.caseType as CaseType | null) || null,
+    dateFrom: (data.dateFrom as string | null) || null,
+    dateTo: (data.dateTo as string | null) || null,
+    search: (data.search as string) || '',
+  };
+}
+
 const DEFAULT_FILTERS: CaseFilters = {
   statuses: [],
   severities: [],
@@ -218,6 +251,35 @@ export function useCaseFilters() {
     return count;
   }, [filters]);
 
+  /**
+   * Apply filters from a saved view response.
+   * Converts the view data to filter format and updates URL params.
+   */
+  const applyFiltersFromView = useCallback(
+    (viewData: {
+      filters: Record<string, unknown>;
+      sortBy?: string;
+      sortOrder?: string;
+    }) => {
+      const filterUpdates = viewDataToFilters(viewData.filters);
+      const updates: Partial<CaseFilters> = {
+        ...filterUpdates,
+        page: 0, // Reset to first page
+      };
+
+      // Apply sort if provided
+      if (viewData.sortBy) {
+        updates.sortBy = viewData.sortBy;
+      }
+      if (viewData.sortOrder === 'asc' || viewData.sortOrder === 'desc') {
+        updates.sortOrder = viewData.sortOrder;
+      }
+
+      updateFilters(updates);
+    },
+    [updateFilters]
+  );
+
   return {
     filters,
     updateFilters,
@@ -225,5 +287,6 @@ export function useCaseFilters() {
     clearFilter,
     hasActiveFilters,
     activeFilterCount,
+    applyFiltersFromView,
   };
 }
