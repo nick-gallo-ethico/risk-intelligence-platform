@@ -34,3 +34,11 @@ export type {
   NotifyParams,
   PaginatedNotifications,
 } from './notification.service';
+
+// Daily digest (07-06)
+export { DigestService } from './digest.service';
+export type {
+  QueueForDigestParams as DigestQueueParams,
+  GroupedDigestItem,
+  CompiledDigest,
+} from './digest.service';
