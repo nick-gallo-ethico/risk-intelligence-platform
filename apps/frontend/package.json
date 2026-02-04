@@ -43,6 +43,7 @@
     "react-day-picker": "^9.13.0",
     "react-dom": "^18.2.0",
     "react-hook-form": "^7.71.1",
+    "react-hotkeys-hook": "^5.2.4",
     "sonner": "^2.0.7",
     "tailwind-merge": "^2.2.0",
     "tailwindcss-animate": "^1.0.7",
