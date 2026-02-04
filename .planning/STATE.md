@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 9 of 11 (Campaigns & Disclosures)
-Plan: 04 of 18 in current phase
-Status: In progress
-Last activity: 2026-02-04 - Completed 09-04-PLAN.md (Conflict Detection)
+Plan: 08 of 17 in current phase (09-03, 09-04, 09-07, 09-08 complete)
+Status: Paused at stopping point
+Last activity: 2026-02-04 - Completed 08-15 (Hotline Intake Form)
 
-Progress: [==========================================================] 68% (85 of ~125 total plans)
+Progress: [==========================================================] 72% (90 of ~125 total plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 85
+- Total plans completed: 90
 - Average duration: 15 min
-- Total execution time: 22.1 hours
+- Total execution time: 23.5 hours
 
 **By Phase:**
 
@@ -34,11 +34,12 @@ Progress: [==========================================================] 68% (85 o
 | 05-ai-infrastructure | 11 | 143 min | 13 min |
 | 06-case-management | 11 | ~211 min | ~19 min |
 | 07-notifications-email | 8 | ~112 min | ~14 min |
-| 08-portals | 13 | 155 min | 12 min |
+| 08-portals | 18 | 241 min | 13 min |
+| 09-campaigns-disclosures | 4 | 78 min | 20 min |
 
 **Recent Trend:**
-- Last 5 plans: 09-04 (18 min), 09-03 (26 min), 08-13 (35 min), 09-08 (22 min), 08-14 (29 min)
-- Trend: Conflict detection with fuzzy matching for disclosure compliance review.
+- Last 5 plans: 08-15 (8 min), 09-08 (22 min), 09-07 (12 min), 09-04 (18 min), 09-03 (26 min)
+- Trend: Operator Console intake form with AI note cleanup and HRIS subject search.
 
 *Updated after each plan completion*
 
@@ -388,6 +389,9 @@ Recent decisions affecting current work:
 - 08-09: Split-screen layout: 60% left (intake form), 40% right (context tabs)
 - 08-09: DirectivesPanel groups by stage (opening, intake, category-specific, closing)
 - 08-09: Read-aloud directives styled distinctly with blue background and speaker icon
+- 08-15: Notes textarea always visible in intake form per CONTEXT.md HubSpot pattern
+- 08-15: AI cleanup placed below notes as non-intrusive post-call option
+- 08-15: "Subject Unknown" toggle for unidentified subjects during intake
 - 09-07: Three targeting modes: ALL (everyone), SIMPLE (checkboxes), ADVANCED (rules)
 - 09-07: includeSubordinates walks org hierarchy recursively (max 10 levels)
 - 09-07: buildCriteriaDescription() generates natural language summary for UI
@@ -412,6 +416,13 @@ Recent decisions affecting current work:
 - 09-04: Dismissal categories: FALSE_MATCH_DIFFERENT_ENTITY, FALSE_MATCH_NAME_COLLISION, ALREADY_REVIEWED, PRE_APPROVED_EXCEPTION, BELOW_THRESHOLD, OTHER
 - 09-04: Use DISCLOSURE entity type for audit logging (no CONFLICT_ALERT in AuditEntityType)
 - 09-04: Entity timeline aggregation combines disclosures, conflicts, and case subjects
+- 09-03: ThresholdRule model with conditions JSON, aggregateConfig JSON, action enum
+- 09-03: ThresholdAction enum: FLAG_REVIEW, CREATE_CASE, REQUIRE_APPROVAL, NOTIFY
+- 09-03: ThresholdApplyMode enum: FORWARD_ONLY, RETROACTIVE, RETROACTIVE_DATE
+- 09-03: json-rules-engine for rule evaluation with operator mapping (eq→equal, gte→greaterThanInclusive)
+- 09-03: Rolling window aggregates support days/months/years with SUM/COUNT/AVG/MAX functions
+- 09-03: ThresholdTriggerLog for audit trail of rule activations
+- 09-03: Event threshold.triggered emitted for downstream case creation
 
 ### Pending Todos
 
@@ -428,6 +439,21 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-02-04T06:43:00Z
-Stopped at: Completed 09-04-PLAN.md (Conflict Detection)
+Last session: 2026-02-04T07:49:00Z
+Stopped at: Completed 08-15-PLAN.md (Hotline Intake Form)
 Resume file: None
+
+**Phase 9 Remaining Plans:**
+- 09-01: Disclosure Form Schema Engine (Wave 1)
+- 09-02: Form Template CRUD Service (Wave 2)
+- 09-05: Conflict Surfacing & Dismissal API (Wave 2)
+- 09-06: Disclosure Submission Service (Wave 2)
+- 09-09: Reminder Sequence Engine (Wave 2)
+- 09-10: Campaign Translation Service (Wave 2)
+- 09-11: AI Triage with SchemaIntrospection (Wave 3)
+- 09-12: User-Created Tables Feature (Wave 3)
+- 09-13: Campaign Dashboard Service (Wave 2)
+- 09-14: Form Builder UI (Wave 4)
+- 09-15: Campaign Builder UI (Wave 4)
+- 09-16: Disclosure Submission UI (Wave 4)
+- 09-17: Conflict Review UI (Wave 5)
