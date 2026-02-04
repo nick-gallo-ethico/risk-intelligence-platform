@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 7 of 11 (Notifications & Email) - IN PROGRESS
-Plan: 5 of 8 in current phase
+Plan: 6 of 8 in current phase
 Status: In progress
-Last activity: 2026-02-04 - Completed 07-05-PLAN.md (WebSocket Notification Gateway)
+Last activity: 2026-02-04 - Completed 07-06-PLAN.md (Daily Digest Service)
 
-Progress: [==================================================] 50% (63 of ~125 total plans)
+Progress: [==================================================] 51% (64 of ~125 total plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 63
+- Total plans completed: 64
 - Average duration: 15 min
-- Total execution time: 16.4 hours
+- Total execution time: 16.7 hours
 
 **By Phase:**
 
@@ -33,11 +33,11 @@ Progress: [==================================================] 50% (63 of ~125 t
 | 04-core-entities | 10 | 112 min | 11 min |
 | 05-ai-infrastructure | 11 | 143 min | 13 min |
 | 06-case-management | 11 | ~211 min | ~19 min |
-| 07-notifications-email | 5 | ~64 min | ~13 min |
+| 07-notifications-email | 6 | ~83 min | ~14 min |
 
 **Recent Trend:**
-- Last 5 plans: 07-05 (17 min), 06-15 (11 min), 07-04 (12 min), 06-13 (23 min), 06-14 (27 min)
-- Trend: WebSocket gateway for real-time notifications. Phase 7 progressing well.
+- Last 5 plans: 07-06 (19 min), 07-05 (17 min), 06-15 (11 min), 07-04 (12 min), 06-13 (23 min)
+- Trend: Daily digest service with hourly scheduling. Phase 7 nearing completion.
 
 *Updated after each plan completion*
 
@@ -332,6 +332,10 @@ Recent decisions affecting current work:
 - 07-05: JWT verification on WebSocket handshake via JwtService
 - 07-05: get_recent handler for background tab polling (60s interval)
 - 07-05: @OnEvent('notification.in_app.created') for event-driven delivery
+- 07-06: Hourly cron checks each org's configured digest time (not per-org dynamic scheduling)
+- 07-06: Smart aggregation groups by type + entityType + entityId for deduplication
+- 07-06: Digest priority 3 (lower than urgent notifications which use 1-2)
+- 07-06: isDigestEnabledForUser() checks any DIGEST_CATEGORIES category has email enabled
 
 ### Pending Todos
 
@@ -348,6 +352,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-02-04T01:39:00Z
-Stopped at: Completed 07-05-PLAN.md (WebSocket Notification Gateway)
+Last session: 2026-02-04T01:41:00Z
+Stopped at: Completed 07-06-PLAN.md (Daily Digest Service)
 Resume file: None
