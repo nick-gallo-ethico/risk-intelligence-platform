@@ -307,6 +307,9 @@ Recent decisions affecting current work:
 - 07-03: Default enforced categories: ASSIGNMENT, DEADLINE per CONTEXT.md
 - 07-03: Quiet hours wraparound supports overnight schedules (e.g., 22:00-06:00)
 - 07-03: OOO backup delegation validates user exists, active, and different from self
+- 06-12: SavedViewSelector uses shadcn/ui Popover (not Material-UI Menu) per project standards
+- 06-12: Auto-apply default view disabled on CaseListPage since filters are URL-param driven
+- 06-12: Filter conversion helpers (filtersToViewData/viewDataToFilters) exported for reuse
 
 ### Pending Todos
 
@@ -323,6 +326,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-02-04T00:50:00Z
-Stopped at: Completed 07-03-PLAN.md (Notification Preference Service)
+Last session: 2026-02-04T00:54:00Z
+Stopped at: Completed 06-12-PLAN.md (Case List Page with Saved Views)
 Resume file: None
