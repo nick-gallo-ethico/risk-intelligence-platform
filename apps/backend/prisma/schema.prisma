@@ -115,6 +115,9 @@ model Organization {
   conflictAlerts     ConflictAlert[]
   conflictExclusions ConflictExclusion[]
 
+  // Disclosure form template relations (Phase 9)
+  disclosureFormTemplates DisclosureFormTemplate[]
+
   @@index([slug])
   @@index([isActive])
   @@map("organizations")
@@ -209,8 +212,11 @@ model User {
   thresholdRulesCreated ThresholdRule[]
 
   // Conflict detection relations (Phase 9)
-  conflictAlertsDismissed ConflictAlert[]     @relation("ConflictAlertDismissedBy")
+  conflictAlertsDismissed   ConflictAlert[]     @relation("ConflictAlertDismissedBy")
   conflictExclusionsCreated ConflictExclusion[] @relation("ExclusionCreatedBy")
+
+  // Disclosure form template relations (Phase 9)
+  disclosureFormTemplatesCreated DisclosureFormTemplate[] @relation("FormTemplateCreator")
 
   // Unique constraint: email must be unique within an organization
   @@unique([organizationId, email])
@@ -1460,11 +1466,16 @@ model RiuDisclosureExtension {
   effectiveDate  DateTime? @map("effective_date")
   expirationDate DateTime? @map("expiration_date")
 
+  // Form template linkage (RS.22-29)
+  formTemplateId String? @map("form_template_id")
+  formVersion    Int?    @map("form_version") // Snapshot of version at submission time
+
   // Timestamps
   createdAt DateTime @default(now()) @map("created_at")
 
   // Relations
-  riu RiskIntelligenceUnit @relation(fields: [riuId], references: [id], onDelete: Cascade)
+  riu          RiskIntelligenceUnit    @relation(fields: [riuId], references: [id], onDelete: Cascade)
+  formTemplate DisclosureFormTemplate? @relation(fields: [formTemplateId], references: [id])
 
   // Conflict alerts detected on this disclosure
   conflictAlerts ConflictAlert[]
@@ -1473,6 +1484,7 @@ model RiuDisclosureExtension {
   @@index([disclosureType])
   @@index([thresholdTriggered])
   @@index([conflictDetected])
+  @@index([formTemplateId])
   @@map("riu_disclosure_extensions")
 }
 
@@ -2831,10 +2843,14 @@ model Campaign {
   // rolloutConfig stores wave configuration: { type: 'percentage'|'daily_count', values: number[], startDate?: string }
   // For STAGGERED: values array contains percentage per wave (e.g., [20, 30, 50])
   // For PILOT_FIRST: values array is [pilotPercent, remainingPercent] (e.g., [10, 90])
-  rolloutConfig Json? @map("rollout_config")
+  rolloutConfig   Json?                   @map("rollout_config")
 
-  // Form linkage
+  // Form linkage (generic forms)
   formDefinitionId String? @map("form_definition_id")
+
+  // Disclosure form template linkage (RS.22-29)
+  disclosureFormTemplateId String?                 @map("disclosure_form_template_id")
+  disclosureFormTemplate   DisclosureFormTemplate? @relation("CampaignFormTemplate", fields: [disclosureFormTemplateId], references: [id])
 
   // Reminders
   reminderDays        Int[]     @default([7, 3, 1]) @map("reminder_days") // Days before due to remind
@@ -2877,10 +2893,10 @@ model Campaign {
 /// Created when campaign is launched, one per target employee.
 /// Snapshots employee data at creation for historical accuracy.
 model CampaignAssignment {
-  id             String @id @default(uuid())
-  organizationId String @map("organization_id")
-  campaignId     String @map("campaign_id")
-  employeeId     String @map("employee_id")
+  id             String  @id @default(uuid())
+  organizationId String  @map("organization_id")
+  campaignId     String  @map("campaign_id")
+  employeeId     String  @map("employee_id")
   waveId         String? @map("wave_id") // Which wave this assignment belongs to (null for IMMEDIATE rollout)
 
   // Status tracking
@@ -2916,10 +2932,10 @@ model CampaignAssignment {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relations
-  organization Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  campaign     Campaign       @relation(fields: [campaignId], references: [id], onDelete: Cascade)
-  employee     Employee       @relation(fields: [employeeId], references: [id])
-  wave         CampaignWave?  @relation(fields: [waveId], references: [id])
+  organization Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  campaign     Campaign      @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  employee     Employee      @relation(fields: [employeeId], references: [id])
+  wave         CampaignWave? @relation(fields: [waveId], references: [id])
 
   // Unique constraint: one assignment per employee per campaign
   @@unique([campaignId, employeeId])
@@ -2944,7 +2960,7 @@ model CampaignWave {
   waveNumber Int @map("wave_number") // 1, 2, 3, etc.
 
   // Scheduling
-  scheduledAt DateTime @map("scheduled_at") // When this wave should launch
+  scheduledAt DateTime  @map("scheduled_at") // When this wave should launch
   launchedAt  DateTime? @map("launched_at") // When actually launched
 
   // Audience for this wave
@@ -4632,6 +4648,89 @@ model ConflictAlert {
   @@index([disclosureId])
   @@index([matchedEntity])
   @@map("conflict_alerts")
+}
+
+// ===========================================
+// Disclosure Form Template Entities (Phase 9)
+// ===========================================
+
+/// DisclosureFormTemplate extends FormDefinition for disclosure-specific needs.
+/// Supports compliance-specific field types, versioning, and translations.
+/// RS.22-RS.29: Form schema engine with nested repeaters and calculated fields.
+/// RS.32: Versioning with published snapshots.
+/// RS.33: Translation support via parent-child model.
+model DisclosureFormTemplate {
+  id             String       @id @default(uuid())
+  organizationId String       @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  name           String
+  description    String?
+  disclosureType DisclosureFormType @map("disclosure_type")
+
+  // Versioning (RS.32)
+  version     Int                @default(1)
+  status      FormTemplateStatus @default(DRAFT)
+  publishedAt DateTime?          @map("published_at")
+  publishedBy String?            @map("published_by")
+
+  // Translation (RS.33) - parent-child model
+  parentTemplateId String?                  @map("parent_template_id")
+  parentTemplate   DisclosureFormTemplate?  @relation("FormTranslations", fields: [parentTemplateId], references: [id])
+  translations     DisclosureFormTemplate[] @relation("FormTranslations")
+  language         String                   @default("en")
+
+  // Schema - JSON for field definitions, sections, validation rules
+  // fields: FormField[] - includes compliance field types
+  fields           Json
+  // sections: FormSection[] - supports nested repeaters (max 2 levels)
+  sections         Json
+  // validationRules: ValidationRule[] - cross-field validation
+  validationRules  Json? @map("validation_rules")
+  // calculatedFields: CalculatedField[] - expression engine (RS.28)
+  calculatedFields Json? @map("calculated_fields")
+  // uiSchema: UI hints (field order, widths, etc.)
+  uiSchema         Json? @map("ui_schema")
+
+  // Metadata
+  isSystem    Boolean  @default(false) @map("is_system") // System templates are org-agnostic
+  createdById String   @map("created_by_id")
+  createdBy   User     @relation("FormTemplateCreator", fields: [createdById], references: [id])
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  disclosures RiuDisclosureExtension[]
+  campaigns   Campaign[]               @relation("CampaignFormTemplate")
+
+  @@unique([organizationId, name, version])
+  @@index([organizationId, disclosureType])
+  @@index([organizationId, status])
+  @@index([parentTemplateId])
+  @@map("disclosure_form_templates")
+}
+
+/// Disclosure form types - compliance-specific form categories.
+enum DisclosureFormType {
+  COI
+  GIFT
+  OUTSIDE_EMPLOYMENT
+  ATTESTATION
+  POLITICAL
+  CHARITABLE
+  TRAVEL
+  CUSTOM
+
+  @@map("disclosure_form_type")
+}
+
+/// Status for form template versioning workflow.
+enum FormTemplateStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+
+  @@map("form_template_status")
 }
 
 /// ConflictExclusion suppresses future false positive conflict alerts.
