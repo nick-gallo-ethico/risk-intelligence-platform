@@ -104,7 +104,7 @@ function CategoryItem({
   return (
     <div className="w-full">
       <div
-        role="option"
+        role={hasChildren ? 'treeitem' : 'option'}
         tabIndex={disabled ? -1 : 0}
         onClick={handleClick}
         onKeyDown={handleKeyDown}
