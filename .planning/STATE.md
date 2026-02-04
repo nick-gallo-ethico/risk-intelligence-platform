@@ -12,16 +12,16 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 Phase: 6 of 11 (Case Management) - IN PROGRESS
 Plan: 10 of 16 in current phase
 Status: In progress
-Last activity: 2026-02-03 - Completed 06-07-PLAN.md (Checklist Progress)
+Last activity: 2026-02-04 - Completed 06-10-PLAN.md (Unified Search Service)
 
-Progress: [===============================================] 42% (53 of ~125 total plans)
+Progress: [================================================] 43% (54 of ~125 total plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 53
+- Total plans completed: 54
 - Average duration: 15 min
-- Total execution time: 13.4 hours
+- Total execution time: 13.7 hours
 
 **By Phase:**
 
@@ -34,8 +34,8 @@ Progress: [===============================================] 42% (53 of ~125 tota
 | 05-ai-infrastructure | 11 | 143 min | 13 min |
 
 **Recent Trend:**
-- Last 5 plans: 06-07 (32 min), 06-08 (27 min), 06-09 (17 min), 06-01 (44 min), 06-03 (39 min)
-- Trend: Phase 6 in progress. Checklist progress tracking complete.
+- Last 5 plans: 06-10 (17 min), 06-07 (32 min), 06-08 (27 min), 06-09 (17 min), 06-01 (44 min)
+- Trend: Phase 6 in progress. Unified search service complete.
 
 *Updated after each plan completion*
 
@@ -288,6 +288,10 @@ Recent decisions affecting current work:
 - 06-07: Progress percentage excludes skipped items: completedItems / (totalItems - skippedCount)
 - 06-07: Required items cannot be skipped - validation enforced at service layer
 - 06-07: Custom items added to sections with generated IDs, appear after template items
+- 06-10: Parallel search execution for all entity types in UnifiedSearchService
+- 06-10: Custom fields use dynamic ES mapping with type conversion via getEsFieldTypeForCustomProperty()
+- 06-10: Entity-specific search field weights (e.g., referenceNumber^10 for exact match priority)
+- 06-10: Graceful handling when indices don't exist (returns empty results for new tenants)
 
 ### Pending Todos
 
@@ -304,6 +308,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-02-03T23:55:39Z
-Stopped at: Completed 06-07-PLAN.md (Checklist Progress)
+Last session: 2026-02-04T00:21:04Z
+Stopped at: Completed 06-10-PLAN.md (Unified Search Service)
 Resume file: None
