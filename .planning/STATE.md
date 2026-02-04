@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 9 of 11 (Campaigns & Disclosures)
-Plan: 07 of 18 in current phase
+Plan: 08 of 18 in current phase
 Status: In progress
-Last activity: 2026-02-04 - Completed 08-14-PLAN.md (Manager Proxy Reporting UI)
+Last activity: 2026-02-04 - Completed 09-08-PLAN.md (Campaign Scheduling)
 
-Progress: [==========================================================] 65% (81 of ~125 total plans)
+Progress: [==========================================================] 66% (82 of ~125 total plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 81
+- Total plans completed: 82
 - Average duration: 15 min
-- Total execution time: 20.4 hours
+- Total execution time: 20.8 hours
 
 **By Phase:**
 
@@ -37,8 +37,8 @@ Progress: [==========================================================] 65% (81 o
 | 08-portals | 13 | 155 min | 12 min |
 
 **Recent Trend:**
-- Last 5 plans: 08-14 (29 min), 09-07 (12 min), 08-11 (30 min), 08-10 (28 min), 08-12 (19 min)
-- Trend: Phase 8 backfill complete. Manager proxy reporting UI with team selection and access code notice.
+- Last 5 plans: 09-08 (22 min), 08-14 (29 min), 09-07 (12 min), 08-11 (30 min), 08-10 (28 min)
+- Trend: Campaign scheduling service with BullMQ-powered scheduled launches, wave-based rollout, and blackout dates.
 
 *Updated after each plan completion*
 
@@ -393,6 +393,13 @@ Recent decisions affecting current work:
 - 09-07: buildCriteriaDescription() generates natural language summary for UI
 - 09-07: validateCriteria() checks references exist, warns on 0 matches
 - 09-07: getAvailableAttributes() provides HRIS attributes for dynamic UI population
+- 09-08: CampaignWaveStatus enum: PENDING, LAUNCHED, CANCELLED
+- 09-08: CampaignRolloutStrategy enum: IMMEDIATE, STAGGERED, PILOT_FIRST
+- 09-08: CampaignSchedulingService for scheduled launches and blackout management
+- 09-08: CampaignSchedulingProcessor handles launch-campaign and launch-wave jobs
+- 09-08: Wave distribution by shuffle + slice for fair randomization
+- 09-08: Blackout recurrence: YEARLY, QUARTERLY, MONTHLY patterns
+- 09-08: Campaign queue with 3 retries, exponential backoff (5s, 10s, 20s)
 
 ### Pending Todos
 
@@ -409,6 +416,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-02-04T07:20:23Z
-Stopped at: Completed 09-07-PLAN.md (Campaign Targeting)
+Last session: 2026-02-04T07:34:31Z
+Stopped at: Completed 09-08-PLAN.md (Campaign Scheduling)
 Resume file: None
