@@ -11,17 +11,17 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 
 Phase: 9 of 11 (Campaigns & Disclosures)
 Plan: 08 of 17 in current phase (09-03, 09-04, 09-07, 09-08 complete)
-Status: Paused at stopping point
-Last activity: 2026-02-04 - Completed 08-15 (Hotline Intake Form)
+Status: In progress
+Last activity: 2026-02-04 - Completed 08-16 (QA Queue UI)
 
-Progress: [==========================================================] 72% (90 of ~125 total plans)
+Progress: [==========================================================] 73% (91 of ~125 total plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 90
+- Total plans completed: 91
 - Average duration: 15 min
-- Total execution time: 23.5 hours
+- Total execution time: 23.7 hours
 
 **By Phase:**
 
@@ -34,12 +34,12 @@ Progress: [==========================================================] 72% (90 o
 | 05-ai-infrastructure | 11 | 143 min | 13 min |
 | 06-case-management | 11 | ~211 min | ~19 min |
 | 07-notifications-email | 8 | ~112 min | ~14 min |
-| 08-portals | 18 | 241 min | 13 min |
+| 08-portals | 19 | 253 min | 13 min |
 | 09-campaigns-disclosures | 4 | 78 min | 20 min |
 
 **Recent Trend:**
-- Last 5 plans: 08-15 (8 min), 09-08 (22 min), 09-07 (12 min), 09-04 (18 min), 09-03 (26 min)
-- Trend: Operator Console intake form with AI note cleanup and HRIS subject search.
+- Last 5 plans: 08-16 (12 min), 08-15 (8 min), 09-08 (22 min), 09-07 (12 min), 09-04 (18 min)
+- Trend: Operator Console QA Queue UI with filtering, review panel, and edit form.
 
 *Updated after each plan completion*
 
@@ -392,6 +392,10 @@ Recent decisions affecting current work:
 - 08-15: Notes textarea always visible in intake form per CONTEXT.md HubSpot pattern
 - 08-15: AI cleanup placed below notes as non-intrusive post-call option
 - 08-15: "Subject Unknown" toggle for unidentified subjects during intake
+- 08-16: QA queue auto-refreshes every 30 seconds via React Query refetchInterval
+- 08-16: Split-view layout: 40% list with filters, 60% detail with edit/review
+- 08-16: Keyboard shortcuts (R=release, E=edit, Esc=close) for QA reviewer efficiency
+- 08-16: Edit notes required when making changes (validation prevents save without notes)
 - 09-07: Three targeting modes: ALL (everyone), SIMPLE (checkboxes), ADVANCED (rules)
 - 09-07: includeSubordinates walks org hierarchy recursively (max 10 levels)
 - 09-07: buildCriteriaDescription() generates natural language summary for UI
@@ -439,8 +443,8 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-02-04T07:49:00Z
-Stopped at: Completed 08-15-PLAN.md (Hotline Intake Form)
+Last session: 2026-02-04T07:54:00Z
+Stopped at: Completed 08-16-PLAN.md (QA Queue UI)
 Resume file: None
 
 **Phase 9 Remaining Plans:**
