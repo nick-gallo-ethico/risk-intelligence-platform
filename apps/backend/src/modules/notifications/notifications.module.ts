@@ -8,9 +8,14 @@
  * - EmailTemplateService (07-02): Email template management and rendering
  * - PreferenceService (07-03): User notification preferences with caching
  * - OrgNotificationSettingsService (07-03): Org-level notification config
+ * - NotificationService (07-04): Core notification dispatch
+ *
+ * Listeners:
+ * - CaseEventListener (07-04): Handles case.assigned, case.status_changed events
+ * - SlaEventListener (07-04): Handles sla.warning, sla.breached, sla.critical events
+ * - WorkflowEventListener (07-04): Handles workflow step and approval events
  *
  * Remaining services to be added:
- * - NotificationService (07-04)
  * - InAppNotificationService (07-05)
  * - DigestService (07-06)
  * - DeliveryTrackerService (07-07)
@@ -26,6 +31,12 @@ import { EMAIL_QUEUE_NAME } from '../jobs/queues/email.queue';
 import { EmailTemplateService } from './services/email-template.service';
 import { PreferenceService } from './services/preference.service';
 import { OrgNotificationSettingsService } from './services/org-settings.service';
+import { NotificationService } from './services/notification.service';
+
+// Event listeners
+import { CaseEventListener } from './listeners/case.listener';
+import { SlaEventListener } from './listeners/sla.listener';
+import { WorkflowEventListener } from './listeners/workflow.listener';
 
 @Module({
   imports: [
@@ -47,17 +58,23 @@ import { OrgNotificationSettingsService } from './services/org-settings.service'
     PreferenceService,
     OrgNotificationSettingsService,
 
+    // Core notification dispatch (07-04)
+    NotificationService,
+
+    // Event listeners (07-04)
+    CaseEventListener,
+    SlaEventListener,
+    WorkflowEventListener,
+
     // Services to be added in subsequent plans:
-    // - NotificationService (07-04): Core notification creation and dispatch
-    // - InAppNotificationService (07-05): Real-time in-app notifications
+    // - InAppNotificationService (07-05): Real-time in-app notifications via WebSocket
     // - DigestService (07-06): Daily digest compilation and scheduling
     // - DeliveryTrackerService (07-07): Email delivery status tracking
   ],
   controllers: [
     // Controllers will be added in subsequent plans:
-    // - NotificationController (07-04)
-    // - PreferenceController (07-03)
-    // - EmailTemplateController (07-02)
+    // - NotificationController (07-08)
+    // - PreferenceController (07-08)
   ],
   exports: [
     // Template management
@@ -66,6 +83,9 @@ import { OrgNotificationSettingsService } from './services/org-settings.service'
     // Preference services
     PreferenceService,
     OrgNotificationSettingsService,
+
+    // Core notification dispatch
+    NotificationService,
   ],
 })
 export class NotificationsModule {}

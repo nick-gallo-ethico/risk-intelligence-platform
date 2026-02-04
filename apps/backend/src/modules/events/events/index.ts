@@ -15,3 +15,10 @@ export {
   InvestigationStatusChangedEvent,
   InvestigationAssignedEvent,
 } from "./investigation.events";
+
+// SLA domain events
+export {
+  SlaWarningEvent,
+  SlaBreachedEvent,
+  SlaCriticalEvent,
+} from "./sla.events";

@@ -81,7 +81,8 @@ export type NotificationCategory =
   | 'INTERVIEW' // Interview scheduling
   | 'STATUS_UPDATE' // Entity status changes
   | 'COMMENT' // New comments
-  | 'COMPLETION'; // Task/investigation complete
+  | 'COMPLETION' // Task/investigation complete
+  | 'ESCALATION'; // SLA breach escalation
 
 /**
  * User preference settings for each notification category.
@@ -102,7 +103,7 @@ export interface PreferenceSettings {
 
 /**
  * Default preference settings per CONTEXT.md:
- * - Urgent events (assignments, deadlines, mentions, approvals, interviews): email=true, inApp=true
+ * - Urgent events (assignments, deadlines, mentions, approvals, interviews, escalations): email=true, inApp=true
  * - FYI events (status updates, comments, completions): email=false, inApp=true
  */
 export const DEFAULT_PREFERENCES: PreferenceSettings = {
@@ -111,6 +112,7 @@ export const DEFAULT_PREFERENCES: PreferenceSettings = {
   APPROVAL: { email: true, inApp: true },
   MENTION: { email: true, inApp: true },
   INTERVIEW: { email: true, inApp: true },
+  ESCALATION: { email: true, inApp: true }, // SLA escalations are always urgent
   STATUS_UPDATE: { email: false, inApp: true },
   COMMENT: { email: false, inApp: true },
   COMPLETION: { email: false, inApp: true },
@@ -126,6 +128,7 @@ export const REAL_TIME_CATEGORIES: NotificationCategory[] = [
   'APPROVAL',
   'MENTION',
   'INTERVIEW',
+  'ESCALATION',
 ];
 
 /**
