@@ -1,11 +1,12 @@
 'use client';
 
-import { useEffect, useState, useCallback, Suspense } from 'react';
+import { useEffect, useState, useCallback, Suspense, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/auth-context';
 import { casesApi } from '@/lib/cases-api';
 import { useCaseFilters, filtersToViewData } from '@/hooks/use-case-filters';
 import { useSavedViews } from '@/hooks/use-saved-views';
+import { useListNavigation } from '@/hooks/use-keyboard-shortcuts';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -21,6 +22,7 @@ import { CaseListFilters } from '@/components/cases/case-list-filters';
 import { FilterChips } from '@/components/cases/filter-chips';
 import { Pagination } from '@/components/cases/pagination';
 import { SavedViewSelector } from '@/components/common/saved-view-selector';
+import { cn } from '@/lib/utils';
 import type { Case, CaseStatus, Severity, CaseQueryParams } from '@/types/case';
 
 const STATUS_COLORS: Record<CaseStatus, string> = {
@@ -63,6 +65,15 @@ function CasesContent() {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  // Keyboard navigation for case list
+  const { focusIndex } = useListNavigation(
+    cases,
+    undefined, // No select callback needed
+    (id) => router.push(`/cases/${id}`), // Open on Enter
+    !loading && cases.length > 0 // Only enable when cases are loaded
+  );
 
   const fetchCases = useCallback(async () => {
     setLoading(true);
@@ -313,10 +324,14 @@ function CasesContent() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {cases.map((caseItem) => (
+                    {cases.map((caseItem, index) => (
                       <TableRow
                         key={caseItem.id}
-                        className="cursor-pointer hover:bg-gray-50"
+                        className={cn(
+                          'cursor-pointer hover:bg-gray-50 transition-colors',
+                          // Focus indicator for keyboard navigation
+                          index === focusIndex && 'ring-2 ring-blue-500 ring-inset bg-blue-50/50'
+                        )}
                         onClick={() => router.push(`/cases/${caseItem.id}`)}
                       >
                         <TableCell className="font-mono text-sm font-medium">

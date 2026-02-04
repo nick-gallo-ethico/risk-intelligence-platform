@@ -23,6 +23,13 @@ import { InvestigationNotes } from '@/components/investigations/investigation-no
 import { InvestigationFindings } from '@/components/investigations/investigation-findings';
 import { ChecklistPanel } from '@/components/investigations/checklist-panel';
 import { TemplateSelectorDialog } from '@/components/investigations/template-selector';
+import { useTrackRecentItem } from '@/contexts/shortcuts-context';
+import {
+  useGlobalShortcuts,
+  useTabNavigation,
+  useListNavigation,
+  useChecklistShortcuts,
+} from '@/hooks/use-keyboard-shortcuts';
 import { getInvestigation } from '@/lib/investigation-api';
 import {
   getChecklistProgress,
@@ -53,6 +60,44 @@ export default function InvestigationDetailPage() {
   const [activeTab, setActiveTab] = useState('checklist');
   const [showTemplateSelector, setShowTemplateSelector] = useState(false);
   const [applyingTemplate, setApplyingTemplate] = useState(false);
+  const [focusedChecklistItem, setFocusedChecklistItem] = useState<string | null>(null);
+
+  // Tab mapping for keyboard navigation (1-6)
+  const TABS = ['checklist', 'notes', 'interviews', 'files', 'activity', 'findings'];
+
+  // Register go back shortcut
+  useGlobalShortcuts({
+    onGoBack: () => {
+      if (investigation?.caseId) {
+        router.push(`/cases/${investigation.caseId}`);
+      } else {
+        router.back();
+      }
+    },
+  });
+
+  // Tab navigation with number keys
+  useTabNavigation({
+    onTabChange: (index) => {
+      if (TABS[index]) {
+        setActiveTab(TABS[index]);
+      }
+    },
+    maxTabs: 6,
+    enabled: !showTemplateSelector,
+  });
+
+  // Track as recent item for command palette
+  useTrackRecentItem(
+    investigation
+      ? {
+          id: investigation.id,
+          label: `Investigation #${investigation.investigationNumber}`,
+          type: 'investigation',
+          href: `/investigations/${investigation.id}`,
+        }
+      : null
+  );
 
   // Fetch investigation data
   const fetchInvestigation = useCallback(async () => {

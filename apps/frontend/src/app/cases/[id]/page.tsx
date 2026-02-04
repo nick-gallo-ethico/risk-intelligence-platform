@@ -3,6 +3,8 @@
 import { Suspense, useEffect, useState, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/auth-context';
+import { useShortcuts, useTrackRecentItem } from '@/contexts/shortcuts-context';
+import { useGlobalShortcuts } from '@/hooks/use-keyboard-shortcuts';
 import { casesApi } from '@/lib/cases-api';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -41,6 +43,23 @@ function CaseDetailPageContent() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   const caseId = params.id as string;
+
+  // Register go back shortcut
+  useGlobalShortcuts({
+    onGoBack: () => router.push('/cases'),
+  });
+
+  // Track as recent item for command palette
+  useTrackRecentItem(
+    caseData
+      ? {
+          id: caseData.id,
+          label: `Case ${caseData.referenceNumber}`,
+          type: 'case',
+          href: `/cases/${caseData.id}`,
+        }
+      : null
+  );
 
   const fetchCase = useCallback(async () => {
     if (!caseId) return;
