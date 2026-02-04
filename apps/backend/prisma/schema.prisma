@@ -101,6 +101,10 @@ model Organization {
   // Portal branding (Phase 8)
   tenantBranding TenantBranding?
 
+  // Operator Portal relations (Phase 8)
+  hotlineNumbers HotlineNumber[]
+  clientQaConfig ClientQaConfig?
+
   @@index([slug])
   @@index([isActive])
   @@map("organizations")
@@ -4094,6 +4098,60 @@ enum DeliveryStatus {
   DEFERRED // Temporary failure, will retry
 
   @@map("delivery_status")
+}
+
+// ===========================================
+// Operator Portal Entities (Phase 8)
+// ===========================================
+
+/// QaMode defines how QA review is applied to incoming reports.
+enum QaMode {
+  ALL // 100% QA review - every report goes through QA
+  RISK_BASED // Only high-risk categories get QA review
+  SAMPLE // Random percentage-based sampling
+  NONE // No QA required - reports auto-release
+
+  @@map("qa_mode")
+}
+
+/// HotlineNumber maps phone numbers to organizations for operator lookup.
+/// When a call comes in, operators can identify the client by phone number.
+/// Phone numbers are stored in E.164 format (e.g., "+18005551234").
+model HotlineNumber {
+  id             String   @id @default(uuid())
+  organizationId String   @map("organization_id")
+  phoneNumber    String   @unique @map("phone_number") // E.164 format, globally unique
+  displayName    String?  @map("display_name") // e.g., "Main Hotline", "After Hours"
+  isActive       Boolean  @default(true) @map("is_active")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([phoneNumber])
+  @@map("hotline_numbers")
+}
+
+/// ClientQaConfig stores per-organization QA review configuration.
+/// Determines how incoming reports are routed for quality assurance.
+model ClientQaConfig {
+  id                 String   @id @default(uuid())
+  organizationId     String   @unique @map("organization_id") // One config per org
+  defaultMode        QaMode   @default(ALL) @map("default_mode")
+  samplePercentage   Int?     @map("sample_percentage") // 1-100 for SAMPLE mode
+  highRiskCategories String[] @default([]) @map("high_risk_categories") // Category IDs that always go to QA
+  keywordTriggers    String[] @default([]) @map("keyword_triggers") // Words that trigger QA regardless of mode
+  categoryOverrides  Json     @default("{}") @map("category_overrides") // Per-category QA mode overrides
+
+  // Audit
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@map("client_qa_configs")
 }
 
 // ===========================================
