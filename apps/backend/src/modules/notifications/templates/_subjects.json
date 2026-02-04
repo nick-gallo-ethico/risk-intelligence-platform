@@ -1,5 +1,6 @@
 {
   "assignment/case-assigned": "Case #{{case.referenceNumber}} Assigned to You",
   "deadline/sla-warning": "SLA Warning: Case #{{case.referenceNumber}} Due in {{hoursRemaining}} Hours",
-  "deadline/sla-breach": "URGENT: SLA Breached for Case #{{case.referenceNumber}}"
+  "deadline/sla-breach": "URGENT: SLA Breached for Case #{{case.referenceNumber}}",
+  "digest/daily-digest": "Your Daily Activity Digest - {{digest.totalCount}} Update{{#unless (eq digest.totalCount 1)}}s{{/unless}}"
 }

@@ -1,0 +1,108 @@
+{{!--
+  Daily Digest Email Template
+
+  Sent once per day at organization-configured time (default 17:00).
+  Aggregates low-priority notifications (status updates, comments, completions)
+  into a single email to prevent inbox overload.
+
+  Expected context:
+  - digest.userName: Recipient's display name
+  - digest.totalCount: Total number of notifications
+  - digest.groups: Array of GroupedDigestItem (see below)
+  - digest.date: Formatted date string
+  - digest.periodDescription: e.g., "Activity from the past 24 hours"
+  - org: Organization object with name and branding
+  - appUrl: Base application URL
+  - recipient.name: Recipient's display name
+  - recipient.email: Recipient's email address
+
+  GroupedDigestItem structure:
+  - type: Notification type (COMMENT, STATUS_UPDATE, COMPLETION)
+  - entityType: Entity type (CASE, INVESTIGATION, RIU, etc.)
+  - entityId: Entity ID
+  - count: Number of similar notifications
+  - summary: Human-readable summary (e.g., "3 new comments on Case #0912")
+  - entityReference: Entity reference number or name
+  - entityUrl: Link to entity
+  - items: Array of individual notifications
+
+  NOTE: Per CONTEXT.md, this template intentionally excludes:
+  - Names of complainants/subjects
+  - Allegation details
+  - Sensitive findings
+--}}
+<mj-section mj-class="card" padding="24px">
+  <mj-column>
+    {{!-- Header --}}
+    <mj-text mj-class="heading-md" padding-bottom="8px">
+      Daily Activity Digest
+    </mj-text>
+
+    <mj-text mj-class="text-small" color="#6b7280" padding-bottom="16px">
+      {{digest.date}}
+    </mj-text>
+
+    <mj-text mj-class="text-body" padding-bottom="16px">
+      Hi {{digest.userName}},
+    </mj-text>
+
+    <mj-text mj-class="text-body" padding-bottom="24px">
+      Here's a summary of {{digest.totalCount}} {{#if (eq digest.totalCount 1)}}update{{else}}updates{{/if}} from {{digest.periodDescription}}.
+    </mj-text>
+
+    <mj-divider mj-class="divider" />
+
+    {{!-- Notification Groups --}}
+    {{#each digest.groups}}
+    <mj-text mj-class="text-body" padding-top="16px" padding-bottom="8px">
+      {{#if (eq this.type "COMMENT")}}
+      <span style="color: #2563eb; font-weight: 600;">&#128172;</span>
+      {{else if (eq this.type "STATUS_UPDATE")}}
+      <span style="color: #059669; font-weight: 600;">&#128260;</span>
+      {{else if (eq this.type "COMPLETION")}}
+      <span style="color: #16a34a; font-weight: 600;">&#9989;</span>
+      {{else}}
+      <span style="color: #6b7280; font-weight: 600;">&#128276;</span>
+      {{/if}}
+      <strong>{{this.summary}}</strong>
+    </mj-text>
+
+    {{#if this.entityUrl}}
+    <mj-button mj-class="btn-secondary"
+               href="{{this.entityUrl}}"
+               padding-top="8px"
+               padding-bottom="8px"
+               font-size="14px"
+               inner-padding="8px 16px">
+      View {{this.entityType}}
+    </mj-button>
+    {{/if}}
+
+    {{#unless @last}}
+    <mj-divider border-color="#e5e7eb" border-width="1px" padding-top="8px" />
+    {{/unless}}
+    {{/each}}
+
+    {{!-- No notifications fallback (shouldn't happen but just in case) --}}
+    {{#unless digest.groups.length}}
+    <mj-text mj-class="text-body" color="#6b7280" padding-top="16px" padding-bottom="16px">
+      No new activity to report.
+    </mj-text>
+    {{/unless}}
+
+    <mj-divider mj-class="divider" padding-top="16px" />
+
+    {{!-- CTA Button --}}
+    <mj-button mj-class="btn-primary"
+               href="{{appUrl}}/notifications"
+               padding-top="24px">
+      View All Notifications
+    </mj-button>
+
+    <mj-text mj-class="text-small" align="center" color="#6b7280" padding-top="16px">
+      You're receiving this digest because you have digest notifications enabled.
+      <br/>
+      <a href="{{appUrl}}/settings/notifications" style="color: #2563eb;">Manage notification preferences</a>
+    </mj-text>
+  </mj-column>
+</mj-section>
