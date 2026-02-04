@@ -19,13 +19,14 @@ datasource db {
 /// Organization represents a tenant in the multi-tenant system.
 /// All business data is scoped to an organization via Row-Level Security.
 model Organization {
-  id        String   @id @default(uuid())
-  name      String
-  slug      String   @unique
-  settings  Json     @default("{}")
-  isActive  Boolean  @default(true) @map("is_active")
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id              String   @id @default(uuid())
+  name            String
+  slug            String   @unique
+  settings        Json     @default("{}")
+  defaultLanguage String   @default("en") @map("default_language") // ISO 639-1 code
+  isActive        Boolean  @default(true) @map("is_active")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
 
   // Relations
   users             User[]
@@ -117,6 +118,15 @@ model Organization {
 
   // Disclosure form template relations (Phase 9)
   disclosureFormTemplates DisclosureFormTemplate[]
+
+  // Disclosure draft relations (Phase 9)
+  disclosureDrafts DisclosureDraft[]
+
+  // Employee compliance profile relations (Phase 9)
+  employeeComplianceProfiles EmployeeComplianceProfile[]
+
+  // User data table relations (Phase 9 - RS.48)
+  userDataTables UserDataTable[]
 
   @@index([slug])
   @@index([isActive])
@@ -217,6 +227,9 @@ model User {
 
   // Disclosure form template relations (Phase 9)
   disclosureFormTemplatesCreated DisclosureFormTemplate[] @relation("FormTemplateCreator")
+
+  // User data table relations (Phase 9 - RS.48)
+  userDataTablesCreated UserDataTable[] @relation("UserDataTableCreatedBy")
 
   // Unique constraint: email must be unique within an organization
   @@unique([organizationId, email])
@@ -1488,6 +1501,39 @@ model RiuDisclosureExtension {
   @@map("riu_disclosure_extensions")
 }
 
+/// Draft storage for disclosure submissions (RS.24 - save/resume functionality)
+/// Allows employees to save partial form progress and resume later
+model DisclosureDraft {
+  id             String  @id @default(uuid())
+  organizationId String  @map("organization_id")
+  employeeId     String  @map("employee_id")
+  assignmentId   String? @map("assignment_id") // Optional link to campaign assignment
+
+  // Form context
+  formTemplateId String?        @map("form_template_id")
+  disclosureType DisclosureType? @map("disclosure_type")
+
+  // Draft data
+  formData             Json   @map("form_data") // Partial form data as JSON
+  completionPercentage Int    @default(0) @map("completion_percentage") // 0-100
+  currentSection       String? @map("current_section") // Last section user was on
+
+  // Timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  organization       Organization            @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  employee           Employee                @relation(fields: [employeeId], references: [id])
+  campaignAssignment CampaignAssignment?     @relation(fields: [assignmentId], references: [id])
+  formTemplate       DisclosureFormTemplate? @relation(fields: [formTemplateId], references: [id])
+
+  @@unique([organizationId, employeeId, assignmentId])
+  @@index([organizationId])
+  @@index([employeeId])
+  @@map("disclosure_drafts")
+}
+
 /// Web form-specific fields for RIU type = WEB_FORM_SUBMISSION
 /// Tracks form version, submission metadata, and validation state
 model RiuWebFormExtension {
@@ -2442,6 +2488,12 @@ model Employee {
   // Campaign assignment relations
   campaignAssignments CampaignAssignment[]
 
+  // Compliance profile relation (09-09)
+  complianceProfile EmployeeComplianceProfile?
+
+  // Disclosure draft relations (09-06)
+  disclosureDrafts DisclosureDraft[]
+
   @@unique([organizationId, hrisEmployeeId])
   @@unique([organizationId, email])
   @@index([organizationId])
@@ -2454,6 +2506,40 @@ model Employee {
   @@index([organizationId, jobLevel])
   @@index([organizationId, complianceRole])
   @@map("employees")
+}
+
+/// EmployeeComplianceProfile tracks employee response patterns for campaigns.
+/// Used for repeat non-responder detection and compliance scoring (RS.51).
+model EmployeeComplianceProfile {
+  id             String @id @default(uuid())
+  organizationId String @map("organization_id")
+  employeeId     String @unique @map("employee_id")
+
+  // Campaign statistics
+  campaignsAssigned       Int @default(0) @map("campaigns_assigned")
+  campaignsCompleted      Int @default(0) @map("campaigns_completed")
+  campaignsMissedDeadline Int @default(0) @map("campaigns_missed_deadline")
+
+  // Response time tracking
+  averageResponseDays Float? @map("average_response_days")
+
+  // Non-responder flagging
+  isRepeatNonResponder Boolean @default(false) @map("is_repeat_non_responder")
+
+  // Last activity
+  lastCampaignCompletedAt DateTime? @map("last_campaign_completed_at")
+
+  // Timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  employee     Employee     @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([isRepeatNonResponder])
+  @@map("employee_compliance_profiles")
 }
 
 // ===========================================
@@ -2822,6 +2908,12 @@ model Campaign {
   description String?
   type        CampaignType
 
+  // Versioning (RS.52 - translation support)
+  version                 Int      @default(1)
+  language                String   @default("en") // ISO 639-1 code
+  parentCampaignId        String?  @map("parent_campaign_id") // For translations
+  parentVersionAtCreation Int?     @map("parent_version_at_creation") // Version of parent when translation was created
+
   // Status and lifecycle
   status     CampaignStatus @default(DRAFT)
   statusNote String?        @map("status_note")
@@ -2858,6 +2950,11 @@ model Campaign {
   escalationAfterDays Int?      @map("escalation_after_days") // Days overdue before escalation
   escalateToUserId    String?   @map("escalate_to_user_id")
 
+  // Advanced reminder configuration (09-09)
+  // Structure: { sequence: ReminderSchedule[], managerCcDay?: number, repeatNonResponderCcManager: boolean }
+  // ReminderSchedule: { daysBefore: number, template: string, ccManager?: boolean }
+  reminderConfig Json? @map("reminder_config")
+
   // Auto-case rules (when response should trigger case creation)
   autoCreateCase        Boolean @default(false) @map("auto_create_case")
   caseCreationThreshold Json?   @map("case_creation_threshold") // { field: 'value', operator: '>', threshold: X }
@@ -2875,17 +2972,20 @@ model Campaign {
   updatedById String?  @map("updated_by_id")
 
   // Relations
-  organization Organization           @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  segment      Segment?               @relation(fields: [segmentId], references: [id])
-  assignments  CampaignAssignment[]
-  rius         RiskIntelligenceUnit[] @relation("CampaignRius")
-  waves        CampaignWave[]
+  organization     Organization           @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  segment          Segment?               @relation(fields: [segmentId], references: [id])
+  assignments      CampaignAssignment[]
+  rius             RiskIntelligenceUnit[] @relation("CampaignRius")
+  waves            CampaignWave[]
+  parentCampaign   Campaign?              @relation("CampaignTranslations", fields: [parentCampaignId], references: [id])
+  translations     Campaign[]             @relation("CampaignTranslations")
 
   @@index([organizationId])
   @@index([organizationId, status])
   @@index([organizationId, type])
   @@index([organizationId, dueDate])
   @@index([organizationId, launchAt])
+  @@index([parentCampaignId])
   @@map("campaigns")
 }
 
@@ -2910,8 +3010,9 @@ model CampaignAssignment {
   dueDate     DateTime  @map("due_date") // Copied from campaign at assignment time
 
   // Notifications
-  reminderCount      Int       @default(0) @map("reminder_count")
-  lastReminderSentAt DateTime? @map("last_reminder_sent_at")
+  reminderCount       Int       @default(0) @map("reminder_count")
+  lastReminderSentAt  DateTime? @map("last_reminder_sent_at")
+  managerNotifiedAt   DateTime? @map("manager_notified_at") // When manager was CC'd on reminder
 
   // Response linkage
   riuId            String? @map("riu_id") // Links to RIU created by response
@@ -2932,10 +3033,11 @@ model CampaignAssignment {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relations
-  organization Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  campaign     Campaign      @relation(fields: [campaignId], references: [id], onDelete: Cascade)
-  employee     Employee      @relation(fields: [employeeId], references: [id])
-  wave         CampaignWave? @relation(fields: [waveId], references: [id])
+  organization     Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  campaign         Campaign           @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  employee         Employee           @relation(fields: [employeeId], references: [id])
+  wave             CampaignWave?      @relation(fields: [waveId], references: [id])
+  disclosureDrafts DisclosureDraft[]
 
   // Unique constraint: one assignment per employee per campaign
   @@unique([campaignId, employeeId])
@@ -4700,8 +4802,9 @@ model DisclosureFormTemplate {
   updatedAt   DateTime @updatedAt @map("updated_at")
 
   // Relations
-  disclosures RiuDisclosureExtension[]
-  campaigns   Campaign[]               @relation("CampaignFormTemplate")
+  disclosures      RiuDisclosureExtension[]
+  campaigns        Campaign[]               @relation("CampaignFormTemplate")
+  disclosureDrafts DisclosureDraft[]
 
   @@unique([organizationId, name, version])
   @@index([organizationId, disclosureType])
@@ -4772,4 +4875,116 @@ model ConflictExclusion {
   @@index([organizationId, isActive])
   @@index([personId])
   @@map("conflict_exclusions")
+}
+
+// ===========================================
+// User-Created Tables (RS.48)
+// ===========================================
+
+/// TableCreationMethod defines how a user table was created.
+enum TableCreationMethod {
+  BUILDER // Manual table builder
+  AI_GENERATED // Created via AI natural language query
+  IMPORT // Imported from external source
+
+  @@map("table_creation_method")
+}
+
+/// TableVisibility controls who can see a user-created table.
+enum TableVisibility {
+  PRIVATE // Only creator can see
+  TEAM // Shared with specific teams
+  ORG // Visible to entire organization
+
+  @@map("table_visibility")
+}
+
+/// UserDataTable stores user-created custom data tables.
+/// RS.48: Dual-path table creation (manual builder + AI-generated) with
+/// save destinations and scheduled delivery.
+///
+/// Tables can be:
+/// - Created via manual builder UI with column/filter selection
+/// - Generated via AI from natural language prompts
+/// - Imported from external sources
+///
+/// Tables support:
+/// - Multi-source data queries
+/// - Aggregations and grouping
+/// - Pinning to dashboards
+/// - Scheduled email delivery (CSV, Excel, PDF)
+/// - Sharing with teams or organization-wide
+model UserDataTable {
+  id             String       @id @default(uuid())
+  organizationId String       @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  // Identity
+  name        String
+  description String?
+
+  // Creation method
+  createdVia TableCreationMethod @default(BUILDER) @map("created_via")
+  aiPrompt   String?             @map("ai_prompt") // Original prompt if AI-generated
+
+  // Creator
+  createdById String @map("created_by_id")
+  createdBy   User   @relation("UserDataTableCreatedBy", fields: [createdById], references: [id])
+
+  // Table definition
+  // dataSources: string[] - Entity types to query (e.g., ['cases', 'investigations'])
+  dataSources String[] @default([]) @map("data_sources")
+
+  // columns: TableColumn[] - Column definitions
+  // { field: string, label: string, type: 'string'|'number'|'date'|'boolean'|'currency', format?: string, width?: number }
+  columns Json
+
+  // filters: FilterCriteria[] - Filter conditions
+  // { field: string, operator: 'eq'|'neq'|'gt'|'gte'|'lt'|'lte'|'in'|'contains'|'between', value: any }
+  filters Json @default("[]")
+
+  // groupBy: string[] - Fields to group by (optional)
+  groupBy String[] @default([]) @map("group_by")
+
+  // aggregates: AggregateDefinition[] - Aggregate functions
+  // { field: string, function: 'count'|'sum'|'avg'|'min'|'max', alias?: string }
+  aggregates Json? @default("[]")
+
+  // sortBy: SortDefinition[] - Sort order
+  // { field: string, direction: 'asc'|'desc' }[]
+  sortBy Json? @default("[]") @map("sort_by")
+
+  // Destinations
+  // destinations: TableDestination[] - Where this table is pinned
+  // { type: 'dashboard'|'view'|'report', id?: string }[]
+  destinations Json @default("[]")
+
+  // Sharing
+  visibility      TableVisibility @default(PRIVATE)
+  sharedWithTeams String[]        @default([]) @map("shared_with_teams")
+  sharedWithUsers String[]        @default([]) @map("shared_with_users")
+
+  // Scheduling
+  // scheduleConfig: { frequency: 'daily'|'weekly'|'monthly', recipients: string[], format: 'csv'|'excel'|'pdf', dayOfWeek?: number, dayOfMonth?: number }
+  scheduleConfig   Json?     @map("schedule_config")
+  nextScheduledRun DateTime? @map("next_scheduled_run")
+  lastExecutedAt   DateTime? @map("last_executed_at")
+
+  // Cached results (optional, for performance)
+  cachedResults  Json?     @map("cached_results")
+  cacheExpiresAt DateTime? @map("cache_expires_at")
+
+  // Soft delete
+  deletedAt DateTime? @map("deleted_at")
+
+  // Audit
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([organizationId])
+  @@index([organizationId, createdById])
+  @@index([organizationId, visibility])
+  @@index([nextScheduledRun])
+  @@index([deletedAt])
+  @@map("user_data_tables")
 }
