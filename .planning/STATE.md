@@ -12,16 +12,16 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 Phase: 9 of 11 (Campaigns & Disclosures)
 Plan: 08 of 18 in current phase
 Status: In progress
-Last activity: 2026-02-04 - Completed 09-08-PLAN.md (Campaign Scheduling)
+Last activity: 2026-02-04 - Completed 08-13-PLAN.md (Employee Portal Dashboard)
 
-Progress: [==========================================================] 66% (82 of ~125 total plans)
+Progress: [==========================================================] 66% (83 of ~125 total plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 82
+- Total plans completed: 83
 - Average duration: 15 min
-- Total execution time: 20.8 hours
+- Total execution time: 21.4 hours
 
 **By Phase:**
 
@@ -37,8 +37,8 @@ Progress: [==========================================================] 66% (82 o
 | 08-portals | 13 | 155 min | 12 min |
 
 **Recent Trend:**
-- Last 5 plans: 09-08 (22 min), 08-14 (29 min), 09-07 (12 min), 08-11 (30 min), 08-10 (28 min)
-- Trend: Campaign scheduling service with BullMQ-powered scheduled launches, wave-based rollout, and blackout dates.
+- Last 5 plans: 08-13 (35 min), 09-08 (22 min), 08-14 (29 min), 09-07 (12 min), 08-11 (30 min)
+- Trend: Employee portal dashboard with role-aware tabs, task cards with due date indicators, and manager team compliance view.
 
 *Updated after each plan completion*
 
@@ -400,6 +400,12 @@ Recent decisions affecting current work:
 - 09-08: Wave distribution by shuffle + slice for fair randomization
 - 09-08: Blackout recurrence: YEARLY, QUARTERLY, MONTHLY patterns
 - 09-08: Campaign queue with 3 retries, exponential backoff (5s, 10s, 20s)
+- 08-13: EmployeeContext extracted to separate file for Next.js App Router type compatibility
+- 08-13: useAuthenticatedCategories hook for Employee Portal (vs public tenant API with tenantSlug)
+- 08-13: Role-conditional rendering: isManager flag determines My Team tab visibility
+- 08-13: Tab navigation synced with URL query params (?tab=tasks)
+- 08-13: Compliance scoring UI: green >= 80%, amber >= 50%, red < 50%
+- 08-13: CSV export via client-side Blob generation for team compliance reports
 
 ### Pending Todos
 
@@ -416,6 +422,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-02-04T07:34:31Z
-Stopped at: Completed 09-08-PLAN.md (Campaign Scheduling)
+Last session: 2026-02-04T07:55:00Z
+Stopped at: Completed 08-13-PLAN.md (Employee Portal Dashboard)
 Resume file: None
