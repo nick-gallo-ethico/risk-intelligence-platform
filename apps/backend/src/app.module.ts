@@ -35,6 +35,7 @@ import { NotificationsModule } from "./modules/notifications/notifications.modul
 import { BrandingModule } from "./modules/branding/branding.module";
 import { PortalsModule } from "./modules/portals/portals.module";
 import { TablesModule } from "./modules/tables/tables.module";
+import { DisclosuresModule } from "./modules/disclosures/disclosures.module";
 import { ActivityModule } from "./common/activity.module";
 import { StorageModule } from "./common/storage.module";
 import { TenantMiddleware } from "./common/middleware/tenant.middleware";
@@ -101,6 +102,7 @@ import configuration from "./config/configuration";
     BrandingModule, // White-label branding configuration and CSS generation (Phase 8)
     PortalsModule, // Employee and Operator portal services (Phase 8)
     TablesModule, // User-created data tables with scheduling and export (Phase 9 - RS.48)
+    DisclosuresModule, // Disclosure forms, thresholds, conflict detection, AI triage (Phase 9)
     HealthModule,
   ],
   controllers: [],

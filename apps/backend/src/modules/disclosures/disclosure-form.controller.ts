@@ -46,7 +46,7 @@ import {
  * - GET    /api/v1/disclosure-forms/:id/translations - Get translations
  * - GET    /api/v1/disclosure-forms/published/:name - Get published by name
  */
-@Controller('api/v1/disclosure-forms')
+@Controller('disclosure-forms')
 @UseGuards(JwtAuthGuard, TenantGuard, RolesGuard)
 export class DisclosureFormController {
   constructor(private readonly formService: DisclosureFormService) {}

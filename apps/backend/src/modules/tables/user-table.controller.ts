@@ -58,7 +58,7 @@ interface AuthUser {
  * - POST   /api/v1/tables/:id/share     - Update sharing settings
  * - POST   /api/v1/tables/:id/clone     - Clone table
  */
-@Controller("api/v1/tables")
+@Controller("tables")
 @UseGuards(JwtAuthGuard, TenantGuard, RolesGuard)
 export class UserTableController {
   constructor(private readonly tableService: UserTableService) {}

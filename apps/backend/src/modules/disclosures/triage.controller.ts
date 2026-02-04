@@ -102,7 +102,7 @@ class ExecuteRequestDto {
  */
 @ApiTags('Triage')
 @ApiBearerAuth()
-@Controller('api/v1/triage')
+@Controller('triage')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(UserRole.SYSTEM_ADMIN, UserRole.COMPLIANCE_OFFICER)
 export class TriageController {

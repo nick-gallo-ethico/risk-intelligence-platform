@@ -9,6 +9,7 @@ import { ThresholdService } from './threshold.service';
 import { ConflictDetectionService } from './conflict-detection.service';
 import { AiTriageService } from './ai-triage.service';
 import { TriageController } from './triage.controller';
+import { ConflictController } from './conflict.controller';
 
 /**
  * DisclosuresModule provides disclosure form template management,
@@ -35,7 +36,7 @@ import { TriageController } from './triage.controller';
       ttl: 300000, // 5 minutes (in ms)
     }),
   ],
-  controllers: [DisclosureFormController, TriageController],
+  controllers: [DisclosureFormController, TriageController, ConflictController],
   providers: [
     DisclosureFormService,
     ThresholdService,
