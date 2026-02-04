@@ -5,3 +5,6 @@ export { InvestigationNotes } from './investigation-notes';
 export { InvestigationFindings } from './investigation-findings';
 export { NoteCard } from './note-card';
 export { AddNoteModal } from './add-note-modal';
+export { ChecklistItem } from './checklist-item';
+export { ChecklistPanel } from './checklist-panel';
+export { TemplateSelector, TemplateSelectorDialog } from './template-selector';
