@@ -24,3 +24,13 @@ export type {
 // Organization settings (07-03)
 export { OrgNotificationSettingsService } from './org-settings.service';
 export type { OrgNotificationSettings } from './org-settings.service';
+
+// Core notification dispatch (07-04)
+export { NotificationService } from './notification.service';
+export type {
+  QueueEmailParams,
+  SendInAppParams,
+  QueueForDigestParams,
+  NotifyParams,
+  PaginatedNotifications,
+} from './notification.service';

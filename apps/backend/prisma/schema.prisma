@@ -96,6 +96,7 @@ model Organization {
   notificationPreferences  NotificationPreference[]
   orgNotificationSettings  OrgNotificationSettings?
   emailTemplates           EmailTemplate[]
+  digestQueue              DigestQueue[]
 
   @@index([slug])
   @@index([isActive])
@@ -185,6 +186,7 @@ model User {
   notifications             Notification[]
   notificationPreference    NotificationPreference?
   backupForPreferences      NotificationPreference[] @relation("BackupUser")
+  digestQueue               DigestQueue[]            @relation("DigestQueueUser")
 
   // Unique constraint: email must be unique within an organization
   @@unique([organizationId, email])
@@ -4007,6 +4009,39 @@ model EmailTemplate {
   @@index([organizationId, name, isActive])
   @@index([name, isActive])
   @@map("email_templates")
+}
+
+/// DigestQueue stores pending notifications for daily digest compilation.
+/// Processed by DigestService (07-06) to batch low-priority notifications.
+model DigestQueue {
+  id             String @id @default(uuid())
+  organizationId String @map("organization_id")
+  userId         String @map("user_id")
+
+  // Notification type (from NotificationType enum as string)
+  type String
+
+  // Related entity (for grouping similar notifications)
+  entityType String? @map("entity_type")
+  entityId   String? @map("entity_id")
+
+  // Additional context for rendering digest
+  metadata Json @default("{}")
+
+  // Processing status
+  processed   Boolean   @default(false)
+  processedAt DateTime? @map("processed_at")
+
+  // Audit
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation("DigestQueueUser", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, userId, processed])
+  @@index([processed, createdAt])
+  @@map("digest_queue")
 }
 
 // ===========================================
