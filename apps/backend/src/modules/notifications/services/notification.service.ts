@@ -662,4 +662,58 @@ export class NotificationService {
       },
     });
   }
+
+  /**
+   * Get recent notifications for a user (poll fallback for WebSocket).
+   * Used by NotificationGateway for background tab polling.
+   *
+   * @param organizationId - Organization ID
+   * @param userId - User ID
+   * @param limit - Maximum notifications to return (default 20)
+   * @param since - Optional date filter for notifications created after this time
+   * @returns Array of recent in-app notifications
+   */
+  async getRecentNotifications(
+    organizationId: string,
+    userId: string,
+    limit = 20,
+    since?: Date,
+  ): Promise<InAppNotification[]> {
+    const where: Record<string, unknown> = {
+      organizationId,
+      userId,
+      channel: NotificationChannel.IN_APP,
+    };
+
+    if (since) {
+      where.createdAt = { gt: since };
+    }
+
+    const notifications = await this.prisma.notification.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      take: limit,
+      select: {
+        id: true,
+        type: true,
+        title: true,
+        body: true,
+        entityType: true,
+        entityId: true,
+        isRead: true,
+        createdAt: true,
+      },
+    });
+
+    return notifications.map((n) => ({
+      id: n.id,
+      type: n.type as NotificationCategory,
+      title: n.title,
+      body: n.body || undefined,
+      entityType: n.entityType || undefined,
+      entityId: n.entityId || undefined,
+      isRead: n.isRead,
+      createdAt: n.createdAt,
+    }));
+  }
 }
