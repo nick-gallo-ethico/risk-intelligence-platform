@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 8 of 11 (Portals)
-Plan: 5 of 17 in current phase
+Plan: 6 of 17 in current phase
 Status: In progress
-Last activity: 2026-02-04 - Completed 08-05-PLAN.md (Ethics Portal API)
+Last activity: 2026-02-04 - Completed 08-06-PLAN.md (Employee History and Proxy)
 
-Progress: [====================================================] 57% (71 of ~125 total plans)
+Progress: [====================================================] 58% (72 of ~125 total plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 70
+- Total plans completed: 71
 - Average duration: 15 min
-- Total execution time: 17.9 hours
+- Total execution time: 18.2 hours
 
 **By Phase:**
 
@@ -34,11 +34,11 @@ Progress: [====================================================] 57% (71 of ~125
 | 05-ai-infrastructure | 11 | 143 min | 13 min |
 | 06-case-management | 11 | ~211 min | ~19 min |
 | 07-notifications-email | 8 | ~112 min | ~14 min |
-| 08-portals | 5 | 50 min | 10 min |
+| 08-portals | 6 | 66 min | 11 min |
 
 **Recent Trend:**
-- Last 5 plans: 08-05 (14 min), 08-04 (14 min), 08-03 (13 min), 08-01 (9 min), 07-08 (6 min)
-- Trend: Phase 8 progressing well. Ethics Portal API complete.
+- Last 5 plans: 08-06 (16 min), 08-05 (14 min), 08-04 (14 min), 08-03 (13 min), 08-01 (9 min)
+- Trend: Phase 8 progressing well. Employee history and proxy reporting complete.
 
 *Updated after each plan completion*
 
@@ -368,6 +368,11 @@ Recent decisions affecting current work:
 - 08-05: Category form schema via moduleConfig.formSchemaId JSON field
 - 08-05: Separate EthicsAccessController for access-code-scoped endpoints (/public/access/:code)
 - 08-05: Rate limits: config/categories 30/min, reports 5/min, attachments 10/min, messages 5/min
+- 08-06: Person ID lookup via User email match (User->Person link via email)
+- 08-06: Transitive manager check walks hierarchy with maxDepth=10
+- 08-06: Proxy submissions store metadata in customFields JSON (proxySubmitterId, reason)
+- 08-06: Compliance score: attestations 60%, disclosures 40% weighted average
+- 08-06: Access code generated for employee (not manager) on proxy reports
 
 ### Pending Todos
 
@@ -384,6 +389,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-02-04T05:51:52Z
-Stopped at: Completed 08-05-PLAN.md (Ethics Portal API)
+Last session: 2026-02-04T05:52:29Z
+Stopped at: Completed 08-06-PLAN.md (Employee History and Proxy)
 Resume file: None
