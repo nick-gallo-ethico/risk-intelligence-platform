@@ -1,7 +1,7 @@
 /**
  * Notifications Module Barrel Export
  *
- * Re-exports all public types, DTOs, services, and the module for easy importing.
+ * Re-exports all public types, DTOs, services, gateways, and the module for easy importing.
  */
 
 // Module
@@ -39,11 +39,31 @@ export {
   PreferencesResponseDto,
 } from './dto/notification.dto';
 
+// WebSocket DTOs (07-05)
+export {
+  MarkReadPayload,
+  GetRecentPayload,
+} from './dto/websocket.dto';
+
+export type {
+  SocketContext,
+  NotificationNewEvent,
+  UnreadCountEvent,
+  MarkedReadEvent,
+  RecentNotificationsEvent,
+  NotificationErrorEvent,
+  NotificationWebSocketEvent,
+} from './dto/websocket.dto';
+
+// Gateway (07-05)
+export { NotificationGateway } from './gateways';
+
 // Services
 export {
   EmailTemplateService,
   PreferenceService,
   OrgNotificationSettingsService,
+  NotificationService,
 } from './services';
 
 // Service types
@@ -56,4 +76,5 @@ export type {
   UserPreferences,
   EffectivePreference,
   OrgNotificationSettings,
+  PaginatedNotifications,
 } from './services';
