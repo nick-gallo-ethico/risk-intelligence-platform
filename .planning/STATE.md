@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-02)
 
 **Core value:** Users can manage their entire compliance workflow - from anonymous report intake to investigation closure to board reporting - in one AI-assisted platform, with every task unified into a single "My Work" view.
-**Current focus:** Phase 9 - Campaigns & Disclosures (Phase 8 backfill complete)
+**Current focus:** Phase 9 - Campaigns & Disclosures
 
 ## Current Position
 
 Phase: 9 of 11 (Campaigns & Disclosures)
-Plan: 08 of 18 in current phase
+Plan: 04 of 18 in current phase
 Status: In progress
-Last activity: 2026-02-04 - Completed 08-13-PLAN.md (Employee Portal Dashboard)
+Last activity: 2026-02-04 - Completed 09-04-PLAN.md (Conflict Detection)
 
-Progress: [==========================================================] 66% (83 of ~125 total plans)
+Progress: [==========================================================] 68% (85 of ~125 total plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 83
+- Total plans completed: 85
 - Average duration: 15 min
-- Total execution time: 21.4 hours
+- Total execution time: 22.1 hours
 
 **By Phase:**
 
@@ -37,8 +37,8 @@ Progress: [==========================================================] 66% (83 o
 | 08-portals | 13 | 155 min | 12 min |
 
 **Recent Trend:**
-- Last 5 plans: 08-13 (35 min), 09-08 (22 min), 08-14 (29 min), 09-07 (12 min), 08-11 (30 min)
-- Trend: Employee portal dashboard with role-aware tabs, task cards with due date indicators, and manager team compliance view.
+- Last 5 plans: 09-04 (18 min), 09-03 (26 min), 08-13 (35 min), 09-08 (22 min), 08-14 (29 min)
+- Trend: Conflict detection with fuzzy matching for disclosure compliance review.
 
 *Updated after each plan completion*
 
@@ -406,6 +406,12 @@ Recent decisions affecting current work:
 - 08-13: Tab navigation synced with URL query params (?tab=tasks)
 - 08-13: Compliance scoring UI: green >= 80%, amber >= 50%, red < 50%
 - 08-13: CSV export via client-side Blob generation for team compliance reports
+- 09-04: Levenshtein distance for fuzzy matching with thresholds 60/75/90/100
+- 09-04: Seven conflict types: VENDOR_MATCH, APPROVAL_AUTHORITY, PRIOR_CASE_HISTORY, HRIS_MATCH, GIFT_AGGREGATE, RELATIONSHIP_PATTERN, SELF_DEALING
+- 09-04: Exclusion scopes: PERMANENT, TIME_LIMITED, ONE_TIME per RS.44
+- 09-04: Dismissal categories: FALSE_MATCH_DIFFERENT_ENTITY, FALSE_MATCH_NAME_COLLISION, ALREADY_REVIEWED, PRE_APPROVED_EXCEPTION, BELOW_THRESHOLD, OTHER
+- 09-04: Use DISCLOSURE entity type for audit logging (no CONFLICT_ALERT in AuditEntityType)
+- 09-04: Entity timeline aggregation combines disclosures, conflicts, and case subjects
 
 ### Pending Todos
 
@@ -422,6 +428,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-02-04T07:55:00Z
-Stopped at: Completed 08-13-PLAN.md (Employee Portal Dashboard)
+Last session: 2026-02-04T06:43:00Z
+Stopped at: Completed 09-04-PLAN.md (Conflict Detection)
 Resume file: None
