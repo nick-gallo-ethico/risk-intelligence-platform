@@ -87,16 +87,19 @@ model Organization {
   savedViews SavedView[]
 
   // Investigation template relations
-  investigationTemplates       InvestigationTemplate[]
-  categoryTemplateMappings     CategoryTemplateMapping[]
-  checklistProgress            InvestigationChecklistProgress[]
+  investigationTemplates   InvestigationTemplate[]
+  categoryTemplateMappings CategoryTemplateMapping[]
+  checklistProgress        InvestigationChecklistProgress[]
 
   // Notification relations
-  notifications            Notification[]
-  notificationPreferences  NotificationPreference[]
-  orgNotificationSettings  OrgNotificationSettings?
-  emailTemplates           EmailTemplate[]
-  digestQueue              DigestQueue[]
+  notifications           Notification[]
+  notificationPreferences NotificationPreference[]
+  orgNotificationSettings OrgNotificationSettings?
+  emailTemplates          EmailTemplate[]
+  digestQueue             DigestQueue[]
+
+  // Portal branding (Phase 8)
+  tenantBranding TenantBranding?
 
   @@index([slug])
   @@index([isActive])
@@ -183,10 +186,10 @@ model User {
   demoUserSessions DemoUserSession[]
 
   // Notification relations
-  notifications             Notification[]
-  notificationPreference    NotificationPreference?
-  backupForPreferences      NotificationPreference[] @relation("BackupUser")
-  digestQueue               DigestQueue[]            @relation("DigestQueueUser")
+  notifications          Notification[]
+  notificationPreference NotificationPreference?
+  backupForPreferences   NotificationPreference[] @relation("BackupUser")
+  digestQueue            DigestQueue[]            @relation("DigestQueueUser")
 
   // Unique constraint: email must be unique within an organization
   @@unique([organizationId, email])
@@ -3818,10 +3821,10 @@ model InvestigationChecklistProgress {
   itemOrder    Json? @map("item_order") // Custom ordering
 
   // Summary metrics (denormalized for queries)
-  totalItems      Int @map("total_items")
-  completedItems  Int @default(0) @map("completed_items")
-  skippedCount    Int @default(0) @map("skipped_count")
-  customCount     Int @default(0) @map("custom_count")
+  totalItems     Int @map("total_items")
+  completedItems Int @default(0) @map("completed_items")
+  skippedCount   Int @default(0) @map("skipped_count")
+  customCount    Int @default(0) @map("custom_count")
 
   // Progress percentage (0-100)
   progressPercent Int @default(0) @map("progress_percent")
@@ -3992,16 +3995,16 @@ model OrgNotificationSettings {
 /// EmailTemplate stores versioned MJML email templates.
 /// Allows organization-specific overrides with version history.
 model EmailTemplate {
-  id             String  @id @default(uuid())
-  organizationId String  @map("organization_id")
-  name           String // e.g., 'assignment/case-assigned', 'deadline/sla-warning'
-  version        Int     @default(1)
-  mjmlContent    String  @map("mjml_content") @db.Text // MJML template content
-  subjectTemplate String @map("subject_template") // Handlebars subject line template
-  description    String?
-  isActive       Boolean @default(true) @map("is_active")
-  createdAt      DateTime @default(now()) @map("created_at")
-  updatedAt      DateTime @updatedAt @map("updated_at")
+  id              String   @id @default(uuid())
+  organizationId  String   @map("organization_id")
+  name            String // e.g., 'assignment/case-assigned', 'deadline/sla-warning'
+  version         Int      @default(1)
+  mjmlContent     String   @map("mjml_content") @db.Text // MJML template content
+  subjectTemplate String   @map("subject_template") // Handlebars subject line template
+  description     String?
+  isActive        Boolean  @default(true) @map("is_active")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
 
   // Relations
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
@@ -4091,4 +4094,93 @@ enum DeliveryStatus {
   DEFERRED // Temporary failure, will retry
 
   @@map("delivery_status")
+}
+
+// ===========================================
+// Portals & White-Label Branding (Phase 8)
+// ===========================================
+
+/// BrandingMode determines the level of customization available to a tenant.
+/// TEMPLATE: Basic customization (logo, primary color, theme mode)
+/// FULL_WHITE_LABEL: Complete customization (12-token color palette, typography)
+enum BrandingMode {
+  TEMPLATE
+  FULL_WHITE_LABEL
+
+  @@map("branding_mode")
+}
+
+/// ThemeMode determines the default color scheme for the portal.
+enum ThemeMode {
+  LIGHT
+  DARK
+  SYSTEM
+
+  @@map("theme_mode")
+}
+
+/// TenantBranding stores per-tenant portal customization settings.
+/// Enables white-label branding for Ethics Portal and other customer-facing portals.
+///
+/// For TEMPLATE mode:
+/// - Only logoUrl, primaryColor, and theme are used
+/// - Colors are derived from primaryColor
+///
+/// For FULL_WHITE_LABEL mode:
+/// - Full colorPalette with 12 HSL tokens
+/// - Custom typography (fontFamily, headingFontFamily)
+/// - Custom domain support
+model TenantBranding {
+  id             String       @id @default(uuid())
+  organizationId String       @unique @map("organization_id")
+  mode           BrandingMode @default(TEMPLATE)
+
+  // Basic branding (TEMPLATE mode)
+  logoUrl      String?   @map("logo_url") // URL to logo in blob storage
+  primaryColor String?   @map("primary_color") // HSL format: "221 83% 53%"
+  theme        ThemeMode @default(LIGHT)
+
+  // Full white-label branding (FULL_WHITE_LABEL mode)
+  // colorPalette stores 12-token HSL palette:
+  // {
+  //   background: "0 0% 100%",
+  //   foreground: "222 47% 11%",
+  //   card: "0 0% 100%",
+  //   cardForeground: "222 47% 11%",
+  //   primary: "221 83% 53%",
+  //   primaryForeground: "210 40% 98%",
+  //   secondary: "210 40% 96%",
+  //   secondaryForeground: "222 47% 11%",
+  //   muted: "210 40% 96%",
+  //   mutedForeground: "215 16% 47%",
+  //   accent: "210 40% 96%",
+  //   accentForeground: "222 47% 11%",
+  //   destructive: "0 84% 60%",
+  //   destructiveForeground: "210 40% 98%",
+  //   border: "214 32% 91%",
+  //   input: "214 32% 91%",
+  //   ring: "221 83% 53%"
+  // }
+  colorPalette Json? @map("color_palette")
+
+  // Typography customization
+  // { fontFamily: "Inter", headingFontFamily: "Inter" }
+  typography Json?
+
+  // Custom domain for full white-label
+  customDomain String? @unique @map("custom_domain")
+
+  // Additional portal customizations
+  footerText      String? @map("footer_text")
+  welcomeVideoUrl String? @map("welcome_video_url")
+
+  // Timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([customDomain])
+  @@map("tenant_branding")
 }
