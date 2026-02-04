@@ -128,6 +128,12 @@ model Organization {
   // User data table relations (Phase 9 - RS.48)
   userDataTables UserDataTable[]
 
+  // Policy management relations (Phase 10)
+  policies                  Policy[]
+  policyVersions            PolicyVersion[]
+  policyVersionTranslations PolicyVersionTranslation[]
+  policyCaseAssociations    PolicyCaseAssociation[]
+
   @@index([slug])
   @@index([isActive])
   @@map("organizations")
@@ -230,6 +236,14 @@ model User {
 
   // User data table relations (Phase 9 - RS.48)
   userDataTablesCreated UserDataTable[] @relation("UserDataTableCreatedBy")
+
+  // Policy management relations (Phase 10)
+  policiesOwned                 Policy[]                   @relation("PolicyOwner")
+  policiesDraftUpdated          Policy[]                   @relation("PolicyDraftUpdatedBy")
+  policiesCreated               Policy[]                   @relation("PolicyCreatedBy")
+  policyVersionsPublished       PolicyVersion[]            @relation("PolicyVersionPublishedBy")
+  policyTranslationsReviewed    PolicyVersionTranslation[] @relation("PolicyTranslationReviewer")
+  policyCaseAssociationsCreated PolicyCaseAssociation[]    @relation("PolicyCaseAssociationCreatedBy")
 
   // Unique constraint: email must be unique within an organization
   @@unique([organizationId, email])
@@ -582,6 +596,9 @@ model Case {
   // Conflict alerts escalated to this case
   escalatedConflicts ConflictAlert[]
 
+  // Policy case associations (Phase 10)
+  policyAssociations PolicyCaseAssociation[]
+
   // Indexes for performance
   @@index([organizationId])
   @@index([organizationId, status])
@@ -687,6 +704,8 @@ enum AuditEntityType {
   REMEDIATION_STEP
   NOTIFICATION
   USER_DATA_TABLE
+  POLICY_VERSION
+  POLICY_TRANSLATION
 
   @@map("audit_entity_type")
 }
@@ -1511,12 +1530,12 @@ model DisclosureDraft {
   assignmentId   String? @map("assignment_id") // Optional link to campaign assignment
 
   // Form context
-  formTemplateId String?        @map("form_template_id")
+  formTemplateId String?         @map("form_template_id")
   disclosureType DisclosureType? @map("disclosure_type")
 
   // Draft data
-  formData             Json   @map("form_data") // Partial form data as JSON
-  completionPercentage Int    @default(0) @map("completion_percentage") // 0-100
+  formData             Json    @map("form_data") // Partial form data as JSON
+  completionPercentage Int     @default(0) @map("completion_percentage") // 0-100
   currentSection       String? @map("current_section") // Last section user was on
 
   // Timestamps
@@ -2910,10 +2929,10 @@ model Campaign {
   type        CampaignType
 
   // Versioning (RS.52 - translation support)
-  version                 Int      @default(1)
-  language                String   @default("en") // ISO 639-1 code
-  parentCampaignId        String?  @map("parent_campaign_id") // For translations
-  parentVersionAtCreation Int?     @map("parent_version_at_creation") // Version of parent when translation was created
+  version                 Int     @default(1)
+  language                String  @default("en") // ISO 639-1 code
+  parentCampaignId        String? @map("parent_campaign_id") // For translations
+  parentVersionAtCreation Int?    @map("parent_version_at_creation") // Version of parent when translation was created
 
   // Status and lifecycle
   status     CampaignStatus @default(DRAFT)
@@ -2973,13 +2992,13 @@ model Campaign {
   updatedById String?  @map("updated_by_id")
 
   // Relations
-  organization     Organization           @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  segment          Segment?               @relation(fields: [segmentId], references: [id])
-  assignments      CampaignAssignment[]
-  rius             RiskIntelligenceUnit[] @relation("CampaignRius")
-  waves            CampaignWave[]
-  parentCampaign   Campaign?              @relation("CampaignTranslations", fields: [parentCampaignId], references: [id])
-  translations     Campaign[]             @relation("CampaignTranslations")
+  organization   Organization           @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  segment        Segment?               @relation(fields: [segmentId], references: [id])
+  assignments    CampaignAssignment[]
+  rius           RiskIntelligenceUnit[] @relation("CampaignRius")
+  waves          CampaignWave[]
+  parentCampaign Campaign?              @relation("CampaignTranslations", fields: [parentCampaignId], references: [id])
+  translations   Campaign[]             @relation("CampaignTranslations")
 
   @@index([organizationId])
   @@index([organizationId, status])
@@ -3011,9 +3030,9 @@ model CampaignAssignment {
   dueDate     DateTime  @map("due_date") // Copied from campaign at assignment time
 
   // Notifications
-  reminderCount       Int       @default(0) @map("reminder_count")
-  lastReminderSentAt  DateTime? @map("last_reminder_sent_at")
-  managerNotifiedAt   DateTime? @map("manager_notified_at") // When manager was CC'd on reminder
+  reminderCount      Int       @default(0) @map("reminder_count")
+  lastReminderSentAt DateTime? @map("last_reminder_sent_at")
+  managerNotifiedAt  DateTime? @map("manager_notified_at") // When manager was CC'd on reminder
 
   // Response linkage
   riuId            String? @map("riu_id") // Links to RIU created by response
@@ -3034,10 +3053,10 @@ model CampaignAssignment {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relations
-  organization     Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  campaign         Campaign           @relation(fields: [campaignId], references: [id], onDelete: Cascade)
-  employee         Employee           @relation(fields: [employeeId], references: [id])
-  wave             CampaignWave?      @relation(fields: [waveId], references: [id])
+  organization     Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  campaign         Campaign          @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  employee         Employee          @relation(fields: [employeeId], references: [id])
+  wave             CampaignWave?     @relation(fields: [waveId], references: [id])
   disclosureDrafts DisclosureDraft[]
 
   // Unique constraint: one assignment per employee per campaign
@@ -4988,4 +5007,237 @@ model UserDataTable {
   @@index([nextScheduledRun])
   @@index([deletedAt])
   @@map("user_data_tables")
+}
+
+// ===========================================
+// Policy Management Entities (Phase 10)
+// ===========================================
+
+enum PolicyType {
+  CODE_OF_CONDUCT
+  ANTI_HARASSMENT
+  ANTI_BRIBERY
+  DATA_PRIVACY
+  INFORMATION_SECURITY
+  GIFT_ENTERTAINMENT
+  CONFLICTS_OF_INTEREST
+  TRAVEL_EXPENSE
+  WHISTLEBLOWER
+  SOCIAL_MEDIA
+  ACCEPTABLE_USE
+  OTHER
+
+  @@map("policy_type")
+}
+
+enum PolicyStatus {
+  DRAFT
+  PENDING_APPROVAL
+  APPROVED
+  PUBLISHED
+  RETIRED
+
+  @@map("policy_status")
+}
+
+enum TranslationSource {
+  AI
+  HUMAN
+  IMPORT
+
+  @@map("translation_source")
+}
+
+enum TranslationReviewStatus {
+  PENDING_REVIEW
+  APPROVED
+  NEEDS_REVISION
+  PUBLISHED
+
+  @@map("translation_review_status")
+}
+
+enum PolicyCaseLinkType {
+  VIOLATION
+  REFERENCE
+  GOVERNING
+
+  @@map("policy_case_link_type")
+}
+
+/// Policy represents a corporate policy document with draft/published lifecycle.
+/// Policies have versions - each publish creates an immutable PolicyVersion snapshot.
+/// draft content is mutable until published; published versions are immutable.
+model Policy {
+  id             String @id @default(uuid())
+  organizationId String @map("organization_id")
+
+  // Identity
+  title      String
+  slug       String // URL-friendly identifier, unique within org
+  policyType PolicyType @map("policy_type")
+  category   String? // Optional free-text category
+
+  // Status & Version Tracking
+  status         PolicyStatus @default(DRAFT)
+  currentVersion Int          @default(0) @map("current_version") // 0 = never published
+
+  // Draft Content (mutable until published)
+  draftContent     String?   @map("draft_content") @db.Text // Rich HTML content
+  draftUpdatedAt   DateTime? @map("draft_updated_at")
+  draftUpdatedById String?   @map("draft_updated_by_id")
+
+  // Ownership
+  ownerId String @map("owner_id")
+
+  // Dates
+  effectiveDate DateTime? @map("effective_date")
+  reviewDate    DateTime? @map("review_date") // Next scheduled review
+  retiredAt     DateTime? @map("retired_at")
+
+  // Audit
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  createdById String   @map("created_by_id")
+
+  // Relations
+  organization     Organization            @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  owner            User                    @relation("PolicyOwner", fields: [ownerId], references: [id])
+  draftUpdatedBy   User?                   @relation("PolicyDraftUpdatedBy", fields: [draftUpdatedById], references: [id])
+  createdBy        User                    @relation("PolicyCreatedBy", fields: [createdById], references: [id])
+  versions         PolicyVersion[]
+  caseAssociations PolicyCaseAssociation[]
+
+  @@unique([organizationId, slug])
+  @@index([organizationId])
+  @@index([organizationId, status])
+  @@index([organizationId, policyType])
+  @@index([organizationId, ownerId])
+  @@index([organizationId, reviewDate])
+  @@map("policies")
+}
+
+/// PolicyVersion stores immutable published snapshots of a policy.
+/// Each time a policy is published, a new version is created.
+/// Content is immutable - corrections require a new version.
+model PolicyVersion {
+  id             String @id @default(uuid())
+  organizationId String @map("organization_id")
+  policyId       String @map("policy_id")
+
+  // Version Identity
+  version      Int // Sequential version number (1, 2, 3...)
+  versionLabel String? @map("version_label") // Optional label like "v1.0" or "2026 Update"
+
+  // Content (immutable after creation)
+  content   String @db.Text // Rich HTML content
+  plainText String @map("plain_text") @db.Text // Plain text for search indexing
+
+  // Metadata
+  summary     String? @db.Text // Brief summary of the policy
+  changeNotes String? @map("change_notes") @db.Text // What changed from previous version
+
+  // Publishing Info
+  publishedAt   DateTime @map("published_at")
+  publishedById String   @map("published_by_id")
+  effectiveDate DateTime @map("effective_date")
+
+  // Version Status
+  isLatest Boolean @default(true) @map("is_latest")
+
+  // Relations
+  organization     Organization               @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  policy           Policy                     @relation(fields: [policyId], references: [id], onDelete: Cascade)
+  publishedBy      User                       @relation("PolicyVersionPublishedBy", fields: [publishedById], references: [id])
+  translations     PolicyVersionTranslation[]
+  caseAssociations PolicyCaseAssociation[]
+
+  @@unique([policyId, version])
+  @@index([organizationId])
+  @@index([organizationId, policyId])
+  @@index([organizationId, isLatest])
+  @@index([organizationId, publishedAt])
+  @@map("policy_versions")
+}
+
+/// PolicyVersionTranslation stores translated content for a specific policy version.
+/// Translations can be AI-generated, human-translated, or imported.
+/// Tracks review status and staleness when source content changes.
+model PolicyVersionTranslation {
+  id              String @id @default(uuid())
+  organizationId  String @map("organization_id")
+  policyVersionId String @map("policy_version_id")
+
+  // Language
+  languageCode String @map("language_code") // ISO 639-1 code (e.g., "es", "fr", "de")
+  languageName String @map("language_name") // Display name (e.g., "Spanish", "French")
+
+  // Translated Content
+  title     String // Translated policy title
+  content   String @db.Text // Translated rich HTML content
+  plainText String @map("plain_text") @db.Text // Plain text for search
+
+  // Translation Source
+  translatedBy TranslationSource @default(AI) @map("translated_by")
+  aiModel      String?           @map("ai_model") // e.g., "claude-3-opus"
+
+  // Review Status
+  reviewStatus TranslationReviewStatus @default(PENDING_REVIEW) @map("review_status")
+  reviewedAt   DateTime?               @map("reviewed_at")
+  reviewedById String?                 @map("reviewed_by_id")
+  reviewNotes  String?                 @map("review_notes") @db.Text
+
+  // Staleness (when source language is updated, translations may be stale)
+  isStale Boolean @default(false) @map("is_stale")
+
+  // Audit
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  organization  Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  policyVersion PolicyVersion @relation(fields: [policyVersionId], references: [id], onDelete: Cascade)
+  reviewedBy    User?         @relation("PolicyTranslationReviewer", fields: [reviewedById], references: [id])
+
+  @@unique([policyVersionId, languageCode])
+  @@index([organizationId])
+  @@index([organizationId, languageCode])
+  @@index([organizationId, reviewStatus])
+  @@index([organizationId, isStale])
+  @@map("policy_version_translations")
+}
+
+/// PolicyCaseAssociation links policies to cases for violation tracking.
+/// A case can reference multiple policies; a policy can be linked to multiple cases.
+/// Supports different link types: violation (policy was violated), reference (case mentions policy),
+/// or governing (policy governs the situation).
+model PolicyCaseAssociation {
+  id              String  @id @default(uuid())
+  organizationId  String  @map("organization_id")
+  policyId        String  @map("policy_id")
+  policyVersionId String? @map("policy_version_id") // Optional - specific version, defaults to latest at link time
+  caseId          String  @map("case_id")
+
+  // Link Details
+  linkType      PolicyCaseLinkType @map("link_type")
+  linkReason    String?            @map("link_reason") @db.Text // Why this policy is linked
+  violationDate DateTime?          @map("violation_date") // When violation occurred (for VIOLATION type)
+
+  // Audit
+  createdAt   DateTime @default(now()) @map("created_at")
+  createdById String   @map("created_by_id")
+
+  // Relations
+  organization  Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  policy        Policy         @relation(fields: [policyId], references: [id], onDelete: Cascade)
+  policyVersion PolicyVersion? @relation(fields: [policyVersionId], references: [id])
+  case          Case           @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  createdBy     User           @relation("PolicyCaseAssociationCreatedBy", fields: [createdById], references: [id])
+
+  @@unique([policyId, caseId])
+  @@index([organizationId])
+  @@index([organizationId, policyId])
+  @@index([organizationId, caseId])
+  @@index([organizationId, linkType])
+  @@map("policy_case_associations")
 }
