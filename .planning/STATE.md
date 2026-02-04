@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 8 of 11 (Portals)
-Plan: 4 of 17 in current phase
+Plan: 5 of 17 in current phase
 Status: In progress
-Last activity: 2026-02-04 - Completed 08-04-PLAN.md (Employee Tasks)
+Last activity: 2026-02-04 - Completed 08-05-PLAN.md (Ethics Portal API)
 
-Progress: [====================================================] 56% (70 of ~125 total plans)
+Progress: [====================================================] 57% (71 of ~125 total plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 69
+- Total plans completed: 70
 - Average duration: 15 min
-- Total execution time: 17.7 hours
+- Total execution time: 17.9 hours
 
 **By Phase:**
 
@@ -34,11 +34,11 @@ Progress: [====================================================] 56% (70 of ~125
 | 05-ai-infrastructure | 11 | 143 min | 13 min |
 | 06-case-management | 11 | ~211 min | ~19 min |
 | 07-notifications-email | 8 | ~112 min | ~14 min |
-| 08-portals | 4 | 36 min | 9 min |
+| 08-portals | 5 | 50 min | 10 min |
 
 **Recent Trend:**
-- Last 5 plans: 08-04 (14 min), 08-03 (13 min), 08-01 (9 min), 07-08 (6 min), 07-07 (23 min)
-- Trend: Phase 8 progressing well. Employee tasks aggregation complete.
+- Last 5 plans: 08-05 (14 min), 08-04 (14 min), 08-03 (13 min), 08-01 (9 min), 07-08 (6 min)
+- Trend: Phase 8 progressing well. Ethics Portal API complete.
 
 *Updated after each plan completion*
 
@@ -363,6 +363,11 @@ Recent decisions affecting current work:
 - 08-04: Task IDs encode source type for routing: {sourceType}-{sourceId}
 - 08-04: NOT clause for pending tasks due check (includes null due dates)
 - 08-04: PortalsModule aggregates EmployeePortalModule and OperatorPortalModule
+- 08-05: Cache-based draft and temp attachment storage (CacheModule, Redis in production)
+- 08-05: System user (system@ethico.com) per org for public submission createdById
+- 08-05: Category form schema via moduleConfig.formSchemaId JSON field
+- 08-05: Separate EthicsAccessController for access-code-scoped endpoints (/public/access/:code)
+- 08-05: Rate limits: config/categories 30/min, reports 5/min, attachments 10/min, messages 5/min
 
 ### Pending Todos
 
@@ -379,6 +384,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-02-04T05:30:43Z
-Stopped at: Completed 08-04-PLAN.md (Employee Tasks)
+Last session: 2026-02-04T05:51:52Z
+Stopped at: Completed 08-05-PLAN.md (Ethics Portal API)
 Resume file: None
