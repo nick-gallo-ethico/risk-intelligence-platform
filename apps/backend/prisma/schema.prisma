@@ -91,6 +91,11 @@ model Organization {
   categoryTemplateMappings     CategoryTemplateMapping[]
   checklistProgress            InvestigationChecklistProgress[]
 
+  // Notification relations
+  notifications            Notification[]
+  notificationPreferences  NotificationPreference[]
+  orgNotificationSettings  OrgNotificationSettings?
+
   @@index([slug])
   @@index([isActive])
   @@map("organizations")
@@ -174,6 +179,11 @@ model User {
 
   // Demo reset relations
   demoUserSessions DemoUserSession[]
+
+  // Notification relations
+  notifications             Notification[]
+  notificationPreference    NotificationPreference?
+  backupForPreferences      NotificationPreference[] @relation("BackupUser")
 
   // Unique constraint: email must be unique within an organization
   @@unique([organizationId, email])
@@ -3828,4 +3838,197 @@ model InvestigationChecklistProgress {
   @@index([organizationId])
   @@index([organizationId, templateId])
   @@map("investigation_checklist_progress")
+}
+
+// ===========================================
+// Notification System Entities
+// ===========================================
+
+/// Notification represents a single notification record sent to a user.
+/// Notifications can be delivered via email or in-app channels.
+/// Scoped to organization for RLS compliance.
+model Notification {
+  id             String @id @default(uuid())
+  organizationId String @map("organization_id")
+  userId         String @map("user_id")
+
+  // Channel and type
+  channel NotificationChannel
+  type    NotificationType
+
+  // Status tracking
+  status NotificationStatus @default(QUEUED)
+
+  // Content
+  title String
+  body  String?
+
+  // Navigation context (what entity this relates to)
+  entityType String? @map("entity_type") // 'case', 'investigation', 'campaign', etc.
+  entityId   String? @map("entity_id")
+
+  // Email-specific
+  templateId String? @map("template_id") // Which email template was used
+
+  // Read tracking (for in-app)
+  isRead Boolean   @default(false) @map("is_read")
+  readAt DateTime? @map("read_at")
+
+  // Audit
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  organization Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  delivery     NotificationDelivery?
+
+  @@index([organizationId])
+  @@index([organizationId, userId])
+  @@index([organizationId, userId, isRead])
+  @@index([organizationId, userId, createdAt])
+  @@index([organizationId, type])
+  @@index([organizationId, status])
+  @@map("notifications")
+}
+
+/// NotificationDelivery tracks email delivery status for notifications.
+/// One-to-one with Notification when channel is EMAIL.
+model NotificationDelivery {
+  id             String @id @default(uuid())
+  notificationId String @unique @map("notification_id")
+
+  // Provider tracking
+  messageId String? @map("message_id") // ID from email provider (SendGrid, SES, etc.)
+
+  // Delivery status
+  status DeliveryStatus @default(PENDING)
+
+  // Retry tracking
+  attempts      Int       @default(0)
+  lastAttemptAt DateTime? @map("last_attempt_at")
+
+  // Error details
+  errorMessage String? @map("error_message")
+
+  // Audit
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  notification Notification @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@index([messageId])
+  @@map("notification_deliveries")
+}
+
+/// NotificationPreference stores user-level notification preferences.
+/// Each user has one preference record per organization.
+/// Preferences JSON stores per-category settings: { categoryName: { email: bool, inApp: bool } }
+model NotificationPreference {
+  id             String @id @default(uuid())
+  organizationId String @map("organization_id")
+  userId         String @unique @map("user_id") // One preference per user
+
+  // Preference settings (JSON structure)
+  // { "ASSIGNMENT": { "email": true, "inApp": true }, "DEADLINE": { "email": true, "inApp": true }, ... }
+  preferences Json @default("{}")
+
+  // Quiet hours (no non-urgent notifications)
+  quietHoursStart String? @map("quiet_hours_start") // HH:MM format (24hr)
+  quietHoursEnd   String? @map("quiet_hours_end") // HH:MM format (24hr)
+  timezone        String  @default("UTC")
+
+  // Out-of-office handling
+  backupUserId String?   @map("backup_user_id") // Receives urgent notifications while user is OOO
+  oooUntil     DateTime? @map("ooo_until") // OOO status active until this date
+
+  // Audit
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  backupUser   User?        @relation("BackupUser", fields: [backupUserId], references: [id])
+
+  @@unique([organizationId, userId])
+  @@index([organizationId])
+  @@map("notification_preferences")
+}
+
+/// OrgNotificationSettings stores organization-level notification configuration.
+/// One record per organization defining enforced categories and defaults.
+model OrgNotificationSettings {
+  id             String @id @default(uuid())
+  organizationId String @unique @map("organization_id")
+
+  // Enforced categories (users cannot disable these)
+  // Examples: ["ASSIGNMENT", "DEADLINE", "ESCALATION"]
+  enforcedCategories String[] @default([]) @map("enforced_categories")
+
+  // Default quiet hours for organization
+  defaultQuietHoursStart String? @map("default_quiet_hours_start") // HH:MM format
+  defaultQuietHoursEnd   String? @map("default_quiet_hours_end") // HH:MM format
+
+  // Digest configuration
+  digestTime String @default("17:00") @map("digest_time") // When to send daily digest (HH:MM)
+
+  // Audit
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@map("org_notification_settings")
+}
+
+// ===========================================
+// Notification Enums
+// ===========================================
+
+enum NotificationChannel {
+  EMAIL
+  IN_APP
+
+  @@map("notification_channel")
+}
+
+enum NotificationType {
+  ASSIGNMENT // Task/case assigned to user
+  DEADLINE // SLA warning, approaching due date
+  APPROVAL // Approval request or decision
+  MENTION // @mentioned in comment/note
+  INTERVIEW // Interview scheduled/reminder
+  STATUS_UPDATE // Entity status changed
+  COMMENT // New comment on watched entity
+  COMPLETION // Task/investigation/remediation completed
+  ESCALATION // SLA breach escalation
+  DIGEST // Daily summary digest
+
+  @@map("notification_type")
+}
+
+enum NotificationStatus {
+  QUEUED // Created, pending delivery
+  SENT // Handed off to delivery provider
+  DELIVERED // Confirmed delivered
+  FAILED // Delivery failed after retries
+  READ // User has read (in-app only)
+  ARCHIVED // User archived/dismissed
+
+  @@map("notification_status")
+}
+
+enum DeliveryStatus {
+  PENDING // Not yet attempted
+  SENT // Sent to provider
+  DELIVERED // Confirmed delivered
+  BOUNCED // Email bounced
+  FAILED // Permanent failure
+  DEFERRED // Temporary failure, will retry
+
+  @@map("delivery_status")
 }
