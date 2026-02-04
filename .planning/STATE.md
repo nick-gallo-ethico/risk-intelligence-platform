@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 7 of 11 (Notifications & Email) - IN PROGRESS
-Plan: 3 of 8 in current phase
+Plan: 4 of 8 in current phase
 Status: In progress
-Last activity: 2026-02-04 - Completed 06-13-PLAN.md (Case Detail with Linked RIUs)
+Last activity: 2026-02-04 - Completed 07-04-PLAN.md (NotificationService & Event Listeners)
 
-Progress: [==================================================] 48% (60 of ~125 total plans)
+Progress: [==================================================] 49% (61 of ~125 total plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 60
+- Total plans completed: 61
 - Average duration: 15 min
-- Total execution time: 15.7 hours
+- Total execution time: 15.9 hours
 
 **By Phase:**
 
@@ -35,8 +35,8 @@ Progress: [==================================================] 48% (60 of ~125 t
 | 06-case-management | 10 | ~200 min | ~20 min |
 
 **Recent Trend:**
-- Last 5 plans: 06-13 (23 min), 06-14 (27 min), 07-03 (11 min), 07-02 (18 min), 07-01 (16 min)
-- Trend: Case detail with linked RIUs complete. Phase 6 case management UI complete.
+- Last 5 plans: 07-04 (12 min), 06-13 (23 min), 06-14 (27 min), 07-03 (11 min), 07-02 (18 min)
+- Trend: Core NotificationService and event listeners complete. Phase 7 progressing well.
 
 *Updated after each plan completion*
 
@@ -317,6 +317,10 @@ Recent decisions affecting current work:
 - 06-13: RIU associations displayed with PRIMARY highlighted by distinct border and star icon
 - 06-13: Tab navigation synced to URL for shareable deep links
 - 06-13: Case detail layout: header + collapsible sidebar + tabbed content
+- 07-04: ESCALATION added to NotificationCategory for SLA breach notifications
+- 07-04: All event listeners use { async: true } to prevent blocking requests
+- 07-04: DigestQueue model stores pending notifications for daily batch processing
+- 07-04: Pre-render email templates before queueing (per RESEARCH.md pitfall)
 
 ### Pending Todos
 
@@ -333,6 +337,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-02-04T01:05:00Z
-Stopped at: Completed 06-13-PLAN.md (Case Detail with Linked RIUs)
+Last session: 2026-02-04T01:12:00Z
+Stopped at: Completed 07-04-PLAN.md (NotificationService & Event Listeners)
 Resume file: None
