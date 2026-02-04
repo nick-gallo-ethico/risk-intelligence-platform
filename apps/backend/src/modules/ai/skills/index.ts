@@ -5,3 +5,4 @@ export * from "./platform/summarize.skill";
 export * from "./platform/category-suggest.skill";
 export * from "./platform/risk-score.skill";
 export * from "./platform/translate.skill";
+export * from "./triage.skill";
