@@ -12,16 +12,16 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 Phase: 7 of 11 (Notifications & Email) - IN PROGRESS
 Plan: 3 of 8 in current phase
 Status: In progress
-Last activity: 2026-02-04 - Completed 06-14-PLAN.md (Investigation Checklist UI)
+Last activity: 2026-02-04 - Completed 06-13-PLAN.md (Case Detail with Linked RIUs)
 
-Progress: [=================================================] 47% (59 of ~125 total plans)
+Progress: [==================================================] 48% (60 of ~125 total plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 59
+- Total plans completed: 60
 - Average duration: 15 min
-- Total execution time: 15.3 hours
+- Total execution time: 15.7 hours
 
 **By Phase:**
 
@@ -35,8 +35,8 @@ Progress: [=================================================] 47% (59 of ~125 to
 | 06-case-management | 10 | ~200 min | ~20 min |
 
 **Recent Trend:**
-- Last 5 plans: 06-14 (27 min), 07-03 (11 min), 07-02 (18 min), 07-01 (16 min), 06-11 (20 min)
-- Trend: Investigation checklist UI complete. Out-of-order execution for phase 6 completion.
+- Last 5 plans: 06-13 (23 min), 06-14 (27 min), 07-03 (11 min), 07-02 (18 min), 07-01 (16 min)
+- Trend: Case detail with linked RIUs complete. Phase 6 case management UI complete.
 
 *Updated after each plan completion*
 
@@ -314,6 +314,9 @@ Recent decisions affecting current work:
 - 06-14: ChecklistItem always shows completion dialog for notes even when not evidence-required
 - 06-14: Dependency locking prevents completing items with incomplete prerequisites
 - 06-14: InvestigationDetailPage uses tabbed interface matching existing Case detail pattern
+- 06-13: RIU associations displayed with PRIMARY highlighted by distinct border and star icon
+- 06-13: Tab navigation synced to URL for shareable deep links
+- 06-13: Case detail layout: header + collapsible sidebar + tabbed content
 
 ### Pending Todos
 
@@ -330,6 +333,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-02-04T01:03:00Z
-Stopped at: Completed 06-14-PLAN.md (Investigation Checklist UI)
+Last session: 2026-02-04T01:05:00Z
+Stopped at: Completed 06-13-PLAN.md (Case Detail with Linked RIUs)
 Resume file: None
