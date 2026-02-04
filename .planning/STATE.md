@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-02)
 
 **Core value:** Users can manage their entire compliance workflow - from anonymous report intake to investigation closure to board reporting - in one AI-assisted platform, with every task unified into a single "My Work" view.
-**Current focus:** Phase 6 - Case Management
+**Current focus:** Phase 7 - Notifications & Email
 
 ## Current Position
 
-Phase: 6 of 11 (Case Management) - IN PROGRESS
-Plan: 11 of 16 in current phase
+Phase: 7 of 11 (Notifications & Email) - IN PROGRESS
+Plan: 1 of 8 in current phase
 Status: In progress
-Last activity: 2026-02-04 - Completed 06-11-PLAN.md (Activity Timeline)
+Last activity: 2026-02-04 - Completed 07-01-PLAN.md (Notification Database Schema & Types)
 
-Progress: [================================================] 44% (55 of ~125 total plans)
+Progress: [================================================] 45% (56 of ~125 total plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 55
+- Total plans completed: 56
 - Average duration: 15 min
-- Total execution time: 14.0 hours
+- Total execution time: 14.3 hours
 
 **By Phase:**
 
@@ -32,10 +32,11 @@ Progress: [================================================] 44% (55 of ~125 tot
 | 03-authentication-sso | 8 | 69 min | 9 min |
 | 04-core-entities | 10 | 112 min | 11 min |
 | 05-ai-infrastructure | 11 | 143 min | 13 min |
+| 06-case-management | 10 | ~200 min | ~20 min |
 
 **Recent Trend:**
-- Last 5 plans: 06-11 (20 min), 06-10 (17 min), 06-07 (32 min), 06-08 (27 min), 06-09 (17 min), 06-01 (44 min)
-- Trend: Phase 6 in progress. Activity timeline aggregation complete.
+- Last 5 plans: 07-01 (16 min), 06-11 (20 min), 06-10 (17 min), 06-07 (32 min), 06-08 (27 min)
+- Trend: Phase 7 started. Notification schema and types foundation complete.
 
 *Updated after each plan completion*
 
@@ -295,6 +296,9 @@ Recent decisions affecting current work:
 - 06-10: Custom fields use dynamic ES mapping with type conversion via getEsFieldTypeForCustomProperty()
 - 06-10: Entity-specific search field weights (e.g., referenceNumber^10 for exact match priority)
 - 06-10: Graceful handling when indices don't exist (returns empty results for new tenants)
+- 07-01: Notification enums as const objects (not Prisma re-exports) for compilation independence
+- 07-01: Default preferences per CONTEXT.md: urgent events (assignments, deadlines, mentions, approvals, interviews) get email+inApp; FYI events (status, comments, completions) get inApp only
+- 07-01: REAL_TIME_CATEGORIES and DIGEST_CATEGORIES arrays define batching behavior
 
 ### Pending Todos
 
@@ -311,6 +315,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-02-04T00:21:04Z
-Stopped at: Completed 06-11-PLAN.md (Activity Timeline)
+Last session: 2026-02-04T00:25:00Z
+Stopped at: Completed 07-01-PLAN.md (Notification Database Schema & Types)
 Resume file: None
