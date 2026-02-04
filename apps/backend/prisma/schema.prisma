@@ -65,6 +65,8 @@ model Organization {
   segments            Segment[]
   campaigns           Campaign[]
   campaignAssignments CampaignAssignment[]
+  campaignWaves       CampaignWave[]
+  orgBlackoutDates    OrgBlackoutDate[]
 
   // Association relations
   personCaseAssociations   PersonCaseAssociation[]
@@ -108,6 +110,10 @@ model Organization {
 
   // Threshold rule relations (Phase 9)
   thresholdRules ThresholdRule[]
+
+  // Conflict detection relations (Phase 9)
+  conflictAlerts     ConflictAlert[]
+  conflictExclusions ConflictExclusion[]
 
   @@index([slug])
   @@index([isActive])
@@ -201,6 +207,10 @@ model User {
 
   // Threshold rule relations (Phase 9)
   thresholdRulesCreated ThresholdRule[]
+
+  // Conflict detection relations (Phase 9)
+  conflictAlertsDismissed ConflictAlert[]     @relation("ConflictAlertDismissedBy")
+  conflictExclusionsCreated ConflictExclusion[] @relation("ExclusionCreatedBy")
 
   // Unique constraint: email must be unique within an organization
   @@unique([organizationId, email])
@@ -549,6 +559,9 @@ model Case {
 
   // Threshold trigger logs (cases created by threshold rules)
   thresholdTriggers ThresholdTriggerLog[]
+
+  // Conflict alerts escalated to this case
+  escalatedConflicts ConflictAlert[]
 
   // Indexes for performance
   @@index([organizationId])
@@ -1452,6 +1465,9 @@ model RiuDisclosureExtension {
 
   // Relations
   riu RiskIntelligenceUnit @relation(fields: [riuId], references: [id], onDelete: Cascade)
+
+  // Conflict alerts detected on this disclosure
+  conflictAlerts ConflictAlert[]
 
   @@index([organizationId])
   @@index([disclosureType])
@@ -2544,6 +2560,9 @@ model Person {
   personRelationshipsAsA PersonPersonAssociation[] @relation("PersonARelation")
   personRelationshipsAsB PersonPersonAssociation[] @relation("PersonBRelation")
 
+  // Conflict exclusions for this person
+  conflictExclusions ConflictExclusion[]
+
   // Unique constraint: email must be unique within an organization when not null
   // Note: PostgreSQL allows multiple NULLs for unique constraints
   @@unique([organizationId, email])
@@ -2723,6 +2742,24 @@ enum AssignmentStatus {
   @@map("assignment_status")
 }
 
+/// CampaignWaveStatus tracks the lifecycle of a wave within a staggered campaign.
+enum CampaignWaveStatus {
+  PENDING // Wave scheduled, not yet launched
+  LAUNCHED // Wave has been launched, assignments created
+  CANCELLED // Wave was cancelled before launch
+
+  @@map("campaign_wave_status")
+}
+
+/// CampaignRolloutStrategy determines how assignments are distributed over time.
+enum CampaignRolloutStrategy {
+  IMMEDIATE // All assignments created at launch
+  STAGGERED // Assignments distributed in waves over time
+  PILOT_FIRST // Small pilot group first, then full rollout
+
+  @@map("campaign_rollout_strategy")
+}
+
 /// Segment defines a reusable audience filter for campaigns.
 /// Segments use JSON criteria that are converted to Prisma where clauses.
 /// Segments can be shared across multiple campaigns.
@@ -2789,6 +2826,13 @@ model Campaign {
   dueDate      DateTime  @map("due_date") // Deadline for completion
   expiresAt    DateTime? @map("expires_at") // When campaign auto-closes
 
+  // Rollout strategy (RS.53 - staggered rollout support)
+  rolloutStrategy CampaignRolloutStrategy @default(IMMEDIATE) @map("rollout_strategy")
+  // rolloutConfig stores wave configuration: { type: 'percentage'|'daily_count', values: number[], startDate?: string }
+  // For STAGGERED: values array contains percentage per wave (e.g., [20, 30, 50])
+  // For PILOT_FIRST: values array is [pilotPercent, remainingPercent] (e.g., [10, 90])
+  rolloutConfig Json? @map("rollout_config")
+
   // Form linkage
   formDefinitionId String? @map("form_definition_id")
 
@@ -2819,11 +2863,13 @@ model Campaign {
   segment      Segment?               @relation(fields: [segmentId], references: [id])
   assignments  CampaignAssignment[]
   rius         RiskIntelligenceUnit[] @relation("CampaignRius")
+  waves        CampaignWave[]
 
   @@index([organizationId])
   @@index([organizationId, status])
   @@index([organizationId, type])
   @@index([organizationId, dueDate])
+  @@index([organizationId, launchAt])
   @@map("campaigns")
 }
 
@@ -2835,6 +2881,7 @@ model CampaignAssignment {
   organizationId String @map("organization_id")
   campaignId     String @map("campaign_id")
   employeeId     String @map("employee_id")
+  waveId         String? @map("wave_id") // Which wave this assignment belongs to (null for IMMEDIATE rollout)
 
   // Status tracking
   status AssignmentStatus @default(PENDING)
@@ -2869,9 +2916,10 @@ model CampaignAssignment {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relations
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  campaign     Campaign     @relation(fields: [campaignId], references: [id], onDelete: Cascade)
-  employee     Employee     @relation(fields: [employeeId], references: [id])
+  organization Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  campaign     Campaign       @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  employee     Employee       @relation(fields: [employeeId], references: [id])
+  wave         CampaignWave?  @relation(fields: [waveId], references: [id])
 
   // Unique constraint: one assignment per employee per campaign
   @@unique([campaignId, employeeId])
@@ -2880,7 +2928,86 @@ model CampaignAssignment {
   @@index([organizationId, employeeId])
   @@index([organizationId, status])
   @@index([organizationId, dueDate])
+  @@index([waveId])
   @@map("campaign_assignments")
+}
+
+/// CampaignWave represents a single wave in a staggered campaign rollout.
+/// Waves allow distributing assignments over time to avoid overwhelming the system
+/// and to enable pilot testing before full rollout.
+model CampaignWave {
+  id             String @id @default(uuid())
+  organizationId String @map("organization_id")
+  campaignId     String @map("campaign_id")
+
+  // Wave ordering
+  waveNumber Int @map("wave_number") // 1, 2, 3, etc.
+
+  // Scheduling
+  scheduledAt DateTime @map("scheduled_at") // When this wave should launch
+  launchedAt  DateTime? @map("launched_at") // When actually launched
+
+  // Audience for this wave
+  audiencePercentage Int?     @map("audience_percentage") // Percentage of total audience (for STAGGERED)
+  employeeIds        String[] @default([]) @map("employee_ids") // Explicit employee IDs for this wave
+
+  // Status
+  status CampaignWaveStatus @default(PENDING)
+
+  // Audit
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  organization Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  campaign     Campaign             @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  assignments  CampaignAssignment[]
+
+  @@unique([campaignId, waveNumber])
+  @@index([organizationId])
+  @@index([organizationId, campaignId])
+  @@index([organizationId, status])
+  @@index([scheduledAt])
+  @@map("campaign_waves")
+}
+
+/// OrgBlackoutDate defines periods when campaign sends are blocked.
+/// Supports organization-wide blackouts and location-specific restrictions.
+/// Recurring blackouts (e.g., annual holidays) can be configured.
+model OrgBlackoutDate {
+  id             String @id @default(uuid())
+  organizationId String @map("organization_id")
+
+  // Identity
+  name        String // e.g., "Year-End Freeze", "Q4 Quiet Period"
+  description String?
+
+  // Date range
+  startDate DateTime @map("start_date")
+  endDate   DateTime @map("end_date")
+
+  // Scope: null means all locations, otherwise specific location IDs
+  affectsLocations String[] @default([]) @map("affects_locations")
+
+  // Recurrence
+  isRecurring      Boolean @default(false) @map("is_recurring")
+  recurringPattern String? @map("recurring_pattern") // 'YEARLY', 'QUARTERLY', etc.
+
+  // Status
+  isActive Boolean @default(true) @map("is_active")
+
+  // Audit
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  createdById String?  @map("created_by_id")
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([organizationId, isActive])
+  @@index([organizationId, startDate, endDate])
+  @@map("org_blackout_dates")
 }
 
 // ===========================================
