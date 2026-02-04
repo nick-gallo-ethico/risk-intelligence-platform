@@ -102,8 +102,9 @@ model Organization {
   tenantBranding TenantBranding?
 
   // Operator Portal relations (Phase 8)
-  hotlineNumbers HotlineNumber[]
-  clientQaConfig ClientQaConfig?
+  hotlineNumbers   HotlineNumber[]
+  clientQaConfig   ClientQaConfig?
+  clientDirectives ClientDirective[]
 
   @@index([slug])
   @@index([isActive])
@@ -302,6 +303,7 @@ enum UserRole {
   DEPARTMENT_ADMIN
   MANAGER
   EMPLOYEE
+  OPERATOR // Ethico internal hotline operators
 
   @@map("user_role")
 }
@@ -1140,6 +1142,9 @@ model Category {
 
   // Investigation template mappings
   templateMappings CategoryTemplateMapping[]
+
+  // Operator Portal directives (category-specific scripts)
+  directives ClientDirective[]
 
   // Unique constraints
   @@unique([organizationId, module, code])
@@ -4114,6 +4119,20 @@ enum QaMode {
   @@map("qa_mode")
 }
 
+/// DirectiveStage represents when a directive should be displayed during a call.
+/// OPENING: Read at the start of the call before any intake
+/// INTAKE: General guidance during the intake process
+/// CATEGORY_SPECIFIC: Displayed when a specific category is selected
+/// CLOSING: Read at the end of the call
+enum DirectiveStage {
+  OPENING
+  INTAKE
+  CATEGORY_SPECIFIC
+  CLOSING
+
+  @@map("directive_stage")
+}
+
 /// HotlineNumber maps phone numbers to organizations for operator lookup.
 /// When a call comes in, operators can identify the client by phone number.
 /// Phone numbers are stored in E.164 format (e.g., "+18005551234").
@@ -4152,6 +4171,36 @@ model ClientQaConfig {
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@map("client_qa_configs")
+}
+
+/// ClientDirective stores client-specific scripts that operators read during calls.
+/// Directives can be opening statements, category-specific guidance, or closing scripts.
+/// Organizations configure these to ensure operators follow legal/compliance requirements.
+/// Example: "HIPAA Disclosure Warning" read verbatim during healthcare-related calls.
+model ClientDirective {
+  id             String         @id @default(uuid())
+  organizationId String         @map("organization_id")
+  stage          DirectiveStage // When to display (OPENING, INTAKE, CATEGORY_SPECIFIC, CLOSING)
+  categoryId     String?        @map("category_id") // Required when stage is CATEGORY_SPECIFIC
+  title          String // e.g., "HIPAA Disclosure Warning"
+  content        String         @db.Text // Script text (supports markdown)
+  isReadAloud    Boolean        @default(false) @map("is_read_aloud") // True = must be read verbatim
+  order          Int            @default(0) // For sorting multiple directives in same stage
+  isActive       Boolean        @default(true) @map("is_active")
+
+  // Timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  category     Category?    @relation(fields: [categoryId], references: [id])
+
+  // Indexes for query patterns
+  @@index([organizationId, stage])
+  @@index([organizationId, categoryId])
+  @@index([organizationId, isActive])
+  @@map("client_directives")
 }
 
 // ===========================================
