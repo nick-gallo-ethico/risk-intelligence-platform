@@ -635,6 +635,7 @@ enum AuditEntityType {
   CAMPAIGN_ASSIGNMENT
   REMEDIATION_PLAN
   REMEDIATION_STEP
+  NOTIFICATION
 
   @@map("audit_entity_type")
 }
