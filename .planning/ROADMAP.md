@@ -4,6 +4,23 @@
 
 This roadmap delivers a unified, AI-native compliance management platform ("HubSpot for Compliance") through 11 dependency-ordered phases. The architecture follows the RIU-Case pattern (immutable inputs to mutable work containers), with AI infrastructure built early so all features can leverage it. Foundation infrastructure (event bus, queues, audit) comes first, followed by demo tenant creation to serve as a continuous test bed, then core entities, portals, and advanced features. Every phase produces observable user value and maintains the demo tenant as living proof of capability.
 
+## Demo Data Strategy ("Lived-in Home")
+
+**Principle**: Acme Co. grows with each feature release; modules add their 3-year historical data + active items.
+
+**Enforcement**: Each phase's final plan (verification checkpoint) MUST include:
+
+```markdown
+### Demo Data Checkpoint
+- [ ] New entity types have 3-year Acme Co. history seeded
+- [ ] New entities connected to existing data (cases link to investigations, etc.)
+- [ ] Fresh items in queues (unread, pending approval, open conflicts)
+- [ ] npm run seed:acme-phase-XX (cumulative seed script)
+```
+
+**Script Naming**: `apps/backend/prisma/seeds/acme-phase-XX.ts`
+**Orchestration**: `prisma/seeds/index.ts` imports all phase seeds in order
+
 ## Phases
 
 **Phase Numbering:**
@@ -19,7 +36,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 5: AI Infrastructure** - Claude API integration, context hierarchy, skills registry, agents
 - [x] **Phase 6: Case Management** - Investigation workflows, templates, subjects, anonymous communication
 - [x] **Phase 7: Notifications & Email** - Event-driven notifications, templates, user preferences
-- [ ] **Phase 8: Portals** - Ethics (anonymous), Employee (self-service), Operator Console
+- [x] **Phase 8: Portals** - Ethics (anonymous), Employee (self-service), Operator Console
 - [ ] **Phase 9: Campaigns & Disclosures** - COI, gifts, outside employment, attestations
 - [ ] **Phase 10: Policy Management** - Documents, versioning, approval workflows, AI translation
 - [ ] **Phase 11: Analytics & Reporting** - Dashboards, custom reports, natural language queries
@@ -151,6 +168,12 @@ Plans:
   3. Remediation plans track steps with assignees, due dates, and completion status
   4. Two-way anonymous communication works via relay without revealing reporter identity
   5. Users can create and save custom filtered views across Cases and RIUs
+**Demo Data Checkpoint** (Acme Co. additions):
+  - Investigation templates for each category (Harassment, Fraud, Ethics Violation, etc.)
+  - Sample structured interviews linked to active investigations
+  - Remediation plans with steps at various completion states
+  - Anonymous messages in relay queue awaiting response
+  - 5+ saved views demonstrating filter combinations
 **Plans**: 17 plans in 5 waves
 
 Plans:
@@ -182,6 +205,11 @@ Plans:
   3. Users can configure notification preferences per event type (email, in-app, none)
   4. Failed email deliveries retry with exponential backoff and log to delivery tracking
   5. Notification templates support entity context rendering (case title, due date, assignee)
+**Demo Data Checkpoint** (Acme Co. additions):
+  - Notification history for demo users (mix of read/unread)
+  - Email delivery records with various statuses (sent, bounced, opened)
+  - Configured notification preferences for different demo users
+  - Daily digest configurations demonstrating aggregation
 **Plans**: 8 plans in 4 waves
 
 Plans:
@@ -204,26 +232,31 @@ Plans:
   3. Employees can log in via SSO and see their reports, disclosures, attestations, and tasks
   4. Managers can submit proxy reports on behalf of employees
   5. Operators can load client profiles by phone number and create RIUs with AI-assisted note cleanup
+**Demo Data Checkpoint** (Acme Co. additions):
+  - Hotline-sourced RIUs with operator notes and AI-cleaned narratives
+  - QA queue items at various review states
+  - Employee self-service report history for demo employees
+  - Manager proxy reports demonstrating escalation flow
 **Plans**: 17 plans in 7 waves
 
 Plans:
-- [ ] 08-01-PLAN.md (Wave 1) - White-label branding service with CSS custom properties
-- [ ] 08-02-PLAN.md (Wave 1) - Directives service for client-specific operator scripts
-- [ ] 08-03-PLAN.md (Wave 1) - Client profile service with phone lookup and QA config
-- [ ] 08-04-PLAN.md (Wave 1) - Employee tasks aggregation service
-- [ ] 08-05-PLAN.md (Wave 2) - Ethics Portal API endpoints for public report submission
-- [ ] 08-06-PLAN.md (Wave 2) - Employee Portal history views and manager proxy
-- [ ] 08-07-PLAN.md (Wave 2) - Operator Console intake and QA queue APIs
-- [ ] 08-08-PLAN.md (Wave 3) - Ethics Portal PWA setup with offline storage and i18n
-- [ ] 08-09-PLAN.md (Wave 3) - Operator Console layout and client lookup UI
-- [ ] 08-10-PLAN.md (Wave 4) - Anonymous report submission UI
-- [ ] 08-11-PLAN.md (Wave 4) - Status check and messaging UI
-- [ ] 08-12-PLAN.md (Wave 4) - White-label theming integration and home page
-- [ ] 08-13-PLAN.md (Wave 5) - Employee dashboard with role-aware tabs
-- [ ] 08-14-PLAN.md (Wave 5) - Manager proxy reporting UI
-- [ ] 08-15-PLAN.md (Wave 6) - Hotline intake form with AI note cleanup
-- [ ] 08-16-PLAN.md (Wave 6) - QA queue and review UI
-- [ ] 08-17-PLAN.md (Wave 7) - Final integration and verification checkpoint
+- [x] 08-01-PLAN.md (Wave 1) - White-label branding service with CSS custom properties
+- [x] 08-02-PLAN.md (Wave 1) - Directives service for client-specific operator scripts
+- [x] 08-03-PLAN.md (Wave 1) - Client profile service with phone lookup and QA config
+- [x] 08-04-PLAN.md (Wave 1) - Employee tasks aggregation service
+- [x] 08-05-PLAN.md (Wave 2) - Ethics Portal API endpoints for public report submission
+- [x] 08-06-PLAN.md (Wave 2) - Employee Portal history views and manager proxy
+- [x] 08-07-PLAN.md (Wave 2) - Operator Console intake and QA queue APIs
+- [x] 08-08-PLAN.md (Wave 3) - Ethics Portal PWA setup with offline storage and i18n
+- [x] 08-09-PLAN.md (Wave 3) - Operator Console layout and client lookup UI
+- [x] 08-10-PLAN.md (Wave 4) - Anonymous report submission UI
+- [x] 08-11-PLAN.md (Wave 4) - Status check and messaging UI
+- [x] 08-12-PLAN.md (Wave 4) - White-label theming integration and home page
+- [x] 08-13-PLAN.md (Wave 5) - Employee dashboard with role-aware tabs
+- [x] 08-14-PLAN.md (Wave 5) - Manager proxy reporting UI
+- [x] 08-15-PLAN.md (Wave 6) - Hotline intake form with AI note cleanup
+- [x] 08-16-PLAN.md (Wave 6) - QA queue and review UI
+- [x] 08-17-PLAN.md (Wave 7) - Final integration and verification checkpoint
 
 ### Phase 9: Campaigns & Disclosures
 **Goal**: Enable outbound compliance campaigns - COI disclosures, gift tracking, outside employment, attestations - with threshold-based auto-case creation and conflict detection.
@@ -235,26 +268,32 @@ Plans:
   3. Gift disclosures exceeding configured thresholds automatically create Cases for review
   4. Conflict detection flags potential issues across a person's disclosure history
   5. Campaign dashboards show completion rates, overdue counts, and send reminders
+**Demo Data Checkpoint** (Acme Co. additions):
+  - 3 years of COI disclosure campaigns with 85% completion rates
+  - Gift disclosures including threshold breaches that created Cases
+  - Outside employment disclosures with conflict flags
+  - Repeat non-responders and late completers for reminder demos
+  - Flagged conflicts awaiting review
 **Plans**: 17 plans in 5 waves
 
 Plans:
-- [ ] 09-01-PLAN.md (Wave 1) - Disclosure form schema engine (Prisma models, field types, DTOs)
-- [ ] 09-02-PLAN.md (Wave 2) - Form template CRUD service with version-on-publish
-- [ ] 09-03-PLAN.md (Wave 1) - Threshold configuration engine with json-rules-engine
-- [ ] 09-04-PLAN.md (Wave 1) - Conflict detection service with fuzzy matching
-- [ ] 09-05-PLAN.md (Wave 2) - Conflict surfacing and dismissal API
-- [ ] 09-06-PLAN.md (Wave 2) - Disclosure submission service orchestrating all services
-- [ ] 09-07-PLAN.md (Wave 1) - Campaign targeting service (mom-test UX)
-- [ ] 09-08-PLAN.md (Wave 1) - Campaign scheduling with waves and blackouts
-- [ ] 09-09-PLAN.md (Wave 2) - Reminder sequence engine with repeat non-responder tracking
-- [ ] 09-10-PLAN.md (Wave 2) - Campaign translation service with stale detection
-- [ ] 09-11-PLAN.md (Wave 3) - AI triage service with preview-then-execute safeguard
-- [ ] 09-12-PLAN.md (Wave 3) - User-created tables feature
-- [ ] 09-13-PLAN.md (Wave 2) - Campaign enhanced controller and dashboard service
-- [ ] 09-14-PLAN.md (Wave 4) - Form builder UI with drag-drop sections
-- [ ] 09-15-PLAN.md (Wave 4) - Campaign builder UI with segment builder
-- [ ] 09-16-PLAN.md (Wave 4) - Disclosure submission UI with auto-save
-- [ ] 09-17-PLAN.md (Wave 5) - Conflict review UI with entity timeline
+- [x] 09-01-PLAN.md (Wave 1) - Disclosure form schema engine (Prisma models, field types, DTOs)
+- [x] 09-02-PLAN.md (Wave 2) - Form template CRUD service with version-on-publish
+- [x] 09-03-PLAN.md (Wave 1) - Threshold configuration engine with json-rules-engine
+- [x] 09-04-PLAN.md (Wave 1) - Conflict detection service with fuzzy matching
+- [x] 09-05-PLAN.md (Wave 2) - Conflict surfacing and dismissal API
+- [x] 09-06-PLAN.md (Wave 2) - Disclosure submission service orchestrating all services
+- [x] 09-07-PLAN.md (Wave 1) - Campaign targeting service (mom-test UX)
+- [x] 09-08-PLAN.md (Wave 1) - Campaign scheduling with waves and blackouts
+- [x] 09-09-PLAN.md (Wave 2) - Reminder sequence engine with repeat non-responder tracking
+- [x] 09-10-PLAN.md (Wave 2) - Campaign translation service with stale detection
+- [x] 09-11-PLAN.md (Wave 3) - SchemaIntrospectionService + AI triage with preview-then-execute
+- [x] 09-12-PLAN.md (Wave 3) - User-created tables feature
+- [x] 09-13-PLAN.md (Wave 2) - Campaign enhanced controller and dashboard service
+- [x] 09-14-PLAN.md (Wave 4) - Form builder UI with drag-drop sections
+- [x] 09-15-PLAN.md (Wave 4) - Campaign builder UI with segment builder
+- [x] 09-16-PLAN.md (Wave 4) - Disclosure submission UI with auto-save
+- [x] 09-17-PLAN.md (Wave 5) - Conflict review UI with entity timeline
 
 ### Phase 10: Policy Management
 **Goal**: Complete policy lifecycle - document management with versioning, approval workflows, attestation campaigns, and AI-powered translation.
@@ -266,31 +305,45 @@ Plans:
   3. Attestation campaigns distribute policies to employees and track read/acknowledge status
   4. AI translation preserves the original while creating localized versions
   5. Policy violations can be linked to Cases for tracking
-**Plans**: TBD
+**Demo Data Checkpoint** (Acme Co. additions):
+  - 50+ policies with version history (Code of Conduct, Anti-Harassment, Gift Policy, etc.)
+  - Policies in approval workflow at various stages
+  - Completed attestation campaigns with read/acknowledge tracking
+  - Policy-linked Cases showing violation tracking
+  - Multi-language policy translations (Spanish, French, German, Mandarin)
+**Plans**: 11 plans in 5 waves
 
 Plans:
-- [ ] 10-01: Policy entity with rich text content
-- [ ] 10-02: Policy version control and history
-- [ ] 10-03: Approval workflow integration
-- [ ] 10-04: Attestation campaign creation from policy
-- [ ] 10-05: AI translation service integration
-- [ ] 10-06: Policy-to-case linking
-- [ ] 10-07: Policy search with Elasticsearch
-- [ ] 10-08: Policy management UI (list, editor, history)
-- [ ] 10-09: User management and RBAC UI
-- [ ] 10-10: Organization settings UI
+- [ ] 10-01-PLAN.md (Wave 1) - Policy database schema with versioning infrastructure
+- [ ] 10-02-PLAN.md (Wave 2) - Policy service with version-on-publish pattern
+- [ ] 10-03-PLAN.md (Wave 2) - Approval workflow integration using WorkflowEngine
+- [ ] 10-04-PLAN.md (Wave 3) - Attestation campaigns from published policies
+- [ ] 10-05-PLAN.md (Wave 3) - AI-powered policy translation service
+- [ ] 10-06-PLAN.md (Wave 3) - Policy-to-case linking for violation tracking
+- [ ] 10-07-PLAN.md (Wave 3) - Policy search with Elasticsearch indexing
+- [ ] 10-08-PLAN.md (Wave 4) - Policy management UI (list, editor)
+- [ ] 10-09-PLAN.md (Wave 4) - Policy detail page with version history and translations
+- [ ] 10-10-PLAN.md (Wave 5) - User management and RBAC UI
+- [ ] 10-11-PLAN.md (Wave 5) - Organization settings UI
 
 ### Phase 11: Analytics & Reporting
-**Goal**: Deliver data-driven insights - pre-built dashboards, custom dashboard builder, board reports, AI natural language queries, and scheduled report delivery.
+**Goal**: Deliver data-driven insights - pre-built dashboards, custom dashboard builder, board reports, AI natural language queries, flat file exports, and scheduled report delivery.
 **Depends on**: All previous phases (needs data volume), Phase 5 (needs AI for NL queries)
-**Requirements**: ANAL-01, ANAL-02, ANAL-03, ANAL-04, ANAL-05, ANAL-06, ANAL-07, ANAL-08, PROJ-01, PROJ-02, PROJ-03, PROJ-04, PROJ-05, PROJ-06, MIG-01, MIG-02, MIG-03, MIG-04, MIG-05, MIG-06, MIG-07
+**Requirements**: ANAL-01, ANAL-02, ANAL-03, ANAL-04, ANAL-05, ANAL-06, ANAL-07, ANAL-08, PROJ-01, PROJ-02, PROJ-03, PROJ-04, PROJ-05, PROJ-06, MIG-01, MIG-02, MIG-03, MIG-04, MIG-05, MIG-06, MIG-07, FLAT-01
 **Success Criteria** (what must be TRUE):
   1. Pre-built dashboards show KPIs for RIUs, Cases, Campaigns, and overall compliance health
   2. Users can build custom dashboards by dragging and configuring widgets
   3. AI responds to natural language queries like "show me harassment cases from Q4 in EMEA"
   4. Board reports generate as PDFs with executive summaries and trend charts
   5. "My Work" unified queue aggregates tasks from Cases, Investigations, Disclosures, and Policies
-**Plans**: TBD
+  6. Flat file export produces denormalized "everything" file with configurable tagged fields
+**Demo Data Checkpoint** (Acme Co. additions):
+  - Sample dashboards with realistic KPIs and trend charts
+  - Scheduled reports configured for weekly delivery
+  - Board report templates with executive summaries
+  - Tagged field configurations for flat file exports
+  - Sample AI-generated tables saved to dashboards
+**Plans**: 21 plans
 
 Plans:
 - [ ] 11-01: Pre-built dashboards (RIU, Case, Campaign, Compliance)
@@ -313,6 +366,7 @@ Plans:
 - [ ] 11-18: EQS/Conversant import connector
 - [ ] 11-19: Generic CSV import with field mapping
 - [ ] 11-20: Import preview and rollback
+- [ ] 11-21: Flat file export with tagged fields (see TECH-SPEC-FLAT-FILE-EXPORT.md)
 
 ## Progress
 
@@ -328,10 +382,10 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 | 5. AI Infrastructure | 11/11 | Complete | 2026-02-03 |
 | 6. Case Management | 11/17 | Complete | 2026-02-04 |
 | 7. Notifications & Email | 8/8 | Complete | 2026-02-04 |
-| 8. Portals | 0/17 | Planned | - |
-| 9. Campaigns & Disclosures | 0/17 | Planned | - |
-| 10. Policy Management | 0/10 | Not started | - |
-| 11. Analytics & Reporting | 0/20 | Not started | - |
+| 8. Portals | 17/17 | Complete | 2026-02-04 |
+| 9. Campaigns & Disclosures | 17/17 | Complete | 2026-02-04 |
+| 10. Policy Management | 0/11 | Planned | - |
+| 11. Analytics & Reporting | 0/21 | Not started | - |
 
 ---
 *Roadmap created: 2026-02-02*

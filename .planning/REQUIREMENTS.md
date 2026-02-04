@@ -64,12 +64,12 @@ Requirements for Q1 2026 release. Organized by HubSpot-inspired architecture wit
 
 #### Campaign (Sequence equivalent)
 
-- [ ] **CAMP-01**: Campaign entity for outbound requests
-- [ ] **CAMP-02**: Campaign types: disclosure, attestation, survey
-- [ ] **CAMP-03**: Target audience builder (by business unit, location, role, etc.)
-- [ ] **CAMP-04**: Due dates and reminder schedules
-- [ ] **CAMP-05**: Campaign assignment generation for target employees
-- [ ] **CAMP-06**: Auto-case creation rules (thresholds, flagged responses)
+- [x] **CAMP-01**: Campaign entity for outbound requests
+- [x] **CAMP-02**: Campaign types: disclosure, attestation, survey
+- [x] **CAMP-03**: Target audience builder (by business unit, location, role, etc.)
+- [x] **CAMP-04**: Due dates and reminder schedules
+- [x] **CAMP-05**: Campaign assignment generation for target employees
+- [x] **CAMP-06**: Auto-case creation rules (thresholds, flagged responses)
 
 #### Associations (HubSpot Association Labels)
 
@@ -91,13 +91,13 @@ Requirements for Q1 2026 release. Organized by HubSpot-inspired architecture wit
 
 ### Disclosures & COI
 
-- [ ] **DISC-01**: COI disclosure forms
-- [ ] **DISC-02**: Gifts & entertainment tracking
-- [ ] **DISC-03**: Outside employment disclosure
-- [ ] **DISC-04**: Threshold-based auto-case creation
-- [ ] **DISC-05**: Conflict detection across disclosures
-- [ ] **DISC-06**: Approval workflows for flagged disclosures
-- [ ] **DISC-07**: Disclosure history per Person
+- [x] **DISC-01**: COI disclosure forms
+- [x] **DISC-02**: Gifts & entertainment tracking
+- [x] **DISC-03**: Outside employment disclosure
+- [x] **DISC-04**: Threshold-based auto-case creation
+- [x] **DISC-05**: Conflict detection across disclosures
+- [x] **DISC-06**: Approval workflows for flagged disclosures
+- [x] **DISC-07**: Disclosure history per Person
 
 ### Policy Management
 
@@ -223,11 +223,11 @@ Requirements for Q1 2026 release. Organized by HubSpot-inspired architecture wit
 
 ### Notifications
 
-- [ ] **NOTIF-01**: Email notifications with templates
-- [ ] **NOTIF-02**: In-app notification center
-- [ ] **NOTIF-03**: User notification preferences
-- [ ] **NOTIF-04**: Event-driven notification triggers
-- [ ] **NOTIF-05**: Delivery tracking and retry logic
+- [x] **NOTIF-01**: Email notifications with templates
+- [x] **NOTIF-02**: In-app notification center
+- [x] **NOTIF-03**: User notification preferences
+- [x] **NOTIF-04**: Event-driven notification triggers
+- [x] **NOTIF-05**: Delivery tracking and retry logic
 
 ### Data Migration & Import
 
@@ -431,11 +431,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | UX-04 | Phase 6 | Pending |
 | UX-05 | Phase 6 | Pending |
 | UX-06 | Phase 6 | Pending |
-| NOTIF-01 | Phase 7 | Pending |
-| NOTIF-02 | Phase 7 | Pending |
-| NOTIF-03 | Phase 7 | Pending |
-| NOTIF-04 | Phase 7 | Pending |
-| NOTIF-05 | Phase 7 | Pending |
+| NOTIF-01 | Phase 7 | Complete |
+| NOTIF-02 | Phase 7 | Complete |
+| NOTIF-03 | Phase 7 | Complete |
+| NOTIF-04 | Phase 7 | Complete |
+| NOTIF-05 | Phase 7 | Complete |
 | MIG-01 | Phase 11 | Pending |
 | MIG-02 | Phase 11 | Pending |
 | MIG-03 | Phase 11 | Pending |
