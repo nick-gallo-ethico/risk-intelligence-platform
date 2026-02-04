@@ -716,4 +716,135 @@ export class NotificationService {
       createdAt: n.createdAt,
     }));
   }
+
+  /**
+   * Mark all notifications as read for a user.
+   *
+   * @param organizationId - Organization ID
+   * @param userId - User ID
+   * @returns Number of notifications marked as read
+   */
+  async markAllAsRead(organizationId: string, userId: string): Promise<number> {
+    const now = new Date();
+
+    const result = await this.prisma.notification.updateMany({
+      where: {
+        organizationId,
+        userId,
+        channel: NotificationChannel.IN_APP,
+        isRead: false,
+      },
+      data: {
+        isRead: true,
+        readAt: now,
+      },
+    });
+
+    // Emit event for real-time unread count update
+    this.eventEmitter.emit('notification.unread_count.updated', {
+      organizationId,
+      userId,
+      unreadCount: 0,
+    });
+
+    this.logger.log(`Marked all (${result.count}) notifications as read for user ${userId}`);
+
+    return result.count;
+  }
+
+  /**
+   * Archive a single notification.
+   *
+   * @param organizationId - Organization ID
+   * @param userId - User ID
+   * @param notificationId - Notification ID to archive
+   */
+  async archiveNotification(
+    organizationId: string,
+    userId: string,
+    notificationId: string,
+  ): Promise<void> {
+    const notification = await this.prisma.notification.findFirst({
+      where: {
+        id: notificationId,
+        organizationId,
+        userId,
+      },
+    });
+
+    if (!notification) {
+      throw new Error('Notification not found');
+    }
+
+    await this.prisma.notification.update({
+      where: { id: notificationId },
+      data: {
+        status: NotificationStatus.ARCHIVED,
+      },
+    });
+
+    this.logger.debug(`Archived notification ${notificationId} for user ${userId}`);
+  }
+
+  /**
+   * Get a single notification by ID.
+   *
+   * @param organizationId - Organization ID
+   * @param userId - User ID
+   * @param notificationId - Notification ID
+   * @returns Notification or null if not found
+   */
+  async getNotification(
+    organizationId: string,
+    userId: string,
+    notificationId: string,
+  ): Promise<{
+    id: string;
+    channel: NotificationChannel;
+    type: NotificationType;
+    title: string;
+    body?: string;
+    entityType?: string;
+    entityId?: string;
+    isRead: boolean;
+    readAt?: Date;
+    createdAt: Date;
+  } | null> {
+    const notification = await this.prisma.notification.findFirst({
+      where: {
+        id: notificationId,
+        organizationId,
+        userId,
+      },
+      select: {
+        id: true,
+        channel: true,
+        type: true,
+        title: true,
+        body: true,
+        entityType: true,
+        entityId: true,
+        isRead: true,
+        readAt: true,
+        createdAt: true,
+      },
+    });
+
+    if (!notification) {
+      return null;
+    }
+
+    return {
+      id: notification.id,
+      channel: notification.channel as NotificationChannel,
+      type: notification.type as NotificationType,
+      title: notification.title,
+      body: notification.body || undefined,
+      entityType: notification.entityType || undefined,
+      entityId: notification.entityId || undefined,
+      isRead: notification.isRead,
+      readAt: notification.readAt || undefined,
+      createdAt: notification.createdAt,
+    };
+  }
 }
