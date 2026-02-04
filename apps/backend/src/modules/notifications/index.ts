@@ -1,7 +1,7 @@
 /**
  * Notifications Module Barrel Export
  *
- * Re-exports all public types, DTOs, and the module for easy importing.
+ * Re-exports all public types, DTOs, services, and the module for easy importing.
  */
 
 // Module
@@ -38,3 +38,22 @@ export {
   NotificationResponseDto,
   PreferencesResponseDto,
 } from './dto/notification.dto';
+
+// Services
+export {
+  EmailTemplateService,
+  PreferenceService,
+  OrgNotificationSettingsService,
+} from './services';
+
+// Service types
+export type {
+  EmailTemplateContext,
+  TemplateResult,
+  TemplateHistoryEntry,
+  SaveTemplateParams,
+  RenderedEmail,
+  UserPreferences,
+  EffectivePreference,
+  OrgNotificationSettings,
+} from './services';
