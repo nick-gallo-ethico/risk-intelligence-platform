@@ -7,12 +7,51 @@ export type SourceChannel = 'HOTLINE' | 'WEB_FORM' | 'PROXY' | 'DIRECT_ENTRY' | 
 export type CaseType = 'REPORT' | 'INQUIRY' | 'FOLLOW_UP';
 export type ReporterType = 'EMPLOYEE' | 'VENDOR' | 'CUSTOMER' | 'ANONYMOUS' | 'OTHER';
 export type Severity = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+export type SlaStatus = 'ON_TRACK' | 'WARNING' | 'BREACHED' | 'CRITICAL';
+export type RiuAssociationType = 'PRIMARY' | 'RELATED' | 'MERGED_FROM';
+export type RiuType = 'HOTLINE_REPORT' | 'WEB_FORM_SUBMISSION' | 'DISCLOSURE_RESPONSE' | 'CHATBOT_TRANSCRIPT';
 
 export interface CaseUser {
   id: string;
   firstName: string;
   lastName: string;
   email: string;
+  avatarUrl?: string;
+}
+
+/**
+ * RIU (Risk Intelligence Unit) - immutable intake record
+ */
+export interface Riu {
+  id: string;
+  referenceNumber: string;
+  type: RiuType;
+  sourceChannel: SourceChannel;
+  summary?: string;
+  details: string;
+  severity: Severity;
+  createdAt: string;
+}
+
+/**
+ * RIU-Case association with type
+ */
+export interface RiuAssociation {
+  id: string;
+  riuId: string;
+  associationType: RiuAssociationType;
+  riu: Riu;
+}
+
+/**
+ * Category with optional parent hierarchy
+ */
+export interface CaseCategory {
+  id: string;
+  name: string;
+  code: string;
+  icon?: string;
+  parentId?: string;
 }
 
 export interface Case {
@@ -49,6 +88,21 @@ export interface Case {
   // AI
   aiSummary: string | null;
   aiSummaryGeneratedAt: string | null;
+
+  // Pipeline & SLA
+  pipelineStage?: string;
+  slaStatus?: SlaStatus;
+  slaDueAt?: string;
+
+  // Category
+  categoryId?: string;
+  category?: CaseCategory;
+
+  // Assignments
+  assignedInvestigators?: CaseUser[];
+
+  // RIU Associations
+  riuAssociations?: RiuAssociation[];
 
   // Metadata
   createdAt: string;
