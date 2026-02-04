@@ -17,6 +17,7 @@ import { EmailProcessor } from "./processors/email.processor";
 import { ExportProcessor } from "./processors/export.processor";
 import { IndexingProcessor } from "./processors/indexing.processor";
 import { SearchModule } from "../search/search.module";
+import { NotificationsModule } from "../notifications/notifications.module";
 
 /**
  * Jobs Module
@@ -91,6 +92,9 @@ import { SearchModule } from "../search/search.module";
 
     // SearchModule provides IndexingService for IndexingProcessor
     forwardRef(() => SearchModule),
+
+    // NotificationsModule provides DeliveryTrackerService and MailerModule for EmailProcessor
+    forwardRef(() => NotificationsModule),
   ],
   providers: [AiProcessor, EmailProcessor, ExportProcessor, IndexingProcessor],
   exports: [BullModule],
