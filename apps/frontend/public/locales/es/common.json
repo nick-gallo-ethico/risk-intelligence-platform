@@ -1,0 +1,52 @@
+{
+  "nav": {
+    "home": "Inicio",
+    "report": "Hacer un Reporte",
+    "status": "Verificar Estado",
+    "resources": "Recursos",
+    "codeOfConduct": "Codigo de Conducta",
+    "faq": "Preguntas Frecuentes",
+    "contact": "Contacto"
+  },
+  "buttons": {
+    "submit": "Enviar",
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "continue": "Continuar",
+    "back": "Atras",
+    "next": "Siguiente",
+    "close": "Cerrar",
+    "retry": "Intentar de Nuevo",
+    "upload": "Subir",
+    "remove": "Eliminar",
+    "edit": "Editar",
+    "delete": "Borrar",
+    "confirm": "Confirmar",
+    "saveForLater": "Guardar para Despues",
+    "submitReport": "Enviar Reporte",
+    "checkStatus": "Verificar Estado"
+  },
+  "accessibility": {
+    "skipToContent": "Saltar al contenido",
+    "openMenu": "Abrir menu",
+    "closeMenu": "Cerrar menu",
+    "selectLanguage": "Seleccionar idioma",
+    "loading": "Cargando...",
+    "required": "Campo obligatorio",
+    "optional": "Opcional"
+  },
+  "footer": {
+    "privacyPolicy": "Politica de Privacidad",
+    "termsOfService": "Terminos de Servicio",
+    "accessibility": "Accesibilidad",
+    "copyright": "Todos los derechos reservados."
+  },
+  "offline": {
+    "title": "Sin Conexion",
+    "message": "Parece que ha perdido su conexion a Internet.",
+    "draftSaved": "Su borrador ha sido guardado localmente",
+    "draftSavedDetail": "Cualquier dato que haya ingresado esta guardado de forma segura en su dispositivo. Cuando se reconecte, podra continuar donde lo dejo.",
+    "willSync": "Cuando vuelva a estar en linea, su reporte se sincronizara automaticamente.",
+    "needHelp": "Necesita ayuda? Contacte su linea etica cuando vuelva a estar en linea."
+  }
+}

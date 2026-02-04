@@ -1,0 +1,52 @@
+{
+  "nav": {
+    "home": "Home",
+    "report": "Make a Report",
+    "status": "Check Status",
+    "resources": "Resources",
+    "codeOfConduct": "Code of Conduct",
+    "faq": "FAQ",
+    "contact": "Contact"
+  },
+  "buttons": {
+    "submit": "Submit",
+    "cancel": "Cancel",
+    "save": "Save",
+    "continue": "Continue",
+    "back": "Back",
+    "next": "Next",
+    "close": "Close",
+    "retry": "Try Again",
+    "upload": "Upload",
+    "remove": "Remove",
+    "edit": "Edit",
+    "delete": "Delete",
+    "confirm": "Confirm",
+    "saveForLater": "Save for Later",
+    "submitReport": "Submit Report",
+    "checkStatus": "Check Status"
+  },
+  "accessibility": {
+    "skipToContent": "Skip to content",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "selectLanguage": "Select language",
+    "loading": "Loading...",
+    "required": "Required field",
+    "optional": "Optional"
+  },
+  "footer": {
+    "privacyPolicy": "Privacy Policy",
+    "termsOfService": "Terms of Service",
+    "accessibility": "Accessibility",
+    "copyright": "All rights reserved."
+  },
+  "offline": {
+    "title": "You're Offline",
+    "message": "It looks like you've lost your internet connection.",
+    "draftSaved": "Your draft has been saved locally",
+    "draftSavedDetail": "Any form data you entered is safely stored on your device. When you reconnect, you can continue where you left off.",
+    "willSync": "When you're back online, your report will automatically sync.",
+    "needHelp": "Need help? Contact your ethics hotline when you're back online."
+  }
+}

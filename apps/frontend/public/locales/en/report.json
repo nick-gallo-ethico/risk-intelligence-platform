@@ -1,0 +1,100 @@
+{
+  "title": "Submit a Report",
+  "subtitle": "Your report will be handled confidentially",
+  "steps": {
+    "category": "Category",
+    "details": "Details",
+    "reporter": "About You",
+    "attachments": "Attachments",
+    "review": "Review"
+  },
+  "fields": {
+    "category": {
+      "label": "What is this about?",
+      "placeholder": "Select a category",
+      "hint": "Choose the category that best describes your concern"
+    },
+    "description": {
+      "label": "What happened?",
+      "placeholder": "Please describe the situation in detail...",
+      "hint": "Include who, what, when, where, and how if known"
+    },
+    "dateOccurred": {
+      "label": "When did this happen?",
+      "placeholder": "Select a date",
+      "approximate": "Approximate date is okay"
+    },
+    "location": {
+      "label": "Where did this happen?",
+      "placeholder": "Location or department"
+    },
+    "peopleInvolved": {
+      "label": "Who is involved?",
+      "placeholder": "Names, titles, or descriptions of people involved",
+      "hint": "Include anyone who was involved or witnessed the situation"
+    },
+    "attachments": {
+      "label": "Supporting Documents",
+      "hint": "Upload any relevant files (photos, documents, screenshots)",
+      "dropzone": "Drag and drop files here, or click to browse",
+      "maxSize": "Maximum file size: 10MB",
+      "sensitive": "Mark as highly sensitive"
+    }
+  },
+  "anonymity": {
+    "title": "How would you like to identify yourself?",
+    "anonymous": {
+      "title": "Anonymous",
+      "description": "Your identity will not be collected or known"
+    },
+    "confidential": {
+      "title": "Confidential",
+      "description": "Your identity will be protected but known to investigators"
+    },
+    "identified": {
+      "title": "Identified",
+      "description": "Your identity will be shared with relevant parties"
+    }
+  },
+  "confirmation": {
+    "title": "Report Submitted",
+    "subtitle": "Your report has been received",
+    "accessCode": {
+      "title": "Your Access Code",
+      "instructions": "Use this code to check the status of your report and communicate with investigators. Please save it now - it will not be shown again.",
+      "copy": "Copy to Clipboard",
+      "copied": "Copied!",
+      "email": "Send to Email",
+      "print": "Print",
+      "download": "Download PDF"
+    },
+    "nextSteps": {
+      "title": "What happens next?",
+      "step1": "Your report will be reviewed by the appropriate team",
+      "step2": "You may receive follow-up questions through the secure messaging system",
+      "step3": "Check back using your access code for updates"
+    },
+    "acknowledgment": "I understand I need to save my access code to check the status of my report"
+  },
+  "validation": {
+    "required": "This field is required",
+    "categoryRequired": "Please select a category",
+    "descriptionRequired": "Please describe what happened",
+    "descriptionTooShort": "Please provide more details (minimum 50 characters)",
+    "fileTooLarge": "File is too large. Maximum size is 10MB.",
+    "fileTypeNotAllowed": "This file type is not allowed",
+    "maxFilesExceeded": "Maximum {{max}} files allowed"
+  },
+  "prompts": {
+    "moreDetail": "Would you like to add more details? Additional context helps investigators understand the situation better.",
+    "submitAnyway": "Submit Anyway"
+  },
+  "draft": {
+    "saved": "Draft saved",
+    "restored": "Draft restored",
+    "saveCode": "Your save code",
+    "saveCodeInstructions": "Use this code to resume your draft on another device",
+    "resume": "Resume Draft",
+    "enterCode": "Enter your save code to continue"
+  }
+}
