@@ -76,8 +76,10 @@ export const USER_ROLES: UserRole[] = [
   'HR_PARTNER',
   'LEGAL_COUNSEL',
   'DEPARTMENT_ADMIN',
+  'MANAGER',
   'READ_ONLY',
   'EMPLOYEE',
+  'OPERATOR',
 ];
 
 export const ROLE_LABELS: Record<UserRole, string> = {
@@ -89,6 +91,8 @@ export const ROLE_LABELS: Record<UserRole, string> = {
   HR_PARTNER: 'HR Partner',
   LEGAL_COUNSEL: 'Legal Counsel',
   DEPARTMENT_ADMIN: 'Department Admin',
+  MANAGER: 'Manager',
   READ_ONLY: 'Read Only',
   EMPLOYEE: 'Employee',
+  OPERATOR: 'Operator',
 };

@@ -11,8 +11,10 @@ export type UserRole =
   | 'HR_PARTNER'
   | 'LEGAL_COUNSEL'
   | 'DEPARTMENT_ADMIN'
+  | 'MANAGER'
   | 'READ_ONLY'
-  | 'EMPLOYEE';
+  | 'EMPLOYEE'
+  | 'OPERATOR';
 
 export interface AuthUser {
   id: string;
