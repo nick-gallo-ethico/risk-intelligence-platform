@@ -5,7 +5,13 @@ import { Queue } from "bullmq";
 import { OnEvent } from "@nestjs/event-emitter";
 import { INDEXING_QUEUE_NAME } from "../../jobs/queues/indexing.queue";
 import { IndexingJobData } from "../../jobs/types/job-data.types";
-import { CASE_INDEX_MAPPING, CaseDocument, RIU_INDEX_MAPPING } from "./index-mappings";
+import {
+  CASE_INDEX_MAPPING,
+  CaseDocument,
+  RIU_INDEX_MAPPING,
+  INVESTIGATION_INDEX_MAPPING,
+  PERSON_INDEX_MAPPING,
+} from './index-mappings';
 import { PrismaService } from "../../prisma/prisma.service";
 
 /**
@@ -55,10 +61,7 @@ export class IndexingService implements OnModuleInit {
    * Ensure index exists with correct mapping.
    * Creates the index if it doesn't exist.
    */
-  async ensureIndex(
-    organizationId: string,
-    entityType: string,
-  ): Promise<void> {
+  async ensureIndex(organizationId: string, entityType: string): Promise<void> {
     const indexName = this.getIndexName(organizationId, entityType);
 
     try {
@@ -198,10 +201,7 @@ export class IndexingService implements OnModuleInit {
   /**
    * Delete an entire index (for tenant cleanup).
    */
-  async deleteIndex(
-    organizationId: string,
-    entityType: string,
-  ): Promise<void> {
+  async deleteIndex(organizationId: string, entityType: string): Promise<void> {
     const indexName = this.getIndexName(organizationId, entityType);
 
     try {
@@ -220,19 +220,123 @@ export class IndexingService implements OnModuleInit {
   /**
    * Get mapping configuration for entity type.
    */
-  private getMappingForType(
-    entityType: string,
-  ): Record<string, unknown> {
+  private getMappingForType(entityType: string): Record<string, unknown> {
     switch (entityType.toLowerCase()) {
-      case "cases":
+      case 'cases':
         return CASE_INDEX_MAPPING;
-      case "rius":
+      case 'rius':
         return RIU_INDEX_MAPPING;
+      case 'investigations':
+        return INVESTIGATION_INDEX_MAPPING;
+      case 'persons':
+        return PERSON_INDEX_MAPPING;
       default:
-        // Return minimal mapping for unknown types
+        // Return minimal mapping with dynamic customFields for unknown types
         return {
-          mappings: { dynamic: true },
+          mappings: {
+            dynamic: true,
+            properties: {
+              customFields: {
+                type: 'object',
+                dynamic: true,
+                properties: {},
+              },
+            },
+          },
           settings: { number_of_shards: 1, number_of_replicas: 0 },
+        };
+    }
+  }
+
+  /**
+   * Update index mapping to add or update custom field definitions.
+   *
+   * Called when new custom properties are defined for an organization.
+   * Adds field mappings to the customFields object based on property data type.
+   *
+   * Note: ES doesn't allow removing fields from mappings, so this is additive only.
+   * Deactivated custom properties remain in the mapping but are no longer indexed.
+   */
+  async updateCustomFieldMapping(
+    organizationId: string,
+    entityType: string,
+    fieldKey: string,
+    dataType: string,
+  ): Promise<void> {
+    const indexName = this.getIndexName(organizationId, entityType);
+
+    try {
+      // Check if index exists
+      const exists = await this.esService.indices.exists({ index: indexName });
+      if (!exists) {
+        // Index doesn't exist yet, mapping will be applied when created
+        this.logger.debug(
+          `Index ${indexName} not found, skipping custom field mapping update`,
+        );
+        return;
+      }
+
+      // Determine ES field type based on custom property data type
+      const esFieldType = this.getEsFieldTypeForCustomProperty(dataType);
+
+      // Update the mapping
+      await this.esService.indices.putMapping({
+        index: indexName,
+        properties: {
+          customFields: {
+            properties: {
+              [fieldKey]: esFieldType,
+            },
+          },
+        },
+      });
+
+      this.logger.log(
+        `Updated custom field mapping for ${fieldKey} in ${indexName}`,
+      );
+    } catch (error) {
+      this.logger.error(
+        `Failed to update custom field mapping: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      );
+    }
+  }
+
+  /**
+   * Convert custom property data type to Elasticsearch field mapping.
+   */
+  private getEsFieldTypeForCustomProperty(
+    dataType: string,
+  ): Record<string, unknown> {
+    switch (dataType.toUpperCase()) {
+      case 'TEXT':
+        // Text fields: full-text searchable with keyword subfield for exact matches
+        return {
+          type: 'text',
+          fields: { keyword: { type: 'keyword' } },
+        };
+      case 'NUMBER':
+        return { type: 'double' };
+      case 'DATE':
+      case 'DATETIME':
+        return { type: 'date' };
+      case 'BOOLEAN':
+        return { type: 'boolean' };
+      case 'SELECT':
+        // Single select: keyword for exact matching
+        return { type: 'keyword' };
+      case 'MULTI_SELECT':
+        // Multi select: keyword array
+        return { type: 'keyword' };
+      case 'URL':
+      case 'EMAIL':
+      case 'PHONE':
+        // These are keywords for exact matching
+        return { type: 'keyword' };
+      default:
+        // Default to text with keyword subfield
+        return {
+          type: 'text',
+          fields: { keyword: { type: 'keyword' } },
         };
     }
   }
@@ -331,7 +435,10 @@ export class IndexingService implements OnModuleInit {
     }
 
     // Build associations
-    const associations = await this.buildCaseAssociations(caseId, organizationId);
+    const associations = await this.buildCaseAssociations(
+      caseId,
+      organizationId,
+    );
 
     // Get assignee from personAssociations if exists
     const assignedInvestigator = associations.persons.find(

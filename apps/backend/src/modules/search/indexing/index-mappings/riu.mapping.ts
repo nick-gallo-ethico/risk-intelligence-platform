@@ -51,6 +51,17 @@ export const RIU_INDEX_MAPPING = {
 
       // Timestamps
       createdAt: { type: "date" },
+
+      // ===========================================
+      // CUSTOM FIELDS (Dynamic Object)
+      // ===========================================
+      // Custom properties defined per-organization are indexed here.
+      // Uses dynamic mapping to support any property type defined in CustomPropertyDefinition.
+      customFields: {
+        type: "object",
+        dynamic: true,
+        properties: {}, // Populated dynamically based on organization's custom properties
+      },
     },
   },
   settings: {

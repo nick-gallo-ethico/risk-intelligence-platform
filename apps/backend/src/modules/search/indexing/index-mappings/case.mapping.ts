@@ -135,6 +135,18 @@ export const CASE_INDEX_MAPPING = {
       witnessPersonIds: { type: "keyword" },
       reporterPersonIds: { type: "keyword" },
       investigatorPersonIds: { type: "keyword" },
+
+      // ===========================================
+      // CUSTOM FIELDS (Dynamic Object)
+      // ===========================================
+      // Custom properties defined per-organization are indexed here.
+      // Uses dynamic mapping to support any property type defined in CustomPropertyDefinition.
+      // Text values are analyzed for full-text search; keyword values for exact matching.
+      customFields: {
+        type: "object",
+        dynamic: true,
+        properties: {}, // Populated dynamically based on organization's custom properties
+      },
     },
   },
   settings: {
@@ -263,4 +275,7 @@ export interface CaseDocument {
   witnessPersonIds: string[];
   reporterPersonIds: string[];
   investigatorPersonIds: string[];
+
+  // Custom fields (dynamic, organization-specific)
+  customFields?: Record<string, unknown>;
 }
