@@ -31,10 +31,18 @@ export interface AiJobData extends BaseJobData {
  * Email delivery job data
  */
 export interface EmailJobData extends BaseJobData {
+  /** Email template ID */
   templateId: string;
+  /** Recipient email address(es) */
   to: string | string[];
+  /** Email subject line */
   subject?: string;
+  /** Template context data for variable substitution */
   context: Record<string, unknown>;
+  /** Notification record ID (for delivery tracking) */
+  notificationId?: string;
+  /** Pre-rendered HTML content (optional, bypasses template rendering) */
+  html?: string;
 }
 
 /**
