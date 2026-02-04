@@ -106,6 +106,9 @@ model Organization {
   clientQaConfig   ClientQaConfig?
   clientDirectives ClientDirective[]
 
+  // Threshold rule relations (Phase 9)
+  thresholdRules ThresholdRule[]
+
   @@index([slug])
   @@index([isActive])
   @@map("organizations")
@@ -195,6 +198,9 @@ model User {
   notificationPreference NotificationPreference?
   backupForPreferences   NotificationPreference[] @relation("BackupUser")
   digestQueue            DigestQueue[]            @relation("DigestQueueUser")
+
+  // Threshold rule relations (Phase 9)
+  thresholdRulesCreated ThresholdRule[]
 
   // Unique constraint: email must be unique within an organization
   @@unique([organizationId, email])
@@ -540,6 +546,9 @@ model Case {
 
   // Remediation plans
   remediationPlans RemediationPlan[]
+
+  // Threshold trigger logs (cases created by threshold rules)
+  thresholdTriggers ThresholdTriggerLog[]
 
   // Indexes for performance
   @@index([organizationId])
@@ -4290,4 +4299,251 @@ model TenantBranding {
 
   @@index([customDomain])
   @@map("tenant_branding")
+}
+
+// ===========================================
+// Threshold Rule Configuration (RS.35-RS.38)
+// ===========================================
+
+/// ThresholdAction defines what happens when a threshold rule is triggered.
+enum ThresholdAction {
+  FLAG_REVIEW // Flag for compliance review
+  CREATE_CASE // Auto-create case
+  REQUIRE_APPROVAL // Route through approval workflow
+  NOTIFY // Send notification only
+
+  @@map("threshold_action")
+}
+
+/// ThresholdApplyMode defines how retroactive evaluation is handled.
+enum ThresholdApplyMode {
+  FORWARD_ONLY // Apply to new disclosures only
+  RETROACTIVE // Re-evaluate all historical
+  RETROACTIVE_DATE // Re-evaluate from specific date
+
+  @@map("threshold_apply_mode")
+}
+
+/// ThresholdRule defines auto-case creation rules for disclosure thresholds (RS.35-RS.38).
+/// Enables compliance officers to configure policy-driven automation with multi-dimensional
+/// rolling window aggregates. Rules can trigger different actions based on disclosure values.
+model ThresholdRule {
+  id             String       @id @default(uuid())
+  organizationId String       @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  name        String
+  description String?
+
+  // Scope - which disclosure types this applies to
+  disclosureTypes DisclosureType[]
+
+  // Conditions - JSON array of rule conditions
+  // Format: { field, operator, value, conjunction }[]
+  conditions Json
+
+  // Aggregate configuration (RS.38 - multi-dimensional)
+  // Format: { dimensions: [], timeWindow: { type, period, value }, groupBy: [], aggregateField, aggregateFunction }
+  aggregateConfig Json? @map("aggregate_config")
+
+  // Action to take when triggered
+  action       ThresholdAction
+  actionConfig Json?           @map("action_config") // Additional config (case template, notify list)
+
+  // Retroactive behavior (RS.37)
+  applyMode ThresholdApplyMode @default(FORWARD_ONLY) @map("apply_mode")
+
+  // Priority for rule ordering (higher = evaluated first)
+  priority Int @default(0)
+
+  isActive Boolean @default(true) @map("is_active")
+
+  // Metadata
+  createdById String   @map("created_by_id")
+  createdBy   User     @relation(fields: [createdById], references: [id])
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  triggers ThresholdTriggerLog[]
+
+  @@index([organizationId, isActive])
+  @@index([organizationId, disclosureTypes])
+  @@map("threshold_rules")
+}
+
+/// ThresholdTriggerLog records when threshold rules fire for audit and analytics.
+/// Tracks the disclosure that triggered the rule, evaluated values, and action taken.
+model ThresholdTriggerLog {
+  id             String @id @default(uuid())
+  organizationId String @map("organization_id")
+
+  ruleId String        @map("rule_id")
+  rule   ThresholdRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+
+  // What triggered it
+  disclosureId String @map("disclosure_id") // RIU ID for the disclosure
+  personId     String @map("person_id")
+
+  // Evaluation details
+  evaluatedValue     Decimal @map("evaluated_value") @db.Decimal(12, 2)
+  thresholdValue     Decimal @map("threshold_value") @db.Decimal(12, 2)
+  aggregateBreakdown Json?   @map("aggregate_breakdown") // Detail of aggregate calculation
+
+  // Action taken
+  actionTaken ThresholdAction @map("action_taken")
+  caseId      String?         @map("case_id") // If case was created
+  case        Case?           @relation(fields: [caseId], references: [id])
+
+  triggeredAt DateTime @default(now()) @map("triggered_at")
+
+  @@index([organizationId, ruleId])
+  @@index([organizationId, personId])
+  @@index([organizationId, triggeredAt])
+  @@map("threshold_trigger_logs")
+}
+
+// ===========================================
+// Conflict Detection (Phase 9 - RS.41-RS.45)
+// ===========================================
+
+/// ConflictType defines the category of detected conflict.
+/// RS.41: Six-way conflict detection across systems
+enum ConflictType {
+  VENDOR_MATCH // Disclosed entity matches approved vendor
+  APPROVAL_AUTHORITY // Person can approve spend to disclosed entity
+  PRIOR_CASE_HISTORY // Similar entity appeared in prior cases
+  HRIS_MATCH // Disclosed person matches employee (nepotism)
+  GIFT_AGGREGATE // Rolling total from same source exceeds threshold
+  RELATIONSHIP_PATTERN // Multiple employees linked to same entity
+  SELF_DEALING // Prior disclosures with same entity by this person
+
+  @@map("conflict_type")
+}
+
+/// ConflictSeverity indicates the risk level of the detected conflict.
+enum ConflictSeverity {
+  LOW // Minor concern, informational
+  MEDIUM // Requires attention
+  HIGH // Significant risk, requires review
+  CRITICAL // Immediate attention required
+
+  @@map("conflict_severity")
+}
+
+/// ConflictStatus tracks the lifecycle of a conflict alert.
+enum ConflictStatus {
+  OPEN // Newly detected, awaiting review
+  DISMISSED // Reviewed and dismissed (false positive or acceptable)
+  ESCALATED // Escalated to a case for investigation
+  RESOLVED // Conflict addressed through other means
+
+  @@map("conflict_status")
+}
+
+/// ExclusionScope defines the validity period of a conflict exclusion.
+enum ExclusionScope {
+  PERMANENT // Never trigger this conflict type for this person+entity
+  TIME_LIMITED // Exclusion expires after specified date
+  ONE_TIME // Exclusion applies only to one disclosure
+
+  @@map("exclusion_scope")
+}
+
+/// ConflictAlert stores detected potential conflicts on disclosures.
+/// Created automatically during disclosure submission when matching rules trigger.
+/// RS.41-RS.43: Cross-system conflict detection with contextual presentation.
+model ConflictAlert {
+  id             String       @id @default(uuid())
+  organizationId String       @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  // Source disclosure
+  disclosureId String                 @map("disclosure_id")
+  disclosure   RiuDisclosureExtension @relation(fields: [disclosureId], references: [riuId], onDelete: Cascade)
+
+  // Conflict details
+  conflictType ConflictType     @map("conflict_type")
+  severity     ConflictSeverity
+  status       ConflictStatus   @default(OPEN)
+
+  // Match context (RS.43: contextual presentation)
+  summary         String // Human-readable summary of the conflict
+  matchedEntity   String @map("matched_entity") // Entity name that triggered match
+  matchConfidence Float  @map("match_confidence") // 0-100 similarity score
+
+  // Full context bundle containing source-specific details:
+  // {
+  //   vendorContext?: { vendorId, vendorName, contractValue, approvalLevel },
+  //   employeeContext?: { employeeId, name, department, relationship },
+  //   disclosureContext?: { priorDisclosureIds, totalValue, dateRange },
+  //   caseContext?: { caseIds, caseTypes, outcomes }
+  // }
+  matchDetails    Json  @map("match_details")
+  severityFactors Json? @map("severity_factors") // Factors that determined severity
+
+  // Resolution tracking (RS.44: categorized dismissals)
+  dismissedCategory String?   @map("dismissed_category") // DismissalCategory enum value
+  dismissedReason   String?   @map("dismissed_reason")
+  dismissedBy       String?   @map("dismissed_by")
+  dismissedByUser   User?     @relation("ConflictAlertDismissedBy", fields: [dismissedBy], references: [id])
+  dismissedAt       DateTime? @map("dismissed_at")
+
+  // Escalation (when conflict warrants investigation)
+  escalatedToCaseId String? @map("escalated_to_case_id")
+  escalatedCase     Case?   @relation(fields: [escalatedToCaseId], references: [id])
+
+  // Exclusion link (when dismissed with exclusion created)
+  exclusionId String?            @map("exclusion_id")
+  exclusion   ConflictExclusion? @relation(fields: [exclusionId], references: [id])
+
+  // Timestamps
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([organizationId, status])
+  @@index([disclosureId])
+  @@index([matchedEntity])
+  @@map("conflict_alerts")
+}
+
+/// ConflictExclusion suppresses future false positive conflict alerts.
+/// RS.44: Categorized dismissals with exclusion list management.
+model ConflictExclusion {
+  id             String       @id @default(uuid())
+  organizationId String       @map("organization_id")
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  // Scope of exclusion (person + entity + conflict type)
+  personId      String       @map("person_id")
+  person        Person       @relation(fields: [personId], references: [id], onDelete: Cascade)
+  matchedEntity String       @map("matched_entity") // Entity name to exclude
+  conflictType  ConflictType @map("conflict_type") // Type of conflict to exclude
+
+  // Source reference
+  createdFromAlertId String? @map("created_from_alert_id") // Original conflict that led to this
+
+  // Reason and documentation
+  reason String // Why this exclusion was created
+  notes  String? // Additional context
+
+  // Validity configuration
+  scope     ExclusionScope @default(PERMANENT)
+  expiresAt DateTime?      @map("expires_at") // For TIME_LIMITED scope
+  isActive  Boolean        @default(true) @map("is_active")
+
+  // Audit fields
+  createdBy     String   @map("created_by")
+  createdByUser User     @relation("ExclusionCreatedBy", fields: [createdBy], references: [id])
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  // Back-reference to alerts using this exclusion
+  alerts ConflictAlert[]
+
+  // Unique constraint: one exclusion per person+entity+type combination
+  @@unique([organizationId, personId, matchedEntity, conflictType])
+  @@index([organizationId, isActive])
+  @@index([personId])
+  @@map("conflict_exclusions")
 }
