@@ -44,6 +44,8 @@ import { NotificationGateway } from './gateways/notification.gateway';
 
 // Controllers
 import { WebhookController } from './controllers/webhook.controller';
+import { NotificationsController } from './controllers/notifications.controller';
+import { PreferencesController } from './controllers/preferences.controller';
 
 // Event listeners
 import { CaseEventListener } from './listeners/case.listener';
@@ -101,9 +103,10 @@ import { WorkflowEventListener } from './listeners/workflow.listener';
   controllers: [
     // Webhook controller for email provider callbacks (07-07)
     WebhookController,
-    // Controllers to be added in subsequent plans:
-    // - NotificationController (07-08)
-    // - PreferenceController (07-08)
+    // Notification CRUD controller (07-08)
+    NotificationsController,
+    // Preference management controller (07-08)
+    PreferencesController,
   ],
   exports: [
     // Template management

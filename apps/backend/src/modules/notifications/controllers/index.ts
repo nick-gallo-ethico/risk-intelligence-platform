@@ -5,3 +5,5 @@
  */
 
 export { WebhookController } from './webhook.controller';
+export { NotificationsController } from './notifications.controller';
+export { PreferencesController } from './preferences.controller';
