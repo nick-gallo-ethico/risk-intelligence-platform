@@ -9,19 +9,19 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 
 ## Current Position
 
-Phase: 7 of 11 (Notifications & Email) - COMPLETE
-Plan: 8 of 8 in current phase
-Status: Phase complete
-Last activity: 2026-02-04 - Completed 07-08-PLAN.md (API Controllers)
+Phase: 8 of 11 (Portals)
+Plan: 1 of 17 in current phase
+Status: In progress
+Last activity: 2026-02-04 - Completed 08-01-PLAN.md (White-Label Branding)
 
-Progress: [==================================================] 53% (66 of ~125 total plans)
+Progress: [===================================================] 54% (67 of ~125 total plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 65
+- Total plans completed: 66
 - Average duration: 15 min
-- Total execution time: 17.1 hours
+- Total execution time: 17.25 hours
 
 **By Phase:**
 
@@ -34,10 +34,11 @@ Progress: [==================================================] 53% (66 of ~125 t
 | 05-ai-infrastructure | 11 | 143 min | 13 min |
 | 06-case-management | 11 | ~211 min | ~19 min |
 | 07-notifications-email | 8 | ~112 min | ~14 min |
+| 08-portals | 1 | 9 min | 9 min |
 
 **Recent Trend:**
-- Last 5 plans: 07-08 (6 min), 07-07 (23 min), 07-06 (19 min), 07-05 (17 min), 07-04 (12 min)
-- Trend: Phase 7 complete. Ready for Phase 8 (Portals).
+- Last 5 plans: 08-01 (9 min), 07-08 (6 min), 07-07 (23 min), 07-06 (19 min), 07-05 (17 min)
+- Trend: Phase 8 started. White-label branding complete.
 
 *Updated after each plan completion*
 
@@ -344,6 +345,11 @@ Recent decisions affecting current work:
 - 07-08: Preferences response includes enforcedCategories from org settings for UI display
 - 07-08: Effective quiet hours computed from user prefs + org defaults
 - 07-08: Org settings update requires SYSTEM_ADMIN role via RolesGuard
+- 08-01: Use const objects for BrandingMode and ThemeMode enums (not Prisma re-exports)
+- 08-01: CSS custom properties use HSL format without hsl() wrapper for Tailwind compatibility
+- 08-01: 1-hour cache TTL with both branding config and CSS output caching
+- 08-01: Public CSS endpoint at /api/v1/public/branding/:tenantSlug/css requires no auth
+- 08-01: FULL_WHITE_LABEL mode requires colorPalette to be configured
 
 ### Pending Todos
 
@@ -360,6 +366,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-02-04T01:55:00Z
-Stopped at: Completed 07-08-PLAN.md (API Controllers) - Phase 7 COMPLETE
+Last session: 2026-02-04T05:24:00Z
+Stopped at: Completed 08-01-PLAN.md (White-Label Branding) - Phase 8 started
 Resume file: None
