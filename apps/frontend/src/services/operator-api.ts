@@ -13,6 +13,9 @@ import type {
   CallerHistoryItem,
   PaginatedQaQueueResult,
   QaQueueItem,
+  QaItemDetail,
+  QaQueueFilters,
+  QaEditsDto,
 } from '@/types/operator.types';
 
 /**
@@ -109,15 +112,9 @@ export async function getCallerHistory(
  * @param filters - Filter parameters
  * @returns Paginated QA queue result
  */
-export async function getQaQueue(filters: {
-  clientId?: string;
-  severityMin?: string;
-  operatorId?: string;
-  dateFrom?: string;
-  dateTo?: string;
-  page?: number;
-  limit?: number;
-}): Promise<PaginatedQaQueueResult> {
+export async function getQaQueue(
+  filters: QaQueueFilters
+): Promise<PaginatedQaQueueResult> {
   return apiClient.get<PaginatedQaQueueResult>('/operator/qa-queue', {
     params: filters,
   });
@@ -127,10 +124,10 @@ export async function getQaQueue(filters: {
  * Get QA item detail.
  *
  * @param riuId - RIU ID
- * @returns QA item detail
+ * @returns QA item full detail
  */
-export async function getQaItemDetail(riuId: string): Promise<QaQueueItem> {
-  return apiClient.get<QaQueueItem>(`/operator/qa-queue/${riuId}`);
+export async function getQaItemDetail(riuId: string): Promise<QaItemDetail> {
+  return apiClient.get<QaItemDetail>(`/operator/qa-queue/${riuId}`);
 }
 
 /**
@@ -150,12 +147,7 @@ export async function claimQaItem(riuId: string): Promise<void> {
  */
 export async function releaseQaItem(
   riuId: string,
-  edits?: {
-    summary?: string;
-    categoryId?: string;
-    severityScore?: string;
-    editNotes?: string;
-  }
+  edits?: QaEditsDto
 ): Promise<void> {
   await apiClient.post(`/operator/qa-queue/${riuId}/release`, edits);
 }
@@ -171,4 +163,13 @@ export async function rejectQaItem(
   reason: string
 ): Promise<void> {
   await apiClient.post(`/operator/qa-queue/${riuId}/reject`, { reason });
+}
+
+/**
+ * Abandon QA item claim (return to queue).
+ *
+ * @param riuId - RIU ID
+ */
+export async function abandonQaItem(riuId: string): Promise<void> {
+  await apiClient.post(`/operator/qa-queue/${riuId}/abandon`);
 }

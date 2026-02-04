@@ -185,3 +185,78 @@ export interface PaginatedQaQueueResult {
   limit: number;
   totalPages: number;
 }
+
+/**
+ * Full detail for a QA item being reviewed.
+ * Includes all data needed for QA review panel.
+ */
+export interface QaItemDetail {
+  riuId: string;
+  referenceNumber: string;
+  client: {
+    id: string;
+    name: string;
+    slug: string;
+  };
+  category: {
+    id: string;
+    name: string;
+    code: string | null;
+  } | null;
+  severity: 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW' | null;
+  content: string;
+  summary: string | null;
+  reporterType: string;
+  operator: {
+    id: string;
+    name: string;
+  };
+  callMetadata: {
+    duration: number | null;
+    interpreterUsed: boolean;
+    interpreterLanguage: string | null;
+    callerDemeanor: string | null;
+    callbackRequested: boolean;
+    callbackNumber: string | null;
+  };
+  operatorNotes: string | null;
+  qaStatus: 'PENDING' | 'IN_REVIEW' | 'APPROVED' | 'REJECTED' | 'NEEDS_REVISION';
+  qaReviewer: {
+    id: string;
+    name: string;
+  } | null;
+  qaClaimedAt: string | null;
+  qaNotes: string | null;
+  qaRejectionReason: string | null;
+  createdAt: string;
+  flags: QaQueueFlag[];
+  attachments: Array<{
+    id: string;
+    filename: string;
+    mimeType: string;
+    size: number;
+  }>;
+}
+
+/**
+ * Filter parameters for QA queue queries.
+ */
+export interface QaQueueFilters {
+  clientId?: string;
+  severityMin?: 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW';
+  operatorId?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  page?: number;
+  limit?: number;
+}
+
+/**
+ * DTO for QA edits when releasing.
+ */
+export interface QaEditsDto {
+  summary?: string;
+  categoryId?: string;
+  severityScore?: 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW';
+  editNotes?: string;
+}
