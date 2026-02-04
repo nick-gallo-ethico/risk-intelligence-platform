@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 8 of 11 (Portals)
-Plan: 8 of 17 in current phase
+Plan: 9 of 17 in current phase
 Status: In progress
-Last activity: 2026-02-04 - Completed 08-08-PLAN.md (Ethics Portal PWA & Offline Infrastructure)
+Last activity: 2026-02-04 - Completed 08-09-PLAN.md (Operator Console Layout)
 
-Progress: [======================================================] 59% (74 of ~125 total plans)
+Progress: [======================================================] 60% (75 of ~125 total plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 74
+- Total plans completed: 75
 - Average duration: 15 min
-- Total execution time: 18.7 hours
+- Total execution time: 18.9 hours
 
 **By Phase:**
 
@@ -34,11 +34,11 @@ Progress: [======================================================] 59% (74 of ~1
 | 05-ai-infrastructure | 11 | 143 min | 13 min |
 | 06-case-management | 11 | ~211 min | ~19 min |
 | 07-notifications-email | 8 | ~112 min | ~14 min |
-| 08-portals | 8 | 92 min | 12 min |
+| 08-portals | 9 | 106 min | 12 min |
 
 **Recent Trend:**
-- Last 5 plans: 08-08 (9 min), 08-07 (17 min), 08-06 (16 min), 08-05 (14 min), 08-04 (14 min)
-- Trend: Phase 8 progressing well. Ethics Portal PWA infrastructure in place.
+- Last 5 plans: 08-09 (14 min), 08-08 (9 min), 08-07 (17 min), 08-06 (16 min), 08-05 (14 min)
+- Trend: Phase 8 progressing well. Operator Console layout and components complete.
 
 *Updated after each plan completion*
 
@@ -383,6 +383,11 @@ Recent decisions affecting current work:
 - 08-08: react-i18next with namespace-based lazy loading for efficient translation delivery
 - 08-08: 8 supported languages including RTL (Arabic, Hebrew) with document.dir updates
 - 08-08: Auto-save debounce at 1 second, draft expiration at 7 days
+- 08-09: @tanstack/react-query added for efficient data fetching with caching
+- 08-09: useClientProfile hook uses AbortController to cancel stale phone lookups
+- 08-09: Split-screen layout: 60% left (intake form), 40% right (context tabs)
+- 08-09: DirectivesPanel groups by stage (opening, intake, category-specific, closing)
+- 08-09: Read-aloud directives styled distinctly with blue background and speaker icon
 
 ### Pending Todos
 
@@ -399,6 +404,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-02-04T06:13:00Z
-Stopped at: Completed 08-08-PLAN.md (Ethics Portal PWA & Offline Infrastructure)
+Last session: 2026-02-04T06:19:06Z
+Stopped at: Completed 08-09-PLAN.md (Operator Console Layout)
 Resume file: None
