@@ -686,6 +686,7 @@ enum AuditEntityType {
   REMEDIATION_PLAN
   REMEDIATION_STEP
   NOTIFICATION
+  USER_DATA_TABLE
 
   @@map("audit_entity_type")
 }
