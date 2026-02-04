@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 8 of 11 (Portals)
-Plan: 1 of 17 in current phase
+Plan: 3 of 17 in current phase
 Status: In progress
-Last activity: 2026-02-04 - Completed 08-01-PLAN.md (White-Label Branding)
+Last activity: 2026-02-04 - Completed 08-03-PLAN.md (Client Profile Service)
 
-Progress: [===================================================] 54% (67 of ~125 total plans)
+Progress: [===================================================] 55% (69 of ~125 total plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 66
+- Total plans completed: 68
 - Average duration: 15 min
-- Total execution time: 17.25 hours
+- Total execution time: 17.5 hours
 
 **By Phase:**
 
@@ -34,11 +34,11 @@ Progress: [===================================================] 54% (67 of ~125 
 | 05-ai-infrastructure | 11 | 143 min | 13 min |
 | 06-case-management | 11 | ~211 min | ~19 min |
 | 07-notifications-email | 8 | ~112 min | ~14 min |
-| 08-portals | 1 | 9 min | 9 min |
+| 08-portals | 3 | 22 min | 7 min |
 
 **Recent Trend:**
-- Last 5 plans: 08-01 (9 min), 07-08 (6 min), 07-07 (23 min), 07-06 (19 min), 07-05 (17 min)
-- Trend: Phase 8 started. White-label branding complete.
+- Last 5 plans: 08-03 (13 min), 08-01 (9 min), 07-08 (6 min), 07-07 (23 min), 07-06 (19 min)
+- Trend: Phase 8 progressing well. Client profile lookup complete.
 
 *Updated after each plan completion*
 
@@ -350,6 +350,10 @@ Recent decisions affecting current work:
 - 08-01: 1-hour cache TTL with both branding config and CSS output caching
 - 08-01: Public CSS endpoint at /api/v1/public/branding/:tenantSlug/css requires no auth
 - 08-01: FULL_WHITE_LABEL mode requires colorPalette to be configured
+- 08-03: prisma.withBypassRLS() for all operator phone lookup operations (cross-tenant access)
+- 08-03: All phone numbers normalized to E.164 format (+1XXXXXXXXXX) for consistent storage
+- 08-03: QA mode evaluation order: category overrides -> keyword triggers -> default mode
+- 08-03: Math.random() for SAMPLE mode QA selection (statistically valid percentage-based)
 
 ### Pending Todos
 
@@ -366,6 +370,6 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-02-04T05:24:00Z
-Stopped at: Completed 08-01-PLAN.md (White-Label Branding) - Phase 8 started
+Last session: 2026-02-04T05:28:00Z
+Stopped at: Completed 08-03-PLAN.md (Client Profile Service)
 Resume file: None
