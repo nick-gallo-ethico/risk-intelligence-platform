@@ -1,0 +1,72 @@
+{{!--
+  Case Assignment Notification Template
+
+  Sent when a case is assigned to a user.
+
+  Expected context:
+  - case.id: Case UUID
+  - case.referenceNumber: Case reference (e.g., "CASE-2024-00123")
+  - case.categoryName: Category name (e.g., "Harassment")
+  - case.severity: Severity level (HIGH, MEDIUM, LOW)
+  - case.dueDate: SLA due date
+  - case.status: Current case status
+  - assignedBy.name: Name of user who made the assignment
+  - org: Organization object with branding
+  - appUrl: Base application URL
+  - recipient.name: Recipient's display name
+
+  NOTE: Per CONTEXT.md, this template intentionally excludes:
+  - Names of complainants/subjects
+  - Allegation details
+  - Sensitive findings
+--}}
+<mj-section mj-class="card">
+  <mj-column>
+    {{!-- Header with urgency badge --}}
+    <mj-text mj-class="heading-md" padding-bottom="8px">
+      {{#if (or (eq case.severity 'HIGH') (eq case.severity 'CRITICAL'))}}
+      {{urgentBadge case.severity}}
+      {{/if}}
+      New Case Assignment
+    </mj-text>
+
+    <mj-text mj-class="text-body" padding-top="12px" padding-bottom="16px">
+      Hi {{recipient.name}},
+    </mj-text>
+
+    <mj-text mj-class="text-body" padding-bottom="16px">
+      {{assignedBy.name}} has assigned you
+      <strong>Case #{{case.referenceNumber}}</strong>.
+    </mj-text>
+
+    <mj-divider mj-class="divider" />
+
+    {{!-- Case details card --}}
+    <mj-text mj-class="heading-sm" padding-bottom="12px">
+      Case Details
+    </mj-text>
+
+    <mj-text mj-class="text-body" line-height="1.8">
+      <strong>Reference:</strong> {{case.referenceNumber}}<br/>
+      <strong>Category:</strong> {{case.categoryName}}<br/>
+      <strong>Priority:</strong>
+      <span style="color: {{severityColor case.severity}}; font-weight: 600;">
+        {{case.severity}}
+      </span><br/>
+      {{#if case.dueDate}}
+      <strong>Due Date:</strong> {{formatDate case.dueDate}}<br/>
+      {{/if}}
+    </mj-text>
+
+    {{!-- CTA Button --}}
+    <mj-button mj-class="btn-primary"
+               href="{{appUrl}}/cases/{{case.id}}"
+               padding-top="24px">
+      View Case Details
+    </mj-button>
+
+    <mj-text mj-class="text-small" align="center" padding-top="16px">
+      Please review and take appropriate action.
+    </mj-text>
+  </mj-column>
+</mj-section>

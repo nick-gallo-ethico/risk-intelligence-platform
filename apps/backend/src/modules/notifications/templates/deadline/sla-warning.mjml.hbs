@@ -1,0 +1,89 @@
+{{!--
+  SLA Warning Notification Template
+
+  Sent when a case is approaching its SLA deadline.
+
+  Expected context:
+  - case.id: Case UUID
+  - case.referenceNumber: Case reference (e.g., "CASE-2024-00123")
+  - case.categoryName: Category name
+  - case.severity: Severity level
+  - case.dueDate: SLA due date
+  - hoursRemaining: Hours until SLA breach
+  - org: Organization object with branding
+  - appUrl: Base application URL
+  - recipient.name: Recipient's display name
+
+  NOTE: Per CONTEXT.md, this template intentionally excludes:
+  - Names of complainants/subjects
+  - Allegation details
+  - Sensitive findings
+--}}
+<mj-section mj-class="card">
+  <mj-column>
+    {{!-- Warning alert --}}
+    <mj-section mj-class="alert-warning" padding="0">
+      <mj-column>
+        <mj-text font-size="16px" font-weight="600" color="#92400e">
+          SLA Warning: Action Required
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <mj-text mj-class="text-body" padding-top="20px" padding-bottom="12px">
+      Hi {{recipient.name}},
+    </mj-text>
+
+    <mj-text mj-class="text-body" padding-bottom="16px">
+      <strong>Case #{{case.referenceNumber}}</strong> is approaching its SLA deadline.
+    </mj-text>
+
+    {{!-- Time remaining highlight --}}
+    <mj-section background-color="#fef3c7" border-radius="8px" padding="16px">
+      <mj-column>
+        <mj-text align="center" font-size="14px" color="#92400e" padding-bottom="4px">
+          Time Remaining
+        </mj-text>
+        <mj-text align="center" font-size="32px" font-weight="700" color="#92400e" padding="0">
+          {{#if (lt hoursRemaining 24)}}
+          {{hoursRemaining}} hour{{#if (neq hoursRemaining 1)}}s{{/if}}
+          {{else}}
+          {{daysRemaining}} day{{#if (neq daysRemaining 1)}}s{{/if}}
+          {{/if}}
+        </mj-text>
+        {{#if case.dueDate}}
+        <mj-text align="center" font-size="12px" color="#92400e" padding-top="4px">
+          Due: {{formatDateTime case.dueDate}}
+        </mj-text>
+        {{/if}}
+      </mj-column>
+    </mj-section>
+
+    <mj-divider mj-class="divider" />
+
+    {{!-- Case details --}}
+    <mj-text mj-class="heading-sm" padding-bottom="12px">
+      Case Details
+    </mj-text>
+
+    <mj-text mj-class="text-body" line-height="1.8">
+      <strong>Reference:</strong> {{case.referenceNumber}}<br/>
+      <strong>Category:</strong> {{case.categoryName}}<br/>
+      <strong>Priority:</strong>
+      <span style="color: {{severityColor case.severity}}; font-weight: 600;">
+        {{case.severity}}
+      </span>
+    </mj-text>
+
+    {{!-- CTA Button --}}
+    <mj-button mj-class="btn-primary"
+               href="{{appUrl}}/cases/{{case.id}}"
+               padding-top="24px">
+      Review Case Now
+    </mj-button>
+
+    <mj-text mj-class="text-small" align="center" padding-top="16px">
+      Please take action to avoid an SLA breach.
+    </mj-text>
+  </mj-column>
+</mj-section>

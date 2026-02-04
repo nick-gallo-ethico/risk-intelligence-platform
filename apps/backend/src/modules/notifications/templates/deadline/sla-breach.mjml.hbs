@@ -1,0 +1,108 @@
+{{!--
+  SLA Breach Notification Template
+
+  Sent when a case has breached its SLA deadline.
+
+  Expected context:
+  - case.id: Case UUID
+  - case.referenceNumber: Case reference (e.g., "CASE-2024-00123")
+  - case.categoryName: Category name
+  - case.severity: Severity level
+  - case.dueDate: SLA due date (now past)
+  - hoursOverdue: Hours past SLA deadline
+  - daysOverdue: Days past SLA deadline (if > 24 hours)
+  - org: Organization object with branding
+  - appUrl: Base application URL
+  - recipient.name: Recipient's display name
+
+  NOTE: Per CONTEXT.md, this template intentionally excludes:
+  - Names of complainants/subjects
+  - Allegation details
+  - Sensitive findings
+--}}
+<mj-section mj-class="card">
+  <mj-column>
+    {{!-- Critical alert --}}
+    <mj-section mj-class="alert-danger" padding="0">
+      <mj-column>
+        <mj-text font-size="16px" font-weight="700" color="#991b1b">
+          URGENT: SLA Breached - Immediate Action Required
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <mj-text mj-class="text-body" padding-top="20px" padding-bottom="12px">
+      Hi {{recipient.name}},
+    </mj-text>
+
+    <mj-text mj-class="text-body" padding-bottom="16px">
+      <strong>Case #{{case.referenceNumber}}</strong> has exceeded its SLA deadline and requires immediate attention.
+    </mj-text>
+
+    {{!-- Overdue highlight --}}
+    <mj-section background-color="#fee2e2" border-radius="8px" padding="16px">
+      <mj-column>
+        <mj-text align="center" font-size="14px" color="#991b1b" padding-bottom="4px">
+          Overdue By
+        </mj-text>
+        <mj-text align="center" font-size="32px" font-weight="700" color="#991b1b" padding="0">
+          {{#if (lt hoursOverdue 24)}}
+          {{hoursOverdue}} hour{{#if (neq hoursOverdue 1)}}s{{/if}}
+          {{else}}
+          {{daysOverdue}} day{{#if (neq daysOverdue 1)}}s{{/if}}
+          {{/if}}
+        </mj-text>
+        {{#if case.dueDate}}
+        <mj-text align="center" font-size="12px" color="#991b1b" padding-top="4px">
+          Was due: {{formatDateTime case.dueDate}}
+        </mj-text>
+        {{/if}}
+      </mj-column>
+    </mj-section>
+
+    <mj-divider mj-class="divider" />
+
+    {{!-- Case details --}}
+    <mj-text mj-class="heading-sm" padding-bottom="12px">
+      Case Details
+    </mj-text>
+
+    <mj-text mj-class="text-body" line-height="1.8">
+      <strong>Reference:</strong> {{case.referenceNumber}}<br/>
+      <strong>Category:</strong> {{case.categoryName}}<br/>
+      <strong>Priority:</strong>
+      <span style="color: {{severityColor case.severity}}; font-weight: 600;">
+        {{case.severity}}
+      </span><br/>
+      <strong>Status:</strong>
+      <span style="color: #dc2626; font-weight: 600;">
+        SLA BREACHED
+      </span>
+    </mj-text>
+
+    {{!-- CTA Button --}}
+    <mj-button background-color="#dc2626"
+               color="#ffffff"
+               font-weight="600"
+               border-radius="6px"
+               href="{{appUrl}}/cases/{{case.id}}"
+               padding-top="24px">
+      Take Immediate Action
+    </mj-button>
+
+    <mj-text mj-class="text-small" align="center" padding-top="16px" color="#991b1b">
+      This case requires immediate attention to minimize compliance risk.
+    </mj-text>
+
+    {{!-- Escalation notice --}}
+    {{#if isEscalated}}
+    <mj-section mj-class="alert-info" padding="12px" css-class="escalation-notice">
+      <mj-column>
+        <mj-text font-size="13px" color="#1e40af">
+          <strong>Note:</strong> This breach has been escalated to compliance leadership.
+        </mj-text>
+      </mj-column>
+    </mj-section>
+    {{/if}}
+  </mj-column>
+</mj-section>
