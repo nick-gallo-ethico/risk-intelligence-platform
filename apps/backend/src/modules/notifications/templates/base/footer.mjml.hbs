@@ -1,0 +1,43 @@
+{{!--
+  Email footer partial with legal information and optional unsubscribe.
+
+  Expected context:
+  - org.name: Organization name
+  - org.branding.contactEmail: Optional support email
+  - isTransactional: If true, shows "required notification" message instead of unsubscribe
+  - appUrl: Base application URL for links
+--}}
+<mj-section background-color="#f9fafb" padding="24px">
+  <mj-column>
+    {{#if isTransactional}}
+    <mj-text mj-class="text-muted" align="center" padding-bottom="12px">
+      This is a required notification from {{default org.name 'your organization'}}.
+      You cannot unsubscribe from this notification type.
+    </mj-text>
+    {{else}}
+    <mj-text mj-class="text-muted" align="center" padding-bottom="12px">
+      You're receiving this because of your notification preferences.
+      <a href="{{appUrl}}/settings/notifications" style="color: #6b7280; text-decoration: underline;">
+        Manage preferences
+      </a>
+    </mj-text>
+    {{/if}}
+
+    <mj-divider border-color="#e5e7eb" border-width="1px" padding="8px 0" />
+
+    <mj-text mj-class="text-muted" align="center" padding-top="12px">
+      {{#if org.branding.contactEmail}}
+      Questions? Contact us at
+      <a href="mailto:{{org.branding.contactEmail}}" style="color: #6b7280;">
+        {{org.branding.contactEmail}}
+      </a>
+      {{else}}
+      {{default org.name 'Your organization'}}
+      {{/if}}
+    </mj-text>
+
+    <mj-text font-size="11px" color="#9ca3af" align="center" padding-top="16px">
+      Powered by <a href="https://ethico.com" style="color: #9ca3af;">Ethico</a> | Compliance Management Platform
+    </mj-text>
+  </mj-column>
+</mj-section>

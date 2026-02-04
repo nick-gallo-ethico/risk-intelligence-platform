@@ -1,0 +1,27 @@
+{{!--
+  Email header partial with organization branding.
+
+  Expected context:
+  - org.name: Organization name
+  - org.branding.logoUrl: Optional logo URL
+  - org.branding.primaryColor: Optional brand color (defaults to #2563eb)
+--}}
+<mj-section background-color="{{default org.branding.primaryColor '#2563eb'}}" padding="20px 0">
+  <mj-column>
+    {{#if org.branding.logoUrl}}
+    <mj-image src="{{org.branding.logoUrl}}"
+              alt="{{org.name}}"
+              width="150px"
+              align="center"
+              padding="0" />
+    {{else}}
+    <mj-text font-size="22px"
+             font-weight="700"
+             color="#ffffff"
+             align="center"
+             padding="8px 0">
+      {{default org.name 'Ethico'}}
+    </mj-text>
+    {{/if}}
+  </mj-column>
+</mj-section>

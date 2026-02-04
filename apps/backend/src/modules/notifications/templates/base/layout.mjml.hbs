@@ -1,0 +1,42 @@
+{{!--
+  Base email layout template.
+
+  This is the main wrapper template that includes:
+  - Shared styles and fonts
+  - Organization-branded header
+  - Main content area
+  - Footer with legal/unsubscribe
+
+  Expected context:
+  - subject: Email subject line
+  - preview: Preview text (optional, shown in email clients)
+  - org: Organization object with name and branding
+  - isTransactional: Boolean indicating if this is a required notification
+  - appUrl: Base application URL
+
+  Content is injected via triple-mustache {{{content}}} to preserve HTML.
+--}}
+<mjml>
+  <mj-head>
+    {{> base/styles }}
+    <mj-title>{{subject}}</mj-title>
+    {{#if preview}}
+    <mj-preview>{{preview}}</mj-preview>
+    {{/if}}
+  </mj-head>
+
+  <mj-body background-color="#f4f4f5">
+    {{!-- Header with branding --}}
+    {{> base/header org=org }}
+
+    {{!-- Main content area --}}
+    <mj-section padding="24px 12px">
+      <mj-column>
+        {{{content}}}
+      </mj-column>
+    </mj-section>
+
+    {{!-- Footer with legal/unsubscribe --}}
+    {{> base/footer org=org isTransactional=isTransactional appUrl=appUrl }}
+  </mj-body>
+</mjml>
