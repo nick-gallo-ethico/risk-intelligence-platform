@@ -350,6 +350,11 @@ Recent decisions affecting current work:
 - 08-01: 1-hour cache TTL with both branding config and CSS output caching
 - 08-01: Public CSS endpoint at /api/v1/public/branding/:tenantSlug/css requires no auth
 - 08-01: FULL_WHITE_LABEL mode requires colorPalette to be configured
+- 08-02: Four directive stages: OPENING, INTAKE, CATEGORY_SPECIFIC, CLOSING matching call flow
+- 08-02: CallDirectives grouped structure returns all directives for a call in one query
+- 08-02: Category relation for category-specific directives via FK, nullable for other stages
+- 08-02: Soft delete pattern (isActive=false) preserves directive history
+- 08-02: isReadAloud flag indicates verbatim reading requirement
 - 08-03: prisma.withBypassRLS() for all operator phone lookup operations (cross-tenant access)
 - 08-03: All phone numbers normalized to E.164 format (+1XXXXXXXXXX) for consistent storage
 - 08-03: QA mode evaluation order: category overrides -> keyword triggers -> default mode
