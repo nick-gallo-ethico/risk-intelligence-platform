@@ -3657,6 +3657,31 @@ model AiRateLimit {
   @@map("ai_rate_limits")
 }
 
+/// AiQueryHistory logs natural language queries for analytics and auditing.
+/// Used to track AI query patterns, improve suggestions, and debug issues.
+model AiQueryHistory {
+  id             String @id @default(uuid())
+  organizationId String @map("organization_id")
+  userId         String @map("user_id")
+
+  // Query details
+  query             String  @db.Text // Original natural language query
+  parsedQuery       Json // Structured ParsedQuery from AI
+  visualizationType String  @map("visualization_type") // KPI, TABLE, LINE_CHART, etc.
+  resultSummary     String? @map("result_summary") // Human-readable result summary
+  processingTimeMs  Int     @map("processing_time_ms")
+
+  // Token usage (for cost tracking)
+  inputTokens  Int? @map("input_tokens")
+  outputTokens Int? @map("output_tokens")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([organizationId, createdAt])
+  @@index([userId, createdAt])
+  @@map("ai_query_history")
+}
+
 // ===========================================
 // AI Action System
 // ===========================================
