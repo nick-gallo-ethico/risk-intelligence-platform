@@ -1,7 +1,16 @@
 export * from "./migration.module";
 export * from "./migration.service";
+export * from "./migration.controller";
+export * from "./screenshot-to-form.service";
 export * from "./dto/migration.dto";
+export * from "./dto/screenshot.dto";
 export * from "./entities/migration.entity";
+export {
+  MigrationProcessor,
+  MIGRATION_QUEUE_NAME,
+  MigrationJobData,
+  MigrationResult,
+} from "./processors/migration.processor";
 
 // Re-export connectors with explicit names to avoid conflicts
 export {
