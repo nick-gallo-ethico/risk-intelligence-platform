@@ -1,14 +1,15 @@
-import { Module, forwardRef } from '@nestjs/common';
-import { ElasticsearchModule } from '@nestjs/elasticsearch';
-import { ConfigService } from '@nestjs/config';
-import { SearchService } from './search.service';
-import { UnifiedSearchService } from './unified-search.service';
-import { IndexingService } from './indexing/indexing.service';
-import { PermissionFilterService } from './query/permission-filter.service';
-import { CaseIndexingHandler } from './handlers/case-indexing.handler';
-import { SearchController } from './search.controller';
-import { PrismaModule } from '../prisma/prisma.module';
-import { JobsModule } from '../jobs/jobs.module';
+import { Module, forwardRef } from "@nestjs/common";
+import { ElasticsearchModule } from "@nestjs/elasticsearch";
+import { ConfigService } from "@nestjs/config";
+import { SearchService } from "./search.service";
+import { UnifiedSearchService } from "./unified-search.service";
+import { IndexingService } from "./indexing/indexing.service";
+import { PolicyIndexer } from "./indexing/indexers";
+import { PermissionFilterService } from "./query/permission-filter.service";
+import { CaseIndexingHandler } from "./handlers/case-indexing.handler";
+import { SearchController } from "./search.controller";
+import { PrismaModule } from "../prisma/prisma.module";
+import { JobsModule } from "../jobs/jobs.module";
 
 /**
  * SearchModule provides Elasticsearch-powered search for the platform.
@@ -33,10 +34,10 @@ import { JobsModule } from '../jobs/jobs.module';
   imports: [
     ElasticsearchModule.registerAsync({
       useFactory: (configService: ConfigService) => ({
-        node: configService.get<string>('elasticsearch.node'),
-        maxRetries: configService.get<number>('elasticsearch.maxRetries'),
+        node: configService.get<string>("elasticsearch.node"),
+        maxRetries: configService.get<number>("elasticsearch.maxRetries"),
         requestTimeout: configService.get<number>(
-          'elasticsearch.requestTimeout',
+          "elasticsearch.requestTimeout",
         ),
       }),
       inject: [ConfigService],
@@ -48,10 +49,11 @@ import { JobsModule } from '../jobs/jobs.module';
     SearchService,
     UnifiedSearchService,
     IndexingService,
+    PolicyIndexer,
     PermissionFilterService,
     CaseIndexingHandler,
   ],
   controllers: [SearchController],
-  exports: [SearchService, UnifiedSearchService, IndexingService],
+  exports: [SearchService, UnifiedSearchService, IndexingService, PolicyIndexer],
 })
 export class SearchModule {}

@@ -11,7 +11,8 @@ import {
   RIU_INDEX_MAPPING,
   INVESTIGATION_INDEX_MAPPING,
   PERSON_INDEX_MAPPING,
-} from './index-mappings';
+  POLICY_INDEX_MAPPING,
+} from "./index-mappings";
 import { PrismaService } from "../../prisma/prisma.service";
 
 /**
@@ -222,14 +223,16 @@ export class IndexingService implements OnModuleInit {
    */
   private getMappingForType(entityType: string): Record<string, unknown> {
     switch (entityType.toLowerCase()) {
-      case 'cases':
+      case "cases":
         return CASE_INDEX_MAPPING;
-      case 'rius':
+      case "rius":
         return RIU_INDEX_MAPPING;
-      case 'investigations':
+      case "investigations":
         return INVESTIGATION_INDEX_MAPPING;
-      case 'persons':
+      case "persons":
         return PERSON_INDEX_MAPPING;
+      case "policies":
+        return POLICY_INDEX_MAPPING;
       default:
         // Return minimal mapping with dynamic customFields for unknown types
         return {
@@ -237,7 +240,7 @@ export class IndexingService implements OnModuleInit {
             dynamic: true,
             properties: {
               customFields: {
-                type: 'object',
+                type: "object",
                 dynamic: true,
                 properties: {},
               },
@@ -296,7 +299,7 @@ export class IndexingService implements OnModuleInit {
       );
     } catch (error) {
       this.logger.error(
-        `Failed to update custom field mapping: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        `Failed to update custom field mapping: ${error instanceof Error ? error.message : "Unknown error"}`,
       );
     }
   }
@@ -308,35 +311,35 @@ export class IndexingService implements OnModuleInit {
     dataType: string,
   ): Record<string, unknown> {
     switch (dataType.toUpperCase()) {
-      case 'TEXT':
+      case "TEXT":
         // Text fields: full-text searchable with keyword subfield for exact matches
         return {
-          type: 'text',
-          fields: { keyword: { type: 'keyword' } },
+          type: "text",
+          fields: { keyword: { type: "keyword" } },
         };
-      case 'NUMBER':
-        return { type: 'double' };
-      case 'DATE':
-      case 'DATETIME':
-        return { type: 'date' };
-      case 'BOOLEAN':
-        return { type: 'boolean' };
-      case 'SELECT':
+      case "NUMBER":
+        return { type: "double" };
+      case "DATE":
+      case "DATETIME":
+        return { type: "date" };
+      case "BOOLEAN":
+        return { type: "boolean" };
+      case "SELECT":
         // Single select: keyword for exact matching
-        return { type: 'keyword' };
-      case 'MULTI_SELECT':
+        return { type: "keyword" };
+      case "MULTI_SELECT":
         // Multi select: keyword array
-        return { type: 'keyword' };
-      case 'URL':
-      case 'EMAIL':
-      case 'PHONE':
+        return { type: "keyword" };
+      case "URL":
+      case "EMAIL":
+      case "PHONE":
         // These are keywords for exact matching
-        return { type: 'keyword' };
+        return { type: "keyword" };
       default:
         // Default to text with keyword subfield
         return {
-          type: 'text',
-          fields: { keyword: { type: 'keyword' } },
+          type: "text",
+          fields: { keyword: { type: "keyword" } },
         };
     }
   }
