@@ -483,6 +483,13 @@ Recent decisions affecting current work:
 - 10-10: UserStatus type (ACTIVE, PENDING_INVITE, INACTIVE, SUSPENDED) for nuanced status display
 - 10-10: ROLE_DESCRIPTIONS constant provides context for role selection in invite form
 - 10-10: RolePermissionsTable uses visual matrix (check/minus/x icons) for scannable permissions
+- 11-integration: Person model uses source: PersonSource enum, not sourceSystem string
+- 11-integration: RIU referenceNumber is required - generate if not provided from source
+- 11-integration: RIU anonymity determined by reporterType field, not separate isAnonymous
+- 11-integration: Case creation requires updatedById (createdById is not enough)
+- 11-integration: Case incidentDate is on RIU entity, not Case entity
+- 11-integration: RiuAssociationType enum (not RiuCaseAssociationType) for RIU-Case links
+- 11-integration: tsconfig.json exclude removed for analytics/migration and analytics/exports folders
 
 ### Pending Todos
 
@@ -499,16 +506,18 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-02-05T03:58:47Z
-Stopped at: Completed 11-14-PLAN.md (Gantt Chart Visualization)
+Last session: 2026-02-05
+Stopped at: Phase 11 COMPLETE - integration fixes applied
 Resume file: None
 
-**Phase 11 Status: IN PROGRESS**
-Plans completed: 11-01 through 11-12, 11-14, 11-15, 11-16, 11-17, 11-18
-- 11-14: Gantt Chart Visualization (gantt-utils.ts, useMilestones hook, GanttChart, MilestoneTimeline)
-- 11-18: EQS Connector (verified existing implementation from 11-09 meets all requirements)
-- 11-17: NAVEX Connector (verified existing implementation from 11-09 meets all requirements)
-- 11-11: Migration Controller & Processor (BullMQ async imports, REST lifecycle API, rollback support)
-- 11-10: Dashboard REST Controller (widget data endpoints, ScheduledRefreshService, cron-based cache refresh)
-- 11-09: Migration Connectors (NavexConnector, EqsConnector, CsvConnector, fuzzy matching)
-- 11-07: Excel Streaming Export (ExcelExportService, FlatExportProcessor, ExportsController)
+**Phase 11 Status: COMPLETE**
+All 21 plans executed (11-01 through 11-21), integration verified:
+- Integration fix: AnalyticsModule and ProjectsModule registered in app.module.ts
+- Integration fix: MigrationModule properly imported in AnalyticsModule
+- Integration fix: ProjectsModule created to export MilestoneService
+- Integration fix: TypeScript errors resolved in migration.processor.ts and mapping-suggestion.service.ts
+- All modules compile and lint passes
+
+**Next Steps:**
+- Phase 12: Internal Operations Portal (final phase in milestone)
+- Run /gsd:progress to see options
