@@ -1,20 +1,19 @@
 /**
- * MigrationProcessor - BullMQ processor for async data imports
+ * MigrationProcessor - BullMQ processor for async migration operations
  *
- * Handles large-scale data migrations asynchronously:
- * 1. Downloads file from storage
- * 2. Parses rows using appropriate connector
- * 3. Validates and transforms each row
- * 4. Creates entities in transaction (Person, RIU, Case)
- * 5. Tracks imported records for rollback
- * 6. Updates job progress throughout
+ * Handles the complete migration lifecycle asynchronously:
+ * 1. validate - Check all rows against mappings, collect errors
+ * 2. preview - Generate preview of transformed data (first 20 rows)
+ * 3. import - Execute the import with progress tracking
+ * 4. rollback - Remove imported records within 7-day window
  *
  * Key features:
- * - Concurrency of 1 (one import at a time per worker)
+ * - Concurrency of 1 (one operation at a time per worker)
  * - Progress tracking with job.updateProgress()
  * - 7-day rollback window via MigrationRecord tracking
  * - Error collection (max 100 stored)
  * - Transaction-safe entity creation
+ * - Modified records skipped during rollback with reasons
  *
  * @see MigrationService for job management
  * @see BaseMigrationConnector for row parsing
@@ -58,21 +57,28 @@ import {
 } from "@prisma/client";
 
 /**
- * Queue name for migration imports.
+ * Queue name for migration operations.
  * Must match the queue registered in the module.
  */
 export const MIGRATION_QUEUE_NAME = "migrations";
 
 /**
- * Job data structure for migration imports.
+ * Supported migration actions
+ */
+export type MigrationAction = "validate" | "preview" | "import" | "rollback";
+
+/**
+ * Job data structure for migration operations.
  */
 export interface MigrationJobData {
   /** Migration job record ID */
   jobId: string;
   /** Tenant identifier */
   organizationId: string;
-  /** User who initiated the import */
+  /** User who initiated the operation */
   userId: string;
+  /** Action to perform */
+  action: MigrationAction;
 }
 
 /**
@@ -82,6 +88,37 @@ export interface MigrationResult {
   importedCount: number;
   errorCount: number;
   errors: { row: number; error: string }[];
+}
+
+/**
+ * Result of a validation operation.
+ */
+export interface ValidationResult {
+  validRows: number;
+  errorRows: number;
+  errors: { row: number; field: string; error: string }[];
+}
+
+/**
+ * Result of a preview operation.
+ */
+export interface PreviewResult {
+  rowCount: number;
+  previewData: {
+    rowNumber: number;
+    sourceData: Record<string, unknown>;
+    transformedData: TransformedRow;
+    issues: string[];
+  }[];
+}
+
+/**
+ * Result of a rollback operation.
+ */
+export interface RollbackResult {
+  rolledBackCount: number;
+  skippedCount: number;
+  skippedReasons: string[];
 }
 
 /**
@@ -98,6 +135,11 @@ const ROLLBACK_WINDOW_DAYS = 7;
  * Progress update interval (rows).
  */
 const PROGRESS_UPDATE_INTERVAL = 100;
+
+/**
+ * Max preview rows.
+ */
+const PREVIEW_ROW_LIMIT = 20;
 
 @Processor(MIGRATION_QUEUE_NAME, { concurrency: 1 })
 @Injectable()
@@ -117,15 +159,19 @@ export class MigrationProcessor extends WorkerHost {
   }
 
   /**
-   * Process a migration import job.
+   * Process a migration job based on the action type.
    *
-   * @param job - BullMQ job containing import configuration
-   * @returns Result with counts and errors
+   * @param job - BullMQ job containing operation configuration
+   * @returns Result based on action type
    */
-  async process(job: Job<MigrationJobData>): Promise<MigrationResult> {
-    const { jobId, organizationId, userId } = job.data;
+  async process(
+    job: Job<MigrationJobData>,
+  ): Promise<
+    MigrationResult | ValidationResult | PreviewResult | RollbackResult
+  > {
+    const { jobId, organizationId, userId, action } = job.data;
 
-    this.logger.log(`Starting import for job ${jobId}`);
+    this.logger.log(`Processing migration job ${jobId}: ${action}`);
 
     // Load job record
     const migrationJob = await this.prisma.migrationJob.findUnique({
@@ -141,6 +187,213 @@ export class MigrationProcessor extends WorkerHost {
       throw new Error(`Migration job ${jobId} does not belong to organization`);
     }
 
+    try {
+      switch (action) {
+        case "validate":
+          return await this.executeValidation(jobId, organizationId, job);
+        case "preview":
+          return await this.executePreview(jobId, organizationId, job);
+        case "import":
+          return await this.executeImport(jobId, organizationId, userId, job);
+        case "rollback":
+          return await this.executeRollback(jobId, organizationId, userId, job);
+        default:
+          throw new Error(`Unknown action: ${action}`);
+      }
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
+      this.logger.error(`Migration job ${jobId} ${action} failed: ${errorMessage}`);
+
+      await this.prisma.migrationJob.update({
+        where: { id: jobId },
+        data: {
+          status: MigrationJobStatus.FAILED,
+          currentStep: `${action} failed`,
+          errorMessage,
+          errorDetails: {
+            stack: error instanceof Error ? error.stack : undefined,
+          } as Prisma.InputJsonValue,
+        },
+      });
+
+      throw error;
+    }
+  }
+
+  // ==================== Validation ====================
+
+  /**
+   * Execute validation of all rows against field mappings.
+   */
+  private async executeValidation(
+    jobId: string,
+    organizationId: string,
+    queueJob: Job<MigrationJobData>,
+  ): Promise<ValidationResult> {
+    await this.updateJobStatus(jobId, MigrationJobStatus.VALIDATING, "Starting validation");
+
+    const migrationJob = await this.prisma.migrationJob.findUnique({
+      where: { id: jobId },
+    });
+
+    if (!migrationJob) throw new Error("Job not found");
+
+    // Download file from storage
+    await this.updateStep(jobId, "Downloading file");
+    const buffer = await this.downloadFile(migrationJob.fileUrl);
+
+    // Get connector and mappings
+    const connector = this.getConnector(migrationJob.sourceType);
+    const mappings =
+      (migrationJob.fieldMappings as unknown as FieldMapping[]) || [];
+
+    let validRows = 0;
+    let errorRows = 0;
+    const errors: { row: number; field: string; error: string }[] = [];
+    let rowNumber = 0;
+
+    await this.updateStep(jobId, "Validating rows");
+
+    // Stream through all rows
+    for await (const row of connector.createRowStream(buffer)) {
+      rowNumber++;
+
+      const validation = connector.validateRow(row, mappings);
+      if (validation.isValid) {
+        validRows++;
+      } else {
+        errorRows++;
+        // Collect errors (limit stored)
+        for (const err of validation.errors) {
+          if (errors.length < MAX_STORED_ERRORS) {
+            errors.push({ row: rowNumber, field: err.field, error: err.message });
+          }
+        }
+      }
+
+      // Update progress periodically
+      if (rowNumber % PROGRESS_UPDATE_INTERVAL === 0) {
+        const progress = Math.min(rowNumber, 99);
+        await queueJob.updateProgress(progress);
+        await this.prisma.migrationJob.update({
+          where: { id: jobId },
+          data: {
+            progress,
+            currentStep: `Validating row ${rowNumber}`,
+          },
+        });
+      }
+    }
+
+    // Update job with validation results
+    await this.prisma.migrationJob.update({
+      where: { id: jobId },
+      data: {
+        status: MigrationJobStatus.MAPPING,
+        totalRows: rowNumber,
+        validRows,
+        errorRows,
+        validationErrors:
+          errors.length > 0
+            ? (errors as unknown as Prisma.InputJsonValue)
+            : Prisma.JsonNull,
+        progress: 100,
+        currentStep: "Validation complete",
+      },
+    });
+
+    this.logger.log(
+      `Validation completed for job ${jobId}: ${validRows} valid, ${errorRows} errors`,
+    );
+
+    return { validRows, errorRows, errors };
+  }
+
+  // ==================== Preview ====================
+
+  /**
+   * Generate preview of transformed data for first N rows.
+   */
+  private async executePreview(
+    jobId: string,
+    organizationId: string,
+    queueJob: Job<MigrationJobData>,
+  ): Promise<PreviewResult> {
+    await this.updateStep(jobId, "Generating preview");
+
+    const migrationJob = await this.prisma.migrationJob.findUnique({
+      where: { id: jobId },
+    });
+
+    if (!migrationJob) throw new Error("Job not found");
+
+    // Download file
+    const buffer = await this.downloadFile(migrationJob.fileUrl);
+
+    // Get connector and mappings
+    const connector = this.getConnector(migrationJob.sourceType);
+    const mappings =
+      (migrationJob.fieldMappings as unknown as FieldMapping[]) || [];
+
+    const previewData: {
+      rowNumber: number;
+      sourceData: Record<string, unknown>;
+      transformedData: TransformedRow;
+      issues: string[];
+    }[] = [];
+
+    let rowNumber = 0;
+
+    // Stream first N rows for preview
+    for await (const row of connector.createRowStream(buffer)) {
+      rowNumber++;
+
+      if (rowNumber > PREVIEW_ROW_LIMIT) break;
+
+      const validation = connector.validateRow(row, mappings);
+      const transformed = connector.transformRow(row, mappings);
+
+      previewData.push({
+        rowNumber,
+        sourceData: row as Record<string, unknown>,
+        transformedData: transformed,
+        issues: [
+          ...validation.errors.map((e) => `${e.field}: ${e.message}`),
+          ...validation.warnings.map((w) => `Warning: ${w.field}: ${w.message}`),
+          ...transformed.issues,
+        ],
+      });
+
+      await queueJob.updateProgress(Math.round((rowNumber / PREVIEW_ROW_LIMIT) * 100));
+    }
+
+    // Save preview data to job
+    await this.prisma.migrationJob.update({
+      where: { id: jobId },
+      data: {
+        status: MigrationJobStatus.PREVIEW,
+        previewData: previewData as unknown as Prisma.InputJsonValue,
+        currentStep: "Preview ready",
+      },
+    });
+
+    this.logger.log(`Preview generated for job ${jobId}: ${previewData.length} rows`);
+
+    return { rowCount: previewData.length, previewData };
+  }
+
+  // ==================== Import ====================
+
+  /**
+   * Execute the full import with progress tracking.
+   */
+  private async executeImport(
+    jobId: string,
+    organizationId: string,
+    userId: string,
+    queueJob: Job<MigrationJobData>,
+  ): Promise<MigrationResult> {
     // Update status to IMPORTING
     await this.prisma.migrationJob.update({
       where: { id: jobId },
@@ -151,219 +404,293 @@ export class MigrationProcessor extends WorkerHost {
       },
     });
 
-    try {
-      // Download file from storage
-      await this.updateStep(jobId, "Downloading file");
-      const downloadResult = await this.storageService.download(
-        migrationJob.fileUrl,
-      );
-      const chunks: Buffer[] = [];
-      for await (const chunk of downloadResult.stream) {
-        chunks.push(Buffer.from(chunk));
-      }
-      const buffer = Buffer.concat(chunks);
+    const migrationJob = await this.prisma.migrationJob.findUnique({
+      where: { id: jobId },
+    });
 
-      // Get appropriate connector
-      const connector = this.getConnector(migrationJob.sourceType);
-      const mappings =
-        (migrationJob.fieldMappings as unknown as FieldMapping[]) || [];
+    if (!migrationJob) throw new Error(`Migration job ${jobId} not found`);
 
-      // Process rows
-      await this.updateStep(jobId, "Processing rows");
-      let importedCount = 0;
-      let errorCount = 0;
-      const errors: { row: number; error: string }[] = [];
+    // Download file from storage
+    await this.updateStep(jobId, "Downloading file");
+    const buffer = await this.downloadFile(migrationJob.fileUrl);
 
-      let rowNumber = 0;
-      const totalRows = migrationJob.totalRows || 0;
+    // Get appropriate connector
+    const connector = this.getConnector(migrationJob.sourceType);
+    const mappings =
+      (migrationJob.fieldMappings as unknown as FieldMapping[]) || [];
 
-      for await (const row of connector.createRowStream(buffer)) {
-        rowNumber++;
+    // Process rows
+    await this.updateStep(jobId, "Processing rows");
+    let importedCount = 0;
+    let errorCount = 0;
+    const errors: { row: number; error: string }[] = [];
 
-        try {
-          // Validate row
-          const validation = connector.validateRow(row, mappings);
-          if (!validation.isValid) {
-            const errorMsg = validation.errors
-              .map((e) => `${e.field}: ${e.message}`)
-              .join("; ");
-            if (errors.length < MAX_STORED_ERRORS) {
-              errors.push({ row: rowNumber, error: errorMsg });
-            }
-            errorCount++;
-            continue;
-          }
+    let rowNumber = 0;
+    const totalRows = migrationJob.totalRows || 0;
 
-          // Transform row
-          const transformed = connector.transformRow(row, mappings);
+    for await (const row of connector.createRowStream(buffer)) {
+      rowNumber++;
 
-          // Create entities in transaction
-          await this.createEntities(
-            organizationId,
-            userId,
-            transformed,
-            jobId,
-            rowNumber,
-            row,
-          );
-          importedCount++;
-
-          // Update progress periodically
-          if (rowNumber % PROGRESS_UPDATE_INTERVAL === 0) {
-            const progress =
-              totalRows > 0
-                ? Math.round((rowNumber / totalRows) * 100)
-                : Math.min(rowNumber, 99);
-
-            await job.updateProgress(progress);
-            await this.prisma.migrationJob.update({
-              where: { id: jobId },
-              data: {
-                progress,
-                importedRows: importedCount,
-                currentStep: `Processing row ${rowNumber}${totalRows > 0 ? ` of ${totalRows}` : ""}`,
-              },
-            });
-          }
-        } catch (error) {
-          const errorMsg =
-            error instanceof Error ? error.message : "Unknown error";
+      try {
+        // Validate row
+        const validation = connector.validateRow(row, mappings);
+        if (!validation.isValid) {
+          const errorMsg = validation.errors
+            .map((e) => `${e.field}: ${e.message}`)
+            .join("; ");
           if (errors.length < MAX_STORED_ERRORS) {
             errors.push({ row: rowNumber, error: errorMsg });
           }
           errorCount++;
-
-          this.logger.warn(
-            `Error processing row ${rowNumber} in job ${jobId}: ${errorMsg}`,
-          );
+          continue;
         }
+
+        // Transform row
+        const transformed = connector.transformRow(row, mappings);
+
+        // Create entities in transaction
+        await this.createEntities(
+          organizationId,
+          userId,
+          transformed,
+          jobId,
+          rowNumber,
+          row,
+        );
+        importedCount++;
+
+        // Update progress periodically
+        if (rowNumber % PROGRESS_UPDATE_INTERVAL === 0) {
+          const progress =
+            totalRows > 0
+              ? Math.round((rowNumber / totalRows) * 100)
+              : Math.min(rowNumber, 99);
+
+          await queueJob.updateProgress(progress);
+          await this.prisma.migrationJob.update({
+            where: { id: jobId },
+            data: {
+              progress,
+              importedRows: importedCount,
+              currentStep: `Processing row ${rowNumber}${totalRows > 0 ? ` of ${totalRows}` : ""}`,
+            },
+          });
+        }
+      } catch (error) {
+        const errorMsg =
+          error instanceof Error ? error.message : "Unknown error";
+        if (errors.length < MAX_STORED_ERRORS) {
+          errors.push({ row: rowNumber, error: errorMsg });
+        }
+        errorCount++;
+
+        this.logger.warn(
+          `Error processing row ${rowNumber} in job ${jobId}: ${errorMsg}`,
+        );
       }
-
-      // Calculate rollback expiration
-      const rollbackAvailableUntil = new Date(
-        Date.now() + ROLLBACK_WINDOW_DAYS * 24 * 60 * 60 * 1000,
-      );
-
-      // Complete job
-      await this.prisma.migrationJob.update({
-        where: { id: jobId },
-        data: {
-          status: MigrationJobStatus.COMPLETED,
-          progress: 100,
-          importedRows: importedCount,
-          errorRows: errorCount,
-          validationErrors:
-            errors.length > 0
-              ? (errors as unknown as Prisma.InputJsonValue)
-              : Prisma.JsonNull,
-          completedAt: new Date(),
-          rollbackAvailableUntil,
-          currentStep: "Import complete",
-        },
-      });
-
-      // Audit log
-      await this.auditService.log({
-        entityType: AuditEntityType.CASE, // Use CASE as closest match for migration
-        entityId: jobId,
-        action: "migration_completed",
-        actionCategory: AuditActionCategory.CREATE, // Use CREATE as closest match for data import
-        actionDescription: `Migration completed: ${importedCount} records imported, ${errorCount} errors`,
-        organizationId,
-        actorUserId: userId,
-        actorType: ActorType.USER,
-        context: {
-          importedCount,
-          errorCount,
-          totalRows: rowNumber,
-          sourceType: migrationJob.sourceType,
-          fileName: migrationJob.fileName,
-        },
-      });
-
-      this.logger.log(
-        `Import completed for job ${jobId}: ${importedCount} imported, ${errorCount} errors`,
-      );
-
-      return { importedCount, errorCount, errors };
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Unknown error";
-      this.logger.error(`Import failed for job ${jobId}: ${errorMessage}`);
-
-      await this.prisma.migrationJob.update({
-        where: { id: jobId },
-        data: {
-          status: MigrationJobStatus.FAILED,
-          currentStep: "Import failed",
-          errorMessage,
-          errorDetails: {
-            stack: error instanceof Error ? error.stack : undefined,
-          } as Prisma.InputJsonValue,
-        },
-      });
-
-      // Audit log for failure
-      await this.auditService.log({
-        entityType: AuditEntityType.CASE, // Use CASE as closest match for migration
-        entityId: jobId,
-        action: "migration_failed",
-        actionCategory: AuditActionCategory.SYSTEM, // Use SYSTEM for automated/background errors
-        actionDescription: `Migration failed: ${errorMessage}`,
-        organizationId,
-        actorUserId: userId,
-        actorType: ActorType.USER,
-        context: {
-          error: errorMessage,
-          sourceType: migrationJob.sourceType,
-          fileName: migrationJob.fileName,
-        },
-      });
-
-      throw error;
-    }
-  }
-
-  /**
-   * Handle job failure after all retries exhausted.
-   */
-  @OnWorkerEvent("failed")
-  onFailed(job: Job<MigrationJobData> | undefined, error: Error): void {
-    if (!job) {
-      this.logger.error(
-        `Migration job failed with no context: ${error.message}`,
-      );
-      return;
     }
 
-    this.logger.error(
-      `Migration job ${job.data.jobId} failed after ${job.attemptsMade} attempts: ${error.message}`,
+    // Calculate rollback expiration
+    const rollbackAvailableUntil = new Date(
+      Date.now() + ROLLBACK_WINDOW_DAYS * 24 * 60 * 60 * 1000,
     );
+
+    // Complete job
+    await this.prisma.migrationJob.update({
+      where: { id: jobId },
+      data: {
+        status: MigrationJobStatus.COMPLETED,
+        progress: 100,
+        importedRows: importedCount,
+        errorRows: errorCount,
+        validationErrors:
+          errors.length > 0
+            ? (errors as unknown as Prisma.InputJsonValue)
+            : Prisma.JsonNull,
+        completedAt: new Date(),
+        rollbackAvailableUntil,
+        currentStep: "Import complete",
+      },
+    });
+
+    // Audit log
+    await this.auditService.log({
+      entityType: AuditEntityType.CASE,
+      entityId: jobId,
+      action: "migration_completed",
+      actionCategory: AuditActionCategory.CREATE,
+      actionDescription: `Migration completed: ${importedCount} records imported, ${errorCount} errors`,
+      organizationId,
+      actorUserId: userId,
+      actorType: ActorType.USER,
+      context: {
+        importedCount,
+        errorCount,
+        totalRows: rowNumber,
+        sourceType: migrationJob.sourceType,
+        fileName: migrationJob.fileName,
+      },
+    });
+
+    this.logger.log(
+      `Import completed for job ${jobId}: ${importedCount} imported, ${errorCount} errors`,
+    );
+
+    return { importedCount, errorCount, errors };
   }
 
-  /**
-   * Handle job completion.
-   */
-  @OnWorkerEvent("completed")
-  onCompleted(job: Job<MigrationJobData>): void {
-    this.logger.log(`Migration job ${job.data.jobId} completed successfully`);
-  }
+  // ==================== Rollback ====================
 
   /**
-   * Get the appropriate connector for the source type.
+   * Execute rollback of imported records.
+   * Skips records modified after import with reasons.
    */
-  private getConnector(sourceType: MigrationSourceType): MigrationConnector {
-    switch (sourceType) {
-      case MigrationSourceType.NAVEX:
-        return this.navexConnector;
-      case MigrationSourceType.EQS:
-        return this.eqsConnector;
-      case MigrationSourceType.LEGACY_ETHICO:
-      case MigrationSourceType.GENERIC_CSV:
-      default:
-        return this.csvConnector;
+  private async executeRollback(
+    jobId: string,
+    organizationId: string,
+    userId: string,
+    queueJob: Job<MigrationJobData>,
+  ): Promise<RollbackResult> {
+    await this.updateStep(jobId, "Starting rollback");
+
+    const migrationJob = await this.prisma.migrationJob.findUnique({
+      where: { id: jobId },
+      include: { migrationRecords: true },
+    });
+
+    if (!migrationJob) throw new Error("Job not found");
+
+    // Check rollback window
+    if (
+      migrationJob.rollbackAvailableUntil &&
+      migrationJob.rollbackAvailableUntil < new Date()
+    ) {
+      throw new Error("Rollback window has expired (7 days)");
     }
+
+    // Check job status
+    if (migrationJob.status !== MigrationJobStatus.COMPLETED) {
+      throw new Error(`Cannot rollback job with status ${migrationJob.status}`);
+    }
+
+    let rolledBackCount = 0;
+    let skippedCount = 0;
+    const skippedReasons: string[] = [];
+
+    // Group records by entity type (delete in reverse dependency order)
+    const entityOrder = ["Case", "RIU", "Person", "Investigation"];
+    const totalRecords = migrationJob.migrationRecords.length;
+
+    for (const entityType of entityOrder) {
+      const records = migrationJob.migrationRecords.filter(
+        (r) => r.entityType === entityType,
+      );
+
+      for (const record of records) {
+        // Check if modified after import
+        if (record.modifiedAfterImport) {
+          skippedCount++;
+          skippedReasons.push(
+            `${entityType} ${record.entityId}: Modified after import`,
+          );
+          continue;
+        }
+
+        try {
+          // Delete based on entity type
+          switch (entityType) {
+            case "Case":
+              // Delete associations first
+              await this.prisma.riuCaseAssociation.deleteMany({
+                where: { caseId: record.entityId },
+              });
+              await this.prisma.personCaseAssociation.deleteMany({
+                where: { caseId: record.entityId },
+              });
+              await this.prisma.case.delete({
+                where: { id: record.entityId },
+              });
+              break;
+
+            case "RIU":
+              // Delete RIU associations first
+              await this.prisma.riuCaseAssociation.deleteMany({
+                where: { riuId: record.entityId },
+              });
+              await this.prisma.riskIntelligenceUnit.delete({
+                where: { id: record.entityId },
+              });
+              break;
+
+            case "Person":
+              // Delete person associations first
+              await this.prisma.personCaseAssociation.deleteMany({
+                where: { personId: record.entityId },
+              });
+              await this.prisma.person.delete({
+                where: { id: record.entityId },
+              });
+              break;
+
+            case "Investigation":
+              // Delete investigation
+              await this.prisma.investigation.delete({
+                where: { id: record.entityId },
+              });
+              break;
+          }
+
+          rolledBackCount++;
+        } catch (error) {
+          skippedCount++;
+          const errorMsg = error instanceof Error ? error.message : "Unknown error";
+          skippedReasons.push(`${entityType} ${record.entityId}: ${errorMsg}`);
+        }
+
+        // Update progress
+        const processed = rolledBackCount + skippedCount;
+        await queueJob.updateProgress(
+          Math.round((processed / totalRecords) * 100),
+        );
+      }
+    }
+
+    // Update job status
+    await this.prisma.migrationJob.update({
+      where: { id: jobId },
+      data: {
+        status: MigrationJobStatus.ROLLED_BACK,
+        rolledBackAt: new Date(),
+        rolledBackById: userId,
+        currentStep: `Rolled back ${rolledBackCount} records, skipped ${skippedCount}`,
+      },
+    });
+
+    // Audit log
+    await this.auditService.log({
+      entityType: AuditEntityType.CASE,
+      entityId: jobId,
+      action: "migration_rolled_back",
+      actionCategory: AuditActionCategory.DELETE,
+      actionDescription: `Migration rolled back: ${rolledBackCount} records removed, ${skippedCount} skipped`,
+      organizationId,
+      actorUserId: userId,
+      actorType: ActorType.USER,
+      context: {
+        rolledBackCount,
+        skippedCount,
+        skippedReasons: skippedReasons.slice(0, 50), // Limit stored reasons
+      },
+    });
+
+    this.logger.log(
+      `Rollback completed for job ${jobId}: ${rolledBackCount} removed, ${skippedCount} skipped`,
+    );
+
+    return { rolledBackCount, skippedCount, skippedReasons };
   }
+
+  // ==================== Entity Creation ====================
 
   /**
    * Create entities from transformed row data.
@@ -398,8 +725,8 @@ export class MigrationProcessor extends WorkerHost {
         const person = await tx.person.create({
           data: {
             organizationId,
-            type: PersonType.EXTERNAL_CONTACT, // Default for migrated persons
-            source: PersonSource.INTAKE_CREATED, // Closest match for migration
+            type: PersonType.EXTERNAL_CONTACT,
+            source: PersonSource.INTAKE_CREATED,
             firstName: firstName || "Unknown",
             lastName: lastName || "Unknown",
             email: personData.email,
@@ -417,6 +744,18 @@ export class MigrationProcessor extends WorkerHost {
           },
         });
         personId = person.id;
+
+        // Track for rollback
+        await tx.migrationRecord.create({
+          data: {
+            migrationJobId,
+            entityType: "Person",
+            entityId: person.id,
+            sourceRowNumber: rowNumber,
+            sourceData: sourceData as Prisma.InputJsonValue,
+            modifiedAfterImport: false,
+          },
+        });
       }
 
       // Create RIU if data provided
@@ -432,9 +771,9 @@ export class MigrationProcessor extends WorkerHost {
         const riu = await tx.riskIntelligenceUnit.create({
           data: {
             organizationId,
-            type: RiuType.WEB_FORM_SUBMISSION, // Best match for migrated data
-            sourceChannel: RiuSourceChannel.DIRECT_ENTRY, // Best match for migration
-            status: RiuStatus.RELEASED, // Migrated data is already released
+            type: RiuType.WEB_FORM_SUBMISSION,
+            sourceChannel: RiuSourceChannel.DIRECT_ENTRY,
+            status: RiuStatus.RELEASED,
             details: riuData.details || "",
             summary: riuData.summary,
             severity: riuSeverity,
@@ -452,13 +791,25 @@ export class MigrationProcessor extends WorkerHost {
           },
         });
         riuId = riu.id;
+
+        // Track for rollback
+        await tx.migrationRecord.create({
+          data: {
+            migrationJobId,
+            entityType: "RIU",
+            entityId: riu.id,
+            sourceRowNumber: rowNumber,
+            sourceData: sourceData as Prisma.InputJsonValue,
+            modifiedAfterImport: false,
+          },
+        });
       }
 
       // Create Case if data provided
       if (transformed.case && Object.keys(transformed.case).length > 0) {
         const caseData = transformed.case;
 
-        // Map status string to valid CaseStatus enum (NEW, OPEN, CLOSED only)
+        // Map status string to valid CaseStatus enum
         const caseStatus = this.mapToCaseStatus(caseData.status);
 
         // Map severity string to valid Severity enum
@@ -467,7 +818,7 @@ export class MigrationProcessor extends WorkerHost {
         // Map reporter type string to valid ReporterType enum
         const caseReporterType = this.mapToReporterType(caseData.reporterType);
 
-        // Map outcome string to valid CaseOutcome enum (if provided)
+        // Map outcome string to valid CaseOutcome enum
         const caseOutcome = caseData.outcome
           ? this.mapToCaseOutcome(caseData.outcome)
           : undefined;
@@ -481,7 +832,7 @@ export class MigrationProcessor extends WorkerHost {
             severity: caseSeverity,
             details: caseData.details || "",
             summary: caseData.summary,
-            sourceChannel: SourceChannel.DIRECT_ENTRY, // Best match for migration
+            sourceChannel: SourceChannel.DIRECT_ENTRY,
             intakeTimestamp: caseData.intakeTimestamp || new Date(),
             incidentDate: caseData.incidentDate,
             locationName: caseData.locationName,
@@ -528,18 +879,13 @@ export class MigrationProcessor extends WorkerHost {
             },
           });
         }
-      }
 
-      // Track imported record for rollback
-      const primaryEntityType = caseId ? "Case" : riuId ? "RIU" : "Person";
-      const primaryEntityId = caseId || riuId || personId;
-
-      if (primaryEntityId) {
+        // Track for rollback
         await tx.migrationRecord.create({
           data: {
             migrationJobId,
-            entityType: primaryEntityType,
-            entityId: primaryEntityId,
+            entityType: "Case",
+            entityId: caseRecord.id,
             sourceRowNumber: rowNumber,
             sourceData: sourceData as Prisma.InputJsonValue,
             modifiedAfterImport: false,
@@ -549,8 +895,52 @@ export class MigrationProcessor extends WorkerHost {
     });
   }
 
+  // ==================== Helpers ====================
+
   /**
-   * Update job step description.
+   * Get the appropriate connector for the source type.
+   */
+  private getConnector(sourceType: MigrationSourceType): MigrationConnector {
+    switch (sourceType) {
+      case MigrationSourceType.NAVEX:
+        return this.navexConnector;
+      case MigrationSourceType.EQS:
+        return this.eqsConnector;
+      case MigrationSourceType.LEGACY_ETHICO:
+      case MigrationSourceType.GENERIC_CSV:
+      default:
+        return this.csvConnector;
+    }
+  }
+
+  /**
+   * Download file from storage and return as buffer.
+   */
+  private async downloadFile(fileUrl: string): Promise<Buffer> {
+    const downloadResult = await this.storageService.download(fileUrl);
+    const chunks: Buffer[] = [];
+    for await (const chunk of downloadResult.stream) {
+      chunks.push(Buffer.from(chunk));
+    }
+    return Buffer.concat(chunks);
+  }
+
+  /**
+   * Update job status with step description.
+   */
+  private async updateJobStatus(
+    jobId: string,
+    status: MigrationJobStatus,
+    step: string,
+  ): Promise<void> {
+    await this.prisma.migrationJob.update({
+      where: { id: jobId },
+      data: { status, currentStep: step },
+    });
+  }
+
+  /**
+   * Update job step description only.
    */
   private async updateStep(jobId: string, step: string): Promise<void> {
     await this.prisma.migrationJob.update({
@@ -561,14 +951,13 @@ export class MigrationProcessor extends WorkerHost {
 
   /**
    * Map string to CaseStatus enum.
-   * CaseStatus only has NEW, OPEN, CLOSED.
    */
   private mapToCaseStatus(status: unknown): CaseStatus {
     const normalized = String(status || "").toUpperCase();
     const mapping: Record<string, CaseStatus> = {
       NEW: CaseStatus.NEW,
       OPEN: CaseStatus.OPEN,
-      IN_PROGRESS: CaseStatus.OPEN, // Map to OPEN since no IN_PROGRESS
+      IN_PROGRESS: CaseStatus.OPEN,
       PENDING: CaseStatus.OPEN,
       CLOSED: CaseStatus.CLOSED,
       RESOLVED: CaseStatus.CLOSED,
@@ -605,7 +994,7 @@ export class MigrationProcessor extends WorkerHost {
       ANONYMOUS: ReporterType.ANONYMOUS,
       IDENTIFIED: ReporterType.IDENTIFIED,
       PROXY: ReporterType.PROXY,
-      CONFIDENTIAL: ReporterType.ANONYMOUS, // Map to closest
+      CONFIDENTIAL: ReporterType.ANONYMOUS,
     };
     return mapping[normalized];
   }
@@ -640,5 +1029,34 @@ export class MigrationProcessor extends WorkerHost {
       NO_VIOLATION: CaseOutcome.NO_VIOLATION,
     };
     return mapping[normalized];
+  }
+
+  // ==================== Event Handlers ====================
+
+  /**
+   * Handle job failure after all retries exhausted.
+   */
+  @OnWorkerEvent("failed")
+  onFailed(job: Job<MigrationJobData> | undefined, error: Error): void {
+    if (!job) {
+      this.logger.error(
+        `Migration job failed with no context: ${error.message}`,
+      );
+      return;
+    }
+
+    this.logger.error(
+      `Migration job ${job.data.jobId} (${job.data.action}) failed after ${job.attemptsMade} attempts: ${error.message}`,
+    );
+  }
+
+  /**
+   * Handle job completion.
+   */
+  @OnWorkerEvent("completed")
+  onCompleted(job: Job<MigrationJobData>): void {
+    this.logger.log(
+      `Migration job ${job.data.jobId} (${job.data.action}) completed successfully`,
+    );
   }
 }
