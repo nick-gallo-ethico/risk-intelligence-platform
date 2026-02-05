@@ -10,12 +10,12 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 11 of 12 (Analytics & Reporting)
-Plan: 17 of 21 in current phase (11-01 through 11-10, 11-15, 11-16 complete)
+Plan: 18 of 21 in current phase (11-01 through 11-11, 11-15, 11-16 complete)
 Status: **In Progress** - Executing Phase 11 plans
-Last activity: 2026-02-05 - Completed 11-15-PLAN.md (Migration File Upload Service)
+Last activity: 2026-02-05 - Completed 11-11-PLAN.md (Migration Controller & Processor)
 **Next Phase:** Phase 12: Internal Operations Portal (after Phase 11)
 
-Progress: [==============================================================-----] 94% (146 of ~156 total plans)
+Progress: [===============================================================----] 95% (147 of ~156 total plans)
 
 ## Performance Metrics
 
@@ -474,6 +474,12 @@ Recent decisions affecting current work:
 - 11-09: Levenshtein distance fuzzy matching for generic CSV field mapping
 - 11-09: FIELD_ALIASES with 100+ variations for common compliance field names
 - 11-09: csv-parser package for streaming large file imports
+- 11-11: MigrationProcessor concurrency of 1 prevents resource contention on large imports
+- 11-11: No retries for migration imports - deliberate operation, retries could cause duplicates
+- 11-11: DIRECT_ENTRY for migration source channel (closest existing enum value)
+- 11-11: WEB_FORM_SUBMISSION for migrated RIU type (best fit for imported data)
+- 11-11: Enum mapping helpers convert string values to valid Prisma enums with fallback defaults
+- 11-11: Transaction-safe entity creation (Person, RIU, Case) with MigrationRecord tracking
 - 10-10: UserStatus type (ACTIVE, PENDING_INVITE, INACTIVE, SUSPENDED) for nuanced status display
 - 10-10: ROLE_DESCRIPTIONS constant provides context for role selection in invite form
 - 10-10: RolePermissionsTable uses visual matrix (check/minus/x icons) for scannable permissions
@@ -493,12 +499,13 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-02-05T03:05:00Z
-Stopped at: Completed 11-10-PLAN.md (Dashboard REST Controller)
+Last session: 2026-02-05T04:00:00Z
+Stopped at: Completed 11-11-PLAN.md (Migration Controller & Processor)
 Resume file: None
 
 **Phase 11 Status: IN PROGRESS**
-Plans completed: 11-01 through 11-10
+Plans completed: 11-01 through 11-11, 11-15, 11-16
+- 11-11: Migration Controller & Processor (BullMQ async imports, REST lifecycle API, rollback support)
 - 11-10: Dashboard REST Controller (widget data endpoints, ScheduledRefreshService, cron-based cache refresh)
 - 11-09: Migration Connectors (NavexConnector, EqsConnector, CsvConnector, fuzzy matching)
 - 11-07: Excel Streaming Export (ExcelExportService, FlatExportProcessor, ExportsController)
