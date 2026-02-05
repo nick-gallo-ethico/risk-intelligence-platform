@@ -474,6 +474,9 @@ Recent decisions affecting current work:
 - 11-09: Levenshtein distance fuzzy matching for generic CSV field mapping
 - 11-09: FIELD_ALIASES with 100+ variations for common compliance field names
 - 11-09: csv-parser package for streaming large file imports
+- 10-10: UserStatus type (ACTIVE, PENDING_INVITE, INACTIVE, SUSPENDED) for nuanced status display
+- 10-10: ROLE_DESCRIPTIONS constant provides context for role selection in invite form
+- 10-10: RolePermissionsTable uses visual matrix (check/minus/x icons) for scannable permissions
 
 ### Pending Todos
 
