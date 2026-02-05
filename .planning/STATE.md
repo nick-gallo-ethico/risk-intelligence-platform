@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 10 of 11 (Policy Management)
-Plan: 8 of 11 in current phase (10-01 through 10-08 complete)
+Plan: 9 of 11 in current phase (10-01 through 10-09 complete)
 Status: **In Progress** - Executing Phase 10 plans
-Last activity: 2026-02-05 - Completed 10-08-PLAN.md (Policy Management UI)
+Last activity: 2026-02-05 - Completed 10-09-PLAN.md (Policy Detail Page)
 
-Progress: [===================================================================] 95% (133 of ~140 total plans)
+Progress: [===================================================================] 96% (134 of ~140 total plans)
 
 ## Performance Metrics
 
@@ -38,8 +38,8 @@ Progress: [===================================================================] 
 | 09-campaigns-disclosures | 17 | ~261 min | ~15 min |
 
 **Recent Trend:**
-- Last 5 plans: 10-08 (11 min), 10-07 (est), 10-06 (est), 10-05 (est), 10-04 (18 min)
-- Trend: Phase 10 Policy Management - UI complete with list, filters, editor, autosave.
+- Last 5 plans: 10-09 (18 min), 10-08 (11 min), 10-07 (est), 10-06 (est), 10-05 (est)
+- Trend: Phase 10 Policy Management - Detail page with version diff, translations, attestations, and linked cases panels.
 
 *Updated after each plan completion*
 
@@ -448,6 +448,9 @@ Recent decisions affecting current work:
 - 10-07: Translation events (created/updated) trigger policy re-indexing
 - 10-07: Policy case link/unlink events update linkedCaseCount in ES
 - 10-07: Compliance synonyms in policy mapping (policy/procedure/guideline, coc/handbook, etc.)
+- 10-09: Inline diff as default mode per CONTEXT.md - green additions, red strikethrough deletions
+- 10-09: Tab navigation synced with URL query parameter for shareable deep links
+- 10-09: Approval status card shows current step and pending reviewers in yellow card
 - 11-01: react-grid-layout format for responsive dashboard layouts (lg/md/sm/xs breakpoints)
 - 11-01: UserDashboardConfig separate from Dashboard for user-specific overrides without duplication
 - 11-01: Role-based default dashboards (CCO, INVESTIGATOR, CAMPAIGN_MANAGER) with isSystem=true protection
@@ -468,12 +471,10 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-02-05T02:20:00Z
-Stopped at: Completed 11-01-PLAN.md (Dashboard Configuration)
+Last session: 2026-02-05T03:00:00Z
+Stopped at: Completed 10-09-PLAN.md (Policy Detail Page)
 Resume file: None
 
-**Phase 11 Status: IN PROGRESS**
-Plans completed: 11-01, 11-03, 11-04
-- 11-01: Dashboard Configuration (Dashboard, DashboardWidget, UserDashboardConfig, DashboardConfigService)
-- 11-03: Flat File Export Infrastructure
-- 11-04: Migration Infrastructure
+**Phase 10 Status: IN PROGRESS**
+Plans completed: 10-01 through 10-09
+- 10-09: Policy Detail Page (tabbed interface, version diff, translations, attestations, linked cases)
