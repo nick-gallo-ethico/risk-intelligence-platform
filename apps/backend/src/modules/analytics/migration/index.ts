@@ -2,6 +2,7 @@ export * from "./migration.module";
 export * from "./migration.service";
 export * from "./migration.controller";
 export * from "./screenshot-to-form.service";
+export * from "./mapping-suggestion.service";
 export * from "./dto/migration.dto";
 export * from "./dto/screenshot.dto";
 export * from "./entities/migration.entity";

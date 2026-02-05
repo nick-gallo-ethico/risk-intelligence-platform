@@ -5,6 +5,7 @@ import { MigrationUploadService } from "./migration-upload.service";
 import { MigrationController } from "./migration.controller";
 import { MigrationUploadController } from "./migration-upload.controller";
 import { ScreenshotToFormService } from "./screenshot-to-form.service";
+import { MappingSuggestionService } from "./mapping-suggestion.service";
 import {
   MigrationProcessor,
   MIGRATION_QUEUE_NAME,
@@ -47,6 +48,7 @@ import { CsvConnector } from "./connectors/csv.connector";
     MigrationService,
     MigrationUploadService,
     ScreenshotToFormService,
+    MappingSuggestionService,
     MigrationProcessor,
     NavexConnector,
     EqsConnector,
@@ -56,6 +58,7 @@ import { CsvConnector } from "./connectors/csv.connector";
     MigrationService,
     MigrationUploadService,
     ScreenshotToFormService,
+    MappingSuggestionService,
     NavexConnector,
     EqsConnector,
     CsvConnector,
