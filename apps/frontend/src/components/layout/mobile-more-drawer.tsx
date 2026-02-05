@@ -135,6 +135,7 @@ export function MobileMoreDrawer({ open, onOpenChange }: MobileMoreDrawerProps) 
    * Check if a route is active (exact match or starts with)
    */
   const isActive = (href: string) => {
+    if (!pathname) return false;
     if (href === '/dashboard') {
       return pathname === '/dashboard' || pathname === '/';
     }

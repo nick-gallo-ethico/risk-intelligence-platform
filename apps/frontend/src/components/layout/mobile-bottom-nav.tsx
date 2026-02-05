@@ -34,6 +34,7 @@ export function MobileBottomNav() {
    * This ensures nested routes also highlight the parent nav item
    */
   const isActive = (href: string) => {
+    if (!pathname) return false;
     if (href === '/dashboard') {
       return pathname === '/dashboard' || pathname === '/';
     }
