@@ -27,7 +27,9 @@ import { Module } from "@nestjs/common";
 import { BullModule } from "@nestjs/bullmq";
 import { ScheduleModule } from "@nestjs/schedule";
 import { ExportsController } from "./exports.controller";
+import { FlatExportController } from "./flat-export.controller";
 import { FlatFileService } from "./flat-file.service";
+import { TaggedFieldService } from "./tagged-field.service";
 import { ScheduledExportService } from "./scheduled-export.service";
 import { ExcelExportService } from "./excel-export.service";
 import { PdfGeneratorService } from "./pdf-generator.service";
@@ -69,9 +71,10 @@ import { AiModule } from "../../ai/ai.module";
       },
     }),
   ],
-  controllers: [ExportsController],
+  controllers: [ExportsController, FlatExportController],
   providers: [
     FlatFileService,
+    TaggedFieldService,
     ScheduledExportService,
     ExcelExportService,
     PdfGeneratorService,
@@ -82,6 +85,7 @@ import { AiModule } from "../../ai/ai.module";
   ],
   exports: [
     FlatFileService,
+    TaggedFieldService,
     ScheduledExportService,
     ExcelExportService,
     PdfGeneratorService,
