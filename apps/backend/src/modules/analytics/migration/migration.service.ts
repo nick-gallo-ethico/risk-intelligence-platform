@@ -397,7 +397,7 @@ export class MigrationService {
     await this.prisma.migrationJob.update({
       where: { id: jobId },
       data: {
-        fieldMappings: dto.mappings as unknown as Prisma.JsonValue,
+        fieldMappings: JSON.parse(JSON.stringify(dto.mappings)),
         status: MigrationJobStatus.MAPPING,
         currentStep: "Field mappings saved",
       },
@@ -419,11 +419,11 @@ export class MigrationService {
           organizationId,
           sourceType: job.sourceType,
           name: dto.templateName,
-          mappings: dto.mappings as unknown as Prisma.JsonValue,
+          mappings: JSON.parse(JSON.stringify(dto.mappings)),
           createdById: userId,
         },
         update: {
-          mappings: dto.mappings as unknown as Prisma.JsonValue,
+          mappings: JSON.parse(JSON.stringify(dto.mappings)),
         },
       });
     }
@@ -552,7 +552,7 @@ export class MigrationService {
       data: {
         validRows,
         errorRows,
-        validationErrors: errors as unknown as Prisma.JsonValue,
+        validationErrors: JSON.parse(JSON.stringify(errors)),
         status: MigrationJobStatus.PREVIEW,
         currentStep: "Validation complete",
         progress: 100,
@@ -707,7 +707,7 @@ export class MigrationService {
     await this.prisma.migrationJob.update({
       where: { id: jobId },
       data: {
-        previewData: previewRows as unknown as Prisma.JsonValue,
+        previewData: JSON.parse(JSON.stringify(previewRows)),
       },
     });
 
@@ -1025,7 +1025,7 @@ export class MigrationService {
         status: MigrationJobStatus.FAILED,
         currentStep: "Import failed",
         errorMessage: error,
-        errorDetails: details as Prisma.JsonValue,
+        errorDetails: details ? JSON.parse(JSON.stringify(details)) : undefined,
       },
     });
 
