@@ -137,8 +137,15 @@ model Organization {
   // Analytics & Migration relations (Phase 11)
   migrationJobs           MigrationJob[]
   migrationFieldTemplates MigrationFieldTemplate[]
-  ReportFieldTag          ReportFieldTag[]
-  ExportJob               ExportJob[]
+
+  // Export infrastructure relations (Phase 11)
+  reportFieldTags ReportFieldTag[]
+  exportJobs      ExportJob[]
+
+  // Dashboard relations (Phase 11)
+  dashboards           Dashboard[]
+  dashboardWidgets     DashboardWidget[]
+  userDashboardConfigs UserDashboardConfig[]
 
   @@index([slug])
   @@index([isActive])
@@ -253,7 +260,13 @@ model User {
 
   // Analytics & Migration relations (Phase 11)
   migrationJobsCreated MigrationJob[] @relation("MigrationJobCreatedBy")
-  ExportJob            ExportJob[]
+
+  // Export infrastructure relations (Phase 11)
+  exportJobsCreated ExportJob[]
+
+  // Dashboard relations (Phase 11)
+  dashboardsCreated    Dashboard[]           @relation("DashboardCreatedBy")
+  userDashboardConfigs UserDashboardConfig[]
 
   // Unique constraint: email must be unique within an organization
   @@unique([organizationId, email])
@@ -5520,4 +5533,180 @@ model ExportJob {
   @@index([organizationId, createdAt])
   @@index([createdById])
   @@map("export_jobs")
+}
+
+// ===========================================
+// Dashboard & Analytics Entities (Phase 11)
+// ===========================================
+
+/// DashboardType defines the role-based dashboard template types.
+/// Each role has a pre-configured default dashboard.
+enum DashboardType {
+  CCO // Chief Compliance Officer dashboard
+  INVESTIGATOR // Investigator/case worker dashboard
+  CAMPAIGN_MANAGER // Campaign and disclosure manager dashboard
+  CUSTOM // User-created custom dashboard
+
+  @@map("dashboard_type")
+}
+
+/// WidgetType defines the available widget visualization types.
+enum WidgetType {
+  KPI_CARD // Single metric display
+  LINE_CHART // Time series line chart
+  BAR_CHART // Bar chart (vertical)
+  PIE_CHART // Pie chart
+  DONUT_CHART // Donut chart
+  AREA_CHART // Area chart
+  STACKED_BAR // Stacked bar chart
+  TABLE // Data table
+  LIST // Simple list
+  HEATMAP // Heat map visualization
+  FUNNEL // Funnel chart
+  GAUGE // Gauge/meter
+  SPARKLINE // Mini line chart
+  QUICK_ACTIONS // Action buttons
+
+  @@map("widget_type")
+}
+
+/// ChartType defines the specific chart rendering types.
+enum ChartType {
+  LINE
+  BAR
+  PIE
+  DONUT
+  AREA
+  STACKED_BAR
+  HEATMAP
+  FUNNEL
+  SCATTER
+  GAUGE
+
+  @@map("chart_type")
+}
+
+/// DateRangePreset defines the available date range options for dashboards.
+enum DateRangePreset {
+  TODAY
+  LAST_7_DAYS
+  LAST_30_DAYS
+  LAST_90_DAYS
+  LAST_12_MONTHS
+  YEAR_TO_DATE
+  CUSTOM
+
+  @@map("date_range_preset")
+}
+
+/// Dashboard represents a template or user-created dashboard configuration.
+/// Dashboards contain widgets and can be system-provided or user-created.
+/// Layouts are stored in react-grid-layout format for responsive display.
+model Dashboard {
+  id             String @id @default(uuid())
+  organizationId String @map("organization_id")
+
+  // Identity
+  name          String
+  description   String?
+  dashboardType DashboardType @map("dashboard_type")
+  isSystem      Boolean       @default(false) @map("is_system") // System-provided templates
+  isDefault     Boolean       @default(false) @map("is_default") // Default for dashboard type
+
+  // Layout configuration (react-grid-layout format)
+  // { lg: Layout[], md: Layout[], sm: Layout[], xs: Layout[] }
+  layouts Json
+
+  // Metadata
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  createdById String   @map("created_by_id")
+
+  // Relations
+  organization Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdBy    User                  @relation("DashboardCreatedBy", fields: [createdById], references: [id])
+  widgets      DashboardWidget[]
+  userConfigs  UserDashboardConfig[]
+
+  @@unique([organizationId, name])
+  @@index([organizationId, dashboardType])
+  @@index([organizationId, isDefault])
+  @@map("dashboards")
+}
+
+/// DashboardWidget defines a single widget within a dashboard.
+/// Widgets specify data source, visualization type, and positioning.
+model DashboardWidget {
+  id          String @id @default(uuid())
+  dashboardId String @map("dashboard_id")
+
+  // Widget identity
+  widgetType WidgetType @map("widget_type")
+  title      String
+
+  // Data configuration
+  dataSource  String? @map("data_source") // "cases", "rius", "campaigns", "investigations", etc.
+  queryConfig Json?   @map("query_config") // Filters, aggregation, grouping
+
+  // Layout item (react-grid-layout format)
+  // { i: string, x: number, y: number, w: number, h: number, minW?: number, minH?: number }
+  layoutItem Json @map("layout_item")
+
+  // Display options
+  chartType     ChartType? @map("chart_type")
+  displayConfig Json?      @map("display_config") // Colors, labels, formatting
+
+  // Date range
+  useDashboardDateRange Boolean @default(true) @map("use_dashboard_date_range")
+  dateRangeOverride     Json?   @map("date_range_override") // { preset: "LAST_30_DAYS" } or { start, end }
+
+  // Refresh
+  refreshInterval Int? @map("refresh_interval") // Override dashboard interval (minutes)
+
+  // Audit
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Denormalized for RLS
+  organizationId String @map("organization_id")
+
+  // Relations
+  dashboard    Dashboard    @relation(fields: [dashboardId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([dashboardId])
+  @@index([organizationId])
+  @@map("dashboard_widgets")
+}
+
+/// UserDashboardConfig stores user-specific dashboard preferences.
+/// Allows users to customize layouts, set home dashboards, and configure refresh intervals.
+model UserDashboardConfig {
+  id             String @id @default(uuid())
+  organizationId String @map("organization_id")
+  userId         String @map("user_id")
+  dashboardId    String @map("dashboard_id")
+
+  // User customizations
+  isHome          Boolean @default(false) @map("is_home") // User's home dashboard
+  layoutOverrides Json?   @map("layout_overrides") // User's layout adjustments
+  widgetOverrides Json?   @map("widget_overrides") // Per-widget user config
+
+  // Preferences
+  refreshInterval Int             @default(5) @map("refresh_interval") // Minutes (1-30)
+  dateRangePreset DateRangePreset @default(LAST_30_DAYS) @map("date_range_preset")
+
+  // Audit
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  dashboard    Dashboard    @relation(fields: [dashboardId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, dashboardId])
+  @@index([userId, isHome])
+  @@index([organizationId, userId])
+  @@map("user_dashboard_configs")
 }
