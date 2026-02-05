@@ -340,7 +340,7 @@ export class FlatExportController {
       organizationId: user.organizationId,
       actorUserId: user.id,
       actorType: ActorType.USER,
-      changes: {
+      context: {
         updates: updates.map((u) => ({
           field: `${u.entity}.${u.field}`,
           tags: u.tags,
@@ -388,21 +388,28 @@ export class FlatExportController {
         take: limit,
         orderBy: { createdAt: 'desc' },
         include: {
-          assignedTo: { select: { id: true, name: true, email: true } },
-          category: { select: { id: true, name: true, code: true } },
-          businessUnit: { select: { id: true, name: true, code: true } },
+          createdBy: { select: { id: true, firstName: true, lastName: true, email: true } },
+          primaryCategory: { select: { id: true, name: true, code: true } },
           investigations: {
             take: 3,
-            include: {
-              assignedTo: { select: { id: true, name: true } },
+            select: {
+              id: true,
+              status: true,
+              findingsSummary: true,
+              createdAt: true,
+              primaryInvestigatorId: true,
             },
           },
           riuAssociations: {
             take: 1,
             include: {
               riu: {
-                include: {
-                  location: { select: { id: true, name: true, country: true } },
+                select: {
+                  id: true,
+                  type: true,
+                  severity: true,
+                  locationName: true,
+                  locationCountry: true,
                 },
               },
             },
