@@ -435,6 +435,10 @@ Recent decisions affecting current work:
 - 10-03: PolicyApprovalService delegates to WorkflowEngineService - no custom approval logic
 - 10-03: PolicyWorkflowListener syncs workflow.completed/cancelled events to policy status
 - 10-03: PENDING_APPROVAL status on submit, APPROVED on workflow completion, DRAFT on cancellation
+- 10-05: AI translation via SkillRegistry.executeSkill('translate', ...) - reuses Phase 5 infrastructure
+- 10-05: TranslationStaleListener marks previous version translations stale on new version publish
+- 10-05: Translation review workflow: PENDING_REVIEW -> APPROVED/NEEDS_REVISION -> PUBLISHED
+- 10-05: 13 supported languages: en, es, fr, de, zh, ja, ko, pt, it, nl, ru, ar, hi
 - 11-01: react-grid-layout format for responsive dashboard layouts (lg/md/sm/xs breakpoints)
 - 11-01: UserDashboardConfig separate from Dashboard for user-specific overrides without duplication
 - 11-01: Role-based default dashboards (CCO, INVESTIGATOR, CAMPAIGN_MANAGER) with isSystem=true protection
