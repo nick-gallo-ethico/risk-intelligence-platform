@@ -52,7 +52,7 @@ import {
   PersonType,
   PersonSource,
   PersonCaseLabel,
-  RiuCaseAssociationType,
+  RiuAssociationType,
   Prisma,
 } from "@prisma/client";
 
@@ -203,7 +203,9 @@ export class MigrationProcessor extends WorkerHost {
     } catch (error) {
       const errorMessage =
         error instanceof Error ? error.message : "Unknown error";
-      this.logger.error(`Migration job ${jobId} ${action} failed: ${errorMessage}`);
+      this.logger.error(
+        `Migration job ${jobId} ${action} failed: ${errorMessage}`,
+      );
 
       await this.prisma.migrationJob.update({
         where: { id: jobId },
@@ -231,7 +233,11 @@ export class MigrationProcessor extends WorkerHost {
     organizationId: string,
     queueJob: Job<MigrationJobData>,
   ): Promise<ValidationResult> {
-    await this.updateJobStatus(jobId, MigrationJobStatus.VALIDATING, "Starting validation");
+    await this.updateJobStatus(
+      jobId,
+      MigrationJobStatus.VALIDATING,
+      "Starting validation",
+    );
 
     const migrationJob = await this.prisma.migrationJob.findUnique({
       where: { id: jobId },
@@ -267,7 +273,11 @@ export class MigrationProcessor extends WorkerHost {
         // Collect errors (limit stored)
         for (const err of validation.errors) {
           if (errors.length < MAX_STORED_ERRORS) {
-            errors.push({ row: rowNumber, field: err.field, error: err.message });
+            errors.push({
+              row: rowNumber,
+              field: err.field,
+              error: err.message,
+            });
           }
         }
       }
@@ -360,12 +370,16 @@ export class MigrationProcessor extends WorkerHost {
         transformedData: transformed,
         issues: [
           ...validation.errors.map((e) => `${e.field}: ${e.message}`),
-          ...validation.warnings.map((w) => `Warning: ${w.field}: ${w.message}`),
+          ...validation.warnings.map(
+            (w) => `Warning: ${w.field}: ${w.message}`,
+          ),
           ...transformed.issues,
         ],
       });
 
-      await queueJob.updateProgress(Math.round((rowNumber / PREVIEW_ROW_LIMIT) * 100));
+      await queueJob.updateProgress(
+        Math.round((rowNumber / PREVIEW_ROW_LIMIT) * 100),
+      );
     }
 
     // Save preview data to job
@@ -378,7 +392,9 @@ export class MigrationProcessor extends WorkerHost {
       },
     });
 
-    this.logger.log(`Preview generated for job ${jobId}: ${previewData.length} rows`);
+    this.logger.log(
+      `Preview generated for job ${jobId}: ${previewData.length} rows`,
+    );
 
     return { rowCount: previewData.length, previewData };
   }
@@ -643,7 +659,8 @@ export class MigrationProcessor extends WorkerHost {
           rolledBackCount++;
         } catch (error) {
           skippedCount++;
-          const errorMsg = error instanceof Error ? error.message : "Unknown error";
+          const errorMsg =
+            error instanceof Error ? error.message : "Unknown error";
           skippedReasons.push(`${entityType} ${record.entityId}: ${errorMsg}`);
         }
 
@@ -726,7 +743,7 @@ export class MigrationProcessor extends WorkerHost {
           data: {
             organizationId,
             type: PersonType.EXTERNAL_CONTACT,
-            source: PersonSource.INTAKE_CREATED,
+            source: PersonSource.MANUAL, // MANUAL for migration imports (INTAKE_CREATED is for live intake)
             firstName: firstName || "Unknown",
             lastName: lastName || "Unknown",
             email: personData.email,
@@ -734,12 +751,8 @@ export class MigrationProcessor extends WorkerHost {
             employeeId: personData.employeeId,
             jobTitle: personData.jobTitle,
             company: personData.company,
-            notes: personData.notes,
-            sourceSystem: "MIGRATION",
-            sourceRecordId:
-              (transformed.case?.referenceNumber as string) ||
-              `row-${rowNumber}`,
-            migratedAt: new Date(),
+            notes:
+              `Migrated from row ${rowNumber}. ${personData.notes || ""}`.trim(),
             createdById: userId,
           },
         });
@@ -765,12 +778,16 @@ export class MigrationProcessor extends WorkerHost {
         // Map severity string to valid RIU severity enum
         const riuSeverity = this.mapToSeverity(riuData.severity);
 
-        // Map reporter type string to valid RIU reporter type enum
-        const riuReporterType = this.mapToRiuReporterType(riuData.reporterType);
+        // Map reporter type string to valid RIU reporter type enum (default to ANONYMOUS if not specified)
+        const riuReporterType =
+          this.mapToRiuReporterType(riuData.reporterType) ||
+          RiuReporterType.ANONYMOUS;
 
         const riu = await tx.riskIntelligenceUnit.create({
           data: {
             organizationId,
+            referenceNumber:
+              riuData.referenceNumber || `RIU-MIG-${Date.now()}-${rowNumber}`,
             type: RiuType.WEB_FORM_SUBMISSION,
             sourceChannel: RiuSourceChannel.DIRECT_ENTRY,
             status: RiuStatus.RELEASED,
@@ -782,7 +799,7 @@ export class MigrationProcessor extends WorkerHost {
             reporterEmail: riuData.reporterEmail,
             reporterPhone: riuData.reporterPhone,
             locationName: riuData.locationName,
-            isAnonymous: riuData.isAnonymous || false,
+            // Note: anonymity is determined by reporterType field, not a separate isAnonymous
             customFields: riuData.customFields as Prisma.InputJsonValue,
             sourceSystem: "MIGRATION",
             sourceRecordId: riuData.referenceNumber || `row-${rowNumber}`,
@@ -834,7 +851,7 @@ export class MigrationProcessor extends WorkerHost {
             summary: caseData.summary,
             sourceChannel: SourceChannel.DIRECT_ENTRY,
             intakeTimestamp: caseData.intakeTimestamp || new Date(),
-            incidentDate: caseData.incidentDate,
+            // Note: incidentDate is on RIU, not Case - incident info captured there
             locationName: caseData.locationName,
             locationCity: caseData.locationCity,
             locationState: caseData.locationState,
@@ -851,6 +868,7 @@ export class MigrationProcessor extends WorkerHost {
             sourceRecordId: caseData.referenceNumber || `row-${rowNumber}`,
             migratedAt: new Date(),
             createdById: userId,
+            updatedById: userId,
           },
         });
         caseId = caseRecord.id;
@@ -861,7 +879,7 @@ export class MigrationProcessor extends WorkerHost {
             data: {
               riuId,
               caseId: caseRecord.id,
-              associationType: RiuCaseAssociationType.PRIMARY,
+              associationType: RiuAssociationType.PRIMARY,
               createdById: userId,
             },
           });

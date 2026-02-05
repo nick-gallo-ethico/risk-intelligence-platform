@@ -1,4 +1,4 @@
-import * as csvParser from "csv-parser";
+import csvParser from "csv-parser";
 import { Readable } from "stream";
 import { MigrationSourceType } from "@prisma/client";
 
@@ -78,9 +78,10 @@ export interface CaseCreateInput {
   locationState?: string;
   locationCountry?: string;
   intakeTimestamp?: Date;
-  incidentDate?: Date;
+  incidentDate?: Date; // Note: not on Case model, but may come from source data
   closedAt?: Date;
   outcome?: string;
+  outcomeNotes?: string;
   reporterAnonymous?: boolean;
   reporterType?: string;
   reporterName?: string;

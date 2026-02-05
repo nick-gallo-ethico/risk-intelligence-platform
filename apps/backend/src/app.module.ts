@@ -37,6 +37,8 @@ import { PortalsModule } from "./modules/portals/portals.module";
 import { TablesModule } from "./modules/tables/tables.module";
 import { DisclosuresModule } from "./modules/disclosures/disclosures.module";
 import { PoliciesModule } from "./modules/policies/policies.module";
+import { AnalyticsModule } from "./modules/analytics/analytics.module";
+import { ProjectsModule } from "./modules/projects/projects.module";
 import { ActivityModule } from "./common/activity.module";
 import { StorageModule } from "./common/storage.module";
 import { TenantMiddleware } from "./common/middleware/tenant.middleware";
@@ -105,6 +107,8 @@ import configuration from "./config/configuration";
     TablesModule, // User-created data tables with scheduling and export (Phase 9 - RS.48)
     DisclosuresModule, // Disclosure forms, thresholds, conflict detection, AI triage (Phase 9)
     PoliciesModule, // Policy management with version-on-publish, translations, approval workflows (Phase 10)
+    AnalyticsModule, // Dashboards, My Work queue, exports, migrations (Phase 11)
+    ProjectsModule, // Project milestones with progress tracking (Phase 11)
     HealthModule,
   ],
   controllers: [],

@@ -1,6 +1,10 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { PrismaService } from "../../prisma/prisma.service";
-import { FieldMappingDto, TargetEntityType } from "./dto/migration.dto";
+import {
+  FieldMappingDto,
+  TargetEntityType,
+  TransformFunction,
+} from "./dto/migration.dto";
 import { MigrationSourceType } from "@prisma/client";
 
 /**
@@ -361,7 +365,11 @@ const TARGET_FIELDS: {
     entity: TargetEntityType.PERSON,
     description: "Email address",
   },
-  { field: "phone", entity: TargetEntityType.PERSON, description: "Phone number" },
+  {
+    field: "phone",
+    entity: TargetEntityType.PERSON,
+    description: "Phone number",
+  },
   {
     field: "employeeId",
     entity: TargetEntityType.PERSON,
@@ -497,7 +505,9 @@ export class MappingSuggestionService {
     for (const [targetField, synonyms] of Object.entries(FIELD_SYNONYMS)) {
       if (usedTargets.has(targetField)) continue;
 
-      const normalizedSynonyms = synonyms.map((s) => this.normalizeFieldName(s));
+      const normalizedSynonyms = synonyms.map((s) =>
+        this.normalizeFieldName(s),
+      );
 
       if (normalizedSynonyms.includes(normalized)) {
         const targetInfo = TARGET_FIELDS.find((t) => t.field === targetField);
@@ -519,12 +529,16 @@ export class MappingSuggestionService {
     for (const [targetField, synonyms] of Object.entries(FIELD_SYNONYMS)) {
       if (usedTargets.has(targetField)) continue;
 
-      const normalizedSynonyms = synonyms.map((s) => this.normalizeFieldName(s));
+      const normalizedSynonyms = synonyms.map((s) =>
+        this.normalizeFieldName(s),
+      );
 
       for (const synonym of normalizedSynonyms) {
         if (normalized.includes(synonym) || synonym.includes(normalized)) {
           if (Math.min(normalized.length, synonym.length) >= 3) {
-            const targetInfo = TARGET_FIELDS.find((t) => t.field === targetField);
+            const targetInfo = TARGET_FIELDS.find(
+              (t) => t.field === targetField,
+            );
             if (targetInfo) {
               return {
                 sourceField,
@@ -579,7 +593,11 @@ export class MappingSuggestionService {
   private findFuzzyMatch(
     normalized: string,
     usedTargets: Set<string>,
-  ): { targetField: string; similarity: number; matchedSynonym: string } | null {
+  ): {
+    targetField: string;
+    similarity: number;
+    matchedSynonym: string;
+  } | null {
     let bestMatch: {
       targetField: string;
       similarity: number;
@@ -591,9 +609,15 @@ export class MappingSuggestionService {
 
       for (const synonym of synonyms) {
         const normalizedSynonym = this.normalizeFieldName(synonym);
-        const similarity = this.calculateSimilarity(normalized, normalizedSynonym);
+        const similarity = this.calculateSimilarity(
+          normalized,
+          normalizedSynonym,
+        );
 
-        if (similarity > 0.7 && (!bestMatch || similarity > bestMatch.similarity)) {
+        if (
+          similarity > 0.7 &&
+          (!bestMatch || similarity > bestMatch.similarity)
+        ) {
           bestMatch = {
             targetField,
             similarity,
@@ -614,9 +638,13 @@ export class MappingSuggestionService {
     sampleData: Record<string, unknown>[],
     usedTargets: Set<string>,
   ): SuggestedMapping | null {
-    const values = sampleData
+    // Collect non-empty values, typed explicitly to avoid unknown issues in reduce
+    const values: unknown[] = sampleData
       .map((row) => row[sourceField])
-      .filter((v) => v !== null && v !== undefined && v !== "");
+      .filter(
+        (v): v is NonNullable<unknown> =>
+          v !== null && v !== undefined && v !== "",
+      );
 
     if (values.length === 0) return null;
 
@@ -660,8 +688,11 @@ export class MappingSuggestionService {
     }
 
     // Check for long text (likely description)
-    const avgLength =
-      values.reduce((sum, v) => sum + String(v).length, 0) / values.length;
+    let totalLength = 0;
+    for (const v of values) {
+      totalLength += String(v).length;
+    }
+    const avgLength = totalLength / values.length;
     if (avgLength > 100 && !usedTargets.has("details")) {
       return {
         sourceField,
@@ -679,34 +710,34 @@ export class MappingSuggestionService {
   /**
    * Infer appropriate transform function based on target field.
    */
-  private inferTransform(targetField: string): string | undefined {
+  private inferTransform(targetField: string): TransformFunction | undefined {
     const dateFields = ["incidentDate", "createdAt", "closedAt", "dueDate"];
     if (dateFields.includes(targetField)) {
-      return "parseDate";
+      return TransformFunction.PARSE_DATE;
     }
 
     if (targetField === "categoryName") {
-      return "mapCategory";
+      return TransformFunction.MAP_CATEGORY;
     }
 
     if (targetField === "status") {
-      return "mapStatus";
+      return TransformFunction.MAP_STATUS;
     }
 
     if (targetField === "severity") {
-      return "mapSeverity";
+      return TransformFunction.MAP_SEVERITY;
     }
 
     if (targetField === "reporterEmail" || targetField === "email") {
-      return "extractEmail";
+      return TransformFunction.EXTRACT_EMAIL;
     }
 
     if (targetField === "reporterPhone" || targetField === "phone") {
-      return "extractPhone";
+      return TransformFunction.EXTRACT_PHONE;
     }
 
     if (targetField === "reporterType") {
-      return "parseBoolean";
+      return TransformFunction.PARSE_BOOLEAN;
     }
 
     return undefined;
