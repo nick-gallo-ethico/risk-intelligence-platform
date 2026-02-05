@@ -1,1 +1,25 @@
 export * from "./dashboard.dto";
+// Export widget-data.dto except DateRangeDto (already exported from dashboard.dto)
+export {
+  WidgetDataRequestDto,
+  BatchWidgetDataRequestDto,
+  WidgetDataResponse,
+  WidgetData,
+  KpiData,
+  KpiTrend,
+  KpiComparison,
+  ChartData,
+  ChartSeries,
+  ChartConfig,
+  TableData,
+  TableColumn,
+  TableRow,
+  ListData,
+  ListItem,
+  QuickActionsData,
+  QuickAction,
+  BatchWidgetDataResponse,
+  WidgetDataError,
+  ResolvedDateRange,
+  resolveDateRange,
+} from "./widget-data.dto";
