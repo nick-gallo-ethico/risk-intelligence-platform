@@ -19,6 +19,7 @@ import { LinkedRiuList } from './linked-riu-list';
 import { CaseActivityTimeline } from './case-activity-timeline';
 import { CaseInvestigationsPanel } from './case-investigations-panel';
 import { MessagesTab } from './messages-tab';
+import { FilesTab } from './files-tab';
 import { RemediationTab } from './remediation-tab';
 import type { Case, RiuAssociation } from '@/types/case';
 
@@ -196,7 +197,7 @@ export function CaseTabs({
           className="h-full m-0 p-0 data-[state=inactive]:hidden"
         >
           <div className="h-full overflow-y-auto">
-            <FilesTab caseData={caseData} />
+            <FilesTab caseId={caseData.id} />
           </div>
         </TabsContent>
 
@@ -307,30 +308,6 @@ function OverviewTab({ caseData, onRiuClick }: OverviewTabProps) {
           </div>
         </div>
       </section>
-    </div>
-  );
-}
-
-/**
- * Files tab - attachments grid placeholder
- */
-function FilesTab({ caseData }: { caseData: Case }) {
-  // TODO: Fetch attachments for case and pass to FileList
-  // For now, show placeholder
-  return (
-    <div className="p-6">
-      <div className="text-center py-12 text-gray-400 border border-dashed rounded-md">
-        <Paperclip className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-        <h4 className="text-sm font-medium text-gray-900 mb-1">
-          Attachments
-        </h4>
-        <p className="text-sm text-gray-500 max-w-sm mx-auto">
-          Upload and manage files related to this case. Documents, images, and evidence can be attached here.
-        </p>
-        <Button variant="outline" size="sm" className="mt-4">
-          Upload File
-        </Button>
-      </div>
     </div>
   );
 }
