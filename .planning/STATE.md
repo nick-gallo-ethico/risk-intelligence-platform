@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 11.1 of 12 (Frontend Navigation and UI Fixes - INSERTED)
-Plan: 1 of TBD in current phase (executing in parallel)
+Plan: 4 of TBD in current phase (executing in parallel)
 Status: In progress
-Last activity: 2026-02-05 - Completed 11.1-01-PLAN.md (Sidebar and Navigation)
+Last activity: 2026-02-05 - Completed 11.1-04-PLAN.md (Remediation Tab with Drag-Reorder)
 **Next Phase:** Phase 12: Internal Operations Portal (after 11.1)
 
 Progress: [====================================================================] 99% (~158 of ~160 total plans)
@@ -39,8 +39,8 @@ Progress: [====================================================================]
 | 09-campaigns-disclosures | 17 | ~261 min | ~15 min |
 
 **Recent Trend:**
-- Last 5 plans: 11.1-01 (13 min), 11.1-02 (9 min), 11-21 (15 min), 11-20 (6 min), 11-13 (11 min)
-- Trend: Phase 11.1 in progress - Sidebar navigation and mobile nav complete.
+- Last 5 plans: 11.1-04 (8 min), 11.1-01 (13 min), 11.1-02 (9 min), 11-21 (15 min), 11-20 (6 min)
+- Trend: Phase 11.1 in progress - Remediation tab wired with drag-reorder.
 
 *Updated after each plan completion*
 
