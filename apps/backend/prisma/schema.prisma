@@ -150,6 +150,10 @@ model Organization {
   // Scheduled export relations (Phase 11)
   scheduledExports ScheduledExport[]
 
+  // Milestone relations (Phase 11)
+  milestones     Milestone[]
+  milestoneItems MilestoneItem[]
+
   @@index([slug])
   @@index([isActive])
   @@map("organizations")
@@ -273,6 +277,10 @@ model User {
 
   // Scheduled export relations (Phase 11)
   scheduledExportsCreated ScheduledExport[]
+
+  // Milestone relations (Phase 11)
+  milestonesOwned   Milestone[] @relation("MilestoneOwner")
+  milestonesCreated Milestone[] @relation("MilestoneCreatedBy")
 
   // Unique constraint: email must be unique within an organization
   @@unique([organizationId, email])
@@ -735,6 +743,8 @@ enum AuditEntityType {
   USER_DATA_TABLE
   POLICY_VERSION
   POLICY_TRANSLATION
+  MILESTONE
+  MILESTONE_ITEM
 
   @@map("audit_entity_type")
 }
@@ -5882,4 +5892,125 @@ model ScheduledExportRun {
 
   @@index([scheduledExportId, startedAt])
   @@map("scheduled_export_runs")
+}
+
+// ===========================================
+// Project Milestone Tracking (Phase 11)
+// ===========================================
+
+/// MilestoneCategory classifies the type of compliance milestone.
+enum MilestoneCategory {
+  AUDIT
+  INVESTIGATION
+  CAMPAIGN
+  PROJECT
+  TRAINING
+  REMEDIATION
+  OTHER
+
+  @@map("milestone_category")
+}
+
+/// MilestoneStatus tracks the progress of a milestone.
+enum MilestoneStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  AT_RISK // Behind schedule
+  COMPLETED
+  CANCELLED
+
+  @@map("milestone_status")
+}
+
+/// MilestoneItemType defines the type of entity linked to a milestone.
+enum MilestoneItemType {
+  CASE
+  INVESTIGATION
+  CAMPAIGN
+  TASK
+  CUSTOM // Free-text item
+
+  @@map("milestone_item_type")
+}
+
+/// Milestone tracks key compliance deliverables with target dates.
+/// Links to cases, investigations, and campaigns for progress calculation.
+model Milestone {
+  id             String @id @default(uuid())
+  organizationId String @map("organization_id")
+
+  // Basic info
+  name        String
+  description String?
+  category    MilestoneCategory
+
+  // Timeline
+  targetDate  DateTime        @map("target_date")
+  completedAt DateTime?       @map("completed_at")
+  status      MilestoneStatus @default(NOT_STARTED)
+
+  // Progress (calculated from linked items)
+  totalItems      Int @default(0) @map("total_items")
+  completedItems  Int @default(0) @map("completed_items")
+  progressPercent Int @default(0) @map("progress_percent") // 0-100
+
+  // Owner
+  ownerId String? @map("owner_id")
+
+  // Notes and updates
+  notes            String?
+  lastStatusUpdate String? @map("last_status_update")
+
+  // Metadata
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  createdById String   @map("created_by_id")
+
+  // Relations
+  organization Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  owner        User?           @relation("MilestoneOwner", fields: [ownerId], references: [id])
+  createdBy    User            @relation("MilestoneCreatedBy", fields: [createdById], references: [id])
+  items        MilestoneItem[]
+
+  @@index([organizationId, status])
+  @@index([organizationId, targetDate])
+  @@index([ownerId])
+  @@map("milestones")
+}
+
+/// MilestoneItem links milestones to other entities (cases, investigations, campaigns).
+/// Supports custom text items for non-entity deliverables.
+model MilestoneItem {
+  id             String @id @default(uuid())
+  organizationId String @map("organization_id")
+  milestoneId    String @map("milestone_id")
+
+  // Linked entity (polymorphic)
+  entityType  MilestoneItemType @map("entity_type") // CASE, INVESTIGATION, CAMPAIGN, TASK, CUSTOM
+  entityId    String?           @map("entity_id") // ID for CASE, INVESTIGATION, CAMPAIGN
+  customTitle String?           @map("custom_title") // For CUSTOM type
+
+  // Status
+  isCompleted Boolean   @default(false) @map("is_completed")
+  completedAt DateTime? @map("completed_at")
+  dueDate     DateTime? @map("due_date")
+
+  // Weight (for progress calculation)
+  weight Int @default(1) // Higher weight = more impact on progress
+
+  // Ordering
+  sortOrder Int @default(0) @map("sort_order")
+
+  // Metadata
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  milestone    Milestone    @relation(fields: [milestoneId], references: [id], onDelete: Cascade)
+
+  @@index([milestoneId])
+  @@index([entityType, entityId])
+  @@index([organizationId])
+  @@map("milestone_items")
 }
