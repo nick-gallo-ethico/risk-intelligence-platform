@@ -26,3 +26,8 @@ export type {
   FormTemplate,
   CampaignDraft,
 } from './CampaignBuilder';
+
+// List page components
+export { CampaignsSummaryCards } from './campaigns-summary-cards';
+export { CampaignsFilters } from './campaigns-filters';
+export { CampaignsTable } from './campaigns-table';
