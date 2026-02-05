@@ -147,6 +147,9 @@ model Organization {
   dashboardWidgets     DashboardWidget[]
   userDashboardConfigs UserDashboardConfig[]
 
+  // Scheduled export relations (Phase 11)
+  scheduledExports ScheduledExport[]
+
   @@index([slug])
   @@index([isActive])
   @@map("organizations")
@@ -267,6 +270,9 @@ model User {
   // Dashboard relations (Phase 11)
   dashboardsCreated    Dashboard[]           @relation("DashboardCreatedBy")
   userDashboardConfigs UserDashboardConfig[]
+
+  // Scheduled export relations (Phase 11)
+  scheduledExportsCreated ScheduledExport[]
 
   // Unique constraint: email must be unique within an organization
   @@unique([organizationId, email])
@@ -5769,4 +5775,110 @@ model UserDashboardConfig {
   @@index([userId, isHome])
   @@index([organizationId, userId])
   @@map("user_dashboard_configs")
+}
+
+// ===========================================
+// Scheduled Export Entities (Phase 11)
+// ===========================================
+
+/// ScheduleType defines the recurrence pattern for scheduled exports.
+enum ScheduleType {
+  DAILY
+  WEEKLY
+  MONTHLY
+
+  @@map("schedule_type")
+}
+
+/// DeliveryMethod defines how exported files are delivered.
+enum DeliveryMethod {
+  EMAIL // Send file via email to recipients
+  STORAGE // Save to Azure blob storage location
+
+  @@map("delivery_method")
+}
+
+/// ScheduleRunStatus tracks the outcome of a scheduled export run.
+enum ScheduleRunStatus {
+  SUCCESS
+  FAILED
+  SKIPPED
+
+  @@map("schedule_run_status")
+}
+
+/// ScheduledExport stores recurring export configurations.
+/// Enables compliance officers to schedule periodic report delivery.
+model ScheduledExport {
+  id             String @id @default(uuid())
+  organizationId String @map("organization_id")
+
+  // Export configuration
+  name         String
+  description  String?
+  exportType   ExportType   @map("export_type") // FLAT_FILE, CASES_ONLY, etc.
+  format       ExportFormat // CSV, XLSX, PDF
+  filters      Json // Query filters (date range, statuses, categories)
+  columnConfig Json         @map("column_config") // Column configuration snapshot
+
+  // Schedule configuration
+  scheduleType   ScheduleType @map("schedule_type") // DAILY, WEEKLY, MONTHLY
+  scheduleConfig Json         @map("schedule_config") // { time: "08:00", dayOfWeek?: 1, dayOfMonth?: 15 }
+  timezone       String       @default("America/New_York")
+
+  // Delivery configuration
+  deliveryMethod  DeliveryMethod @map("delivery_method") // EMAIL, STORAGE
+  recipients      String[] // Email addresses for EMAIL delivery
+  storageLocation String?        @map("storage_location") // Azure blob path for STORAGE delivery
+
+  // Status tracking
+  isActive      Boolean            @default(true) @map("is_active")
+  lastRunAt     DateTime?          @map("last_run_at")
+  lastRunStatus ScheduleRunStatus? @map("last_run_status")
+  nextRunAt     DateTime?          @map("next_run_at")
+
+  // Metadata
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  createdById String   @map("created_by_id")
+
+  // Relations
+  organization Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdBy    User                 @relation(fields: [createdById], references: [id])
+  runs         ScheduledExportRun[]
+
+  @@index([organizationId, isActive])
+  @@index([nextRunAt])
+  @@map("scheduled_exports")
+}
+
+/// ScheduledExportRun records the execution history of scheduled exports.
+/// Tracks success/failure, file output, and delivery status per recipient.
+model ScheduledExportRun {
+  id                String @id @default(uuid())
+  scheduledExportId String @map("scheduled_export_id")
+
+  // Run details
+  startedAt   DateTime          @default(now()) @map("started_at")
+  completedAt DateTime?         @map("completed_at")
+  status      ScheduleRunStatus
+
+  // Output
+  fileUrl       String? @map("file_url")
+  fileSizeBytes Int?    @map("file_size_bytes")
+  rowCount      Int?    @map("row_count")
+
+  // Delivery tracking
+  deliveredTo    String[] @map("delivered_to") // Email addresses delivered to
+  deliveryStatus Json?    @map("delivery_status") // Per-recipient status { "email@example.com": "sent" | "failed: reason" }
+
+  // Error tracking
+  errorMessage String? @map("error_message")
+  errorDetails Json?   @map("error_details")
+
+  // Relations
+  scheduledExport ScheduledExport @relation(fields: [scheduledExportId], references: [id], onDelete: Cascade)
+
+  @@index([scheduledExportId, startedAt])
+  @@map("scheduled_export_runs")
 }
