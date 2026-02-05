@@ -2849,6 +2849,15 @@ enum CampaignType {
   @@map("campaign_type")
 }
 
+/// AttestationType defines how employees attest to a policy.
+enum AttestationType {
+  CHECKBOX // Simple acknowledge checkbox ("I have read and understood")
+  SIGNATURE // Electronic signature capture
+  QUIZ // Must pass quiz to attest successfully
+
+  @@map("attestation_type")
+}
+
 /// CampaignStatus tracks the lifecycle of a campaign.
 enum CampaignStatus {
   DRAFT // Being designed, not yet launched
@@ -2987,6 +2996,19 @@ model Campaign {
   disclosureFormTemplateId String?                 @map("disclosure_form_template_id")
   disclosureFormTemplate   DisclosureFormTemplate? @relation("CampaignFormTemplate", fields: [disclosureFormTemplateId], references: [id])
 
+  // Policy attestation fields (when type = ATTESTATION)
+  policyId        String? @map("policy_id")
+  policyVersionId String? @map("policy_version_id")
+
+  // Attestation configuration
+  attestationType   AttestationType? @map("attestation_type")
+  quizConfig        Json?            @map("quiz_config") // { questions, passingScore, maxAttempts }
+  forceScroll       Boolean          @default(false) @map("force_scroll") // Require scrolling to bottom
+  signatureRequired Boolean          @default(false) @map("signature_required")
+
+  // Auto-case creation rules for attestation refusals
+  autoCreateCaseOnRefusal Boolean @default(true) @map("auto_create_case_on_refusal")
+
   // Reminders
   reminderDays        Int[]     @default([7, 3, 1]) @map("reminder_days") // Days before due to remind
   lastReminderSentAt  DateTime? @map("last_reminder_sent_at")
@@ -3020,6 +3042,8 @@ model Campaign {
   assignments    CampaignAssignment[]
   rius           RiskIntelligenceUnit[] @relation("CampaignRius")
   waves          CampaignWave[]
+  policy         Policy?                @relation("PolicyCampaigns", fields: [policyId], references: [id])
+  policyVersion  PolicyVersion?         @relation("PolicyVersionCampaigns", fields: [policyVersionId], references: [id])
   parentCampaign Campaign?              @relation("CampaignTranslations", fields: [parentCampaignId], references: [id])
   translations   Campaign[]             @relation("CampaignTranslations")
 
@@ -3060,6 +3084,15 @@ model CampaignAssignment {
   // Response linkage
   riuId            String? @map("riu_id") // Links to RIU created by response
   formSubmissionId String? @map("form_submission_id")
+
+  // Attestation tracking (for ATTESTATION campaigns)
+  attestedAt      DateTime?        @map("attested_at")
+  attestationType AttestationType? @map("attestation_type") // How they attested
+  quizScore       Int?             @map("quiz_score") // Percentage score (0-100)
+  quizAttempts    Int?             @default(0) @map("quiz_attempts")
+  signatureData   String?          @map("signature_data") @db.Text // Base64 signature image
+  refusedAt       DateTime?        @map("refused_at")
+  refusalReason   String?          @map("refusal_reason")
 
   // Employee snapshot (captured at assignment time for audit trail)
   // This ensures historical accuracy even if employee data changes
@@ -5130,6 +5163,7 @@ model Policy {
   createdBy        User                    @relation("PolicyCreatedBy", fields: [createdById], references: [id])
   versions         PolicyVersion[]
   caseAssociations PolicyCaseAssociation[]
+  campaigns        Campaign[]              @relation("PolicyCampaigns")
 
   @@unique([organizationId, slug])
   @@index([organizationId])
@@ -5174,6 +5208,7 @@ model PolicyVersion {
   publishedBy      User                       @relation("PolicyVersionPublishedBy", fields: [publishedById], references: [id])
   translations     PolicyVersionTranslation[]
   caseAssociations PolicyCaseAssociation[]
+  campaigns        Campaign[]                 @relation("PolicyVersionCampaigns")
 
   @@unique([policyId, version])
   @@index([organizationId])
