@@ -1,5 +1,6 @@
 export * from "./exports.module";
 export * from "./flat-file.service";
+export * from "./scheduled-export.service";
 export * from "./excel-export.service";
 export * from "./pdf-generator.service";
 export * from "./pptx-generator.service";

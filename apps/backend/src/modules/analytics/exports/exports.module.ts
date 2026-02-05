@@ -1,11 +1,13 @@
 /**
- * ExportsModule - Flat file export functionality
+ * ExportsModule - Flat file and scheduled export functionality
  *
  * Provides:
  * - ExportsController: REST API for tag management and export jobs
  * - FlatFileService: Tag CRUD and export job management
+ * - ScheduledExportService: Scheduled export configuration management
  * - ExcelExportService: Excel file generation with streaming
  * - FlatExportProcessor: BullMQ processor for async exports
+ * - ScheduledExportProcessor: Cron-based processor for recurring exports
  * - PdfGeneratorService: Puppeteer-based PDF generation
  * - PptxGeneratorService: pptxgenjs-based PowerPoint generation
  * - BoardReportService: Board report generation orchestrator
@@ -14,12 +16,19 @@
  * - Concurrency: 2 (one export per worker thread)
  * - Retries: 3 with exponential backoff (5s, 10s, 20s)
  * - File expiration: 7 days
+ *
+ * Scheduled Exports:
+ * - Cron: Runs every minute to check for due schedules
+ * - Delivery: Email with attachment and download link
+ * - Formats: XLSX, CSV, PDF
  */
 
 import { Module } from "@nestjs/common";
 import { BullModule } from "@nestjs/bullmq";
+import { ScheduleModule } from "@nestjs/schedule";
 import { ExportsController } from "./exports.controller";
 import { FlatFileService } from "./flat-file.service";
+import { ScheduledExportService } from "./scheduled-export.service";
 import { ExcelExportService } from "./excel-export.service";
 import { PdfGeneratorService } from "./pdf-generator.service";
 import { PptxGeneratorService } from "./pptx-generator.service";
@@ -28,17 +37,19 @@ import {
   FlatExportProcessor,
   FLAT_EXPORT_QUEUE_NAME,
 } from "./processors/flat-export.processor";
+import { ScheduledExportProcessor } from "./processors/scheduled-export.processor";
 import { PrismaModule } from "../../prisma/prisma.module";
 import { AuditModule } from "../../audit/audit.module";
-import { StorageModule } from "../../../common/storage.module";
+import { ModuleStorageModule } from "../../storage/storage.module";
 import { AiModule } from "../../ai/ai.module";
 
 @Module({
   imports: [
     PrismaModule,
     AuditModule,
-    StorageModule,
+    ModuleStorageModule,
     AiModule,
+    ScheduleModule.forRoot(),
     BullModule.registerQueue({
       name: FLAT_EXPORT_QUEUE_NAME,
       defaultJobOptions: {
@@ -61,14 +72,17 @@ import { AiModule } from "../../ai/ai.module";
   controllers: [ExportsController],
   providers: [
     FlatFileService,
+    ScheduledExportService,
     ExcelExportService,
     PdfGeneratorService,
     PptxGeneratorService,
     BoardReportService,
     FlatExportProcessor,
+    ScheduledExportProcessor,
   ],
   exports: [
     FlatFileService,
+    ScheduledExportService,
     ExcelExportService,
     PdfGeneratorService,
     PptxGeneratorService,
