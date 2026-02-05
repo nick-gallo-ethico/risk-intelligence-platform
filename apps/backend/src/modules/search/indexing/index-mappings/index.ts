@@ -1,7 +1,12 @@
-export { CASE_INDEX_MAPPING, CaseDocument } from './case.mapping';
-export { RIU_INDEX_MAPPING } from './riu.mapping';
+export { CASE_INDEX_MAPPING, CaseDocument } from "./case.mapping";
+export { RIU_INDEX_MAPPING } from "./riu.mapping";
 export {
   INVESTIGATION_INDEX_MAPPING,
   InvestigationDocument,
-} from './investigation.mapping';
-export { PERSON_INDEX_MAPPING, PersonDocument } from './person.mapping';
+} from "./investigation.mapping";
+export { PERSON_INDEX_MAPPING, PersonDocument } from "./person.mapping";
+export {
+  POLICY_INDEX_MAPPING,
+  PolicyDocument,
+  POLICY_INDEX_NAME,
+} from "./policy.mapping";
