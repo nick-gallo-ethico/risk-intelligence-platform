@@ -1,6 +1,9 @@
 import { Module } from "@nestjs/common";
 import { MigrationService } from "./migration.service";
 import { PrismaModule } from "../../prisma/prisma.module";
+import { NavexConnector } from "./connectors/navex.connector";
+import { EqsConnector } from "./connectors/eqs.connector";
+import { CsvConnector } from "./connectors/csv.connector";
 
 /**
  * MigrationModule provides data import capabilities for competitor system migrations.
@@ -8,7 +11,7 @@ import { PrismaModule } from "../../prisma/prisma.module";
  */
 @Module({
   imports: [PrismaModule],
-  providers: [MigrationService],
-  exports: [MigrationService],
+  providers: [MigrationService, NavexConnector, EqsConnector, CsvConnector],
+  exports: [MigrationService, NavexConnector, EqsConnector, CsvConnector],
 })
 export class MigrationModule {}

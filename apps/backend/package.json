@@ -74,6 +74,7 @@
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.1",
     "cli-progress": "^3.12.0",
+    "csv-parser": "^3.2.0",
     "date-fns": "^4.1.0",
     "exceljs": "^4.4.0",
     "handlebars": "^4.7.8",
@@ -90,6 +91,8 @@
     "pino": "^8.17.2",
     "pino-http": "^9.0.0",
     "pino-pretty": "^10.3.1",
+    "pptxgenjs": "^4.0.1",
+    "puppeteer": "^24.36.1",
     "qrcode": "^1.5.4",
     "reflect-metadata": "^0.2.1",
     "rxjs": "^7.8.1",
@@ -147,5 +150,8 @@
     ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node"
+  },
+  "prisma": {
+    "seed": "ts-node prisma/seed.ts"
   }
 }
