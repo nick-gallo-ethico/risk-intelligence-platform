@@ -444,6 +444,10 @@ Recent decisions affecting current work:
 - 10-06: Activity logged on BOTH policy and case when linked/unlinked
 - 10-06: getViolationStats() aggregates violations by policy for compliance dashboards
 - 10-06: Bidirectional queries: findByPolicy() and findByCase()
+- 10-07: PolicySearchIndexListener handles policy.created, .updated, .published, .retired events
+- 10-07: Translation events (created/updated) trigger policy re-indexing
+- 10-07: Policy case link/unlink events update linkedCaseCount in ES
+- 10-07: Compliance synonyms in policy mapping (policy/procedure/guideline, coc/handbook, etc.)
 - 11-01: react-grid-layout format for responsive dashboard layouts (lg/md/sm/xs breakpoints)
 - 11-01: UserDashboardConfig separate from Dashboard for user-specific overrides without duplication
 - 11-01: Role-based default dashboards (CCO, INVESTIGATOR, CAMPAIGN_MANAGER) with isSystem=true protection
