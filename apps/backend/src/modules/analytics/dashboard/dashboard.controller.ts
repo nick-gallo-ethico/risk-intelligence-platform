@@ -13,6 +13,7 @@ import {
   HttpStatus,
 } from "@nestjs/common";
 import { DashboardConfigService } from "./dashboard-config.service";
+import { WidgetDataService } from "./widget-data.service";
 import {
   CreateDashboardDto,
   UpdateDashboardDto,
@@ -20,16 +21,42 @@ import {
   UpdateWidgetDto,
   UserDashboardConfigDto,
   DashboardQueryDto,
+  DateRangeDto,
 } from "./dto/dashboard.dto";
+import {
+  BatchWidgetDataRequestDto,
+  WidgetDataResponse,
+  BatchWidgetDataResponse,
+} from "./dto/widget-data.dto";
+import { DashboardWidget as PrismaDashboardWidget } from "@prisma/client";
 import { JwtAuthGuard } from "../../../common/guards/jwt-auth.guard";
 import { TenantGuard } from "../../../common/guards/tenant.guard";
 import { CurrentUser } from "../../../common/decorators/current-user.decorator";
 import { TenantId } from "../../../common/decorators/tenant-id.decorator";
-import { DashboardType } from "@prisma/client";
+import { DashboardType, DateRangePreset } from "@prisma/client";
 
 interface AuthUser {
   id: string;
   organizationId: string;
+}
+
+/**
+ * Query DTO for widget data requests.
+ */
+class WidgetDataQueryDto {
+  preset?: DateRangePreset;
+  start?: string;
+  end?: string;
+  forceRefresh?: boolean;
+}
+
+/**
+ * Query DTO for dashboard data requests.
+ */
+class DashboardDataQueryDto {
+  preset?: DateRangePreset;
+  start?: string;
+  end?: string;
 }
 
 /**
@@ -40,6 +67,7 @@ interface AuthUser {
 export class DashboardController {
   constructor(
     private readonly dashboardConfigService: DashboardConfigService,
+    private readonly widgetDataService: WidgetDataService,
   ) {}
 
   // ====================
@@ -296,5 +324,112 @@ export class DashboardController {
       dashboardId,
       positions,
     );
+  }
+
+  // ====================
+  // Widget Data
+  // ====================
+
+  /**
+   * Get data for all widgets in a dashboard.
+   * Fetches widget data in parallel for efficient dashboard loading.
+   */
+  @Get(":dashboardId/data")
+  async getDashboardData(
+    @TenantId() organizationId: string,
+    @CurrentUser() user: AuthUser,
+    @Param("dashboardId", ParseUUIDPipe) dashboardId: string,
+    @Query() query: DashboardDataQueryDto,
+  ): Promise<Record<string, WidgetDataResponse>> {
+    const dashboard = await this.dashboardConfigService.getDashboard(
+      organizationId,
+      dashboardId,
+    );
+
+    const dateRange = this.parseDateRange(query);
+
+    const responses = await this.widgetDataService.getBatchWidgetData(
+      organizationId,
+      user.id,
+      dashboard.widgets as unknown as PrismaDashboardWidget[],
+      dateRange,
+    );
+
+    // Return as map by widget ID for easier frontend consumption
+    return responses.widgets.reduce(
+      (acc, r) => {
+        acc[r.widgetId] = r;
+        return acc;
+      },
+      {} as Record<string, WidgetDataResponse>,
+    );
+  }
+
+  /**
+   * Batch fetch data for multiple widgets.
+   * Can request data from widgets across different dashboards.
+   */
+  @Post("widgets/data/batch")
+  async batchWidgetData(
+    @TenantId() organizationId: string,
+    @CurrentUser() user: AuthUser,
+    @Body() dto: BatchWidgetDataRequestDto,
+  ): Promise<BatchWidgetDataResponse> {
+    // Load widget configs
+    const widgetIds = dto.widgets.map((w) => w.widgetId);
+    const widgets = await this.dashboardConfigService.getWidgetsByIds(
+      organizationId,
+      widgetIds,
+    );
+
+    const dateRange = dto.globalDateRange || {
+      preset: DateRangePreset.LAST_30_DAYS,
+    };
+
+    return this.widgetDataService.getBatchWidgetData(
+      organizationId,
+      user.id,
+      widgets,
+      dateRange,
+    );
+  }
+
+  /**
+   * Get data for a single widget.
+   */
+  @Get("widgets/:widgetId/data")
+  async getWidgetData(
+    @TenantId() organizationId: string,
+    @CurrentUser() user: AuthUser,
+    @Param("widgetId", ParseUUIDPipe) widgetId: string,
+    @Query() query: WidgetDataQueryDto,
+  ): Promise<WidgetDataResponse> {
+    const widget = await this.dashboardConfigService.getWidget(
+      organizationId,
+      widgetId,
+    );
+
+    return this.widgetDataService.getWidgetData(
+      organizationId,
+      user.id,
+      widget,
+      this.parseDateRange(query),
+      query.forceRefresh === true,
+    );
+  }
+
+  /**
+   * Parse date range query parameters into DateRangeDto.
+   */
+  private parseDateRange(query: {
+    preset?: DateRangePreset;
+    start?: string;
+    end?: string;
+  }): DateRangeDto {
+    return {
+      preset: query.preset || DateRangePreset.LAST_30_DAYS,
+      start: query.start,
+      end: query.end,
+    };
   }
 }

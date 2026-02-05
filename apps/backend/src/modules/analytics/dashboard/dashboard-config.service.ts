@@ -95,7 +95,8 @@ export class DashboardConfigService {
             chartType: w.chartType,
             displayConfig: w.displayConfig as unknown as Prisma.InputJsonValue,
             useDashboardDateRange: w.useDashboardDateRange ?? true,
-            dateRangeOverride: w.dateRangeOverride as unknown as Prisma.InputJsonValue,
+            dateRangeOverride:
+              w.dateRangeOverride as unknown as Prisma.InputJsonValue,
             refreshInterval: w.refreshInterval,
           })),
         });
@@ -538,7 +539,8 @@ export class DashboardConfigService {
         chartType: dto.chartType,
         displayConfig: dto.displayConfig as unknown as Prisma.InputJsonValue,
         useDashboardDateRange: dto.useDashboardDateRange ?? true,
-        dateRangeOverride: dto.dateRangeOverride as unknown as Prisma.InputJsonValue,
+        dateRangeOverride:
+          dto.dateRangeOverride as unknown as Prisma.InputJsonValue,
         refreshInterval: dto.refreshInterval,
       },
     });
@@ -594,7 +596,8 @@ export class DashboardConfigService {
           useDashboardDateRange: dto.useDashboardDateRange,
         }),
         ...(dto.dateRangeOverride !== undefined && {
-          dateRangeOverride: dto.dateRangeOverride as unknown as Prisma.InputJsonValue,
+          dateRangeOverride:
+            dto.dateRangeOverride as unknown as Prisma.InputJsonValue,
         }),
         ...(dto.refreshInterval !== undefined && {
           refreshInterval: dto.refreshInterval,
@@ -669,5 +672,38 @@ export class DashboardConfigService {
       dashboardId,
       organizationId,
     });
+  }
+
+  /**
+   * Gets a single widget by ID.
+   */
+  async getWidget(organizationId: string, widgetId: string) {
+    const widget = await this.prisma.dashboardWidget.findFirst({
+      where: { id: widgetId, organizationId },
+    });
+
+    if (!widget) {
+      throw new NotFoundException("Widget not found");
+    }
+
+    return widget;
+  }
+
+  /**
+   * Gets multiple widgets by IDs.
+   * Returns widgets in the same order as input IDs.
+   */
+  async getWidgetsByIds(organizationId: string, widgetIds: string[]) {
+    const widgets = await this.prisma.dashboardWidget.findMany({
+      where: {
+        id: { in: widgetIds },
+        organizationId,
+      },
+    });
+
+    // Return in same order as input IDs
+    return widgetIds
+      .map((id) => widgets.find((w) => w.id === id))
+      .filter((w): w is NonNullable<typeof w> => w !== undefined);
   }
 }
