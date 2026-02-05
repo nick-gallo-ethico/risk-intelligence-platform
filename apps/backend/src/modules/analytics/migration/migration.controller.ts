@@ -5,13 +5,14 @@
  * 1. Upload migration file
  * 2. Detect format and suggest mappings
  * 3. Save/load field mapping templates
- * 4. Validate data with current mappings
- * 5. Preview transformed data
+ * 4. Queue validation job (async)
+ * 5. Queue preview generation (async)
  * 6. Start async import
  * 7. Check rollback availability
- * 8. Rollback completed imports
+ * 8. Queue rollback (async)
  * 9. Extract form fields from screenshots (AI-powered)
  *
+ * All queue operations return immediately with job IDs for status polling.
  * All endpoints require authentication and SYSTEM_ADMIN or COMPLIANCE_OFFICER role.
  */
 
@@ -46,6 +47,7 @@ import { InjectQueue } from "@nestjs/bullmq";
 import { Queue } from "bullmq";
 import { MigrationService } from "./migration.service";
 import { ScreenshotToFormService } from "./screenshot-to-form.service";
+import { MappingSuggestionService } from "./mapping-suggestion.service";
 import { StorageService } from "../../../common/services/storage.service";
 import {
   CreateMigrationJobDto,
@@ -66,7 +68,10 @@ import {
   CompetitorHint,
   ScreenshotAnalysisResult,
 } from "./dto/screenshot.dto";
-import { MIGRATION_QUEUE_NAME } from "./processors/migration.processor";
+import {
+  MIGRATION_QUEUE_NAME,
+  MigrationAction,
+} from "./processors/migration.processor";
 import { MigrationSourceType } from "@prisma/client";
 import { nanoid } from "nanoid";
 
@@ -113,6 +118,15 @@ interface PaginatedResult<T> {
   total: number;
 }
 
+/**
+ * Queue job response
+ */
+interface QueuedJobResponse {
+  queued: boolean;
+  queueJobId: string;
+  action: MigrationAction;
+}
+
 @ApiTags("migrations")
 @Controller("api/v1/migrations")
 // @UseGuards(JwtAuthGuard, RolesGuard)
@@ -121,6 +135,7 @@ export class MigrationController {
   constructor(
     private readonly migrationService: MigrationService,
     private readonly screenshotService: ScreenshotToFormService,
+    private readonly mappingSuggestionService: MappingSuggestionService,
     private readonly storageService: StorageService,
     @InjectQueue(MIGRATION_QUEUE_NAME) private readonly migrationQueue: Queue,
   ) {}
@@ -163,7 +178,6 @@ export class MigrationController {
     const userId = TEMP_USER_ID;
 
     // Upload to storage
-    const fileKey = `migrations/${organizationId}/${nanoid()}-${file.originalname}`;
     const uploadResult = await this.storageService.upload(
       {
         originalname: file.originalname,
@@ -330,6 +344,69 @@ export class MigrationController {
     return result;
   }
 
+  @Get(":id/mappings/suggestions")
+  @ApiOperation({ summary: "Get AI-suggested field mappings" })
+  @ApiParam({ name: "id", type: "string" })
+  @ApiResponse({ status: 200, description: "Suggested mappings and target fields" })
+  async getSuggestedMappings(
+    @Param("id", ParseUUIDPipe) id: string,
+    // @CurrentUser() user: User,
+  ): Promise<{ mappings: FieldMappingDto[]; targetFields: ReturnType<typeof MappingSuggestionService.prototype.getTargetFields> }> {
+    const organizationId = TEMP_ORG_ID;
+    const job = await this.migrationService.getJob(organizationId, id);
+
+    // Get sample data from preview or parse file
+    let sampleData: Record<string, unknown>[] = [];
+    let sourceFields: string[] = [];
+
+    if (job.previewData && Array.isArray(job.previewData)) {
+      // Use existing preview data
+      const preview = job.previewData as unknown as PreviewRow[];
+      sampleData = preview.map((p) => p.sourceData);
+      sourceFields = sampleData.length > 0 ? Object.keys(sampleData[0]) : [];
+    } else {
+      // Parse file to get sample data
+      const downloadResult = await this.storageService.download(job.fileUrl);
+      const chunks: Buffer[] = [];
+      for await (const chunk of downloadResult.stream) {
+        chunks.push(Buffer.from(chunk));
+      }
+      const buffer = Buffer.concat(chunks);
+      const content = buffer.toString("utf-8");
+      const lines = content.split("\n");
+      const headers = lines[0].split(",").map((h) => h.trim().replace(/"/g, ""));
+      sourceFields = headers;
+
+      for (let i = 1; i < Math.min(6, lines.length); i++) {
+        if (!lines[i].trim()) continue;
+        const values = lines[i].split(",").map((v) => v.trim().replace(/"/g, ""));
+        const row: Record<string, unknown> = {};
+        headers.forEach((h, idx) => {
+          row[h] = values[idx] || "";
+        });
+        sampleData.push(row);
+      }
+    }
+
+    const mappings = await this.mappingSuggestionService.suggestMappings(
+      organizationId,
+      sourceFields,
+      sampleData,
+    );
+
+    return {
+      mappings: mappings.map((m) => ({
+        sourceField: m.sourceField,
+        targetField: m.targetField,
+        targetEntity: m.targetEntity,
+        transformFunction: m.transformFunction as FieldMappingDto["transformFunction"],
+        isRequired: m.isRequired,
+        description: m.description,
+      })),
+      targetFields: this.mappingSuggestionService.getTargetFields(),
+    };
+  }
+
   @Post(":id/mappings")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Save field mappings" })
@@ -339,10 +416,22 @@ export class MigrationController {
     @Param("id", ParseUUIDPipe) id: string,
     @Body() dto: SaveFieldMappingsDto,
     // @CurrentUser() user: User,
-  ): Promise<void> {
+  ): Promise<{ saved: boolean }> {
     const organizationId = TEMP_ORG_ID;
     const userId = TEMP_USER_ID;
     await this.migrationService.saveMappings(organizationId, id, userId, dto);
+
+    // Optionally save as template
+    if (dto.saveAsTemplate && dto.templateName) {
+      await this.mappingSuggestionService.saveTemplate(
+        organizationId,
+        userId,
+        dto.templateName,
+        dto.mappings,
+      );
+    }
+
+    return { saved: true };
   }
 
   @Get(":id/templates")
@@ -361,96 +450,97 @@ export class MigrationController {
     );
   }
 
-  // ==================== Validation & Preview ====================
+  // ==================== Validation & Preview (Queue-based) ====================
 
   @Post(":id/validate")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Validate data with current mappings" })
+  @ApiOperation({ summary: "Queue validation job" })
   @ApiParam({ name: "id", type: "string" })
-  @ApiResponse({ status: 200, description: "Validation result" })
-  async validate(
+  @ApiResponse({ status: 200, description: "Validation job queued" })
+  async queueValidation(
     @Param("id", ParseUUIDPipe) id: string,
     // @CurrentUser() user: User,
-  ): Promise<{ validRows: number; errorRows: number; errors: unknown[] }> {
+  ): Promise<QueuedJobResponse> {
     const organizationId = TEMP_ORG_ID;
+    const userId = TEMP_USER_ID;
 
-    // Get job to retrieve file
-    const job = await this.migrationService.getJob(organizationId, id);
+    // Queue for async processing
+    const queueJob = await this.migrationQueue.add(
+      "validate",
+      {
+        jobId: id,
+        organizationId,
+        userId,
+        action: "validate" as MigrationAction,
+      },
+      {
+        attempts: 1,
+        removeOnComplete: { count: 100 },
+        removeOnFail: { count: 500, age: 24 * 60 * 60 },
+      },
+    );
 
-    // Download file from storage
-    const downloadResult = await this.storageService.download(job.fileUrl);
-    const chunks: Buffer[] = [];
-    for await (const chunk of downloadResult.stream) {
-      chunks.push(Buffer.from(chunk));
-    }
-    const buffer = Buffer.concat(chunks);
+    return {
+      queued: true,
+      queueJobId: queueJob.id as string,
+      action: "validate",
+    };
+  }
 
-    // Parse file content
-    const content = buffer.toString("utf-8");
-    const lines = content.split("\n");
-    const headers = lines[0].split(",").map((h) => h.trim().replace(/"/g, ""));
+  @Post(":id/preview")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Queue preview generation" })
+  @ApiParam({ name: "id", type: "string" })
+  @ApiResponse({ status: 200, description: "Preview job queued" })
+  async queuePreview(
+    @Param("id", ParseUUIDPipe) id: string,
+    // @CurrentUser() user: User,
+  ): Promise<QueuedJobResponse> {
+    const organizationId = TEMP_ORG_ID;
+    const userId = TEMP_USER_ID;
 
-    // Parse all data
-    const data: Record<string, unknown>[] = [];
-    for (let i = 1; i < lines.length; i++) {
-      if (!lines[i].trim()) continue;
-      const values = lines[i].split(",").map((v) => v.trim().replace(/"/g, ""));
-      const row: Record<string, unknown> = {};
-      headers.forEach((h, idx) => {
-        row[h] = values[idx] || "";
-      });
-      data.push(row);
-    }
+    // Queue for async processing
+    const queueJob = await this.migrationQueue.add(
+      "preview",
+      {
+        jobId: id,
+        organizationId,
+        userId,
+        action: "preview" as MigrationAction,
+      },
+      {
+        attempts: 1,
+        removeOnComplete: { count: 100 },
+        removeOnFail: { count: 500, age: 24 * 60 * 60 },
+      },
+    );
 
-    return this.migrationService.validate(organizationId, id, data);
+    return {
+      queued: true,
+      queueJobId: queueJob.id as string,
+      action: "preview",
+    };
   }
 
   @Get(":id/preview")
-  @ApiOperation({ summary: "Preview transformed data" })
+  @ApiOperation({ summary: "Get preview data (after preview job completes)" })
   @ApiParam({ name: "id", type: "string" })
   @ApiQuery({ name: "limit", required: false, type: Number })
   @ApiResponse({ status: 200, description: "Preview rows" })
   async getPreview(
     @Param("id", ParseUUIDPipe) id: string,
-    @Query("limit", new DefaultValuePipe(10), ParseIntPipe) limit: number,
+    @Query("limit", new DefaultValuePipe(20), ParseIntPipe) limit: number,
     // @CurrentUser() user: User,
-  ): Promise<PreviewRow[]> {
+  ): Promise<{ previewData: PreviewRow[]; status: string }> {
     const organizationId = TEMP_ORG_ID;
-
-    // Get job to retrieve file
     const job = await this.migrationService.getJob(organizationId, id);
 
-    // Download file from storage
-    const downloadResult = await this.storageService.download(job.fileUrl);
-    const chunks: Buffer[] = [];
-    for await (const chunk of downloadResult.stream) {
-      chunks.push(Buffer.from(chunk));
-    }
-    const buffer = Buffer.concat(chunks);
+    const previewData = job.previewData as unknown as PreviewRow[] || [];
 
-    // Parse file content
-    const content = buffer.toString("utf-8");
-    const lines = content.split("\n");
-    const headers = lines[0].split(",").map((h) => h.trim().replace(/"/g, ""));
-
-    // Parse sample data
-    const data: Record<string, unknown>[] = [];
-    for (let i = 1; i < Math.min(limit + 1, lines.length); i++) {
-      if (!lines[i].trim()) continue;
-      const values = lines[i].split(",").map((v) => v.trim().replace(/"/g, ""));
-      const row: Record<string, unknown> = {};
-      headers.forEach((h, idx) => {
-        row[h] = values[idx] || "";
-      });
-      data.push(row);
-    }
-
-    return this.migrationService.generatePreview(
-      organizationId,
-      id,
-      data,
-      limit,
-    );
+    return {
+      previewData: previewData.slice(0, limit),
+      status: job.status,
+    };
   }
 
   // ==================== Import Execution ====================
@@ -464,7 +554,7 @@ export class MigrationController {
     @Param("id", ParseUUIDPipe) id: string,
     @Body() dto: StartImportDto,
     // @CurrentUser() user: User,
-  ): Promise<{ jobId: string; status: string }> {
+  ): Promise<QueuedJobResponse> {
     const organizationId = TEMP_ORG_ID;
     const userId = TEMP_USER_ID;
 
@@ -476,21 +566,26 @@ export class MigrationController {
     await this.migrationService.startImport(organizationId, id, userId);
 
     // Queue for async processing
-    await this.migrationQueue.add(
+    const queueJob = await this.migrationQueue.add(
       "import",
       {
         jobId: id,
         organizationId,
         userId,
+        action: "import" as MigrationAction,
       },
       {
-        attempts: 1, // No retries for imports - they should be idempotent
+        attempts: 1,
         removeOnComplete: { count: 100 },
-        removeOnFail: { count: 500 },
+        removeOnFail: { count: 500, age: 24 * 60 * 60 },
       },
     );
 
-    return { jobId: id, status: "IMPORTING" };
+    return {
+      queued: true,
+      queueJobId: queueJob.id as string,
+      action: "import",
+    };
   }
 
   // ==================== Rollback ====================
@@ -509,14 +604,14 @@ export class MigrationController {
 
   @Post(":id/rollback")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: "Rollback import" })
+  @ApiOperation({ summary: "Queue rollback (async)" })
   @ApiParam({ name: "id", type: "string" })
-  @ApiResponse({ status: 200, description: "Rollback result" })
-  async rollback(
+  @ApiResponse({ status: 200, description: "Rollback queued" })
+  async queueRollback(
     @Param("id", ParseUUIDPipe) id: string,
     @Body() dto: RollbackDto,
     // @CurrentUser() user: User,
-  ): Promise<RollbackResultResponseDto> {
+  ): Promise<QueuedJobResponse> {
     const organizationId = TEMP_ORG_ID;
     const userId = TEMP_USER_ID;
 
@@ -524,12 +619,46 @@ export class MigrationController {
       throw new BadRequestException('Confirmation text must be "ROLLBACK"');
     }
 
-    return this.migrationService.rollback(
-      organizationId,
-      userId,
-      id,
-      dto.confirmText,
+    // Check if rollback is possible
+    const canRollback = await this.migrationService.canRollback(organizationId, id);
+    if (!canRollback.canRollback) {
+      throw new BadRequestException(canRollback.reason || "Rollback not available");
+    }
+
+    // Queue for async processing
+    const queueJob = await this.migrationQueue.add(
+      "rollback",
+      {
+        jobId: id,
+        organizationId,
+        userId,
+        action: "rollback" as MigrationAction,
+      },
+      {
+        attempts: 1,
+        removeOnComplete: { count: 100 },
+        removeOnFail: { count: 500, age: 24 * 60 * 60 },
+      },
     );
+
+    return {
+      queued: true,
+      queueJobId: queueJob.id as string,
+      action: "rollback",
+    };
+  }
+
+  // ==================== Template Management ====================
+
+  @Get("templates/list")
+  @ApiOperation({ summary: "List saved mapping templates" })
+  @ApiResponse({ status: 200, description: "Available templates" })
+  async listTemplates(
+    // @CurrentUser() user: User,
+  ): Promise<{ templates: { name: string; fieldCount: number }[] }> {
+    const organizationId = TEMP_ORG_ID;
+    const templates = await this.mappingSuggestionService.listTemplates(organizationId);
+    return { templates };
   }
 
   // ==================== Screenshot to Form ====================
