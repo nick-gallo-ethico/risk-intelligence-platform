@@ -1,6 +1,7 @@
 export * from "./dashboard.module";
 export * from "./dashboard-config.service";
 export * from "./widget-data.service";
+export * from "./scheduled-refresh.service";
 export * from "./dashboard.controller";
 // Export entities first (canonical source of interfaces)
 export * from "./entities";
