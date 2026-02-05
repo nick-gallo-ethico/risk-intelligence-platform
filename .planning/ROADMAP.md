@@ -39,7 +39,8 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 8: Portals** - Ethics (anonymous), Employee (self-service), Operator Console
 - [x] **Phase 9: Campaigns & Disclosures** - COI, gifts, outside employment, attestations
 - [x] **Phase 10: Policy Management** - Documents, versioning, approval workflows, AI translation
-- [ ] **Phase 11: Analytics & Reporting** - Dashboards, custom reports, natural language queries
+- [x] **Phase 11: Analytics & Reporting** - Dashboards, custom reports, natural language queries
+- [ ] **Phase 11.1: Frontend Navigation and UI Fixes** - Main sidebar, mobile nav, case tab fixes (INSERTED)
 - [ ] **Phase 12: Internal Operations Portal** - Support console, implementation tools, hotline ops, client success
 
 ## Phase Details
@@ -347,27 +348,47 @@ Plans:
 **Plans**: 21 plans
 
 Plans:
-- [ ] 11-01-PLAN.md (Wave 1) - Dashboard configuration infrastructure: Prisma models, DashboardConfigService
-- [ ] 11-02-PLAN.md (Wave 1) - My Work unified task queue: TaskAggregatorService, MyWorkController
-- [ ] 11-03-PLAN.md (Wave 1) - Flat file export infrastructure: ExportJob, ReportFieldTag, FlatFileService
-- [ ] 11-04-PLAN.md (Wave 1) - Migration infrastructure: MigrationJob, MigrationFieldTemplate, MigrationService
-- [ ] 11-05-PLAN.md (Wave 2) - Widget data service and pre-built widgets: CCO, Investigator, Campaign Manager dashboards
-- [ ] 11-06-PLAN.md (Wave 2) - PDF and PPTX generation: Puppeteer, pptxgenjs, BoardReportService
-- [ ] 11-07-PLAN.md (Wave 2) - Excel streaming export: ExcelExportService, FlatExportProcessor
-- [ ] 11-08-PLAN.md (Wave 2) - AI natural language queries: AiQueryService, QueryToPrismaService with field whitelisting
-- [ ] 11-09-PLAN.md (Wave 2) - Migration connectors base: BaseMigrationConnector abstract class
-- [ ] 11-10-PLAN.md (Wave 3) - Dashboard controller: CRUD, scheduled refresh, DashboardGrid component
-- [ ] 11-11-PLAN.md (Wave 3) - Migration controller and processor: MigrationController, MigrationProcessor
-- [ ] 11-12-PLAN.md (Wave 3) - Scheduled exports: ScheduledExport model, ScheduledExportService, cron processor
-- [ ] 11-13-PLAN.md (Wave 4) - Project milestones: Milestone, MilestoneItem models, MilestoneService
-- [ ] 11-14-PLAN.md (Wave 4) - Gantt chart visualization: GanttChart component, timeline utilities
-- [ ] 11-15-PLAN.md (Wave 3) - Migration file upload: MigrationUploadService with format auto-detection
-- [ ] 11-16-PLAN.md (Wave 3) - Screenshot-to-form AI: ScreenshotToFormService using Claude vision API
-- [ ] 11-17-PLAN.md (Wave 4) - NAVEX import connector: NavexConnector with NAVEX-specific mappings
-- [ ] 11-18-PLAN.md (Wave 4) - EQS/Conversant import connector: EqsConnector with EQS-specific mappings
-- [ ] 11-19-PLAN.md (Wave 4) - Generic CSV import: CsvConnector, MappingSuggestionService
-- [ ] 11-20-PLAN.md (Wave 5) - Import preview and rollback: MigrationProcessor with validate/preview/import/rollback
-- [ ] 11-21-PLAN.md (Wave 5) - Flat file export with tagged fields: TaggedFieldService, FlatExportBuilder UI
+- [x] 11-01-PLAN.md (Wave 1) - Dashboard configuration infrastructure: Prisma models, DashboardConfigService
+- [x] 11-02-PLAN.md (Wave 1) - My Work unified task queue: TaskAggregatorService, MyWorkController
+- [x] 11-03-PLAN.md (Wave 1) - Flat file export infrastructure: ExportJob, ReportFieldTag, FlatFileService
+- [x] 11-04-PLAN.md (Wave 1) - Migration infrastructure: MigrationJob, MigrationFieldTemplate, MigrationService
+- [x] 11-05-PLAN.md (Wave 2) - Widget data service and pre-built widgets: CCO, Investigator, Campaign Manager dashboards
+- [x] 11-06-PLAN.md (Wave 2) - PDF and PPTX generation: Puppeteer, pptxgenjs, BoardReportService
+- [x] 11-07-PLAN.md (Wave 2) - Excel streaming export: ExcelExportService, FlatExportProcessor
+- [x] 11-08-PLAN.md (Wave 2) - AI natural language queries: AiQueryService, QueryToPrismaService with field whitelisting
+- [x] 11-09-PLAN.md (Wave 2) - Migration connectors base: BaseMigrationConnector abstract class
+- [x] 11-10-PLAN.md (Wave 3) - Dashboard controller: CRUD, scheduled refresh, DashboardGrid component
+- [x] 11-11-PLAN.md (Wave 3) - Migration controller and processor: MigrationController, MigrationProcessor
+- [x] 11-12-PLAN.md (Wave 3) - Scheduled exports: ScheduledExport model, ScheduledExportService, cron processor
+- [x] 11-13-PLAN.md (Wave 4) - Project milestones: Milestone, MilestoneItem models, MilestoneService
+- [x] 11-14-PLAN.md (Wave 4) - Gantt chart visualization: GanttChart component, timeline utilities
+- [x] 11-15-PLAN.md (Wave 3) - Migration file upload: MigrationUploadService with format auto-detection
+- [x] 11-16-PLAN.md (Wave 3) - Screenshot-to-form AI: ScreenshotToFormService using Claude vision API
+- [x] 11-17-PLAN.md (Wave 4) - NAVEX import connector: NavexConnector with NAVEX-specific mappings
+- [x] 11-18-PLAN.md (Wave 4) - EQS/Conversant import connector: EqsConnector with EQS-specific mappings
+- [x] 11-19-PLAN.md (Wave 4) - Generic CSV import: CsvConnector, MappingSuggestionService
+- [x] 11-20-PLAN.md (Wave 5) - Import preview and rollback: MigrationProcessor with validate/preview/import/rollback
+- [x] 11-21-PLAN.md (Wave 5) - Flat file export with tagged fields: TaggedFieldService, FlatExportBuilder UI
+
+### Phase 11.1: Frontend Navigation and UI Fixes (INSERTED)
+**Goal**: Add main navigation sidebar and fix broken case detail tabs so the demo environment is fully navigable and functional.
+**Depends on**: Phase 11 (uses existing frontend infrastructure)
+**Requirements**: URGENT - Demo environment needs navigation for sales demos
+**Success Criteria** (what must be TRUE):
+  1. Main navigation sidebar visible on all authenticated pages with links to all modules
+  2. Mobile bottom navigation bar on small screens
+  3. Case detail Messages, Files, and Remediation tabs display real data (not placeholders)
+  4. /campaigns page shows campaign list with filters
+  5. /analytics page shows stats dashboard
+**Plans**: 6 plans in 3 waves
+
+Plans:
+- [x] 11.1-01-PLAN.md (Wave 1) - shadcn/ui Sidebar infrastructure and authenticated layout
+- [x] 11.1-02-PLAN.md (Wave 1) - Mobile bottom navigation and AI panel shell
+- [x] 11.1-03-PLAN.md (Wave 2) - Case tab data wiring: Messages and Files
+- [x] 11.1-04-PLAN.md (Wave 2) - Case tab data wiring: Remediation with drag-reorder
+- [x] 11.1-05-PLAN.md (Wave 3) - Campaigns list page with filters and table
+- [x] 11.1-06-PLAN.md (Wave 3) - Analytics page with Dashboards/Reports tabs
 
 ### Phase 12: Internal Operations Portal
 **Goal**: Build the internal tooling for Ethico teams - Support Console for issue diagnosis and client access, Implementation Portal for onboarding and migrations, Hotline Operations for directive management and QA, and Client Success Dashboard for health monitoring.
@@ -410,7 +431,7 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10 -> 11 -> 12
+Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10 -> 11 -> 11.1 -> 12
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -424,12 +445,13 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 | 8. Portals | 17/17 | Complete | 2026-02-04 |
 | 9. Campaigns & Disclosures | 17/17 | Complete | 2026-02-04 |
 | 10. Policy Management | 11/11 | Complete | 2026-02-05 |
-| 11. Analytics & Reporting | 10/21 | In Progress | - |
+| 11. Analytics & Reporting | 21/21 | Complete | 2026-02-05 |
+| 11.1. Frontend Navigation (INSERTED) | 6/6 | Complete | 2026-02-05 |
 | 12. Internal Operations Portal | 0/19 | Planned | - |
 
 ---
 *Roadmap created: 2026-02-02*
 *Depth: Comprehensive (8-12 phases)*
 *Total phases: 12*
-*Total plans: 153 (estimated)*
+*Total plans: 159 (6 added for Phase 11.1)*
 *Total v1 requirements: 149*
