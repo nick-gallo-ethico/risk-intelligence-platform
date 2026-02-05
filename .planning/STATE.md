@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 11 of 12 (Analytics & Reporting)
-Plan: 10 of 21 in current phase (11-01 through 11-06, 11-08, 11-09 complete)
+Plan: 11 of 21 in current phase (11-01 through 11-09 complete)
 Status: **In Progress** - Executing Phase 11 plans
-Last activity: 2026-02-05 - Completed 11-06-PLAN.md (Board Report Export Services)
+Last activity: 2026-02-05 - Completed 11-07-PLAN.md (Excel Streaming Export)
 **Next Phase:** Phase 12: Internal Operations Portal (after Phase 11)
 
 Progress: [==============================================================-----] 90% (141 of ~156 total plans)
@@ -465,6 +465,11 @@ Recent decisions affecting current work:
 - 11-08: Auto-visualization selection based on query intent and result shape (KPI, TABLE, LINE/BAR/PIE_CHART)
 - 11-08: AiQueryHistory model for query analytics and debugging
 - 11-08: Period comparison in COUNT queries calculates change % from previous time range
+- 11-07: Two Excel generation modes: streaming (>10k rows) via WorkbookWriter, buffer (<10k rows) for rich formatting
+- 11-07: Prisma.CaseGetPayload<> pattern for type-safe complex query includes
+- 11-07: Batch processing with setImmediate yield every 1000 rows for event loop responsiveness
+- 11-07: Export files stored in Azure Blob with 7-day signed URL expiration
+- 11-07: BullMQ export queue with concurrency: 2, 3 retries, exponential backoff (5s, 10s, 20s)
 - 11-09: Strategy pattern for migration connectors - base class + NAVEX/EQS/CSV implementations
 - 11-09: Levenshtein distance fuzzy matching for generic CSV field mapping
 - 11-09: FIELD_ALIASES with 100+ variations for common compliance field names
@@ -485,10 +490,11 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-02-05T02:50:00Z
-Stopped at: Completed 11-09-PLAN.md (Migration Connectors)
+Last session: 2026-02-05T03:30:00Z
+Stopped at: Completed 11-07-PLAN.md (Excel Streaming Export)
 Resume file: None
 
 **Phase 11 Status: IN PROGRESS**
 Plans completed: 11-01 through 11-09
+- 11-07: Excel Streaming Export (ExcelExportService, FlatExportProcessor, ExportsController)
 - 11-09: Migration Connectors (NavexConnector, EqsConnector, CsvConnector, fuzzy matching)
