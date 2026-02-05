@@ -9,12 +9,13 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 
 ## Current Position
 
-Phase: 10 of 11 (Policy Management)
-Plan: 9 of 11 in current phase (10-01 through 10-09 complete)
-Status: **In Progress** - Executing Phase 10 plans
-Last activity: 2026-02-05 - Completed 10-09-PLAN.md (Policy Detail Page)
+Phase: 11 of 12 (Analytics & Reporting)
+Plan: 8 of 21 in current phase (11-01 through 11-08 complete)
+Status: **In Progress** - Executing Phase 11 plans
+Last activity: 2026-02-05 - Completed 11-08-PLAN.md (AI Natural Language Query)
+**Next Phase:** Phase 12: Internal Operations Portal (after Phase 11)
 
-Progress: [===================================================================] 96% (134 of ~140 total plans)
+Progress: [==============================================================-----] 89% (139 of ~156 total plans)
 
 ## Performance Metrics
 
@@ -38,12 +39,16 @@ Progress: [===================================================================] 
 | 09-campaigns-disclosures | 17 | ~261 min | ~15 min |
 
 **Recent Trend:**
-- Last 5 plans: 10-09 (18 min), 10-08 (11 min), 10-07 (est), 10-06 (est), 10-05 (est)
-- Trend: Phase 10 Policy Management - Detail page with version diff, translations, attestations, and linked cases panels.
+- Last 5 plans: 11-08 (19 min), 10-09 (18 min), 10-08 (11 min), 11-04 (28 min), 11-03 (12 min)
+- Trend: Phase 11 Analytics - AI natural language query service with auto-visualization selection.
 
 *Updated after each plan completion*
 
 ## Accumulated Context
+
+### Roadmap Evolution
+
+- Phase 12 added (2026-02-05): Internal Operations Portal - Support Console, Implementation Portal, Hotline Operations, Client Success Dashboard, Tech Debt items
 
 ### Decisions
 
@@ -455,6 +460,11 @@ Recent decisions affecting current work:
 - 11-01: UserDashboardConfig separate from Dashboard for user-specific overrides without duplication
 - 11-01: Role-based default dashboards (CCO, INVESTIGATOR, CAMPAIGN_MANAGER) with isSystem=true protection
 - 11-01: Events emitted for all dashboard mutations (dashboard.created, dashboard.updated, etc.)
+- 11-08: Security-first field whitelisting per entity type prevents SQL injection and data exposure
+- 11-08: Fallback pattern-based parser when Claude unavailable for basic query functionality
+- 11-08: Auto-visualization selection based on query intent and result shape (KPI, TABLE, LINE/BAR/PIE_CHART)
+- 11-08: AiQueryHistory model for query analytics and debugging
+- 11-08: Period comparison in COUNT queries calculates change % from previous time range
 
 ### Pending Todos
 
@@ -471,10 +481,10 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-02-05T03:00:00Z
-Stopped at: Completed 10-09-PLAN.md (Policy Detail Page)
+Last session: 2026-02-05T02:39:00Z
+Stopped at: Completed 11-08-PLAN.md (AI Natural Language Query)
 Resume file: None
 
-**Phase 10 Status: IN PROGRESS**
-Plans completed: 10-01 through 10-09
-- 10-09: Policy Detail Page (tabbed interface, version diff, translations, attestations, linked cases)
+**Phase 11 Status: IN PROGRESS**
+Plans completed: 11-01 through 11-08
+- 11-08: AI Natural Language Query (AiQueryService, QueryToPrismaService, field whitelisting, auto-visualization)
