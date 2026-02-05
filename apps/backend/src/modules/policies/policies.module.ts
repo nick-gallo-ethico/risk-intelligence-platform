@@ -3,12 +3,14 @@ import { PrismaModule } from "../prisma/prisma.module";
 import { ActivityModule } from "../../common/activity.module";
 import { WorkflowModule } from "../workflow/workflow.module";
 import { AiModule } from "../ai/ai.module";
+import { SearchModule } from "../search/search.module";
 import { PoliciesService } from "./policies.service";
 import { PoliciesController } from "./policies.controller";
 import { PolicyApprovalService } from "./approval/policy-approval.service";
 import { PolicyApprovalController } from "./approval/policy-approval.controller";
 import { PolicyWorkflowListener } from "./listeners/workflow.listener";
 import { TranslationStaleListener } from "./listeners/translation-stale.listener";
+import { PolicySearchIndexListener } from "./listeners/search-index.listener";
 import { PolicyTranslationService } from "./translations/policy-translation.service";
 import { PolicyTranslationController } from "./translations/policy-translation.controller";
 import { PolicyCaseAssociationService } from "./associations/policy-case-association.service";
@@ -65,6 +67,7 @@ import { PolicyCaseAssociationController } from "./associations/policy-case-asso
     ActivityModule, // For ActivityService
     WorkflowModule, // For WorkflowEngineService
     AiModule, // For SkillRegistry (translation skill)
+    SearchModule, // For PolicyIndexer
   ],
   controllers: [
     PoliciesController,
@@ -77,6 +80,7 @@ import { PolicyCaseAssociationController } from "./associations/policy-case-asso
     PolicyApprovalService,
     PolicyWorkflowListener,
     TranslationStaleListener,
+    PolicySearchIndexListener,
     PolicyTranslationService,
     PolicyCaseAssociationService,
   ],
