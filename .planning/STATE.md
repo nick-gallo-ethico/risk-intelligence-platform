@@ -439,6 +439,11 @@ Recent decisions affecting current work:
 - 10-05: TranslationStaleListener marks previous version translations stale on new version publish
 - 10-05: Translation review workflow: PENDING_REVIEW -> APPROVED/NEEDS_REVISION -> PUBLISHED
 - 10-05: 13 supported languages: en, es, fr, de, zh, ja, ko, pt, it, nl, ru, ar, hi
+- 10-06: PolicyCaseAssociation links policies (specific versions) to cases
+- 10-06: Three link types: VIOLATION, REFERENCE, GOVERNING for different use cases
+- 10-06: Activity logged on BOTH policy and case when linked/unlinked
+- 10-06: getViolationStats() aggregates violations by policy for compliance dashboards
+- 10-06: Bidirectional queries: findByPolicy() and findByCase()
 - 11-01: react-grid-layout format for responsive dashboard layouts (lg/md/sm/xs breakpoints)
 - 11-01: UserDashboardConfig separate from Dashboard for user-specific overrides without duplication
 - 11-01: Role-based default dashboards (CCO, INVESTIGATOR, CAMPAIGN_MANAGER) with isSystem=true protection
