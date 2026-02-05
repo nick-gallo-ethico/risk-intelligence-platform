@@ -134,6 +134,12 @@ model Organization {
   policyVersionTranslations PolicyVersionTranslation[]
   policyCaseAssociations    PolicyCaseAssociation[]
 
+  // Analytics & Migration relations (Phase 11)
+  migrationJobs           MigrationJob[]
+  migrationFieldTemplates MigrationFieldTemplate[]
+  ReportFieldTag          ReportFieldTag[]
+  ExportJob               ExportJob[]
+
   @@index([slug])
   @@index([isActive])
   @@map("organizations")
@@ -244,6 +250,10 @@ model User {
   policyVersionsPublished       PolicyVersion[]            @relation("PolicyVersionPublishedBy")
   policyTranslationsReviewed    PolicyVersionTranslation[] @relation("PolicyTranslationReviewer")
   policyCaseAssociationsCreated PolicyCaseAssociation[]    @relation("PolicyCaseAssociationCreatedBy")
+
+  // Analytics & Migration relations (Phase 11)
+  migrationJobsCreated MigrationJob[] @relation("MigrationJobCreatedBy")
+  ExportJob            ExportJob[]
 
   // Unique constraint: email must be unique within an organization
   @@unique([organizationId, email])
@@ -5240,4 +5250,274 @@ model PolicyCaseAssociation {
   @@index([organizationId, caseId])
   @@index([organizationId, linkType])
   @@map("policy_case_associations")
+}
+
+// ===========================================
+// Analytics & Migration Entities (Phase 11)
+// ===========================================
+
+/// MigrationSourceType defines supported data sources for import.
+enum MigrationSourceType {
+  NAVEX // NAVEX EthicsPoint exports
+  EQS // EQS/Conversant exports
+  LEGACY_ETHICO // Legacy Ethico platform
+  GENERIC_CSV // Generic CSV/Excel files
+  ONETRUST // OneTrust Ethics exports
+  STAR // STAR/Compliance 360 exports
+
+  @@map("migration_source_type")
+}
+
+/// MigrationJobStatus tracks the lifecycle of a migration job.
+enum MigrationJobStatus {
+  PENDING // File uploaded, not yet validated
+  VALIDATING // Checking file format
+  MAPPING // Field mapping in progress
+  PREVIEW // Preview generated, awaiting confirmation
+  IMPORTING // Import in progress
+  COMPLETED // Import finished successfully
+  FAILED // Import failed
+  ROLLED_BACK // Import was rolled back
+
+  @@map("migration_job_status")
+}
+
+/// MigrationJob tracks a single data import operation from competitor systems.
+/// Supports validation, field mapping, preview, import, and 7-day rollback.
+model MigrationJob {
+  id             String @id @default(uuid())
+  organizationId String @map("organization_id")
+
+  // Source configuration
+  sourceType    MigrationSourceType @map("source_type")
+  fileName      String              @map("file_name")
+  fileUrl       String              @map("file_url") // Azure Blob URL
+  fileSizeBytes Int                 @map("file_size_bytes")
+
+  // Status tracking
+  status      MigrationJobStatus @default(PENDING)
+  progress    Int                @default(0) // 0-100 percentage
+  currentStep String?            @map("current_step") // "Validating rows", "Creating cases", etc.
+
+  // Row counts
+  totalRows    Int? @map("total_rows")
+  validRows    Int? @map("valid_rows")
+  errorRows    Int? @map("error_rows")
+  importedRows Int  @default(0) @map("imported_rows")
+
+  // Field mappings (snapshot at import time)
+  fieldMappings Json? @map("field_mappings") // Array of MigrationFieldMapping
+
+  // Validation results
+  validationErrors Json? @map("validation_errors") // Array of { row, field, error }
+  previewData      Json? @map("preview_data") // Sample transformed rows
+
+  // Rollback support (7 days after completion)
+  rollbackAvailableUntil DateTime? @map("rollback_available_until")
+  rolledBackAt           DateTime? @map("rolled_back_at")
+  rolledBackById         String?   @map("rolled_back_by_id")
+
+  // Error details
+  errorMessage String? @map("error_message")
+  errorDetails Json?   @map("error_details")
+
+  // Audit
+  createdAt   DateTime  @default(now()) @map("created_at")
+  completedAt DateTime? @map("completed_at")
+  createdById String    @map("created_by_id")
+
+  // Relations
+  organization     Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdBy        User              @relation("MigrationJobCreatedBy", fields: [createdById], references: [id])
+  migrationRecords MigrationRecord[]
+
+  @@index([organizationId, status])
+  @@index([organizationId, createdAt])
+  @@map("migration_jobs")
+}
+
+/// MigrationFieldTemplate stores reusable field mapping configurations.
+/// Templates are scoped by organization and source type for reuse across imports.
+model MigrationFieldTemplate {
+  id             String @id @default(uuid())
+  organizationId String @map("organization_id")
+
+  name       String
+  sourceType MigrationSourceType @map("source_type")
+  mappings   Json // Array of field mappings
+
+  // Audit
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  createdById String   @map("created_by_id")
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, sourceType, name])
+  @@index([organizationId, sourceType])
+  @@map("migration_field_templates")
+}
+
+/// MigrationRecord tracks individual records created during import for rollback.
+/// Links imported entities back to their migration job and source row.
+model MigrationRecord {
+  id             String @id @default(uuid())
+  migrationJobId String @map("migration_job_id")
+
+  // What was created
+  entityType String @map("entity_type") // 'Case', 'RIU', 'Person', 'Investigation'
+  entityId   String @map("entity_id")
+
+  // Original data
+  sourceRowNumber Int  @map("source_row_number")
+  sourceData      Json @map("source_data") // Original row data for reference
+
+  // Status
+  createdAt           DateTime @default(now()) @map("created_at")
+  modifiedAfterImport Boolean  @default(false) @map("modified_after_import") // Prevents rollback if true
+
+  // Relations
+  migrationJob MigrationJob @relation(fields: [migrationJobId], references: [id], onDelete: Cascade)
+
+  @@index([migrationJobId])
+  @@index([entityType, entityId])
+  @@map("migration_records")
+}
+
+// ===========================================
+// Export Infrastructure (Phase 11)
+// ===========================================
+
+/// ExportSourceType defines which entity types can have fields tagged for export.
+enum ExportSourceType {
+  CASE
+  INVESTIGATION
+  DISCLOSURE
+  INTERVIEW_RESPONSE
+  RIU
+
+  @@map("export_source_type")
+}
+
+/// ExportDataType defines the data type for formatting exported values.
+enum ExportDataType {
+  TEXT
+  NUMBER
+  DATE
+  BOOLEAN
+  CURRENCY
+  PERCENTAGE
+
+  @@map("export_data_type")
+}
+
+/// ExportType defines the scope of an export job.
+enum ExportType {
+  FLAT_FILE // Everything denormalized
+  CASES_ONLY // Just case columns
+  INVESTIGATIONS_ONLY // Just investigation columns
+  DISCLOSURES_ONLY // Just disclosure columns
+  CUSTOM // User-selected columns
+
+  @@map("export_type")
+}
+
+/// ExportFormat defines the output format for export files.
+enum ExportFormat {
+  CSV
+  XLSX
+  JSON
+
+  @@map("export_format")
+}
+
+/// ExportJobStatus tracks the lifecycle of an export job.
+enum ExportJobStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELLED
+
+  @@map("export_job_status")
+}
+
+/// ReportFieldTag allows admins to configure which custom fields appear as named columns
+/// in flat file exports. Up to 20 tag slots per organization.
+/// This enables non-technical admins to promote custom fields or form responses
+/// to fixed columns for board reporting and BI tools.
+model ReportFieldTag {
+  id             String @id @default(uuid())
+  organizationId String @map("organization_id")
+
+  // What field is tagged
+  sourceEntityType ExportSourceType @map("source_entity_type") // CASE, INVESTIGATION, DISCLOSURE, INTERVIEW_RESPONSE, RIU
+  sourceFieldPath  String           @map("source_field_path") // "customFields.totalDollarAmount" or "responses.q5"
+  templateId       String?          @map("template_id") // Optional: limit to specific form template
+
+  // Export config
+  tagSlot      Int    @map("tag_slot") // 1-20, determines column position
+  columnName   String @map("column_name") // "total_dollar_amount"
+  displayLabel String @map("display_label") // "Total Dollar Amount"
+
+  // Formatting
+  dataType      ExportDataType @map("data_type") // TEXT, NUMBER, DATE, BOOLEAN, CURRENCY, PERCENTAGE
+  formatPattern String?        @map("format_pattern") // "$#,##0.00" for currency, "YYYY-MM-DD" for date
+
+  // Metadata
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  createdById String   @map("created_by_id")
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, tagSlot])
+  @@unique([organizationId, sourceEntityType, sourceFieldPath, templateId])
+  @@index([organizationId])
+  @@map("report_field_tags")
+}
+
+/// ExportJob tracks async flat file export jobs.
+/// Large exports run in background via BullMQ and upload to Azure Blob.
+/// Files auto-expire after 7 days.
+model ExportJob {
+  id             String @id @default(uuid())
+  organizationId String @map("organization_id")
+
+  // Job config
+  exportType ExportType   @map("export_type") // FLAT_FILE, CASES_ONLY, DISCLOSURES_ONLY
+  format     ExportFormat // CSV, XLSX, JSON
+  filters    Json // Query filters applied
+  columns    Json // Column configuration snapshot
+
+  // Status
+  status        ExportJobStatus @default(PENDING)
+  progress      Int             @default(0) // 0-100 percentage
+  totalRows     Int?            @map("total_rows")
+  processedRows Int             @default(0) @map("processed_rows")
+
+  // Output
+  fileUrl       String?   @map("file_url") // Azure Blob URL when complete
+  fileSizeBytes Int?      @map("file_size_bytes")
+  expiresAt     DateTime? @map("expires_at") // Auto-delete after 7 days
+
+  // Error handling
+  errorMessage String? @map("error_message")
+  errorDetails Json?   @map("error_details")
+
+  // Audit
+  createdAt   DateTime  @default(now()) @map("created_at")
+  completedAt DateTime? @map("completed_at")
+  createdById String    @map("created_by_id")
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdBy    User         @relation(fields: [createdById], references: [id])
+
+  @@index([organizationId, status])
+  @@index([organizationId, createdAt])
+  @@index([createdById])
+  @@map("export_jobs")
 }
