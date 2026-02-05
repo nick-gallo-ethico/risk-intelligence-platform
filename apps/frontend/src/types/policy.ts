@@ -161,3 +161,79 @@ export const POLICY_STATUS_LABELS: Record<PolicyStatus, string> = {
   PUBLISHED: 'Published',
   RETIRED: 'Retired',
 };
+
+/**
+ * Policy-Case Association types
+ */
+export type PolicyCaseLinkType = 'VIOLATION' | 'REFERENCE' | 'GOVERNING';
+
+export interface PolicyCaseAssociation {
+  id: string;
+  policyId: string;
+  policyVersionId?: string;
+  caseId: string;
+  linkType: PolicyCaseLinkType;
+  violationDate?: string;
+  notes?: string;
+  createdAt: string;
+  createdById: string;
+  createdBy?: PolicyOwner;
+  case?: {
+    id: string;
+    referenceNumber: string;
+    title?: string;
+    status: string;
+  };
+}
+
+/**
+ * Attestation campaign types
+ */
+export type AttestationCampaignStatus =
+  | 'DRAFT'
+  | 'SCHEDULED'
+  | 'ACTIVE'
+  | 'PAUSED'
+  | 'COMPLETED'
+  | 'CANCELLED';
+
+export interface AttestationCampaign {
+  id: string;
+  name: string;
+  description?: string;
+  status: AttestationCampaignStatus;
+  policyId: string;
+  dueDate?: string;
+  totalAssignments: number;
+  completedAssignments: number;
+  overdueAssignments: number;
+  createdAt: string;
+}
+
+/**
+ * Display labels for link types
+ */
+export const POLICY_LINK_TYPE_LABELS: Record<PolicyCaseLinkType, string> = {
+  VIOLATION: 'Violation',
+  REFERENCE: 'Reference',
+  GOVERNING: 'Governing',
+};
+
+/**
+ * Supported languages for translation
+ */
+export const SUPPORTED_LANGUAGES: Record<string, string> = {
+  en: 'English',
+  es: 'Spanish',
+  fr: 'French',
+  de: 'German',
+  zh: 'Chinese',
+  ja: 'Japanese',
+  ko: 'Korean',
+  pt: 'Portuguese',
+  it: 'Italian',
+  nl: 'Dutch',
+  ru: 'Russian',
+  ar: 'Arabic',
+  hi: 'Hindi',
+};

@@ -16,6 +16,8 @@ import type {
   PolicyFilters,
   PolicyListResponse,
   PolicyApprovalStatus,
+  PolicyCaseAssociation,
+  AttestationCampaign,
 } from '@/types/policy';
 
 /**
@@ -261,6 +263,91 @@ export async function approveTranslation(
   );
 }
 
+/**
+ * Refresh a stale translation.
+ *
+ * @param translationId - Translation ID
+ * @returns Updated translation
+ */
+export async function refreshTranslation(
+  translationId: string
+): Promise<PolicyTranslation> {
+  return apiClient.post<PolicyTranslation>(
+    `/policies/translations/${translationId}/refresh`
+  );
+}
+
+// ============================================================================
+// Policy-Case Associations
+// ============================================================================
+
+/**
+ * Get policy-case associations for a policy.
+ *
+ * @param policyId - Policy ID
+ * @returns Array of policy-case associations
+ */
+export async function getPolicyCaseAssociations(
+  policyId: string
+): Promise<PolicyCaseAssociation[]> {
+  return apiClient.get<PolicyCaseAssociation[]>(
+    `/policy-case-associations/by-policy/${policyId}`
+  );
+}
+
+/**
+ * Link a case to a policy.
+ *
+ * @param policyId - Policy ID
+ * @param caseId - Case ID
+ * @param linkType - Type of link (VIOLATION, REFERENCE, GOVERNING)
+ * @param violationDate - Optional violation date (for VIOLATION type)
+ * @param notes - Optional notes
+ * @returns Created association
+ */
+export async function linkCaseToPolicy(
+  policyId: string,
+  caseId: string,
+  linkType: 'VIOLATION' | 'REFERENCE' | 'GOVERNING',
+  violationDate?: string,
+  notes?: string
+): Promise<PolicyCaseAssociation> {
+  return apiClient.post<PolicyCaseAssociation>('/policy-case-associations', {
+    policyId,
+    caseId,
+    linkType,
+    violationDate,
+    notes,
+  });
+}
+
+/**
+ * Unlink a case from a policy.
+ *
+ * @param associationId - Association ID
+ */
+export async function unlinkCaseFromPolicy(associationId: string): Promise<void> {
+  await apiClient.delete(`/policy-case-associations/${associationId}`);
+}
+
+// ============================================================================
+// Attestation Campaigns
+// ============================================================================
+
+/**
+ * Get attestation campaigns for a policy.
+ *
+ * @param policyId - Policy ID
+ * @returns Array of attestation campaigns
+ */
+export async function getPolicyAttestationCampaigns(
+  policyId: string
+): Promise<AttestationCampaign[]> {
+  return apiClient.get<AttestationCampaign[]>(
+    `/campaigns?policyId=${policyId}&type=ATTESTATION`
+  );
+}
+
 // Export all functions as a single API object for convenience
 export const policiesApi = {
   list: listPolicies,
@@ -280,4 +367,9 @@ export const policiesApi = {
   createTranslation,
   updateTranslation,
   approveTranslation,
+  refreshTranslation,
+  getCaseAssociations: getPolicyCaseAssociations,
+  linkCase: linkCaseToPolicy,
+  unlinkCase: unlinkCaseFromPolicy,
+  getAttestationCampaigns: getPolicyAttestationCampaigns,
 };
