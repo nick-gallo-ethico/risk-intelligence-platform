@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useCallback } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import {
   FileText,
@@ -18,6 +18,8 @@ import { cn } from '@/lib/utils';
 import { LinkedRiuList } from './linked-riu-list';
 import { CaseActivityTimeline } from './case-activity-timeline';
 import { CaseInvestigationsPanel } from './case-investigations-panel';
+import { MessagesTab } from './messages-tab';
+import { RemediationTab } from './remediation-tab';
 import type { Case, RiuAssociation } from '@/types/case';
 
 /**
@@ -180,8 +182,11 @@ export function CaseTabs({
           value="messages"
           className="h-full m-0 p-0 data-[state=inactive]:hidden"
         >
-          <div className="h-full overflow-y-auto">
-            <MessagesTab caseData={caseData} />
+          <div className="h-full overflow-hidden">
+            <MessagesTab
+              caseId={caseData.id}
+              reporterAnonymous={caseData.reporterAnonymous}
+            />
           </div>
         </TabsContent>
 
@@ -211,7 +216,7 @@ export function CaseTabs({
           className="h-full m-0 p-0 data-[state=inactive]:hidden"
         >
           <div className="h-full overflow-y-auto">
-            <RemediationTab caseData={caseData} />
+            <RemediationTab caseId={caseData.id} />
           </div>
         </TabsContent>
       </div>
@@ -307,31 +312,6 @@ function OverviewTab({ caseData, onRiuClick }: OverviewTabProps) {
 }
 
 /**
- * Messages tab - anonymous communication placeholder
- */
-function MessagesTab({ caseData }: { caseData: Case }) {
-  return (
-    <div className="p-6">
-      <div className="text-center py-12 text-gray-400 border border-dashed rounded-md">
-        <MessageSquare className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-        <h4 className="text-sm font-medium text-gray-900 mb-1">
-          Anonymous Communication
-        </h4>
-        <p className="text-sm text-gray-500 max-w-sm mx-auto">
-          Securely communicate with the reporter through the anonymous relay system.
-          Messages are end-to-end encrypted.
-        </p>
-        {caseData.reporterAnonymous && (
-          <Badge variant="outline" className="mt-4">
-            Reporter is anonymous
-          </Badge>
-        )}
-      </div>
-    </div>
-  );
-}
-
-/**
  * Files tab - attachments grid placeholder
  */
 function FilesTab({ caseData }: { caseData: Case }) {
@@ -350,25 +330,6 @@ function FilesTab({ caseData }: { caseData: Case }) {
         <Button variant="outline" size="sm" className="mt-4">
           Upload File
         </Button>
-      </div>
-    </div>
-  );
-}
-
-/**
- * Remediation tab - linked remediation plans placeholder
- */
-function RemediationTab({ caseData }: { caseData: Case }) {
-  return (
-    <div className="p-6">
-      <div className="text-center py-12 text-gray-400 border border-dashed rounded-md">
-        <ClipboardCheck className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-        <h4 className="text-sm font-medium text-gray-900 mb-1">
-          Remediation Plans
-        </h4>
-        <p className="text-sm text-gray-500 max-w-sm mx-auto">
-          Create and track remediation plans to address findings from investigations.
-        </p>
       </div>
     </div>
   );
