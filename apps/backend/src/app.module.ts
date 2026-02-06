@@ -39,6 +39,8 @@ import { DisclosuresModule } from "./modules/disclosures/disclosures.module";
 import { PoliciesModule } from "./modules/policies/policies.module";
 import { AnalyticsModule } from "./modules/analytics/analytics.module";
 import { ProjectsModule } from "./modules/projects/projects.module";
+import { OrganizationModule } from "./modules/organization/organization.module";
+import { OperationsModule } from "./modules/operations/operations.module";
 import { ActivityModule } from "./common/activity.module";
 import { StorageModule } from "./common/storage.module";
 import { TenantMiddleware } from "./common/middleware/tenant.middleware";
@@ -109,6 +111,8 @@ import configuration from "./config/configuration";
     PoliciesModule, // Policy management with version-on-publish, translations, approval workflows (Phase 10)
     AnalyticsModule, // Dashboards, My Work queue, exports, migrations (Phase 11)
     ProjectsModule, // Project milestones with progress tracking (Phase 11)
+    OrganizationModule, // Organization settings management (general, branding, notifications, security)
+    OperationsModule, // Internal Operations Portal - Support Console, Implementation, Hotline Ops (Phase 12)
     HealthModule,
   ],
   controllers: [],
@@ -122,10 +126,21 @@ import configuration from "./config/configuration";
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    // Apply tenant middleware to all routes except health check, auth, public endpoints, and admin
+    // Apply tenant middleware to all routes except:
+    // - health: Health check endpoints
+    // - api/v1/auth/*: Authentication endpoints
+    // - api/v1/public/*: Public endpoints (no auth required)
+    // - api/v1/operations/*: Internal operations (uses InternalUser, not tenant User)
+    // - admin/*: Admin endpoints
     consumer
       .apply(TenantMiddleware)
-      .exclude("health", "api/v1/auth/(.*)", "api/v1/public/(.*)", "admin/(.*)")
+      .exclude(
+        "health",
+        "api/v1/auth/(.*)",
+        "api/v1/public/(.*)",
+        "api/v1/operations/(.*)",
+        "admin/(.*)",
+      )
       .forRoutes("*");
   }
 }
