@@ -5,12 +5,7 @@
  * Support team uses these to diagnose issues within impersonated tenants.
  */
 
-import {
-  IsString,
-  IsOptional,
-  IsEnum,
-  IsDateString,
-} from "class-validator";
+import { IsString, IsOptional, IsEnum, IsDateString } from "class-validator";
 import { Type } from "class-transformer";
 
 /**

@@ -270,9 +270,7 @@ export class SupportConsoleService {
    * @param organizationId - Target organization ID
    * @returns Configuration details
    */
-  async getTenantConfig(
-    organizationId: string,
-  ): Promise<TenantConfigResponse> {
+  async getTenantConfig(organizationId: string): Promise<TenantConfigResponse> {
     await this.ensureImpersonating(organizationId);
     await this.logSupportAction(
       SupportActions.VIEW_CONFIG,
@@ -442,8 +440,9 @@ export class SupportConsoleService {
       );
     }
 
-    const ctx =
-      await this.impersonationService.validateSession(this.currentSessionId);
+    const ctx = await this.impersonationService.validateSession(
+      this.currentSessionId,
+    );
 
     if (!ctx) {
       throw new ForbiddenException(

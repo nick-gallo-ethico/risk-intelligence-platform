@@ -6,6 +6,7 @@
  * - Implementation Portal (onboarding, migrations, checklist tracking)
  * - Hotline Operations (directive management, QA queue, operator status)
  * - Client Success (health metrics, usage analytics, benchmarks)
+ * - Training (certification, courses, quizzes)
  *
  * ARCHITECTURE NOTE:
  * This module is NOT tenant-scoped - it operates across tenants
@@ -18,12 +19,13 @@
  * - Session duration limited to 4 hours max
  * - Reason/ticket required for session creation
  *
- * Sub-modules (to be added in subsequent plans):
+ * Sub-modules:
  * - ImpersonationModule: Session management and audit logging
  * - SupportModule: Debug tools, error logs, job monitoring
  * - ImplementationModule: Project tracking, checklists, migrations
  * - HotlineOpsModule: Directives, QA queue, operator dashboard
  * - ClientHealthModule: Health scores, usage metrics, benchmarks
+ * - TrainingModule: Certification, courses, quizzes
  *
  * @see CONTEXT.md for detailed architecture decisions
  * @see internal-roles.types.ts for role definitions and permissions
@@ -37,6 +39,7 @@ import { ImpersonationModule } from "./impersonation/impersonation.module";
 import { ClientHealthModule } from "./client-health/client-health.module";
 import { HotlineOpsModule } from "./hotline-ops/hotline-ops.module";
 import { TrainingModule } from "./training/training.module";
+import { SupportModule } from "./support/support.module";
 
 @Module({
   imports: [
@@ -46,6 +49,8 @@ import { TrainingModule } from "./training/training.module";
     AuditModule,
     // Impersonation module (cross-tenant access with audit logging)
     ImpersonationModule,
+    // Support console (debug tools, error logs, config inspection)
+    SupportModule,
     // Implementation portal (go-live readiness, project tracking)
     ImplementationModule,
     // Client health metrics (health scores, usage metrics, benchmarks)
@@ -54,25 +59,28 @@ import { TrainingModule } from "./training/training.module";
     HotlineOpsModule,
     // Training and certification (courses, quizzes, certificates)
     TrainingModule,
-    // Sub-modules will be added in subsequent plans:
-    // - 12-07: SupportModule (debugging tools)
   ],
   controllers: [
     // Controllers are registered via sub-modules:
     // - ImpersonationController (via ImpersonationModule)
+    // - SupportConsoleController (via SupportModule)
     // - ClientHealthController (via ClientHealthModule)
-    // - SupportController (debug endpoints) - TBD
-    // - DirectivesController (directive CRUD) - TBD
+    // - ImplementationController (via ImplementationModule)
+    // - GoLiveController (via ImplementationModule)
+    // - HotlineOpsController (via HotlineOpsModule)
+    // - TrainingController (via TrainingModule)
   ],
   providers: [
     // Services are registered via sub-modules:
     // - ImpersonationService (via ImpersonationModule)
+    // - SupportConsoleService (via SupportModule)
     // - HealthScoreService, UsageMetricsService (via ClientHealthModule)
-    // - SupportDiagnosticsService - TBD
+    // - ImplementationService, ChecklistService (via ImplementationModule)
   ],
   exports: [
     // Export sub-modules for use by other modules
     ImpersonationModule,
+    SupportModule,
     ImplementationModule,
     ClientHealthModule,
     HotlineOpsModule,

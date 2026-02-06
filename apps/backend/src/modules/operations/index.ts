@@ -96,3 +96,27 @@ export {
   OperatorMetrics,
   StatusBoardSummary,
 } from "./hotline-ops";
+
+// Support Module - Debug tools, error logs, config inspection
+export {
+  SupportModule,
+  SupportConsoleService,
+  SupportConsoleController,
+  TenantSearchDto,
+  ErrorLogFiltersDto,
+  TenantSearchResult,
+  TenantConfigResponse,
+  JobQueueStatusResponse,
+  SearchIndexStatusResponse,
+} from "./support";
+
+// Implementation Module - Activity logging and escalation
+export {
+  ActivityLogService,
+  LogActivityDto,
+  ActivityLogEntry,
+  EscalationProcessor,
+  ESCALATION_QUEUE,
+  EscalationJobData,
+  EscalationResult,
+} from "./implementation";
