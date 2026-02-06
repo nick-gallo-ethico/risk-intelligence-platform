@@ -10,12 +10,12 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 12 of 12 (Internal Operations Portal)
-Plan: 9 of 19 in current phase (in progress)
-Status: Phase 12 in progress - Go-Live Readiness Service complete
-Last activity: 2026-02-06 - Completed 12-09-PLAN.md (Go-Live Readiness Service)
+Plan: 10 of 19 in current phase (in progress)
+Status: Phase 12 in progress - Impersonation Service complete
+Last activity: 2026-02-06 - Completed 12-06-PLAN.md (Impersonation Service)
 **Next Phase:** None (Phase 12 is final phase)
 
-Progress: [======================================================================] 99% (~166 of ~179 total plans)
+Progress: [======================================================================] 99% (~167 of ~179 total plans)
 
 ## Performance Metrics
 
@@ -39,8 +39,8 @@ Progress: [=====================================================================
 | 09-campaigns-disclosures | 17 | ~261 min | ~15 min |
 
 **Recent Trend:**
-- Last 5 plans: 12-09 (16 min), 12-03 (27 min), 12-05 (18 min), 11.1-06 (14 min), 11.1-05 (10 min)
-- Trend: Phase 12 continued - Go-Live Readiness Service with hybrid gates system.
+- Last 5 plans: 12-06 (18 min), 12-09 (16 min), 12-03 (27 min), 12-05 (18 min), 11.1-06 (14 min)
+- Trend: Phase 12 continued - Impersonation Service for cross-tenant access with full audit trail.
 
 **Tech Debt (Phase 11.1):**
 - TD-001: Next.js hydration issue (dev server 404s on JS chunks)
@@ -511,6 +511,10 @@ Recent decisions affecting current work:
 - 12-01: ImpersonationSession max 4 hours, reason required, ticket optional
 - 12-01: ImpersonationAuditLog captures Who/What/When/Where/Why/Before-After
 - 12-01: Operations endpoints excluded from TenantMiddleware (api/v1/operations/*)
+- 12-06: Uses Express request context (req.impersonation) instead of nestjs-cls since cls not installed
+- 12-06: RLS override via SET LOCAL app.current_organization with parameterized query
+- 12-06: Response headers X-Impersonation-Remaining and X-Impersonation-Org for client UI timer
+- 12-06: ImpersonationMiddleware applied globally to all routes via forRoutes('*')
 
 ### Pending Todos
 
@@ -528,12 +532,13 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-02-06
-Stopped at: Completed 12-05-PLAN.md (Go-Live Readiness Models)
+Stopped at: Completed 12-06-PLAN.md (Impersonation Service)
 Resume file: None
 
 **Phase 12 Status: IN PROGRESS**
 - 12-01: Operations Portal Foundation - COMPLETE (InternalUser, ImpersonationSession, ImpersonationAuditLog, OperationsModule)
 - 12-05: Go-Live Readiness Models - COMPLETE (3 Prisma models, 1 types file)
+- 12-06: Impersonation Service - COMPLETE (ImpersonationService, ImpersonationGuard, ImpersonationMiddleware, ImpersonationController)
 
 **Next Steps:**
-- Continue Phase 12: 12-02 (Impersonation Service) or next in sequence
+- Continue Phase 12: 12-07 (Support Console) or next in sequence
