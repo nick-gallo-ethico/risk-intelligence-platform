@@ -10,7 +10,7 @@
  * - Cache aggregates nightly
  */
 
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
@@ -67,7 +67,8 @@ interface ClientListResponse {
 
 const MIN_PEER_COUNT = 5; // Per CONTEXT.md privacy requirement
 
-export default function BenchmarksPage() {
+// Wrapper component to handle useSearchParams with Suspense
+function BenchmarksContent() {
   const searchParams = useSearchParams();
   const preselectedOrgId = searchParams?.get('orgId') || null;
 
@@ -294,5 +295,18 @@ export default function BenchmarksPage() {
         </div>
       )}
     </div>
+  );
+}
+
+// Default export wraps content in Suspense for useSearchParams
+export default function BenchmarksPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center py-12">
+        <div className="animate-pulse text-gray-500">Loading...</div>
+      </div>
+    }>
+      <BenchmarksContent />
+    </Suspense>
   );
 }
