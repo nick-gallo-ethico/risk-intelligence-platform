@@ -495,6 +495,11 @@ Recent decisions affecting current work:
 - 11-integration: Case incidentDate is on RIU entity, not Case entity
 - 11-integration: RiuAssociationType enum (not RiuCaseAssociationType) for RIU-Case links
 - 11-integration: tsconfig.json exclude removed for analytics/migration and analytics/exports folders
+- 12-04: Certification pass threshold 80% per CONTEXT.md (Quiz.passingScore default)
+- 12-04: Quiz questions stored as JSON array for flexibility without additional tables
+- 12-04: Both userId (tenant) and internalUserId (Ethico staff) supported on quiz attempts
+- 12-04: Certificate numbers use CERT-YYYY-NNNNN format (generateCertificateNumber helper)
+- 12-04: Major version changes trigger certificate expiration via completedVersion tracking
 - 12-05: HARD_GATES array defines 4 blocking requirements for go-live
 - 12-05: READINESS_ITEMS array has 7 weighted items summing to 100
 - 12-05: RECOMMENDED_SCORE = 85 is the minimum threshold for go-live without sign-off
