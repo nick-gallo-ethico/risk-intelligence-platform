@@ -160,6 +160,11 @@ model Organization {
   // Internal Operations - Impersonation tracking (Phase 12)
   impersonationSessions ImpersonationSession[]
 
+  // Client Health Metrics (Phase 12)
+  healthScores     TenantHealthScore[]
+  usageMetrics     UsageMetric[]
+  featureAdoptions FeatureAdoption[]
+
   @@index([slug])
   @@index([isActive])
   @@map("organizations")
@@ -6099,7 +6104,7 @@ model ImplementationProject {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relations
-  organization Organization                @relation(fields: [clientOrganizationId], references: [id], onDelete: Cascade)
+  organization Organization             @relation(fields: [clientOrganizationId], references: [id], onDelete: Cascade)
   tasks        ImplementationTask[]
   blockers     ImplementationBlocker[]
   activities   ImplementationActivity[]
@@ -6131,9 +6136,9 @@ model ImplementationTask {
   assignedToId String? @map("assigned_to_id") // InternalUser or null
 
   // Timing
-  dueDate     DateTime? @map("due_date")
-  completedAt DateTime? @map("completed_at")
-  completedById String? @map("completed_by_id")
+  dueDate       DateTime? @map("due_date")
+  completedAt   DateTime? @map("completed_at")
+  completedById String?   @map("completed_by_id")
 
   // Ordering
   sortOrder Int @default(0) @map("sort_order")
@@ -6156,9 +6161,9 @@ model ImplementationTask {
 
 /// Blocker category determines escalation timing per CONTEXT.md
 enum BlockerCategory {
-  INTERNAL    // 3-day escalation
+  INTERNAL // 3-day escalation
   CLIENT_SIDE // 5-day escalation
-  VENDOR      // 5-day escalation
+  VENDOR // 5-day escalation
 
   @@map("blocker_category")
 }
@@ -6175,9 +6180,9 @@ enum BlockerStatus {
 /// ImplementationBlocker tracks issues with auto-escalation timing.
 /// Category-based escalation: Internal 3 days, Client/Vendor 5 days.
 model ImplementationBlocker {
-  id          String          @id @default(uuid())
-  projectId   String          @map("project_id") // FK to ImplementationProject
-  taskId      String?         @map("task_id") // Optional FK to specific task
+  id        String  @id @default(uuid())
+  projectId String  @map("project_id") // FK to ImplementationProject
+  taskId    String? @map("task_id") // Optional FK to specific task
 
   title       String
   description String?
@@ -6185,11 +6190,11 @@ model ImplementationBlocker {
   status      BlockerStatus   @default(OPEN)
 
   // Auto-escalation tracking
-  createdAt              DateTime  @default(now()) @map("created_at")
-  snoozeUntil            DateTime? @map("snooze_until") // When snoozed
-  snoozeReason           String?   @map("snooze_reason") // Required when snoozed (per CONTEXT.md)
-  escalatedToManagerAt   DateTime? @map("escalated_to_manager_at")
-  escalatedToDirectorAt  DateTime? @map("escalated_to_director_at")
+  createdAt             DateTime  @default(now()) @map("created_at")
+  snoozeUntil           DateTime? @map("snooze_until") // When snoozed
+  snoozeReason          String?   @map("snooze_reason") // Required when snoozed (per CONTEXT.md)
+  escalatedToManagerAt  DateTime? @map("escalated_to_manager_at")
+  escalatedToDirectorAt DateTime? @map("escalated_to_director_at")
 
   // Resolution
   resolvedAt      DateTime? @map("resolved_at")
@@ -6266,13 +6271,13 @@ model ImplementationActivity {
 /// These roles are SEPARATE from tenant UserRole and used exclusively
 /// for the Internal Operations Portal.
 enum InternalRole {
-  SUPPORT_L1   // Basic support - read-only, impersonation
-  SUPPORT_L2   // Advanced support - + error/job visibility
-  SUPPORT_L3   // Full support - + config changes
+  SUPPORT_L1 // Basic support - read-only, impersonation
+  SUPPORT_L2 // Advanced support - + error/job visibility
+  SUPPORT_L3 // Full support - + config changes
   IMPLEMENTATION // Implementation specialist - migrations, setup
-  HOTLINE_OPS  // Hotline operations - QA, directives
+  HOTLINE_OPS // Hotline operations - QA, directives
   CLIENT_SUCCESS // CSM - health scores, usage metrics
-  ADMIN        // Full access to all operations features
+  ADMIN // Full access to all operations features
 
   @@map("internal_role")
 }
@@ -6314,7 +6319,7 @@ model ImpersonationSession {
   operatorUserId       String       @map("operator_user_id")
   operatorRole         InternalRole @map("operator_role") // Role at session start (for audit)
   targetOrganizationId String       @map("target_organization_id")
-  reason               String       // Required justification for access
+  reason               String // Required justification for access
   ticketId             String?      @map("ticket_id") // Optional support ticket reference
   startedAt            DateTime     @default(now()) @map("started_at")
   endedAt              DateTime?    @map("ended_at") // Null = still active
@@ -6346,10 +6351,10 @@ model ImpersonationSession {
 model ImpersonationAuditLog {
   id         String   @id @default(uuid())
   sessionId  String   @map("session_id")
-  action     String   // Action type (VIEW_CASE, UPDATE_USER, etc.)
+  action     String // Action type (VIEW_CASE, UPDATE_USER, etc.)
   entityType String?  @map("entity_type") // Entity type affected
   entityId   String?  @map("entity_id") // Entity ID affected
-  details    Json?    // Additional details (changes made, before/after state)
+  details    Json? // Additional details (changes made, before/after state)
   createdAt  DateTime @default(now()) @map("created_at")
 
   // Relations
@@ -6359,4 +6364,526 @@ model ImpersonationAuditLog {
   @@index([action])
   @@index([createdAt])
   @@map("impersonation_audit_logs")
+}
+
+// ===========================================
+// Go-Live Readiness Entities (Phase 12)
+// ===========================================
+
+/// GateStatus tracks the state of a hard gate.
+enum GateStatus {
+  PENDING
+  PASSED
+  FAILED
+  WAIVED // With sign-off
+
+  @@map("gate_status")
+}
+
+/// SignoffType indicates who signed off on below-threshold go-live.
+enum SignoffType {
+  CLIENT // Client acknowledges risk
+  INTERNAL // Ethico approves exception
+
+  @@map("signoff_type")
+}
+
+/// GoLiveGate tracks hard gates (blocking requirements) per project.
+/// Hard gates are: auth_configured, admin_trained, terms_signed, contact_designated
+model GoLiveGate {
+  id        String @id @default(uuid())
+  projectId String @map("project_id") // FK to ImplementationProject
+  gateId    String @map("gate_id") // From HARD_GATES (auth_configured, etc.)
+
+  status      GateStatus @default(PENDING)
+  checkedAt   DateTime?  @map("checked_at") // When last verified
+  checkedById String?    @map("checked_by_id") // InternalUser who verified
+
+  // Waiver details (for WAIVED status)
+  waiverReason       String?   @map("waiver_reason")
+  waiverApprovedById String?   @map("waiver_approved_by_id")
+  waiverApprovedAt   DateTime? @map("waiver_approved_at")
+
+  notes String?
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  project ImplementationProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, gateId])
+  @@index([projectId])
+  @@map("go_live_gates")
+}
+
+/// ReadinessItem tracks weighted readiness checklist items per project.
+/// Items contribute to overall readiness score (recommended 85%+).
+model ReadinessItem {
+  id        String @id @default(uuid())
+  projectId String @map("project_id") // FK to ImplementationProject
+  itemId    String @map("item_id") // From READINESS_ITEMS
+
+  isComplete    Boolean   @default(false) @map("is_complete")
+  completedAt   DateTime? @map("completed_at")
+  completedById String?   @map("completed_by_id") // InternalUser who marked complete
+
+  // Partial credit (0-100 for the item's portion)
+  percentComplete Int @default(0) @map("percent_complete")
+
+  notes String?
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  project ImplementationProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, itemId])
+  @@index([projectId])
+  @@map("readiness_items")
+}
+
+/// GoLiveSignoff captures client acknowledgment to proceed below threshold.
+/// Required when readiness score < 85% (RECOMMENDED_SCORE).
+model GoLiveSignoff {
+  id        String      @id @default(uuid())
+  projectId String      @unique @map("project_id") // One sign-off per project
+  type      SignoffType
+
+  // Scores at time of sign-off
+  readinessScoreAtSignoff Int @map("readiness_score_at_signoff")
+  gatesPassedAtSignoff    Int @map("gates_passed_at_signoff")
+  gatesTotalAtSignoff     Int @map("gates_total_at_signoff")
+
+  // Acknowledgment
+  acknowledgedRisks String[] @default([]) @map("acknowledged_risks") // List of acknowledged risks
+  signoffStatement  String   @map("signoff_statement") // "I acknowledge that..."
+
+  // Client signature
+  clientSignerName  String?   @map("client_signer_name")
+  clientSignerEmail String?   @map("client_signer_email")
+  clientSignedAt    DateTime? @map("client_signed_at")
+
+  // Internal approval
+  internalApproverName String?   @map("internal_approver_name")
+  internalApproverId   String?   @map("internal_approver_id") // InternalUser ID
+  internalApprovedAt   DateTime? @map("internal_approved_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  project ImplementationProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@map("go_live_signoffs")
+}
+
+// ===========================================
+// Certification System (Phase 12)
+// ===========================================
+
+/// CertificationLevel defines the difficulty/progression level of a certification track.
+enum CertificationLevel {
+  FOUNDATION // Platform Fundamentals (required for all)
+  INTERMEDIATE // Module-specific expertise
+  ADVANCED // Deep specialization
+
+  @@map("certification_level")
+}
+
+/// TrackType defines the specific certification track categories.
+enum TrackType {
+  PLATFORM_FUNDAMENTALS // Required for all - platform basics
+  CASE_MANAGEMENT // Case management and investigations
+  CAMPAIGNS_DISCLOSURES // Campaigns and disclosures module
+  POLICY_MANAGEMENT // Policy lifecycle management
+  ANALYTICS_REPORTING // Analytics and reporting
+  ADMIN_CONFIGURATION // System administration and configuration
+
+  @@map("track_type")
+}
+
+/// CourseType defines the content format of a course.
+enum CourseType {
+  VIDEO // Video-based learning content
+  TEXT // Text/document-based learning content
+  INTERACTIVE // Interactive exercises or simulations
+
+  @@map("course_type")
+}
+
+/// QuizStatus tracks the state of a quiz attempt.
+enum QuizStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  PASSED
+  FAILED
+
+  @@map("quiz_status")
+}
+
+/// CertificateStatus tracks the lifecycle of an issued certificate.
+enum CertificateStatus {
+  ACTIVE // Certificate is valid
+  EXPIRED // Certificate has expired (major version update)
+  REVOKED // Certificate has been revoked
+
+  @@map("certificate_status")
+}
+
+/// CertificationTrack represents a modular training track.
+/// Per CONTEXT.md: Platform Fundamentals is required, specialty tracks optional.
+model CertificationTrack {
+  id          String             @id @default(uuid())
+  name        String
+  slug        String             @unique
+  description String?
+  type        TrackType
+  level       CertificationLevel
+
+  // Platform Fundamentals = true (required for all users)
+  isRequired Boolean @default(false) @map("is_required")
+
+  // Versioning for expiration tracking
+  // Major version changes require re-certification
+  version      String @default("1.0")
+  versionMajor Int    @default(1) @map("version_major")
+
+  // Timing
+  estimatedMinutes Int @default(30) @map("estimated_minutes")
+
+  // Ordering and status
+  sortOrder Int     @default(0) @map("sort_order")
+  isActive  Boolean @default(true) @map("is_active")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  courses            Course[]
+  userCertifications UserCertification[]
+
+  @@index([type])
+  @@index([level])
+  @@index([isActive])
+  @@map("certification_tracks")
+}
+
+/// Course represents a single learning unit within a certification track.
+/// Per CONTEXT.md: Short courses with video/text content.
+model Course {
+  id          String     @id @default(uuid())
+  trackId     String     @map("track_id")
+  title       String
+  description String?
+  type        CourseType
+
+  // Content - URL for video, HTML for text
+  contentUrl  String? @map("content_url")
+  contentHtml String? @map("content_html")
+
+  // Timing
+  estimatedMinutes Int @default(10) @map("estimated_minutes")
+
+  // Ordering within track
+  sortOrder Int     @default(0) @map("sort_order")
+  isActive  Boolean @default(true) @map("is_active")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  track CertificationTrack @relation(fields: [trackId], references: [id], onDelete: Cascade)
+  quiz  Quiz?
+
+  @@index([trackId])
+  @@index([isActive])
+  @@map("courses")
+}
+
+/// Quiz represents the assessment for a course.
+/// Per CONTEXT.md: 80% to pass.
+model Quiz {
+  id           String @id @default(uuid())
+  courseId     String @unique @map("course_id")
+  title        String
+  passingScore Float  @default(0.80) @map("passing_score") // 80% per CONTEXT.md
+
+  // Questions stored as JSON for flexibility
+  // Array of QuizQuestion: { id, question, type, options, correctOptionIds, explanation? }
+  questions Json
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  course   Course        @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  attempts QuizAttempt[]
+
+  @@map("quizzes")
+}
+
+/// QuizAttempt tracks a user's attempt at completing a quiz.
+model QuizAttempt {
+  id     String @id @default(uuid())
+  quizId String @map("quiz_id")
+
+  // For tenant users (client staff being certified)
+  userId String? @map("user_id")
+
+  // For internal users (Ethico staff being certified)
+  internalUserId String? @map("internal_user_id")
+
+  // Attempt details
+  startedAt   DateTime   @default(now()) @map("started_at")
+  completedAt DateTime?  @map("completed_at")
+  status      QuizStatus @default(IN_PROGRESS)
+
+  // Results
+  score   Float? // 0.0 to 1.0
+  answers Json? // User's answers: { questionId: [selectedOptionIds] }
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  quiz Quiz @relation(fields: [quizId], references: [id], onDelete: Cascade)
+
+  @@index([quizId])
+  @@index([userId])
+  @@index([internalUserId])
+  @@index([status])
+  @@map("quiz_attempts")
+}
+
+/// UserCertification tracks a user's progress and completion status for a certification track.
+model UserCertification {
+  id      String @id @default(uuid())
+  trackId String @map("track_id")
+
+  // For tenant users (client staff)
+  userId String? @map("user_id")
+
+  // For internal users (Ethico staff)
+  internalUserId String? @map("internal_user_id")
+
+  // Progress
+  startedAt        DateTime  @default(now()) @map("started_at")
+  completedAt      DateTime? @map("completed_at")
+  completedVersion String?   @map("completed_version") // Track version when completed
+
+  // Certificate reference (when issued)
+  certificateId String? @map("certificate_id")
+
+  // Expiration (based on major version changes)
+  expiresAt DateTime? @map("expires_at")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  track       CertificationTrack @relation(fields: [trackId], references: [id])
+  certificate Certificate?       @relation(fields: [certificateId], references: [id])
+
+  // Unique constraint: one certification record per user per track
+  @@unique([trackId, userId])
+  @@unique([trackId, internalUserId])
+  @@index([userId])
+  @@index([internalUserId])
+  @@index([completedAt])
+  @@index([expiresAt])
+  @@map("user_certifications")
+}
+
+/// Certificate represents an issued certification document.
+/// Per CONTEXT.md: PDF certificates with expiration tracking.
+model Certificate {
+  id                String @id @default(uuid())
+  certificateNumber String @unique @map("certificate_number") // CERT-YYYY-NNNNN
+  recipientName     String @map("recipient_name")
+  trackName         String @map("track_name")
+  trackVersion      String @map("track_version")
+
+  // Dates
+  issuedAt  DateTime  @default(now()) @map("issued_at")
+  expiresAt DateTime? @map("expires_at") // For major version expiration
+
+  // Status
+  status CertificateStatus @default(ACTIVE)
+
+  // PDF storage
+  pdfUrl String? @map("pdf_url") // URL to generated PDF in storage
+
+  // Organization (for client certifications)
+  organizationId   String? @map("organization_id")
+  organizationName String? @map("organization_name")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  userCertifications UserCertification[]
+
+  @@index([status])
+  @@index([organizationId])
+  @@index([issuedAt])
+  @@map("certificates")
+}
+
+// ===========================================
+// Client Health Metrics (Phase 12)
+// ===========================================
+
+/// Risk level classification for tenant health.
+/// Used for traffic light indicators and alert prioritization.
+enum RiskLevel {
+  LOW // Score >= 70, stable or improving
+  MEDIUM // Score 40-70 OR declining
+  HIGH // Score < 40 OR (score < 60 AND declining)
+
+  @@map("risk_level")
+}
+
+/// Health score trend direction.
+/// Calculated from delta between current and previous score.
+enum HealthTrend {
+  IMPROVING // Delta > +5
+  STABLE // Delta -5 to +5
+  DECLINING // Delta < -5
+
+  @@map("health_trend")
+}
+
+/// Alert level configuration per account.
+/// Different customers may require different alerting thresholds.
+enum AlertLevel {
+  NONE // No alerts generated
+  DASHBOARD_ONLY // Show on dashboard only (SMB/PLG customers)
+  PROACTIVE // Proactive notification to CSM (high-touch enterprise)
+
+  @@map("alert_level")
+}
+
+/// TenantHealthScore stores blended health scores per tenant.
+/// Component scores weighted per CONTEXT.md:
+/// - Login: 20%, Case Resolution: 25%, Campaign Completion: 25%
+/// - Feature Adoption: 15%, Support Tickets: 15%
+model TenantHealthScore {
+  id             String   @id @default(uuid())
+  organizationId String   @map("organization_id") // FK to Organization
+  calculatedAt   DateTime @default(now()) @map("calculated_at")
+
+  // Component scores (0-100 each)
+  loginScore              Int @map("login_score")
+  caseResolutionScore     Int @map("case_resolution_score")
+  campaignCompletionScore Int @map("campaign_completion_score")
+  featureAdoptionScore    Int @map("feature_adoption_score")
+  supportTicketScore      Int @map("support_ticket_score")
+
+  // Overall (weighted average, 0-100)
+  overallScore Int @map("overall_score")
+
+  // Trend and risk classification
+  trend     HealthTrend
+  riskLevel RiskLevel   @map("risk_level")
+
+  // Previous score for delta calculation
+  previousScore Int? @map("previous_score")
+
+  // Alert configuration (per account, per CONTEXT.md)
+  alertLevel AlertLevel @default(DASHBOARD_ONLY) @map("alert_level")
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([calculatedAt])
+  @@index([riskLevel])
+  @@map("tenant_health_scores")
+}
+
+/// UsageMetric stores daily usage statistics for health calculation.
+/// Aggregated by tenant per day for efficient trend analysis.
+model UsageMetric {
+  id             String   @id @default(uuid())
+  organizationId String   @map("organization_id") // FK to Organization
+  metricDate     DateTime @map("metric_date") @db.Date // Daily granularity
+
+  // Login metrics
+  activeUsers Int @map("active_users") // Users who logged in that day
+  totalUsers  Int @map("total_users") // Total enabled users
+
+  // Case metrics
+  casesCreated Int @map("cases_created")
+  casesClosed  Int @map("cases_closed")
+  casesOnTime  Int @map("cases_on_time") // Closed within SLA
+  casesOverdue Int @map("cases_overdue")
+
+  // Campaign metrics
+  campaignsActive      Int @default(0) @map("campaigns_active")
+  assignmentsTotal     Int @default(0) @map("assignments_total")
+  assignmentsCompleted Int @default(0) @map("assignments_completed")
+
+  // Support metrics (tracked externally, updated via API)
+  supportTickets Int @default(0) @map("support_tickets")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, metricDate])
+  @@index([organizationId])
+  @@index([metricDate])
+  @@map("usage_metrics")
+}
+
+/// FeatureAdoption tracks which platform features a tenant has used.
+/// Used for health score calculation and CSM outreach prioritization.
+model FeatureAdoption {
+  id             String @id @default(uuid())
+  organizationId String @map("organization_id") // FK to Organization
+  featureKey     String @map("feature_key") // Feature identifier
+
+  // Adoption tracking
+  firstUsedAt DateTime @map("first_used_at")
+  lastUsedAt  DateTime @map("last_used_at")
+  usageCount  Int      @default(1) @map("usage_count")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, featureKey])
+  @@index([organizationId])
+  @@index([featureKey])
+  @@map("feature_adoptions")
+}
+
+/// PeerBenchmark stores nightly cached aggregates for peer comparison.
+/// Calculated via background job, not on-demand queries.
+/// Privacy: Only shown when peerCount >= 5 (per CONTEXT.md).
+model PeerBenchmark {
+  id           String   @id @default(uuid())
+  metricName   String   @map("metric_name") // BenchmarkMetric enum value
+  calculatedAt DateTime @default(now()) @map("calculated_at")
+
+  // Filter criteria (null = all customers)
+  industrySector String? @map("industry_sector") // IndustrySector enum value
+  employeeMin    Int?    @map("employee_min") // Min employees for size filter
+  employeeMax    Int?    @map("employee_max") // Max employees for size filter
+
+  // Aggregates
+  peerCount Int   @map("peer_count") // Number of tenants in this cohort (min 5 for privacy)
+  p25       Float // 25th percentile
+  median    Float // 50th percentile
+  p75       Float // 75th percentile
+  mean      Float // Average
+  minValue  Float @map("min_value")
+  maxValue  Float @map("max_value")
+
+  @@unique([metricName, industrySector, employeeMin, employeeMax, calculatedAt])
+  @@index([metricName])
+  @@index([calculatedAt])
+  @@map("peer_benchmarks")
 }
