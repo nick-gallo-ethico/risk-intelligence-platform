@@ -154,6 +154,12 @@ model Organization {
   milestones     Milestone[]
   milestoneItems MilestoneItem[]
 
+  // Implementation Portal relations (Phase 12)
+  implementationProjects ImplementationProject[]
+
+  // Internal Operations - Impersonation tracking (Phase 12)
+  impersonationSessions ImpersonationSession[]
+
   @@index([slug])
   @@index([isActive])
   @@map("organizations")
@@ -6013,4 +6019,344 @@ model MilestoneItem {
   @@index([entityType, entityId])
   @@index([organizationId])
   @@map("milestone_items")
+}
+
+// ===========================================
+// Internal Operations Portal (Phase 12)
+// ===========================================
+
+/// Implementation type determines which checklist template to use
+enum ImplementationType {
+  SMB_QUICK_START
+  ENTERPRISE_FULL
+  HEALTHCARE_HIPAA
+  FINANCIAL_SOX
+  GENERAL_BUSINESS
+
+  @@map("implementation_type")
+}
+
+/// Phases for Enterprise implementation
+enum ImplementationPhase {
+  DISCOVERY
+  CONFIGURATION
+  DATA_MIGRATION
+  UAT
+  GO_LIVE
+  OPTIMIZATION
+
+  @@map("implementation_phase")
+}
+
+/// Implementation project status
+enum ProjectStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  AT_RISK
+  ON_HOLD
+  COMPLETED
+  CANCELLED
+
+  @@map("project_status")
+}
+
+/// Implementation task status
+enum ImplTaskStatus {
+  PENDING
+  IN_PROGRESS
+  BLOCKED
+  COMPLETED
+  SKIPPED
+
+  @@map("impl_task_status")
+}
+
+/// ImplementationProject tracks client onboarding from discovery to go-live.
+/// Supports both SMB Quick Start and Enterprise Full implementation templates.
+model ImplementationProject {
+  id                   String              @id @default(uuid())
+  clientOrganizationId String              @map("client_organization_id") // FK to Organization being implemented
+  type                 ImplementationType
+  status               ProjectStatus       @default(NOT_STARTED)
+  currentPhase         ImplementationPhase @default(DISCOVERY) @map("current_phase")
+
+  // Team assignment
+  leadImplementerId String   @map("lead_implementer_id") // FK to InternalUser (primary owner)
+  assignedUserIds   String[] @default([]) @map("assigned_user_ids") // Multiple Ethico staff can collaborate
+
+  // Timing
+  kickoffDate      DateTime? @map("kickoff_date")
+  targetGoLiveDate DateTime? @map("target_go_live_date")
+  actualGoLiveDate DateTime? @map("actual_go_live_date")
+
+  // Health tracking
+  healthScore Int @default(100) @map("health_score") // 0-100
+
+  // Client visibility (per CONTEXT.md - clients can see their checklist)
+  clientVisibleNotes String? @map("client_visible_notes")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  organization Organization                @relation(fields: [clientOrganizationId], references: [id], onDelete: Cascade)
+  tasks        ImplementationTask[]
+  blockers     ImplementationBlocker[]
+  activities   ImplementationActivity[]
+
+  // Go-live readiness relations
+  goLiveGates    GoLiveGate[]
+  readinessItems ReadinessItem[]
+  goLiveSignoff  GoLiveSignoff?
+
+  @@index([clientOrganizationId])
+  @@index([leadImplementerId])
+  @@index([status])
+  @@index([currentPhase])
+  @@map("implementation_projects")
+}
+
+/// ImplementationTask belongs to phases with status, assignment, due dates.
+/// Tasks are created from templates when a project is initiated.
+model ImplementationTask {
+  id          String              @id @default(uuid())
+  projectId   String              @map("project_id") // FK to ImplementationProject
+  phase       ImplementationPhase
+  name        String
+  description String?
+  status      ImplTaskStatus      @default(PENDING)
+  isRequired  Boolean             @default(true) @map("is_required")
+
+  // Assignment (can be assigned to specific person)
+  assignedToId String? @map("assigned_to_id") // InternalUser or null
+
+  // Timing
+  dueDate     DateTime? @map("due_date")
+  completedAt DateTime? @map("completed_at")
+  completedById String? @map("completed_by_id")
+
+  // Ordering
+  sortOrder Int @default(0) @map("sort_order")
+
+  // Notes
+  notes String?
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  project ImplementationProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([phase])
+  @@index([status])
+  @@index([assignedToId])
+  @@map("implementation_tasks")
+}
+
+/// Blocker category determines escalation timing per CONTEXT.md
+enum BlockerCategory {
+  INTERNAL    // 3-day escalation
+  CLIENT_SIDE // 5-day escalation
+  VENDOR      // 5-day escalation
+
+  @@map("blocker_category")
+}
+
+/// Blocker status
+enum BlockerStatus {
+  OPEN
+  SNOOZED
+  RESOLVED
+
+  @@map("blocker_status")
+}
+
+/// ImplementationBlocker tracks issues with auto-escalation timing.
+/// Category-based escalation: Internal 3 days, Client/Vendor 5 days.
+model ImplementationBlocker {
+  id          String          @id @default(uuid())
+  projectId   String          @map("project_id") // FK to ImplementationProject
+  taskId      String?         @map("task_id") // Optional FK to specific task
+
+  title       String
+  description String?
+  category    BlockerCategory
+  status      BlockerStatus   @default(OPEN)
+
+  // Auto-escalation tracking
+  createdAt              DateTime  @default(now()) @map("created_at")
+  snoozeUntil            DateTime? @map("snooze_until") // When snoozed
+  snoozeReason           String?   @map("snooze_reason") // Required when snoozed (per CONTEXT.md)
+  escalatedToManagerAt   DateTime? @map("escalated_to_manager_at")
+  escalatedToDirectorAt  DateTime? @map("escalated_to_director_at")
+
+  // Resolution
+  resolvedAt      DateTime? @map("resolved_at")
+  resolvedById    String?   @map("resolved_by_id")
+  resolutionNotes String?   @map("resolution_notes")
+
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  project ImplementationProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([category])
+  @@map("implementation_blockers")
+}
+
+/// Activity type for implementation logging
+enum ImplActivityType {
+  EMAIL_SENT
+  EMAIL_RECEIVED
+  MEETING
+  DECISION
+  PHASE_TRANSITION
+  NOTE
+  TASK_COMPLETED
+  BLOCKER_CREATED
+  BLOCKER_RESOLVED
+
+  @@map("impl_activity_type")
+}
+
+/// ImplementationActivity captures emails, meetings, decisions with proper fields.
+/// Supports native email from portal per CONTEXT.md.
+model ImplementationActivity {
+  id        String           @id @default(uuid())
+  projectId String           @map("project_id") // FK to ImplementationProject
+  type      ImplActivityType
+
+  // Content
+  subject String? // Email subject, meeting title
+  content String? // Body text, notes
+
+  // Meeting-specific
+  attendees   String[]  @default([]) // For meetings
+  meetingDate DateTime? @map("meeting_date")
+
+  // Decision-specific
+  decisionRationale String? @map("decision_rationale") // Why this decision was made
+
+  // Email-specific (per CONTEXT.md - native email from portal)
+  emailTo        String[] @default([]) @map("email_to")
+  emailCc        String[] @default([]) @map("email_cc")
+  emailMessageId String?  @map("email_message_id") // For threading/BCC logging
+
+  // Auto-logged
+  isAutoLogged Boolean @default(false) @map("is_auto_logged") // Phase transitions, etc.
+
+  createdById String   @map("created_by_id") // InternalUser who created
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  // Relations
+  project ImplementationProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([projectId])
+  @@index([type])
+  @@index([createdAt])
+  @@index([createdById])
+  @@map("implementation_activities")
+}
+
+/// InternalRole defines permission levels for internal Ethico staff.
+/// These roles are SEPARATE from tenant UserRole and used exclusively
+/// for the Internal Operations Portal.
+enum InternalRole {
+  SUPPORT_L1   // Basic support - read-only, impersonation
+  SUPPORT_L2   // Advanced support - + error/job visibility
+  SUPPORT_L3   // Full support - + config changes
+  IMPLEMENTATION // Implementation specialist - migrations, setup
+  HOTLINE_OPS  // Hotline operations - QA, directives
+  CLIENT_SUCCESS // CSM - health scores, usage metrics
+  ADMIN        // Full access to all operations features
+
+  @@map("internal_role")
+}
+
+/// InternalUser represents an authenticated Ethico internal staff member.
+/// CRITICAL: This is completely separate from tenant User model.
+/// - User: Tenant-scoped, customer employees
+/// - InternalUser: NOT tenant-scoped, Ethico staff with cross-tenant access
+///
+/// This separation is required for SOC 2 compliance.
+model InternalUser {
+  id          String       @id @default(uuid())
+  email       String       @unique
+  name        String
+  role        InternalRole
+  azureAdId   String?      @unique @map("azure_ad_id") // SSO via Azure AD
+  isActive    Boolean      @default(true) @map("is_active")
+  lastLoginAt DateTime?    @map("last_login_at")
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
+
+  // Relations
+  impersonationSessions ImpersonationSession[]
+
+  @@map("internal_users")
+}
+
+/// ImpersonationSession tracks cross-tenant access by internal staff.
+/// Every operation on tenant data by internal staff MUST occur within
+/// an active session with required reason/justification.
+///
+/// Security features:
+/// - Time-bounded (max 4 hours per session)
+/// - Reason required for audit compliance
+/// - Optional ticket reference for support tracking
+/// - All actions logged to ImpersonationAuditLog
+model ImpersonationSession {
+  id                   String       @id @default(uuid())
+  operatorUserId       String       @map("operator_user_id")
+  operatorRole         InternalRole @map("operator_role") // Role at session start (for audit)
+  targetOrganizationId String       @map("target_organization_id")
+  reason               String       // Required justification for access
+  ticketId             String?      @map("ticket_id") // Optional support ticket reference
+  startedAt            DateTime     @default(now()) @map("started_at")
+  endedAt              DateTime?    @map("ended_at") // Null = still active
+  expiresAt            DateTime     @map("expires_at") // Max 4 hours from start
+  ipAddress            String?      @map("ip_address") // For audit trail
+  userAgent            String?      @map("user_agent") // For audit trail
+
+  // Relations
+  operator     InternalUser            @relation(fields: [operatorUserId], references: [id])
+  organization Organization            @relation(fields: [targetOrganizationId], references: [id])
+  auditLogs    ImpersonationAuditLog[]
+
+  @@index([operatorUserId])
+  @@index([targetOrganizationId])
+  @@index([startedAt])
+  @@map("impersonation_sessions")
+}
+
+/// ImpersonationAuditLog captures every action performed during an
+/// impersonation session for complete audit trail.
+///
+/// Per SOC 2 requirements, logs: Who, What, When, Where, Why, Before/After
+/// - Who: via sessionId -> operator
+/// - What: action, entityType, entityId
+/// - When: createdAt
+/// - Where: session.ipAddress, session.userAgent
+/// - Why: session.reason, session.ticketId
+/// - Before/After: details JSON for mutations
+model ImpersonationAuditLog {
+  id         String   @id @default(uuid())
+  sessionId  String   @map("session_id")
+  action     String   // Action type (VIEW_CASE, UPDATE_USER, etc.)
+  entityType String?  @map("entity_type") // Entity type affected
+  entityId   String?  @map("entity_id") // Entity ID affected
+  details    Json?    // Additional details (changes made, before/after state)
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  // Relations
+  session ImpersonationSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("impersonation_audit_logs")
 }
