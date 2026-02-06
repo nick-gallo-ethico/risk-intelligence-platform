@@ -32,6 +32,8 @@
 import { Module } from "@nestjs/common";
 import { PrismaModule } from "../prisma/prisma.module";
 import { AuditModule } from "../audit/audit.module";
+import { ImplementationModule } from "./implementation/implementation.module";
+import { ImpersonationModule } from "./impersonation/impersonation.module";
 
 @Module({
   imports: [
@@ -39,10 +41,12 @@ import { AuditModule } from "../audit/audit.module";
     PrismaModule,
     // Audit module for general audit logging (in addition to impersonation-specific logs)
     AuditModule,
+    // Impersonation module (cross-tenant access with audit logging)
+    ImpersonationModule,
+    // Implementation portal (go-live readiness, project tracking)
+    ImplementationModule,
     // Sub-modules will be added in subsequent plans:
-    // - 12-02: ImpersonationModule (session management)
-    // - 12-03: SupportModule (debugging tools)
-    // - 12-04+: ImplementationModule (project tracking)
+    // - 12-07: SupportModule (debugging tools)
     // - 12-08+: HotlineOpsModule (directives, QA)
     // - 12-14+: ClientHealthModule (health scores)
   ],
@@ -50,7 +54,6 @@ import { AuditModule } from "../audit/audit.module";
     // Controllers will be added as sub-modules are implemented:
     // - ImpersonationController (session CRUD)
     // - SupportController (debug endpoints)
-    // - ImplementationController (project endpoints)
     // - DirectivesController (directive CRUD)
     // - ClientHealthController (metrics endpoints)
   ],
@@ -60,12 +63,12 @@ import { AuditModule } from "../audit/audit.module";
     // - ImpersonationAuditService
     // - InternalAuthService
     // - SupportDiagnosticsService
-    // - ImplementationProjectService
     // - ClientHealthService
   ],
   exports: [
-    // Export types for use by other modules
-    // Services will be exported as they are implemented
+    // Export sub-modules for use by other modules
+    ImpersonationModule,
+    ImplementationModule,
   ],
 })
 export class OperationsModule {}
