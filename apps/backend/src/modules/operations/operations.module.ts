@@ -34,6 +34,8 @@ import { PrismaModule } from "../prisma/prisma.module";
 import { AuditModule } from "../audit/audit.module";
 import { ImplementationModule } from "./implementation/implementation.module";
 import { ImpersonationModule } from "./impersonation/impersonation.module";
+import { ClientHealthModule } from "./client-health/client-health.module";
+import { HotlineOpsModule } from "./hotline-ops/hotline-ops.module";
 
 @Module({
   imports: [
@@ -45,30 +47,32 @@ import { ImpersonationModule } from "./impersonation/impersonation.module";
     ImpersonationModule,
     // Implementation portal (go-live readiness, project tracking)
     ImplementationModule,
+    // Client health metrics (health scores, usage metrics, benchmarks)
+    ClientHealthModule,
+    // Hotline operations (directives, QA queue, operator status)
+    HotlineOpsModule,
     // Sub-modules will be added in subsequent plans:
     // - 12-07: SupportModule (debugging tools)
-    // - 12-08+: HotlineOpsModule (directives, QA)
-    // - 12-14+: ClientHealthModule (health scores)
   ],
   controllers: [
-    // Controllers will be added as sub-modules are implemented:
-    // - ImpersonationController (session CRUD)
-    // - SupportController (debug endpoints)
-    // - DirectivesController (directive CRUD)
-    // - ClientHealthController (metrics endpoints)
+    // Controllers are registered via sub-modules:
+    // - ImpersonationController (via ImpersonationModule)
+    // - ClientHealthController (via ClientHealthModule)
+    // - SupportController (debug endpoints) - TBD
+    // - DirectivesController (directive CRUD) - TBD
   ],
   providers: [
-    // Services will be added as sub-modules are implemented:
-    // - ImpersonationService
-    // - ImpersonationAuditService
-    // - InternalAuthService
-    // - SupportDiagnosticsService
-    // - ClientHealthService
+    // Services are registered via sub-modules:
+    // - ImpersonationService (via ImpersonationModule)
+    // - HealthScoreService, UsageMetricsService (via ClientHealthModule)
+    // - SupportDiagnosticsService - TBD
   ],
   exports: [
     // Export sub-modules for use by other modules
     ImpersonationModule,
     ImplementationModule,
+    ClientHealthModule,
+    HotlineOpsModule,
   ],
 })
 export class OperationsModule {}

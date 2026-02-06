@@ -58,3 +58,18 @@ export {
   AuditLogQueryParams,
   createUpdateDetails,
 } from "./entities/impersonation-audit-log.entity";
+
+// Impersonation Module - Session management and cross-tenant access
+export {
+  ImpersonationModule,
+  ImpersonationService,
+  ImpersonationGuard,
+  ImpersonationMiddleware,
+  ImpersonationContext,
+  RequireImpersonation,
+  CurrentImpersonation,
+  isImpersonating,
+  getEffectiveOrganizationId,
+  StartSessionDto,
+  EndSessionDto,
+} from "./impersonation";
