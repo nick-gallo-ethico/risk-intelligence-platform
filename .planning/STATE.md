@@ -10,12 +10,12 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 12 of 12 (Internal Operations Portal)
-Plan: 0 of 19 in current phase (not started)
-Status: Phase 11.1 complete, Phase 12 ready
-Last activity: 2026-02-05 - Completed Phase 11.1 (Frontend Navigation and UI Fixes)
+Plan: 5 of 19 in current phase (in progress)
+Status: Phase 12 started - Go-live readiness models complete
+Last activity: 2026-02-06 - Completed 12-05-PLAN.md (Go-Live Readiness Models)
 **Next Phase:** None (Phase 12 is final phase)
 
-Progress: [=====================================================================] 99% (~160 of ~179 total plans)
+Progress: [======================================================================] 99% (~161 of ~179 total plans)
 
 ## Performance Metrics
 
@@ -39,8 +39,12 @@ Progress: [=====================================================================
 | 09-campaigns-disclosures | 17 | ~261 min | ~15 min |
 
 **Recent Trend:**
-- Last 5 plans: 11.1-06 (14 min), 11.1-05 (10 min), 11.1-04 (8 min), 11.1-03 (8 min), 11.1-02 (9 min)
-- Trend: Phase 11.1 COMPLETE - Sidebar, mobile nav, case tabs, campaigns page, analytics page all working.
+- Last 5 plans: 12-05 (18 min), 11.1-06 (14 min), 11.1-05 (10 min), 11.1-04 (8 min), 11.1-03 (8 min)
+- Trend: Phase 12 started - Implementation Portal go-live readiness infrastructure.
+
+**Tech Debt (Phase 11.1):**
+- TD-001: Next.js hydration issue (dev server 404s on JS chunks)
+- TD-002: Playwright baseURL configuration needs fix
 
 *Updated after each plan completion*
 
@@ -491,6 +495,12 @@ Recent decisions affecting current work:
 - 11-integration: Case incidentDate is on RIU entity, not Case entity
 - 11-integration: RiuAssociationType enum (not RiuCaseAssociationType) for RIU-Case links
 - 11-integration: tsconfig.json exclude removed for analytics/migration and analytics/exports folders
+- 12-05: HARD_GATES array defines 4 blocking requirements for go-live
+- 12-05: READINESS_ITEMS array has 7 weighted items summing to 100
+- 12-05: RECOMMENDED_SCORE = 85 is the minimum threshold for go-live without sign-off
+- 12-05: GoLiveGate unique constraint (projectId, gateId) ensures one status per gate per project
+- 12-05: ReadinessItem.percentComplete supports partial credit (0-100)
+- 12-05: GoLiveSignoff captures acknowledgedRisks array for explicit risk acknowledgment
 
 ### Pending Todos
 
@@ -507,21 +517,12 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-02-05
-Stopped at: Phase 11.1 COMPLETE - All 6 plans executed and verified
+Last session: 2026-02-06
+Stopped at: Completed 12-05-PLAN.md (Go-Live Readiness Models)
 Resume file: None
 
-**Phase 11.1 Status: COMPLETE**
-All 6 plans executed (11.1-01 through 11.1-06):
-- 11.1-01: shadcn/ui Sidebar with icon rail, flyouts, role-based admin
-- 11.1-02: Mobile bottom nav + AI panel shell
-- 11.1-03: Messages and Files tabs with real API data
-- 11.1-04: Remediation tab with drag-reorder (@dnd-kit)
-- 11.1-05: Campaigns list page with filters and pagination
-- 11.1-06: Analytics page with Dashboards/Reports tabs
-
-Demo environment now fully navigable.
+**Phase 12 Status: IN PROGRESS**
+- 12-05: Go-Live Readiness Models - COMPLETE (3 Prisma models, 1 types file)
 
 **Next Steps:**
-- Phase 12: Internal Operations Portal (final phase in milestone)
-- Run /gsd:discuss-phase 12 or /gsd:plan-phase 12 to begin
+- Continue Phase 12: 12-06 (Go-Live Readiness Service) or next in sequence
