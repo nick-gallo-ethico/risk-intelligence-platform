@@ -2,6 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Accessibility styles - WCAG 2.1 AA compliance */
+@import '../styles/accessibility.css';
+
 @layer base {
   :root {
     /* Internal Ops Console - Distinct from customer-facing app */
