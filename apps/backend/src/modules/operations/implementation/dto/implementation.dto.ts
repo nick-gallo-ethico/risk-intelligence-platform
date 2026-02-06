@@ -203,7 +203,7 @@ export class ListProjectsQueryDto {
  * Response type for project list with pagination
  */
 export interface ProjectListResponse {
-  items: any[]; // ImplementationProject with relations
+  items: unknown[]; // ImplementationProject with relations
   total: number;
   limit: number;
   offset: number;

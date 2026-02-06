@@ -25,6 +25,8 @@ import {
   BlockerStatus,
   ImplActivityType,
   ImplementationBlocker,
+  ImplementationTask,
+  ImplementationActivity,
 } from "@prisma/client";
 import { PrismaService } from "../../prisma/prisma.service";
 import { ChecklistService } from "./checklist.service";
@@ -45,9 +47,9 @@ export interface ImplementationProjectFull extends ImplementationProject {
     id: string;
     name: string;
   };
-  tasks: any[];
-  blockers: any[];
-  activities: any[];
+  tasks: ImplementationTask[];
+  blockers: ImplementationBlocker[];
+  activities: ImplementationActivity[];
 }
 
 @Injectable()

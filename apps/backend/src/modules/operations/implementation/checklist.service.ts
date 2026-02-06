@@ -79,13 +79,15 @@ export class ChecklistService {
    * Get all tasks for a project, grouped by phase.
    */
   async getTasksByPhase(projectId: string): Promise<
-    Record<
-      ImplementationPhase,
-      {
-        tasks: ImplementationTask[];
-        completed: number;
-        total: number;
-      }
+    Partial<
+      Record<
+        ImplementationPhase,
+        {
+          tasks: ImplementationTask[];
+          completed: number;
+          total: number;
+        }
+      >
     >
   > {
     const tasks = await this.prisma.implementationTask.findMany({
@@ -93,20 +95,23 @@ export class ChecklistService {
       orderBy: { sortOrder: "asc" },
     });
 
-    const result: Record<
-      ImplementationPhase,
-      { tasks: ImplementationTask[]; completed: number; total: number }
-    > = {} as any;
+    const result: Partial<
+      Record<
+        ImplementationPhase,
+        { tasks: ImplementationTask[]; completed: number; total: number }
+      >
+    > = {};
 
     // Group by phase
     for (const task of tasks) {
       if (!result[task.phase]) {
         result[task.phase] = { tasks: [], completed: 0, total: 0 };
       }
-      result[task.phase].tasks.push(task);
-      result[task.phase].total++;
+      const phaseData = result[task.phase]!;
+      phaseData.tasks.push(task);
+      phaseData.total++;
       if (task.status === ImplTaskStatus.COMPLETED) {
-        result[task.phase].completed++;
+        phaseData.completed++;
       }
     }
 
