@@ -501,6 +501,11 @@ Recent decisions affecting current work:
 - 12-05: GoLiveGate unique constraint (projectId, gateId) ensures one status per gate per project
 - 12-05: ReadinessItem.percentComplete supports partial credit (0-100)
 - 12-05: GoLiveSignoff captures acknowledgedRisks array for explicit risk acknowledgment
+- 12-01: InternalUser model is separate from tenant User for SOC 2 compliance
+- 12-01: 7 InternalRole types (SUPPORT_L1-L3, IMPLEMENTATION, HOTLINE_OPS, CLIENT_SUCCESS, ADMIN)
+- 12-01: ImpersonationSession max 4 hours, reason required, ticket optional
+- 12-01: ImpersonationAuditLog captures Who/What/When/Where/Why/Before-After
+- 12-01: Operations endpoints excluded from TenantMiddleware (api/v1/operations/*)
 
 ### Pending Todos
 
@@ -522,7 +527,8 @@ Stopped at: Completed 12-05-PLAN.md (Go-Live Readiness Models)
 Resume file: None
 
 **Phase 12 Status: IN PROGRESS**
+- 12-01: Operations Portal Foundation - COMPLETE (InternalUser, ImpersonationSession, ImpersonationAuditLog, OperationsModule)
 - 12-05: Go-Live Readiness Models - COMPLETE (3 Prisma models, 1 types file)
 
 **Next Steps:**
-- Continue Phase 12: 12-06 (Go-Live Readiness Service) or next in sequence
+- Continue Phase 12: 12-02 (Impersonation Service) or next in sequence
