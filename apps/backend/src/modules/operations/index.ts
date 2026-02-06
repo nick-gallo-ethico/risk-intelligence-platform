@@ -73,3 +73,26 @@ export {
   StartSessionDto,
   EndSessionDto,
 } from "./impersonation";
+
+// Hotline Operations Module - Directive management, QA queue, operator status
+export {
+  HotlineOpsModule,
+  DirectiveAdminService,
+  BulkQaService,
+  OperatorStatusService,
+  DirectiveWithRelations,
+  DirectiveListResult,
+  QaQueueItem,
+  QaQueueResult,
+  BulkActionResult,
+  ReviewerMetrics,
+  BulkQaActionDto,
+  BulkQaActionType,
+  CreateDirectiveDto,
+  UpdateDirectiveDto,
+  UpdateOperatorStatusDto,
+  OperatorStatus,
+  OperatorStatusUpdate,
+  OperatorMetrics,
+  StatusBoardSummary,
+} from "./hotline-ops";
