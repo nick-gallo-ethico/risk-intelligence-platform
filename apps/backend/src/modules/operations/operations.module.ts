@@ -36,6 +36,7 @@ import { ImplementationModule } from "./implementation/implementation.module";
 import { ImpersonationModule } from "./impersonation/impersonation.module";
 import { ClientHealthModule } from "./client-health/client-health.module";
 import { HotlineOpsModule } from "./hotline-ops/hotline-ops.module";
+import { TrainingModule } from "./training/training.module";
 
 @Module({
   imports: [
@@ -51,6 +52,8 @@ import { HotlineOpsModule } from "./hotline-ops/hotline-ops.module";
     ClientHealthModule,
     // Hotline operations (directives, QA queue, operator status)
     HotlineOpsModule,
+    // Training and certification (courses, quizzes, certificates)
+    TrainingModule,
     // Sub-modules will be added in subsequent plans:
     // - 12-07: SupportModule (debugging tools)
   ],
@@ -73,6 +76,7 @@ import { HotlineOpsModule } from "./hotline-ops/hotline-ops.module";
     ImplementationModule,
     ClientHealthModule,
     HotlineOpsModule,
+    TrainingModule,
   ],
 })
 export class OperationsModule {}
