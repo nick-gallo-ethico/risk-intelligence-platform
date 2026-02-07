@@ -207,3 +207,9 @@ export interface CreateSavedViewInput {
 export interface UpdateSavedViewInput extends Partial<CreateSavedViewInput> {
   displayOrder?: number;
 }
+
+// Property group for organizing columns in the column picker
+export interface PropertyGroup {
+  id: string;
+  label: string;
+}

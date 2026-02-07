@@ -5,7 +5,12 @@
  * filters, and bulk actions through a configuration object passed to
  * the shared view components.
  */
-import type { ViewEntityType, PropertyType, FilterGroup } from "@/lib/views/types";
+import type {
+  ViewEntityType,
+  PropertyType,
+  FilterGroup,
+  PropertyGroup,
+} from "@/lib/views/types";
 import type { CellContext } from "@tanstack/react-table";
 import type { ReactNode } from "react";
 
@@ -83,6 +88,7 @@ export interface ModuleEndpoints {
 export interface ModuleViewConfig {
   moduleType: ViewEntityType;
   columns: ColumnDefinition[];
+  propertyGroups?: PropertyGroup[]; // Groups for organizing columns in the column picker
   quickFilterProperties: QuickFilterProperty[];
   defaultViews: DefaultViewConfig[];
   bulkActions: BulkActionConfig[];
