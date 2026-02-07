@@ -20,6 +20,8 @@ import {
   CreateSavedViewDto,
   UpdateSavedViewDto,
   SavedViewQueryDto,
+  CloneSavedViewDto,
+  ReorderSavedViewsDto,
 } from "./dto/saved-view.dto";
 
 /**
@@ -37,7 +39,7 @@ interface AuthUser {
  * Provides REST endpoints for CRUD operations on saved views,
  * as well as apply, duplicate, and reorder functionality.
  */
-@Controller("api/v1/saved-views")
+@Controller("saved-views")
 @UseGuards(JwtAuthGuard)
 export class SavedViewsController {
   constructor(private readonly savedViewsService: SavedViewsService) {}
@@ -46,10 +48,7 @@ export class SavedViewsController {
    * Creates a new saved view.
    */
   @Post()
-  async create(
-    @CurrentUser() user: AuthUser,
-    @Body() dto: CreateSavedViewDto,
-  ) {
+  async create(@CurrentUser() user: AuthUser, @Body() dto: CreateSavedViewDto) {
     return this.savedViewsService.create(user.organizationId, user.id, dto);
   }
 
@@ -137,13 +136,13 @@ export class SavedViewsController {
   async duplicate(
     @CurrentUser() user: AuthUser,
     @Param("id", ParseUUIDPipe) id: string,
-    @Body("name") name?: string,
+    @Body() dto: CloneSavedViewDto,
   ) {
     return this.savedViewsService.duplicate(
       user.organizationId,
       user.id,
       id,
-      name,
+      dto.newName,
     );
   }
 
@@ -154,9 +153,31 @@ export class SavedViewsController {
   @Put("reorder")
   async reorder(
     @CurrentUser() user: AuthUser,
-    @Body() viewOrders: { id: string; displayOrder: number }[],
+    @Body() dto: ReorderSavedViewsDto,
   ) {
-    await this.savedViewsService.reorder(user.organizationId, user.id, viewOrders);
+    await this.savedViewsService.reorder(
+      user.organizationId,
+      user.id,
+      dto.viewOrders,
+    );
     return { success: true };
+  }
+
+  /**
+   * Updates the record count for a saved view.
+   * Called after executing the view's filters to cache the result count.
+   */
+  @Put(":id/record-count")
+  async updateRecordCount(
+    @CurrentUser() user: AuthUser,
+    @Param("id", ParseUUIDPipe) id: string,
+    @Body("count") count: number,
+  ) {
+    return this.savedViewsService.updateRecordCount(
+      user.organizationId,
+      user.id,
+      id,
+      count,
+    );
   }
 }
