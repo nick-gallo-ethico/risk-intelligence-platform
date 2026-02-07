@@ -125,3 +125,42 @@ export function operatorRequiresValue(operator: FilterOperator): boolean {
   }
   return true;
 }
+
+// Alias for getOperatorsForPropertyType - used by advanced filters
+export function getOperatorsForType(type: PropertyType): FilterOperator[] {
+  const operators = OPERATORS_BY_TYPE[type] || OPERATORS_BY_TYPE.text;
+  return operators.map((op) => op.value);
+}
+
+// Operator labels for display - maps operator values to human-readable labels
+export const OPERATOR_LABELS: Record<FilterOperator, string> = {
+  // Text operators
+  is: "is",
+  is_not: "is not",
+  contains: "contains",
+  does_not_contain: "does not contain",
+  starts_with: "starts with",
+  ends_with: "ends with",
+  // Number operators
+  is_equal_to: "is equal to",
+  is_not_equal_to: "is not equal to",
+  is_greater_than: "is greater than",
+  is_greater_than_or_equal_to: "is greater than or equal to",
+  is_less_than: "is less than",
+  is_less_than_or_equal_to: "is less than or equal to",
+  is_between: "is between",
+  // Date operators
+  is_before: "is before",
+  is_after: "is after",
+  is_less_than_n_ago: "is less than",
+  is_more_than_n_ago: "is more than",
+  // Boolean operators
+  is_true: "is true",
+  is_false: "is false",
+  // Enum operators
+  is_any_of: "is any of",
+  is_none_of: "is none of",
+  // Universal operators
+  is_known: "is known",
+  is_unknown: "is unknown",
+};

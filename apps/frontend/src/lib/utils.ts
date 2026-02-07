@@ -1,5 +1,5 @@
-import { type ClassValue, clsx } from 'clsx';
-import { twMerge } from 'tailwind-merge';
+import { type ClassValue, clsx } from "clsx";
+import { twMerge } from "tailwind-merge";
 
 /**
  * Utility function for merging Tailwind CSS classes.
@@ -10,4 +10,12 @@ import { twMerge } from 'tailwind-merge';
  */
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
+}
+
+/**
+ * Generate a random ID for client-side use.
+ * Not cryptographically secure - use for UI elements only.
+ */
+export function generateId(): string {
+  return Math.random().toString(36).substring(2, 15);
 }

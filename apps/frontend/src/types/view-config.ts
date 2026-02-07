@@ -10,6 +10,8 @@ import type {
   PropertyType,
   FilterGroup,
   PropertyGroup,
+  BoardCardConfig,
+  BoardColumnConfig,
 } from "@/lib/views/types";
 import type { CellContext } from "@tanstack/react-table";
 import type { ReactNode } from "react";
@@ -66,6 +68,8 @@ export interface BoardConfig {
   groupByOptions: { propertyId: string; label: string }[];
   defaultGroupBy: string;
   cardFields?: string[]; // Fields to show on board cards
+  columns?: BoardColumnConfig[]; // Lane configurations with colors
+  cardConfig?: BoardCardConfig; // Card display configuration
 }
 
 // Quick filter property

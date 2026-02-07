@@ -158,6 +158,17 @@ export interface SavedView {
   updatedAt: string;
 }
 
+// Bulk action definition
+export interface BulkAction {
+  id: string;
+  label: string;
+  icon?: string;
+  destructive?: boolean;
+  requiresConfirmation?: boolean;
+  confirmationMessage?: string;
+  children?: BulkAction[]; // Nested actions for dropdown menus
+}
+
 // Bulk action result
 export interface BulkActionResult {
   success: boolean;
@@ -212,4 +223,28 @@ export interface UpdateSavedViewInput extends Partial<CreateSavedViewInput> {
 export interface PropertyGroup {
   id: string;
   label: string;
+}
+
+// Board view card display field configuration
+export interface BoardCardDisplayField {
+  key: string;
+  icon?: React.ComponentType<{ className?: string }>;
+  type?: "text" | "date" | "number";
+}
+
+// Board view card configuration
+export interface BoardCardConfig {
+  titleField: string;
+  subtitleField?: string;
+  priorityField?: string;
+  ownerField?: string;
+  dateField?: string;
+  displayFields?: BoardCardDisplayField[];
+}
+
+// Board view column/lane configuration
+export interface BoardColumnConfig {
+  id: string;
+  label: string;
+  color?: string;
 }
