@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import {
   Search,
@@ -97,17 +98,23 @@ export function TopNav() {
   };
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-40 w-full border-b border-white/10 bg-[hsl(227,36%,13%)] text-white">
       <div className="flex h-14 items-center gap-4 px-4">
         {/* Sidebar trigger (hamburger menu) */}
-        <SidebarTrigger className="shrink-0" />
+        <SidebarTrigger className="shrink-0 text-white/80 hover:text-white hover:bg-white/10" />
 
         {/* Logo / Brand - visible on desktop */}
         <Link
           href="/dashboard"
-          className="hidden md:flex items-center gap-2 font-semibold text-lg"
+          className="hidden md:flex items-center gap-2"
         >
-          <span className="text-primary">Ethico</span>
+          <Image
+            src="/ethico-logo-light.svg"
+            alt="Ethico"
+            width={100}
+            height={28}
+            priority
+          />
         </Link>
 
         {/* Spacer */}
@@ -118,11 +125,11 @@ export function TopNav() {
           <PopoverTrigger asChild>
             <Button
               variant="outline"
-              className="w-64 justify-start text-muted-foreground hidden md:flex"
+              className="w-64 justify-start text-white/70 hover:text-white hidden md:flex border-white/20 bg-white/5 hover:bg-white/10"
             >
               <Search className="mr-2 h-4 w-4" />
               <span>Search...</span>
-              <kbd className="pointer-events-none ml-auto inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
+              <kbd className="pointer-events-none ml-auto inline-flex h-5 select-none items-center gap-1 rounded border border-white/20 bg-white/10 px-1.5 font-mono text-[10px] font-medium text-white/60">
                 <span className="text-xs">⌘</span>K
               </kbd>
             </Button>
@@ -178,7 +185,7 @@ export function TopNav() {
         <Button
           variant="ghost"
           size="icon"
-          className="md:hidden"
+          className="md:hidden text-white/80 hover:text-white hover:bg-white/10"
           onClick={() => setSearchOpen(true)}
         >
           <Search className="h-5 w-5" />
@@ -189,7 +196,7 @@ export function TopNav() {
           variant="ghost"
           size="icon"
           onClick={() => togglePanel()}
-          className="relative"
+          className="relative text-white/80 hover:text-white hover:bg-white/10"
           title="AI Assistant"
         >
           <Sparkles className="h-5 w-5" />
@@ -198,7 +205,7 @@ export function TopNav() {
         {/* Notifications */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="relative">
+            <Button variant="ghost" size="icon" className="relative text-white/80 hover:text-white hover:bg-white/10">
               <Bell className="h-5 w-5" />
               {notificationCount > 0 && (
                 <Badge
@@ -253,26 +260,26 @@ export function TopNav() {
         </DropdownMenu>
 
         {/* Help */}
-        <Button variant="ghost" size="icon" title="Help & Support">
+        <Button variant="ghost" size="icon" title="Help & Support" className="text-white/80 hover:text-white hover:bg-white/10">
           <HelpCircle className="h-5 w-5" />
         </Button>
 
         {/* User Profile Dropdown */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="flex items-center gap-2 px-2">
+            <Button variant="ghost" className="flex items-center gap-2 px-2 hover:bg-white/10">
               <Avatar className="h-8 w-8">
-                <AvatarFallback className="bg-primary text-primary-foreground text-xs">
+                <AvatarFallback className="bg-white/20 text-white text-xs">
                   {displayInitials}
                 </AvatarFallback>
               </Avatar>
               <div className="hidden md:flex flex-col items-start">
-                <span className="text-sm font-medium">{displayName}</span>
-                <span className="text-xs text-muted-foreground">
+                <span className="text-sm font-medium text-white">{displayName}</span>
+                <span className="text-xs text-white/70">
                   {displayRole}
                 </span>
               </div>
-              <ChevronDown className="h-4 w-4 text-muted-foreground hidden md:block" />
+              <ChevronDown className="h-4 w-4 text-white/70 hidden md:block" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
