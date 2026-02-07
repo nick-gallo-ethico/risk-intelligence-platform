@@ -12,6 +12,7 @@ This roadmap delivers a unified, AI-native compliance management platform ("HubS
 
 ```markdown
 ### Demo Data Checkpoint
+
 - [ ] New entity types have 3-year Acme Co. history seeded
 - [ ] New entities connected to existing data (cases link to investigations, etc.)
 - [ ] Fresh items in queues (unread, pending approval, open conflicts)
@@ -24,6 +25,7 @@ This roadmap delivers a unified, AI-native compliance management platform ("HubS
 ## Phases
 
 **Phase Numbering:**
+
 - Integer phases (1, 2, 3): Planned milestone work
 - Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
 
@@ -46,18 +48,21 @@ Decimal phases appear between their surrounding integers in numeric order.
 ## Phase Details
 
 ### Phase 1: Foundation Infrastructure
+
 **Goal**: Establish the platform's nervous system - event-driven communication, background job processing, unified audit logging, and search infrastructure that all subsequent modules depend on.
 **Depends on**: Nothing (first phase); builds on existing ~15% codebase (auth, basic Case/Investigation CRUD)
 **Requirements**: FOUND-01, FOUND-02, FOUND-03, FOUND-06, FOUND-07, FOUND-08, FOUND-09, FOUND-10, FOUND-11, FOUND-12
 **Success Criteria** (what must be TRUE):
-  1. Events emitted from service layer are consumed by async handlers without blocking the request
-  2. Background jobs (AI processing, email sends, report generation) execute with retry logic and dead-letter handling
-  3. All mutations across the platform log to AUDIT_LOG with natural language descriptions queryable by entity
-  4. Search queries against Elasticsearch return results from indexed entities within 500ms
-  5. Workflow engine can transition entity states according to configurable pipeline definitions
-**Plans**: 9 plans in 4 waves
+
+1. Events emitted from service layer are consumed by async handlers without blocking the request
+2. Background jobs (AI processing, email sends, report generation) execute with retry logic and dead-letter handling
+3. All mutations across the platform log to AUDIT_LOG with natural language descriptions queryable by entity
+4. Search queries against Elasticsearch return results from indexed entities within 500ms
+5. Workflow engine can transition entity states according to configurable pipeline definitions
+   **Plans**: 9 plans in 4 waves
 
 Plans:
+
 - [x] 01-01-PLAN.md (Wave 1) - Event bus setup with @nestjs/event-emitter
 - [x] 01-02-PLAN.md (Wave 2) - BullMQ job queue infrastructure with Redis
 - [x] 01-03-PLAN.md (Wave 2) - Unified AUDIT_LOG service with natural language descriptions
@@ -69,18 +74,21 @@ Plans:
 - [x] 01-09-PLAN.md (Wave 2) - File storage service with Azure Blob integration
 
 ### Phase 2: Demo Tenant & Seed Data
+
 **Goal**: Create "Acme Co." demo tenant with 3 years of realistic compliance data - the living test bed that proves features work and enables sales demonstrations.
 **Depends on**: Phase 1 (needs audit logging, workflow engine for realistic data)
 **Requirements**: FOUND-04, FOUND-05, DEMO-01, DEMO-02, DEMO-03, DEMO-04, DEMO-05, DEMO-06, DEMO-07, DEMO-08
 **Success Criteria** (what must be TRUE):
-  1. Demo tenant "Acme Co." exists with complete organizational structure (business units, locations, 500+ employees)
-  2. Demo contains 3 years of historical data: 2,000+ RIUs, 1,500+ Cases, multiple completed campaigns
-  3. Cases exist in all investigation stages with realistic progression timestamps
-  4. Multiple user accounts with different roles can log in and see appropriate data
-  5. Demo can be reset to fresh state with single command (for repeated sales demos)
-**Plans**: 7 plans
+
+1. Demo tenant "Acme Co." exists with complete organizational structure (business units, locations, 500+ employees)
+2. Demo contains 3 years of historical data: 2,000+ RIUs, 1,500+ Cases, multiple completed campaigns
+3. Cases exist in all investigation stages with realistic progression timestamps
+4. Multiple user accounts with different roles can log in and see appropriate data
+5. Demo can be reset to fresh state with single command (for repeated sales demos)
+   **Plans**: 7 plans
 
 Plans:
+
 - [x] 02-01: Demo tenant provisioning service and "Acme Co." organization
 - [x] 02-02: Seed data generator for employees, business units, locations
 - [x] 02-03: Historical RIU generator (all types, all sources, 3-year spread)
@@ -90,18 +98,21 @@ Plans:
 - [x] 02-07: Demo reset command and verification
 
 ### Phase 3: Authentication & SSO
+
 **Goal**: Enable enterprise customers to use their identity providers (Azure AD, Google, SAML) with just-in-time provisioning, domain verification, and multi-factor authentication.
 **Depends on**: Phase 1 (needs audit logging for auth events); can partially parallelize with Phase 2
 **Requirements**: AUTH-01, AUTH-02, AUTH-03, AUTH-04, AUTH-05, AUTH-06, AUTH-07
 **Success Criteria** (what must be TRUE):
-  1. User can log in via Azure AD SSO and be automatically provisioned in correct tenant based on email domain
-  2. User can log in via Google OAuth with domain-based tenant routing
-  3. Enterprise customers can configure SAML 2.0 with their IdP
-  4. Organization admins can verify domain ownership and configure SSO settings
-  5. Users can enable TOTP-based MFA on their accounts
-**Plans**: 8 plans in 4 waves
+
+1. User can log in via Azure AD SSO and be automatically provisioned in correct tenant based on email domain
+2. User can log in via Google OAuth with domain-based tenant routing
+3. Enterprise customers can configure SAML 2.0 with their IdP
+4. Organization admins can verify domain ownership and configure SSO settings
+5. Users can enable TOTP-based MFA on their accounts
+   **Plans**: 8 plans in 4 waves
 
 Plans:
+
 - [x] 03-01-PLAN.md (Wave 1) - Database schema: TenantDomain, TenantSsoConfig, User SSO/MFA fields
 - [x] 03-02-PLAN.md (Wave 1) - Rate limiting infrastructure with @nestjs/throttler
 - [x] 03-03-PLAN.md (Wave 2) - Domain verification service with DNS TXT validation
@@ -112,18 +123,21 @@ Plans:
 - [x] 03-08-PLAN.md (Wave 4) - MFA/TOTP implementation with recovery codes
 
 ### Phase 4: Core Entities
+
 **Goal**: Implement the HubSpot-inspired data model - Person (Contact), RIU (Ticket), Case (Deal), Campaign (Sequence), and labeled Associations that enable pattern detection and unified workflows.
 **Depends on**: Phase 1 (needs workflow engine, audit logging), Phase 3 (needs auth for user-entity links)
 **Requirements**: PERS-01, PERS-02, PERS-03, PERS-04, PERS-05, PERS-06, RIU-01, RIU-02, RIU-03, RIU-04, RIU-05, RIU-06, RIU-07, CASE-01, CASE-02, CASE-03, CASE-04, CASE-05, CASE-06, CAMP-01, CAMP-02, CAMP-03, CAMP-04, CAMP-05, CAMP-06, ASSOC-01, ASSOC-02, ASSOC-03, ASSOC-04
 **Success Criteria** (what must be TRUE):
-  1. Person records can be created from HRIS sync, manual entry, or intake with correct type/source tracking
-  2. RIUs are immutable after creation - intake content cannot be modified, corrections go on linked Case
-  3. Cases can have multiple RIUs linked with association types (primary, related, merged_from)
-  4. Campaigns can target audiences by business unit, location, role and generate assignments for each employee
-  5. Pattern detection queries can find all Cases involving the same Person across different roles (reporter, subject, witness)
-**Plans**: 10 plans in 4 waves
+
+1. Person records can be created from HRIS sync, manual entry, or intake with correct type/source tracking
+2. RIUs are immutable after creation - intake content cannot be modified, corrections go on linked Case
+3. Cases can have multiple RIUs linked with association types (primary, related, merged_from)
+4. Campaigns can target audiences by business unit, location, role and generate assignments for each employee
+5. Pattern detection queries can find all Cases involving the same Person across different roles (reporter, subject, witness)
+   **Plans**: 10 plans in 4 waves
 
 Plans:
+
 - [x] 04-01-PLAN.md (Wave 1) - Person entity with types and sources
 - [x] 04-02-PLAN.md (Wave 2) - Employee fields and manager hierarchy
 - [x] 04-03-PLAN.md (Wave 3) - HRIS sync service with Merge.dev integration
@@ -136,18 +150,21 @@ Plans:
 - [x] 04-10-PLAN.md (Wave 4) - Pattern detection queries and Elasticsearch denormalization
 
 ### Phase 5: AI Infrastructure
+
 **Goal**: Build the AI integration layer that all features consume - Claude API client, context hierarchy loading, skills registry, action catalog, and scoped agents per view.
 **Depends on**: Phase 4 (needs entities to provide context to AI)
 **Requirements**: AI-01, AI-02, AI-03, AI-04, AI-05, AI-06, AI-07, AI-08, AI-09, AI-10, AI-11, AI-12, AI-13, AI-14, AI-15, AI-16, AI-17, AI-18, AI-19, AI-20, AI-21, AI-22
 **Success Criteria** (what must be TRUE):
-  1. AI service calls Claude API with tenant-isolated context (never mixes data from multiple organizations)
-  2. Note cleanup transforms bullet points into formal narrative within 5 seconds
-  3. Case and investigation summaries generate automatically with confidence scores
-  4. AI panel (slide-over drawer) is available on Case and Investigation detail pages
-  5. Scoped agents (Investigation Agent, Case Agent) have different skills and action permissions
-**Plans**: 11 plans in 4 waves
+
+1. AI service calls Claude API with tenant-isolated context (never mixes data from multiple organizations)
+2. Note cleanup transforms bullet points into formal narrative within 5 seconds
+3. Case and investigation summaries generate automatically with confidence scores
+4. AI panel (slide-over drawer) is available on Case and Investigation detail pages
+5. Scoped agents (Investigation Agent, Case Agent) have different skills and action permissions
+   **Plans**: 11 plans in 4 waves
 
 Plans:
+
 - [x] 05-01-PLAN.md (Wave 1) - Claude API integration with @anthropic-ai/sdk
 - [x] 05-02-PLAN.md (Wave 2) - AIProvider abstraction for multi-LLM support
 - [x] 05-03-PLAN.md (Wave 2) - Per-tenant rate limiting with Redis sorted sets
@@ -161,24 +178,28 @@ Plans:
 - [x] 05-11-PLAN.md (Wave 4) - WebSocket gateway and REST controller for AI API
 
 ### Phase 6: Case Management
+
 **Goal**: Complete the Case lifecycle - investigation workflows with templates, structured interviews, remediation plans, subject tracking, and two-way anonymous communication.
 **Depends on**: Phase 4 (needs Case/RIU entities), Phase 5 (needs AI for summaries)
 **Requirements**: INV-01, INV-02, INV-03, INV-04, INV-05, INV-06, INV-07, INV-08, CLIENT-01, CLIENT-02, CLIENT-03, UX-01, UX-02, UX-03, UX-04, UX-05, UX-06
 **Success Criteria** (what must be TRUE):
-  1. Investigators can use category-specific templates with pre-populated checklists
-  2. Structured interviews can be recorded with template questions and linked to investigations
-  3. Remediation plans track steps with assignees, due dates, and completion status
-  4. Two-way anonymous communication works via relay without revealing reporter identity
-  5. Users can create and save custom filtered views across Cases and RIUs
-**Demo Data Checkpoint** (Acme Co. additions):
-  - Investigation templates for each category (Harassment, Fraud, Ethics Violation, etc.)
-  - Sample structured interviews linked to active investigations
-  - Remediation plans with steps at various completion states
-  - Anonymous messages in relay queue awaiting response
-  - 5+ saved views demonstrating filter combinations
-**Plans**: 17 plans in 5 waves
+
+1. Investigators can use category-specific templates with pre-populated checklists
+2. Structured interviews can be recorded with template questions and linked to investigations
+3. Remediation plans track steps with assignees, due dates, and completion status
+4. Two-way anonymous communication works via relay without revealing reporter identity
+5. Users can create and save custom filtered views across Cases and RIUs
+   **Demo Data Checkpoint** (Acme Co. additions):
+
+- Investigation templates for each category (Harassment, Fraud, Ethics Violation, etc.)
+- Sample structured interviews linked to active investigations
+- Remediation plans with steps at various completion states
+- Anonymous messages in relay queue awaiting response
+- 5+ saved views demonstrating filter combinations
+  **Plans**: 17 plans in 5 waves
 
 Plans:
+
 - [ ] 06-01-PLAN.md (Wave 1) - Investigation template model and service with versioning
 - [ ] 06-02-PLAN.md (Wave 1) - Structured interview model and service
 - [ ] 06-03-PLAN.md (Wave 1) - Remediation plan and step models with DAG validation
@@ -198,23 +219,27 @@ Plans:
 - [ ] 06-17-PLAN.md (Wave 5) - Final integration and human verification checkpoint
 
 ### Phase 7: Notifications & Email
+
 **Goal**: Deliver event-driven notifications through multiple channels (email, in-app) with user preferences, template management, and delivery tracking.
 **Depends on**: Phase 1 (needs event bus, job queues), Phase 4 (needs entities to notify about)
 **Requirements**: NOTIF-01, NOTIF-02, NOTIF-03, NOTIF-04, NOTIF-05
 **Success Criteria** (what must be TRUE):
-  1. Users receive email notifications for case assignments, status changes, and SLA breaches
-  2. In-app notification center shows unread count and allows mark-as-read
-  3. Users can configure notification preferences per event type (email, in-app, none)
-  4. Failed email deliveries retry with exponential backoff and log to delivery tracking
-  5. Notification templates support entity context rendering (case title, due date, assignee)
-**Demo Data Checkpoint** (Acme Co. additions):
-  - Notification history for demo users (mix of read/unread)
-  - Email delivery records with various statuses (sent, bounced, opened)
-  - Configured notification preferences for different demo users
-  - Daily digest configurations demonstrating aggregation
-**Plans**: 8 plans in 4 waves
+
+1. Users receive email notifications for case assignments, status changes, and SLA breaches
+2. In-app notification center shows unread count and allows mark-as-read
+3. Users can configure notification preferences per event type (email, in-app, none)
+4. Failed email deliveries retry with exponential backoff and log to delivery tracking
+5. Notification templates support entity context rendering (case title, due date, assignee)
+   **Demo Data Checkpoint** (Acme Co. additions):
+
+- Notification history for demo users (mix of read/unread)
+- Email delivery records with various statuses (sent, bounced, opened)
+- Configured notification preferences for different demo users
+- Daily digest configurations demonstrating aggregation
+  **Plans**: 8 plans in 4 waves
 
 Plans:
+
 - [x] 07-01-PLAN.md (Wave 1) - Database schema: Notification, NotificationPreference, NotificationDelivery, OrgNotificationSettings models
 - [x] 07-02-PLAN.md (Wave 1) - Email template service with MJML and Handlebars integration
 - [x] 07-03-PLAN.md (Wave 2) - Notification preference service with 5-min cache and org enforcement
@@ -225,23 +250,27 @@ Plans:
 - [x] 07-08-PLAN.md (Wave 4) - REST API controllers for notifications and preferences
 
 ### Phase 8: Portals
+
 **Goal**: Launch the three user-facing portals - Ethics Portal (anonymous reporting), Employee Portal (self-service), and Operator Console (hotline intake with AI assistance).
 **Depends on**: Phase 4 (needs RIU/Case/Campaign entities), Phase 5 (needs AI for note cleanup), Phase 7 (needs notifications)
 **Requirements**: ETHIC-01, ETHIC-02, ETHIC-03, ETHIC-04, ETHIC-05, ETHIC-06, EMP-01, EMP-02, EMP-03, EMP-04, EMP-05, EMP-06, OPER-01, OPER-02, OPER-03, OPER-04, OPER-05, OPER-06, OPER-07, OPER-08
 **Success Criteria** (what must be TRUE):
-  1. Anonymous reporters can submit reports and receive access codes without logging in
-  2. Anonymous reporters can check status and exchange messages using only their access code
-  3. Employees can log in via SSO and see their reports, disclosures, attestations, and tasks
-  4. Managers can submit proxy reports on behalf of employees
-  5. Operators can load client profiles by phone number and create RIUs with AI-assisted note cleanup
-**Demo Data Checkpoint** (Acme Co. additions):
-  - Hotline-sourced RIUs with operator notes and AI-cleaned narratives
-  - QA queue items at various review states
-  - Employee self-service report history for demo employees
-  - Manager proxy reports demonstrating escalation flow
-**Plans**: 17 plans in 7 waves
+
+1. Anonymous reporters can submit reports and receive access codes without logging in
+2. Anonymous reporters can check status and exchange messages using only their access code
+3. Employees can log in via SSO and see their reports, disclosures, attestations, and tasks
+4. Managers can submit proxy reports on behalf of employees
+5. Operators can load client profiles by phone number and create RIUs with AI-assisted note cleanup
+   **Demo Data Checkpoint** (Acme Co. additions):
+
+- Hotline-sourced RIUs with operator notes and AI-cleaned narratives
+- QA queue items at various review states
+- Employee self-service report history for demo employees
+- Manager proxy reports demonstrating escalation flow
+  **Plans**: 17 plans in 7 waves
 
 Plans:
+
 - [x] 08-01-PLAN.md (Wave 1) - White-label branding service with CSS custom properties
 - [x] 08-02-PLAN.md (Wave 1) - Directives service for client-specific operator scripts
 - [x] 08-03-PLAN.md (Wave 1) - Client profile service with phone lookup and QA config
@@ -261,24 +290,28 @@ Plans:
 - [x] 08-17-PLAN.md (Wave 7) - Final integration and verification checkpoint
 
 ### Phase 9: Campaigns & Disclosures
+
 **Goal**: Enable outbound compliance campaigns - COI disclosures, gift tracking, outside employment, attestations - with threshold-based auto-case creation and conflict detection.
 **Depends on**: Phase 4 (needs Campaign entity), Phase 7 (needs notifications for reminders), Phase 8 (needs Employee Portal for submission)
 **Requirements**: RS.22-RS.60 (Disclosure Forms, Thresholds, Conflicts, Campaign Engine, AI Triage)
 **Success Criteria** (what must be TRUE):
-  1. Compliance officers can create campaigns targeting employees by business unit, location, or role
-  2. Employees receive campaign assignments and can complete disclosure forms
-  3. Gift disclosures exceeding configured thresholds automatically create Cases for review
-  4. Conflict detection flags potential issues across a person's disclosure history
-  5. Campaign dashboards show completion rates, overdue counts, and send reminders
-**Demo Data Checkpoint** (Acme Co. additions):
-  - 3 years of COI disclosure campaigns with 85% completion rates
-  - Gift disclosures including threshold breaches that created Cases
-  - Outside employment disclosures with conflict flags
-  - Repeat non-responders and late completers for reminder demos
-  - Flagged conflicts awaiting review
-**Plans**: 17 plans in 5 waves
+
+1. Compliance officers can create campaigns targeting employees by business unit, location, or role
+2. Employees receive campaign assignments and can complete disclosure forms
+3. Gift disclosures exceeding configured thresholds automatically create Cases for review
+4. Conflict detection flags potential issues across a person's disclosure history
+5. Campaign dashboards show completion rates, overdue counts, and send reminders
+   **Demo Data Checkpoint** (Acme Co. additions):
+
+- 3 years of COI disclosure campaigns with 85% completion rates
+- Gift disclosures including threshold breaches that created Cases
+- Outside employment disclosures with conflict flags
+- Repeat non-responders and late completers for reminder demos
+- Flagged conflicts awaiting review
+  **Plans**: 17 plans in 5 waves
 
 Plans:
+
 - [x] 09-01-PLAN.md (Wave 1) - Disclosure form schema engine (Prisma models, field types, DTOs)
 - [x] 09-02-PLAN.md (Wave 2) - Form template CRUD service with version-on-publish
 - [x] 09-03-PLAN.md (Wave 1) - Threshold configuration engine with json-rules-engine
@@ -298,24 +331,28 @@ Plans:
 - [x] 09-17-PLAN.md (Wave 5) - Conflict review UI with entity timeline
 
 ### Phase 10: Policy Management
+
 **Goal**: Complete policy lifecycle - document management with versioning, approval workflows, attestation campaigns, and AI-powered translation.
 **Depends on**: Phase 4 (needs Campaign entity for attestations), Phase 5 (needs AI for translation), Phase 9 (shares Campaign infrastructure)
 **Requirements**: POL-01, POL-02, POL-03, POL-04, POL-05, POL-06, POL-07, CLIENT-04, CLIENT-05, CLIENT-06, CLIENT-07
 **Success Criteria** (what must be TRUE):
-  1. Compliance officers can create policies with rich text content and publish versions
-  2. Approval workflows route policy changes through configured reviewers before publishing
-  3. Attestation campaigns distribute policies to employees and track read/acknowledge status
-  4. AI translation preserves the original while creating localized versions
-  5. Policy violations can be linked to Cases for tracking
-**Demo Data Checkpoint** (Acme Co. additions):
-  - 50+ policies with version history (Code of Conduct, Anti-Harassment, Gift Policy, etc.)
-  - Policies in approval workflow at various stages
-  - Completed attestation campaigns with read/acknowledge tracking
-  - Policy-linked Cases showing violation tracking
-  - Multi-language policy translations (Spanish, French, German, Mandarin)
-**Plans**: 11 plans in 5 waves
+
+1. Compliance officers can create policies with rich text content and publish versions
+2. Approval workflows route policy changes through configured reviewers before publishing
+3. Attestation campaigns distribute policies to employees and track read/acknowledge status
+4. AI translation preserves the original while creating localized versions
+5. Policy violations can be linked to Cases for tracking
+   **Demo Data Checkpoint** (Acme Co. additions):
+
+- 50+ policies with version history (Code of Conduct, Anti-Harassment, Gift Policy, etc.)
+- Policies in approval workflow at various stages
+- Completed attestation campaigns with read/acknowledge tracking
+- Policy-linked Cases showing violation tracking
+- Multi-language policy translations (Spanish, French, German, Mandarin)
+  **Plans**: 11 plans in 5 waves
 
 Plans:
+
 - [x] 10-01-PLAN.md (Wave 1) - Policy database schema with versioning infrastructure
 - [x] 10-02-PLAN.md (Wave 2) - Policy service with version-on-publish pattern
 - [x] 10-03-PLAN.md (Wave 2) - Approval workflow integration using WorkflowEngine
@@ -329,25 +366,29 @@ Plans:
 - [x] 10-11-PLAN.md (Wave 5) - Organization settings UI
 
 ### Phase 11: Analytics & Reporting
+
 **Goal**: Deliver data-driven insights - pre-built dashboards, custom dashboard builder, board reports, AI natural language queries, flat file exports, and scheduled report delivery.
 **Depends on**: All previous phases (needs data volume), Phase 5 (needs AI for NL queries)
 **Requirements**: ANAL-01, ANAL-02, ANAL-03, ANAL-04, ANAL-05, ANAL-06, ANAL-07, ANAL-08, PROJ-01, PROJ-02, PROJ-03, PROJ-04, PROJ-05, PROJ-06, MIG-01, MIG-02, MIG-03, MIG-04, MIG-05, MIG-06, MIG-07, FLAT-01
 **Success Criteria** (what must be TRUE):
-  1. Pre-built dashboards show KPIs for RIUs, Cases, Campaigns, and overall compliance health
-  2. Users can build custom dashboards by dragging and configuring widgets
-  3. AI responds to natural language queries like "show me harassment cases from Q4 in EMEA"
-  4. Board reports generate as PDFs with executive summaries and trend charts
-  5. "My Work" unified queue aggregates tasks from Cases, Investigations, Disclosures, and Policies
-  6. Flat file export produces denormalized "everything" file with configurable tagged fields
-**Demo Data Checkpoint** (Acme Co. additions):
-  - Sample dashboards with realistic KPIs and trend charts
-  - Scheduled reports configured for weekly delivery
-  - Board report templates with executive summaries
-  - Tagged field configurations for flat file exports
-  - Sample AI-generated tables saved to dashboards
-**Plans**: 21 plans
+
+1. Pre-built dashboards show KPIs for RIUs, Cases, Campaigns, and overall compliance health
+2. Users can build custom dashboards by dragging and configuring widgets
+3. AI responds to natural language queries like "show me harassment cases from Q4 in EMEA"
+4. Board reports generate as PDFs with executive summaries and trend charts
+5. "My Work" unified queue aggregates tasks from Cases, Investigations, Disclosures, and Policies
+6. Flat file export produces denormalized "everything" file with configurable tagged fields
+   **Demo Data Checkpoint** (Acme Co. additions):
+
+- Sample dashboards with realistic KPIs and trend charts
+- Scheduled reports configured for weekly delivery
+- Board report templates with executive summaries
+- Tagged field configurations for flat file exports
+- Sample AI-generated tables saved to dashboards
+  **Plans**: 21 plans
 
 Plans:
+
 - [x] 11-01-PLAN.md (Wave 1) - Dashboard configuration infrastructure: Prisma models, DashboardConfigService
 - [x] 11-02-PLAN.md (Wave 1) - My Work unified task queue: TaskAggregatorService, MyWorkController
 - [x] 11-03-PLAN.md (Wave 1) - Flat file export infrastructure: ExportJob, ReportFieldTag, FlatFileService
@@ -371,18 +412,21 @@ Plans:
 - [x] 11-21-PLAN.md (Wave 5) - Flat file export with tagged fields: TaggedFieldService, FlatExportBuilder UI
 
 ### Phase 11.1: Frontend Navigation and UI Fixes (INSERTED)
+
 **Goal**: Add main navigation sidebar and fix broken case detail tabs so the demo environment is fully navigable and functional.
 **Depends on**: Phase 11 (uses existing frontend infrastructure)
 **Requirements**: URGENT - Demo environment needs navigation for sales demos
 **Success Criteria** (what must be TRUE):
-  1. Main navigation sidebar visible on all authenticated pages with links to all modules
-  2. Mobile bottom navigation bar on small screens
-  3. Case detail Messages, Files, and Remediation tabs display real data (not placeholders)
-  4. /campaigns page shows campaign list with filters
-  5. /analytics page shows stats dashboard
-**Plans**: 6 plans in 3 waves
+
+1. Main navigation sidebar visible on all authenticated pages with links to all modules
+2. Mobile bottom navigation bar on small screens
+3. Case detail Messages, Files, and Remediation tabs display real data (not placeholders)
+4. /campaigns page shows campaign list with filters
+5. /analytics page shows stats dashboard
+   **Plans**: 6 plans in 3 waves
 
 Plans:
+
 - [x] 11.1-01-PLAN.md (Wave 1) - shadcn/ui Sidebar infrastructure and authenticated layout
 - [x] 11.1-02-PLAN.md (Wave 1) - Mobile bottom navigation and AI panel shell
 - [x] 11.1-03-PLAN.md (Wave 2) - Case tab data wiring: Messages and Files
@@ -391,23 +435,27 @@ Plans:
 - [x] 11.1-06-PLAN.md (Wave 3) - Analytics page with Dashboards/Reports tabs
 
 ### Phase 12: Internal Operations Portal
+
 **Goal**: Build the internal tooling for Ethico teams - Support Console for issue diagnosis and client access, Implementation Portal for onboarding and migrations, Hotline Operations for directive management and QA, and Client Success Dashboard for health monitoring.
 **Depends on**: Phase 11 (needs analytics infrastructure), Phase 8 (needs existing portal patterns)
 **Requirements**: OPS-01 (Support Console), OPS-02 (Implementation Portal), OPS-03 (Hotline Operations), OPS-04 (Client Success), TECH-DEBT (accumulated items)
 **Success Criteria** (what must be TRUE):
-  1. Support team can impersonate client accounts with full audit trail
-  2. Implementation specialists can run data migrations with validation, preview, and 7-day rollback
-  3. Hotline team can edit directives, bulk-manage QA queue, and reassign cases
-  4. Client Success can view tenant health scores, usage metrics, and adoption tracking
-  5. All cross-tenant operations require elevated permissions and produce audit logs
-**Demo Data Checkpoint** (Acme Co. additions):
-  - Sample implementation project with checklist tracking
-  - Migration job history with various statuses
-  - Directive configurations for multiple categories
-  - Client health metrics and usage trends
-**Plans**: 19 plans in 5 waves
+
+1. Support team can impersonate client accounts with full audit trail
+2. Implementation specialists can run data migrations with validation, preview, and 7-day rollback
+3. Hotline team can edit directives, bulk-manage QA queue, and reassign cases
+4. Client Success can view tenant health scores, usage metrics, and adoption tracking
+5. All cross-tenant operations require elevated permissions and produce audit logs
+   **Demo Data Checkpoint** (Acme Co. additions):
+
+- Sample implementation project with checklist tracking
+- Migration job history with various statuses
+- Directive configurations for multiple categories
+- Client health metrics and usage trends
+  **Plans**: 19 plans in 5 waves
 
 Plans:
+
 - [ ] 12-01-PLAN.md (Wave 1) - Cross-tenant access infrastructure: ImpersonationService, ElevatedAccessGuard, audit logging
 - [ ] 12-02-PLAN.md (Wave 1) - Implementation project models: ImplementationProject, ImplementationTask, ImplementationBlocker
 - [ ] 12-03-PLAN.md (Wave 1) - Client health metrics: TenantHealthScore, UsageMetric, FeatureAdoption models
@@ -428,30 +476,74 @@ Plans:
 - [ ] 12-18-PLAN.md (Tech Debt) - Backend tech debt: WebSocket E2E, auth edge cases, query optimization
 - [ ] 12-19-PLAN.md (Tech Debt) - Frontend tech debt: bundle splitting, lazy loading, accessibility audit
 
+### Phase 13: HubSpot-Style Saved Views System
+
+**Goal**: Implement a reusable HubSpot-style Saved Views system across all pillar modules (Cases, Investigations, Disclosures, Intake Forms, Policies) with view tabs, column selection, advanced filters, table/board views, and sharing capabilities.
+**Depends on**: Phase 12 (builds on existing module pages), Phase 6 (saved views infrastructure exists)
+**Requirements**: Full specification in `.planning/hubspot-view-system-spec.md`
+**Success Criteria** (what must be TRUE):
+
+1. Users can create up to 50 saved views per module with custom columns, filters, and sort
+2. View tabs are draggable to reorder, with context menu for rename/clone/share/delete
+3. Column Selection Modal with searchable grouped columns, drag-to-reorder, frozen column support
+4. Advanced Filters slide-out with AND conditions within groups, OR between groups (max 2 groups, 20 conditions each)
+5. Real-time filter application updates table live as conditions change
+6. Table view with sortable/resizable columns, checkbox selection, bulk actions, pagination (25/50/100)
+7. Board/Kanban view toggle with drag-to-move cards between status lanes
+8. Export to Excel/CSV respecting current filters and column selection
+9. View sharing with private/team/everyone visibility scopes
+10. URL state sync for bookmarkable/shareable view links
+    **Demo Data Checkpoint** (Acme Co. additions):
+
+- Pre-built default views for each module (All Records, My Records, Recently Created, etc.)
+- Sample saved views demonstrating filter combinations
+- Team-shared views for compliance team
+  **Plans**: 15 plans in 5 waves
+
+Plans:
+
+- [ ] 13-01-PLAN.md (Wave 1) - Extend SavedView Prisma model with frozenColumnCount, viewMode, boardGroupBy, recordCount fields
+- [ ] 13-02-PLAN.md (Wave 1) - Install @tanstack/react-table, create types.ts, operators.ts, constants.ts, view-config.ts
+- [ ] 13-03-PLAN.md (Wave 1) - Create SavedViewProvider context, useSavedViewContext hook, useSavedViewsApi hooks
+- [ ] 13-04-PLAN.md (Wave 2) - Create ViewTabsBar, SortableViewTab, ViewTabContextMenu, AddViewButton, CreateViewDialog
+- [ ] 13-05-PLAN.md (Wave 2) - Create ViewToolbar, ViewModeToggle, SaveButton, SortButton, ExportButton
+- [ ] 13-06-PLAN.md (Wave 2) - Create ColumnSelectionModal with PropertyPicker and SelectedColumnsList
+- [ ] 13-07-PLAN.md (Wave 2) - Create QuickFiltersRow with DateRangeFilter, MultiSelectFilter, QuickFilterDropdown
+- [ ] 13-08-PLAN.md (Wave 3) - Create AdvancedFiltersPanel slide-out with FilterGroupCard and FilterConditionRow
+- [ ] 13-09-PLAN.md (Wave 3) - Create DataTable with TanStack Table, PaginationBar, BulkActionsBar
+- [ ] 13-10-PLAN.md (Wave 3) - Create BoardView with BoardColumn and BoardCard (drag-drop with @dnd-kit)
+- [ ] 13-11-PLAN.md (Wave 4) - Cases module integration: config, hook, and page update
+- [ ] 13-12-PLAN.md (Wave 4) - Investigations and Policies module integration
+- [ ] 13-13-PLAN.md (Wave 4) - Disclosures and Intake Forms module integration
+- [ ] 13-14-PLAN.md (Wave 5) - URL state sync with useViewUrlState hook, enhanced BulkActionsBar
+- [ ] 13-15-PLAN.md (Wave 5) - Demo data seeder for saved views, verification checkpoint
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10 -> 11 -> 11.1 -> 12
+Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10 -> 11 -> 11.1 -> 12 -> 13
 
-| Phase | Plans Complete | Status | Completed |
-|-------|----------------|--------|-----------|
-| 1. Foundation Infrastructure | 9/9 | Complete | 2026-02-02 |
-| 2. Demo Tenant & Seed Data | 7/7 | Complete | 2026-02-03 |
-| 3. Authentication & SSO | 8/8 | Complete | 2026-02-03 |
-| 4. Core Entities | 10/10 | Complete | 2026-02-03 |
-| 5. AI Infrastructure | 11/11 | Complete | 2026-02-03 |
-| 6. Case Management | 11/17 | Complete | 2026-02-04 |
-| 7. Notifications & Email | 8/8 | Complete | 2026-02-04 |
-| 8. Portals | 17/17 | Complete | 2026-02-04 |
-| 9. Campaigns & Disclosures | 17/17 | Complete | 2026-02-04 |
-| 10. Policy Management | 11/11 | Complete | 2026-02-05 |
-| 11. Analytics & Reporting | 21/21 | Complete | 2026-02-05 |
-| 11.1. Frontend Navigation (INSERTED) | 6/6 | Complete | 2026-02-05 |
-| 12. Internal Operations Portal | 0/19 | Planned | - |
+| Phase                                | Plans Complete | Status   | Completed  |
+| ------------------------------------ | -------------- | -------- | ---------- |
+| 1. Foundation Infrastructure         | 9/9            | Complete | 2026-02-02 |
+| 2. Demo Tenant & Seed Data           | 7/7            | Complete | 2026-02-03 |
+| 3. Authentication & SSO              | 8/8            | Complete | 2026-02-03 |
+| 4. Core Entities                     | 10/10          | Complete | 2026-02-03 |
+| 5. AI Infrastructure                 | 11/11          | Complete | 2026-02-03 |
+| 6. Case Management                   | 11/17          | Complete | 2026-02-04 |
+| 7. Notifications & Email             | 8/8            | Complete | 2026-02-04 |
+| 8. Portals                           | 17/17          | Complete | 2026-02-04 |
+| 9. Campaigns & Disclosures           | 17/17          | Complete | 2026-02-04 |
+| 10. Policy Management                | 11/11          | Complete | 2026-02-05 |
+| 11. Analytics & Reporting            | 21/21          | Complete | 2026-02-05 |
+| 11.1. Frontend Navigation (INSERTED) | 6/6            | Complete | 2026-02-05 |
+| 12. Internal Operations Portal       | 0/19           | Planned  | -          |
+| 13. HubSpot-Style Saved Views System | 0/TBD          | Planned  | -          |
 
 ---
-*Roadmap created: 2026-02-02*
-*Depth: Comprehensive (8-12 phases)*
-*Total phases: 12*
-*Total plans: 159 (6 added for Phase 11.1)*
-*Total v1 requirements: 149*
+
+_Roadmap created: 2026-02-02_
+_Depth: Comprehensive (8-12 phases)_
+_Total phases: 13_
+_Total plans: 159+ (Phase 13 TBD)_
+_Total v1 requirements: 149_
