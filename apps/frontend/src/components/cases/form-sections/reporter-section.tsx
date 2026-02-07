@@ -47,7 +47,7 @@ export function ReporterSection({
         <div className="space-y-2">
           <Label htmlFor="reporterType">Reporter Type</Label>
           <Select
-            value={reporterType ?? ''}
+            value={reporterType || undefined}
             onValueChange={(value) =>
               setValue('reporterType', value as CaseCreationFormData['reporterType'])
             }

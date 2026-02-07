@@ -47,7 +47,7 @@ export function LocationSection({
           <div className="space-y-2">
             <Label htmlFor="locationCountry">Country</Label>
             <Select
-              value={locationCountry ?? ''}
+              value={locationCountry || undefined}
               onValueChange={(value) => setValue('locationCountry', value)}
             >
               <SelectTrigger id="locationCountry">

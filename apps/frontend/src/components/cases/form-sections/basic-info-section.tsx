@@ -80,7 +80,7 @@ export function BasicInfoSection({
           <div className="space-y-2">
             <Label htmlFor="caseType">Case Type</Label>
             <Select
-              value={caseType ?? ''}
+              value={caseType || undefined}
               onValueChange={(value) =>
                 setValue('caseType', value as CaseCreationFormData['caseType'])
               }
@@ -107,7 +107,7 @@ export function BasicInfoSection({
           <div className="space-y-2">
             <Label htmlFor="severity">Severity</Label>
             <Select
-              value={severity ?? ''}
+              value={severity || undefined}
               onValueChange={(value) =>
                 setValue('severity', value as CaseCreationFormData['severity'])
               }
