@@ -19,12 +19,14 @@ export type PropertyType =
 // Entity types that support saved views
 export type ViewEntityType =
   | "CASES"
+  | "RIUS"
   | "INVESTIGATIONS"
+  | "PERSONS"
+  | "CAMPAIGNS"
+  | "REMEDIATION_PLANS"
   | "DISCLOSURES"
   | "INTAKE_FORMS"
-  | "POLICIES"
-  | "PERSONS"
-  | "RIUS";
+  | "POLICIES";
 
 // View visibility options
 export type ViewVisibility = "private" | "team" | "everyone";
@@ -113,6 +115,13 @@ export interface ColumnConfig {
   width?: number;
 }
 
+// Quick filter value types
+export type QuickFilterValue =
+  | string
+  | string[]
+  | { from?: string; to?: string }
+  | undefined;
+
 // Quick filter state
 export interface QuickFilterConfig {
   propertyId: string;
@@ -122,6 +131,8 @@ export interface QuickFilterConfig {
 // Saved view entity
 export interface SavedView {
   id: string;
+  organizationId: string;
+  createdById: string;
   name: string;
   description?: string;
   entityType: ViewEntityType;
@@ -139,10 +150,19 @@ export interface SavedView {
   sharedWithTeamId?: string;
   displayOrder: number;
   recordCount?: number;
+  recordCountAt?: string;
+  lastUsedAt?: string;
+  useCount: number;
   color?: string;
-  createdById: string;
   createdAt: string;
   updatedAt: string;
+}
+
+// Bulk action result
+export interface BulkActionResult {
+  success: boolean;
+  affected: number;
+  errors?: string[];
 }
 
 // Response from listing saved views

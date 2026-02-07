@@ -24,6 +24,7 @@ export const DEFAULT_SORT_ORDER: SortOrder = "asc";
 // Filter limits
 export const MAX_FILTER_GROUPS = 2;
 export const MAX_CONDITIONS_PER_GROUP = 20;
+export const MAX_SAVED_VIEWS = 50;
 export const MAX_SAVED_VIEWS_PER_MODULE = 50;
 
 // Debounce timing

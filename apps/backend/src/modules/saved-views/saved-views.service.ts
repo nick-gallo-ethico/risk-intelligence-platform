@@ -20,6 +20,8 @@ import {
   SavedViewQueryDto,
   FilterCriteria,
   ApplyViewResponseDto,
+  ColumnConfig,
+  FilterGroup,
 } from "./dto/saved-view.dto";
 
 /**
@@ -102,6 +104,10 @@ export class SavedViewsService {
         isDefault: dto.isDefault || false,
         isPinned: dto.isPinned || false,
         color: dto.color,
+        // HubSpot-style view enhancements
+        frozenColumnCount: dto.frozenColumnCount ?? 0,
+        viewMode: dto.viewMode ?? "table",
+        boardGroupBy: dto.boardGroupBy,
       },
     });
   }
@@ -148,11 +154,7 @@ export class SavedViewsService {
 
     const views = await this.prisma.savedView.findMany({
       where,
-      orderBy: [
-        { isPinned: "desc" },
-        { displayOrder: "asc" },
-        { name: "asc" },
-      ],
+      orderBy: [{ isPinned: "desc" }, { displayOrder: "asc" }, { name: "asc" }],
     });
 
     // Group by entity type for easier frontend consumption
@@ -192,7 +194,10 @@ export class SavedViewsService {
 
     // Validate filters if provided
     if (dto.filters) {
-      const { invalid } = this.validateFilters(existing.entityType, dto.filters);
+      const { invalid } = this.validateFilters(
+        existing.entityType,
+        dto.filters,
+      );
       if (invalid.length > 0) {
         throw new BadRequestException(
           `Invalid filter values: ${invalid.join(", ")}`,
@@ -239,6 +244,14 @@ export class SavedViewsService {
           displayOrder: dto.displayOrder,
         }),
         ...(dto.color !== undefined && { color: dto.color }),
+        // HubSpot-style view enhancements
+        ...(dto.frozenColumnCount !== undefined && {
+          frozenColumnCount: dto.frozenColumnCount,
+        }),
+        ...(dto.viewMode !== undefined && { viewMode: dto.viewMode }),
+        ...(dto.boardGroupBy !== undefined && {
+          boardGroupBy: dto.boardGroupBy,
+        }),
       },
     });
   }
@@ -285,8 +298,14 @@ export class SavedViewsService {
       filters: valid,
       sortBy: view.sortBy || undefined,
       sortOrder: view.sortOrder || undefined,
-      columns: (view.columns as any) || undefined,
+      columns: (view.columns as unknown as ColumnConfig[] | null) || undefined,
       invalidFilters: invalid,
+      // HubSpot-style view enhancements
+      frozenColumnCount: view.frozenColumnCount,
+      viewMode: view.viewMode,
+      boardGroupBy: view.boardGroupBy || undefined,
+      recordCount: view.recordCount,
+      recordCountAt: view.recordCountAt,
     };
   }
 
@@ -318,6 +337,10 @@ export class SavedViewsService {
         isShared: false, // Duplicates start as personal
         isPinned: false,
         isDefault: false,
+        // Copy HubSpot-style view enhancements
+        frozenColumnCount: existing.frozenColumnCount,
+        viewMode: existing.viewMode,
+        boardGroupBy: existing.boardGroupBy,
       },
     });
   }
@@ -360,8 +383,35 @@ export class SavedViewsService {
   }
 
   /**
+   * Updates the cached record count for a saved view.
+   * Called after executing the view's filters to cache the result count.
+   */
+  async updateRecordCount(
+    organizationId: string,
+    userId: string,
+    id: string,
+    count: number,
+  ) {
+    const existing = await this.findById(organizationId, userId, id);
+
+    // Only owner can update record count
+    if (existing.createdById !== userId) {
+      throw new ForbiddenException("Cannot update another user's view");
+    }
+
+    return this.prisma.savedView.update({
+      where: { id },
+      data: {
+        recordCount: count,
+        recordCountAt: new Date(),
+      },
+    });
+  }
+
+  /**
    * Validates filter values against known enums for the entity type.
    * Returns both valid and invalid filter keys for graceful degradation.
+   * Supports both legacy filters and HubSpot-style FilterGroup[] structure.
    */
   private validateFilters(
     entityType: ViewEntityType,
@@ -371,7 +421,7 @@ export class SavedViewsService {
     const valid: FilterCriteria = { ...filters };
     const validEnums = VALID_ENUMS[entityType] || {};
 
-    // Validate status values
+    // Validate status values (legacy format)
     if (filters.status) {
       const statuses = Array.isArray(filters.status)
         ? filters.status
@@ -389,7 +439,7 @@ export class SavedViewsService {
       valid.status = validStatuses.length > 0 ? validStatuses : undefined;
     }
 
-    // Validate severity values
+    // Validate severity values (legacy format)
     if (filters.severity) {
       const severities = Array.isArray(filters.severity)
         ? filters.severity
@@ -407,15 +457,84 @@ export class SavedViewsService {
       valid.severity = validSeverities.length > 0 ? validSeverities : undefined;
     }
 
-    // Validate SLA status for investigations
-    if (
-      filters.slaStatus &&
-      entityType === ViewEntityType.INVESTIGATIONS
-    ) {
+    // Validate SLA status for investigations (legacy format)
+    if (filters.slaStatus && entityType === ViewEntityType.INVESTIGATIONS) {
       if (!validEnums.slaStatus?.includes(filters.slaStatus)) {
         invalid.push(`slaStatus: ${filters.slaStatus}`);
         valid.slaStatus = undefined;
       }
+    }
+
+    // Validate HubSpot-style filter groups (OR-joined groups of AND-joined conditions)
+    if (filters.groups && Array.isArray(filters.groups)) {
+      const validGroups: FilterGroup[] = [];
+
+      for (const group of filters.groups) {
+        if (!group.id || !Array.isArray(group.conditions)) {
+          invalid.push(`group ${group.id || "unknown"}: invalid structure`);
+          continue;
+        }
+
+        const validConditions = [];
+        for (const condition of group.conditions) {
+          // Validate condition has required fields
+          if (!condition.id || !condition.propertyId || !condition.operator) {
+            invalid.push(
+              `condition ${condition.id || "unknown"}: missing required fields`,
+            );
+            continue;
+          }
+
+          // Validate enum values within conditions
+          if (
+            condition.propertyId === "status" &&
+            validEnums.status &&
+            condition.value
+          ) {
+            const values = Array.isArray(condition.value)
+              ? condition.value
+              : [condition.value];
+            const invalidValues = values.filter(
+              (v) => typeof v === "string" && !validEnums.status?.includes(v),
+            );
+            if (invalidValues.length > 0) {
+              invalid.push(
+                `condition ${condition.id}: invalid status values (${invalidValues.join(", ")})`,
+              );
+            }
+          }
+
+          if (
+            condition.propertyId === "severity" &&
+            validEnums.severity &&
+            condition.value
+          ) {
+            const values = Array.isArray(condition.value)
+              ? condition.value
+              : [condition.value];
+            const invalidValues = values.filter(
+              (v) => typeof v === "string" && !validEnums.severity?.includes(v),
+            );
+            if (invalidValues.length > 0) {
+              invalid.push(
+                `condition ${condition.id}: invalid severity values (${invalidValues.join(", ")})`,
+              );
+            }
+          }
+
+          // Include condition in valid output (even with partial validation)
+          validConditions.push(condition);
+        }
+
+        if (validConditions.length > 0) {
+          validGroups.push({
+            id: group.id,
+            conditions: validConditions,
+          });
+        }
+      }
+
+      valid.groups = validGroups.length > 0 ? validGroups : undefined;
     }
 
     return { valid, invalid };
