@@ -14,3 +14,5 @@ export {
   useReorderSavedViews,
   useApplySavedView,
 } from "./useSavedViewsApi";
+export { useCasesView } from "./useCasesView";
+export type { Case } from "./useCasesView";
