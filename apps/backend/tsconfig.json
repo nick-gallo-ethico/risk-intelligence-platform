@@ -24,6 +24,6 @@
       "@config/*": ["src/config/*"]
     }
   },
-  "include": ["src/**/*", "prisma/seed.ts"],
+  "include": ["src/**/*", "prisma/seed.ts", "prisma/seeders/**/*"],
   "exclude": ["node_modules", "dist"]
 }

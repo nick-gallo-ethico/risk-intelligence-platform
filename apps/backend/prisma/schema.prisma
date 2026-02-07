@@ -4041,6 +4041,9 @@ enum ViewEntityType {
   PERSONS
   CAMPAIGNS
   REMEDIATION_PLANS
+  POLICIES
+  DISCLOSURES
+  INTAKE_FORMS
 
   @@map("view_entity_type")
 }
