@@ -6,9 +6,36 @@ import {
   IsUUID,
   IsInt,
   IsObject,
+  IsArray,
+  ValidateNested,
+  Min,
+  Max,
+  IsIn,
 } from "class-validator";
 import { Type } from "class-transformer";
 import { ViewEntityType } from "@prisma/client";
+
+/**
+ * A single filter condition within a filter group.
+ * Represents a single property comparison (e.g., "status is_any_of open,in_progress").
+ */
+export interface FilterCondition {
+  id: string;
+  propertyId: string;
+  operator: string; // 'is', 'is_not', 'contains', 'is_any_of', 'is_between', 'is_empty', etc.
+  value?: unknown;
+  secondaryValue?: unknown; // For 'is_between' operator
+  unit?: "day" | "week" | "month"; // For relative date operators like 'in_last'
+}
+
+/**
+ * A group of filter conditions that are AND-joined.
+ * Multiple groups are OR-joined with each other.
+ */
+export interface FilterGroup {
+  id: string;
+  conditions: FilterCondition[]; // AND-joined within group
+}
 
 /**
  * Filter structure varies by entity type, but has common patterns.
@@ -44,6 +71,9 @@ export interface FilterCriteria {
   // Advanced - allows complex nested conditions
   and?: FilterCriteria[];
   or?: FilterCriteria[];
+
+  // HubSpot-style filter groups (OR-joined groups of AND-joined conditions)
+  groups?: FilterGroup[];
 }
 
 /**
@@ -104,6 +134,21 @@ export class CreateSavedViewDto {
   @IsString()
   @IsOptional()
   color?: string;
+
+  @IsInt()
+  @Min(0)
+  @Max(3)
+  @IsOptional()
+  frozenColumnCount?: number;
+
+  @IsString()
+  @IsIn(["table", "board"])
+  @IsOptional()
+  viewMode?: string;
+
+  @IsString()
+  @IsOptional()
+  boardGroupBy?: string;
 }
 
 /**
@@ -157,6 +202,54 @@ export class UpdateSavedViewDto {
   @IsString()
   @IsOptional()
   color?: string;
+
+  @IsInt()
+  @Min(0)
+  @Max(3)
+  @IsOptional()
+  frozenColumnCount?: number;
+
+  @IsString()
+  @IsIn(["table", "board"])
+  @IsOptional()
+  viewMode?: string;
+
+  @IsString()
+  @IsOptional()
+  boardGroupBy?: string;
+}
+
+/**
+ * DTO for cloning a saved view.
+ * Optionally provide a new name for the cloned view.
+ */
+export class CloneSavedViewDto {
+  @IsString()
+  @IsOptional()
+  newName?: string;
+}
+
+/**
+ * DTO for reordering multiple saved views at once.
+ * Updates displayOrder for each view in a single transaction.
+ */
+export class ReorderSavedViewsDto {
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => ViewOrderItem)
+  viewOrders: ViewOrderItem[];
+}
+
+/**
+ * Individual view order item for reordering.
+ */
+export class ViewOrderItem {
+  @IsUUID()
+  id: string;
+
+  @IsInt()
+  @Min(0)
+  displayOrder: number;
 }
 
 /**
@@ -189,4 +282,7 @@ export class ApplyViewResponseDto {
   sortOrder?: string;
   columns?: ColumnConfig[];
   invalidFilters: string[]; // Filter keys that couldn't be validated
+  frozenColumnCount?: number;
+  viewMode?: string;
+  boardGroupBy?: string;
 }
