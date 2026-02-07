@@ -42,8 +42,20 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 9: Campaigns & Disclosures** - COI, gifts, outside employment, attestations
 - [x] **Phase 10: Policy Management** - Documents, versioning, approval workflows, AI translation
 - [x] **Phase 11: Analytics & Reporting** - Dashboards, custom reports, natural language queries
-- [ ] **Phase 11.1: Frontend Navigation and UI Fixes** - Main sidebar, mobile nav, case tab fixes (INSERTED)
-- [ ] **Phase 12: Internal Operations Portal** - Support console, implementation tools, hotline ops, client success
+- [x] **Phase 11.1: Frontend Navigation and UI Fixes** - Main sidebar, mobile nav, case tab fixes (INSERTED)
+- [x] **Phase 12: Internal Operations Portal** - Support console, implementation tools, hotline ops, client success
+- [ ] **Phase 13: HubSpot-Style Saved Views** - Reusable view tabs, column selection, advanced filters, board views across all modules
+- [ ] **Phase 14: Critical Bug Fixes & Navigation** - Route 404s, broken buttons, Select.Item error, search, user menu, nav styling
+- [ ] **Phase 15: Case Detail Page Overhaul** - Three-column layout, activity feed, action buttons, AI panel, connected entities
+- [ ] **Phase 16: AI Integration Fix** - Debug and fix non-functional AI, wire AI panel, enable AI actions on cases
+- [ ] **Phase 17: Campaigns Hub** - Centralized campaigns area, form creation, campaign lifecycle management
+- [ ] **Phase 18: Reports & Data Management** - Report designer UI, field availability, export from views
+- [ ] **Phase 19: Workflow Engine UI** - Visual workflow builder, workflow management section, apply to cases/approvals/disclosures
+- [ ] **Phase 20: Settings Overhaul (HubSpot-Style)** - Preferences, account management, data management, properties, permission sets
+- [ ] **Phase 21: Project Management (Monday.com-Style)** - Kanban boards, task views, timelines, project tracking
+- [ ] **Phase 22: Dark Mode & Theme** - Dark mode toggle, consistent nav theming, theme system
+- [ ] **Phase 23: Help & Support System** - Knowledge base, in-platform ticket filing, real-time support
+- [ ] **Phase 24: Policy Content & Seed Data** - Populate policies with properly formatted text, improve case seed data
 
 ## Phase Details
 
@@ -518,10 +530,230 @@ Plans:
 - [ ] 13-14-PLAN.md (Wave 5) - URL state sync with useViewUrlState hook, enhanced BulkActionsBar
 - [ ] 13-15-PLAN.md (Wave 5) - Demo data seeder for saved views, verification checkpoint
 
+### Phase 14: Critical Bug Fixes & Navigation
+
+**Goal**: Fix all broken routes (404s), non-functional UI elements (buttons, menus, search), runtime errors, and visual inconsistencies that make the application appear unfinished. These are the quick wins that immediately improve demo-readiness.
+**Depends on**: Phase 11.1 (frontend navigation infrastructure), Phase 12 (all backend services exist)
+**Requirements**: Issues documented in `.planning/V1-ISSUES-AND-GAPS.md` Phase 14 section
+**Success Criteria** (what must be TRUE):
+
+1. Audit Log link navigates to a working audit log page (not 404)
+2. Notifications "View All" navigates to a working notifications list page (not 404)
+3. Dashboard "View All Tasks" navigates to the tasks page (not 404)
+4. Clicking a case in "My Tasks" or "My Active Cases" navigates to the correct case detail page
+5. Dashboard "Create Case" quick action opens a working case creation form without Select.Item errors
+6. Global search bar returns results and navigates to them
+7. User dropdown menu links (Profile, Settings, Logout) all function correctly
+8. User display name in top-right updates correctly per logged-in session
+9. Top navigation bar matches side navigation bar styling (both dark)
+10. Ethico "E" logo displays in the top-left corner (not generic placeholder)
+11. Dashboard "My Active Cases" loads within 2 seconds (not hanging)
+    **Plans**: 5 plans in 2 waves
+
+Plans:
+
+- [ ] 14-01-PLAN.md (Wave 1) — Top nav & sidebar overhaul: auth context, logout, Ethico SVG logo, dark nav theme
+- [ ] 14-02-PLAN.md (Wave 1) — Create /notifications and /my-work pages (fix 404s)
+- [ ] 14-03-PLAN.md (Wave 1) — Create /search and /profile pages, fix SelectItem empty string error
+- [ ] 14-04-PLAN.md (Wave 1) — Dashboard performance (reduce fetch limit), task navigation, audit log verification
+- [ ] 14-05-PLAN.md (Wave 2) — Verification checkpoint: automated checks + human verification of all 11 fixes
+
+### Phase 15: Case Detail Page Overhaul
+
+**Goal**: Rebuild the case detail page into a three-column layout that serves as the primary workspace for investigators — with a complete activity feed, action buttons, AI panel, and connected entity cards. This is the page where users spend 80% of their time.
+**Depends on**: Phase 14 (routes must work), Phase 16 (AI must work for AI panel), Phase 6 (case entities, activity timeline), Phase 4 (person/RIU associations)
+**Requirements**: Issues documented in `.planning/V1-ISSUES-AND-GAPS.md` Phase 15 section
+**Success Criteria** (what must be TRUE):
+
+1. Case detail page renders a three-column layout: left (1x), center (2x), right (1x)
+2. Left column shows case number, high-level info (date created, status, pipeline, days open), action buttons (Note, Interview, Document, Task, Email), and RIU-specific form answers organized by section
+3. Center column has working tabs: Overview (lifecycle info, recent/upcoming activities), Activities (descending feed of ALL interactions — tasks, notes, meetings, emails, calls, documents), Summary (AI-written or manual summary + full write-up)
+4. Right column shows cards for connected documents and connected people (witness, subject) with "Add" button that pulls from HRIS or free-form
+5. "Assign" button opens a modal with available users to assign the case to
+6. "Status" button lets users change case status including close/resolve
+7. "Merge" button opens case merge workflow
+8. Email button lets users compose and send an email from the case page, logging it to the activity feed; users can also log external emails (sent from inbox) to the case
+9. AI button slides out a panel over the right column where users can ask questions and AI can modify statuses/add notes directly to the activity feed
+10. Any change to fields or status automatically appears in the activity feed
+11. All case tabs (Overview, Investigations, Messages, Files, Activities, Remediation) switch content correctly
+12. Seeded Acme Co. case details are 200-400 words; summaries are 50-75 words
+    **Demo Data Checkpoint** (Acme Co. additions):
+
+- Updated case seed data with 200-400 word details and 50-75 word summaries
+- Activity feed entries (notes, status changes, assignments) on flagship cases
+- Connected people and documents on flagship cases
+  **Plans**: TBD — run `/gsd:plan-phase 15`
+
+### Phase 16: AI Integration Fix
+
+**Goal**: Debug and fix the non-functional AI system end-to-end — from API connectivity to frontend panel. AI is a core differentiator; it must work reliably for demos.
+**Depends on**: Phase 5 (AI infrastructure — backend services, skills, agents, WebSocket gateway), Phase 14 (navigation working so AI panel is reachable)
+**Requirements**: Issues documented in `.planning/V1-ISSUES-AND-GAPS.md` Phase 16 section
+**Success Criteria** (what must be TRUE):
+
+1. Claude API calls succeed from the backend (ANTHROPIC_API_KEY configured and working)
+2. AI panel slide-out opens on case detail page and accepts user queries
+3. AI responds to natural language questions about case data within 5 seconds
+4. AI can execute actions: update case status, add notes to activity feed, generate summaries
+5. AI note cleanup (bullet → narrative) works on case and investigation notes
+6. AI category suggestion works on new RIU intake
+7. AI risk scoring returns confidence-scored assessments
+8. WebSocket /ai namespace connects successfully from frontend
+9. AI conversations are persisted and can be resumed
+10. AI features degrade gracefully when API key is missing or rate-limited
+    **Plans**: TBD — run `/gsd:plan-phase 16`
+
+### Phase 17: Campaigns Hub
+
+**Goal**: Build a centralized campaigns area where all outbound compliance campaigns (disclosures, attestations, stay interviews, distributed forms) live, can be edited, released, and tracked. Includes a link to view/manage all form types.
+**Depends on**: Phase 9 (campaign backend — targeting, scheduling, reminders, disclosures), Phase 14 (routes working), Phase 1 (form/schema engine)
+**Requirements**: Issues documented in `.planning/V1-ISSUES-AND-GAPS.md` Phase 17 section
+**Success Criteria** (what must be TRUE):
+
+1. Centralized /campaigns page shows all campaigns across types (disclosures, attestations, stay interviews, other forms) with filters and status
+2. Users can create new campaigns from the hub with type selection
+3. Campaign detail page allows editing all aspects: audience, schedule, form content, reminders
+4. Campaigns can be released/published from the detail page and status tracked
+5. Users can create new forms (form builder accessible from campaigns hub)
+6. Dedicated "Forms" section accessible from sidebar showing all RIU types: disclosures, hotline intake, surveys, proxy forms, web intake
+7. Campaign dashboard shows completion rates, overdue counts, and allows sending reminders
+8. Form builder supports creating/editing custom disclosure and attestation forms
+   **Demo Data Checkpoint** (Acme Co. additions):
+
+- Active and completed campaigns visible in hub
+- Draft campaign ready for editing demonstration
+- Multiple form types available in Forms section
+  **Plans**: TBD — run `/gsd:plan-phase 17`
+
+### Phase 18: Reports & Data Management
+
+**Goal**: Build a report designer UI so users can create custom reports from the rich data in the system. All case fields must be reportable and sortable. Integrates with the saved views system for column selection and export.
+**Depends on**: Phase 11 (reporting engine backend — QueryBuilder, Excel export, PDF generation), Phase 13 (saved views for column selection patterns), Phase 4 (core entities provide the data)
+**Requirements**: Issues documented in `.planning/V1-ISSUES-AND-GAPS.md` Phase 18 section
+**Success Criteria** (what must be TRUE):
+
+1. Report designer page allows users to create custom reports by selecting data source, columns, filters, grouping, and chart type
+2. All case fields (including custom properties) are available as report columns and filter/sort dimensions
+3. All RIU fields, person fields, campaign fields, and policy fields are reportable
+4. Reports can be saved with a name and re-run on demand
+5. Reports can be exported to Excel/CSV/PDF
+6. Pre-built report templates exist for common compliance reports (case volume by category, time-to-close trends, disclosure completion rates)
+7. Scheduled report delivery works (email on schedule)
+8. AI natural language queries generate reports from questions like "show me harassment cases from Q4 in EMEA"
+   **Plans**: TBD — run `/gsd:plan-phase 18`
+
+### Phase 19: Workflow Engine UI
+
+**Goal**: Build the visual workflow builder and management area. The workflow engine (Phase 1 backend) powers case assignments, approval routing, and disclosure approvals — but currently there is no UI to create, edit, or apply workflows. This is critical operational infrastructure.
+**Depends on**: Phase 1 (workflow engine backend — pipeline/stage/transition models), Phase 14 (routes working), Phase 6 (case management workflows), Phase 10 (policy approval workflows)
+**Requirements**: Issues documented in `.planning/V1-ISSUES-AND-GAPS.md` Phase 19 section
+**Success Criteria** (what must be TRUE):
+
+1. Dedicated Workflows section accessible from sidebar/settings
+2. Workflow list page shows all workflows with type, status, and where applied
+3. Visual workflow builder allows creating workflows with stages, transitions, conditions, and actions
+4. Workflow builder supports: sequential stages, parallel branches, conditional routing, approval gates
+5. Workflows can be applied to: case assignment/routing, approval routing, disclosure approval routing, policy approval routing
+6. Existing workflow templates (case investigation pipeline, policy approval) are editable
+7. Workflow execution shows current state and progress on case/policy detail pages
+8. Changes to workflow definitions handle in-flight instances correctly (version-on-publish pattern per Phase 1 decisions)
+   **Plans**: TBD — run `/gsd:plan-phase 19`
+
+### Phase 20: Settings Overhaul (HubSpot-Style)
+
+**Goal**: Rebuild the settings area to match HubSpot's organization and depth — four major sections (Preferences, Account Management, Data Management, Tools) each with sub-pages and tabs. Includes critical permission set management.
+**Depends on**: Phase 14 (route fixes), Phase 19 (workflow settings), Phase 7 (notification preferences backend), Phase 3 (auth/security settings), Phase 12 (audit log backend)
+**Requirements**: Issues documented in `.planning/V1-ISSUES-AND-GAPS.md` Phase 20 section. Reference HubSpot knowledge base for UX patterns.
+**Success Criteria** (what must be TRUE):
+
+1. Settings area has four top-level sections: Your Preferences, Account Management, Data Management, Tools
+2. **Your Preferences > General**: Profile editing, email connection (link inbox to system, manage signatures), security (password reset, passkey setup, account deletion), task settings
+3. **Your Preferences > Notifications**: Per-event-type control of email and desktop notifications (matching HubSpot's notification settings pattern)
+4. **Account Management > Account Defaults**: Org-wide default settings
+5. **Account Management > Audit Log**: Working audit log page (not 404) with filterable event history
+6. **Account Management > Users & Teams**: Super admin can manage users, seats, teams, and **permission sets** with role-based templates (research HubSpot permission sets — templates for different roles with granular permissions)
+7. **Account Management > Integrations**: Integration configuration page (HRIS, email, etc.)
+8. **Account Management > Approvals**: Approval workflow configuration
+9. **Account Management > AI Settings**: AI feature toggles, API key management, usage limits
+10. **Data Management > Properties**: Users can add/edit custom properties on objects and groups (HubSpot-style property management with field types, groups, required/optional)
+11. **Data Management > Objects**: View and configure platform objects (Forms, Cases, Investigations, Policies, Tickets, Disclosures, RIUs)
+12. Each sub-page has tabs for different components of that section
+    **Plans**: TBD — run `/gsd:plan-phase 20`
+
+### Phase 21: Project Management (Monday.com-Style)
+
+**Goal**: Build the project management module with Monday.com-style Kanban boards, task management, timeline views, and project tracking. Currently described as "totally nonexistent."
+**Depends on**: Phase 11 (project milestones backend exists from plans 11-13/11-14 — Milestone, MilestoneItem models, GanttChart component), Phase 14 (routes working)
+**Requirements**: Issues documented in `.planning/V1-ISSUES-AND-GAPS.md` Phase 21 section
+**Success Criteria** (what must be TRUE):
+
+1. Projects section accessible from sidebar with project list
+2. Kanban board view with customizable columns (status lanes) and drag-to-move cards
+3. Table/list view with sortable columns and inline editing
+4. Timeline/Gantt view showing project schedule and dependencies
+5. Project detail page with task breakdown, milestones, and progress tracking
+6. Tasks can be assigned to users with due dates and priority
+7. Task status changes reflect in project progress
+8. Project templates for common compliance projects (implementation, audit, policy rollout)
+   **Demo Data Checkpoint** (Acme Co. additions):
+
+- Sample projects in various states (active, completed, planned)
+- Tasks distributed across team members
+  **Plans**: TBD — run `/gsd:plan-phase 21`
+
+### Phase 22: Dark Mode & Theme
+
+**Goal**: Implement a working dark mode toggle and ensure consistent theming across the entire application. User explicitly flagged this as required for V1.
+**Depends on**: Phase 14 (nav color fixes), Phase 20 (settings area for theme toggle placement)
+**Requirements**: Issues documented in `.planning/V1-ISSUES-AND-GAPS.md` Phase 22 section
+**Success Criteria** (what must be TRUE):
+
+1. Dark mode toggle accessible from user menu and settings
+2. All pages render correctly in dark mode (no unreadable text, broken contrast, missing backgrounds)
+3. Dark mode preference persists across sessions (stored in user preferences)
+4. System preference detection: auto-detect OS dark mode setting as default
+5. Top navigation bar and side navigation bar are visually consistent in both light and dark modes
+6. Charts, tables, modals, and form elements all respect the active theme
+7. Theme transition is smooth (no flash of wrong theme on page load)
+   **Plans**: TBD — run `/gsd:plan-phase 22`
+
+### Phase 23: Help & Support System
+
+**Goal**: Build a help and support system so users can access a knowledge base and file support tickets directly from the platform.
+**Depends on**: Phase 14 (routes working for Help & Support navigation)
+**Requirements**: Issues documented in `.planning/V1-ISSUES-AND-GAPS.md` Phase 23 section
+**Success Criteria** (what must be TRUE):
+
+1. Help & Support accessible from sidebar and user menu
+2. Knowledge base with searchable articles organized by category (Getting Started, Cases, Campaigns, Reports, Settings, etc.)
+3. Users can file support tickets from within the platform with subject, description, priority, and screenshots
+4. Support ticket submission sends confirmation email and creates ticket in support system
+5. Users can view their open tickets and status from the Help section
+6. Contextual help links from relevant pages (e.g., case detail page links to "Working with Cases" articles)
+   **Plans**: TBD — run `/gsd:plan-phase 23`
+
+### Phase 24: Policy Content & Seed Data
+
+**Goal**: Populate all seeded policies with properly formatted, realistic policy text. Update case seed data to meet content length requirements.
+**Depends on**: Phase 10 (policy management — documents, rich text), Phase 2 (seed data infrastructure)
+**Requirements**: Issues documented in `.planning/V1-ISSUES-AND-GAPS.md` Phase 24 section
+**Success Criteria** (what must be TRUE):
+
+1. All seeded policies (Code of Conduct, Anti-Harassment, Gift Policy, Whistleblower, etc.) contain properly formatted text with sections, headers, numbered lists, and definitions
+2. Policy content reads like real enterprise compliance policies (professional language, legal-style formatting)
+3. Policies have appropriate metadata: effective dates, review dates, owner, department
+4. Case detail seed data: case descriptions are 200-400 words, case summaries are 50-75 words
+5. Seed script is idempotent — running it again updates content without duplicating records
+   **Plans**: TBD — run `/gsd:plan-phase 24`
+
+---
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10 -> 11 -> 11.1 -> 12 -> 13
+Phases execute in dependency order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11 → 11.1 → 12 → 13 → 14 → 16 → 15 → 17 → 18 → 19 → 20 → 21 → 22 → 23 → 24
+
+> **Note on order**: Phase 16 (AI Fix) executes before Phase 15 (Case Detail Overhaul) because the case page's AI panel depends on working AI infrastructure. Phase 13 (Saved Views) can run in parallel with or before Phase 14.
 
 | Phase                                | Plans Complete | Status   | Completed  |
 | ------------------------------------ | -------------- | -------- | ---------- |
@@ -537,13 +769,26 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6 -> 7 -> 8 -> 9 -> 10
 | 10. Policy Management                | 11/11          | Complete | 2026-02-05 |
 | 11. Analytics & Reporting            | 21/21          | Complete | 2026-02-05 |
 | 11.1. Frontend Navigation (INSERTED) | 6/6            | Complete | 2026-02-05 |
-| 12. Internal Operations Portal       | 0/19           | Planned  | -          |
-| 13. HubSpot-Style Saved Views System | 0/TBD          | Planned  | -          |
+| 12. Internal Operations Portal       | 19/19          | Complete | 2026-02-06 |
+| 13. HubSpot-Style Saved Views        | 0/15           | Planned  | -          |
+| 14. Critical Bug Fixes & Navigation  | 0/5            | Planned  | -          |
+| 15. Case Detail Page Overhaul        | 0/TBD          | Planned  | -          |
+| 16. AI Integration Fix               | 0/TBD          | Planned  | -          |
+| 17. Campaigns Hub                    | 0/TBD          | Planned  | -          |
+| 18. Reports & Data Management        | 0/TBD          | Planned  | -          |
+| 19. Workflow Engine UI               | 0/TBD          | Planned  | -          |
+| 20. Settings Overhaul (HubSpot)      | 0/TBD          | Planned  | -          |
+| 21. Project Management (Monday.com)  | 0/TBD          | Planned  | -          |
+| 22. Dark Mode & Theme                | 0/TBD          | Planned  | -          |
+| 23. Help & Support System            | 0/TBD          | Planned  | -          |
+| 24. Policy Content & Seed Data       | 0/TBD          | Planned  | -          |
 
 ---
 
 _Roadmap created: 2026-02-02_
-_Depth: Comprehensive (8-12 phases)_
-_Total phases: 13_
-_Total plans: 159+ (Phase 13 TBD)_
-_Total v1 requirements: 149_
+_Updated: 2026-02-06 (Phases 14-24 added from V1 QA testing)_
+_Depth: Comprehensive_
+_Total phases: 24 (+ 11.1 insertion)_
+_Total plans: 190+ completed, ~50-70 estimated remaining_
+_Total v1 requirements: 149 + QA punch list items_
+_Issues reference: .planning/V1-ISSUES-AND-GAPS.md_
