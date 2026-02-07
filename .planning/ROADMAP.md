@@ -633,7 +633,13 @@ Plans:
 - Active and completed campaigns visible in hub
 - Draft campaign ready for editing demonstration
 - Multiple form types available in Forms section
-  **Plans**: TBD — run `/gsd:plan-phase 17`
+  **Plans**: 3 plans in 1 wave
+
+Plans:
+
+- [ ] 17-01-PLAN.md (Wave 1) — Backend dashboard endpoints + sidebar navigation + /campaigns/new page
+- [ ] 17-02-PLAN.md (Wave 1) — Campaign detail page with overview, assignments, lifecycle actions
+- [ ] 17-03-PLAN.md (Wave 1) — Forms hub with list, create, and edit pages wrapping existing FormBuilder
 
 ### Phase 18: Reports & Data Management
 
@@ -784,7 +790,7 @@ Phases execute in dependency order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 
 | 14. Critical Bug Fixes & Navigation  | 0/5            | Planned  | -          |
 | 15. Case Detail Page Overhaul        | 0/TBD          | Planned  | -          |
 | 16. AI Integration Fix               | 0/TBD          | Planned  | -          |
-| 17. Campaigns Hub                    | 0/TBD          | Planned  | -          |
+| 17. Campaigns Hub                    | 0/3            | Planned  | -          |
 | 18. Reports & Data Management        | 0/TBD          | Planned  | -          |
 | 19. Workflow Engine UI               | 0/TBD          | Planned  | -          |
 | 20. Settings Overhaul (HubSpot)      | 0/TBD          | Planned  | -          |
@@ -796,7 +802,7 @@ Phases execute in dependency order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 
 ---
 
 _Roadmap created: 2026-02-02_
-_Updated: 2026-02-06 (Phases 14-24 added from V1 QA testing)_
+_Updated: 2026-02-07 (Phase 17 planned)_
 _Depth: Comprehensive_
 _Total phases: 24 (+ 11.1 insertion)_
 _Total plans: 190+ completed, ~50-70 estimated remaining_
