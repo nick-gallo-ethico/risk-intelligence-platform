@@ -161,9 +161,20 @@ model Organization {
   impersonationSessions ImpersonationSession[]
 
   // Client Health Metrics (Phase 12)
-  healthScores     TenantHealthScore[]
-  usageMetrics     UsageMetric[]
-  featureAdoptions FeatureAdoption[]
+  healthScores          TenantHealthScore[]
+  usageMetrics          UsageMetric[]
+  featureAdoptions      FeatureAdoption[]
+  RiuCaseAssociation    RiuCaseAssociation[]
+  DemoArchivedChange    DemoArchivedChange[]
+  AiMessage             AiMessage[]
+  NotificationDelivery  NotificationDelivery[]
+  MigrationRecord       MigrationRecord[]
+  ScheduledExportRun    ScheduledExportRun[]
+  ImpersonationAuditLog ImpersonationAuditLog[]
+  GoLiveGate            GoLiveGate[]
+  ReadinessItem         ReadinessItem[]
+  GoLiveSignoff         GoLiveSignoff[]
+  QuizAttempt           QuizAttempt[]
 
   @@index([slug])
   @@index([isActive])
@@ -652,6 +663,7 @@ model Case {
   @@index([organizationId, status])
   @@index([organizationId, createdAt])
   @@index([organizationId, severity])
+  @@index([organizationId, primaryCategoryId])
   @@index([referenceNumber])
   // Pipeline, outcome, and merge indexes
   @@index([organizationId, pipelineStage])
@@ -1649,9 +1661,10 @@ model RiuWebFormExtension {
 /// Multiple RIUs can be associated with a single Case (related reports).
 /// A single RIU typically has one primary Case but could be linked to multiple Cases.
 model RiuCaseAssociation {
-  id     String @id @default(uuid())
-  riuId  String @map("riu_id")
-  caseId String @map("case_id")
+  id             String @id @default(uuid())
+  organizationId String @map("organization_id") // Denormalized for RLS
+  riuId          String @map("riu_id")
+  caseId         String @map("case_id")
 
   // Association Type
   associationType RiuAssociationType @default(PRIMARY) @map("association_type")
@@ -1664,13 +1677,15 @@ model RiuCaseAssociation {
   createdById String   @map("created_by_id")
 
   // Relations
-  riu       RiskIntelligenceUnit @relation(fields: [riuId], references: [id], onDelete: Cascade)
-  case      Case                 @relation(fields: [caseId], references: [id], onDelete: Cascade)
-  createdBy User                 @relation("RiuCaseAssociationCreatedBy", fields: [createdById], references: [id])
+  organization Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  riu          RiskIntelligenceUnit @relation(fields: [riuId], references: [id], onDelete: Cascade)
+  case         Case                 @relation(fields: [caseId], references: [id], onDelete: Cascade)
+  createdBy    User                 @relation("RiuCaseAssociationCreatedBy", fields: [createdById], references: [id])
 
   // Unique constraint: one association per RIU-Case pair
   @@unique([riuId, caseId])
   // Indexes
+  @@index([organizationId])
   @@index([riuId])
   @@index([caseId])
   @@index([associationType])
@@ -2837,6 +2852,7 @@ model DemoUserSession {
 /// After reset, changes are stored here temporarily before permanent deletion.
 model DemoArchivedChange {
   id                String @id @default(uuid())
+  organizationId    String @map("organization_id") // Denormalized from DemoUserSession for RLS
   demoUserSessionId String @map("demo_user_session_id")
 
   /// The type of entity archived
@@ -2854,8 +2870,10 @@ model DemoArchivedChange {
   /// Whether this has been restored
   restoredAt DateTime? @map("restored_at")
 
+  organization    Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   demoUserSession DemoUserSession @relation(fields: [demoUserSessionId], references: [id], onDelete: Cascade)
 
+  @@index([organizationId])
   @@index([demoUserSessionId])
   @@index([archivedAt])
   @@index([expiresAt])
@@ -3555,6 +3573,7 @@ model AiConversation {
 /// Stores both user and assistant messages with optional tool use data.
 model AiMessage {
   id             String @id @default(uuid())
+  organizationId String @map("organization_id") // Denormalized from AiConversation for RLS
   conversationId String @map("conversation_id")
 
   // Message content
@@ -3574,8 +3593,10 @@ model AiMessage {
   createdAt DateTime @default(now()) @map("created_at")
 
   // Relations
+  organization Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   conversation AiConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
 
+  @@index([organizationId])
   @@index([conversationId])
   @@index([conversationId, createdAt])
   @@map("ai_messages")
@@ -4047,6 +4068,13 @@ model SavedView {
   sortOrder String? @map("sort_order") // 'asc' or 'desc'
   columns   Json? // Column visibility and order
 
+  // HubSpot-style view enhancements
+  frozenColumnCount Int       @default(0) @map("frozen_column_count") // 0-3 frozen columns
+  viewMode          String    @default("table") @map("view_mode") // 'table' | 'board'
+  boardGroupBy      String?   @map("board_group_by") // Property to group by in board view
+  recordCount       Int?      @map("record_count") // Cached count of matching records
+  recordCountAt     DateTime? @map("record_count_at") // When count was last updated
+
   // User preferences
   isDefault    Boolean @default(false) @map("is_default")
   isPinned     Boolean @default(false) @map("is_pinned")
@@ -4294,6 +4322,7 @@ model Notification {
 /// One-to-one with Notification when channel is EMAIL.
 model NotificationDelivery {
   id             String @id @default(uuid())
+  organizationId String @map("organization_id") // Denormalized from Notification for RLS
   notificationId String @unique @map("notification_id")
 
   // Provider tracking
@@ -4314,8 +4343,10 @@ model NotificationDelivery {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   notification Notification @relation(fields: [notificationId], references: [id], onDelete: Cascade)
 
+  @@index([organizationId])
   @@index([status])
   @@index([messageId])
   @@map("notification_deliveries")
@@ -5463,6 +5494,7 @@ model MigrationFieldTemplate {
 /// Links imported entities back to their migration job and source row.
 model MigrationRecord {
   id             String @id @default(uuid())
+  organizationId String @map("organization_id") // Denormalized from MigrationJob for RLS
   migrationJobId String @map("migration_job_id")
 
   // What was created
@@ -5478,8 +5510,10 @@ model MigrationRecord {
   modifiedAfterImport Boolean  @default(false) @map("modified_after_import") // Prevents rollback if true
 
   // Relations
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   migrationJob MigrationJob @relation(fields: [migrationJobId], references: [id], onDelete: Cascade)
 
+  @@index([organizationId])
   @@index([migrationJobId])
   @@index([entityType, entityId])
   @@map("migration_records")
@@ -5878,6 +5912,7 @@ model ScheduledExport {
 /// Tracks success/failure, file output, and delivery status per recipient.
 model ScheduledExportRun {
   id                String @id @default(uuid())
+  organizationId    String @map("organization_id") // Denormalized from ScheduledExport for RLS
   scheduledExportId String @map("scheduled_export_id")
 
   // Run details
@@ -5899,8 +5934,10 @@ model ScheduledExportRun {
   errorDetails Json?   @map("error_details")
 
   // Relations
+  organization    Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   scheduledExport ScheduledExport @relation(fields: [scheduledExportId], references: [id], onDelete: Cascade)
 
+  @@index([organizationId])
   @@index([scheduledExportId, startedAt])
   @@map("scheduled_export_runs")
 }
@@ -6316,6 +6353,7 @@ model InternalUser {
 /// - All actions logged to ImpersonationAuditLog
 model ImpersonationSession {
   id                   String       @id @default(uuid())
+  organizationId       String       @map("organization_id") // Same as targetOrganizationId, for RLS
   operatorUserId       String       @map("operator_user_id")
   operatorRole         InternalRole @map("operator_role") // Role at session start (for audit)
   targetOrganizationId String       @map("target_organization_id")
@@ -6329,9 +6367,10 @@ model ImpersonationSession {
 
   // Relations
   operator     InternalUser            @relation(fields: [operatorUserId], references: [id])
-  organization Organization            @relation(fields: [targetOrganizationId], references: [id])
+  organization Organization            @relation(fields: [organizationId], references: [id])
   auditLogs    ImpersonationAuditLog[]
 
+  @@index([organizationId])
   @@index([operatorUserId])
   @@index([targetOrganizationId])
   @@index([startedAt])
@@ -6349,17 +6388,20 @@ model ImpersonationSession {
 /// - Why: session.reason, session.ticketId
 /// - Before/After: details JSON for mutations
 model ImpersonationAuditLog {
-  id         String   @id @default(uuid())
-  sessionId  String   @map("session_id")
-  action     String // Action type (VIEW_CASE, UPDATE_USER, etc.)
-  entityType String?  @map("entity_type") // Entity type affected
-  entityId   String?  @map("entity_id") // Entity ID affected
-  details    Json? // Additional details (changes made, before/after state)
-  createdAt  DateTime @default(now()) @map("created_at")
+  id             String   @id @default(uuid())
+  organizationId String   @map("organization_id") // Denormalized from ImpersonationSession for RLS
+  sessionId      String   @map("session_id")
+  action         String // Action type (VIEW_CASE, UPDATE_USER, etc.)
+  entityType     String?  @map("entity_type") // Entity type affected
+  entityId       String?  @map("entity_id") // Entity ID affected
+  details        Json? // Additional details (changes made, before/after state)
+  createdAt      DateTime @default(now()) @map("created_at")
 
   // Relations
-  session ImpersonationSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  organization Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  session      ImpersonationSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 
+  @@index([organizationId])
   @@index([sessionId])
   @@index([action])
   @@index([createdAt])
@@ -6391,9 +6433,10 @@ enum SignoffType {
 /// GoLiveGate tracks hard gates (blocking requirements) per project.
 /// Hard gates are: auth_configured, admin_trained, terms_signed, contact_designated
 model GoLiveGate {
-  id        String @id @default(uuid())
-  projectId String @map("project_id") // FK to ImplementationProject
-  gateId    String @map("gate_id") // From HARD_GATES (auth_configured, etc.)
+  id             String @id @default(uuid())
+  organizationId String @map("organization_id") // Denormalized from ImplementationProject for RLS
+  projectId      String @map("project_id") // FK to ImplementationProject
+  gateId         String @map("gate_id") // From HARD_GATES (auth_configured, etc.)
 
   status      GateStatus @default(PENDING)
   checkedAt   DateTime?  @map("checked_at") // When last verified
@@ -6410,9 +6453,11 @@ model GoLiveGate {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relations
-  project ImplementationProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  organization Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  project      ImplementationProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@unique([projectId, gateId])
+  @@index([organizationId])
   @@index([projectId])
   @@map("go_live_gates")
 }
@@ -6420,9 +6465,10 @@ model GoLiveGate {
 /// ReadinessItem tracks weighted readiness checklist items per project.
 /// Items contribute to overall readiness score (recommended 85%+).
 model ReadinessItem {
-  id        String @id @default(uuid())
-  projectId String @map("project_id") // FK to ImplementationProject
-  itemId    String @map("item_id") // From READINESS_ITEMS
+  id             String @id @default(uuid())
+  organizationId String @map("organization_id") // Denormalized from ImplementationProject for RLS
+  projectId      String @map("project_id") // FK to ImplementationProject
+  itemId         String @map("item_id") // From READINESS_ITEMS
 
   isComplete    Boolean   @default(false) @map("is_complete")
   completedAt   DateTime? @map("completed_at")
@@ -6437,9 +6483,11 @@ model ReadinessItem {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relations
-  project ImplementationProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  organization Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  project      ImplementationProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@unique([projectId, itemId])
+  @@index([organizationId])
   @@index([projectId])
   @@map("readiness_items")
 }
@@ -6447,9 +6495,10 @@ model ReadinessItem {
 /// GoLiveSignoff captures client acknowledgment to proceed below threshold.
 /// Required when readiness score < 85% (RECOMMENDED_SCORE).
 model GoLiveSignoff {
-  id        String      @id @default(uuid())
-  projectId String      @unique @map("project_id") // One sign-off per project
-  type      SignoffType
+  id             String      @id @default(uuid())
+  organizationId String      @map("organization_id") // Denormalized from ImplementationProject for RLS
+  projectId      String      @unique @map("project_id") // One sign-off per project
+  type           SignoffType
 
   // Scores at time of sign-off
   readinessScoreAtSignoff Int @map("readiness_score_at_signoff")
@@ -6473,8 +6522,10 @@ model GoLiveSignoff {
   createdAt DateTime @default(now()) @map("created_at")
 
   // Relations
-  project ImplementationProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  organization Organization          @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  project      ImplementationProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
+  @@index([organizationId])
   @@map("go_live_signoffs")
 }
 
@@ -6625,8 +6676,9 @@ model Quiz {
 
 /// QuizAttempt tracks a user's attempt at completing a quiz.
 model QuizAttempt {
-  id     String @id @default(uuid())
-  quizId String @map("quiz_id")
+  id             String  @id @default(uuid())
+  organizationId String? @map("organization_id") // For tenant users; null for internal users
+  quizId         String  @map("quiz_id")
 
   // For tenant users (client staff being certified)
   userId String? @map("user_id")
@@ -6646,8 +6698,10 @@ model QuizAttempt {
   createdAt DateTime @default(now()) @map("created_at")
 
   // Relations
-  quiz Quiz @relation(fields: [quizId], references: [id], onDelete: Cascade)
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  quiz         Quiz          @relation(fields: [quizId], references: [id], onDelete: Cascade)
 
+  @@index([organizationId])
   @@index([quizId])
   @@index([userId])
   @@index([internalUserId])
