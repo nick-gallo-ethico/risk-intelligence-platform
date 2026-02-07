@@ -36,6 +36,8 @@ interface ViewToolbarProps {
   filterCount: number;
   /** Whether the filter panel is currently visible */
   showFilters: boolean;
+  /** Optional action buttons to display at the end of the toolbar */
+  actions?: React.ReactNode;
 }
 
 export function ViewToolbar({
@@ -43,6 +45,7 @@ export function ViewToolbar({
   onFilterClick,
   filterCount,
   showFilters,
+  actions,
 }: ViewToolbarProps) {
   const { searchQuery, setSearchQuery, duplicateView, activeView } =
     useSavedViewContext();
@@ -56,7 +59,7 @@ export function ViewToolbar({
       setSearchQuery(localSearch);
     },
     300,
-    [localSearch]
+    [localSearch],
   );
 
   const handleDuplicate = async () => {
@@ -142,6 +145,14 @@ export function ViewToolbar({
 
       {/* Save button */}
       <SaveButton />
+
+      {/* Custom action buttons */}
+      {actions && (
+        <>
+          <div className="h-6 w-px bg-border mx-1" />
+          {actions}
+        </>
+      )}
     </div>
   );
 }

@@ -17,7 +17,7 @@ import type { FilterGroup } from "@/lib/views/types";
 /**
  * Case entity type matching the backend model
  */
-export interface Case {
+export interface Case extends Record<string, unknown> {
   id: string;
   caseNumber: string;
   title: string;

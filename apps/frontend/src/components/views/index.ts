@@ -29,3 +29,4 @@ export { FilterConditionRow } from "./FilterConditionRow";
 export { DataTable } from "./DataTable";
 export { PaginationBar } from "./PaginationBar";
 export { BulkActionsBar } from "./BulkActionsBar";
+export { BoardView } from "./BoardView";

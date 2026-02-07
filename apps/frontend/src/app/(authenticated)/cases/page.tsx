@@ -1,366 +1,180 @@
-'use client';
+"use client";
 
-import { useEffect, useState, useCallback, Suspense, useRef } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuth } from '@/contexts/auth-context';
-import { casesApi } from '@/lib/cases-api';
-import { useCaseFilters, filtersToViewData } from '@/hooks/use-case-filters';
-import { useSavedViews } from '@/hooks/use-saved-views';
-import { useListNavigation } from '@/hooks/use-keyboard-shortcuts';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+/**
+ * Cases Page
+ *
+ * Main cases list page using the HubSpot-style saved views system.
+ * Provides table and board views with filters, search, and bulk actions.
+ */
+
+import React, { useState, useCallback, Suspense } from "react";
+import { useRouter } from "next/navigation";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import { CaseListFilters } from '@/components/cases/case-list-filters';
-import { FilterChips } from '@/components/cases/filter-chips';
-import { Pagination } from '@/components/cases/pagination';
-import { SavedViewSelector } from '@/components/common/saved-view-selector';
-import { cn } from '@/lib/utils';
-import type { Case, CaseStatus, Severity, CaseQueryParams } from '@/types/case';
+  SavedViewProvider,
+  ViewTabsBar,
+  ViewToolbar,
+  QuickFiltersRow,
+  ColumnSelectionModal,
+  AdvancedFiltersPanel,
+  DataTable,
+  BoardView,
+} from "@/components/views";
+import { CASES_VIEW_CONFIG } from "@/lib/views/configs/cases.config";
+import { useCasesView, type Case } from "@/hooks/views/useCasesView";
+import { useSavedViewContext } from "@/hooks/views/useSavedViewContext";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
 
-const STATUS_COLORS: Record<CaseStatus, string> = {
-  NEW: 'bg-blue-100 text-blue-800',
-  OPEN: 'bg-yellow-100 text-yellow-800',
-  CLOSED: 'bg-gray-100 text-gray-800',
-};
-
-const SEVERITY_COLORS: Record<Severity, string> = {
-  LOW: 'bg-green-100 text-green-800',
-  MEDIUM: 'bg-yellow-100 text-yellow-800',
-  HIGH: 'bg-orange-100 text-orange-800',
-  CRITICAL: 'bg-red-100 text-red-800',
-};
-
-function CasesContent() {
+/**
+ * CasesPageContent component that uses the view context
+ */
+function CasesPageContent() {
   const router = useRouter();
-  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   const {
-    filters,
-    updateFilters,
-    clearAllFilters,
-    clearFilter,
-    hasActiveFilters,
-    applyFiltersFromView,
-  } = useCaseFilters();
-
-  // Saved views integration - auto-apply default view disabled since we manage filters via URL
-  const {
-    views,
-    loading: viewsLoading,
-    activeView,
-    applyView,
-    saveCurrentView,
-    deleteView,
-    clearActiveView,
-  } = useSavedViews('CASES', { autoApplyDefault: false });
-
-  const [cases, setCases] = useState<Case[]>([]);
-  const [total, setTotal] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const searchInputRef = useRef<HTMLInputElement>(null);
-
-  // Keyboard navigation for case list
-  const { focusIndex } = useListNavigation(
     cases,
-    undefined, // No select callback needed
-    (id) => router.push(`/cases/${id}`), // Open on Enter
-    !loading && cases.length > 0 // Only enable when cases are loaded
+    totalRecords,
+    isLoading,
+    handleBulkAction,
+    handleStatusChange,
+  } = useCasesView();
+
+  const {
+    viewMode,
+    filters,
+    quickFilters,
+    page,
+    pageSize,
+    setPage,
+    setPageSize,
+  } = useSavedViewContext();
+
+  // UI state for panels and modals
+  const [showFilters, setShowFilters] = useState(false);
+  const [showColumnModal, setShowColumnModal] = useState(false);
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+
+  // Count active filters for badge display
+  const quickFilterCount = Object.values(quickFilters).filter(
+    (v) => v !== undefined && v !== null && v !== "",
+  ).length;
+  const advancedFilterCount = filters.reduce(
+    (sum, g) => sum + g.conditions.length,
+    0,
   );
-
-  const fetchCases = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const params: CaseQueryParams = {
-        limit: filters.pageSize,
-        offset: filters.page * filters.pageSize,
-        sortBy: filters.sortBy,
-        sortOrder: filters.sortOrder,
-      };
-
-      // Multi-select filters
-      if (filters.statuses.length > 0) {
-        params.status = filters.statuses;
-      }
-      if (filters.severities.length > 0) {
-        params.severity = filters.severities;
-      }
-
-      // Single-select filters
-      if (filters.sourceChannel) {
-        params.sourceChannel = filters.sourceChannel;
-      }
-      if (filters.caseType) {
-        params.caseType = filters.caseType;
-      }
-
-      // Date range
-      if (filters.dateFrom) {
-        params.createdAfter = filters.dateFrom;
-      }
-      if (filters.dateTo) {
-        params.createdBefore = filters.dateTo;
-      }
-
-      // Search
-      if (filters.search.trim()) {
-        params.search = filters.search.trim();
-      }
-
-      const response = await casesApi.list(params);
-      setCases(response.data);
-      setTotal(response.total);
-    } catch (err) {
-      console.error('Failed to fetch cases:', err);
-      setError('Failed to load cases. Please try again.');
-    } finally {
-      setLoading(false);
-    }
-  }, [filters]);
-
-  useEffect(() => {
-    if (!authLoading && !isAuthenticated) {
-      router.push('/login');
-    }
-  }, [authLoading, isAuthenticated, router]);
-
-  useEffect(() => {
-    if (isAuthenticated) {
-      fetchCases();
-    }
-  }, [isAuthenticated, fetchCases]);
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
+  const totalFilterCount = quickFilterCount + advancedFilterCount;
 
   /**
-   * Handler for applying a saved view.
-   * Fetches the view filters from API and applies them to the URL params.
+   * Navigate to case detail page
    */
-  const handleApplyView = useCallback(
-    async (viewId: string) => {
-      try {
-        const viewData = await applyView(viewId);
-        applyFiltersFromView(viewData);
-      } catch (error) {
-        console.error('Failed to apply view:', error);
-      }
+  const handleRowClick = useCallback(
+    (caseRecord: Case) => {
+      router.push(`/cases/${caseRecord.id}`);
     },
-    [applyView, applyFiltersFromView]
+    [router],
   );
 
   /**
-   * Handler for saving current filters as a new view.
+   * Navigate to new case page
    */
-  const handleSaveView = useCallback(
-    async (name: string, isShared: boolean, isPinned: boolean) => {
-      await saveCurrentView(name, filtersToViewData(filters), {
-        isShared,
-        isPinned,
-        sortBy: filters.sortBy,
-        sortOrder: filters.sortOrder,
-      });
+  const handleNewCase = useCallback(() => {
+    router.push("/cases/new");
+  }, [router]);
+
+  /**
+   * Pagination handlers
+   */
+  const handlePageChange = useCallback(
+    (newPage: number) => {
+      setPage(newPage);
     },
-    [filters, saveCurrentView]
+    [setPage],
+  );
+
+  const handlePageSizeChange = useCallback(
+    (size: number) => {
+      setPageSize(size);
+    },
+    [setPageSize],
   );
 
   /**
-   * Handler for clearing the active view and all filters.
+   * Get row ID for table selection
    */
-  const handleClearView = useCallback(() => {
-    clearActiveView();
-    clearAllFilters();
-  }, [clearActiveView, clearAllFilters]);
-
-  if (authLoading) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <div className="text-muted-foreground">Loading...</div>
-      </div>
-    );
-  }
-
-  if (!isAuthenticated || !user) {
-    return null;
-  }
+  const getRowId = useCallback((row: Case) => row.id, []);
 
   return (
-    <div className="p-6 space-y-6">
-      {/* Page Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Cases</h1>
-          <p className="text-muted-foreground mt-1">
-            Manage and track compliance cases
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          <SavedViewSelector
-            views={views}
-            activeView={activeView}
-            onApplyView={handleApplyView}
-            onSaveView={handleSaveView}
-            onDeleteView={deleteView}
-            onClearView={handleClearView}
-            hasActiveFilters={hasActiveFilters}
-            loading={viewsLoading}
-          />
-          <Button onClick={() => router.push('/cases/new')}>+ New Case</Button>
-        </div>
-      </div>
+    <div className="flex flex-col h-full">
+      {/* Zone 1: View Tabs */}
+      <ViewTabsBar />
 
-      {/* Filters */}
-      <Card>
-        <CardContent className="pt-6">
-          <CaseListFilters filters={filters} onUpdateFilters={updateFilters} />
-        </CardContent>
-      </Card>
+      {/* Zone 2: Toolbar with actions */}
+      <ViewToolbar
+        onEditColumnsClick={() => setShowColumnModal(true)}
+        onFilterClick={() => setShowFilters(!showFilters)}
+        filterCount={totalFilterCount}
+        showFilters={showFilters}
+        actions={
+          <Button onClick={handleNewCase} size="sm">
+            <Plus className="h-4 w-4 mr-1" />
+            New Case
+          </Button>
+        }
+      />
 
-      {/* Active filters */}
-      {hasActiveFilters && (
-        <FilterChips
-          filters={filters}
-          onClearFilter={clearFilter}
-          onClearAll={clearAllFilters}
-          totalResults={total}
+      {/* Zone 3: Quick Filters (conditional) */}
+      {showFilters && (
+        <QuickFiltersRow
+          onAdvancedFiltersClick={() => setShowAdvancedFilters(true)}
+          advancedFilterCount={advancedFilterCount}
         />
       )}
 
-      {/* Cases Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <span>Cases</span>
-            {!hasActiveFilters && (
-              <span className="text-sm font-normal text-muted-foreground">
-                {total} total
-              </span>
-            )}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {error && (
-            <div className="text-red-600 mb-4 p-4 bg-red-50 rounded-md">
-              {error}
-            </div>
-          )}
+      {/* Zone 4: Data Table or Board View */}
+      <div className="flex-1 min-h-0">
+        {viewMode === "table" ? (
+          <DataTable
+            data={cases}
+            isLoading={isLoading}
+            totalRecords={totalRecords}
+            currentPage={page}
+            pageSize={pageSize}
+            onPageChange={handlePageChange}
+            onPageSizeChange={handlePageSizeChange}
+            onRowClick={handleRowClick}
+            onBulkAction={handleBulkAction}
+            getRowId={getRowId}
+            emptyMessage="No cases match your current filters"
+          />
+        ) : (
+          <BoardView
+            data={cases}
+            isLoading={isLoading}
+            onRecordClick={handleRowClick}
+            onStatusChange={handleStatusChange}
+            getRecordId={getRowId}
+            emptyMessage="No cases match your current filters"
+          />
+        )}
+      </div>
 
-          {loading ? (
-            <div className="text-center py-8 text-muted-foreground">
-              Loading cases...
-            </div>
-          ) : cases.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              {hasActiveFilters
-                ? 'No cases match your filters.'
-                : 'No cases found. Create your first case to get started.'}
-            </div>
-          ) : (
-            <>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Reference</TableHead>
-                    <TableHead>Summary</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Severity</TableHead>
-                    <TableHead>Source</TableHead>
-                    <TableHead>Created</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {cases.map((caseItem, index) => (
-                    <TableRow
-                      key={caseItem.id}
-                      className={cn(
-                        'cursor-pointer hover:bg-muted/50 transition-colors',
-                        // Focus indicator for keyboard navigation
-                        index === focusIndex && 'ring-2 ring-blue-500 ring-inset bg-blue-50/50'
-                      )}
-                      onClick={() => router.push(`/cases/${caseItem.id}`)}
-                    >
-                      <TableCell className="font-mono text-sm font-medium">
-                        {caseItem.referenceNumber}
-                      </TableCell>
-                      <TableCell className="max-w-[300px] truncate">
-                        {caseItem.summary || caseItem.details.slice(0, 100)}
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          variant="outline"
-                          className={STATUS_COLORS[caseItem.status]}
-                        >
-                          {caseItem.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        {caseItem.severity ? (
-                          <Badge
-                            variant="outline"
-                            className={SEVERITY_COLORS[caseItem.severity]}
-                          >
-                            {caseItem.severity}
-                          </Badge>
-                        ) : (
-                          <span className="text-muted-foreground">-</span>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-sm text-muted-foreground">
-                        {caseItem.sourceChannel.replace(/_/g, ' ')}
-                      </TableCell>
-                      <TableCell className="text-sm text-muted-foreground">
-                        {formatDate(caseItem.createdAt)}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            router.push(`/cases/${caseItem.id}`);
-                          }}
-                        >
-                          View
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+      {/* Column Selection Modal */}
+      <ColumnSelectionModal
+        open={showColumnModal}
+        onOpenChange={setShowColumnModal}
+      />
 
-              {/* Pagination */}
-              <Pagination
-                page={filters.page}
-                pageSize={filters.pageSize}
-                total={total}
-                onPageChange={(page) => updateFilters({ page })}
-                onPageSizeChange={(pageSize) => updateFilters({ pageSize })}
-              />
-            </>
-          )}
-        </CardContent>
-      </Card>
+      {/* Advanced Filters Panel (slide-out) */}
+      <AdvancedFiltersPanel
+        open={showAdvancedFilters}
+        onOpenChange={setShowAdvancedFilters}
+      />
     </div>
   );
 }
 
+/**
+ * Cases Page with SavedViewProvider wrapper
+ */
 export default function CasesPage() {
   return (
     <Suspense
@@ -370,7 +184,9 @@ export default function CasesPage() {
         </div>
       }
     >
-      <CasesContent />
+      <SavedViewProvider config={CASES_VIEW_CONFIG}>
+        <CasesPageContent />
+      </SavedViewProvider>
     </Suspense>
   );
 }
