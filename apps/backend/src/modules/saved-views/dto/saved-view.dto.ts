@@ -282,7 +282,11 @@ export class ApplyViewResponseDto {
   sortOrder?: string;
   columns?: ColumnConfig[];
   invalidFilters: string[]; // Filter keys that couldn't be validated
+
+  // HubSpot-style view enhancements
   frozenColumnCount?: number;
-  viewMode?: string;
+  viewMode?: string; // 'table' | 'board'
   boardGroupBy?: string;
+  recordCount?: number | null;
+  recordCountAt?: Date | null;
 }
