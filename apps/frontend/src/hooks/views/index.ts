@@ -16,3 +16,7 @@ export {
 } from "./useSavedViewsApi";
 export { useCasesView } from "./useCasesView";
 export type { Case } from "./useCasesView";
+export { useInvestigationsView } from "./useInvestigationsView";
+export type { Investigation } from "./useInvestigationsView";
+export { usePoliciesView } from "./usePoliciesView";
+export type { Policy } from "./usePoliciesView";

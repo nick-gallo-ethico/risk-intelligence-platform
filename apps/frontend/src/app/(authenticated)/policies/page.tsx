@@ -1,191 +1,176 @@
-'use client';
-
-import { Suspense, useState, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus } from 'lucide-react';
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
-import { PolicyList } from '@/components/policies/policy-list';
-import { PolicyFilters } from '@/components/policies/policy-filters';
-import { policiesApi } from '@/services/policies';
-import { useAuth } from '@/contexts/auth-context';
-import type { PolicyFilters as Filters, Policy } from '@/types/policy';
+"use client";
 
 /**
- * Policy list skeleton for loading state.
+ * Policies Page
+ *
+ * Main policies list page using the HubSpot-style saved views system.
+ * Provides table and board views with filters, search, and bulk actions.
  */
-function PolicyListSkeleton() {
-  return (
-    <div className="space-y-3">
-      {Array.from({ length: 5 }).map((_, i) => (
-        <div key={i} className="flex items-center gap-4 p-4">
-          <Skeleton className="h-5 w-[300px]" />
-          <Skeleton className="h-5 w-[100px]" />
-          <Skeleton className="h-5 w-[100px]" />
-          <Skeleton className="h-5 w-[60px]" />
-          <Skeleton className="h-5 w-[120px]" />
-          <Skeleton className="h-5 w-[80px]" />
-        </div>
-      ))}
-    </div>
-  );
-}
+
+import React, { useState, useCallback, Suspense } from "react";
+import { useRouter } from "next/navigation";
+import {
+  SavedViewProvider,
+  ViewTabsBar,
+  ViewToolbar,
+  QuickFiltersRow,
+  ColumnSelectionModal,
+  AdvancedFiltersPanel,
+  DataTable,
+  BoardView,
+} from "@/components/views";
+import { POLICIES_VIEW_CONFIG } from "@/lib/views/configs/policies.config";
+import { usePoliciesView, type Policy } from "@/hooks/views/usePoliciesView";
+import { useSavedViewContext } from "@/hooks/views/useSavedViewContext";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
+import Link from "next/link";
 
 /**
- * Error state with retry button.
+ * PoliciesPageContent component that uses the view context
  */
-function ErrorState({ onRetry }: { onRetry: () => void }) {
-  return (
-    <div className="text-center py-12">
-      <p className="text-red-600 mb-4">Failed to load policies. Please try again.</p>
-      <Button onClick={onRetry} variant="outline">
-        Retry
-      </Button>
-    </div>
-  );
-}
-
-function PoliciesContent() {
+function PoliciesPageContent() {
   const router = useRouter();
-  const queryClient = useQueryClient();
-  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
-  const [filters, setFilters] = useState<Filters>({});
-  const [page, setPage] = useState(1);
-
-  // Fetch policies
   const {
-    data,
+    policies,
+    totalRecords,
     isLoading,
-    error,
-    refetch,
-  } = useQuery({
-    queryKey: ['policies', filters, page],
-    queryFn: () => policiesApi.list(filters, page, 20),
-    enabled: isAuthenticated,
-  });
+    handleBulkAction,
+    handleStatusChange,
+  } = usePoliciesView();
 
-  // Submit for approval mutation
-  const submitForApprovalMutation = useMutation({
-    mutationFn: (policy: Policy) => policiesApi.submitForApproval(policy.id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['policies'] });
+  const {
+    viewMode,
+    filters,
+    quickFilters,
+    page,
+    pageSize,
+    setPage,
+    setPageSize,
+  } = useSavedViewContext();
+
+  // UI state for panels and modals
+  const [showFilters, setShowFilters] = useState(false);
+  const [showColumnModal, setShowColumnModal] = useState(false);
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+
+  // Count active filters for badge display
+  const quickFilterCount = Object.values(quickFilters).filter(
+    (v) => v !== undefined && v !== null && v !== "",
+  ).length;
+  const advancedFilterCount = filters.reduce(
+    (sum, g) => sum + g.conditions.length,
+    0,
+  );
+  const totalFilterCount = quickFilterCount + advancedFilterCount;
+
+  /**
+   * Navigate to policy detail page
+   */
+  const handleRowClick = useCallback(
+    (record: Policy) => {
+      router.push(`/policies/${record.id}`);
     },
-  });
-
-  // Retire mutation
-  const retireMutation = useMutation({
-    mutationFn: (policy: Policy) => policiesApi.retire(policy.id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['policies'] });
-    },
-  });
-
-  const handleFiltersChange = useCallback((newFilters: Filters) => {
-    setFilters(newFilters);
-    setPage(1); // Reset to first page when filters change
-  }, []);
-
-  const handleSubmitForApproval = useCallback(
-    (policy: Policy) => {
-      if (
-        window.confirm(
-          `Submit "${policy.title}" for approval? This will start the approval workflow.`
-        )
-      ) {
-        submitForApprovalMutation.mutate(policy);
-      }
-    },
-    [submitForApprovalMutation]
+    [router],
   );
 
-  const handleRetire = useCallback(
-    (policy: Policy) => {
-      if (
-        window.confirm(
-          `Retire "${policy.title}"? This will mark the policy as no longer active.`
-        )
-      ) {
-        retireMutation.mutate(policy);
-      }
+  /**
+   * Pagination handlers
+   */
+  const handlePageChange = useCallback(
+    (newPage: number) => {
+      setPage(newPage);
     },
-    [retireMutation]
+    [setPage],
   );
 
-  // Redirect to login if not authenticated
-  if (authLoading) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <div className="text-muted-foreground">Loading...</div>
-      </div>
-    );
-  }
+  const handlePageSizeChange = useCallback(
+    (size: number) => {
+      setPageSize(size);
+    },
+    [setPageSize],
+  );
 
-  if (!isAuthenticated || !user) {
-    router.push('/login');
-    return null;
-  }
+  /**
+   * Get row ID for table selection
+   */
+  const getRowId = useCallback((row: Policy) => row.id, []);
 
   return (
-    <div className="p-6 space-y-6">
-      {/* Page Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Policies</h1>
-          <p className="text-muted-foreground mt-1">
-            Manage your organization&apos;s policies
-          </p>
-        </div>
-        <Button asChild>
-          <Link href="/policies/new">
-            <Plus className="mr-2 h-4 w-4" />
-            New Policy
-          </Link>
-        </Button>
+    <div className="flex flex-col h-full">
+      {/* Zone 1: View Tabs */}
+      <ViewTabsBar />
+
+      {/* Zone 2: Toolbar with actions */}
+      <ViewToolbar
+        onEditColumnsClick={() => setShowColumnModal(true)}
+        onFilterClick={() => setShowFilters(!showFilters)}
+        filterCount={totalFilterCount}
+        showFilters={showFilters}
+        actions={
+          <Button asChild size="sm">
+            <Link href="/policies/new">
+              <Plus className="h-4 w-4 mr-1" />
+              New Policy
+            </Link>
+          </Button>
+        }
+      />
+
+      {/* Zone 3: Quick Filters (conditional) */}
+      {showFilters && (
+        <QuickFiltersRow
+          onAdvancedFiltersClick={() => setShowAdvancedFilters(true)}
+          advancedFilterCount={advancedFilterCount}
+        />
+      )}
+
+      {/* Zone 4: Data Table or Board View */}
+      <div className="flex-1 min-h-0">
+        {viewMode === "table" ? (
+          <DataTable
+            data={policies}
+            isLoading={isLoading}
+            totalRecords={totalRecords}
+            currentPage={page}
+            pageSize={pageSize}
+            onPageChange={handlePageChange}
+            onPageSizeChange={handlePageSizeChange}
+            onRowClick={handleRowClick}
+            onBulkAction={handleBulkAction}
+            getRowId={getRowId}
+            emptyMessage="No policies match your current filters"
+          />
+        ) : (
+          <BoardView
+            data={policies}
+            isLoading={isLoading}
+            onRecordClick={handleRowClick}
+            onStatusChange={handleStatusChange}
+            getRecordId={getRowId}
+            emptyMessage="No policies match your current filters"
+          />
+        )}
       </div>
 
-      {/* Filters */}
-      <Card>
-        <CardContent className="pt-6">
-          <PolicyFilters filters={filters} onChange={handleFiltersChange} />
-        </CardContent>
-      </Card>
+      {/* Column Selection Modal */}
+      <ColumnSelectionModal
+        open={showColumnModal}
+        onOpenChange={setShowColumnModal}
+      />
 
-      {/* Policies Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <span>All Policies</span>
-            {data && (
-              <span className="text-sm font-normal text-muted-foreground">
-                {data.total} total
-              </span>
-            )}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <PolicyListSkeleton />
-          ) : error ? (
-            <ErrorState onRetry={() => refetch()} />
-          ) : (
-            <PolicyList
-              policies={data?.data || []}
-              total={data?.total || 0}
-              page={page}
-              onPageChange={setPage}
-              onSubmitForApproval={handleSubmitForApproval}
-              onRetire={handleRetire}
-            />
-          )}
-        </CardContent>
-      </Card>
+      {/* Advanced Filters Panel (slide-out) */}
+      <AdvancedFiltersPanel
+        open={showAdvancedFilters}
+        onOpenChange={setShowAdvancedFilters}
+      />
     </div>
   );
 }
 
+/**
+ * Policies Page with SavedViewProvider wrapper
+ */
 export default function PoliciesPage() {
   return (
     <Suspense
@@ -195,7 +180,9 @@ export default function PoliciesPage() {
         </div>
       }
     >
-      <PoliciesContent />
+      <SavedViewProvider config={POLICIES_VIEW_CONFIG}>
+        <PoliciesPageContent />
+      </SavedViewProvider>
     </Suspense>
   );
 }
