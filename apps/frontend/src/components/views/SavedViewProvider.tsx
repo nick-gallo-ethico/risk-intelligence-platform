@@ -18,8 +18,9 @@ import React, {
   useCallback,
   useMemo,
   useEffect,
+  useRef,
 } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   SavedView,
   FilterGroup,
@@ -37,6 +38,10 @@ import {
   useReorderSavedViews,
   useApplySavedView,
 } from "@/hooks/views/useSavedViewsApi";
+import {
+  useViewUrlState,
+  parseUrlFilters,
+} from "@/hooks/views/useViewUrlState";
 import {
   DEFAULT_PAGE_SIZE,
   DEFAULT_VIEW_MODE,
@@ -108,7 +113,7 @@ export interface SavedViewContextValue extends ViewState {
   saveView: () => Promise<void>;
   saveViewAs: (
     name: string,
-    visibility: "private" | "team" | "everyone"
+    visibility: "private" | "team" | "everyone",
   ) => Promise<SavedView>;
   deleteView: (viewId: string) => Promise<void>;
   duplicateView: (viewId: string) => Promise<SavedView>;
@@ -149,7 +154,7 @@ export interface SavedViewContextValue extends ViewState {
 }
 
 export const SavedViewContext = createContext<SavedViewContextValue | null>(
-  null
+  null,
 );
 
 function viewReducer(state: ViewState, action: ViewAction): ViewState {
@@ -169,9 +174,8 @@ function viewReducer(state: ViewState, action: ViewAction): ViewState {
         activeView: action.view,
         filters: action.view.filters || [],
         visibleColumns:
-          action.view.columns
-            ?.filter((c) => c.visible)
-            .map((c) => c.key) || state.visibleColumns,
+          action.view.columns?.filter((c) => c.visible).map((c) => c.key) ||
+          state.visibleColumns,
         columnOrder:
           action.view.columns
             ?.sort((a, b) => a.order - b.order)
@@ -312,8 +316,19 @@ export function SavedViewProvider({
   config,
   children,
 }: SavedViewProviderProps) {
-  const router = useRouter();
-  const searchParams = useSearchParams();
+  // URL state hook for bidirectional synchronization
+  const {
+    urlState,
+    setViewId: setUrlViewId,
+    setFilters: setUrlFilters,
+    setSort: setUrlSort,
+    setSearch: setUrlSearch,
+    setPage: setUrlPage,
+    setPageSize: setUrlPageSize,
+  } = useViewUrlState();
+
+  // Track if we've initialized from URL to avoid loops
+  const initializedFromUrl = useRef(false);
 
   // Initial state from config
   const defaultColumns = config.columns
@@ -347,7 +362,7 @@ export function SavedViewProvider({
 
   // API hooks
   const { data: viewsData, refetch: refetchViews } = useSavedViews(
-    config.moduleType
+    config.moduleType,
   );
   const createMutation = useCreateSavedView();
   const updateMutation = useUpdateSavedView();
@@ -359,25 +374,99 @@ export function SavedViewProvider({
   // Memoize views to prevent dependency changes on every render
   const views = useMemo(() => viewsData?.data || [], [viewsData?.data]);
 
-  // Load view from URL on mount
+  // Initialize from URL state on mount (runs once when views are loaded)
   useEffect(() => {
-    const viewId = searchParams?.get("viewId");
-    if (viewId && views.length > 0) {
-      const view = views.find((v) => v.id === viewId);
+    if (initializedFromUrl.current || views.length === 0) return;
+
+    // Load view from URL if specified
+    if (urlState.viewId) {
+      const view = views.find((v) => v.id === urlState.viewId);
       if (view) {
         dispatch({ type: "SET_ACTIVE_VIEW", view });
       }
     }
-  }, [searchParams, views]);
+
+    // Load filters from URL (these override view filters for shareable links)
+    if (urlState.filters) {
+      const parsedFilters = parseUrlFilters(urlState.filters);
+      if (parsedFilters.length > 0) {
+        dispatch({ type: "SET_FILTERS", filters: parsedFilters });
+      }
+    }
+
+    // Load sort from URL
+    if (urlState.sortBy) {
+      dispatch({
+        type: "SET_SORT",
+        column: urlState.sortBy,
+        order: urlState.sortOrder || "asc",
+      });
+    }
+
+    // Load search from URL
+    if (urlState.search) {
+      dispatch({ type: "SET_SEARCH", query: urlState.search });
+    }
+
+    // Load pagination from URL
+    if (urlState.page > 1) {
+      dispatch({ type: "SET_PAGE", page: urlState.page });
+    }
+    if (urlState.pageSize !== 25) {
+      dispatch({ type: "SET_PAGE_SIZE", size: urlState.pageSize });
+    }
+
+    initializedFromUrl.current = true;
+  }, [views, urlState]);
+
+  // Sync filters to URL when they change (debounced)
+  useEffect(() => {
+    if (!initializedFromUrl.current) return;
+
+    const timeout = setTimeout(() => {
+      setUrlFilters(state.filters);
+    }, 500);
+
+    return () => clearTimeout(timeout);
+  }, [state.filters, setUrlFilters]);
+
+  // Sync sort to URL when it changes
+  useEffect(() => {
+    if (!initializedFromUrl.current) return;
+
+    setUrlSort(state.sortBy, state.sortOrder);
+  }, [state.sortBy, state.sortOrder, setUrlSort]);
+
+  // Sync search to URL when it changes (debounced)
+  useEffect(() => {
+    if (!initializedFromUrl.current) return;
+
+    const timeout = setTimeout(() => {
+      setUrlSearch(state.searchQuery);
+    }, 500);
+
+    return () => clearTimeout(timeout);
+  }, [state.searchQuery, setUrlSearch]);
+
+  // Sync pagination to URL
+  useEffect(() => {
+    if (!initializedFromUrl.current) return;
+
+    setUrlPage(state.page);
+  }, [state.page, setUrlPage]);
+
+  useEffect(() => {
+    if (!initializedFromUrl.current) return;
+
+    setUrlPageSize(state.pageSize);
+  }, [state.pageSize, setUrlPageSize]);
 
   // Actions
   const setActiveView = useCallback(
     async (viewId: string | null) => {
       if (!viewId) {
         dispatch({ type: "SET_ACTIVE_VIEW", view: null });
-        const params = new URLSearchParams(searchParams?.toString() || "");
-        params.delete("viewId");
-        router.replace(`?${params.toString()}`);
+        setUrlViewId(null);
         return;
       }
 
@@ -401,15 +490,13 @@ export function SavedViewProvider({
             },
           });
         }
-        // Update URL
-        const params = new URLSearchParams(searchParams?.toString() || "");
-        params.set("viewId", viewId);
-        router.replace(`?${params.toString()}`);
+        // Update URL with view ID
+        setUrlViewId(viewId);
       } finally {
         dispatch({ type: "SET_LOADING", loading: false });
       }
     },
-    [views, applyMutation, searchParams, router]
+    [views, applyMutation, setUrlViewId],
   );
 
   const saveView = useCallback(async () => {
@@ -463,7 +550,7 @@ export function SavedViewProvider({
       dispatch({ type: "SET_ACTIVE_VIEW", view: newView });
       return newView;
     },
-    [state, config.moduleType, createMutation, refetchViews]
+    [state, config.moduleType, createMutation, refetchViews],
   );
 
   const deleteView = useCallback(
@@ -474,7 +561,7 @@ export function SavedViewProvider({
       }
       refetchViews();
     },
-    [state.activeViewId, deleteMutation, refetchViews]
+    [state.activeViewId, deleteMutation, refetchViews],
   );
 
   const duplicateView = useCallback(
@@ -483,7 +570,7 @@ export function SavedViewProvider({
       await refetchViews();
       return newView;
     },
-    [cloneMutation, refetchViews]
+    [cloneMutation, refetchViews],
   );
 
   const renameView = useCallback(
@@ -491,7 +578,7 @@ export function SavedViewProvider({
       await updateMutation.mutateAsync({ id: viewId, name });
       refetchViews();
     },
-    [updateMutation, refetchViews]
+    [updateMutation, refetchViews],
   );
 
   const reorderTabs = useCallback(
@@ -503,7 +590,7 @@ export function SavedViewProvider({
       await reorderMutation.mutateAsync(viewOrders);
       refetchViews();
     },
-    [reorderMutation, refetchViews]
+    [reorderMutation, refetchViews],
   );
 
   // Simple state setters
@@ -639,7 +726,7 @@ export function SavedViewProvider({
       setPageSize,
       setTotal,
       refresh,
-    ]
+    ],
   );
 
   return (
