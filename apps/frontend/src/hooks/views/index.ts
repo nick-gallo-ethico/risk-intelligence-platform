@@ -25,3 +25,7 @@ export { useInvestigationsView } from "./useInvestigationsView";
 export type { Investigation } from "./useInvestigationsView";
 export { usePoliciesView } from "./usePoliciesView";
 export type { Policy } from "./usePoliciesView";
+export { useDisclosuresView } from "./useDisclosuresView";
+export type { Disclosure } from "./useDisclosuresView";
+export { useIntakeFormsView } from "./useIntakeFormsView";
+export type { IntakeFormSubmission } from "./useIntakeFormsView";
