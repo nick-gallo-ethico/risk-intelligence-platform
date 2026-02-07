@@ -633,13 +633,14 @@ Plans:
 - Active and completed campaigns visible in hub
 - Draft campaign ready for editing demonstration
 - Multiple form types available in Forms section
-  **Plans**: 3 plans in 1 wave
+  **Plans**: 4 plans in 2 waves
 
 Plans:
 
 - [ ] 17-01-PLAN.md (Wave 1) — Backend dashboard endpoints + sidebar navigation + /campaigns/new page
 - [ ] 17-02-PLAN.md (Wave 1) — Campaign detail page with overview, assignments, lifecycle actions
 - [ ] 17-03-PLAN.md (Wave 1) — Forms hub with list, create, and edit pages wrapping existing FormBuilder
+- [ ] 17-04-PLAN.md (Wave 2) — Demo data seeding and verification checkpoint
 
 ### Phase 18: Reports & Data Management
 
@@ -802,7 +803,7 @@ Phases execute in dependency order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 
 | 14. Critical Bug Fixes & Navigation  | 0/5            | Planned  | -          |
 | 15. Case Detail Page Overhaul        | 0/7            | Planned  | -          |
 | 16. AI Integration Fix               | 0/TBD          | Planned  | -          |
-| 17. Campaigns Hub                    | 0/3            | Planned  | -          |
+| 17. Campaigns Hub                    | 0/4            | Planned  | -          |
 | 18. Reports & Data Management        | 0/9            | Planned  | -          |
 | 19. Workflow Engine UI               | 0/TBD          | Planned  | -          |
 | 20. Settings Overhaul (HubSpot)      | 0/TBD          | Planned  | -          |
