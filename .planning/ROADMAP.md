@@ -582,7 +582,17 @@ Plans:
 - Updated case seed data with 200-400 word details and 50-75 word summaries
 - Activity feed entries (notes, status changes, assignments) on flagship cases
 - Connected people and documents on flagship cases
-  **Plans**: TBD — run `/gsd:plan-phase 15`
+  **Plans**: 7 plans in 4 waves
+
+Plans:
+
+- [ ] 15-01-PLAN.md (Wave 1) — Backend API gaps: merge endpoints, person-case association controller
+- [ ] 15-02-PLAN.md (Wave 2) — Three-column grid layout + left column (CaseInfoSummary, ActionButtonRow)
+- [ ] 15-03-PLAN.md (Wave 2) — Center column tabs: fix activity API path, add Summary tab, enhance Overview
+- [ ] 15-04-PLAN.md (Wave 3) — Action modals: Assign, Status, Merge, AddNote, EmailLog wired to APIs
+- [ ] 15-05-PLAN.md (Wave 3) — Right column: ConnectedPeople, ConnectedDocuments, AddPerson modal
+- [ ] 15-06-PLAN.md (Wave 4) — AI slide-out panel with WebSocket streaming chat
+- [ ] 15-07-PLAN.md (Wave 1) — Seed data enhancement: 200-400 word details, 50-75 word summaries, activities
 
 ### Phase 16: AI Integration Fix
 
