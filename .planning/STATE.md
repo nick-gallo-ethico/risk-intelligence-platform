@@ -5,53 +5,73 @@
 See: .planning/PROJECT.md (updated 2026-02-02)
 
 **Core value:** Users can manage their entire compliance workflow - from anonymous report intake to investigation closure to board reporting - in one AI-assisted platform, with every task unified into a single "My Work" view.
-**Current focus:** Phase 12 - Internal Operations Portal
+**Current focus:** Phase 13 - HubSpot-Style Saved Views (next to plan/execute)
 
 ## Current Position
 
-Phase: 12 of 12 (Internal Operations Portal)
-Plan: 19 of 19 in current phase (COMPLETE)
-Status: Phase 12 COMPLETE - Frontend Polish and Demo Data Seeding complete
-Last activity: 2026-02-06 - Completed 12-19-PLAN.md (Frontend Polish and Demo Data)
-**Next Phase:** None (Phase 12 is final phase - PLATFORM COMPLETE)
+Phase: 13 of 24 (HubSpot-Style Saved Views System)
+Plan: 02 of 15 in current phase (COMPLETE)
+Status: Executing Phase 13 Wave 1
+Last activity: 2026-02-07 - Completed 13-02-PLAN.md (Frontend Type System & TanStack Table)
+**Next Plan:** 13-03-PLAN.md (ViewsPanel Component)
 
-Progress: [========================================================================] 100% (~179 of ~179 total plans)
+Progress: [==================================================--------------------] ~74% (~191 of ~260 estimated total plans)
+
+### New Phases Added (2026-02-06)
+
+From V1 QA testing punch list (`.planning/V1-ISSUES-AND-GAPS.md`):
+
+- Phase 14: Critical Bug Fixes & Navigation (404s, broken buttons, styling)
+- Phase 15: Case Detail Page Overhaul (three-column layout, activity feed, AI panel)
+- Phase 16: AI Integration Fix (AI doesn't work at all — core differentiator)
+- Phase 17: Campaigns Hub (centralized campaign management)
+- Phase 18: Reports & Data Management (report designer, field availability)
+- Phase 19: Workflow Engine UI (visual workflow builder — critical)
+- Phase 20: Settings Overhaul (HubSpot-style — preferences, account mgmt, data mgmt)
+- Phase 21: Project Management (Monday.com-style boards/timelines)
+- Phase 22: Dark Mode & Theme (required for V1)
+- Phase 23: Help & Support System (knowledge base, ticket filing)
+- Phase 24: Policy Content & Seed Data (populate policies, improve case data)
 
 ## Performance Metrics
 
 **Velocity:**
+
 - Total plans completed: 104
 - Average duration: 15 min
 - Total execution time: 26.62 hours
 
 **By Phase:**
 
-| Phase | Plans | Total | Avg/Plan |
-|-------|-------|-------|----------|
-| 01-foundation | 9 | 123 min | 14 min |
-| 02-demo-tenant-seed-data | 7 | 84 min | 12 min |
-| 03-authentication-sso | 8 | 69 min | 9 min |
-| 04-core-entities | 10 | 112 min | 11 min |
-| 05-ai-infrastructure | 11 | 143 min | 13 min |
-| 06-case-management | 11 | ~211 min | ~19 min |
-| 07-notifications-email | 8 | ~112 min | ~14 min |
-| 08-portals | 19 | 253 min | 13 min |
-| 09-campaigns-disclosures | 17 | ~261 min | ~15 min |
+| Phase                    | Plans | Total    | Avg/Plan |
+| ------------------------ | ----- | -------- | -------- |
+| 01-foundation            | 9     | 123 min  | 14 min   |
+| 02-demo-tenant-seed-data | 7     | 84 min   | 12 min   |
+| 03-authentication-sso    | 8     | 69 min   | 9 min    |
+| 04-core-entities         | 10    | 112 min  | 11 min   |
+| 05-ai-infrastructure     | 11    | 143 min  | 13 min   |
+| 06-case-management       | 11    | ~211 min | ~19 min  |
+| 07-notifications-email   | 8     | ~112 min | ~14 min  |
+| 08-portals               | 19    | 253 min  | 13 min   |
+| 09-campaigns-disclosures | 17    | ~261 min | ~15 min  |
 
 **Recent Trend:**
-- Last 5 plans: 12-19 (20 min), 12-18 (25 min), 12-16 (22 min), 12-13 (18 min), 12-12 (15 min)
-- Trend: Phase 12 COMPLETE - Final plan added ErrorBoundary, SkeletonLoaders, accessibility styles, and Phase 12 demo data for Acme Co.
+
+- Last 5 plans: 13-02 (12 min), 12-19 (20 min), 12-18 (25 min), 12-16 (22 min), 12-13 (18 min)
+- Trend: Phase 13 started - TanStack Table installed with comprehensive view system types.
 
 **Tech Debt (Phase 11.1):**
+
 - TD-001: Next.js hydration issue (dev server 404s on JS chunks)
 - TD-002: Playwright baseURL configuration needs fix
 
-*Updated after each plan completion*
+_Updated after each plan completion_
 
 ## Accumulated Context
 
 ### Roadmap Evolution
 
+- Phase 13 added (2026-02-06): HubSpot-Style Saved Views System - Reusable view components across Cases, Investigations, Disclosures, Intake Forms, Policies
 - Phase 12 added (2026-02-05): Internal Operations Portal - Support Console, Implementation Portal, Hotline Operations, Client Success Dashboard, Tech Debt items
 - Phase 11.1 inserted after Phase 11 (2026-02-05): Frontend Navigation and UI Fixes - Main sidebar, mobile nav, case tab fixes (URGENT)
 
@@ -64,7 +84,7 @@ Recent decisions affecting current work:
 - Roadmap: AI infrastructure (Phase 5) before domain modules so features can leverage it
 - Roadmap: 11 phases derived from 149 requirements with comprehensive depth setting
 - 01-01: EventsModule is @Global() - EventEmitter2 injectable everywhere without explicit imports
-- 01-01: Dot-notation event names (case.created) enable wildcard subscriptions (case.*)
+- 01-01: Dot-notation event names (case.created) enable wildcard subscriptions (case.\*)
 - 01-01: BaseEvent requires organizationId - enforces tenant isolation at event level
 - 01-01: Event emission wrapped in try-catch - request success independent of event delivery
 - 01-02: AI queue gets 5 retries with exponential backoff (2s base) for rate limiting resilience
@@ -88,7 +108,7 @@ Recent decisions affecting current work:
 - 01-04: Event-driven workflow - emits events for audit and notification integration
 - 01-04: Version-on-publish pattern - creates new version if active instances exist
 - 01-04: Stage gates placeholder - full validation deferred to domain modules
-- 01-06: Per-tenant index naming: org_{organizationId}_{entityType}
+- 01-06: Per-tenant index naming: org*{organizationId}*{entityType}
 - 01-06: Permission filters injected at ES query time (non-negotiable for security)
 - 01-06: 500ms search timeout per CONTEXT.md requirements
 - 01-06: Compliance synonyms in analyzer: harassment->bullying, fraud->deception, etc.
@@ -113,7 +133,7 @@ Recent decisions affecting current work:
 - 02-06: Demo email pattern: demo-{role}@acme.local for sales reps, prospect-{uuid}@demo.local for prospects
 - 02-06: Prospect accounts default to 14-day expiry (typical sales demo cycle)
 - 02-06: Hourly cron job expires past-due prospect accounts
-- 02-06: Sales rep identification via email pattern matching (demo-*@acme.local)
+- 02-06: Sales rep identification via email pattern matching (demo-\*@acme.local)
 - 02-03: 52 locations (25 US, 15 EMEA, 12 APAC) with real cities and fictional addresses
 - 02-03: 4-level org hierarchy: Division -> BusinessUnit -> Department -> Team
 - 02-03: Named executive personas with memorable names for demo walkthroughs
@@ -135,7 +155,7 @@ Recent decisions affecting current work:
 - 03-02: Auth endpoint tiered limits: login 5/min (strict), refresh 30/min (moderate), logout 10/min
 - 03-02: Per-target throttling: login tracks by email, MFA tracks by user ID to prevent distributed attacks
 - 03-02: Proxy IP extraction: X-Forwarded-For > X-Real-IP > direct IP for accurate rate limiting behind load balancers
-- 03-03: DNS TXT record prefix _ethico-verify for domain verification
+- 03-03: DNS TXT record prefix \_ethico-verify for domain verification
 - 03-03: 32-byte (64 hex) cryptographically secure verification tokens
 - 03-03: Rate limiting: 10 domain adds/hour, 20 verify attempts/hour
 - 03-03: SYSTEM_ADMIN role required for domain modification, COMPLIANCE_OFFICER can view
@@ -150,7 +170,7 @@ Recent decisions affecting current work:
 - 03-04: Single SSO provider per user - prevents confusion about which SSO to use
 - 03-04: SSO config endpoints require SYSTEM_ADMIN role
 - 03-05: Use "common" endpoint for multi-tenant Azure AD (any tenant can authenticate)
-- 03-05: Extract email from profile._json with fallback: email > preferred_username > upn
+- 03-05: Extract email from profile.\_json with fallback: email > preferred_username > upn
 - 03-05: Use profile.oid as stable SSO ID (Azure object identifier)
 - 03-05: passport-azure-ad deprecated but functional - MSAL migration tracked for future
 - 03-05: createSsoSession() in AuthService shared by all SSO callback handlers
@@ -263,7 +283,7 @@ Recent decisions affecting current work:
 - 05-11: WebSocket gateway at /ai namespace for streaming chat
 - 05-11: Auth context extracted from handshake (organizationId, userId, userRole, permissions)
 - 05-11: Action categories: QUICK (30s), STANDARD (5m), CRITICAL (30m), EXTERNAL (no undo)
-- 05-11: REST endpoints at /api/v1/ai/* for skills, actions, conversations, agents, usage
+- 05-11: REST endpoints at /api/v1/ai/\* for skills, actions, conversations, agents, usage
 - 06-04: ViewEntityType enum: CASES, RIUS, INVESTIGATIONS, PERSONS, CAMPAIGNS, REMEDIATION_PLANS
 - 06-04: Filter validation against current enum values at create/update/apply time
 - 06-04: Invalid filters returned in array instead of throwing errors on apply (graceful degradation)
@@ -510,15 +530,16 @@ Recent decisions affecting current work:
 - 12-01: 7 InternalRole types (SUPPORT_L1-L3, IMPLEMENTATION, HOTLINE_OPS, CLIENT_SUCCESS, ADMIN)
 - 12-01: ImpersonationSession max 4 hours, reason required, ticket optional
 - 12-01: ImpersonationAuditLog captures Who/What/When/Where/Why/Before-After
-- 12-01: Operations endpoints excluded from TenantMiddleware (api/v1/operations/*)
+- 12-01: Operations endpoints excluded from TenantMiddleware (api/v1/operations/\*)
 - 12-06: Uses Express request context (req.impersonation) instead of nestjs-cls since cls not installed
 - 12-06: RLS override via SET LOCAL app.current_organization with parameterized query
 - 12-06: Response headers X-Impersonation-Remaining and X-Impersonation-Org for client UI timer
-- 12-06: ImpersonationMiddleware applied globally to all routes via forRoutes('*')
+- 12-06: ImpersonationMiddleware applied globally to all routes via forRoutes('\*')
 
 ### Pending Todos
 
 **AI Infrastructure Polish (Phase 6):**
+
 - WebSocket /ai namespace needs integration testing with real client
 - Skills/Actions endpoints return [] without auth - consider adding demo mode or public skill list
 - AiGateway authentication flow needs E2E testing
@@ -537,11 +558,12 @@ Resume file: None
 
 **Phase 12 Status: COMPLETE**
 All 19 plans executed successfully:
+
 - 12-01 through 12-06: Backend foundation (InternalUser, Impersonation, Go-Live)
 - 12-07 through 12-12: Backend services (Support, Implementation, Hotline, Training, Client Success)
 - 12-13 through 12-17: Frontend UI (Support Console, Implementation Portal, Hotline Ops, Training Portal, Client Success Dashboard)
 - 12-18: Backend tech debt (WebSocket E2E, DataLoader)
 - 12-19: Frontend polish and demo data (ErrorBoundary, SkeletonLoaders, accessibility.css, acme-phase-12.ts)
 
-**PLATFORM COMPLETE**
-All 12 phases and ~179 plans executed. Platform is feature-complete.
+**Phase 13 Queued**
+Phase 13 (HubSpot-Style Saved Views System) added. Run /gsd:plan-phase 13 to create execution plans.
