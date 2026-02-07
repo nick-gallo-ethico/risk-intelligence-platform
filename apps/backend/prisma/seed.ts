@@ -16,6 +16,7 @@ import {
   getRetaliationStats,
   getHotspotStats,
 } from './seeders/patterns';
+import { seedSavedViews } from './seeders/saved-views.seeder';
 
 const prisma = new PrismaClient();
 
@@ -215,6 +216,12 @@ async function main() {
   );
 
   // ========================================
+  // Seed Saved Views (HubSpot-style views for all modules)
+  // ========================================
+  console.log('\nSeeding saved views...');
+  await seedSavedViews(prisma, organization.id);
+
+  // ========================================
   // Calculate Demo Metrics
   // ========================================
   console.log('\nCalculating demo metrics...');
@@ -279,6 +286,14 @@ async function main() {
   console.log(`  - With CCO Escalation: ${flagshipStats.withEscalation}`);
   console.log(`  - With External Party: ${flagshipStats.withExternalParty}`);
   console.log(`  - Avg Risk Score: ${flagshipStats.avgRiskScore}`);
+
+  console.log('\n--- SAVED VIEWS ---');
+  console.log('Default views created for all modules:');
+  console.log('  Cases: All Cases, Open Cases, High Priority, Pipeline (board)');
+  console.log('  Investigations: All Investigations, Active, Board');
+  console.log('  Policies: All Policies, Published, Review Needed');
+  console.log('  Disclosures: All Disclosures, Pending Review, High Risk');
+  console.log('  Intake Forms: All Submissions, Pending Review, Anonymous');
 
   console.log('\n========================================');
   console.log('DEMO CREDENTIALS');
