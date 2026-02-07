@@ -643,7 +643,7 @@ Plans:
 
 ### Phase 18: Reports & Data Management
 
-**Goal**: Build a report designer UI so users can create custom reports from the rich data in the system. All case fields must be reportable and sortable. Integrates with the saved views system for column selection and export.
+**Goal**: Build a report designer UI so users can create custom reports from all platform data, with AI-assisted natural language report generation, pre-built templates, and scheduled delivery.
 **Depends on**: Phase 11 (reporting engine backend — QueryBuilder, Excel export, PDF generation), Phase 13 (saved views for column selection patterns), Phase 4 (core entities provide the data)
 **Requirements**: Issues documented in `.planning/V1-ISSUES-AND-GAPS.md` Phase 18 section
 **Success Criteria** (what must be TRUE):
@@ -656,7 +656,19 @@ Plans:
 6. Pre-built report templates exist for common compliance reports (case volume by category, time-to-close trends, disclosure completion rates)
 7. Scheduled report delivery works (email on schedule)
 8. AI natural language queries generate reports from questions like "show me harassment cases from Q4 in EMEA"
-   **Plans**: TBD — run `/gsd:plan-phase 18`
+   **Plans**: 9 plans in 5 waves
+
+Plans:
+
+- [ ] 18-01-PLAN.md (Wave 1) — SavedReport Prisma model, ReportFieldRegistryService, DTOs
+- [ ] 18-02-PLAN.md (Wave 1) — ReportExecutionService and ReportService CRUD
+- [ ] 18-03-PLAN.md (Wave 2) — ReportController REST API and ReportModule wiring
+- [ ] 18-04-PLAN.md (Wave 2) — Pre-built report templates and demo data seeder
+- [ ] 18-05-PLAN.md (Wave 3) — Report list page, TypeScript types, API client
+- [ ] 18-06-PLAN.md (Wave 3) — Report designer wizard (5-step: data source, fields, filters, visualization, save)
+- [ ] 18-07-PLAN.md (Wave 4) — Report detail page with chart/table/KPI visualizations (recharts)
+- [ ] 18-08-PLAN.md (Wave 4) — AI report generation dialog and ExportButton backend wiring
+- [ ] 18-09-PLAN.md (Wave 5) — Scheduled report delivery UI and backend schedule endpoints
 
 ### Phase 19: Workflow Engine UI
 
@@ -788,10 +800,10 @@ Phases execute in dependency order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 
 | 12. Internal Operations Portal       | 19/19          | Complete | 2026-02-06 |
 | 13. HubSpot-Style Saved Views        | 0/15           | Planned  | -          |
 | 14. Critical Bug Fixes & Navigation  | 0/5            | Planned  | -          |
-| 15. Case Detail Page Overhaul        | 0/TBD          | Planned  | -          |
+| 15. Case Detail Page Overhaul        | 0/7            | Planned  | -          |
 | 16. AI Integration Fix               | 0/TBD          | Planned  | -          |
 | 17. Campaigns Hub                    | 0/3            | Planned  | -          |
-| 18. Reports & Data Management        | 0/TBD          | Planned  | -          |
+| 18. Reports & Data Management        | 0/9            | Planned  | -          |
 | 19. Workflow Engine UI               | 0/TBD          | Planned  | -          |
 | 20. Settings Overhaul (HubSpot)      | 0/TBD          | Planned  | -          |
 | 21. Project Management (Monday.com)  | 0/TBD          | Planned  | -          |
@@ -802,7 +814,7 @@ Phases execute in dependency order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 
 ---
 
 _Roadmap created: 2026-02-02_
-_Updated: 2026-02-07 (Phase 17 planned)_
+_Updated: 2026-02-07 (Phase 18 planned)_
 _Depth: Comprehensive_
 _Total phases: 24 (+ 11.1 insertion)_
 _Total plans: 190+ completed, ~50-70 estimated remaining_
