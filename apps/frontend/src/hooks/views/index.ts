@@ -14,6 +14,11 @@ export {
   useReorderSavedViews,
   useApplySavedView,
 } from "./useSavedViewsApi";
+export {
+  useViewUrlState,
+  parseUrlFilters,
+  serializeFiltersForUrl,
+} from "./useViewUrlState";
 export { useCasesView } from "./useCasesView";
 export type { Case } from "./useCasesView";
 export { useInvestigationsView } from "./useInvestigationsView";
