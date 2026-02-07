@@ -32,9 +32,9 @@ export default function DashboardPage() {
 
       try {
         setIsLoadingCases(true);
-        // Fetch recent cases (larger limit to have enough data for stats)
+        // Fetch recent cases (reduced limit for faster dashboard load)
         const response = await casesApi.list({
-          limit: 100,
+          limit: 25,
           sortBy: 'createdAt',
           sortOrder: 'desc',
         });
