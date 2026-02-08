@@ -763,7 +763,24 @@ Plans:
 5. Top navigation bar and side navigation bar are visually consistent in both light and dark modes
 6. Charts, tables, modals, and form elements all respect the active theme
 7. Theme transition is smooth (no flash of wrong theme on page load)
-   **Plans**: TBD — run `/gsd:plan-phase 22`
+   **Plans**: 14 plans in 5 waves
+
+Plans:
+
+- [ ] 22-01-PLAN.md (Wave 1) — Install next-themes, wire ThemeProvider, suppressHydrationWarning, Sonner toast theme
+- [ ] 22-02-PLAN.md (Wave 1) — ThemeToggle component in user menu, create lib/theme-colors.ts status color utility
+- [ ] 22-03-PLAN.md (Wave 2) — Migrate status-badge + severity-badge to theme-colors.ts, fix UI primitive hardcoded colors
+- [ ] 22-04-PLAN.md (Wave 2) — Theme navigation (top-nav, sidebar, mobile), layouts, and common components
+- [ ] 22-05-PLAN.md (Wave 3) — Theme dashboard components and case layout/header/tabs/filters
+- [ ] 22-06-PLAN.md (Wave 3) — Theme remaining case components (panels, timeline, forms, investigation-card)
+- [ ] 22-07-PLAN.md (Wave 3) — Theme investigation components, DataTable frozen column shadows, board/view components
+- [ ] 22-08-PLAN.md (Wave 3) — Theme policy components, analytics, Gantt chart hex colors, rich text editor
+- [ ] 22-09-PLAN.md (Wave 4) — Theme ethics portal (20 components), tenant branding coordination, conflict review
+- [ ] 22-10-PLAN.md (Wave 4) — Theme operator console (17 components, split-screen layout, QA queue)
+- [ ] 22-11-PLAN.md (Wave 4) — Theme employee portal, campaigns, disclosure form builder/preview
+- [ ] 22-12-PLAN.md (Wave 4) — Theme settings, users, implementation, exports, files, remaining views
+- [ ] 22-13-PLAN.md (Wave 4) — Sweep all 43 page.tsx files for page-level hardcoded colors
+- [ ] 22-14-PLAN.md (Wave 5) — Verification checkpoint: TypeScript compilation, all 7 success criteria verified
 
 ### Phase 23: Help & Support System
 
@@ -778,7 +795,15 @@ Plans:
 4. Support ticket submission sends confirmation email and creates ticket in support system
 5. Users can view their open tickets and status from the Help section
 6. Contextual help links from relevant pages (e.g., case detail page links to "Working with Cases" articles)
-   **Plans**: TBD — run `/gsd:plan-phase 23`
+   **Plans**: 5 plans in 4 waves
+
+Plans:
+
+- [ ] 23-01-PLAN.md (Wave 1) — Backend: Prisma models (KnowledgeBaseArticle, SupportTicket), NestJS help module with controllers, services, DTOs, event listener
+- [ ] 23-02-PLAN.md (Wave 2) — Frontend: Help API service, sidebar footer link, top nav help dropdown
+- [ ] 23-03-PLAN.md (Wave 2) — Frontend: Help center landing page, category grid, article search, article detail page
+- [ ] 23-04-PLAN.md (Wave 3) — Frontend: Ticket submission form, my tickets list, email confirmation template
+- [ ] 23-05-PLAN.md (Wave 4) — Seed data: 15+ knowledge base articles, contextual help link component, verification checkpoint
 
 ### Phase 24: Policy Content & Seed Data
 
@@ -833,14 +858,14 @@ Phases execute in dependency order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 
 | 19. Workflow Engine UI               | 0/7            | Planned  | -          |
 | 20. Settings Overhaul (HubSpot)      | 0/TBD          | Planned  | -          |
 | 21. Project Management (Monday.com)  | 0/6            | Planned  | -          |
-| 22. Dark Mode & Theme                | 0/TBD          | Planned  | -          |
-| 23. Help & Support System            | 0/TBD          | Planned  | -          |
+| 22. Dark Mode & Theme                | 0/14           | Planned  | -          |
+| 23. Help & Support System            | 0/5            | Planned  | -          |
 | 24. Policy Content & Seed Data       | 0/TBD          | Planned  | -          |
 
 ---
 
 _Roadmap created: 2026-02-02_
-_Updated: 2026-02-08 (Phase 21 planned)_
+_Updated: 2026-02-08 (Phase 22 planned)_
 _Depth: Comprehensive_
 _Total phases: 24 (+ 11.1 insertion)_
 _Total plans: 190+ completed, ~50-70 estimated remaining_
