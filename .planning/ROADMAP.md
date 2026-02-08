@@ -686,7 +686,17 @@ Plans:
 6. Existing workflow templates (case investigation pipeline, policy approval) are editable
 7. Workflow execution shows current state and progress on case/policy detail pages
 8. Changes to workflow definitions handle in-flight instances correctly (version-on-publish pattern per Phase 1 decisions)
-   **Plans**: TBD — run `/gsd:plan-phase 19`
+   **Plans**: 7 plans in 4 waves
+
+Plans:
+
+- [ ] 19-01-PLAN.md (Wave 1) — Backend API gaps: list instances, clone template, version history, instance count enrichment
+- [ ] 19-02-PLAN.md (Wave 1) — Frontend foundation: install @xyflow/react, TypeScript types, API service, React Query hooks, navigation
+- [ ] 19-03-PLAN.md (Wave 2) — Workflow list page with table, filters, row actions, create dialog
+- [ ] 19-04-PLAN.md (Wave 2) — Visual workflow builder canvas with React Flow: custom stage nodes, transition edges, drag-from-palette
+- [ ] 19-05-PLAN.md (Wave 3) — Property panels, toolbar, save/publish, create/edit page routes
+- [ ] 19-06-PLAN.md (Wave 3) — Workflow instances page with table, bulk actions, detail dialog, progress indicator
+- [ ] 19-07-PLAN.md (Wave 4) — Entity detail integration (case/policy workflow cards) and Acme Co. demo seed data
 
 ### Phase 20: Settings Overhaul (HubSpot-Style)
 
@@ -728,7 +738,16 @@ Plans:
 
 - Sample projects in various states (active, completed, planned)
 - Tasks distributed across team members
-  **Plans**: TBD — run `/gsd:plan-phase 21`
+  **Plans**: 6 plans in 6 waves
+
+Plans:
+
+- [ ] 21-01-PLAN.md (Wave 1) — Backend Prisma models (ProjectGroup, ProjectTask, ProjectColumn, ProjectTemplate), DTOs, services, events
+- [ ] 21-02-PLAN.md (Wave 2) — Backend controller extensions (task/group/template endpoints), My Work integration
+- [ ] 21-03-PLAN.md (Wave 3) — Frontend project list page with saved views (table + board views), types, config
+- [ ] 21-04-PLAN.md (Wave 4) — Frontend project detail page with grouped task table, inline editing, task panel
+- [ ] 21-05-PLAN.md (Wave 5) — Frontend board/timeline views within project detail, project template selector
+- [ ] 21-06-PLAN.md (Wave 6) — Demo data seeder (5 projects, 6 templates) and verification checkpoint
 
 ### Phase 22: Dark Mode & Theme
 
@@ -805,9 +824,9 @@ Phases execute in dependency order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 
 | 16. AI Integration Fix               | 0/TBD          | Planned  | -          |
 | 17. Campaigns Hub                    | 0/4            | Planned  | -          |
 | 18. Reports & Data Management        | 0/9            | Planned  | -          |
-| 19. Workflow Engine UI               | 0/TBD          | Planned  | -          |
+| 19. Workflow Engine UI               | 0/7            | Planned  | -          |
 | 20. Settings Overhaul (HubSpot)      | 0/TBD          | Planned  | -          |
-| 21. Project Management (Monday.com)  | 0/TBD          | Planned  | -          |
+| 21. Project Management (Monday.com)  | 0/6            | Planned  | -          |
 | 22. Dark Mode & Theme                | 0/TBD          | Planned  | -          |
 | 23. Help & Support System            | 0/TBD          | Planned  | -          |
 | 24. Policy Content & Seed Data       | 0/TBD          | Planned  | -          |
@@ -815,7 +834,7 @@ Phases execute in dependency order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 
 ---
 
 _Roadmap created: 2026-02-02_
-_Updated: 2026-02-07 (Phase 18 planned)_
+_Updated: 2026-02-08 (Phase 21 planned)_
 _Depth: Comprehensive_
 _Total phases: 24 (+ 11.1 insertion)_
 _Total plans: 190+ completed, ~50-70 estimated remaining_
