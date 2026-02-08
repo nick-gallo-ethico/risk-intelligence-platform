@@ -792,7 +792,13 @@ Plans:
 3. Policies have appropriate metadata: effective dates, review dates, owner, department
 4. Case detail seed data: case descriptions are 200-400 words, case summaries are 50-75 words
 5. Seed script is idempotent — running it again updates content without duplicating records
-   **Plans**: TBD — run `/gsd:plan-phase 24`
+   **Plans:** 3 plans
+
+Plans:
+
+- [ ] 24-01-PLAN.md — Replace 26 boilerplate policies with substantial unique content, expand ADDITIONAL policies, add status/date variety
+- [ ] 24-02-PLAN.md — Expand flagship case narratives to 200-400 words, fix AI summary generation to 50-75 words, enhance narrative templates
+- [ ] 24-03-PLAN.md — Enable policy seeder in orchestrator, add Phase 24 verification checks for content quality and lengths
 
 ---
 
