@@ -22,7 +22,7 @@ Progress: [====================================================-----------------
 Fixing demo data and configuration issues:
 
 - 14.1-01: Notification seeder for demo data (COMPLETE)
-- 14.1-02: (pending)
+- 14.1-02: Activity seeder wiring for audit log (COMPLETE - work done in 14.1-01)
 - 14.1-03: Fix demo user case ownership for My Tasks (COMPLETE)
 
 ### Phase 13.1 Saved Views Fixes Complete (2026-02-09)
