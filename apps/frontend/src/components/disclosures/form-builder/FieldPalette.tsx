@@ -422,7 +422,7 @@ export function FieldPalette({
 
         {filteredFields.length === 0 && (
           <div className="text-center text-sm text-gray-500 py-8">
-            No fields match "{searchQuery}"
+            No fields match &ldquo;{searchQuery}&rdquo;
           </div>
         )}
       </div>

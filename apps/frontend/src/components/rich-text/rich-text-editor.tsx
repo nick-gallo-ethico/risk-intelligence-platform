@@ -67,6 +67,7 @@ export function RichTextEditor({
 
   // Initialize Tiptap editor
   const editor = useEditor({
+    immediatelyRender: false, // Required for SSR/Next.js to avoid hydration mismatches
     extensions: [
       StarterKit.configure({
         // Disable features we're replacing with custom extensions

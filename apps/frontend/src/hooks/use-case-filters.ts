@@ -71,8 +71,8 @@ export function useCaseFilters() {
   const pathname = usePathname();
 
   const filters: CaseFilters = useMemo(() => {
-    const statusParam = searchParams.get('status');
-    const severityParam = searchParams.get('severity');
+    const statusParam = searchParams?.get('status');
+    const severityParam = searchParams?.get('severity');
 
     return {
       statuses: statusParam
@@ -81,18 +81,18 @@ export function useCaseFilters() {
       severities: severityParam
         ? (severityParam.split(',') as Severity[])
         : DEFAULT_FILTERS.severities,
-      sourceChannel: (searchParams.get('source') as SourceChannel) || null,
-      caseType: (searchParams.get('type') as CaseType) || null,
-      dateFrom: searchParams.get('from') || null,
-      dateTo: searchParams.get('to') || null,
-      search: searchParams.get('search') || '',
-      sortBy: searchParams.get('sortBy') || DEFAULT_FILTERS.sortBy,
+      sourceChannel: (searchParams?.get('source') as SourceChannel) || null,
+      caseType: (searchParams?.get('type') as CaseType) || null,
+      dateFrom: searchParams?.get('from') || null,
+      dateTo: searchParams?.get('to') || null,
+      search: searchParams?.get('search') || '',
+      sortBy: searchParams?.get('sortBy') || DEFAULT_FILTERS.sortBy,
       sortOrder:
-        (searchParams.get('sortOrder') as 'asc' | 'desc') ||
+        (searchParams?.get('sortOrder') as 'asc' | 'desc') ||
         DEFAULT_FILTERS.sortOrder,
-      page: parseInt(searchParams.get('page') || '0', 10),
+      page: parseInt(searchParams?.get('page') || '0', 10),
       pageSize: parseInt(
-        searchParams.get('pageSize') || String(DEFAULT_FILTERS.pageSize),
+        searchParams?.get('pageSize') || String(DEFAULT_FILTERS.pageSize),
         10
       ),
     };
@@ -100,7 +100,7 @@ export function useCaseFilters() {
 
   const updateFilters = useCallback(
     (updates: Partial<CaseFilters>) => {
-      const newParams = new URLSearchParams(searchParams.toString());
+      const newParams = new URLSearchParams(searchParams?.toString() ?? '');
       const newFilters = { ...filters, ...updates };
 
       // Reset page when filters change (except page itself)
@@ -184,7 +184,7 @@ export function useCaseFilters() {
   );
 
   const clearAllFilters = useCallback(() => {
-    router.push(pathname, { scroll: false });
+    router.push(pathname ?? '/cases', { scroll: false });
   }, [pathname, router]);
 
   const clearFilter = useCallback(

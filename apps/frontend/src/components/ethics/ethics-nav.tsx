@@ -123,7 +123,7 @@ export function EthicsNav({
         const isActive =
           item.href === ''
             ? activePath === basePath || activePath === `${basePath}/`
-            : activePath.startsWith(fullHref);
+            : activePath?.startsWith(fullHref) ?? false;
 
         return (
           <Link

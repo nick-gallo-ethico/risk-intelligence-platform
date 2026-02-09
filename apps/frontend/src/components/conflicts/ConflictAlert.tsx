@@ -752,7 +752,7 @@ export function ConflictAlert({
                   }
                 />
                 <Label htmlFor="createExclusion" className="cursor-pointer">
-                  Don't flag this combination again
+                  Don&apos;t flag this combination again
                 </Label>
               </div>
 

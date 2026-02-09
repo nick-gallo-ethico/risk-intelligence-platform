@@ -82,12 +82,12 @@ export function CaseTabs({
   const searchParams = useSearchParams();
 
   // Get current tab from URL or use default
-  const currentTab = (searchParams.get('tab') as TabId) || defaultTab;
+  const currentTab = (searchParams?.get('tab') as TabId) || defaultTab;
 
   // Handle tab change - update URL
   const handleTabChange = useCallback(
     (tab: string) => {
-      const params = new URLSearchParams(searchParams.toString());
+      const params = new URLSearchParams(searchParams?.toString() ?? '');
       params.set('tab', tab);
       router.push(`${pathname}?${params.toString()}`, { scroll: false });
     },
