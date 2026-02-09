@@ -66,13 +66,16 @@ interface BulkActionPayload {
  * Convert filter groups to API-compatible format
  */
 function buildFilterParams(
-  filters: FilterGroup[],
+  filters: FilterGroup[] | Record<string, unknown>,
   quickFilters: Record<string, unknown>,
 ): Record<string, unknown> {
   const params: Record<string, unknown> = {};
 
+  // Defensive check: ensure filters is an array (may be object from legacy view)
+  const safeFilters = Array.isArray(filters) ? filters : [];
+
   // Collect all conditions from filter groups
-  const allConditions = filters.flatMap((group) => group.conditions);
+  const allConditions = safeFilters.flatMap((group) => group.conditions);
 
   // Add quick filter conditions
   Object.entries(quickFilters).forEach(([propertyId, value]) => {
@@ -116,9 +119,12 @@ export function useCasesView() {
 
   // Build query params from view state
   const queryParams = useMemo(() => {
+    // Backend expects limit/offset, not page/pageSize
+    const limit = pageSize;
+    const offset = (page - 1) * pageSize;
     const params: Record<string, unknown> = {
-      page,
-      pageSize,
+      limit,
+      offset,
     };
 
     // Search
@@ -160,15 +166,43 @@ export function useCasesView() {
     staleTime: 30_000, // 30 seconds
   });
 
-  // Bulk status change mutation
+  // Single case status change mutation (for board drag-drop)
+  // Uses PATCH /cases/:id/status endpoint which requires rationale
+  const singleStatusMutation = useMutation({
+    mutationFn: async ({
+      caseId,
+      status,
+    }: {
+      caseId: string;
+      status: string;
+    }) => {
+      await apiClient.patch(`/cases/${caseId}/status`, {
+        status,
+        rationale: `Status changed to ${status} via board view`,
+      });
+    },
+    onSuccess: () => {
+      toast.success("Case status updated");
+      queryClient.invalidateQueries({ queryKey: ["cases"] });
+    },
+    onError: () => {
+      toast.error("Failed to update case status");
+    },
+  });
+
+  // Bulk status change mutation (for toolbar bulk actions)
   const statusMutation = useMutation({
     mutationFn: async ({ ids, status }: { ids: string[]; status: string }) => {
-      const payload: BulkActionPayload = {
-        action: "status",
-        ids,
-        data: { status },
-      };
-      await apiClient.post("/cases/bulk", payload);
+      // For bulk operations, update each case individually
+      // since /cases/bulk endpoint doesn't exist yet
+      await Promise.all(
+        ids.map((id) =>
+          apiClient.patch(`/cases/${id}/status`, {
+            status,
+            rationale: `Status changed to ${status} via bulk action`,
+          }),
+        ),
+      );
     },
     onSuccess: (_, variables) => {
       toast.success(`Updated ${variables.ids.length} case(s) status`);
@@ -305,9 +339,9 @@ export function useCasesView() {
    */
   const handleStatusChange = useCallback(
     (caseId: string, newStatus: string) => {
-      statusMutation.mutate({ ids: [caseId], status: newStatus });
+      singleStatusMutation.mutate({ caseId, status: newStatus });
     },
-    [statusMutation],
+    [singleStatusMutation],
   );
 
   return {
@@ -321,6 +355,7 @@ export function useCasesView() {
     handleStatusChange,
     // Expose mutation loading states for UI feedback
     isMutating:
+      singleStatusMutation.isPending ||
       statusMutation.isPending ||
       priorityMutation.isPending ||
       assignMutation.isPending ||
