@@ -735,13 +735,13 @@ export async function seedCases(
   // createMany bypasses PostgreSQL triggers, so we need to update manually
   console.log("  Populating search vectors for seeded cases...");
   await prisma.$executeRaw`
-    UPDATE "Case"
+    UPDATE cases
     SET search_vector =
-      setweight(to_tsvector('english', COALESCE("referenceNumber", '')), 'A') ||
+      setweight(to_tsvector('english', COALESCE(reference_number, '')), 'A') ||
       setweight(to_tsvector('english', COALESCE(summary, '')), 'A') ||
       setweight(to_tsvector('english', COALESCE(details, '')), 'B') ||
-      setweight(to_tsvector('english', COALESCE("aiSummary", '')), 'C')
-    WHERE "organizationId" = ${organizationId}
+      setweight(to_tsvector('english', COALESCE(ai_summary, '')), 'C')
+    WHERE organization_id = ${organizationId}
       AND search_vector IS NULL;
   `;
   console.log("  Search vectors populated for cases");
