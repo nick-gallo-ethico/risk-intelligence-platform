@@ -6,6 +6,7 @@ import {
   Body,
   Param,
   Query,
+  Res,
   HttpCode,
   HttpStatus,
   UseGuards,
@@ -18,6 +19,7 @@ import {
   ApiBearerAuth,
   ApiParam,
 } from "@nestjs/swagger";
+import { Response } from "express";
 import { Policy, PolicyVersion } from "@prisma/client";
 import { PoliciesService } from "./policies.service";
 import {
@@ -34,6 +36,8 @@ import {
   UserRole,
 } from "../../common/decorators";
 import { RequestUser } from "../auth/interfaces/jwt-payload.interface";
+import { ExcelExportService } from "../analytics/exports/excel-export.service";
+import { ColumnDefinition } from "../analytics/exports/entities/export.entity";
 
 /**
  * REST API controller for policy management.
@@ -50,7 +54,10 @@ import { RequestUser } from "../auth/interfaces/jwt-payload.interface";
 @Controller("policies")
 @UseGuards(JwtAuthGuard, TenantGuard)
 export class PoliciesController {
-  constructor(private readonly policiesService: PoliciesService) {}
+  constructor(
+    private readonly policiesService: PoliciesService,
+    private readonly excelExportService: ExcelExportService,
+  ) {}
 
   // =========================================================================
   // CREATE
@@ -257,5 +264,77 @@ export class PoliciesController {
     @TenantId() organizationId: string,
   ): Promise<PolicyVersion> {
     return this.policiesService.getVersion(versionId, organizationId);
+  }
+
+  // =========================================================================
+  // EXPORT
+  // =========================================================================
+
+  /**
+   * POST /api/v1/policies/export
+   * Exports filtered policies to Excel format.
+   */
+  @Post("export")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: "Export policies",
+    description: "Exports filtered policies to Excel format",
+  })
+  @ApiResponse({
+    status: 200,
+    description: "Excel file generated successfully",
+  })
+  @ApiResponse({ status: 400, description: "Validation error" })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  async exportPolicies(
+    @Body()
+    body: {
+      format?: "excel" | "csv";
+      columns?: string[];
+    },
+    @Query() query: PolicyQueryDto,
+    @TenantId() organizationId: string,
+    @Res() res: Response,
+  ): Promise<void> {
+    // Get filtered policies (reuse existing findAll logic)
+    const { data } = await this.policiesService.findAll(query, organizationId);
+
+    // Define export columns
+    const columnDefs: ColumnDefinition[] = [
+      { key: "slug", label: "Policy Slug", type: "string", width: 20 },
+      { key: "title", label: "Title", type: "string", width: 40 },
+      { key: "status", label: "Status", type: "string", width: 12 },
+      { key: "category", label: "Category", type: "string", width: 20 },
+      { key: "version", label: "Version", type: "string", width: 10 },
+      { key: "effectiveDate", label: "Effective Date", type: "date", width: 12 },
+      { key: "createdAt", label: "Created Date", type: "date", width: 12 },
+    ];
+
+    // Map policy data to rows
+    const rows = data.map((p) => ({
+      slug: p.slug || "",
+      title: p.title,
+      status: p.status,
+      category: p.category || "",
+      version: p.currentVersion ? `v${p.currentVersion}` : "Draft",
+      effectiveDate: p.effectiveDate,
+      createdAt: p.createdAt,
+    }));
+
+    // Generate Excel buffer
+    const buffer = await this.excelExportService.generateBuffer(
+      rows,
+      columnDefs,
+      { sheetName: "Policies Export" },
+    );
+
+    // Send file response
+    const filename = `policies-export-${new Date().toISOString().split("T")[0]}.xlsx`;
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    );
+    res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+    res.send(buffer);
   }
 }

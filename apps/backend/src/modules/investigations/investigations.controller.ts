@@ -6,6 +6,7 @@ import {
   Body,
   Param,
   Query,
+  Res,
   HttpCode,
   HttpStatus,
   UseGuards,
@@ -18,6 +19,7 @@ import {
   ApiBearerAuth,
   ApiParam,
 } from "@nestjs/swagger";
+import { Response } from "express";
 import { Investigation } from "@prisma/client";
 import { InvestigationsService } from "./investigations.service";
 import {
@@ -37,6 +39,8 @@ import {
   UserRole,
 } from "../../common/decorators";
 import { RequestUser } from "../auth/interfaces/jwt-payload.interface";
+import { ExcelExportService } from "../analytics/exports/excel-export.service";
+import { ColumnDefinition } from "../analytics/exports/entities/export.entity";
 
 /**
  * Controller for nested investigation routes under cases.
@@ -129,7 +133,10 @@ export class CaseInvestigationsController {
 @Controller("investigations")
 @UseGuards(JwtAuthGuard, TenantGuard)
 export class InvestigationsController {
-  constructor(private readonly investigationsService: InvestigationsService) {}
+  constructor(
+    private readonly investigationsService: InvestigationsService,
+    private readonly excelExportService: ExcelExportService,
+  ) {}
 
   /**
    * GET /api/v1/investigations
@@ -338,5 +345,90 @@ export class InvestigationsController {
     @TenantId() organizationId: string,
   ): Promise<Investigation> {
     return this.investigationsService.close(id, dto, user.id, organizationId);
+  }
+
+  /**
+   * POST /api/v1/investigations/export
+   * Exports filtered investigations to Excel format.
+   */
+  @Post("export")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: "Export investigations",
+    description: "Exports filtered investigations to Excel format",
+  })
+  @ApiResponse({
+    status: 200,
+    description: "Excel file generated successfully",
+  })
+  @ApiResponse({ status: 400, description: "Validation error" })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  async exportInvestigations(
+    @Body()
+    body: {
+      format?: "excel" | "csv";
+      columns?: string[];
+    },
+    @Query() query: InvestigationQueryDto,
+    @TenantId() organizationId: string,
+    @Res() res: Response,
+  ): Promise<void> {
+    // Get filtered investigations (reuse existing findAll logic)
+    const { data } = await this.investigationsService.findAll(
+      query,
+      organizationId,
+    );
+
+    // Define export columns
+    const columnDefs: ColumnDefinition[] = [
+      {
+        key: "investigationNumber",
+        label: "Investigation #",
+        type: "string",
+        width: 15,
+      },
+      { key: "caseNumber", label: "Case #", type: "string", width: 15 },
+      { key: "status", label: "Status", type: "string", width: 12 },
+      { key: "investigationType", label: "Type", type: "string", width: 15 },
+      { key: "outcome", label: "Outcome", type: "string", width: 15 },
+      { key: "investigator", label: "Primary Investigator", type: "string", width: 20 },
+      { key: "createdAt", label: "Created Date", type: "date", width: 12 },
+      { key: "closedAt", label: "Closed Date", type: "date", width: 12 },
+    ];
+
+    // Map investigation data to rows
+    const rows = data.map((inv) => ({
+      investigationNumber: inv.investigationNumber
+        ? `INV-${inv.investigationNumber}`
+        : "",
+      caseNumber: (inv as Record<string, unknown>).case
+        ? ((inv as Record<string, unknown>).case as { referenceNumber: string })
+            ?.referenceNumber
+        : "",
+      status: inv.status,
+      investigationType: inv.investigationType || "",
+      outcome: inv.outcome || "",
+      investigator: (inv as Record<string, unknown>).primaryInvestigator
+        ? `${((inv as Record<string, unknown>).primaryInvestigator as { firstName?: string; lastName?: string })?.firstName || ""} ${((inv as Record<string, unknown>).primaryInvestigator as { firstName?: string; lastName?: string })?.lastName || ""}`.trim()
+        : "Unassigned",
+      createdAt: inv.createdAt,
+      closedAt: inv.closedAt,
+    }));
+
+    // Generate Excel buffer
+    const buffer = await this.excelExportService.generateBuffer(
+      rows,
+      columnDefs,
+      { sheetName: "Investigations Export" },
+    );
+
+    // Send file response
+    const filename = `investigations-export-${new Date().toISOString().split("T")[0]}.xlsx`;
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    );
+    res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+    res.send(buffer);
   }
 }

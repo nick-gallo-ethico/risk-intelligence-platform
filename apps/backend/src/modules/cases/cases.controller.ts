@@ -7,6 +7,7 @@ import {
   Body,
   Param,
   Query,
+  Res,
   HttpCode,
   HttpStatus,
   UseGuards,
@@ -22,6 +23,7 @@ import {
   ApiParam,
   ApiQuery,
 } from "@nestjs/swagger";
+import { Response } from "express";
 import { Case, AuditEntityType } from "@prisma/client";
 import { CasesService } from "./cases.service";
 import {
@@ -40,6 +42,8 @@ import {
 import { RequestUser } from "../auth/interfaces/jwt-payload.interface";
 import { ActivityService } from "../../common/services/activity.service";
 import { ActivityListResponseDto } from "../../common/dto";
+import { ExcelExportService } from "../analytics/exports/excel-export.service";
+import { ColumnDefinition } from "../analytics/exports/entities/export.entity";
 
 /**
  * REST API controller for case management.
@@ -53,6 +57,7 @@ export class CasesController {
   constructor(
     private readonly casesService: CasesService,
     private readonly activityService: ActivityService,
+    private readonly excelExportService: ExcelExportService,
   ) {}
 
   /**
@@ -319,5 +324,82 @@ export class CasesController {
       organizationId,
       { page, limit },
     );
+  }
+
+  /**
+   * POST /api/v1/cases/export
+   * Exports filtered cases to Excel format.
+   */
+  @Post("export")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: "Export cases",
+    description: "Exports filtered cases to Excel format",
+  })
+  @ApiResponse({
+    status: 200,
+    description: "Excel file generated successfully",
+  })
+  @ApiResponse({ status: 400, description: "Validation error" })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  async exportCases(
+    @Body()
+    body: {
+      format?: "excel" | "csv";
+      columns?: string[];
+    },
+    @Query() query: CaseQueryDto,
+    @TenantId() organizationId: string,
+    @Res() res: Response,
+  ): Promise<void> {
+    // Get filtered cases (reuse existing findAll logic)
+    const { data } = await this.casesService.findAll(query, organizationId);
+
+    // Define export columns
+    const columnDefs: ColumnDefinition[] = [
+      { key: "referenceNumber", label: "Case #", type: "string", width: 15 },
+      { key: "summary", label: "Summary", type: "string", width: 40 },
+      { key: "status", label: "Status", type: "string", width: 12 },
+      { key: "severity", label: "Severity", type: "string", width: 10 },
+      { key: "category", label: "Category", type: "string", width: 20 },
+      { key: "createdAt", label: "Created Date", type: "date", width: 12 },
+      { key: "assignee", label: "Assignee", type: "string", width: 20 },
+      { key: "daysOpen", label: "Days Open", type: "number", width: 10 },
+    ];
+
+    // Map case data to rows
+    const rows = data.map((c) => ({
+      referenceNumber: c.referenceNumber,
+      summary: c.summary || c.details?.substring(0, 100) || "",
+      status: c.status,
+      severity: c.severity,
+      category: (c as Record<string, unknown>).primaryCategory
+        ? ((c as Record<string, unknown>).primaryCategory as { name: string })
+            ?.name
+        : "",
+      createdAt: c.createdAt,
+      assignee: (c as Record<string, unknown>).assignee
+        ? `${((c as Record<string, unknown>).assignee as { firstName?: string; lastName?: string })?.firstName || ""} ${((c as Record<string, unknown>).assignee as { firstName?: string; lastName?: string })?.lastName || ""}`.trim()
+        : "Unassigned",
+      daysOpen: Math.floor(
+        (Date.now() - new Date(c.createdAt).getTime()) / (1000 * 60 * 60 * 24),
+      ),
+    }));
+
+    // Generate Excel buffer
+    const buffer = await this.excelExportService.generateBuffer(
+      rows,
+      columnDefs,
+      { sheetName: "Cases Export" },
+    );
+
+    // Send file response
+    const filename = `cases-export-${new Date().toISOString().split("T")[0]}.xlsx`;
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    );
+    res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+    res.send(buffer);
   }
 }

@@ -6,6 +6,7 @@ import {
 import { InvestigationsService } from './investigations.service';
 import { PrismaModule } from '../prisma/prisma.module';
 import { CasesModule } from '../cases/cases.module';
+import { ExportsModule } from '../analytics/exports/exports.module';
 import { InvestigationInterviewService } from './interviews/interview.service';
 import { InvestigationInterviewController } from './interviews/interview.controller';
 import { InvestigationTemplateService } from './templates/template.service';
@@ -28,6 +29,7 @@ import { InvestigationChecklistController } from './checklists/checklist.control
   imports: [
     PrismaModule,
     CasesModule, // For case lookup when creating investigations
+    ExportsModule, // For ExcelExportService
   ],
   controllers: [
     CaseInvestigationsController,

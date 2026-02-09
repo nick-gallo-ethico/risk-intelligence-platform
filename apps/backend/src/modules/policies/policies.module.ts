@@ -4,6 +4,7 @@ import { ActivityModule } from "../../common/activity.module";
 import { WorkflowModule } from "../workflow/workflow.module";
 import { AiModule } from "../ai/ai.module";
 import { SearchModule } from "../search/search.module";
+import { ExportsModule } from "../analytics/exports/exports.module";
 import { PoliciesService } from "./policies.service";
 import { PoliciesController } from "./policies.controller";
 import { PolicyApprovalService } from "./approval/policy-approval.service";
@@ -68,6 +69,7 @@ import { PolicyCaseAssociationController } from "./associations/policy-case-asso
     WorkflowModule, // For WorkflowEngineService
     AiModule, // For SkillRegistry (translation skill)
     SearchModule, // For PolicyIndexer
+    ExportsModule, // For ExcelExportService
   ],
   controllers: [
     PoliciesController,
