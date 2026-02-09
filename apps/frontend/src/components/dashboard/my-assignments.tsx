@@ -43,7 +43,7 @@ export function MyAssignments({
   const assignments = getUserAssignments(cases, currentUserId);
 
   return (
-    <Card>
+    <Card className="flex-1 flex flex-col">
       <CardHeader className="pb-3">
         <CardTitle className="text-base font-semibold">My Active Cases</CardTitle>
       </CardHeader>

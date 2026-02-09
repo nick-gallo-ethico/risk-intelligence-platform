@@ -139,7 +139,7 @@ export function MyTasks() {
   const allTasks = myWork?.sections.flatMap((s) => s.tasks) || [];
 
   return (
-    <Card className="h-full">
+    <Card>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg flex items-center gap-2">

@@ -48,15 +48,15 @@ function formatRelativeDate(dateString: string): string {
 
 /**
  * Recent Cases table for the dashboard.
- * Shows the 5 most recently created cases with quick navigation.
+ * Shows the 10 most recently created cases with quick navigation.
  */
 export function RecentCases({ cases, isLoading }: RecentCasesProps) {
   const router = useRouter();
 
-  // Sort by createdAt descending and take top 5
+  // Sort by createdAt descending and take top 10
   const recentCases = [...cases]
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-    .slice(0, 5);
+    .slice(0, 10);
 
   return (
     <Card>

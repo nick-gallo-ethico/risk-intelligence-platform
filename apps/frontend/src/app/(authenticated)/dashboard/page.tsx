@@ -10,6 +10,7 @@ import {
   StatsCards,
   RecentCases,
   MyAssignments,
+  MyTasks,
 } from '@/components/dashboard';
 import type { Case } from '@/types/case';
 
@@ -67,7 +68,7 @@ export default function DashboardPage() {
       <div>
         <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
         <p className="text-muted-foreground mt-1">
-          Welcome back, {user.firstName}. Here&apos;s your compliance overview.
+          Welcome back, {user.firstName}. Here's your compliance overview.
         </p>
       </div>
 
@@ -84,8 +85,12 @@ export default function DashboardPage() {
           <RecentCases cases={cases} isLoading={isLoadingCases} />
         </div>
 
-        {/* My Assignments - Takes 1 column */}
-        <div>
+        {/* Sidebar - Takes 1 column */}
+        <div className="flex flex-col gap-6">
+          {/* My Tasks - Unified task queue with View All */}
+          <MyTasks />
+
+          {/* My Active Cases - grows to fill remaining space */}
           <MyAssignments
             cases={cases}
             currentUserId={user.id}
