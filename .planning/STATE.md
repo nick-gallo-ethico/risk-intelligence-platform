@@ -12,10 +12,20 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 Phase: 14 of 24 (Critical Bug Fixes & Navigation)
 Plan: 2 of 5 in current phase
 Status: In progress - Completed 14-02-PLAN.md
-Last activity: 2026-02-07 - Completed 14-02-PLAN.md (Notifications and My Work Pages)
+Last activity: 2026-02-09 - Completed 13.1-01-PLAN.md (Saved Views Fixes)
 **Next Plan:** 14-03-PLAN.md (Search Results Page and SelectItem Fix)
 
-Progress: [====================================================------------------] ~76% (~199 of ~260 estimated total plans)
+Progress: [====================================================------------------] ~76% (~200 of ~260 estimated total plans)
+
+### Phase 13.1 Saved Views Fixes Complete (2026-02-09)
+
+Closed all 4 UAT gaps from Phase 13:
+
+- Board view card config fixed (priority, assignee fields)
+- Drag-drop status persistence using PATCH /cases/:id/status
+- GET /investigations list endpoint added
+- search_vector population in case seeder
+- Export endpoints wired for Cases, Policies, Investigations
 
 ### Phase 13 Complete (2026-02-07)
 
