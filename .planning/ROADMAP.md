@@ -45,6 +45,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 11.1: Frontend Navigation and UI Fixes** - Main sidebar, mobile nav, case tab fixes (INSERTED)
 - [x] **Phase 12: Internal Operations Portal** - Support console, implementation tools, hotline ops, client success
 - [ ] **Phase 13: HubSpot-Style Saved Views** - Reusable view tabs, column selection, advanced filters, board views across all modules
+- [ ] **Phase 13.1: Saved Views Fixes** - Board view, investigations endpoint, search vector, export endpoints (INSERTED)
 - [ ] **Phase 14: Critical Bug Fixes & Navigation** - Route 404s, broken buttons, Select.Item error, search, user menu, nav styling
 - [ ] **Phase 15: Case Detail Page Overhaul** - Three-column layout, activity feed, action buttons, AI panel, connected entities
 - [ ] **Phase 16: AI Integration Fix** - Debug and fix non-functional AI, wire AI panel, enable AI actions on cases
@@ -529,7 +530,24 @@ Plans:
 - [ ] 13-13-PLAN.md (Wave 4) - Disclosures and Intake Forms module integration
 - [ ] 13-14-PLAN.md (Wave 5) - URL state sync with useViewUrlState hook, enhanced BulkActionsBar
 - [ ] 13-15-PLAN.md (Wave 5) - Demo data seeder for saved views, verification checkpoint
-- [ ] 13-16-PLAN.md (Wave 1) - Gap closure: board view fixes, investigations endpoint, search vector, export endpoints
+
+### Phase 13.1: Saved Views Fixes (INSERTED)
+
+**Goal**: Fix UAT issues discovered during Phase 13 verification - board view functionality, investigations endpoint, search, and export.
+**Depends on**: Phase 13 (HubSpot-Style Saved Views)
+**Requirements**: UAT gaps documented in `.planning/phases/13-hubspot-style-saved-views-system/13-UAT.md`
+**Success Criteria** (what must be TRUE):
+
+1. Board view cards display priority badge and owner avatar in lanes
+2. Board view drag-and-drop persists status changes to database
+3. Investigations page loads investigation data in table
+4. Search box filters cases without hiding all data
+5. Export button downloads Excel and CSV files respecting current filters
+   **Plans**: 1 plan
+
+Plans:
+
+- [x] 13.1-01-PLAN.md (Wave 1) - Board view fixes, investigations endpoint, search vector population, export endpoints
 
 ### Phase 14: Critical Bug Fixes & Navigation
 
@@ -831,9 +849,9 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in dependency order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11 → 11.1 → 12 → 13 → 14 → 16 → 15 → 17 → 18 → 19 → 20 → 21 → 22 → 23 → 24
+Phases execute in dependency order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11 → 11.1 → 12 → 13 → 13.1 → 14 → 16 → 15 → 17 → 18 → 19 → 20 → 21 → 22 → 23 → 24
 
-> **Note on order**: Phase 16 (AI Fix) executes before Phase 15 (Case Detail Overhaul) because the case page's AI panel depends on working AI infrastructure. Phase 13 (Saved Views) can run in parallel with or before Phase 14.
+> **Note on order**: Phase 16 (AI Fix) executes before Phase 15 (Case Detail Overhaul) because the case page's AI panel depends on working AI infrastructure. Phase 13.1 fixes UAT gaps from Phase 13.
 
 | Phase                                | Plans Complete | Status   | Completed  |
 | ------------------------------------ | -------------- | -------- | ---------- |
@@ -850,7 +868,8 @@ Phases execute in dependency order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 
 | 11. Analytics & Reporting            | 21/21          | Complete | 2026-02-05 |
 | 11.1. Frontend Navigation (INSERTED) | 6/6            | Complete | 2026-02-05 |
 | 12. Internal Operations Portal       | 19/19          | Complete | 2026-02-06 |
-| 13. HubSpot-Style Saved Views        | 0/16           | Planned  | -          |
+| 13. HubSpot-Style Saved Views        | 15/15          | Complete | 2026-02-07 |
+| 13.1. Saved Views Fixes (INSERTED)   | 1/1            | Complete | 2026-02-09 |
 | 14. Critical Bug Fixes & Navigation  | 0/5            | Planned  | -          |
 | 15. Case Detail Page Overhaul        | 0/7            | Planned  | -          |
 | 16. AI Integration Fix               | 0/TBD          | Planned  | -          |
@@ -866,7 +885,7 @@ Phases execute in dependency order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 
 ---
 
 _Roadmap created: 2026-02-02_
-_Updated: 2026-02-09 (Phase 13 plan 16 added for gap closure)_
+_Updated: 2026-02-09 (Phase 13.1 Saved Views Fixes complete)_
 _Depth: Comprehensive_
 _Total phases: 24 (+ 11.1 insertion)_
 _Total plans: 190+ completed, ~50-70 estimated remaining_
