@@ -623,7 +623,7 @@ export class TaskAggregatorService {
         status: investigation.status,
         slaStatus: investigation.slaStatus,
       },
-      url: `/cases/${investigation.caseId}/investigations/${investigation.id}`,
+      url: `/investigations/${investigation.id}`,
       caseNumber: investigation.case.referenceNumber,
       organizationId,
     };
@@ -688,7 +688,7 @@ export class TaskAggregatorService {
         matchConfidence: alert.matchConfidence,
         disclosureId: alert.disclosureId,
       },
-      url: `/disclosures/conflicts/${alert.id}`,
+      url: `/compliance/conflicts`,
       organizationId,
     };
   }
