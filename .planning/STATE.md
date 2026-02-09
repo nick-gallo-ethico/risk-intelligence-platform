@@ -9,13 +9,21 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 
 ## Current Position
 
-Phase: 14 of 24 (Critical Bug Fixes & Navigation)
-Plan: 2 of 5 in current phase
-Status: In progress - Completed 14-02-PLAN.md
-Last activity: 2026-02-09 - Completed 13.1-01-PLAN.md (Saved Views Fixes)
-**Next Plan:** 14-03-PLAN.md (Search Results Page and SelectItem Fix)
+Phase: 14.1 of 24 (Data & Config Fixes)
+Plan: 3 of 4 in current phase
+Status: In progress - Completed 14.1-03-PLAN.md
+Last activity: 2026-02-09 - Completed 14.1-03-PLAN.md (Fix Demo User Case Ownership)
+**Next Plan:** 14.1-04-PLAN.md
 
 Progress: [====================================================------------------] ~76% (~200 of ~260 estimated total plans)
+
+### Phase 14.1 Data & Config Fixes (2026-02-09)
+
+Fixing demo data and configuration issues:
+
+- 14.1-01: Notification seeder for demo data (COMPLETE)
+- 14.1-02: (pending)
+- 14.1-03: Fix demo user case ownership for My Tasks (COMPLETE)
 
 ### Phase 13.1 Saved Views Fixes Complete (2026-02-09)
 
@@ -561,6 +569,9 @@ Recent decisions affecting current work:
 - 13-03: useReducer pattern for SavedViewProvider - 17+ action types benefit from reducer predictability
 - 13-03: URL sync via searchParams for shareable view links (viewId query param)
 - 13-03: API hooks separated from context for flexibility (useSavedViewsApi.ts independent module)
+- 14.1-03: Demo users assigned via round-robin to open cases (first 25 per user) via createdById
+- 14.1-03: DEMO_CASE_OWNERS constant defines the 4 demo users for case ownership
+- 14.1-03: Default fallback to random user when demo quotas are met
 
 ### Pending Todos
 
@@ -578,8 +589,8 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-02-07
-Stopped at: Completed 14-01-PLAN.md (Top Navigation and Sidebar Fixes)
+Last session: 2026-02-09
+Stopped at: Completed 14.1-03-PLAN.md (Fix Demo User Case Ownership)
 Resume file: None
 
 **Phase 12 Status: COMPLETE**
