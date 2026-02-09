@@ -59,7 +59,7 @@ export const CurrentUser = createParamDecorator(
  */
 @ApiTags('Search')
 @ApiBearerAuth()
-@Controller('api/v1/search')
+@Controller('search')
 @UseGuards(JwtAuthGuard, TenantGuard)
 export class SearchController {
   constructor(

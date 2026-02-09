@@ -79,7 +79,7 @@ interface JwtUser {
   role: string;
 }
 
-@Controller('api/v1/notifications')
+@Controller('notifications')
 @ApiTags('Notifications')
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, TenantGuard)

@@ -34,7 +34,7 @@ import {
 } from "./dto/hotline-ops.dto";
 import { OperatorStatus } from "./types/operator-status.types";
 
-@Controller("api/v1/internal/hotline-ops")
+@Controller("internal/hotline-ops")
 export class HotlineOpsController {
   constructor(
     private readonly directiveAdminService: DirectiveAdminService,

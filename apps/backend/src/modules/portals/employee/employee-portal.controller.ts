@@ -64,7 +64,7 @@ interface AuthUser {
  *
  * Base path: /api/v1/employee
  */
-@Controller('api/v1/employee')
+@Controller('employee')
 @UseGuards(JwtAuthGuard)
 export class EmployeePortalController {
   constructor(

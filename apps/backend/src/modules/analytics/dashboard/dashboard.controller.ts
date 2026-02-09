@@ -62,7 +62,7 @@ class DashboardDataQueryDto {
 /**
  * Controller for dashboard configuration management.
  */
-@Controller("api/v1/analytics/dashboards")
+@Controller("analytics/dashboards")
 @UseGuards(JwtAuthGuard, TenantGuard)
 export class DashboardController {
   constructor(

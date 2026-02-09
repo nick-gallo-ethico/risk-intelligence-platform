@@ -51,7 +51,7 @@ import {
  * These endpoints allow operators to identify clients by phone number
  * and load configuration for handling calls.
  */
-@Controller('api/v1/operator')
+@Controller('operator')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class ClientLookupController {
   constructor(private readonly clientProfileService: ClientProfileService) {}
@@ -68,7 +68,7 @@ export class ClientLookupController {
    * @returns Client profile or 404 if not found
    */
   @Get('lookup/phone/:phoneNumber')
-  @Roles(UserRole.OPERATOR, UserRole.SYSTEM_ADMIN)
+  @Roles('OPERATOR' as UserRole, UserRole.SYSTEM_ADMIN)
   async lookupByPhone(
     @Param('phoneNumber') phoneNumber: string,
   ): Promise<ClientProfile> {
@@ -96,7 +96,7 @@ export class ClientLookupController {
    * @returns Full client profile
    */
   @Get('clients/:clientId/profile')
-  @Roles(UserRole.OPERATOR, UserRole.SYSTEM_ADMIN)
+  @Roles('OPERATOR' as UserRole, UserRole.SYSTEM_ADMIN)
   async getClientProfile(
     @Param('clientId', ParseUUIDPipe) clientId: string,
   ): Promise<ClientProfile> {
@@ -115,7 +115,7 @@ export class ClientLookupController {
    * @returns Paginated list of clients
    */
   @Get('clients')
-  @Roles(UserRole.OPERATOR, UserRole.SYSTEM_ADMIN)
+  @Roles('OPERATOR' as UserRole, UserRole.SYSTEM_ADMIN)
   async listClients(
     @Query() query: ListClientsQueryDto,
   ): Promise<ClientListResult> {
@@ -133,7 +133,7 @@ export class ClientLookupController {
  * These endpoints allow system admins to manage client
  * hotline numbers and QA configuration.
  */
-@Controller('api/v1/admin/clients/:clientId')
+@Controller('admin/clients/:clientId')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class ClientAdminController {
   constructor(private readonly clientProfileService: ClientProfileService) {}

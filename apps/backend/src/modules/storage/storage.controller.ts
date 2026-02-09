@@ -50,7 +50,7 @@ interface JwtUser {
   organizationId: string;
 }
 
-@Controller("api/v1/storage")
+@Controller("storage")
 @UseGuards(JwtAuthGuard, TenantGuard)
 export class StorageController {
   constructor(private readonly storageService: ModuleStorageService) {}

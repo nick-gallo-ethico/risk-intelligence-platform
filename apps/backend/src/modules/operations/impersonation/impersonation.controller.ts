@@ -57,7 +57,7 @@ declare global {
   }
 }
 
-@Controller("api/v1/internal/impersonation")
+@Controller("internal/impersonation")
 export class ImpersonationController {
   constructor(private readonly impersonationService: ImpersonationService) {}
 

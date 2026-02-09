@@ -76,7 +76,7 @@ interface ResetPreviewResponse {
 }
 
 @ApiTags('Demo Reset')
-@Controller('api/v1/demo')
+@Controller('demo')
 @UseGuards(JwtAuthGuard, TenantGuard)
 @ApiBearerAuth('JWT')
 export class DemoResetController {

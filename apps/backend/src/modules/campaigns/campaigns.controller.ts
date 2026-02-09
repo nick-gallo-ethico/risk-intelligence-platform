@@ -43,7 +43,7 @@ const TEMP_ORG_ID = "00000000-0000-0000-0000-000000000001";
 const TEMP_USER_ID = "00000000-0000-0000-0000-000000000001";
 
 @ApiTags("campaigns")
-@Controller("api/v1/campaigns")
+@Controller("campaigns")
 // @UseGuards(JwtAuthGuard)
 export class CampaignsController {
   constructor(

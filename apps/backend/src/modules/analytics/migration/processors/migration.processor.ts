@@ -761,6 +761,7 @@ export class MigrationProcessor extends WorkerHost {
         // Track for rollback
         await tx.migrationRecord.create({
           data: {
+            organizationId,
             migrationJobId,
             entityType: "Person",
             entityId: person.id,
@@ -812,6 +813,7 @@ export class MigrationProcessor extends WorkerHost {
         // Track for rollback
         await tx.migrationRecord.create({
           data: {
+            organizationId,
             migrationJobId,
             entityType: "RIU",
             entityId: riu.id,
@@ -877,6 +879,7 @@ export class MigrationProcessor extends WorkerHost {
         if (riuId) {
           await tx.riuCaseAssociation.create({
             data: {
+              organizationId,
               riuId,
               caseId: caseRecord.id,
               associationType: RiuAssociationType.PRIMARY,
@@ -901,6 +904,7 @@ export class MigrationProcessor extends WorkerHost {
         // Track for rollback
         await tx.migrationRecord.create({
           data: {
+            organizationId,
             migrationJobId,
             entityType: "Case",
             entityId: caseRecord.id,

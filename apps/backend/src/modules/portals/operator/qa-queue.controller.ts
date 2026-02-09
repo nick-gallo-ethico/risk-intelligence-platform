@@ -75,7 +75,7 @@ class QaRejectBodyDto {
 
 @ApiTags("Operator Console - QA Queue")
 @ApiBearerAuth()
-@Controller("api/v1/operator/qa-queue")
+@Controller("operator/qa-queue")
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class QaQueueController {
   constructor(private readonly qaQueueService: QaQueueService) {}

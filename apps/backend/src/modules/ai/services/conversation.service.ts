@@ -130,8 +130,21 @@ export class ConversationService {
    * Add a message to a conversation.
    */
   async addMessage(params: AddMessageDto): Promise<AiMessage> {
+    // First fetch the conversation to get its organizationId
+    const conversation = await this.prisma.aiConversation.findUnique({
+      where: { id: params.conversationId },
+      select: { organizationId: true },
+    });
+
+    if (!conversation) {
+      throw new NotFoundException(
+        `Conversation ${params.conversationId} not found`
+      );
+    }
+
     const message = await this.prisma.aiMessage.create({
       data: {
+        organizationId: conversation.organizationId,
         conversationId: params.conversationId,
         role: params.role,
         content: params.content,

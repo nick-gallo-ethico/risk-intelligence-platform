@@ -101,8 +101,9 @@ export class CreateSavedViewDto {
   @IsEnum(ViewEntityType)
   entityType: ViewEntityType;
 
-  @IsObject()
-  filters: FilterCriteria;
+  // Allow both object (FilterCriteria) and array (FilterGroup[]) formats
+  @IsOptional()
+  filters?: FilterCriteria | FilterGroup[];
 
   @IsString()
   @IsOptional()
@@ -164,9 +165,9 @@ export class UpdateSavedViewDto {
   @IsOptional()
   description?: string;
 
-  @IsObject()
+  // Allow both object (FilterCriteria) and array (FilterGroup[]) formats
   @IsOptional()
-  filters?: FilterCriteria;
+  filters?: FilterCriteria | FilterGroup[];
 
   @IsString()
   @IsOptional()

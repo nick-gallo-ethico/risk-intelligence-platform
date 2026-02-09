@@ -34,7 +34,7 @@ import {
  * Note: In production, these endpoints should use guards for authentication
  * and organization scoping. For now, organizationId and userId are stubbed.
  */
-@Controller('api/v1/investigation-checklists')
+@Controller('investigation-checklists')
 export class InvestigationChecklistController {
   constructor(
     private readonly checklistService: InvestigationChecklistService,

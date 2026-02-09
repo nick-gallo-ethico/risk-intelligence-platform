@@ -22,7 +22,7 @@ import {
 import { CertificationService } from "./certification.service";
 import { SubmitQuizDto } from "./dto/training.dto";
 
-@Controller("api/v1/training")
+@Controller("training")
 export class TrainingController {
   constructor(private readonly certificationService: CertificationService) {}
 

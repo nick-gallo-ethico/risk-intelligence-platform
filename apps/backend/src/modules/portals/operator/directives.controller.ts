@@ -40,7 +40,7 @@ import { JwtAuthGuard, RolesGuard } from '../../../common/guards';
 import { Roles, UserRole } from '../../../common/decorators/roles.decorator';
 import { CallDirectives, DirectivesByStage } from './types/directives.types';
 
-@Controller('api/v1/operator/clients/:clientId/directives')
+@Controller('operator/clients/:clientId/directives')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class DirectivesController {
   constructor(private readonly directivesService: DirectivesService) {}
@@ -56,7 +56,7 @@ export class DirectivesController {
    * @returns Directives grouped by stage
    */
   @Get()
-  @Roles(UserRole.OPERATOR, UserRole.SYSTEM_ADMIN)
+  @Roles('OPERATOR' as UserRole, UserRole.SYSTEM_ADMIN)
   async listDirectives(
     @Param('clientId', ParseUUIDPipe) clientId: string,
     @Query('categoryId') categoryId?: string,
@@ -79,7 +79,7 @@ export class DirectivesController {
    * @returns CallDirectives with opening, intake, categorySpecific, and closing arrays
    */
   @Get('call')
-  @Roles(UserRole.OPERATOR, UserRole.SYSTEM_ADMIN)
+  @Roles('OPERATOR' as UserRole, UserRole.SYSTEM_ADMIN)
   async getDirectivesForCall(
     @Param('clientId', ParseUUIDPipe) clientId: string,
     @Query('categoryId') categoryId?: string,
@@ -98,7 +98,7 @@ export class DirectivesController {
    * @returns Single directive with category relation
    */
   @Get(':id')
-  @Roles(UserRole.OPERATOR, UserRole.SYSTEM_ADMIN)
+  @Roles('OPERATOR' as UserRole, UserRole.SYSTEM_ADMIN)
   async getDirective(
     @Param('clientId', ParseUUIDPipe) clientId: string,
     @Param('id', ParseUUIDPipe) id: string,

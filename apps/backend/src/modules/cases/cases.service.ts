@@ -138,16 +138,20 @@ export class CasesService {
     }
 
     const where = this.buildWhereClause(query, organizationId);
+    const orderBy = this.buildOrderByClause(sortBy, sortOrder);
 
     const [data, total] = await Promise.all([
       this.prisma.case.findMany({
         where,
-        orderBy: { [sortBy]: sortOrder },
+        orderBy,
         take: limit,
         skip: offset,
         include: {
           createdBy: {
             select: { id: true, firstName: true, lastName: true, email: true },
+          },
+          primaryCategory: {
+            select: { id: true, name: true },
           },
         },
       }),
@@ -155,6 +159,30 @@ export class CasesService {
     ]);
 
     return { data, total, limit, offset };
+  }
+
+  /**
+   * Builds Prisma orderBy clause, handling relation fields.
+   */
+  private buildOrderByClause(
+    sortBy: string,
+    sortOrder: string,
+  ): Record<string, unknown> {
+    // Map frontend column IDs to Prisma orderBy format
+    const relationSortMap: Record<string, Record<string, unknown>> = {
+      primaryCategory: { primaryCategory: { name: sortOrder } },
+      createdBy: { createdBy: { firstName: sortOrder } },
+      team: { team: { name: sortOrder } },
+      businessUnit: { businessUnit: { name: sortOrder } },
+    };
+
+    // Check if it's a relation field
+    if (relationSortMap[sortBy]) {
+      return relationSortMap[sortBy];
+    }
+
+    // Direct field sort
+    return { [sortBy]: sortOrder };
   }
 
   /**
@@ -610,7 +638,21 @@ export class CasesService {
       organizationId,
     };
 
-    // Enum filters
+    // Process advanced filters from saved views (HubSpot-style)
+    if (query.filters) {
+      try {
+        const conditions = JSON.parse(query.filters);
+        if (Array.isArray(conditions)) {
+          for (const condition of conditions) {
+            this.applyFilterCondition(where, condition);
+          }
+        }
+      } catch (e) {
+        this.logger.warn(`Failed to parse filters: ${query.filters}`);
+      }
+    }
+
+    // Simple enum filters (for backwards compatibility)
     if (query.status) {
       where.status = query.status;
     }
@@ -652,6 +694,75 @@ export class CasesService {
     }
 
     return where;
+  }
+
+  /**
+   * Applies a single filter condition to the where clause.
+   * Supports HubSpot-style operators: is, is_not, is_any_of, is_none_of, contains, etc.
+   */
+  private applyFilterCondition(
+    where: Prisma.CaseWhereInput,
+    condition: { propertyId: string; operator: string; value: unknown },
+  ): void {
+    const { propertyId, operator, value } = condition;
+
+    // Map frontend property IDs to Prisma field names
+    const fieldMap: Record<string, string> = {
+      status: "status",
+      severity: "severity",
+      sourceChannel: "sourceChannel",
+      caseType: "caseType",
+      createdBy: "createdById",
+      primaryCategory: "primaryCategoryId",
+    };
+
+    const field = fieldMap[propertyId] || propertyId;
+
+    switch (operator) {
+      case "is":
+        (where as Record<string, unknown>)[field] = value;
+        break;
+
+      case "is_not":
+        (where as Record<string, unknown>)[field] = { not: value };
+        break;
+
+      case "is_any_of":
+        if (Array.isArray(value)) {
+          (where as Record<string, unknown>)[field] = { in: value };
+        }
+        break;
+
+      case "is_none_of":
+        if (Array.isArray(value)) {
+          (where as Record<string, unknown>)[field] = { notIn: value };
+        }
+        break;
+
+      case "contains":
+        (where as Record<string, unknown>)[field] = {
+          contains: value,
+          mode: "insensitive",
+        };
+        break;
+
+      case "does_not_contain":
+        (where as Record<string, unknown>)[field] = {
+          not: { contains: value, mode: "insensitive" },
+        };
+        break;
+
+      case "is_empty":
+        (where as Record<string, unknown>)[field] = null;
+        break;
+
+      case "is_not_empty":
+        (where as Record<string, unknown>)[field] = { not: null };
+        break;
+
+      default:
+        this.logger.warn(`Unknown filter operator: ${operator}`);
+    }
   }
 
   /**

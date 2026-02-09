@@ -120,11 +120,23 @@ export class DeliveryTrackerService {
       `Recording sent status for notification ${notificationId}, messageId: ${messageId}`,
     );
 
+    // Fetch notification to get organizationId
+    const notification = await this.prisma.notification.findUnique({
+      where: { id: notificationId },
+      select: { organizationId: true },
+    });
+
+    if (!notification) {
+      this.logger.warn(`Notification ${notificationId} not found`);
+      return;
+    }
+
     await this.prisma.$transaction(async (tx) => {
       // Create or update delivery record
       await tx.notificationDelivery.upsert({
         where: { notificationId },
         create: {
+          organizationId: notification.organizationId,
           notificationId,
           messageId,
           status: DeliveryStatus.SENT,
@@ -253,11 +265,23 @@ export class DeliveryTrackerService {
       `Recording failure for notification ${notificationId}: ${reason}`,
     );
 
+    // Fetch notification to get organizationId
+    const notification = await this.prisma.notification.findUnique({
+      where: { id: notificationId },
+      select: { organizationId: true },
+    });
+
+    if (!notification) {
+      this.logger.warn(`Notification ${notificationId} not found`);
+      return;
+    }
+
     await this.prisma.$transaction(async (tx) => {
       // Update or create delivery record
       await tx.notificationDelivery.upsert({
         where: { notificationId },
         create: {
+          organizationId: notification.organizationId,
           notificationId,
           status: DeliveryStatus.FAILED,
           attempts: 1,

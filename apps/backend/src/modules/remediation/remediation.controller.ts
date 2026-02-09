@@ -34,7 +34,7 @@ interface AuthUser {
   role: UserRole;
 }
 
-@Controller('api/v1/remediation')
+@Controller('remediation')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class RemediationController {
   constructor(

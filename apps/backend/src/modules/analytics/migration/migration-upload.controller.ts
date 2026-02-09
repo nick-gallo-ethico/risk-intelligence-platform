@@ -33,7 +33,7 @@ const MAX_FILE_SIZE = 100 * 1024 * 1024;
  * Provides endpoints for uploading migration files, retrieving sample data,
  * and re-detecting file format with different source type hints.
  */
-@Controller("api/v1/migrations/upload")
+@Controller("migrations/upload")
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class MigrationUploadController {
   constructor(

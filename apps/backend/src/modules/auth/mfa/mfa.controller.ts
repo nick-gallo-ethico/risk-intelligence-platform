@@ -37,7 +37,7 @@ import {
  */
 @ApiTags('mfa')
 @ApiBearerAuth()
-@Controller('api/v1/auth/mfa')
+@Controller('auth/mfa')
 @UseGuards(JwtAuthGuard)
 export class MfaController {
   constructor(private readonly mfaService: MfaService) {}

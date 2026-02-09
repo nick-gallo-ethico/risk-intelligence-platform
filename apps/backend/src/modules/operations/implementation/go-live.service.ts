@@ -109,6 +109,7 @@ export class GoLiveService {
 
     // Create gate records for all hard gates
     const gateData = HARD_GATES.map((gate) => ({
+      organizationId: project.clientOrganizationId,
       projectId,
       gateId: gate.id,
       status: GateStatus.PENDING,
@@ -121,6 +122,7 @@ export class GoLiveService {
 
     // Create readiness item records
     const itemData = READINESS_ITEMS.map((item) => ({
+      organizationId: project.clientOrganizationId,
       projectId,
       itemId: item.id,
       isComplete: false,
@@ -362,7 +364,17 @@ export class GoLiveService {
     projectId: string,
     dto: ClientSignoffDto,
   ): Promise<void> {
-    const status = await this.getGoLiveStatus(projectId);
+    const [status, project] = await Promise.all([
+      this.getGoLiveStatus(projectId),
+      this.prisma.implementationProject.findUnique({
+        where: { id: projectId },
+        select: { clientOrganizationId: true },
+      }),
+    ]);
+
+    if (!project) {
+      throw new NotFoundException(`Project ${projectId} not found`);
+    }
 
     // Must have all gates passed to sign off
     if (!status.allGatesPassed) {
@@ -372,6 +384,7 @@ export class GoLiveService {
     await this.prisma.goLiveSignoff.upsert({
       where: { projectId },
       create: {
+        organizationId: project.clientOrganizationId,
         projectId,
         type: "CLIENT",
         readinessScoreAtSignoff: status.readinessScore,

@@ -34,7 +34,7 @@ import {
  */
 @ApiTags("Case Messaging")
 @ApiBearerAuth()
-@Controller("api/v1/case-messages")
+@Controller("case-messages")
 @UseGuards(JwtAuthGuard)
 export class MessagingController {
   constructor(private readonly relayService: MessageRelayService) {}
@@ -153,7 +153,7 @@ export class MessagingController {
  * Rate limited to prevent abuse.
  */
 @ApiTags("Public Messaging")
-@Controller("api/v1/public/messages")
+@Controller("public/messages")
 export class PublicMessagingController {
   constructor(private readonly relayService: MessageRelayService) {}
 

@@ -1215,6 +1215,151 @@ export class ConflictDetectionService {
   // Helpers
   // ===========================================
 
+  // ===========================================
+  // Escalation (called from controller)
+  // ===========================================
+
+  /**
+   * Escalates a conflict alert to a case.
+   */
+  async escalateConflict(
+    alertId: string,
+    dto: { existingCaseId?: string; notes?: string },
+    userId: string,
+    organizationId: string,
+  ): Promise<ConflictAlertDto> {
+    const alert = await this.prisma.conflictAlert.findFirst({
+      where: { id: alertId, organizationId },
+    });
+
+    if (!alert) {
+      throw new NotFoundException(`Conflict alert ${alertId} not found`);
+    }
+
+    if (alert.status !== ConflictStatus.OPEN) {
+      throw new BadRequestException(
+        `Cannot escalate alert with status ${alert.status}`,
+      );
+    }
+
+    const updated = await this.prisma.conflictAlert.update({
+      where: { id: alertId },
+      data: {
+        status: ConflictStatus.ESCALATED,
+        escalatedToCaseId: dto.existingCaseId,
+      },
+    });
+
+    this.logger.log(`Escalated conflict alert ${alertId}`);
+
+    return this.mapAlertToDto(updated);
+  }
+
+  // ===========================================
+  // Exclusion Query Methods
+  // ===========================================
+
+  /**
+   * Finds exclusions with pagination and filters.
+   */
+  async findExclusions(
+    organizationId: string,
+    options: {
+      personId?: string;
+      conflictType?: ConflictType;
+      activeOnly?: boolean;
+      page?: number;
+      pageSize?: number;
+    },
+  ): Promise<{ items: ConflictExclusionDto[]; total: number; page: number; pageSize: number }> {
+    const page = options.page ?? 1;
+    const pageSize = options.pageSize ?? 20;
+    const skip = (page - 1) * pageSize;
+
+    const where: Prisma.ConflictExclusionWhereInput = {
+      organizationId,
+    };
+
+    if (options.personId) {
+      where.personId = options.personId;
+    }
+
+    if (options.conflictType) {
+      where.conflictType = options.conflictType;
+    }
+
+    if (options.activeOnly) {
+      where.isActive = true;
+    }
+
+    const [items, total] = await Promise.all([
+      this.prisma.conflictExclusion.findMany({
+        where,
+        skip,
+        take: pageSize,
+        orderBy: { createdAt: 'desc' },
+      }),
+      this.prisma.conflictExclusion.count({ where }),
+    ]);
+
+    return {
+      items: items.map((item) => this.mapExclusionToDto(item)),
+      total,
+      page,
+      pageSize,
+    };
+  }
+
+  /**
+   * Deactivates an exclusion (soft delete).
+   */
+  async deactivateExclusion(
+    exclusionId: string,
+    userId: string,
+    organizationId: string,
+  ): Promise<void> {
+    const exclusion = await this.prisma.conflictExclusion.findFirst({
+      where: { id: exclusionId, organizationId },
+    });
+
+    if (!exclusion) {
+      throw new NotFoundException(`Exclusion ${exclusionId} not found`);
+    }
+
+    await this.prisma.conflictExclusion.update({
+      where: { id: exclusionId },
+      data: { isActive: false },
+    });
+
+    this.logger.log(`Deactivated exclusion ${exclusionId}`);
+  }
+
+  /**
+   * Maps a ConflictExclusion to DTO.
+   */
+  mapExclusionToDto(exclusion: ConflictExclusion): ConflictExclusionDto {
+    return {
+      id: exclusion.id,
+      organizationId: exclusion.organizationId,
+      personId: exclusion.personId,
+      matchedEntity: exclusion.matchedEntity,
+      conflictType: exclusion.conflictType,
+      reason: exclusion.reason,
+      notes: exclusion.notes ?? undefined,
+      scope: exclusion.scope,
+      expiresAt: exclusion.expiresAt ?? undefined,
+      isActive: exclusion.isActive,
+      createdBy: exclusion.createdBy,
+      createdFromAlertId: exclusion.createdFromAlertId ?? undefined,
+      createdAt: exclusion.createdAt,
+      updatedAt: exclusion.updatedAt,
+    };
+  }
+
+  // ===========================================
+  // Helpers
+  // ===========================================
+
   /**
    * Maps a database alert to DTO.
    */

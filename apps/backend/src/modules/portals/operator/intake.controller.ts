@@ -45,7 +45,7 @@ import { IntakeResult, IntakeSummary, FollowUpContext } from "./types/intake.typ
 
 @ApiTags("Operator Console - Intake")
 @ApiBearerAuth()
-@Controller("api/v1/operator")
+@Controller("operator")
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class IntakeController {
   constructor(private readonly intakeService: IntakeService) {}
@@ -54,7 +54,7 @@ export class IntakeController {
    * Create an RIU from a hotline call.
    */
   @Post("intake")
-  @Roles(UserRole.OPERATOR, UserRole.SYSTEM_ADMIN)
+  @Roles('OPERATOR' as UserRole, UserRole.SYSTEM_ADMIN)
   @ApiOperation({ summary: "Create RIU from hotline call" })
   @ApiResponse({
     status: 201,
@@ -75,7 +75,7 @@ export class IntakeController {
    * Only allowed before QA submission and by the creating operator.
    */
   @Put("intake/:riuId")
-  @Roles(UserRole.OPERATOR, UserRole.SYSTEM_ADMIN)
+  @Roles('OPERATOR' as UserRole, UserRole.SYSTEM_ADMIN)
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: "Update in-progress intake" })
   @ApiParam({ name: "riuId", description: "RIU ID" })
@@ -95,7 +95,7 @@ export class IntakeController {
    * Submit an intake to the QA queue.
    */
   @Post("intake/:riuId/submit-qa")
-  @Roles(UserRole.OPERATOR, UserRole.SYSTEM_ADMIN)
+  @Roles('OPERATOR' as UserRole, UserRole.SYSTEM_ADMIN)
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: "Submit intake to QA queue" })
   @ApiParam({ name: "riuId", description: "RIU ID" })
@@ -114,7 +114,7 @@ export class IntakeController {
    * Get the operator's queue of in-progress intakes.
    */
   @Get("my-queue")
-  @Roles(UserRole.OPERATOR, UserRole.SYSTEM_ADMIN)
+  @Roles('OPERATOR' as UserRole, UserRole.SYSTEM_ADMIN)
   @ApiOperation({ summary: "Get operator's in-progress intakes" })
   @ApiResponse({
     status: 200,
@@ -130,7 +130,7 @@ export class IntakeController {
    * OPER-08: Support operators handling follow-up calls from reporters.
    */
   @Get("follow-up/:accessCode")
-  @Roles(UserRole.OPERATOR, UserRole.SYSTEM_ADMIN)
+  @Roles('OPERATOR' as UserRole, UserRole.SYSTEM_ADMIN)
   @Throttle({ default: { limit: 10, ttl: 60000 } }) // 10 requests per minute
   @ApiOperation({ summary: "Look up case by access code for follow-up" })
   @ApiParam({ name: "accessCode", description: "Reporter's access code" })
@@ -153,7 +153,7 @@ export class IntakeController {
    * OPER-08: Add operator note during follow-up call.
    */
   @Post("follow-up/:riuId/note")
-  @Roles(UserRole.OPERATOR, UserRole.SYSTEM_ADMIN)
+  @Roles('OPERATOR' as UserRole, UserRole.SYSTEM_ADMIN)
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: "Add follow-up call note" })
   @ApiParam({ name: "riuId", description: "RIU ID" })

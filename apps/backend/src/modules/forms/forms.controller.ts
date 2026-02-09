@@ -37,7 +37,7 @@ import { FormType, FormSubmissionStatus } from '@prisma/client';
  * - /api/v1/forms/submissions - Submission management
  * - /api/v1/forms/public - Public endpoints (anonymous)
  */
-@Controller('api/v1/forms')
+@Controller('forms')
 export class FormsController {
   constructor(
     private schemaService: FormSchemaService,

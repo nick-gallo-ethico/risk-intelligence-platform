@@ -41,7 +41,7 @@ interface AuthUser {
  * All endpoints require authentication and appropriate role permissions.
  * Templates are organization-scoped via the user's organizationId.
  */
-@Controller('api/v1/investigation-templates')
+@Controller('investigation-templates')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class InvestigationTemplateController {
   constructor(

@@ -133,6 +133,18 @@ export class CaseQueryDto {
   intakeOperatorId?: string;
 
   // ===========================================
+  // Advanced Filters (HubSpot-style saved views)
+  // ===========================================
+
+  @ApiPropertyOptional({
+    description: "JSON string of advanced filter conditions from saved views",
+    example: '[{"propertyId":"status","operator":"is_any_of","value":["NEW","OPEN"]}]',
+  })
+  @IsOptional()
+  @IsString()
+  filters?: string;
+
+  // ===========================================
   // Search
   // ===========================================
 

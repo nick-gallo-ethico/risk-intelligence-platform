@@ -30,7 +30,7 @@ import {
   InternalApprovalDto,
 } from "./dto/go-live.dto";
 
-@Controller("api/v1/internal/implementations/:projectId/go-live")
+@Controller("internal/implementations/:projectId/go-live")
 export class GoLiveController {
   constructor(private readonly goLiveService: GoLiveService) {}
 

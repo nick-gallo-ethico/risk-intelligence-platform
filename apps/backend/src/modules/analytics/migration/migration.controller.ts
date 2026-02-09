@@ -128,7 +128,7 @@ interface QueuedJobResponse {
 }
 
 @ApiTags("migrations")
-@Controller("api/v1/migrations")
+@Controller("migrations")
 // @UseGuards(JwtAuthGuard, RolesGuard)
 // @Roles(Role.SYSTEM_ADMIN, Role.COMPLIANCE_OFFICER)
 export class MigrationController {

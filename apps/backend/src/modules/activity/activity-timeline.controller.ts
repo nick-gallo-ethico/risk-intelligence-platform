@@ -53,7 +53,7 @@ import { RequestUser } from "../auth/interfaces/jwt-payload.interface";
 
 @ApiTags("Activity Timeline")
 @ApiBearerAuth()
-@Controller("api/v1/activity")
+@Controller("activity")
 @UseGuards(JwtAuthGuard, TenantGuard)
 export class ActivityTimelineController {
   private readonly logger = new Logger(ActivityTimelineController.name);

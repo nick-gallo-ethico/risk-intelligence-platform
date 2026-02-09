@@ -38,7 +38,7 @@ interface AuthenticatedUser {
  * - Templates: CRUD for workflow templates (admin only)
  * - Instances: Start, transition, and query workflow instances
  */
-@Controller("api/v1/workflows")
+@Controller("workflows")
 @UseGuards(JwtAuthGuard, TenantGuard, RolesGuard)
 export class WorkflowController {
   constructor(

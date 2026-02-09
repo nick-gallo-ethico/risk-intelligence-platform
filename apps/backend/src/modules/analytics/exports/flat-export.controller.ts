@@ -100,7 +100,7 @@ interface PreviewData {
   sampleData: Record<string, unknown>[];
 }
 
-@Controller('api/v1/exports/flat')
+@Controller('exports/flat')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @ApiBearerAuth()
 @ApiTags('exports')

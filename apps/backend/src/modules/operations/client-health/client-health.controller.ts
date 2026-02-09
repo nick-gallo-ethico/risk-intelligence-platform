@@ -27,7 +27,7 @@ import {
   HEALTH_SCORE_JOBS,
 } from "./health-score.processor";
 
-@Controller("api/v1/internal/client-health")
+@Controller("internal/client-health")
 export class ClientHealthController {
   constructor(
     private readonly healthScoreService: HealthScoreService,

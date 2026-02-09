@@ -28,7 +28,7 @@ import {
 
 @ApiTags("domains")
 @ApiBearerAuth("JWT")
-@Controller("api/v1/domains")
+@Controller("domains")
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class DomainController {
   constructor(private readonly domainService: DomainService) {}

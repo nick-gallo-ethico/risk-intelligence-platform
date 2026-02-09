@@ -39,7 +39,7 @@ import { PersonCaseLabel } from "@prisma/client";
  * // Get related cases
  * GET /api/v1/patterns/case/:caseId/related
  */
-@Controller("api/v1/patterns")
+@Controller("patterns")
 @UseGuards(JwtAuthGuard)
 export class PatternDetectionController {
   constructor(private readonly patternService: PatternDetectionService) {}

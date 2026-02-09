@@ -45,7 +45,7 @@ import { ColumnDefinition, FilterDefinition } from "./types/report.types";
  */
 @ApiTags("Reports")
 @ApiBearerAuth()
-@Controller("api/v1/reports")
+@Controller("reports")
 @UseGuards(JwtAuthGuard, TenantGuard)
 export class ReportingController {
   constructor(

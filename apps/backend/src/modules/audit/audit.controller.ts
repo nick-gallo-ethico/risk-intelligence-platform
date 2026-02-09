@@ -23,7 +23,7 @@ import { AuditEntityType } from "@prisma/client";
  * Access is restricted to SYSTEM_ADMIN and COMPLIANCE_OFFICER roles
  * for general queries, with INVESTIGATOR access for entity-specific timelines.
  */
-@Controller("api/v1/audit")
+@Controller("audit")
 @UseGuards(JwtAuthGuard, TenantGuard, RolesGuard)
 export class AuditController {
   constructor(private readonly auditService: AuditService) {}

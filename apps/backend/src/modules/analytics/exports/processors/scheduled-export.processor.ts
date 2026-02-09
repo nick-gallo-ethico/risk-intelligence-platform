@@ -113,6 +113,7 @@ export class ScheduledExportProcessor {
     // Create run record at start
     const run = await this.prisma.scheduledExportRun.create({
       data: {
+        organizationId: schedule.organizationId,
         scheduledExportId: schedule.id,
         status: ScheduleRunStatus.SUCCESS, // Will be updated on failure
         deliveredTo: [],

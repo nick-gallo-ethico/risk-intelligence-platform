@@ -29,7 +29,7 @@ import {
  *
  * Route: /api/v1/public/access
  */
-@Controller('api/v1/public/access')
+@Controller('public/access')
 export class RiuAccessController {
   constructor(private readonly accessService: RiuAccessService) {}
 

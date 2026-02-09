@@ -141,6 +141,7 @@ export class ImpersonationService {
 
     const session = await this.prisma.impersonationSession.create({
       data: {
+        organizationId: dto.targetOrganizationId,
         operatorUserId,
         operatorRole: operator.role as InternalRole,
         targetOrganizationId: dto.targetOrganizationId,
@@ -303,8 +304,20 @@ export class ImpersonationService {
     entityId: string | null,
     details?: Record<string, unknown>,
   ): Promise<void> {
+    // Fetch session to get organizationId
+    const session = await this.prisma.impersonationSession.findUnique({
+      where: { id: sessionId },
+      select: { organizationId: true },
+    });
+
+    if (!session) {
+      this.logger.warn(`Session ${sessionId} not found for audit log`);
+      return;
+    }
+
     await this.prisma.impersonationAuditLog.create({
       data: {
+        organizationId: session.organizationId,
         sessionId,
         action,
         entityType,

@@ -59,7 +59,7 @@ import {
 } from "./processors/flat-export.processor";
 import { User, ReportFieldTag, ExportJobStatus } from "@prisma/client";
 
-@Controller("api/v1/exports")
+@Controller("exports")
 @UseGuards(JwtAuthGuard, RolesGuard)
 @ApiBearerAuth()
 @ApiTags("exports")

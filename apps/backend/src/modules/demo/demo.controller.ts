@@ -52,7 +52,7 @@ interface RequestUser {
 }
 
 @ApiTags('Demo')
-@Controller('api/v1/demo')
+@Controller('demo')
 export class DemoController {
   constructor(private readonly demoService: DemoService) {}
 

@@ -416,6 +416,7 @@ export class ScheduledExportService {
     // For now, we just create a run record and the processor will handle it
     const run = await this.prisma.scheduledExportRun.create({
       data: {
+        organizationId: orgId,
         scheduledExportId: scheduleId,
         status: ScheduleRunStatus.SUCCESS, // Will be updated by processor
         deliveredTo: [],

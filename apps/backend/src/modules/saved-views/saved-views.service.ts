@@ -64,8 +64,10 @@ export class SavedViewsService {
     userId: string,
     dto: CreateSavedViewDto,
   ) {
-    // Validate filters against known enum values
-    const { invalid } = this.validateFilters(dto.entityType, dto.filters);
+    // Validate filters against known enum values (only if filters provided)
+    const { invalid } = dto.filters
+      ? this.validateFilters(dto.entityType, dto.filters)
+      : { invalid: [] };
 
     if (invalid.length > 0) {
       throw new BadRequestException(
@@ -415,17 +417,23 @@ export class SavedViewsService {
    */
   private validateFilters(
     entityType: ViewEntityType,
-    filters: FilterCriteria,
+    filters: FilterCriteria | FilterGroup[],
   ): { valid: FilterCriteria; invalid: string[] } {
     const invalid: string[] = [];
-    const valid: FilterCriteria = { ...filters };
+
+    // Normalize: if filters is a raw FilterGroup[] array, wrap it in FilterCriteria
+    const normalizedFilters: FilterCriteria = Array.isArray(filters)
+      ? { groups: filters }
+      : filters;
+
+    const valid: FilterCriteria = { ...normalizedFilters };
     const validEnums = VALID_ENUMS[entityType] || {};
 
     // Validate status values (legacy format)
-    if (filters.status) {
-      const statuses = Array.isArray(filters.status)
-        ? filters.status
-        : [filters.status];
+    if (normalizedFilters.status) {
+      const statuses = Array.isArray(normalizedFilters.status)
+        ? normalizedFilters.status
+        : [normalizedFilters.status];
       const validStatuses = statuses.filter((s) =>
         validEnums.status?.includes(s),
       );
@@ -440,10 +448,10 @@ export class SavedViewsService {
     }
 
     // Validate severity values (legacy format)
-    if (filters.severity) {
-      const severities = Array.isArray(filters.severity)
-        ? filters.severity
-        : [filters.severity];
+    if (normalizedFilters.severity) {
+      const severities = Array.isArray(normalizedFilters.severity)
+        ? normalizedFilters.severity
+        : [normalizedFilters.severity];
       const validSeverities = severities.filter((s) =>
         validEnums.severity?.includes(s),
       );
@@ -458,18 +466,21 @@ export class SavedViewsService {
     }
 
     // Validate SLA status for investigations (legacy format)
-    if (filters.slaStatus && entityType === ViewEntityType.INVESTIGATIONS) {
-      if (!validEnums.slaStatus?.includes(filters.slaStatus)) {
-        invalid.push(`slaStatus: ${filters.slaStatus}`);
+    if (
+      normalizedFilters.slaStatus &&
+      entityType === ViewEntityType.INVESTIGATIONS
+    ) {
+      if (!validEnums.slaStatus?.includes(normalizedFilters.slaStatus)) {
+        invalid.push(`slaStatus: ${normalizedFilters.slaStatus}`);
         valid.slaStatus = undefined;
       }
     }
 
     // Validate HubSpot-style filter groups (OR-joined groups of AND-joined conditions)
-    if (filters.groups && Array.isArray(filters.groups)) {
+    if (normalizedFilters.groups && Array.isArray(normalizedFilters.groups)) {
       const validGroups: FilterGroup[] = [];
 
-      for (const group of filters.groups) {
+      for (const group of normalizedFilters.groups) {
         if (!group.id || !Array.isArray(group.conditions)) {
           invalid.push(`group ${group.id || "unknown"}: invalid structure`);
           continue;

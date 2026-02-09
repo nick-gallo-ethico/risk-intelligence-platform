@@ -174,6 +174,7 @@ export class DemoResetService {
 
     // Create archive records
     const archiveRecords: Array<{
+      organizationId: string;
       demoUserSessionId: string;
       entityType: string;
       entityId: string;
@@ -183,6 +184,7 @@ export class DemoResetService {
 
     for (const c of cases) {
       archiveRecords.push({
+        organizationId: c.organizationId,
         demoUserSessionId: sessionId,
         entityType: 'Case',
         entityId: c.id,
@@ -193,6 +195,7 @@ export class DemoResetService {
 
     for (const i of investigations) {
       archiveRecords.push({
+        organizationId: i.organizationId,
         demoUserSessionId: sessionId,
         entityType: 'Investigation',
         entityId: i.id,
@@ -203,6 +206,7 @@ export class DemoResetService {
 
     for (const r of rius) {
       archiveRecords.push({
+        organizationId: r.organizationId,
         demoUserSessionId: sessionId,
         entityType: 'RIU',
         entityId: r.id,

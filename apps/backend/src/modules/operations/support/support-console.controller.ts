@@ -32,7 +32,7 @@ import { SupportConsoleService } from "./support-console.service";
 import { TenantSearchDto, ErrorLogFiltersDto } from "./dto/support.dto";
 import { ImpersonationGuard } from "../impersonation/impersonation.guard";
 
-@Controller("api/v1/internal/support")
+@Controller("internal/support")
 export class SupportConsoleController {
   private readonly logger = new Logger(SupportConsoleController.name);
 

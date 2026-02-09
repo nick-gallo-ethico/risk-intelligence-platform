@@ -37,7 +37,7 @@ import {
   ListProjectsQueryDto,
 } from "./dto/implementation.dto";
 
-@Controller("api/v1/internal/implementations")
+@Controller("internal/implementations")
 export class ImplementationController {
   private readonly logger = new Logger(ImplementationController.name);
 
