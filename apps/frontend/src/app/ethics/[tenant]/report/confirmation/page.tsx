@@ -26,7 +26,7 @@ import { LanguageSwitcher } from '@/components/ethics/language-switcher';
 export default function ConfirmationPageRoute() {
   const params = useParams();
   const router = useRouter();
-  const tenantSlug = params.tenant as string;
+  const tenantSlug = params?.tenant as string;
 
   const [submissionResult, setSubmissionResult] = useState<SubmissionResult | null>(null);
   const [isLoading, setIsLoading] = useState(true);

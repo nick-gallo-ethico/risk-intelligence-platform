@@ -1,11 +1,12 @@
 'use client';
 
 import * as React from 'react';
+import { Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
   ChevronLeft,
   AlertTriangle,
-  X,
+  Loader2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
@@ -304,6 +305,36 @@ const MOCK_ENTITY_TIMELINE: EntityTimelineData = {
 };
 
 // ===========================================
+// Loading Skeleton
+// ===========================================
+
+function ConflictsPageSkeleton() {
+  return (
+    <div className="flex h-[calc(100vh-4rem)] flex-col">
+      <div className="border-b px-6 py-4">
+        <div className="h-8 w-40 bg-muted animate-pulse rounded mb-2" />
+        <div className="flex items-center gap-3">
+          <div className="rounded-lg bg-orange-100 p-2">
+            <Loader2 className="h-6 w-6 text-orange-600 animate-spin" />
+          </div>
+          <div>
+            <div className="h-7 w-48 bg-muted animate-pulse rounded mb-1" />
+            <div className="h-4 w-64 bg-muted animate-pulse rounded" />
+          </div>
+        </div>
+      </div>
+      <div className="flex-1 p-6">
+        <div className="space-y-4">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-32 bg-muted animate-pulse rounded-lg" />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ===========================================
 // Page Component
 // ===========================================
 
@@ -316,6 +347,14 @@ const MOCK_ENTITY_TIMELINE: EntityTimelineData = {
  * - Right: EntityTimeline (detail panel, shown when entity selected)
  */
 export default function ConflictsPage() {
+  return (
+    <Suspense fallback={<ConflictsPageSkeleton />}>
+      <ConflictsPageContent />
+    </Suspense>
+  );
+}
+
+function ConflictsPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 

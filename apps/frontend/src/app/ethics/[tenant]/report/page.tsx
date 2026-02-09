@@ -23,7 +23,7 @@ import { cn } from '@/lib/utils';
 export default function ReportPage() {
   const params = useParams();
   const router = useRouter();
-  const tenantSlug = params.tenant as string;
+  const tenantSlug = params?.tenant as string;
 
   // Fetch categories
   const {

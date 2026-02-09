@@ -179,7 +179,7 @@ function EmployeeLayoutInner({
       {/* Main content area with sidebar */}
       <div className="flex-1 flex">
         {/* Desktop sidebar */}
-        <SidebarNav items={navItems} pathname={pathname} />
+        <SidebarNav items={navItems} pathname={pathname ?? ''} />
 
         {/* Main content */}
         <main className="flex-1 overflow-y-auto pb-20 md:pb-0">
@@ -188,7 +188,7 @@ function EmployeeLayoutInner({
       </div>
 
       {/* Mobile bottom nav */}
-      <BottomNav items={navItems} pathname={pathname} />
+      <BottomNav items={navItems} pathname={pathname ?? ''} />
     </div>
   );
 }

@@ -102,14 +102,14 @@ function DashboardContent() {
   const { profile, isLoading: profileLoading } = useEmployee();
 
   // Get active tab from URL or default to 'tasks'
-  const tabParam = searchParams.get('tab');
+  const tabParam = searchParams?.get('tab');
   const [activeTab, setActiveTab] = useState<DashboardTab>(
     (tabParam as DashboardTab) || 'tasks'
   );
 
   // Sync tab state with URL
   useEffect(() => {
-    const tab = searchParams.get('tab') as DashboardTab | null;
+    const tab = searchParams?.get('tab') as DashboardTab | null;
     if (tab && ['tasks', 'team', 'history', 'policies'].includes(tab)) {
       setActiveTab(tab);
     }
