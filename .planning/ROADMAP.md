@@ -46,7 +46,8 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 12: Internal Operations Portal** - Support console, implementation tools, hotline ops, client success
 - [ ] **Phase 13: HubSpot-Style Saved Views** - Reusable view tabs, column selection, advanced filters, board views across all modules
 - [ ] **Phase 13.1: Saved Views Fixes** - Board view, investigations endpoint, search vector, export endpoints (INSERTED)
-- [ ] **Phase 14: Critical Bug Fixes & Navigation** - Route 404s, broken buttons, Select.Item error, search, user menu, nav styling
+- [x] **Phase 14: Critical Bug Fixes & Navigation** - Route 404s, broken buttons, Select.Item error, search, user menu, nav styling
+- [ ] **Phase 14.1: Data & Config Fixes** - Notifications seed data, search indexing, category dropdowns, task aggregation fixes (INSERTED)
 - [ ] **Phase 15: Case Detail Page Overhaul** - Three-column layout, activity feed, action buttons, AI panel, connected entities
 - [ ] **Phase 16: AI Integration Fix** - Debug and fix non-functional AI, wire AI panel, enable AI actions on cases
 - [ ] **Phase 17: Campaigns Hub** - Centralized campaigns area, form creation, campaign lifecycle management
@@ -575,7 +576,29 @@ Plans:
 - [ ] 14-02-PLAN.md (Wave 1) — Create /notifications and /my-work pages (fix 404s)
 - [ ] 14-03-PLAN.md (Wave 1) — Create /search and /profile pages, fix SelectItem empty string error
 - [ ] 14-04-PLAN.md (Wave 1) — Dashboard performance (reduce fetch limit), task navigation, audit log verification
-- [ ] 14-05-PLAN.md (Wave 2) — Verification checkpoint: automated checks + human verification of all 11 fixes
+- [x] 14-05-PLAN.md (Wave 2) — Verification checkpoint: automated checks + human verification of all 11 fixes
+
+### Phase 14.1: Data & Config Fixes (INSERTED)
+
+**Goal**: Address data seeding and configuration issues discovered during Phase 14 verification — notifications, search indexing, category dropdowns, task aggregation, and audit log access. These are not code bugs but missing data/infrastructure setup.
+**Depends on**: Phase 14 (code fixes complete)
+**Requirements**: Issues identified in Phase 14-05 verification
+**Success Criteria** (what must be TRUE):
+
+1. Notifications page shows seeded notification records (not empty)
+2. Search returns results for seeded cases, policies, investigations
+3. Category dropdowns in case creation form are populated
+4. My Tasks shows tasks for logged-in demo user (task aggregation queries work)
+5. Audit log is accessible for demo admin user
+
+**Plans**: 4 plans in 2 waves
+
+Plans:
+
+- [ ] 14.1-01-PLAN.md (Wave 1) — Notification seeder for demo users (50-100 per user, diverse types)
+- [ ] 14.1-02-PLAN.md (Wave 1) — Wire activity.seeder.ts into seed.ts (audit log data)
+- [ ] 14.1-03-PLAN.md (Wave 1) — Demo user case ownership for My Tasks (createdById assignment)
+- [ ] 14.1-04-PLAN.md (Wave 2) — Verification checkpoint: re-seed and human verification of all 5 fixes
 
 ### Phase 15: Case Detail Page Overhaul
 
@@ -782,7 +805,7 @@ Plans:
 5. Top navigation bar and side navigation bar are visually consistent in both light and dark modes
 6. Charts, tables, modals, and form elements all respect the active theme
 7. Theme transition is smooth (no flash of wrong theme on page load)
-   **Plans**: 14 plans in 5 waves
+   **Plans**: 15 plans in 5 waves
 
 Plans:
 
@@ -800,6 +823,7 @@ Plans:
 - [ ] 22-12-PLAN.md (Wave 4) — Theme settings, users, implementation, exports, files, remaining views
 - [ ] 22-13-PLAN.md (Wave 4) — Sweep all 43 page.tsx files for page-level hardcoded colors
 - [ ] 22-14-PLAN.md (Wave 5) — Verification checkpoint: TypeScript compilation, all 7 success criteria verified
+- [ ] 22-15-PLAN.md (Wave 5) — Fix DataTable column width flexibility (allow columns to expand and shrink dynamically)
 
 ### Phase 23: Help & Support System
 
@@ -849,9 +873,9 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in dependency order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11 → 11.1 → 12 → 13 → 13.1 → 14 → 16 → 15 → 17 → 18 → 19 → 20 → 21 → 22 → 23 → 24
+Phases execute in dependency order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11 → 11.1 → 12 → 13 → 13.1 → 14 → 14.1 → 16 → 15 → 17 → 18 → 19 → 20 → 21 → 22 → 23 → 24
 
-> **Note on order**: Phase 16 (AI Fix) executes before Phase 15 (Case Detail Overhaul) because the case page's AI panel depends on working AI infrastructure. Phase 13.1 fixes UAT gaps from Phase 13.
+> **Note on order**: Phase 16 (AI Fix) executes before Phase 15 (Case Detail Overhaul) because the case page's AI panel depends on working AI infrastructure. Phase 13.1 fixes UAT gaps from Phase 13. Phase 14.1 fixes data seeding gaps from Phase 14.
 
 | Phase                                | Plans Complete | Status   | Completed  |
 | ------------------------------------ | -------------- | -------- | ---------- |
@@ -869,8 +893,9 @@ Phases execute in dependency order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 
 | 11.1. Frontend Navigation (INSERTED) | 6/6            | Complete | 2026-02-05 |
 | 12. Internal Operations Portal       | 19/19          | Complete | 2026-02-06 |
 | 13. HubSpot-Style Saved Views        | 15/15          | Complete | 2026-02-07 |
-| 13.1. Saved Views Fixes (INSERTED)   | 1/1            | Complete | 2026-02-09 |
-| 14. Critical Bug Fixes & Navigation  | 0/5            | Planned  | -          |
+| 13.1. Saved Views Fixes (INSERTED)   | 1/1            | Verified | 2026-02-09 |
+| 14. Critical Bug Fixes & Navigation  | 5/5            | Complete | 2026-02-09 |
+| 14.1. Data & Config Fixes (INSERTED) | 0/4            | Planned  | -          |
 | 15. Case Detail Page Overhaul        | 0/7            | Planned  | -          |
 | 16. AI Integration Fix               | 0/TBD          | Planned  | -          |
 | 17. Campaigns Hub                    | 0/4            | Planned  | -          |
@@ -885,9 +910,9 @@ Phases execute in dependency order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 
 ---
 
 _Roadmap created: 2026-02-02_
-_Updated: 2026-02-09 (Phase 13.1 Saved Views Fixes complete)_
+_Updated: 2026-02-09 (Phase 14 complete, Phase 14.1 Data & Config Fixes planned)_
 _Depth: Comprehensive_
-_Total phases: 24 (+ 11.1 insertion)_
+_Total phases: 24 (+ 11.1 and decimal insertions)_
 _Total plans: 190+ completed, ~50-70 estimated remaining_
 _Total v1 requirements: 149 + QA punch list items_
 _Issues reference: .planning/V1-ISSUES-AND-GAPS.md_

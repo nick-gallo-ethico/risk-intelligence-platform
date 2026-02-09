@@ -5,17 +5,27 @@
 See: .planning/PROJECT.md (updated 2026-02-02)
 
 **Core value:** Users can manage their entire compliance workflow - from anonymous report intake to investigation closure to board reporting - in one AI-assisted platform, with every task unified into a single "My Work" view.
-**Current focus:** Phase 14 - Critical Bug Fixes & Navigation (next to plan/execute)
+**Current focus:** Phase 14.1 - Data & Config Fixes OR Phase 16 - AI Integration Fix
 
 ## Current Position
 
-Phase: 14.1 of 24 (Data & Config Fixes)
-Plan: 4 of 4 in current phase
-Status: Phase 14.1 COMPLETE (pending human verification)
-Last activity: 2026-02-09 - Completed 14.1-04-PLAN.md (Verification Checkpoint)
-**Next Plan:** Phase 15 or 16
+Phase: 14 of 24 (Critical Bug Fixes & Navigation)
+Plan: 5 of 5 in current phase
+Status: Phase 14 COMPLETE (verified)
+Last activity: 2026-02-09 - Phase 14 verified
+**Next Phase:** Phase 14.1 (Data & Config Fixes) or Phase 16 (AI Integration Fix)
 
-Progress: [====================================================------------------] ~76% (~200 of ~260 estimated total plans)
+Progress: [====================================================------------------] ~77% (~202 of ~260 estimated total plans)
+
+### Phase 14 Critical Bug Fixes & Navigation COMPLETE (2026-02-09)
+
+All 5 plans executed and verified:
+
+- 14-01: Top nav & sidebar overhaul (auth context, logout, SVG logo, dark theme)
+- 14-02: Create /notifications and /my-work pages (fix 404s)
+- 14-03: Create /search and /profile pages, fix SelectItem error
+- 14-04: Dashboard performance (reduced fetch limit), task navigation
+- 14-05: Verification checkpoint (all 11 success criteria verified)
 
 ### Phase 14.1 Data & Config Fixes COMPLETE (2026-02-09)
 
