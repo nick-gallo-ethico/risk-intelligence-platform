@@ -26,6 +26,7 @@ import {
 } from "./seeders/patterns";
 import { seedSavedViews } from "./seeders/saved-views.seeder";
 import { seedActivityTimelines } from "./seeders/activity.seeder";
+import { seedNotifications } from "./seeders/notification.seeder";
 
 const prisma = new PrismaClient();
 
@@ -272,6 +273,18 @@ async function main() {
   await seedSavedViews(prisma, organization.id);
 
   // ========================================
+  // Seed Notifications for demo users
+  // ========================================
+  console.log("\nSeeding notifications...");
+  const notificationCount = await seedNotifications(
+    prisma,
+    organization.id,
+    demoUserIds,
+    caseIds,
+  );
+  console.log(`Created ${notificationCount} notifications for demo users`);
+
+  // ========================================
   // Calculate Demo Metrics
   // ========================================
   console.log("\nCalculating demo metrics...");
@@ -351,6 +364,9 @@ async function main() {
     where: { organizationId: organization.id },
   });
   console.log(`Audit Log Entries: ${auditLogCount}`);
+
+  console.log("\n--- NOTIFICATIONS ---");
+  console.log(`Notifications: ${notificationCount}`);
 
   console.log("\n--- PATTERNS ---");
   console.log(

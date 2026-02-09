@@ -286,13 +286,14 @@ export async function seedNotifications(
       let entityType: string | null = null;
       let entityId: string | null = null;
 
-      const caseRelatedTypes = [
+      const caseRelatedTypes: NotificationType[] = [
         NotificationType.ASSIGNMENT,
         NotificationType.STATUS_UPDATE,
         NotificationType.COMMENT,
         NotificationType.ESCALATION,
         NotificationType.DEADLINE,
         NotificationType.COMPLETION,
+        NotificationType.APPROVAL,
       ];
 
       if (
