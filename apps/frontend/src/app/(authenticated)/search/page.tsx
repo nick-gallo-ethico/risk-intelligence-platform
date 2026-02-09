@@ -208,7 +208,7 @@ function SearchResultsSkeleton() {
 function SearchPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const initialQuery = searchParams.get("q") ?? "";
+  const initialQuery = searchParams?.get("q") ?? "";
   const [inputValue, setInputValue] = useState(initialQuery);
 
   // Update input when URL query changes

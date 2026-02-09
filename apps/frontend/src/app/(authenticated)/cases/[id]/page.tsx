@@ -42,7 +42,7 @@ function CaseDetailPageContent() {
   const [error, setError] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
-  const caseId = params.id as string;
+  const caseId = params?.id as string;
 
   // Register go back shortcut
   useGlobalShortcuts({

@@ -35,10 +35,11 @@ import { api } from "@/lib/api";
 interface Notification {
   id: string;
   type: string;
-  category: string;
+  category?: string; // May come from backend as type
   title: string;
-  message: string;
-  priority: "HIGH" | "MEDIUM" | "LOW";
+  message?: string; // Frontend field
+  body?: string; // Backend field
+  priority?: "HIGH" | "MEDIUM" | "LOW";
   isRead: boolean;
   entityType?: string;
   entityId?: string;
@@ -132,6 +133,18 @@ export default function NotificationsPage() {
           params: { page, limit: PAGE_SIZE },
         });
         // Handle various response shapes
+        // Backend returns { notifications: [...], total, unreadCount }
+        if (response.data?.notifications && Array.isArray(response.data.notifications)) {
+          const total = response.data.total || response.data.notifications.length;
+          return {
+            data: response.data.notifications,
+            total,
+            page,
+            limit: PAGE_SIZE,
+            totalPages: Math.ceil(total / PAGE_SIZE),
+          };
+        }
+        // Alternative: { data: [...] } shape
         if (response.data?.data && Array.isArray(response.data.data)) {
           return response.data;
         }
@@ -265,8 +278,7 @@ export default function NotificationsPage() {
                   <Bell className="h-12 w-12 text-muted-foreground mb-4" />
                   <h3 className="text-lg font-medium">No notifications</h3>
                   <p className="text-sm text-muted-foreground mt-1">
-                    You&apos;re all caught up! New notifications will appear
-                    here.
+                    You're all caught up! New notifications will appear here.
                   </p>
                 </div>
               ) : (
@@ -283,10 +295,10 @@ export default function NotificationsPage() {
                       <div className="flex items-start gap-3">
                         <div
                           className={`p-2 rounded-lg ${getPriorityColor(
-                            notification.priority,
+                            notification.priority || "LOW",
                           )}`}
                         >
-                          {getNotificationIcon(notification.category)}
+                          {getNotificationIcon(notification.category || notification.type)}
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1">
@@ -312,7 +324,7 @@ export default function NotificationsPage() {
                                 : "text-muted-foreground"
                             }`}
                           >
-                            {notification.message}
+                            {notification.message || notification.body || ""}
                           </p>
                           <p className="text-xs text-muted-foreground mt-1">
                             {formatDistanceToNow(

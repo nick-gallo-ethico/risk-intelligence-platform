@@ -321,7 +321,7 @@ export default function MyWorkPage() {
                   <h3 className="text-lg font-medium">
                     {filter === "overdue"
                       ? "No overdue tasks"
-                      : "You&apos;re all caught up!"}
+                      : "You're all caught up!"}
                   </h3>
                   <p className="text-sm text-muted-foreground mt-1">
                     {filter === "overdue"

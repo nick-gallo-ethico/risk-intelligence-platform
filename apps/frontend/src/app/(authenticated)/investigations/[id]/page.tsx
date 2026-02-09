@@ -49,7 +49,7 @@ import type { Investigation } from '@/types/investigation';
 export default function InvestigationDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const investigationId = params.id as string;
+  const investigationId = params?.id as string;
 
   // State
   const [investigation, setInvestigation] = useState<Investigation | null>(null);
