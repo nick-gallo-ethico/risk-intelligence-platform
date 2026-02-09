@@ -10,20 +10,21 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 14.1 of 24 (Data & Config Fixes)
-Plan: 3 of 4 in current phase
-Status: In progress - Completed 14.1-03-PLAN.md
-Last activity: 2026-02-09 - Completed 14.1-03-PLAN.md (Fix Demo User Case Ownership)
-**Next Plan:** 14.1-04-PLAN.md
+Plan: 4 of 4 in current phase
+Status: Phase 14.1 COMPLETE (pending human verification)
+Last activity: 2026-02-09 - Completed 14.1-04-PLAN.md (Verification Checkpoint)
+**Next Plan:** Phase 15 or 16
 
 Progress: [====================================================------------------] ~76% (~200 of ~260 estimated total plans)
 
-### Phase 14.1 Data & Config Fixes (2026-02-09)
+### Phase 14.1 Data & Config Fixes COMPLETE (2026-02-09)
 
-Fixing demo data and configuration issues:
+All data and configuration fixes applied:
 
 - 14.1-01: Notification seeder for demo data (COMPLETE)
 - 14.1-02: Activity seeder wiring for audit log (COMPLETE - work done in 14.1-01)
 - 14.1-03: Fix demo user case ownership for My Tasks (COMPLETE)
+- 14.1-04: Verification checkpoint (COMPLETE - human verification pending)
 
 ### Phase 13.1 Saved Views Fixes Complete (2026-02-09)
 
@@ -572,6 +573,7 @@ Recent decisions affecting current work:
 - 14.1-03: Demo users assigned via round-robin to open cases (first 25 per user) via createdById
 - 14.1-03: DEMO_CASE_OWNERS constant defines the 4 demo users for case ownership
 - 14.1-03: Default fallback to random user when demo quotas are met
+- 14.1-04: Raw SQL must use @@map table names (cases not Case) and snake_case column names
 
 ### Pending Todos
 
@@ -590,8 +592,16 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-02-09
-Stopped at: Completed 14.1-03-PLAN.md (Fix Demo User Case Ownership)
+Stopped at: Completed 14.1-04-PLAN.md (Verification Checkpoint - human verification pending)
 Resume file: None
+
+**Phase 14.1 Status: COMPLETE (pending human verification)**
+All 4 plans executed successfully:
+
+- 14.1-01: Notification seeder (721 notifications for 9 demo users)
+- 14.1-02: Activity seeder wiring (35,094 audit log entries)
+- 14.1-03: Demo user case ownership (25 cases each for 4 demo users)
+- 14.1-04: Verification checkpoint (seed runs successfully, human testing pending)
 
 **Phase 12 Status: COMPLETE**
 All 19 plans executed successfully:
