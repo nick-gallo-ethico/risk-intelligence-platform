@@ -1,0 +1,36 @@
+<svg width="280" height="80" viewBox="0 0 280 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="oGradientLight" x1="252" y1="12" x2="252" y2="68" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#2dd4bf"/>
+      <stop offset="100%" stop-color="#8b5cf6"/>
+    </linearGradient>
+    <linearGradient id="iconGradientSmallLight" x1="140" y1="0" x2="140" y2="18" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#a78bfa"/>
+      <stop offset="100%" stop-color="#2dd4bf"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Small E icon above the I -->
+  <path d="M140 0L150 18H130L140 0Z" fill="url(#iconGradientSmallLight)"/>
+  <rect x="133" y="5" width="14" height="2.5" fill="#151b2e"/>
+  <rect x="135" y="10" width="10" height="2.5" fill="#151b2e"/>
+
+  <!-- E -->
+  <path d="M0 22H50V34H14V46H45V58H14V68H50V80H0V22Z" fill="white"/>
+
+  <!-- T -->
+  <path d="M55 22H105V34H86V80H74V34H55V22Z" fill="white"/>
+
+  <!-- H -->
+  <path d="M110 22H124V46H146V22H160V80H146V58H124V80H110V22Z" fill="white"/>
+
+  <!-- I -->
+  <path d="M168 22H182V80H168V22Z" fill="white"/>
+
+  <!-- C -->
+  <path d="M188 51C188 34.431 201.431 21 218 21C226.5 21 234 24.5 239 30L230 40C227 36 223 34 218 34C208.611 34 201 42.059 201 51C201 59.941 208.611 68 218 68C223 68 227 66 230 62L239 72C234 77.5 226.5 81 218 81C201.431 81 188 67.569 188 51Z" fill="white"/>
+
+  <!-- O with gradient -->
+  <circle cx="260" cy="51" r="30" fill="url(#oGradientLight)"/>
+  <circle cx="260" cy="51" r="17" fill="#151b2e"/>
+</svg>

@@ -1,0 +1,13 @@
+<svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="iconGradient" x1="60" y1="0" x2="60" y2="120" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#a78bfa"/>
+      <stop offset="100%" stop-color="#2dd4bf"/>
+    </linearGradient>
+  </defs>
+  <!-- Triangle pointing down with E cutouts -->
+  <path d="M60 0L120 120H0L60 0Z" fill="url(#iconGradient)"/>
+  <!-- E horizontal bars (white cutouts) -->
+  <rect x="25" y="35" width="70" height="12" fill="white"/>
+  <rect x="35" y="60" width="50" height="12" fill="white"/>
+</svg>
