@@ -173,6 +173,7 @@ export async function seedAcmePhase12(): Promise<void> {
       await prisma.impersonationSession.create({
         data: {
           id: generateUUID(),
+          organizationId: acmeOrg.id,
           operatorUserId: sarahSupport.id,
           operatorRole: sarahSupport.role as
             | 'SUPPORT_L1'
@@ -509,6 +510,7 @@ export async function seedAcmePhase12(): Promise<void> {
         await prisma.goLiveGate.create({
           data: {
             id: generateUUID(),
+            organizationId: acmeOrg.id,
             projectId: implProject.id,
             gateId: gate.gateId,
             status: gate.status,

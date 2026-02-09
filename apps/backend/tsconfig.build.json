@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig.json",
+  "exclude": [
+    "node_modules",
+    "dist",
+    "test",
+    "**/*.spec.ts",
+    "src/modules/analytics/migration/**/*",
+    "src/modules/analytics/exports/**/*"
+  ]
+}
