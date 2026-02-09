@@ -23,7 +23,7 @@ export function AppSidebar() {
   const { openPanel } = useAiPanel();
 
   return (
-    <Sidebar collapsible="icon">
+    <Sidebar collapsible="icon" className="group-data-[side=left]:border-r-0">
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
@@ -34,11 +34,10 @@ export function AppSidebar() {
             >
               <Link href="/dashboard">
                 <Image
-                  src="/ethico-icon.svg"
+                  src="/ethico-logo.png"
                   alt="Ethico"
                   width={32}
                   height={32}
-                  className="rounded-lg"
                 />
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-semibold">Ethico</span>

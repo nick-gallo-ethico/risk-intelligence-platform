@@ -2,8 +2,8 @@
 
 import * as React from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
 import {
   Search,
   Bell,
@@ -13,6 +13,7 @@ import {
   ChevronDown,
   HelpCircle,
   Sparkles,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -31,10 +32,25 @@ import {
 } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { SidebarTrigger } from "@/components/ui/sidebar";
 import { useAiPanel } from "@/contexts/ai-panel-context";
 import { useAuth } from "@/contexts/auth-context";
 import { cn } from "@/lib/utils";
+import { api } from "@/lib/api";
+import { formatDistanceToNow } from "date-fns";
+
+interface NotificationItem {
+  id: string;
+  type: string;
+  category: string;
+  title: string;
+  message: string;
+  priority: "HIGH" | "MEDIUM" | "LOW";
+  isRead: boolean;
+  entityType?: string;
+  entityId?: string;
+  url?: string;
+  createdAt: string;
+}
 
 /**
  * HubSpot-style top navigation bar.
@@ -56,8 +72,31 @@ export function TopNav() {
   const [searchQuery, setSearchQuery] = React.useState("");
   const searchInputRef = React.useRef<HTMLInputElement>(null);
 
-  // Mock notification count - in real app, this would come from API
-  const notificationCount = 5;
+  // Fetch notifications from API
+  const { data: notificationsData, isLoading: notificationsLoading } = useQuery({
+    queryKey: ["notifications-preview"],
+    queryFn: async () => {
+      try {
+        const response = await api.get("/notifications", {
+          params: { limit: 5 },
+        });
+        if (response.data?.data && Array.isArray(response.data.data)) {
+          return response.data.data as NotificationItem[];
+        }
+        if (Array.isArray(response.data)) {
+          return response.data as NotificationItem[];
+        }
+        return [];
+      } catch {
+        return [];
+      }
+    },
+    staleTime: 30000, // 30 seconds
+    refetchInterval: 60000, // Refresh every minute
+  });
+
+  const notifications = notificationsData || [];
+  const notificationCount = notifications.filter((n) => !n.isRead).length;
 
   // User display values from auth context
   const displayName = authUser
@@ -100,32 +139,12 @@ export function TopNav() {
   return (
     <header className="sticky top-0 z-40 w-full border-b border-white/10 bg-[hsl(227,36%,13%)] text-white">
       <div className="flex h-14 items-center gap-4 px-4">
-        {/* Sidebar trigger (hamburger menu) */}
-        <SidebarTrigger className="shrink-0 text-white/80 hover:text-white hover:bg-white/10" />
-
-        {/* Logo / Brand - visible on desktop */}
-        <Link
-          href="/dashboard"
-          className="hidden md:flex items-center gap-2"
-        >
-          <Image
-            src="/ethico-logo-light.svg"
-            alt="Ethico"
-            width={100}
-            height={28}
-            priority
-          />
-        </Link>
-
-        {/* Spacer */}
-        <div className="flex-1" />
-
-        {/* Search */}
+        {/* Search - left aligned, wider like HubSpot */}
         <Popover open={searchOpen} onOpenChange={setSearchOpen}>
           <PopoverTrigger asChild>
             <Button
               variant="outline"
-              className="w-64 justify-start text-white/70 hover:text-white hidden md:flex border-white/20 bg-white/5 hover:bg-white/10"
+              className="w-80 justify-start text-white/70 hover:text-white hidden md:flex border-white/20 bg-white/5 hover:bg-white/10"
             >
               <Search className="mr-2 h-4 w-4" />
               <span>Search...</span>
@@ -134,7 +153,7 @@ export function TopNav() {
               </kbd>
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-96 p-0" align="end">
+          <PopoverContent className="w-96 p-0" align="start">
             <form onSubmit={handleSearch}>
               <div className="flex items-center border-b px-3">
                 <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
@@ -191,12 +210,15 @@ export function TopNav() {
           <Search className="h-5 w-5" />
         </Button>
 
+        {/* Spacer - pushes remaining items to the right */}
+        <div className="flex-1" />
+
         {/* AI Assistant Button */}
         <Button
           variant="ghost"
           size="icon"
           onClick={() => togglePanel()}
-          className="relative text-white/80 hover:text-white hover:bg-white/10"
+          className="relative text-blue-400 hover:text-blue-300 hover:bg-white/10"
           title="AI Assistant"
         >
           <Sparkles className="h-5 w-5" />
@@ -228,28 +250,42 @@ export function TopNav() {
               </Link>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            {/* Sample notifications - in real app these come from API */}
-            <DropdownMenuItem className="flex flex-col items-start gap-1 cursor-pointer">
-              <p className="text-sm font-medium">New case assigned</p>
-              <p className="text-xs text-muted-foreground">
-                Case #CASE-2024-0234 has been assigned to you
-              </p>
-              <p className="text-xs text-muted-foreground">2 minutes ago</p>
-            </DropdownMenuItem>
-            <DropdownMenuItem className="flex flex-col items-start gap-1 cursor-pointer">
-              <p className="text-sm font-medium">Investigation due soon</p>
-              <p className="text-xs text-muted-foreground">
-                Investigation #INV-001 is due in 2 days
-              </p>
-              <p className="text-xs text-muted-foreground">1 hour ago</p>
-            </DropdownMenuItem>
-            <DropdownMenuItem className="flex flex-col items-start gap-1 cursor-pointer">
-              <p className="text-sm font-medium">Policy approval needed</p>
-              <p className="text-xs text-muted-foreground">
-                &ldquo;Code of Conduct v2.1&rdquo; awaits your approval
-              </p>
-              <p className="text-xs text-muted-foreground">3 hours ago</p>
-            </DropdownMenuItem>
+            {notificationsLoading ? (
+              <div className="flex items-center justify-center py-4">
+                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+              </div>
+            ) : notifications.length === 0 ? (
+              <div className="py-4 text-center text-sm text-muted-foreground">
+                No notifications
+              </div>
+            ) : (
+              notifications.slice(0, 5).map((notification) => (
+                <DropdownMenuItem
+                  key={notification.id}
+                  className={cn(
+                    "flex flex-col items-start gap-1 cursor-pointer",
+                    !notification.isRead && "bg-primary/5"
+                  )}
+                  onClick={() => {
+                    if (notification.url) {
+                      router.push(notification.url);
+                    } else if (notification.entityType && notification.entityId) {
+                      router.push(`/${notification.entityType.toLowerCase()}s/${notification.entityId}`);
+                    }
+                  }}
+                >
+                  <p className={cn("text-sm", !notification.isRead && "font-medium")}>
+                    {notification.title}
+                  </p>
+                  <p className="text-xs text-muted-foreground line-clamp-2">
+                    {notification.message}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}
+                  </p>
+                </DropdownMenuItem>
+              ))
+            )}
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
               <Link href="/my-work" className="w-full cursor-pointer">
