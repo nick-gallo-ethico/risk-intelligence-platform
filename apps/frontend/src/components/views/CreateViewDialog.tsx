@@ -97,12 +97,12 @@ export function CreateViewDialog({ open, onOpenChange }: CreateViewDialogProps) 
               </SelectTrigger>
               <SelectContent>
                 {VISIBILITY_OPTIONS.map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value}>
-                    <div>
-                      <div className="font-medium">{opt.label}</div>
-                      <div className="text-xs text-muted-foreground">
+                  <SelectItem key={opt.value} value={opt.value} className="py-2">
+                    <div className="flex flex-col items-start">
+                      <span className="font-medium">{opt.label}</span>
+                      <span className="text-xs text-muted-foreground">
                         {opt.description}
-                      </div>
+                      </span>
                     </div>
                   </SelectItem>
                 ))}

@@ -378,8 +378,8 @@ export const POLICIES_VIEW_CONFIG: ModuleViewConfig = {
             {
               id: "1",
               propertyId: "status",
-              operator: "is",
-              value: "published",
+              operator: "is_any_of",
+              value: ["published"],
             },
           ],
         },
@@ -435,8 +435,8 @@ export const POLICIES_VIEW_CONFIG: ModuleViewConfig = {
             {
               id: "1",
               propertyId: "status",
-              operator: "is",
-              value: "draft",
+              operator: "is_any_of",
+              value: ["draft"],
             },
           ],
         },

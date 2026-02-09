@@ -61,7 +61,6 @@ export function DataTable<T extends Record<string, unknown>>({
   const {
     config,
     visibleColumns,
-    frozenColumnCount,
     sortBy,
     sortOrder,
     setSort,
@@ -96,6 +95,7 @@ export function DataTable<T extends Record<string, unknown>>({
           }
           onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
           aria-label="Select all"
+          className="border-muted-foreground/40"
         />
       ),
       cell: ({ row }) => (
@@ -202,9 +202,42 @@ export function DataTable<T extends Record<string, unknown>>({
         return format(new Date(value as string), "MMM d, yyyy HH:mm");
       case "boolean":
         return value ? "Yes" : "No";
-      case "enum":
-      case "status":
+      case "status": {
+        const statusValue = String(value).toUpperCase();
+        const statusColors: Record<string, string> = {
+          NEW: "bg-blue-100 text-blue-800 border-blue-200",
+          OPEN: "bg-amber-100 text-amber-800 border-amber-200",
+          IN_PROGRESS: "bg-amber-100 text-amber-800 border-amber-200",
+          CLOSED: "bg-green-100 text-green-800 border-green-200",
+          RESOLVED: "bg-green-100 text-green-800 border-green-200",
+        };
+        const option = colConfig.filterOptions?.find((o) => o.value === value);
+        const label = option?.label || String(value);
+        const colorClass = statusColors[statusValue] || "bg-gray-100 text-gray-800 border-gray-200";
+        return (
+          <Badge variant="outline" className={cn("capitalize border", colorClass)}>
+            {label}
+          </Badge>
+        );
+      }
       case "severity": {
+        const severityValue = String(value).toUpperCase();
+        const severityColors: Record<string, string> = {
+          HIGH: "bg-red-100 text-red-800 border-red-200",
+          CRITICAL: "bg-red-100 text-red-800 border-red-200",
+          MEDIUM: "bg-amber-100 text-amber-800 border-amber-200",
+          LOW: "bg-green-100 text-green-800 border-green-200",
+        };
+        const option = colConfig.filterOptions?.find((o) => o.value === value);
+        const label = option?.label || String(value);
+        const colorClass = severityColors[severityValue] || "bg-gray-100 text-gray-800 border-gray-200";
+        return (
+          <Badge variant="outline" className={cn("capitalize border", colorClass)}>
+            {label}
+          </Badge>
+        );
+      }
+      case "enum": {
         const option = colConfig.filterOptions?.find((o) => o.value === value);
         if (option) {
           return (
@@ -247,7 +280,7 @@ export function DataTable<T extends Record<string, unknown>>({
         const strValue = String(value);
         if (strValue.length > 50) {
           return (
-            <span title={strValue} className="truncate block max-w-[200px]">
+            <span title={strValue} className="truncate block">
               {strValue}
             </span>
           );
@@ -298,24 +331,14 @@ export function DataTable<T extends Record<string, unknown>>({
   }, [data, getRowId]);
 
   const handleBulkAction = useCallback(
-    (actionId: string, ids: string[]) => {
-      onBulkAction?.(actionId, ids);
+    async (actionId: string, ids: string[]) => {
+      await onBulkAction?.(actionId, ids);
       handleClearSelection();
     },
     [onBulkAction, handleClearSelection],
   );
 
   const totalPages = Math.ceil(totalRecords / pageSize);
-
-  // Calculate cumulative left offsets for frozen columns
-  const getFrozenOffset = (index: number): number => {
-    let offset = 0;
-    for (let i = 0; i < index; i++) {
-      const header = table.getHeaderGroups()[0]?.headers[i];
-      offset += header?.getSize() || 40;
-    }
-    return offset;
-  };
 
   return (
     <div className="flex flex-col h-full">
@@ -337,23 +360,16 @@ export function DataTable<T extends Record<string, unknown>>({
           <thead className="sticky top-0 bg-muted z-10">
             {table.getHeaderGroups().map((headerGroup) => (
               <tr key={headerGroup.id}>
-                {headerGroup.headers.map((header, index) => {
-                  const isFrozen = index <= frozenColumnCount; // +1 for checkbox
-                  const leftOffset = isFrozen
-                    ? getFrozenOffset(index)
-                    : undefined;
+                {headerGroup.headers.map((header) => {
                   return (
                     <th
                       key={header.id}
                       className={cn(
                         "px-3 py-2 text-left text-sm font-medium text-muted-foreground border-b bg-muted",
-                        isFrozen &&
-                          "sticky z-20 bg-muted shadow-[2px_0_4px_-2px_rgba(0,0,0,0.1)]",
                         header.column.getCanResize() && "relative",
                       )}
                       style={{
                         width: header.getSize(),
-                        left: leftOffset,
                       }}
                     >
                       {header.isPlaceholder
@@ -415,22 +431,13 @@ export function DataTable<T extends Record<string, unknown>>({
                   )}
                   onClick={() => onRowClick?.(row.original)}
                 >
-                  {row.getVisibleCells().map((cell, index) => {
-                    const isFrozen = index <= frozenColumnCount;
-                    const leftOffset = isFrozen
-                      ? getFrozenOffset(index)
-                      : undefined;
+                  {row.getVisibleCells().map((cell) => {
                     return (
                       <td
                         key={cell.id}
-                        className={cn(
-                          "px-3 py-3 text-sm border-b",
-                          isFrozen &&
-                            "sticky bg-background z-10 shadow-[2px_0_4px_-2px_rgba(0,0,0,0.1)]",
-                        )}
+                        className="px-3 py-3 text-sm border-b"
                         style={{
                           width: cell.column.getSize(),
-                          left: leftOffset,
                         }}
                       >
                         {flexRender(

@@ -57,7 +57,8 @@ export function ViewTabContextMenu({
   view,
   isActive,
 }: ViewTabContextMenuProps) {
-  const { renameView, duplicateView, deleteView } = useSavedViewContext();
+  const { renameView, duplicateView, deleteView, updateSharing } =
+    useSavedViewContext();
 
   const [renameOpen, setRenameOpen] = useState(false);
   const [sharingOpen, setSharingOpen] = useState(false);
@@ -171,7 +172,7 @@ export function ViewTabContextMenu({
               Control who can see this view.
             </DialogDescription>
           </DialogHeader>
-          <div className="py-4">
+          <div className="py-4 text-left">
             <Label>Visibility</Label>
             <Select
               value={visibility}
@@ -201,9 +202,14 @@ export function ViewTabContextMenu({
               Cancel
             </Button>
             <Button
-              onClick={() => {
-                setSharingOpen(false);
-                toast.success("Sharing updated");
+              onClick={async () => {
+                try {
+                  await updateSharing(view.id, visibility);
+                  toast.success("Sharing updated");
+                  setSharingOpen(false);
+                } catch (error) {
+                  toast.error("Failed to update sharing");
+                }
               }}
             >
               Save

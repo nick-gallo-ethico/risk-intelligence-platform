@@ -28,20 +28,20 @@ export function ViewModeToggle() {
 
   return (
     <Select value={viewMode} onValueChange={(v) => setViewMode(v as ViewMode)}>
-      <SelectTrigger className="w-[130px] h-9">
+      <SelectTrigger className="w-[145px] h-9">
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
         <SelectItem value="table">
-          <div className="flex items-center gap-2">
-            <Table2 className="h-4 w-4" />
-            Table view
+          <div className="flex items-center gap-2 whitespace-nowrap">
+            <Table2 className="h-4 w-4 flex-shrink-0" />
+            <span>Table view</span>
           </div>
         </SelectItem>
         <SelectItem value="board">
-          <div className="flex items-center gap-2">
-            <Kanban className="h-4 w-4" />
-            Board view
+          <div className="flex items-center gap-2 whitespace-nowrap">
+            <Kanban className="h-4 w-4 flex-shrink-0" />
+            <span>Board view</span>
           </div>
         </SelectItem>
       </SelectContent>

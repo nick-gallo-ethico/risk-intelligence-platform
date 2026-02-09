@@ -482,8 +482,8 @@ export const INTAKE_FORMS_VIEW_CONFIG: ModuleViewConfig = {
             {
               id: "1",
               propertyId: "formType",
-              operator: "is",
-              value: "ethics_report",
+              operator: "is_any_of",
+              value: ["ethics_report"],
             },
           ],
         },
@@ -510,8 +510,8 @@ export const INTAKE_FORMS_VIEW_CONFIG: ModuleViewConfig = {
             {
               id: "1",
               propertyId: "formType",
-              operator: "is",
-              value: "compliance_concern",
+              operator: "is_any_of",
+              value: ["compliance_concern"],
             },
           ],
         },
@@ -539,8 +539,8 @@ export const INTAKE_FORMS_VIEW_CONFIG: ModuleViewConfig = {
             {
               id: "1",
               propertyId: "aiPriority",
-              operator: "is",
-              value: "high",
+              operator: "is_any_of",
+              value: ["high"],
             },
           ],
         },

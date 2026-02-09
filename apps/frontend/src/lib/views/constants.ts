@@ -12,8 +12,8 @@ export const PAGE_SIZE_OPTIONS = [25, 50, 100] as const;
 // View mode defaults
 export const DEFAULT_VIEW_MODE: ViewMode = "table";
 
-// Column defaults
-export const DEFAULT_FROZEN_COLUMNS = 1;
+// Column defaults (0 = only checkbox frozen, no data columns)
+export const DEFAULT_FROZEN_COLUMNS = 0;
 export const MAX_FROZEN_COLUMNS = 3;
 export const MIN_COLUMN_WIDTH = 50;
 export const DEFAULT_COLUMN_WIDTH = 150;

@@ -12,9 +12,10 @@ import { Copy, Trash2, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FilterConditionRow } from "./FilterConditionRow";
-import { FilterGroup, FilterCondition } from "@/lib/views/types";
+import { FilterGroup, FilterCondition, PropertyType } from "@/lib/views/types";
 import { generateId } from "@/lib/utils";
 import { ColumnDefinition } from "@/types/view-config";
+import { getOperatorsForType } from "@/lib/views/operators";
 
 interface FilterGroupCardProps {
   group: FilterGroup;
@@ -54,10 +55,13 @@ export function FilterGroupCard({
     if (group.conditions.length >= MAX_CONDITIONS_PER_GROUP) return;
 
     const defaultColumn = columns[0];
+    const defaultOperators = defaultColumn
+      ? getOperatorsForType(defaultColumn.type as PropertyType)
+      : (["is"] as const);
     const newCondition: FilterCondition = {
       id: generateId(),
       propertyId: defaultColumn?.id || "",
-      operator: "is",
+      operator: defaultOperators[0],
       value: undefined,
     };
     onChange({ ...group, conditions: [...group.conditions, newCondition] });

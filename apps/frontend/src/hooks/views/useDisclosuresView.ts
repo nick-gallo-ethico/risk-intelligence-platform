@@ -84,13 +84,16 @@ interface BulkActionPayload {
  * Convert filter groups to API-compatible format
  */
 function buildFilterParams(
-  filters: FilterGroup[],
+  filters: FilterGroup[] | Record<string, unknown>,
   quickFilters: Record<string, unknown>,
 ): Record<string, unknown> {
   const params: Record<string, unknown> = {};
 
+  // Defensive check: ensure filters is an array (may be object from legacy view)
+  const safeFilters = Array.isArray(filters) ? filters : [];
+
   // Collect all conditions from filter groups
-  const allConditions = filters.flatMap((group) => group.conditions);
+  const allConditions = safeFilters.flatMap((group) => group.conditions);
 
   // Add quick filter conditions
   Object.entries(quickFilters).forEach(([propertyId, value]) => {
@@ -134,9 +137,12 @@ export function useDisclosuresView() {
 
   // Build query params from view state
   const queryParams = useMemo(() => {
+    // Backend expects limit/offset, not page/pageSize
+    const limit = pageSize;
+    const offset = (page - 1) * pageSize;
     const params: Record<string, unknown> = {
-      page,
-      pageSize,
+      limit,
+      offset,
     };
 
     // Search

@@ -463,8 +463,8 @@ export const DISCLOSURES_VIEW_CONFIG: ModuleViewConfig = {
             {
               id: "1",
               propertyId: "status",
-              operator: "is",
-              value: "pending_review",
+              operator: "is_any_of",
+              value: ["pending_review"],
             },
           ],
         },
@@ -491,8 +491,8 @@ export const DISCLOSURES_VIEW_CONFIG: ModuleViewConfig = {
             {
               id: "1",
               propertyId: "riskLevel",
-              operator: "is",
-              value: "high",
+              operator: "is_any_of",
+              value: ["high"],
             },
           ],
         },
@@ -554,8 +554,8 @@ export const DISCLOSURES_VIEW_CONFIG: ModuleViewConfig = {
             {
               id: "1",
               propertyId: "type",
-              operator: "is",
-              value: "conflict_of_interest",
+              operator: "is_any_of",
+              value: ["conflict_of_interest"],
             },
           ],
         },
@@ -583,8 +583,8 @@ export const DISCLOSURES_VIEW_CONFIG: ModuleViewConfig = {
             {
               id: "1",
               propertyId: "type",
-              operator: "is",
-              value: "outside_activity",
+              operator: "is_any_of",
+              value: ["outside_activity"],
             },
           ],
         },

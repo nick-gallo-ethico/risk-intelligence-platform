@@ -346,8 +346,8 @@ export const INVESTIGATIONS_VIEW_CONFIG: ModuleViewConfig = {
             {
               id: "1",
               propertyId: "leadInvestigator",
-              operator: "is",
-              value: "{{currentUserId}}",
+              operator: "is_any_of",
+              value: ["{{currentUserId}}"],
             },
           ],
         },

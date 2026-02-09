@@ -54,11 +54,10 @@ export function SortableViewTab({
       ref={setNodeRef}
       style={style}
       className={cn(
-        "flex items-center gap-1 px-3 py-2 cursor-pointer border-b-2 transition-colors select-none",
-        "hover:bg-accent",
+        "group flex items-center gap-1 px-3 py-2 cursor-pointer transition-all select-none rounded-t-md",
         isActive
-          ? "border-primary bg-background font-medium"
-          : "border-transparent",
+          ? "bg-white border border-b-white border-border font-medium text-foreground shadow-sm"
+          : "bg-gray-200 text-gray-600 hover:bg-gray-300 hover:text-gray-800",
         isDragging && "opacity-50 z-50",
       )}
       onClick={onSelect}
@@ -69,25 +68,29 @@ export function SortableViewTab({
         {...attributes}
         {...listeners}
       >
-        <GripVertical className="h-4 w-4 text-muted-foreground" />
+        <GripVertical className="h-3 w-3 text-muted-foreground" />
       </button>
 
       {/* Tab name */}
       <span
         className={cn(
-          "whitespace-nowrap",
+          "whitespace-nowrap text-sm",
           hasUnsavedChanges && isActive && "italic",
         )}
       >
         {view.name}
-        {hasUnsavedChanges && isActive && " \u2022"}
+        {hasUnsavedChanges && isActive && " •"}
       </span>
 
       {/* Record count badge */}
       {view.recordCount !== undefined && view.recordCount !== null && (
         <Badge
-          variant="secondary"
-          className={cn("ml-1 text-xs", isRecordCountStale && "opacity-60")}
+          variant={isActive ? "default" : "secondary"}
+          className={cn(
+            "ml-1 text-xs h-5 px-1.5",
+            isRecordCountStale && "opacity-60",
+            isActive && "bg-primary text-primary-foreground"
+          )}
         >
           {view.recordCount.toLocaleString()}
         </Badge>

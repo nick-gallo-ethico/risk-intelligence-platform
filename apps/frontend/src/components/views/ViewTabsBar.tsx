@@ -3,6 +3,7 @@
  *
  * Horizontal row of draggable view tabs using dnd-kit.
  * Primary navigation for switching between saved views.
+ * Includes module name indicator on the left (HubSpot style).
  */
 "use client";
 
@@ -28,7 +29,7 @@ import { AddViewButton } from "./AddViewButton";
 import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 
 export function ViewTabsBar() {
-  const { views, activeViewId, hasUnsavedChanges, setActiveView, reorderTabs } =
+  const { config, views, activeViewId, hasUnsavedChanges, setActiveView, reorderTabs } =
     useSavedViewContext();
 
   const sensors = useSensors(
@@ -57,39 +58,48 @@ export function ViewTabsBar() {
   const sortedViews = [...views].sort((a, b) => a.displayOrder - b.displayOrder);
 
   return (
-    <div className="flex items-center border-b bg-muted/30">
-      <ScrollArea className="flex-1">
-        <div className="flex items-center">
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            onDragEnd={handleDragEnd}
-            modifiers={[restrictToHorizontalAxis]}
-          >
-            <SortableContext
-              items={sortedViews.map((v) => v.id)}
-              strategy={horizontalListSortingStrategy}
-            >
-              {sortedViews.map((view) => (
-                <div key={view.id} className="group">
-                  <SortableViewTab
-                    view={view}
-                    isActive={view.id === activeViewId}
-                    hasUnsavedChanges={
-                      view.id === activeViewId && hasUnsavedChanges
-                    }
-                    onSelect={() => setActiveView(view.id)}
-                  />
-                </div>
-              ))}
-            </SortableContext>
-          </DndContext>
-        </div>
-        <ScrollBar orientation="horizontal" />
-      </ScrollArea>
+    <div className="border-b bg-muted/40">
+      {/* Top padding to separate from nav bar */}
+      <div className="pt-2 px-4">
+        <div className="flex items-end gap-3">
+          {/* Module name indicator - HubSpot style */}
+          <div className="flex-shrink-0 mb-1 h-9 px-3 bg-primary text-primary-foreground rounded-md font-medium flex items-center">
+            {config.entityName.plural}
+          </div>
 
-      <div className="flex-shrink-0 border-l">
-        <AddViewButton />
+          <ScrollArea className="flex-1">
+            <div className="flex items-end gap-1">
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleDragEnd}
+                modifiers={[restrictToHorizontalAxis]}
+              >
+                <SortableContext
+                  items={sortedViews.map((v) => v.id)}
+                  strategy={horizontalListSortingStrategy}
+                >
+                  {sortedViews.map((view) => (
+                    <SortableViewTab
+                      key={view.id}
+                      view={view}
+                      isActive={view.id === activeViewId}
+                      hasUnsavedChanges={
+                        view.id === activeViewId && hasUnsavedChanges
+                      }
+                      onSelect={() => setActiveView(view.id)}
+                    />
+                  ))}
+                </SortableContext>
+              </DndContext>
+            </div>
+            <ScrollBar orientation="horizontal" />
+          </ScrollArea>
+
+          <div className="flex-shrink-0 ml-2 mb-1">
+            <AddViewButton />
+          </div>
+        </div>
       </div>
     </div>
   );

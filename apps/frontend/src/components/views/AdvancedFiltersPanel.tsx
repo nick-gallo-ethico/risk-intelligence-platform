@@ -20,8 +20,9 @@ import {
 } from "@/components/ui/sheet";
 import { useSavedViewContext } from "@/hooks/views/useSavedViewContext";
 import { FilterGroupCard } from "./FilterGroupCard";
-import { FilterGroup } from "@/lib/views/types";
+import { FilterGroup, PropertyType } from "@/lib/views/types";
 import { generateId } from "@/lib/utils";
+import { getOperatorsForType } from "@/lib/views/operators";
 
 interface AdvancedFiltersPanelProps {
   open: boolean;
@@ -68,13 +69,16 @@ export function AdvancedFiltersPanel({
     if (filters.length >= MAX_FILTER_GROUPS) return;
 
     const defaultColumn = filterableColumns[0];
+    const defaultOperators = defaultColumn
+      ? getOperatorsForType(defaultColumn.type as PropertyType)
+      : (["is"] as const);
     const newGroup: FilterGroup = {
       id: generateId(),
       conditions: [
         {
           id: generateId(),
           propertyId: defaultColumn?.id || "",
-          operator: "is",
+          operator: defaultOperators[0],
           value: undefined,
         },
       ],

@@ -118,6 +118,11 @@ export interface SavedViewContextValue extends ViewState {
   deleteView: (viewId: string) => Promise<void>;
   duplicateView: (viewId: string) => Promise<SavedView>;
   renameView: (viewId: string, name: string) => Promise<void>;
+  updateSharing: (
+    viewId: string,
+    visibility: "private" | "team" | "everyone",
+    teamId?: string,
+  ) => Promise<void>;
   reorderTabs: (viewIds: string[]) => Promise<void>;
 
   // Filter actions
@@ -168,19 +173,41 @@ function viewReducer(state: ViewState, action: ViewAction): ViewState {
           hasUnsavedChanges: false,
         };
       }
+      // Extract filters - handle string, array, or { groups: [...] } formats
+      let viewFilters: FilterGroup[] = [];
+      const rawViewFilters = action.view.filters;
+
+      if (typeof rawViewFilters === 'string') {
+        try {
+          const parsed = JSON.parse(rawViewFilters);
+          viewFilters = Array.isArray(parsed)
+            ? parsed
+            : (parsed?.groups || []);
+        } catch {
+          viewFilters = [];
+        }
+      } else if (Array.isArray(rawViewFilters)) {
+        viewFilters = rawViewFilters;
+      } else if (rawViewFilters && typeof rawViewFilters === 'object') {
+        // FilterCriteria object with groups property
+        viewFilters = (rawViewFilters as { groups?: FilterGroup[] }).groups || [];
+      }
+
+      // Safely extract columns - don't mutate original, use spread for sort
+      const viewColumns = action.view.columns || [];
+      const visibleCols = viewColumns.filter((c) => c.visible).map((c) => c.key);
+      const orderedCols = [...viewColumns].sort((a, b) => a.order - b.order).map((c) => c.key);
+
       return {
         ...state,
         activeViewId: action.view.id,
         activeView: action.view,
-        filters: action.view.filters || [],
-        visibleColumns:
-          action.view.columns?.filter((c) => c.visible).map((c) => c.key) ||
-          state.visibleColumns,
-        columnOrder:
-          action.view.columns
-            ?.sort((a, b) => a.order - b.order)
-            .map((c) => c.key) || state.columnOrder,
-        frozenColumnCount: action.view.frozenColumnCount,
+        filters: viewFilters,
+        quickFilters: {}, // Reset quick filters when switching views
+        searchQuery: "", // Reset search when switching views
+        visibleColumns: visibleCols.length > 0 ? visibleCols : state.visibleColumns,
+        columnOrder: orderedCols.length > 0 ? orderedCols : state.columnOrder,
+        frozenColumnCount: action.view.frozenColumnCount ?? DEFAULT_FROZEN_COLUMNS,
         sortBy: action.view.sortBy || null,
         sortOrder: (action.view.sortOrder as SortOrder) || "asc",
         viewMode: (action.view.viewMode as ViewMode) || "table",
@@ -475,12 +502,34 @@ export function SavedViewProvider({
         const result = await applyMutation.mutateAsync(viewId);
         const view = views.find((v) => v.id === viewId);
         if (view) {
+          // Extract filters from the response - backend returns { groups: [...] } or raw array
+          let parsedFilters: FilterGroup[] = [];
+          const rawFilters = result.filters;
+
+          if (typeof rawFilters === 'string') {
+            // JSON string - parse it
+            try {
+              const parsed = JSON.parse(rawFilters);
+              parsedFilters = Array.isArray(parsed)
+                ? parsed
+                : (parsed?.groups || []);
+            } catch {
+              parsedFilters = [];
+            }
+          } else if (Array.isArray(rawFilters)) {
+            // Already an array of FilterGroup[]
+            parsedFilters = rawFilters;
+          } else if (rawFilters && typeof rawFilters === 'object') {
+            // FilterCriteria object with groups property
+            parsedFilters = (rawFilters as { groups?: FilterGroup[] }).groups || [];
+          }
+
           // Merge applied result with view data
           dispatch({
             type: "SET_ACTIVE_VIEW",
             view: {
               ...view,
-              filters: result.filters,
+              filters: parsedFilters,
               sortBy: result.sortBy,
               sortOrder: result.sortOrder,
               columns: result.columns,
@@ -576,6 +625,24 @@ export function SavedViewProvider({
   const renameView = useCallback(
     async (viewId: string, name: string) => {
       await updateMutation.mutateAsync({ id: viewId, name });
+      refetchViews();
+    },
+    [updateMutation, refetchViews],
+  );
+
+  const updateSharing = useCallback(
+    async (
+      viewId: string,
+      visibility: "private" | "team" | "everyone",
+      teamId?: string,
+    ) => {
+      const isShared = visibility !== "private";
+      const sharedWithTeamId = visibility === "team" ? teamId : undefined;
+      await updateMutation.mutateAsync({
+        id: viewId,
+        isShared,
+        sharedWithTeamId,
+      });
       refetchViews();
     },
     [updateMutation, refetchViews],
@@ -677,6 +744,7 @@ export function SavedViewProvider({
       deleteView,
       duplicateView,
       renameView,
+      updateSharing,
       reorderTabs,
       setFilters,
       setQuickFilter,
@@ -707,6 +775,7 @@ export function SavedViewProvider({
       deleteView,
       duplicateView,
       renameView,
+      updateSharing,
       reorderTabs,
       setFilters,
       setQuickFilter,
