@@ -1,12 +1,20 @@
-import { PrismaClient, CaseStatus, InvestigationStatus, InvestigationOutcome } from '@prisma/client';
-import { seedCategories } from './seeders/category.seeder';
-import { seedLocations, LOCATIONS } from './seeders/location.seeder';
-import { seedDivisions } from './seeders/division.seeder';
-import { seedEmployees } from './seeders/employee.seeder';
-import { seedDemoUsers } from './seeders/user.seeder';
-import { seedRius } from './seeders/riu.seeder';
-import { seedCases, createRecentUnreadCases } from './seeders/case.seeder';
-import { seedInvestigations, getInvestigationStats } from './seeders/investigation.seeder';
+import {
+  PrismaClient,
+  CaseStatus,
+  InvestigationStatus,
+  InvestigationOutcome,
+} from "@prisma/client";
+import { seedCategories } from "./seeders/category.seeder";
+import { seedLocations, LOCATIONS } from "./seeders/location.seeder";
+import { seedDivisions } from "./seeders/division.seeder";
+import { seedEmployees } from "./seeders/employee.seeder";
+import { seedDemoUsers } from "./seeders/user.seeder";
+import { seedRius } from "./seeders/riu.seeder";
+import { seedCases, createRecentUnreadCases } from "./seeders/case.seeder";
+import {
+  seedInvestigations,
+  getInvestigationStats,
+} from "./seeders/investigation.seeder";
 import {
   generateRepeatSubjectPool,
   generateManagerHotspots,
@@ -15,25 +23,26 @@ import {
   getFlagshipStats,
   getRetaliationStats,
   getHotspotStats,
-} from './seeders/patterns';
-import { seedSavedViews } from './seeders/saved-views.seeder';
+} from "./seeders/patterns";
+import { seedSavedViews } from "./seeders/saved-views.seeder";
+import { seedActivityTimelines } from "./seeders/activity.seeder";
 
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('Starting database seed...');
+  console.log("Starting database seed...");
   const startTime = Date.now();
 
   // Create test organization
   const organization = await prisma.organization.upsert({
-    where: { slug: 'acme-corp' },
+    where: { slug: "acme-corp" },
     update: {},
     create: {
-      name: 'Acme Corporation',
-      slug: 'acme-corp',
+      name: "Acme Corporation",
+      slug: "acme-corp",
       settings: {
-        timezone: 'America/New_York',
-        locale: 'en-US',
+        timezone: "America/New_York",
+        locale: "en-US",
         features: {
           caseManagement: true,
           policyManagement: true,
@@ -44,15 +53,17 @@ async function main() {
     },
   });
 
-  console.log(`Created organization: ${organization.name} (${organization.id})`);
+  console.log(
+    `Created organization: ${organization.name} (${organization.id})`,
+  );
 
   // Seed categories (required for RIUs and Cases)
-  console.log('\nSeeding categories...');
+  console.log("\nSeeding categories...");
   const categoryNameToId = await seedCategories(prisma, organization.id);
   console.log(`Created ${categoryNameToId.size} categories`);
 
   // Seed locations (52 global locations across US, EMEA, APAC)
-  console.log('\nSeeding locations...');
+  console.log("\nSeeding locations...");
   const locationCodeToId = await seedLocations(prisma, organization.id);
   console.log(`Created ${locationCodeToId.size} locations`);
 
@@ -67,17 +78,24 @@ async function main() {
   }
 
   // Seed divisions and org structure (4 divisions, ~10 BUs, ~25 depts, ~60 teams)
-  console.log('\nSeeding divisions and org structure...');
+  console.log("\nSeeding divisions and org structure...");
   const orgStructure = await seedDivisions(prisma, organization.id);
-  console.log(`Created ${orgStructure.divisions.size} divisions, ${orgStructure.businessUnits.size} BUs, ${orgStructure.departments.size} departments, ${orgStructure.teams.size} teams`);
+  console.log(
+    `Created ${orgStructure.divisions.size} divisions, ${orgStructure.businessUnits.size} BUs, ${orgStructure.departments.size} departments, ${orgStructure.teams.size} teams`,
+  );
 
   // Seed employees (20,000 with full hierarchy - this takes a few minutes)
-  console.log('\nSeeding employees (this may take a few minutes)...');
-  const employeeEmailToId = await seedEmployees(prisma, organization.id, locationCodeToId, orgStructure);
+  console.log("\nSeeding employees (this may take a few minutes)...");
+  const employeeEmailToId = await seedEmployees(
+    prisma,
+    organization.id,
+    locationCodeToId,
+    orgStructure,
+  );
   console.log(`Created ${employeeEmailToId.size} employees`);
 
   // Seed demo users (9 permanent sales rep accounts with role presets)
-  console.log('\nSeeding demo users...');
+  console.log("\nSeeding demo users...");
   const demoUserIds = await seedDemoUsers(prisma, organization.id);
   console.log(`Created ${demoUserIds.length} demo users`);
 
@@ -98,10 +116,17 @@ async function main() {
     where: { organizationId: organization.id },
     select: { id: true, code: true, name: true },
   });
-  const categoryMap = new Map<string, { id: string; code: string; name?: string }>();
+  const categoryMap = new Map<
+    string,
+    { id: string; code: string; name?: string }
+  >();
   for (const cat of categories) {
     // Key by name for easy lookup
-    categoryMap.set(cat.name, { id: cat.id, code: cat.code || cat.name, name: cat.name });
+    categoryMap.set(cat.name, {
+      id: cat.id,
+      code: cat.code || cat.name,
+      name: cat.name,
+    });
     // Also key by code for direct lookup
     if (cat.code) {
       categoryMap.set(cat.code, { id: cat.id, code: cat.code, name: cat.name });
@@ -119,7 +144,10 @@ async function main() {
     where: { organizationId: organization.id },
     select: { id: true, email: true, locationId: true },
   });
-  const employeeMap = new Map<string, { id: string; locationId: string | null }>();
+  const employeeMap = new Map<
+    string,
+    { id: string; locationId: string | null }
+  >();
   const employeeIds: string[] = [];
   for (const emp of employees) {
     employeeMap.set(emp.email, { id: emp.id, locationId: emp.locationId });
@@ -130,7 +158,7 @@ async function main() {
   const managers = await prisma.employee.findMany({
     where: {
       organizationId: organization.id,
-      jobLevel: { in: ['MANAGER', 'DIRECTOR', 'VP'] },
+      jobLevel: { in: ["MANAGER", "DIRECTOR", "VP"] },
     },
     select: { id: true },
   });
@@ -139,7 +167,7 @@ async function main() {
   // ========================================
   // Seed RIUs (5,000 historical intake records)
   // ========================================
-  console.log('\nSeeding RIUs (5,000 historical intake records)...');
+  console.log("\nSeeding RIUs (5,000 historical intake records)...");
   const { riuIds, linkedIncidents } = await seedRius(
     prisma,
     organization.id,
@@ -148,20 +176,30 @@ async function main() {
     employeeMap,
     locationIdToRegion,
   );
-  console.log(`Created ${riuIds.length} RIUs (${linkedIncidents.filter((i) => i.riusCreated > 0).length} linked incidents)`);
+  console.log(
+    `Created ${riuIds.length} RIUs (${linkedIncidents.filter((i) => i.riusCreated > 0).length} linked incidents)`,
+  );
 
   // ========================================
   // Generate patterns for realistic data
   // ========================================
-  console.log('\nGenerating data patterns...');
+  console.log("\nGenerating data patterns...");
 
   // Generate repeat subjects pool (~50 employees appearing in multiple cases)
   const categoryIds = Array.from(categoryNameToIdMap.values());
-  const repeatSubjects = generateRepeatSubjectPool(employeeIds, categoryIds, 50);
+  const repeatSubjects = generateRepeatSubjectPool(
+    employeeIds,
+    categoryIds,
+    50,
+  );
   console.log(`  Repeat subjects pool: ${repeatSubjects.length} employees`);
 
   // Generate manager hotspots (~15 managers with elevated team case rates)
-  const managerHotspots = generateManagerHotspots(managerIds, 15, categoryNameToIdMap);
+  const managerHotspots = generateManagerHotspots(
+    managerIds,
+    15,
+    categoryNameToIdMap,
+  );
   console.log(`  Manager hotspots: ${managerHotspots.length} managers`);
 
   // Flagship cases are predefined
@@ -170,7 +208,7 @@ async function main() {
   // ========================================
   // Seed Cases (4,500 from RIUs with patterns)
   // ========================================
-  console.log('\nSeeding Cases (4,500 from RIUs with patterns)...');
+  console.log("\nSeeding Cases (4,500 from RIUs with patterns)...");
   const { caseIds, caseData } = await seedCases(
     prisma,
     organization.id,
@@ -187,7 +225,11 @@ async function main() {
   console.log(`Created ${caseIds.length} Cases (target: 4,500)`);
 
   // Create recent unread cases for live triage demo
-  const recentUnreadCount = await createRecentUnreadCases(prisma, organization.id, caseIds);
+  const recentUnreadCount = await createRecentUnreadCases(
+    prisma,
+    organization.id,
+    caseIds,
+  );
   console.log(`  Recent unread cases: ${recentUnreadCount}`);
 
   // Generate retaliation patterns from closed cases
@@ -200,7 +242,9 @@ async function main() {
   // ========================================
   // Seed Investigations (~5,000)
   // ========================================
-  console.log('\nSeeding Investigations (~5,000 with outcomes and timelines)...');
+  console.log(
+    "\nSeeding Investigations (~5,000 with outcomes and timelines)...",
+  );
   await seedInvestigations(
     prisma,
     organization.id,
@@ -216,20 +260,31 @@ async function main() {
   );
 
   // ========================================
+  // Seed Activity Timeline (AuditLog entries)
+  // ========================================
+  console.log("\nSeeding activity timeline (~15,000 audit entries)...");
+  await seedActivityTimelines(prisma, organization.id);
+
+  // ========================================
   // Seed Saved Views (HubSpot-style views for all modules)
   // ========================================
-  console.log('\nSeeding saved views...');
+  console.log("\nSeeding saved views...");
   await seedSavedViews(prisma, organization.id);
 
   // ========================================
   // Calculate Demo Metrics
   // ========================================
-  console.log('\nCalculating demo metrics...');
+  console.log("\nCalculating demo metrics...");
 
   // Case metrics
-  const totalCases = await prisma.case.count({ where: { organizationId: organization.id } });
+  const totalCases = await prisma.case.count({
+    where: { organizationId: organization.id },
+  });
   const openCases = await prisma.case.count({
-    where: { organizationId: organization.id, status: { in: [CaseStatus.NEW, CaseStatus.OPEN] } },
+    where: {
+      organizationId: organization.id,
+      status: { in: [CaseStatus.NEW, CaseStatus.OPEN] },
+    },
   });
   const closedCases = await prisma.case.count({
     where: { organizationId: organization.id, status: CaseStatus.CLOSED },
@@ -237,7 +292,10 @@ async function main() {
   const openCasePercent = Math.round((openCases / totalCases) * 100);
 
   // Investigation metrics
-  const investigationStats = await getInvestigationStats(prisma, organization.id);
+  const investigationStats = await getInvestigationStats(
+    prisma,
+    organization.id,
+  );
 
   // Pattern metrics
   const flagshipStats = getFlagshipStats();
@@ -250,9 +308,9 @@ async function main() {
   // ========================================
   // Demo Data Summary
   // ========================================
-  console.log('\n========================================');
-  console.log('DEMO DATA SUMMARY');
-  console.log('========================================');
+  console.log("\n========================================");
+  console.log("DEMO DATA SUMMARY");
+  console.log("========================================");
   console.log(`\nOrganization: ${organization.name}`);
   console.log(`Categories: ${categoryMap.size}`);
   console.log(`Locations: ${locationCodeToId.size}`);
@@ -263,60 +321,86 @@ async function main() {
   console.log(`Employees: ${employeeMap.size}`);
   console.log(`Demo Users: ${demoUserIds.length}`);
   console.log(`RIUs: ${riuIds.length}`);
-  console.log(`Linked Incidents: ${linkedIncidents.filter((i) => i.riusCreated > 0).length}`);
+  console.log(
+    `Linked Incidents: ${linkedIncidents.filter((i) => i.riusCreated > 0).length}`,
+  );
 
-  console.log('\n--- CASES ---');
+  console.log("\n--- CASES ---");
   console.log(`Total Cases: ${totalCases} (target: 4,500)`);
   console.log(`Open Cases: ${openCases} (~${openCasePercent}%, target: ~10%)`);
-  console.log(`Closed Cases: ${closedCases} (~${100 - openCasePercent}%, target: ~90%)`);
+  console.log(
+    `Closed Cases: ${closedCases} (~${100 - openCasePercent}%, target: ~90%)`,
+  );
   console.log(`Recent Unread: ${recentUnreadCount}`);
 
-  console.log('\n--- INVESTIGATIONS ---');
-  console.log(`Total Investigations: ${investigationStats.total} (target: ~5,000)`);
+  console.log("\n--- INVESTIGATIONS ---");
+  console.log(
+    `Total Investigations: ${investigationStats.total} (target: ~5,000)`,
+  );
   console.log(`Open Investigations: ${investigationStats.open}`);
   console.log(`Closed Investigations: ${investigationStats.closed}`);
-  console.log(`Substantiation Rate: ${investigationStats.substantiationRate}% (target: ~60%)`);
-  console.log(`Avg Duration: ${investigationStats.avgDuration} days (target: <22)`);
+  console.log(
+    `Substantiation Rate: ${investigationStats.substantiationRate}% (target: ~60%)`,
+  );
+  console.log(
+    `Avg Duration: ${investigationStats.avgDuration} days (target: <22)`,
+  );
 
-  console.log('\n--- PATTERNS ---');
-  console.log(`Repeat Subjects: ${repeatSubjects.length} employees in 2-5 cases each`);
-  console.log(`Manager Hotspots: ${hotspotStats.totalHotspots} managers with ${hotspotStats.avgTeamCaseRate}x case rate`);
-  console.log(`Retaliation Chains: ${retaliationStats.total} follow-up cases planned`);
-  console.log(`Flagship Cases: ${flagshipStats.total} (${flagshipStats.open} open, ${flagshipStats.closed} closed)`);
+  console.log("\n--- AUDIT LOG ---");
+  const auditLogCount = await prisma.auditLog.count({
+    where: { organizationId: organization.id },
+  });
+  console.log(`Audit Log Entries: ${auditLogCount}`);
+
+  console.log("\n--- PATTERNS ---");
+  console.log(
+    `Repeat Subjects: ${repeatSubjects.length} employees in 2-5 cases each`,
+  );
+  console.log(
+    `Manager Hotspots: ${hotspotStats.totalHotspots} managers with ${hotspotStats.avgTeamCaseRate}x case rate`,
+  );
+  console.log(
+    `Retaliation Chains: ${retaliationStats.total} follow-up cases planned`,
+  );
+  console.log(
+    `Flagship Cases: ${flagshipStats.total} (${flagshipStats.open} open, ${flagshipStats.closed} closed)`,
+  );
   console.log(`  - With CCO Escalation: ${flagshipStats.withEscalation}`);
   console.log(`  - With External Party: ${flagshipStats.withExternalParty}`);
   console.log(`  - Avg Risk Score: ${flagshipStats.avgRiskScore}`);
 
-  console.log('\n--- SAVED VIEWS ---');
-  console.log('Default views created for all modules:');
-  console.log('  Cases: All Cases, Open Cases, High Priority, Pipeline (board)');
-  console.log('  Investigations: All Investigations, Active, Board');
-  console.log('  Policies: All Policies, Published, Review Needed');
-  console.log('  Disclosures: All Disclosures, Pending Review, High Risk');
-  console.log('  Intake Forms: All Submissions, Pending Review, Anonymous');
+  console.log("\n--- SAVED VIEWS ---");
+  console.log("Default views created for all modules:");
+  console.log(
+    "  Cases: All Cases, Open Cases, High Priority, Pipeline (board)",
+  );
+  console.log("  Investigations: All Investigations, Active, Board");
+  console.log("  Policies: All Policies, Published, Review Needed");
+  console.log("  Disclosures: All Disclosures, Pending Review, High Risk");
+  console.log("  Intake Forms: All Submissions, Pending Review, Anonymous");
 
-  console.log('\n========================================');
-  console.log('DEMO CREDENTIALS');
-  console.log('========================================');
-  console.log('\nPassword for all accounts: Password123!');
-  console.log('\nPermanent Sales Rep Accounts (role presets):');
-  console.log('  demo-admin@acme.local         - SYSTEM_ADMIN');
-  console.log('  demo-cco@acme.local           - COMPLIANCE_OFFICER');
-  console.log('  demo-triage@acme.local        - TRIAGE_LEAD');
-  console.log('  demo-investigator@acme.local  - INVESTIGATOR');
-  console.log('  demo-investigator2@acme.local - INVESTIGATOR');
-  console.log('  demo-policy@acme.local        - POLICY_AUTHOR');
-  console.log('  demo-reviewer@acme.local      - POLICY_REVIEWER');
-  console.log('  demo-manager@acme.local       - MANAGER');
-  console.log('  demo-employee@acme.local      - EMPLOYEE');
-  console.log('\nSales reps can provision prospect accounts via:');
-  console.log('  POST /api/v1/demo/prospects');
-  console.log('========================================\n');
+  console.log("\n========================================");
+  console.log("DEMO CREDENTIALS");
+  console.log("========================================");
+  console.log("\nPassword for all accounts: Password123!");
+  console.log("\nPermanent Sales Rep Accounts (role presets):");
+  console.log("  demo-admin@acme.local         - SYSTEM_ADMIN");
+  console.log("  demo-cco@acme.local           - COMPLIANCE_OFFICER");
+  console.log("  demo-triage@acme.local        - TRIAGE_LEAD");
+  console.log("  demo-investigator@acme.local  - INVESTIGATOR");
+  console.log("  demo-investigator2@acme.local - INVESTIGATOR");
+  console.log("  demo-policy@acme.local        - POLICY_AUTHOR");
+  console.log("  demo-reviewer@acme.local      - POLICY_REVIEWER");
+  console.log("  demo-manager@acme.local       - MANAGER");
+  console.log("  demo-employee@acme.local      - EMPLOYEE");
+  console.log("\nSales reps can provision prospect accounts via:");
+  console.log("  POST /api/v1/demo/prospects");
+  console.log("========================================\n");
 }
 
 main()
   .catch((e) => {
-    console.error('Seed failed:', e);
+    console.error("Seed failed:", e);
     process.exit(1);
   })
   .finally(async () => {

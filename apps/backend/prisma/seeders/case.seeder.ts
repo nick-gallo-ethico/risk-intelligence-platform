@@ -23,11 +23,11 @@ import {
   Severity,
   RiuType,
   RiuSourceChannel,
-} from '@prisma/client';
-import { faker } from '@faker-js/faker';
-import { nanoid } from 'nanoid';
-import { addDays, addHours, subDays } from 'date-fns';
-import { SEED_CONFIG } from './config';
+} from "@prisma/client";
+import { faker } from "@faker-js/faker";
+import { nanoid } from "nanoid";
+import { addDays, addHours, subDays } from "date-fns";
+import { SEED_CONFIG } from "./config";
 import {
   weightedRandom,
   chance,
@@ -35,7 +35,7 @@ import {
   pickRandom,
   generateCaseTimeline,
   DEMO_CURRENT_DATE,
-} from './utils';
+} from "./utils";
 import {
   HotspotManager,
   RepeatSubjectInfo,
@@ -45,14 +45,26 @@ import {
   getRepeatSubjectForAssignment,
   markHotspotAssigned,
   getHotspotForAssignment,
-} from './patterns';
-import { generateNarrative } from './data/narrative-templates';
+} from "./patterns";
+import { generateNarrative } from "./data/narrative-templates";
 
 // Seed offset for cases (masterSeed + 3000)
 const SEED_OFFSET = 3000;
 
 // Batch size for database inserts
 const BATCH_SIZE = 100;
+
+// Demo users who should "own" open cases for My Tasks display
+// These match the demo users defined in user.seeder.ts
+const DEMO_CASE_OWNERS = [
+  "demo-cco@acme.local",
+  "demo-investigator@acme.local",
+  "demo-investigator2@acme.local",
+  "demo-triage@acme.local",
+];
+
+// Number of open cases to assign to each demo user
+const CASES_PER_DEMO_USER = 25;
 
 // ============================================
 // Distribution Configuration
@@ -73,10 +85,10 @@ const STATUS_DISTRIBUTION = [
  * 2% critical, 8% high, 30% medium, 60% low
  */
 const PRIORITY_DISTRIBUTION = [
-  { value: 'CRITICAL', weight: 2 },
-  { value: 'HIGH', weight: 8 },
-  { value: 'MEDIUM', weight: 30 },
-  { value: 'LOW', weight: 60 },
+  { value: "CRITICAL", weight: 2 },
+  { value: "HIGH", weight: 8 },
+  { value: "MEDIUM", weight: 30 },
+  { value: "LOW", weight: 60 },
 ];
 
 /**
@@ -93,9 +105,9 @@ const CASE_TYPE_DISTRIBUTION = [
  * Simple: 60%, Medium: 30%, Complex: 10%
  */
 const COMPLEXITY_DISTRIBUTION = [
-  { value: 'simple', weight: 60 },
-  { value: 'medium', weight: 30 },
-  { value: 'complex', weight: 10 },
+  { value: "simple", weight: 60 },
+  { value: "medium", weight: 30 },
+  { value: "complex", weight: 10 },
 ];
 
 /**
@@ -155,9 +167,13 @@ interface CaseRecord {
 /**
  * Generate case reference number
  */
-function generateCaseReferenceNumber(date: Date, index: number, prefix?: string): string {
+function generateCaseReferenceNumber(
+  date: Date,
+  index: number,
+  prefix?: string,
+): string {
   const year = date.getFullYear();
-  const paddedIndex = String(index + 1).padStart(5, '0');
+  const paddedIndex = String(index + 1).padStart(5, "0");
   return prefix || `CASE-${year}-${paddedIndex}`;
 }
 
@@ -174,9 +190,9 @@ function generateAiSummary(
   severity: Severity,
 ): string {
   const severityText = {
-    [Severity.HIGH]: 'High-severity',
-    [Severity.MEDIUM]: 'Moderate',
-    [Severity.LOW]: 'Low-priority',
+    [Severity.HIGH]: "High-severity",
+    [Severity.MEDIUM]: "Moderate",
+    [Severity.LOW]: "Low-priority",
   };
 
   const summaryPrefixes = [
@@ -186,19 +202,19 @@ function generateAiSummary(
   ];
 
   const summaryMiddle = [
-    'Multiple factors indicate thorough review warranted.',
-    'Pattern analysis suggests this may require immediate attention.',
-    'Initial assessment indicates standard investigation protocol applies.',
-    'Preliminary review suggests straightforward investigation path.',
-    'Risk indicators warrant comprehensive investigation approach.',
+    "Multiple factors indicate thorough review warranted.",
+    "Pattern analysis suggests this may require immediate attention.",
+    "Initial assessment indicates standard investigation protocol applies.",
+    "Preliminary review suggests straightforward investigation path.",
+    "Risk indicators warrant comprehensive investigation approach.",
   ];
 
   const summaryEnd = [
-    'Recommend standard investigation timeline.',
-    'Prioritize based on organizational risk factors.',
-    'Consider witness interviews and documentation review.',
-    'Follow established investigation procedures.',
-    'Monitor for potential related reports.',
+    "Recommend standard investigation timeline.",
+    "Prioritize based on organizational risk factors.",
+    "Consider witness interviews and documentation review.",
+    "Follow established investigation procedures.",
+    "Monitor for potential related reports.",
   ];
 
   return `${pickRandom(summaryPrefixes)} ${pickRandom(summaryMiddle)} ${pickRandom(summaryEnd)}`;
@@ -218,7 +234,12 @@ function generateAiRiskScore(severity: Severity, categoryName: string): number {
   let score = baseScores[severity];
 
   // Adjust for high-risk categories
-  const highRiskCategories = ['harassment', 'discrimination', 'retaliation', 'fraud'];
+  const highRiskCategories = [
+    "harassment",
+    "discrimination",
+    "retaliation",
+    "fraud",
+  ];
   if (highRiskCategories.some((c) => categoryName.toLowerCase().includes(c))) {
     score = Math.min(100, score + randomInt(5, 15));
   }
@@ -238,7 +259,7 @@ function shouldUseRepeatSubject(
   repeatSubjectPool: RepeatSubjectInfo[],
 ): RepeatSubjectInfo | null {
   // ~10% of cases involve repeat subjects
-  if (!chance(0.10)) {
+  if (!chance(0.1)) {
     return null;
   }
   return getRepeatSubjectForAssignment(repeatSubjectPool);
@@ -302,8 +323,24 @@ export async function seedCases(
 
   const targetCount = SEED_CONFIG.volumes.cases; // 4500
   const caseIds: string[] = [];
-  const caseData: SeedCasesResult['caseData'] = [];
+  const caseData: SeedCasesResult["caseData"] = [];
   let batchNumber = 0;
+
+  // Get demo user IDs for case ownership (My Tasks display)
+  const demoUsers = await prisma.user.findMany({
+    where: {
+      organizationId,
+      email: { in: DEMO_CASE_OWNERS },
+    },
+    select: { id: true, email: true },
+  });
+  const demoUserIdMap = new Map(demoUsers.map((u) => [u.email, u.id]));
+  console.log(`  Found ${demoUsers.length} demo users for case ownership`);
+
+  // Track how many open cases assigned to each demo user
+  const demoOwnerCounts = new Map<string, number>(
+    DEMO_CASE_OWNERS.map((email) => [email, 0]),
+  );
 
   // Fetch RIUs to get their data
   const rius = await prisma.riskIntelligenceUnit.findMany({
@@ -318,7 +355,7 @@ export async function seedCases(
       details: true,
       createdAt: true,
     },
-    orderBy: { createdAt: 'asc' },
+    orderBy: { createdAt: "asc" },
   });
 
   // Build array for case creation
@@ -327,7 +364,7 @@ export async function seedCases(
     riuId: string;
     caseId: string;
     organizationId: string;
-    associationType: 'PRIMARY' | 'RELATED' | 'MERGED_FROM';
+    associationType: "PRIMARY" | "RELATED" | "MERGED_FROM";
     createdById: string;
     createdAt: Date;
   }> = [];
@@ -360,32 +397,43 @@ export async function seedCases(
     caseIds.push(caseId);
 
     // Find category ID
-    const categoryId = categoryNameToId.get(flagship.category) ||
+    const categoryId =
+      categoryNameToId.get(flagship.category) ||
       Array.from(categoryMap.values())[0]?.id;
 
     // Map flagship status to CaseStatus enum
-    const status = flagship.status === 'NEW' ? CaseStatus.NEW :
-      flagship.status === 'OPEN' ? CaseStatus.OPEN : CaseStatus.CLOSED;
+    const status =
+      flagship.status === "NEW"
+        ? CaseStatus.NEW
+        : flagship.status === "OPEN"
+          ? CaseStatus.OPEN
+          : CaseStatus.CLOSED;
 
     // Map flagship severity to Severity enum
-    const severity = flagship.severity === 'HIGH' ? Severity.HIGH :
-      flagship.severity === 'MEDIUM' ? Severity.MEDIUM : Severity.LOW;
+    const severity =
+      flagship.severity === "HIGH"
+        ? Severity.HIGH
+        : flagship.severity === "MEDIUM"
+          ? Severity.MEDIUM
+          : Severity.LOW;
 
     // Calculate created date based on duration
-    const createdAt = flagship.status === 'CLOSED'
-      ? subDays(DEMO_CURRENT_DATE, flagship.durationDays + randomInt(5, 30))
-      : subDays(DEMO_CURRENT_DATE, randomInt(1, 14));
+    const createdAt =
+      flagship.status === "CLOSED"
+        ? subDays(DEMO_CURRENT_DATE, flagship.durationDays + randomInt(5, 30))
+        : subDays(DEMO_CURRENT_DATE, randomInt(1, 14));
 
     // Get a user ID for created/updated by
     const userId = pickRandom(userIds);
 
     // Map reporter type
-    const reporterType = flagship.name.includes('Anonymous')
-      ? ReporterType.ANONYMOUS : ReporterType.IDENTIFIED;
+    const reporterType = flagship.name.includes("Anonymous")
+      ? ReporterType.ANONYMOUS
+      : ReporterType.IDENTIFIED;
 
     caseBatch.push({
       id: caseId,
-      referenceNumber: flagship.referencePrefix + '-0001',
+      referenceNumber: flagship.referencePrefix + "-0001",
       organizationId,
       status,
       statusRationale: null,
@@ -394,24 +442,26 @@ export async function seedCases(
       intakeTimestamp: createdAt,
       reporterType,
       reporterAnonymous: reporterType === ReporterType.ANONYMOUS,
-      anonymousAccessCode: reporterType === ReporterType.ANONYMOUS ? nanoid(12) : null,
+      anonymousAccessCode:
+        reporterType === ReporterType.ANONYMOUS ? nanoid(12) : null,
       details: flagship.narrative,
       summary: flagship.name,
       severity,
       primaryCategoryId: categoryId,
-      tags: ['flagship', flagship.category.toLowerCase()],
+      tags: ["flagship", flagship.category.toLowerCase()],
       aiSummary: flagship.aiSummary,
       aiSummaryGeneratedAt: addHours(createdAt, randomInt(1, 4)),
-      aiModelVersion: 'claude-3-opus',
+      aiModelVersion: "claude-3-opus",
       aiConfidenceScore: flagship.aiRiskScore,
       createdAt,
-      updatedAt: status === CaseStatus.CLOSED
-        ? addDays(createdAt, flagship.durationDays)
-        : createdAt,
+      updatedAt:
+        status === CaseStatus.CLOSED
+          ? addDays(createdAt, flagship.durationDays)
+          : createdAt,
       createdById: userId,
       updatedById: userId,
-      priority: 'HIGH',
-      complexity: flagship.investigationCount > 1 ? 'complex' : 'medium',
+      priority: "HIGH",
+      complexity: flagship.investigationCount > 1 ? "complex" : "medium",
       linkedRiuIds: [],
       isFlagship: true,
       flagshipData: flagship,
@@ -422,7 +472,7 @@ export async function seedCases(
       status,
       createdAt,
       categoryId,
-      priority: 'HIGH',
+      priority: "HIGH",
       isFlagship: true,
     });
   }
@@ -450,9 +500,13 @@ export async function seedCases(
 
     // Determine if this case should have multiple RIUs (10% consolidation)
     const linkedRiuIds = [primaryRiu.id];
-    if (chance(0.10) && riuIndex < riuQueue.length - 2) {
+    if (chance(0.1) && riuIndex < riuQueue.length - 2) {
       const additionalRiuCount = randomInt(1, 2);
-      for (let j = 0; j < additionalRiuCount && riuIndex < riuQueue.length; j++) {
+      for (
+        let j = 0;
+        j < additionalRiuCount && riuIndex < riuQueue.length;
+        j++
+      ) {
         const additionalRiu = riuQueue[riuIndex];
         if (!usedRiuIds.has(additionalRiu.id)) {
           linkedRiuIds.push(additionalRiu.id);
@@ -475,22 +529,28 @@ export async function seedCases(
     const complexity = weightedRandom(COMPLEXITY_DISTRIBUTION);
 
     // Map source channel from RIU
-    const sourceChannel = RIU_TO_CASE_CHANNEL[primaryRiu.sourceChannel] || SourceChannel.DIRECT_ENTRY;
+    const sourceChannel =
+      RIU_TO_CASE_CHANNEL[primaryRiu.sourceChannel] ||
+      SourceChannel.DIRECT_ENTRY;
 
     // Use category from RIU or random
-    const categoryId = primaryRiu.categoryId ||
+    const categoryId =
+      primaryRiu.categoryId ||
       Array.from(categoryMap.values())[randomInt(0, categoryMap.size - 1)]?.id;
-    const categoryName = categoryId ? (categoryIdToName.get(categoryId) || 'Policy Violation') : 'Policy Violation';
+    const categoryName = categoryId
+      ? categoryIdToName.get(categoryId) || "Policy Violation"
+      : "Policy Violation";
 
     // Inherit severity from RIU (can be adjusted)
     const severity = primaryRiu.severity;
 
     // Map reporter type from RIU
-    const reporterType = primaryRiu.reporterType === 'ANONYMOUS'
-      ? ReporterType.ANONYMOUS
-      : primaryRiu.reporterType === 'CONFIDENTIAL'
-        ? ReporterType.IDENTIFIED
-        : ReporterType.IDENTIFIED;
+    const reporterType =
+      primaryRiu.reporterType === "ANONYMOUS"
+        ? ReporterType.ANONYMOUS
+        : primaryRiu.reporterType === "CONFIDENTIAL"
+          ? ReporterType.IDENTIFIED
+          : ReporterType.IDENTIFIED;
 
     // Calculate case created at (1-4 hours after RIU released)
     const createdAt = addHours(primaryRiu.createdAt, randomInt(1, 4));
@@ -501,13 +561,13 @@ export async function seedCases(
       // Calculate duration based on complexity
       let durationDays: number;
       switch (complexity) {
-        case 'simple':
+        case "simple":
           durationDays = randomInt(2, 4);
           break;
-        case 'medium':
+        case "medium":
           durationDays = randomInt(7, 21);
           break;
-        case 'complex':
+        case "complex":
           durationDays = randomInt(30, 90);
           break;
         default:
@@ -521,8 +581,22 @@ export async function seedCases(
       }
     }
 
-    // Get user IDs
-    const createdById = pickRandom(userIds);
+    // Get user IDs - assign demo users to open cases for My Tasks display
+    let createdById: string = pickRandom(userIds); // Default to random user
+    const isOpenCase = status === CaseStatus.NEW || status === CaseStatus.OPEN;
+
+    if (isOpenCase) {
+      // Find a demo user who needs more cases
+      for (const email of DEMO_CASE_OWNERS) {
+        const currentCount = demoOwnerCounts.get(email) || 0;
+        if (currentCount < CASES_PER_DEMO_USER && demoUserIdMap.has(email)) {
+          createdById = demoUserIdMap.get(email)!;
+          demoOwnerCounts.set(email, currentCount + 1);
+          break;
+        }
+      }
+      // If loop doesn't assign, createdById remains the random user default
+    }
     const updatedById = pickRandom(userIds);
 
     // Generate case details (use RIU details or generate new)
@@ -538,17 +612,21 @@ export async function seedCases(
       markSubjectAssigned(patterns.repeatSubjects, repeatSubject.employeeId);
     }
 
-    const hotspotManager = shouldUseHotspotManager(i, patterns.managerHotspots, categoryId);
+    const hotspotManager = shouldUseHotspotManager(
+      i,
+      patterns.managerHotspots,
+      categoryId,
+    );
     if (hotspotManager) {
       markHotspotAssigned(patterns.managerHotspots, hotspotManager.managerId);
     }
 
     // Build tags
     const tags: string[] = [];
-    if (repeatSubject) tags.push('repeat-subject');
-    if (hotspotManager) tags.push('hotspot-team');
-    if (priority === 'CRITICAL') tags.push('critical');
-    if (complexity === 'complex') tags.push('complex');
+    if (repeatSubject) tags.push("repeat-subject");
+    if (hotspotManager) tags.push("hotspot-team");
+    if (priority === "CRITICAL") tags.push("critical");
+    if (complexity === "complex") tags.push("complex");
 
     // Generate reference number
     const referenceNumber = generateCaseReferenceNumber(
@@ -561,23 +639,25 @@ export async function seedCases(
       referenceNumber,
       organizationId,
       status,
-      statusRationale: status === CaseStatus.CLOSED ? 'Investigation complete' : null,
+      statusRationale:
+        status === CaseStatus.CLOSED ? "Investigation complete" : null,
       sourceChannel,
       caseType,
       intakeTimestamp: createdAt,
       reporterType,
       reporterAnonymous: reporterType === ReporterType.ANONYMOUS,
-      anonymousAccessCode: reporterType === ReporterType.ANONYMOUS
-        ? primaryRiu.anonymousAccessCode
-        : null,
+      anonymousAccessCode:
+        reporterType === ReporterType.ANONYMOUS
+          ? primaryRiu.anonymousAccessCode
+          : null,
       details,
-      summary: details.length > 200 ? details.substring(0, 197) + '...' : null,
+      summary: details.length > 200 ? details.substring(0, 197) + "..." : null,
       severity,
       primaryCategoryId: categoryId,
       tags,
       aiSummary,
       aiSummaryGeneratedAt: addHours(createdAt, randomInt(1, 8)),
-      aiModelVersion: 'claude-3-opus',
+      aiModelVersion: "claude-3-opus",
       aiConfidenceScore: aiRiskScore,
       createdAt,
       updatedAt,
@@ -604,7 +684,7 @@ export async function seedCases(
         riuId: linkedRiuIds[j],
         caseId,
         organizationId,
-        associationType: j === 0 ? 'PRIMARY' : 'RELATED',
+        associationType: j === 0 ? "PRIMARY" : "RELATED",
         createdById,
         createdAt,
       });
@@ -624,7 +704,9 @@ export async function seedCases(
   }
 
   // Insert RIU-Case associations in batches
-  console.log(`  Creating ${riuCaseAssociations.length} RIU-Case associations...`);
+  console.log(
+    `  Creating ${riuCaseAssociations.length} RIU-Case associations...`,
+  );
   for (let i = 0; i < riuCaseAssociations.length; i += BATCH_SIZE) {
     const batch = riuCaseAssociations.slice(i, i + BATCH_SIZE);
     await prisma.riuCaseAssociation.createMany({
@@ -635,12 +717,23 @@ export async function seedCases(
 
   console.log(`  Created ${caseIds.length} Cases`);
   console.log(`    - Flagship cases: ${patterns.flagshipCases.length}`);
-  console.log(`    - Regular cases: ${caseIds.length - patterns.flagshipCases.length}`);
+  console.log(
+    `    - Regular cases: ${caseIds.length - patterns.flagshipCases.length}`,
+  );
   console.log(`    - RIU associations: ${riuCaseAssociations.length}`);
+
+  // Log demo user case ownership for My Tasks verification
+  const ccoCount = demoOwnerCounts.get("demo-cco@acme.local") || 0;
+  const inv1Count = demoOwnerCounts.get("demo-investigator@acme.local") || 0;
+  const inv2Count = demoOwnerCounts.get("demo-investigator2@acme.local") || 0;
+  const triageCount = demoOwnerCounts.get("demo-triage@acme.local") || 0;
+  console.log(
+    `  Demo user case ownership: CCO=${ccoCount}, INV1=${inv1Count}, INV2=${inv2Count}, Triage=${triageCount}`,
+  );
 
   // Populate search_vector for full-text search
   // createMany bypasses PostgreSQL triggers, so we need to update manually
-  console.log('  Populating search vectors for seeded cases...');
+  console.log("  Populating search vectors for seeded cases...");
   await prisma.$executeRaw`
     UPDATE "Case"
     SET search_vector =
@@ -651,7 +744,7 @@ export async function seedCases(
     WHERE "organizationId" = ${organizationId}
       AND search_vector IS NULL;
   `;
-  console.log('  Search vectors populated for cases');
+  console.log("  Search vectors populated for cases");
 
   return { caseIds, caseData };
 }
@@ -714,7 +807,7 @@ export async function createRecentUnreadCases(
   // Get most recent cases
   const recentCases = await prisma.case.findMany({
     where: { organizationId },
-    orderBy: { createdAt: 'desc' },
+    orderBy: { createdAt: "desc" },
     take: recentCaseCount,
     select: { id: true },
   });
