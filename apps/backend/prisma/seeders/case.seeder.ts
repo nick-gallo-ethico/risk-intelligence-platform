@@ -326,6 +326,7 @@ export async function seedCases(
   const riuCaseAssociations: Array<{
     riuId: string;
     caseId: string;
+    organizationId: string;
     associationType: 'PRIMARY' | 'RELATED' | 'MERGED_FROM';
     createdById: string;
     createdAt: Date;
@@ -602,6 +603,7 @@ export async function seedCases(
       riuCaseAssociations.push({
         riuId: linkedRiuIds[j],
         caseId,
+        organizationId,
         associationType: j === 0 ? 'PRIMARY' : 'RELATED',
         createdById,
         createdAt,
@@ -635,6 +637,21 @@ export async function seedCases(
   console.log(`    - Flagship cases: ${patterns.flagshipCases.length}`);
   console.log(`    - Regular cases: ${caseIds.length - patterns.flagshipCases.length}`);
   console.log(`    - RIU associations: ${riuCaseAssociations.length}`);
+
+  // Populate search_vector for full-text search
+  // createMany bypasses PostgreSQL triggers, so we need to update manually
+  console.log('  Populating search vectors for seeded cases...');
+  await prisma.$executeRaw`
+    UPDATE "Case"
+    SET search_vector =
+      setweight(to_tsvector('english', COALESCE("referenceNumber", '')), 'A') ||
+      setweight(to_tsvector('english', COALESCE(summary, '')), 'A') ||
+      setweight(to_tsvector('english', COALESCE(details, '')), 'B') ||
+      setweight(to_tsvector('english', COALESCE("aiSummary", '')), 'C')
+    WHERE "organizationId" = ${organizationId}
+      AND search_vector IS NULL;
+  `;
+  console.log('  Search vectors populated for cases');
 
   return { caseIds, caseData };
 }
