@@ -8,20 +8,18 @@ import { Tag } from "lucide-react";
 import type { ModuleViewConfig } from "@/types/view-config";
 import type { BoardColumnConfig } from "@/lib/views/types";
 
-// Case status options with colors
+// Case status options with colors (match database enum values)
 const CASE_STATUSES: BoardColumnConfig[] = [
-  { id: "open", label: "Open", color: "#3B82F6" },
-  { id: "in_progress", label: "In Progress", color: "#F59E0B" },
-  { id: "pending_review", label: "Pending Review", color: "#8B5CF6" },
-  { id: "closed", label: "Closed", color: "#10B981" },
-  { id: "archived", label: "Archived", color: "#6B7280" },
+  { id: "NEW", label: "New", color: "#3B82F6" },
+  { id: "OPEN", label: "Open", color: "#F59E0B" },
+  { id: "CLOSED", label: "Closed", color: "#10B981" },
 ];
 
-const CASE_PRIORITY_OPTIONS = [
-  { value: "low", label: "Low" },
-  { value: "medium", label: "Medium" },
-  { value: "high", label: "High" },
-  { value: "critical", label: "Critical" },
+// Severity options (match database enum values)
+const CASE_SEVERITY_OPTIONS = [
+  { value: "LOW", label: "Low" },
+  { value: "MEDIUM", label: "Medium" },
+  { value: "HIGH", label: "High" },
 ];
 
 const CASE_CATEGORY_OPTIONS = [
@@ -52,7 +50,7 @@ export const CASES_VIEW_CONFIG: ModuleViewConfig = {
     singular: "Case",
     plural: "Cases",
   },
-  primaryColumnId: "caseNumber",
+  primaryColumnId: "referenceNumber",
   endpoints: {
     list: "/cases",
     export: "/cases/export",
@@ -75,8 +73,8 @@ export const CASES_VIEW_CONFIG: ModuleViewConfig = {
   columns: [
     // Core fields
     {
-      id: "caseNumber",
-      accessorKey: "caseNumber",
+      id: "referenceNumber",
+      accessorKey: "referenceNumber",
       header: "Case #",
       type: "link",
       group: "core",
@@ -86,15 +84,15 @@ export const CASES_VIEW_CONFIG: ModuleViewConfig = {
       width: 120,
     },
     {
-      id: "title",
-      accessorKey: "title",
-      header: "Title",
+      id: "summary",
+      accessorKey: "summary",
+      header: "Summary",
       type: "text",
       group: "core",
       sortable: true,
       filterable: true,
       defaultVisible: true,
-      width: 250,
+      width: 300,
     },
     {
       id: "status",
@@ -112,20 +110,20 @@ export const CASES_VIEW_CONFIG: ModuleViewConfig = {
       width: 130,
     },
     {
-      id: "priority",
-      accessorKey: "priority",
-      header: "Priority",
+      id: "severity",
+      accessorKey: "severity",
+      header: "Severity",
       type: "severity",
       group: "core",
       sortable: true,
       filterable: true,
       defaultVisible: true,
-      filterOptions: CASE_PRIORITY_OPTIONS,
+      filterOptions: CASE_SEVERITY_OPTIONS,
       width: 100,
     },
     {
-      id: "category",
-      accessorKey: "category",
+      id: "primaryCategory",
+      accessorKey: "primaryCategory.name",
       header: "Category",
       type: "enum",
       group: "core",
@@ -138,9 +136,9 @@ export const CASES_VIEW_CONFIG: ModuleViewConfig = {
 
     // Assignment fields
     {
-      id: "assignee",
-      accessorKey: "assignee.name",
-      header: "Assignee",
+      id: "createdBy",
+      accessorKey: "createdBy.firstName",
+      header: "Created By",
       type: "user",
       group: "assignment",
       sortable: true,
@@ -302,14 +300,14 @@ export const CASES_VIEW_CONFIG: ModuleViewConfig = {
       options: CASE_STATUSES.map((s) => ({ value: s.id, label: s.label })),
     },
     {
-      propertyId: "priority",
-      label: "Priority",
+      propertyId: "severity",
+      label: "Severity",
       type: "severity",
-      options: CASE_PRIORITY_OPTIONS,
+      options: CASE_SEVERITY_OPTIONS,
     },
     {
-      propertyId: "assignee",
-      label: "Assignee",
+      propertyId: "createdBy",
+      label: "Created By",
       type: "user",
     },
     {
@@ -353,12 +351,12 @@ export const CASES_VIEW_CONFIG: ModuleViewConfig = {
       name: "All Cases",
       description: "All cases sorted by creation date",
       columns: [
-        "caseNumber",
-        "title",
+        "referenceNumber",
+        "summary",
         "status",
-        "priority",
-        "category",
-        "assignee",
+        "severity",
+        "primaryCategory",
+        "createdBy",
         "createdAt",
       ],
       sortBy: "createdAt",
@@ -367,12 +365,12 @@ export const CASES_VIEW_CONFIG: ModuleViewConfig = {
     },
     {
       name: "My Cases",
-      description: "Cases assigned to me",
+      description: "Cases created by me",
       columns: [
-        "caseNumber",
-        "title",
+        "referenceNumber",
+        "summary",
         "status",
-        "priority",
+        "severity",
         "dueDate",
         "updatedAt",
       ],
@@ -383,8 +381,8 @@ export const CASES_VIEW_CONFIG: ModuleViewConfig = {
             {
               id: "1",
               propertyId: "assignee",
-              operator: "is",
-              value: "{{currentUserId}}",
+              operator: "is_any_of",
+              value: ["{{currentUserId}}"],
             },
           ],
         },
@@ -395,13 +393,13 @@ export const CASES_VIEW_CONFIG: ModuleViewConfig = {
     },
     {
       name: "Open Cases",
-      description: "All open and in-progress cases",
+      description: "All new and open cases",
       columns: [
-        "caseNumber",
-        "title",
-        "priority",
-        "category",
-        "assignee",
+        "referenceNumber",
+        "summary",
+        "severity",
+        "primaryCategory",
+        "createdBy",
         "createdAt",
         "dueDate",
       ],
@@ -413,35 +411,35 @@ export const CASES_VIEW_CONFIG: ModuleViewConfig = {
               id: "1",
               propertyId: "status",
               operator: "is_any_of",
-              value: ["open", "in_progress"],
+              value: ["NEW", "OPEN"],
             },
           ],
         },
       ],
-      sortBy: "priority",
+      sortBy: "severity",
       sortOrder: "desc",
       isSystem: true,
     },
     {
-      name: "High Priority",
-      description: "High and critical priority cases",
+      name: "High Severity",
+      description: "High severity cases",
       columns: [
-        "caseNumber",
-        "title",
+        "referenceNumber",
+        "summary",
         "status",
-        "assignee",
+        "createdBy",
         "dueDate",
         "createdAt",
       ],
       filters: [
         {
-          id: "high-priority-filter",
+          id: "high-severity-filter",
           conditions: [
             {
               id: "1",
-              propertyId: "priority",
+              propertyId: "severity",
               operator: "is_any_of",
-              value: ["high", "critical"],
+              value: ["HIGH"],
             },
           ],
         },
@@ -457,17 +455,17 @@ export const CASES_VIEW_CONFIG: ModuleViewConfig = {
     defaultGroupBy: "status",
     groupByOptions: [
       { propertyId: "status", label: "Status" },
-      { propertyId: "priority", label: "Priority" },
-      { propertyId: "category", label: "Category" },
+      { propertyId: "severity", label: "Severity" },
+      { propertyId: "primaryCategory", label: "Category" },
     ],
     columns: CASE_STATUSES,
     cardConfig: {
-      titleField: "title",
-      subtitleField: "caseNumber",
+      titleField: "summary",
+      subtitleField: "referenceNumber",
       priorityField: "priority",
       ownerField: "assignee.name",
       dateField: "createdAt",
-      displayFields: [{ key: "category", type: "text", icon: Tag }],
+      displayFields: [{ key: "primaryCategory.name", type: "text", icon: Tag }],
     },
   },
 };

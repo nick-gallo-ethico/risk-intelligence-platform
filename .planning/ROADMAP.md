@@ -510,7 +510,7 @@ Plans:
 - Pre-built default views for each module (All Records, My Records, Recently Created, etc.)
 - Sample saved views demonstrating filter combinations
 - Team-shared views for compliance team
-  **Plans**: 15 plans in 5 waves
+  **Plans**: 16 plans in 5 waves
 
 Plans:
 
@@ -529,6 +529,7 @@ Plans:
 - [ ] 13-13-PLAN.md (Wave 4) - Disclosures and Intake Forms module integration
 - [ ] 13-14-PLAN.md (Wave 5) - URL state sync with useViewUrlState hook, enhanced BulkActionsBar
 - [ ] 13-15-PLAN.md (Wave 5) - Demo data seeder for saved views, verification checkpoint
+- [ ] 13-16-PLAN.md (Wave 1) - Gap closure: board view fixes, investigations endpoint, search vector, export endpoints
 
 ### Phase 14: Critical Bug Fixes & Navigation
 
@@ -849,7 +850,7 @@ Phases execute in dependency order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 
 | 11. Analytics & Reporting            | 21/21          | Complete | 2026-02-05 |
 | 11.1. Frontend Navigation (INSERTED) | 6/6            | Complete | 2026-02-05 |
 | 12. Internal Operations Portal       | 19/19          | Complete | 2026-02-06 |
-| 13. HubSpot-Style Saved Views        | 0/15           | Planned  | -          |
+| 13. HubSpot-Style Saved Views        | 0/16           | Planned  | -          |
 | 14. Critical Bug Fixes & Navigation  | 0/5            | Planned  | -          |
 | 15. Case Detail Page Overhaul        | 0/7            | Planned  | -          |
 | 16. AI Integration Fix               | 0/TBD          | Planned  | -          |
@@ -860,12 +861,12 @@ Phases execute in dependency order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 
 | 21. Project Management (Monday.com)  | 0/6            | Planned  | -          |
 | 22. Dark Mode & Theme                | 0/14           | Planned  | -          |
 | 23. Help & Support System            | 0/5            | Planned  | -          |
-| 24. Policy Content & Seed Data       | 0/TBD          | Planned  | -          |
+| 24. Policy Content & Seed Data       | 0/3            | Planned  | -          |
 
 ---
 
 _Roadmap created: 2026-02-02_
-_Updated: 2026-02-08 (Phase 22 planned)_
+_Updated: 2026-02-09 (Phase 13 plan 16 added for gap closure)_
 _Depth: Comprehensive_
 _Total phases: 24 (+ 11.1 insertion)_
 _Total plans: 190+ completed, ~50-70 estimated remaining_

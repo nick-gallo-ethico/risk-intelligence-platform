@@ -42,9 +42,18 @@ export function BoardCard<T extends Record<string, unknown>>({
     transform: CSS.Translate.toString(transform),
   };
 
-  const getValue = (field: string): unknown => record[field];
+  // Helper to get nested field values (e.g., "assignee.name")
+  const getValue = (field: string): unknown => {
+    const parts = field.split(".");
+    let value: unknown = record;
+    for (const part of parts) {
+      if (value == null) return undefined;
+      value = (value as Record<string, unknown>)[part];
+    }
+    return value;
+  };
   const getStringValue = (field: string): string | undefined => {
-    const value = record[field];
+    const value = getValue(field);
     return value != null ? String(value) : undefined;
   };
 
@@ -73,7 +82,7 @@ export function BoardCard<T extends Record<string, unknown>>({
       ref={setNodeRef}
       style={style}
       className={cn(
-        "cursor-pointer transition-shadow hover:shadow-md",
+        "w-full cursor-pointer transition-shadow hover:shadow-md",
         isDragging && "opacity-50 shadow-lg ring-2 ring-primary",
       )}
       onClick={handleClick}
