@@ -132,6 +132,29 @@ export class InvestigationsController {
   constructor(private readonly investigationsService: InvestigationsService) {}
 
   /**
+   * GET /api/v1/investigations
+   * Returns paginated list of all investigations across cases.
+   */
+  @Get()
+  @ApiOperation({
+    summary: "List all investigations",
+    description: "Returns paginated list of investigations across all cases",
+  })
+  @ApiResponse({ status: 200, description: "List of investigations" })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  async findAll(
+    @Query() query: InvestigationQueryDto,
+    @TenantId() organizationId: string,
+  ): Promise<{
+    data: Investigation[];
+    total: number;
+    limit: number;
+    page: number;
+  }> {
+    return this.investigationsService.findAll(query, organizationId);
+  }
+
+  /**
    * GET /api/v1/investigations/:id
    * Returns a single investigation with case and assignee details.
    */

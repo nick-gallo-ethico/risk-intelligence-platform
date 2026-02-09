@@ -212,6 +212,83 @@ export class InvestigationsService {
   }
 
   // -------------------------------------------------------------------------
+  // FIND ALL - Paginated list of all investigations (not case-scoped)
+  // -------------------------------------------------------------------------
+
+  /**
+   * Returns paginated list of investigations across all cases.
+   * Used by investigations list view (not case-scoped).
+   */
+  async findAll(
+    query: InvestigationQueryDto,
+    organizationId: string,
+  ): Promise<{
+    data: Investigation[];
+    total: number;
+    limit: number;
+    page: number;
+  }> {
+    const {
+      limit = 25,
+      page = 1,
+      status,
+      assignedToId,
+      department,
+      sortBy = "createdAt",
+      sortOrder = "desc",
+    } = query;
+
+    const skip = (page - 1) * limit;
+
+    // Build where clause - ALWAYS includes organizationId
+    const where: Prisma.InvestigationWhereInput = {
+      organizationId, // CRITICAL: Tenant isolation
+    };
+
+    if (status) {
+      where.status = status;
+    }
+
+    if (assignedToId) {
+      where.assignedTo = { has: assignedToId };
+    }
+
+    if (department) {
+      where.department = department;
+    }
+
+    const [data, total] = await Promise.all([
+      this.prisma.investigation.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { [sortBy]: sortOrder },
+        include: {
+          case: {
+            select: {
+              id: true,
+              referenceNumber: true,
+              summary: true,
+              status: true,
+            },
+          },
+          primaryInvestigator: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+            },
+          },
+        },
+      }),
+      this.prisma.investigation.count({ where }),
+    ]);
+
+    return { data, total, limit, page };
+  }
+
+  // -------------------------------------------------------------------------
   // FIND ONE - Get single investigation with relations
   // -------------------------------------------------------------------------
 
