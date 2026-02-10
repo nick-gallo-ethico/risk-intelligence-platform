@@ -26,11 +26,14 @@ import {
 import { Response } from "express";
 import { Case, AuditEntityType } from "@prisma/client";
 import { CasesService } from "./cases.service";
+import { CaseMergeService } from "./case-merge.service";
 import {
   CreateCaseDto,
   UpdateCaseDto,
   CaseQueryDto,
   ChangeCaseStatusDto,
+  MergeResultDto,
+  MergeHistoryDto,
 } from "./dto";
 import { JwtAuthGuard, TenantGuard, RolesGuard } from "../../common/guards";
 import {
@@ -56,6 +59,7 @@ import { ColumnDefinition } from "../analytics/exports/entities/export.entity";
 export class CasesController {
   constructor(
     private readonly casesService: CasesService,
+    private readonly caseMergeService: CaseMergeService,
     private readonly activityService: ActivityService,
     private readonly excelExportService: ExcelExportService,
   ) {}
@@ -110,6 +114,117 @@ export class CasesController {
     @TenantId() organizationId: string,
   ): Promise<{ data: Case[]; total: number; limit: number; offset: number }> {
     return this.casesService.findAll(query, organizationId);
+  }
+
+  // -------------------------------------------------------------------------
+  // MERGE ENDPOINTS - Must be before generic :id route
+  // -------------------------------------------------------------------------
+
+  /**
+   * POST /api/v1/cases/:id/merge
+   * Merges source case into target case.
+   * The source case becomes a tombstone pointing to the target (primary) case.
+   */
+  @Post(":id/merge")
+  @Roles(UserRole.COMPLIANCE_OFFICER, UserRole.SYSTEM_ADMIN)
+  @UseGuards(RolesGuard)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: "Merge cases",
+    description:
+      "Merges source case into target case. Source case becomes a tombstone with all data moved to target.",
+  })
+  @ApiParam({
+    name: "id",
+    description: "Target case UUID (case to merge INTO)",
+  })
+  @ApiResponse({
+    status: 200,
+    description: "Cases merged successfully",
+    type: MergeResultDto,
+  })
+  @ApiResponse({ status: 400, description: "Validation error or cannot merge" })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  @ApiResponse({ status: 403, description: "Forbidden" })
+  @ApiResponse({ status: 404, description: "Case not found" })
+  async mergeCases(
+    @Param("id", ParseUUIDPipe) id: string,
+    @Body() body: { sourceCaseId: string; reason: string },
+    @CurrentUser() user: RequestUser,
+    @TenantId() organizationId: string,
+  ): Promise<MergeResultDto> {
+    return this.caseMergeService.merge(
+      {
+        sourceCaseId: body.sourceCaseId,
+        targetCaseId: id,
+        reason: body.reason,
+      },
+      user.id,
+      organizationId,
+    );
+  }
+
+  /**
+   * GET /api/v1/cases/:id/merge-history
+   * Returns all cases that were merged into this case.
+   */
+  @Get(":id/merge-history")
+  @ApiOperation({
+    summary: "Get merge history",
+    description:
+      "Returns all cases that were merged into this case, with merge details",
+  })
+  @ApiParam({ name: "id", description: "Case UUID" })
+  @ApiResponse({
+    status: 200,
+    description: "Merge history",
+    type: [MergeHistoryDto],
+  })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  @ApiResponse({ status: 404, description: "Case not found" })
+  async getMergeHistory(
+    @Param("id", ParseUUIDPipe) id: string,
+    @TenantId() organizationId: string,
+  ): Promise<MergeHistoryDto[]> {
+    return this.caseMergeService.getMergeHistory(id, organizationId);
+  }
+
+  /**
+   * GET /api/v1/cases/:id/can-merge/:targetId
+   * Checks if two cases can be merged.
+   */
+  @Get(":id/can-merge/:targetId")
+  @ApiOperation({
+    summary: "Check merge feasibility",
+    description:
+      "Checks if source case can be merged into target case. Returns canMerge boolean and reason if not.",
+  })
+  @ApiParam({
+    name: "id",
+    description: "Source case UUID (case to merge FROM)",
+  })
+  @ApiParam({
+    name: "targetId",
+    description: "Target case UUID (case to merge INTO)",
+  })
+  @ApiResponse({
+    status: 200,
+    description: "Merge feasibility check result",
+    schema: {
+      type: "object",
+      properties: {
+        canMerge: { type: "boolean" },
+        reason: { type: "string", nullable: true },
+      },
+    },
+  })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  async canMerge(
+    @Param("id", ParseUUIDPipe) id: string,
+    @Param("targetId", ParseUUIDPipe) targetId: string,
+    @TenantId() organizationId: string,
+  ): Promise<{ canMerge: boolean; reason?: string }> {
+    return this.caseMergeService.canMerge(id, targetId, organizationId);
   }
 
   /**
