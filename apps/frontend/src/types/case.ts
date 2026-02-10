@@ -10,12 +10,7 @@ export type SourceChannel =
   | "DIRECT_ENTRY"
   | "CHATBOT";
 export type CaseType = "REPORT" | "INQUIRY" | "FOLLOW_UP";
-export type ReporterType =
-  | "EMPLOYEE"
-  | "VENDOR"
-  | "CUSTOMER"
-  | "ANONYMOUS"
-  | "OTHER";
+export type ReporterType = "ANONYMOUS" | "IDENTIFIED" | "PROXY";
 export type Severity = "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
 export type SlaStatus = "ON_TRACK" | "WARNING" | "BREACHED" | "CRITICAL";
 export type RiuAssociationType = "PRIMARY" | "RELATED" | "MERGED_FROM";

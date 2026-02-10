@@ -27,12 +27,11 @@ export const severityOptions = [
   { value: "CRITICAL", label: "Critical", color: "bg-red-100 text-red-800" },
 ] as const;
 
+// ReporterType matches backend Prisma enum
 export const reporterTypeOptions = [
-  { value: "EMPLOYEE", label: "Employee" },
-  { value: "VENDOR", label: "Vendor" },
-  { value: "CUSTOMER", label: "Customer" },
   { value: "ANONYMOUS", label: "Anonymous" },
-  { value: "OTHER", label: "Other" },
+  { value: "IDENTIFIED", label: "Identified" },
+  { value: "PROXY", label: "Proxy (on behalf of someone)" },
 ] as const;
 
 // Common country list (top countries + alphabetical)
@@ -68,13 +67,7 @@ const sourceChannelValues = [
 ] as const;
 const caseTypeValues = ["REPORT", "INQUIRY", "FOLLOW_UP"] as const;
 const severityValues = ["LOW", "MEDIUM", "HIGH", "CRITICAL"] as const;
-const reporterTypeValues = [
-  "EMPLOYEE",
-  "VENDOR",
-  "CUSTOMER",
-  "ANONYMOUS",
-  "OTHER",
-] as const;
+const reporterTypeValues = ["ANONYMOUS", "IDENTIFIED", "PROXY"] as const;
 
 export const caseCreationSchema = z.object({
   // Section 1: Basic Information
