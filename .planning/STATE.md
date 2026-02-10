@@ -10,12 +10,12 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 14.2 of 24 (Case Creation & Search Fixes)
-Plan: 2 of 3 in current phase
+Plan: 3 of 3 in current phase (01 and 02 complete)
 Status: Phase 14.2 IN PROGRESS
-Last activity: 2026-02-10 - Completed 14.2-02 PostgreSQL FTS fallback for unified search
-**Next Phase:** Phase 14.2 (Case Creation & Search Fixes)
+Last activity: 2026-02-10 - Completed 14.2-01 Category dropdowns for case creation
+**Next Phase:** Phase 14.2-03 Verification Checkpoint
 
-Progress: [====================================================------------------] ~77% (~204 of ~260 estimated total plans)
+Progress: [====================================================------------------] ~77% (~205 of ~260 estimated total plans)
 
 ### Phase 14 Critical Bug Fixes & Navigation COMPLETE (2026-02-09)
 
@@ -56,7 +56,7 @@ Created to address issues found during 14.1 human verification:
 
 Plans:
 
-- 14.2-01: Categories API endpoint and frontend integration (PENDING)
+- 14.2-01: Categories API endpoint and frontend integration (COMPLETE - 9cde4bc)
 - 14.2-02: PostgreSQL FTS fallback for unified search (COMPLETE - c5038c5)
 - 14.2-03: Verification checkpoint (PENDING)
 
