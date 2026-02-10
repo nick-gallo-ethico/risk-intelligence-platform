@@ -2,14 +2,28 @@
  * Case entity types - matches backend Prisma schema
  */
 
-export type CaseStatus = 'NEW' | 'OPEN' | 'CLOSED';
-export type SourceChannel = 'HOTLINE' | 'WEB_FORM' | 'PROXY' | 'DIRECT_ENTRY' | 'CHATBOT';
-export type CaseType = 'REPORT' | 'INQUIRY' | 'FOLLOW_UP';
-export type ReporterType = 'EMPLOYEE' | 'VENDOR' | 'CUSTOMER' | 'ANONYMOUS' | 'OTHER';
-export type Severity = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
-export type SlaStatus = 'ON_TRACK' | 'WARNING' | 'BREACHED' | 'CRITICAL';
-export type RiuAssociationType = 'PRIMARY' | 'RELATED' | 'MERGED_FROM';
-export type RiuType = 'HOTLINE_REPORT' | 'WEB_FORM_SUBMISSION' | 'DISCLOSURE_RESPONSE' | 'CHATBOT_TRANSCRIPT';
+export type CaseStatus = "NEW" | "OPEN" | "CLOSED";
+export type SourceChannel =
+  | "HOTLINE"
+  | "WEB_FORM"
+  | "PROXY"
+  | "DIRECT_ENTRY"
+  | "CHATBOT";
+export type CaseType = "REPORT" | "INQUIRY" | "FOLLOW_UP";
+export type ReporterType =
+  | "EMPLOYEE"
+  | "VENDOR"
+  | "CUSTOMER"
+  | "ANONYMOUS"
+  | "OTHER";
+export type Severity = "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+export type SlaStatus = "ON_TRACK" | "WARNING" | "BREACHED" | "CRITICAL";
+export type RiuAssociationType = "PRIMARY" | "RELATED" | "MERGED_FROM";
+export type RiuType =
+  | "HOTLINE_REPORT"
+  | "WEB_FORM_SUBMISSION"
+  | "DISCLOSURE_RESPONSE"
+  | "CHATBOT_TRANSCRIPT";
 
 export interface CaseUser {
   id: string;
@@ -129,7 +143,7 @@ export interface CaseQueryParams {
   createdAfter?: string;
   createdBefore?: string;
   sortBy?: string;
-  sortOrder?: 'asc' | 'desc';
+  sortOrder?: "asc" | "desc";
 }
 
 export interface CreateCaseInput {
@@ -148,6 +162,8 @@ export interface CreateCaseInput {
   severity?: Severity;
   severityReason?: string;
   tags?: string[];
+  primaryCategoryId?: string;
+  secondaryCategoryId?: string;
 }
 
 export interface UpdateCaseInput extends Partial<CreateCaseInput> {

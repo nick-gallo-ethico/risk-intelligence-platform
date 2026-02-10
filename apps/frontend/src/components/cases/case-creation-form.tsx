@@ -1,25 +1,28 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Loader2, Save, CheckCircle2 } from 'lucide-react';
-import { toast } from 'sonner';
+import { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Loader2, Save, CheckCircle2 } from "lucide-react";
+import { toast } from "sonner";
 
-import { Button } from '@/components/ui/button';
-import { BasicInfoSection } from './form-sections/basic-info-section';
-import { DetailsSection } from './form-sections/details-section';
-import { ReporterSection } from './form-sections/reporter-section';
-import { LocationSection } from './form-sections/location-section';
+import { Button } from "@/components/ui/button";
+import { BasicInfoSection } from "./form-sections/basic-info-section";
+import { DetailsSection } from "./form-sections/details-section";
+import { ReporterSection } from "./form-sections/reporter-section";
+import { LocationSection } from "./form-sections/location-section";
 import {
   caseCreationSchema,
   CaseCreationFormData,
   defaultCaseFormValues,
-} from '@/lib/validations/case-schema';
-import { casesApi } from '@/lib/cases-api';
-import { useCaseFormDraft, formatRelativeTime } from '@/hooks/use-case-form-draft';
-import type { CreateCaseInput } from '@/types/case';
+} from "@/lib/validations/case-schema";
+import { casesApi } from "@/lib/cases-api";
+import {
+  useCaseFormDraft,
+  formatRelativeTime,
+} from "@/hooks/use-case-form-draft";
+import type { CreateCaseInput } from "@/types/case";
 
 /**
  * Case Creation Form component.
@@ -47,21 +50,15 @@ export function CaseCreationForm() {
   } = useForm<CaseCreationFormData>({
     resolver: zodResolver(caseCreationSchema),
     defaultValues: defaultCaseFormValues,
-    mode: 'onChange', // Validate on change for immediate feedback
+    mode: "onChange", // Validate on change for immediate feedback
   });
 
   // Get form values for auto-save
   const getFormData = useCallback(() => getValues(), [getValues]);
 
   // Draft persistence hook
-  const {
-    loadDraft,
-    saveDraft,
-    clearDraft,
-    hasDraft,
-    lastSavedAt,
-    justSaved,
-  } = useCaseFormDraft(getFormData, !isSubmitting);
+  const { loadDraft, saveDraft, clearDraft, hasDraft, lastSavedAt, justSaved } =
+    useCaseFormDraft(getFormData, !isSubmitting);
 
   // Restore draft on mount
   useEffect(() => {
@@ -73,20 +70,20 @@ export function CaseCreationForm() {
       const hasContent = savedDraft.details && savedDraft.details.length > 0;
       if (hasContent) {
         // Show toast asking user to restore
-        toast.info('Draft found', {
-          description: 'Would you like to restore your previous draft?',
+        toast.info("Draft found", {
+          description: "Would you like to restore your previous draft?",
           action: {
-            label: 'Restore',
+            label: "Restore",
             onClick: () => {
               reset({ ...defaultCaseFormValues, ...savedDraft });
-              toast.success('Draft restored');
+              toast.success("Draft restored");
             },
           },
           cancel: {
-            label: 'Discard',
+            label: "Discard",
             onClick: () => {
               clearDraft();
-              toast.info('Draft discarded');
+              toast.info("Draft discarded");
             },
           },
           duration: 10000, // 10 seconds to decide
@@ -99,7 +96,7 @@ export function CaseCreationForm() {
   // Manual save draft
   const handleSaveDraft = useCallback(() => {
     saveDraft(getValues());
-    toast.success('Draft saved');
+    toast.success("Draft saved");
   }, [saveDraft, getValues]);
 
   /**
@@ -110,8 +107,8 @@ export function CaseCreationForm() {
     // Strip HTML tags for plain text details (API expects plain text for now)
     // If API accepts HTML, remove this transformation
     const stripHtml = (html: string): string => {
-      const doc = new DOMParser().parseFromString(html, 'text/html');
-      return doc.body.textContent || '';
+      const doc = new DOMParser().parseFromString(html, "text/html");
+      return doc.body.textContent || "";
     };
 
     const input: CreateCaseInput = {
@@ -132,8 +129,16 @@ export function CaseCreationForm() {
     if (data.locationCity) input.locationCity = data.locationCity;
 
     // Handle anonymous reporter
-    if (data.reporterType === 'ANONYMOUS') {
+    if (data.reporterType === "ANONYMOUS") {
       input.reporterAnonymous = true;
+    }
+
+    // Include category fields if they have valid UUIDs (not empty strings)
+    if (data.primaryCategoryId && data.primaryCategoryId.length > 0) {
+      input.primaryCategoryId = data.primaryCategoryId;
+    }
+    if (data.secondaryCategoryId && data.secondaryCategoryId.length > 0) {
+      input.secondaryCategoryId = data.secondaryCategoryId;
     }
 
     return input;
@@ -149,28 +154,30 @@ export function CaseCreationForm() {
       // Clear draft on successful submission
       clearDraft();
 
-      toast.success('Case created successfully', {
+      toast.success("Case created successfully", {
         description: `Reference: ${createdCase.referenceNumber}`,
       });
 
       // Redirect to the new case detail page
       router.push(`/cases/${createdCase.id}`);
     } catch (error) {
-      console.error('Failed to create case:', error);
+      console.error("Failed to create case:", error);
 
       // Extract error message if available
-      let message = 'An unexpected error occurred. Please try again.';
-      if (error && typeof error === 'object' && 'response' in error) {
-        const axiosError = error as { response?: { data?: { message?: string | string[] } } };
+      let message = "An unexpected error occurred. Please try again.";
+      if (error && typeof error === "object" && "response" in error) {
+        const axiosError = error as {
+          response?: { data?: { message?: string | string[] } };
+        };
         const apiMessage = axiosError.response?.data?.message;
         if (Array.isArray(apiMessage)) {
-          message = apiMessage.join(', ');
+          message = apiMessage.join(", ");
         } else if (apiMessage) {
           message = apiMessage;
         }
       }
 
-      toast.error('Failed to create case', {
+      toast.error("Failed to create case", {
         description: message,
       });
     } finally {
@@ -181,11 +188,7 @@ export function CaseCreationForm() {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       {/* Section 1: Basic Information */}
-      <BasicInfoSection
-        errors={errors}
-        setValue={setValue}
-        watch={watch}
-      />
+      <BasicInfoSection errors={errors} setValue={setValue} watch={watch} />
 
       {/* Section 2: Details */}
       <DetailsSection
@@ -241,7 +244,7 @@ export function CaseCreationForm() {
             {lastSavedAt && (
               <span
                 className={`text-xs text-muted-foreground flex items-center gap-1 transition-opacity ${
-                  justSaved ? 'opacity-100' : 'opacity-70'
+                  justSaved ? "opacity-100" : "opacity-70"
                 }`}
               >
                 {justSaved ? (
@@ -269,7 +272,7 @@ export function CaseCreationForm() {
                   Creating...
                 </>
               ) : (
-                'Create Case'
+                "Create Case"
               )}
             </Button>
           </div>
