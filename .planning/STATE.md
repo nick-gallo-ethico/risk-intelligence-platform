@@ -10,10 +10,10 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 15 of 24 (Case Detail Page Overhaul)
-Plan: 02 of 7 in current phase (01, 02, 07 complete)
+Plan: 03 of 7 in current phase (01, 02, 03, 07 complete)
 Status: Phase 15 IN PROGRESS
-Last activity: 2026-02-10 - Completed 15-02 Three-column layout and left column components
-**Next Phase:** Continue Phase 15 execution (15-03 through 15-06)
+Last activity: 2026-02-10 - Completed 15-03 Center column tabs and activity feed
+**Next Phase:** Continue Phase 15 execution (15-04 through 15-06)
 
 Progress: [====================================================------------------] ~79% (~207 of ~260 estimated total plans)
 
@@ -65,7 +65,12 @@ Plans:
   - CaseInfoSummary component (ref number, status, severity, pipeline, days open, SLA)
   - ActionButtonRow component (5 quick action buttons: Note, Interview, Document, Task, Email)
   - Right column placeholder for connected entities (Plan 05)
-- 15-03 through 15-06: Frontend case detail page components (PENDING)
+- 15-03: Center column tabs and activity feed (COMPLETE - eda86a2)
+  - Fixed activity API path to /activity/CASE/:id (not /activity/entity/CASE/:id)
+  - Added Summary tab with AI/manual summary and case details
+  - 7 tabs: Overview, Activities, Summary, Investigations, Messages, Files, Remediation
+  - Enhanced Overview with pipeline progress visualization and assignee display
+- 15-04 through 15-06: Remaining frontend case detail components (PENDING)
 
 ### Phase 14.2 Case Creation & Search Fixes COMPLETE (2026-02-10)
 
