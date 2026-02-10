@@ -1,8 +1,9 @@
-import { Module } from '@nestjs/common';
-import { PersonCaseAssociationService } from './person-case/person-case-association.service';
-import { PersonRiuAssociationService } from './person-riu/person-riu-association.service';
-import { CaseCaseAssociationService } from './case-case/case-case-association.service';
-import { PersonPersonAssociationService } from './person-person/person-person-association.service';
+import { Module } from "@nestjs/common";
+import { PersonCaseAssociationService } from "./person-case/person-case-association.service";
+import { PersonCaseAssociationController } from "./person-case/person-case-association.controller";
+import { PersonRiuAssociationService } from "./person-riu/person-riu-association.service";
+import { CaseCaseAssociationService } from "./case-case/case-case-association.service";
+import { PersonPersonAssociationService } from "./person-person/person-person-association.service";
 
 /**
  * AssociationsModule provides first-class association entities per HubSpot V4 pattern.
@@ -27,8 +28,12 @@ import { PersonPersonAssociationService } from './person-person/person-person-as
  * - PersonPersonAssociationService: Person-to-Person for relationships
  *   - Sources: HRIS, DISCLOSURE, INVESTIGATION, MANUAL
  *   - Used for COI detection
+ *
+ * Controllers:
+ * - PersonCaseAssociationController: REST endpoints for /cases/:caseId/persons
  */
 @Module({
+  controllers: [PersonCaseAssociationController],
   providers: [
     PersonCaseAssociationService,
     PersonRiuAssociationService,

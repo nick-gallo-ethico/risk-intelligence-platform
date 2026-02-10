@@ -23,6 +23,12 @@ import {
   Severity,
   RiuType,
   RiuSourceChannel,
+  AuditEntityType,
+  AuditActionCategory,
+  ActorType,
+  PersonType,
+  PersonSource,
+  PersonCaseLabel,
 } from "@prisma/client";
 import { faker } from "@faker-js/faker";
 import { nanoid } from "nanoid";
@@ -291,6 +297,15 @@ export interface SeedCasesResult {
     priority: string;
     isFlagship: boolean;
   }>;
+  flagshipCaseData: Array<{
+    caseId: string;
+    name: string;
+    category: string;
+    status: string;
+    createdAt: Date;
+    durationDays: number;
+    createdById: string;
+  }>;
 }
 
 /**
@@ -324,6 +339,7 @@ export async function seedCases(
   const targetCount = SEED_CONFIG.volumes.cases; // 4500
   const caseIds: string[] = [];
   const caseData: SeedCasesResult["caseData"] = [];
+  const flagshipCaseData: SeedCasesResult["flagshipCaseData"] = [];
   let batchNumber = 0;
 
   // Get demo user IDs for case ownership (My Tasks display)
@@ -444,8 +460,8 @@ export async function seedCases(
       reporterAnonymous: reporterType === ReporterType.ANONYMOUS,
       anonymousAccessCode:
         reporterType === ReporterType.ANONYMOUS ? nanoid(12) : null,
-      details: flagship.narrative,
-      summary: flagship.name,
+      details: flagship.details,
+      summary: flagship.summary,
       severity,
       primaryCategoryId: categoryId,
       tags: ["flagship", flagship.category.toLowerCase()],
@@ -474,6 +490,17 @@ export async function seedCases(
       categoryId,
       priority: "HIGH",
       isFlagship: true,
+    });
+
+    // Track flagship case metadata for activity and connected people seeding
+    flagshipCaseData.push({
+      caseId,
+      name: flagship.name,
+      category: flagship.category,
+      status: flagship.status,
+      createdAt,
+      durationDays: flagship.durationDays,
+      createdById: userId,
     });
   }
 
@@ -746,7 +773,7 @@ export async function seedCases(
   `;
   console.log("  Search vectors populated for cases");
 
-  return { caseIds, caseData };
+  return { caseIds, caseData, flagshipCaseData };
 }
 
 /**
@@ -824,4 +851,300 @@ export async function createRecentUnreadCases(
   }
 
   return recentCases.length;
+}
+
+// ============================================
+// Flagship Case Enhancement Functions
+// ============================================
+
+/**
+ * Connected people definitions for flagship cases
+ * Each flagship case gets 2-4 associated persons with specific labels
+ */
+interface FlagshipConnectedPerson {
+  firstName: string;
+  lastName: string;
+  email: string;
+  jobTitle?: string;
+  businessUnitName?: string;
+  label: PersonCaseLabel;
+  notes?: string;
+}
+
+/**
+ * Get connected people definitions for a flagship case based on its category and name
+ */
+function getFlagshipConnectedPeople(
+  flagshipName: string,
+  flagshipCategory: string,
+): FlagshipConnectedPerson[] {
+  // Define connected people for each flagship case
+  const connectedPeopleByCase: Record<string, FlagshipConnectedPerson[]> = {
+    "The Chicago Warehouse Incident": [
+      { firstName: "Marcus", lastName: "Reynolds", email: "marcus.reynolds@acme.local", jobTitle: "Warehouse Supervisor", businessUnitName: "Operations - Chicago", label: PersonCaseLabel.SUBJECT, notes: "Accused of hostile work environment and intimidation tactics" },
+      { firstName: "Jennifer", lastName: "Martinez", email: "jennifer.martinez@acme.local", jobTitle: "Warehouse Associate", businessUnitName: "Operations - Chicago", label: PersonCaseLabel.REPORTER, notes: "Primary reporter - clipboard incident witness" },
+      { firstName: "Daniel", lastName: "Kim", email: "daniel.kim@acme.local", jobTitle: "Warehouse Lead", businessUnitName: "Operations - Chicago", label: PersonCaseLabel.WITNESS, notes: "Corroborating witness - provided incident log" },
+      { firstName: "Robert", lastName: "Chen", email: "robert.chen@acme.local", jobTitle: "Warehouse Lead", businessUnitName: "Operations - Chicago", label: PersonCaseLabel.WITNESS, notes: "Corroborating witness" },
+    ],
+    "Q3 Financial Irregularities": [
+      { firstName: "Patricia", lastName: "Hendricks", email: "patricia.hendricks@acme.local", jobTitle: "Regional Sales Director", businessUnitName: "Sales - Southeast", label: PersonCaseLabel.SUBJECT, notes: "Subject of expense fraud investigation - $127K in unverified claims" },
+      { firstName: "Michelle", lastName: "Tran", email: "michelle.tran@acme.local", jobTitle: "Senior Auditor", businessUnitName: "Internal Audit", label: PersonCaseLabel.REPORTER, notes: "Identified anomalies during Q3 compliance review" },
+      { firstName: "James", lastName: "Crawford", email: "james.crawford@acme.local", jobTitle: "Finance Manager", businessUnitName: "Finance", label: PersonCaseLabel.WITNESS, notes: "Reviewed expense approval chain" },
+    ],
+    "Executive Expense Report": [
+      { firstName: "Jonathan", lastName: "Park", email: "jonathan.park@acme.local", jobTitle: "SVP Marketing", businessUnitName: "Marketing", label: PersonCaseLabel.SUBJECT, notes: "Subject of anonymous expense fraud allegations" },
+      { firstName: "Anonymous", lastName: "Reporter", email: "", jobTitle: "Executive Admin", businessUnitName: "Executive Office", label: PersonCaseLabel.REPORTER, notes: "Anonymous - expressed retaliation concerns" },
+    ],
+    "Manufacturing Safety Incident": [
+      { firstName: "Janet", lastName: "Williams", email: "janet.williams@acme.local", jobTitle: "Supervisor", businessUnitName: "Manufacturing - Denver", label: PersonCaseLabel.SUBJECT, notes: "Allegedly approved bypass of safety interlocks" },
+      { firstName: "Kevin", lastName: "Martinez", email: "kevin.martinez@acme.local", jobTitle: "Machine Operator", businessUnitName: "Manufacturing - Denver", label: PersonCaseLabel.REPORTER, notes: "Injured employee - hand trauma from press incident" },
+      { firstName: "Thomas", lastName: "Okonkwo", email: "thomas.okonkwo@acme.local", jobTitle: "EHS Manager", businessUnitName: "Environmental Health & Safety", label: PersonCaseLabel.WITNESS, notes: "Led initial investigation" },
+    ],
+    "Healthcare Data Breach": [
+      { firstName: "Sarah", lastName: "Chen", email: "sarah.chen@hospital.local", jobTitle: "Internal Medicine Physician", businessUnitName: "Medical Staff", label: PersonCaseLabel.SUBJECT, notes: "Accessed 47 patient records without clinical relationship" },
+      { firstName: "Amanda", lastName: "Foster", email: "amanda.foster@hospital.local", jobTitle: "Privacy Officer", businessUnitName: "Compliance", label: PersonCaseLabel.WITNESS, notes: "Led HIPAA breach investigation" },
+      { firstName: "IT Security", lastName: "Team", email: "security@hospital.local", jobTitle: "IT Security", businessUnitName: "Information Technology", label: PersonCaseLabel.REPORTER, notes: "Identified unauthorized access pattern in EHR audit" },
+    ],
+    "Systematic Discrimination Pattern": [
+      { firstName: "Robert", lastName: "Thompson", email: "robert.thompson@acme.local", jobTitle: "Director of Engineering", businessUnitName: "Technology", label: PersonCaseLabel.SUBJECT, notes: "Accused of systematic gender discrimination in promotions and ratings" },
+      { firstName: "Lisa", lastName: "Nakamura", email: "lisa.nakamura@acme.local", jobTitle: "Staff Engineer", businessUnitName: "Technology", label: PersonCaseLabel.REPORTER, notes: "Lead reporter - retained external employment counsel" },
+      { firstName: "David", lastName: "Park", email: "david.park.eng@acme.local", jobTitle: "Senior Engineer", businessUnitName: "Technology", label: PersonCaseLabel.WITNESS, notes: "Male colleague corroborating discriminatory comments" },
+      { firstName: "James", lastName: "Martinez", email: "james.martinez.eng@acme.local", jobTitle: "Senior Engineer", businessUnitName: "Technology", label: PersonCaseLabel.WITNESS, notes: "Male colleague corroborating pattern" },
+    ],
+    "Vendor Kickback Scheme": [
+      { firstName: "David", lastName: "Wilson", email: "david.wilson@acme.local", jobTitle: "Procurement Manager", businessUnitName: "Procurement", label: PersonCaseLabel.SUBJECT, notes: "Subject of kickback investigation - $89K unexplained deposits" },
+      { firstName: "Michael", lastName: "Reeves", email: "michael.reeves@techserve.com", jobTitle: "CEO", businessUnitName: "TechServe Solutions (External)", label: PersonCaseLabel.SUBJECT, notes: "External party - undisclosed college roommate relationship" },
+      { firstName: "Anonymous", lastName: "Tipster", email: "", jobTitle: "", businessUnitName: "", label: PersonCaseLabel.REPORTER, notes: "Anonymous hotline tip about vendor favoritism" },
+    ],
+    "Workplace Violence Threat": [
+      { firstName: "James", lastName: "Mitchell", email: "james.mitchell@acme.local", jobTitle: "Warehouse Employee", businessUnitName: "Operations", label: PersonCaseLabel.SUBJECT, notes: "Made threatening statements - terminated" },
+      { firstName: "Sarah", lastName: "Park", email: "sarah.park@acme.local", jobTitle: "Supervisor", businessUnitName: "Operations", label: PersonCaseLabel.REPORTER, notes: "Reported threats during team meeting" },
+      { firstName: "Michael", lastName: "Santos", email: "michael.santos@acme.local", jobTitle: "Forklift Operator", businessUnitName: "Operations", label: PersonCaseLabel.WITNESS, notes: "Heard weapons comments prior to incident" },
+      { firstName: "Frank", lastName: "Thompson", email: "frank.thompson@acme.local", jobTitle: "Security Director", businessUnitName: "Corporate Security", label: PersonCaseLabel.STAKEHOLDER, notes: "Coordinated security response" },
+    ],
+    "COI Disclosure - Board Member": [
+      { firstName: "Eleanor", lastName: "Vance", email: "eleanor.vance@acme.local", jobTitle: "Board Member", businessUnitName: "Board of Directors", label: PersonCaseLabel.REPORTER, notes: "Self-disclosure regarding spouse's appointment at HealthFirst" },
+      { firstName: "William", lastName: "Vance", email: "william.vance@healthfirst.com", jobTitle: "Chief Medical Officer", businessUnitName: "HealthFirst Systems (External)", label: PersonCaseLabel.STAKEHOLDER, notes: "Spouse of board member - creates conflict touchpoints" },
+      { firstName: "Jennifer", lastName: "Roberts", email: "jennifer.roberts@acme.local", jobTitle: "General Counsel", businessUnitName: "Legal", label: PersonCaseLabel.LEGAL_COUNSEL, notes: "Provided recusal framework opinion" },
+    ],
+    "Retaliation After Safety Report": [
+      { firstName: "Michael", lastName: "Torres", email: "michael.torres@acme.local", jobTitle: "Manufacturing Employee", businessUnitName: "Manufacturing - Denver", label: PersonCaseLabel.REPORTER, notes: "Alleges retaliation for Bay 4 safety investigation testimony" },
+      { firstName: "Janet", lastName: "Williams", email: "janet.williams2@acme.local", jobTitle: "Supervisor", businessUnitName: "Manufacturing - Denver", label: PersonCaseLabel.SUBJECT, notes: "Subject - allegedly made retaliatory statement" },
+    ],
+  };
+
+  return connectedPeopleByCase[flagshipName] || [
+    { firstName: "John", lastName: "Doe", email: "john.doe@acme.local", jobTitle: "Employee", label: PersonCaseLabel.REPORTER, notes: "Reporter" },
+    { firstName: "Jane", lastName: "Smith", email: "jane.smith@acme.local", jobTitle: "Manager", label: PersonCaseLabel.SUBJECT, notes: "Subject of investigation" },
+  ];
+}
+
+/**
+ * Activity templates for flagship cases
+ */
+interface FlagshipActivity {
+  action: string;
+  actionCategory: AuditActionCategory;
+  actionDescription: string;
+  actorType: ActorType;
+  actorName: string;
+  dayOffset: number; // days after case creation
+}
+
+/**
+ * Generate activity entries for a flagship case
+ */
+function generateFlagshipActivities(
+  flagshipName: string,
+  flagshipStatus: string,
+  durationDays: number,
+): FlagshipActivity[] {
+  const baseActivities: FlagshipActivity[] = [
+    { action: "created", actionCategory: AuditActionCategory.CREATE, actionDescription: "Case created from intake", actorType: ActorType.SYSTEM, actorName: "System", dayOffset: 0 },
+    { action: "ai_enrichment", actionCategory: AuditActionCategory.AI, actionDescription: "AI generated case summary and risk assessment", actorType: ActorType.AI, actorName: "Claude AI", dayOffset: 0 },
+    { action: "assigned", actionCategory: AuditActionCategory.UPDATE, actionDescription: "Case assigned to compliance team for triage", actorType: ActorType.USER, actorName: "Sarah Chen", dayOffset: 1 },
+    { action: "status_changed", actionCategory: AuditActionCategory.UPDATE, actionDescription: "Status changed from NEW to OPEN", actorType: ActorType.USER, actorName: "Sarah Chen", dayOffset: 1 },
+    { action: "note_added", actionCategory: AuditActionCategory.CREATE, actionDescription: "Added initial assessment notes", actorType: ActorType.USER, actorName: "Michael Johnson", dayOffset: 2 },
+    { action: "priority_changed", actionCategory: AuditActionCategory.UPDATE, actionDescription: "Priority escalated based on severity assessment", actorType: ActorType.USER, actorName: "Sarah Chen", dayOffset: 3 },
+  ];
+
+  // Add more activities for longer/closed cases
+  if (durationDays > 10) {
+    baseActivities.push(
+      { action: "note_added", actionCategory: AuditActionCategory.CREATE, actionDescription: "Interview scheduled with primary witness", actorType: ActorType.USER, actorName: "Michael Johnson", dayOffset: 5 },
+      { action: "note_added", actionCategory: AuditActionCategory.CREATE, actionDescription: "Document review completed - findings documented", actorType: ActorType.USER, actorName: "Sarah Chen", dayOffset: 8 },
+    );
+  }
+
+  if (flagshipStatus === "CLOSED" && durationDays > 20) {
+    baseActivities.push(
+      { action: "note_added", actionCategory: AuditActionCategory.CREATE, actionDescription: "Final investigation report drafted", actorType: ActorType.USER, actorName: "Michael Johnson", dayOffset: Math.floor(durationDays * 0.7) },
+      { action: "cco_escalated", actionCategory: AuditActionCategory.UPDATE, actionDescription: "Case escalated to CCO for executive review", actorType: ActorType.USER, actorName: "Sarah Chen", dayOffset: Math.floor(durationDays * 0.8) },
+      { action: "status_changed", actionCategory: AuditActionCategory.UPDATE, actionDescription: "Case closed - investigation complete with findings documented", actorType: ActorType.USER, actorName: "Sarah Chen", dayOffset: durationDays },
+    );
+  }
+
+  return baseActivities;
+}
+
+/**
+ * Seed activities for flagship cases
+ */
+export async function seedFlagshipActivities(
+  prisma: PrismaClient,
+  organizationId: string,
+  flagshipCaseData: Array<{
+    caseId: string;
+    name: string;
+    status: string;
+    createdAt: Date;
+    durationDays: number;
+    createdById: string;
+  }>,
+): Promise<number> {
+  console.log("  Seeding activities for flagship cases...");
+
+  const activityBatch: Array<{
+    id: string;
+    organizationId: string;
+    entityType: AuditEntityType;
+    entityId: string;
+    action: string;
+    actionCategory: AuditActionCategory;
+    actionDescription: string;
+    actorUserId: string | null;
+    actorType: ActorType;
+    actorName: string | null;
+    changes: object | null;
+    context: object | null;
+    ipAddress: string | null;
+    userAgent: string | null;
+    requestId: string | null;
+    createdAt: Date;
+  }> = [];
+
+  for (const flagshipCase of flagshipCaseData) {
+    const activities = generateFlagshipActivities(
+      flagshipCase.name,
+      flagshipCase.status,
+      flagshipCase.durationDays,
+    );
+
+    for (const activity of activities) {
+      const activityDate = addDays(flagshipCase.createdAt, activity.dayOffset);
+      activityBatch.push({
+        id: faker.string.uuid(),
+        organizationId,
+        entityType: AuditEntityType.CASE,
+        entityId: flagshipCase.caseId,
+        action: activity.action,
+        actionCategory: activity.actionCategory,
+        actionDescription: activity.actionDescription,
+        actorUserId: activity.actorType === ActorType.USER ? flagshipCase.createdById : null,
+        actorType: activity.actorType,
+        actorName: activity.actorName,
+        changes: null,
+        context: { flagshipCase: true, caseName: flagshipCase.name },
+        ipAddress: activity.actorType === ActorType.USER ? "10.0.1.100" : null,
+        userAgent: activity.actorType === ActorType.USER ? "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" : null,
+        requestId: faker.string.uuid(),
+        createdAt: activityDate,
+      });
+    }
+  }
+
+  // Insert activities
+  if (activityBatch.length > 0) {
+    await prisma.auditLog.createMany({
+      data: activityBatch.map(a => ({
+        ...a,
+        changes: a.changes ?? undefined,
+        context: a.context ?? undefined,
+      })),
+      skipDuplicates: true,
+    });
+  }
+
+  console.log(`    Created ${activityBatch.length} activities for ${flagshipCaseData.length} flagship cases`);
+  return activityBatch.length;
+}
+
+/**
+ * Seed connected people for flagship cases
+ */
+export async function seedFlagshipConnectedPeople(
+  prisma: PrismaClient,
+  organizationId: string,
+  flagshipCaseData: Array<{
+    caseId: string;
+    name: string;
+    category: string;
+    createdById: string;
+  }>,
+): Promise<number> {
+  console.log("  Seeding connected people for flagship cases...");
+
+  let totalAssociations = 0;
+
+  for (const flagshipCase of flagshipCaseData) {
+    const connectedPeople = getFlagshipConnectedPeople(
+      flagshipCase.name,
+      flagshipCase.category,
+    );
+
+    for (const person of connectedPeople) {
+      // Create or find the Person record
+      let personRecord = await prisma.person.findFirst({
+        where: {
+          organizationId,
+          email: person.email || undefined,
+          firstName: person.firstName,
+          lastName: person.lastName,
+        },
+      });
+
+      if (!personRecord) {
+        personRecord = await prisma.person.create({
+          data: {
+            id: faker.string.uuid(),
+            organizationId,
+            type: person.email?.includes("@acme.local") || person.email?.includes("@hospital.local")
+              ? PersonType.EMPLOYEE
+              : person.email
+                ? PersonType.EXTERNAL_CONTACT
+                : PersonType.ANONYMOUS_PLACEHOLDER,
+            source: PersonSource.INTAKE_CREATED,
+            firstName: person.firstName,
+            lastName: person.lastName,
+            email: person.email || null,
+            jobTitle: person.jobTitle || null,
+            businessUnitName: person.businessUnitName || null,
+            notes: person.notes || null,
+            createdById: flagshipCase.createdById,
+            updatedById: flagshipCase.createdById,
+          },
+        });
+      }
+
+      // Create PersonCaseAssociation
+      await prisma.personCaseAssociation.create({
+        data: {
+          id: faker.string.uuid(),
+          organizationId,
+          personId: personRecord.id,
+          caseId: flagshipCase.caseId,
+          label: person.label,
+          notes: person.notes || null,
+          createdById: flagshipCase.createdById,
+        },
+      }).catch(() => {
+        // Skip duplicates silently
+      });
+
+      totalAssociations++;
+    }
+  }
+
+  console.log(`    Created ${totalAssociations} person-case associations for flagship cases`);
+  return totalAssociations;
 }

@@ -1,8 +1,8 @@
-import { Injectable, Logger, BadRequestException } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
-import { EventEmitter2 } from '@nestjs/event-emitter';
-import { AuditService } from '../../audit/audit.service';
-import { PersonCaseLabel, EvidentiaryStatus } from '@prisma/client';
+import { Injectable, Logger, BadRequestException } from "@nestjs/common";
+import { PrismaService } from "../../prisma/prisma.service";
+import { EventEmitter2 } from "@nestjs/event-emitter";
+import { AuditService } from "../../audit/audit.service";
+import { PersonCaseLabel, EvidentiaryStatus } from "@prisma/client";
 
 /**
  * Evidentiary labels use status field, not validity periods.
@@ -108,7 +108,7 @@ export class PersonCaseAssociationService {
       `Created Person-Case association: ${dto.personId} -> ${dto.caseId} (${dto.label})`,
     );
 
-    this.eventEmitter.emit('association.person-case.created', {
+    this.eventEmitter.emit("association.person-case.created", {
       organizationId,
       associationId: association.id,
       personId: dto.personId,
@@ -117,13 +117,13 @@ export class PersonCaseAssociationService {
     });
 
     await this.auditService.log({
-      entityType: 'CASE',
+      entityType: "CASE",
       entityId: dto.caseId,
-      action: 'association_created',
+      action: "association_created",
       actionDescription: `Person associated as ${dto.label}`,
-      actionCategory: 'CREATE',
+      actionCategory: "CREATE",
       actorUserId: userId,
-      actorType: 'USER',
+      actorType: "USER",
       organizationId,
       context: { personId: dto.personId, label: dto.label },
     });
@@ -148,7 +148,7 @@ export class PersonCaseAssociationService {
     });
 
     if (!association) {
-      throw new BadRequestException('Association not found');
+      throw new BadRequestException("Association not found");
     }
 
     if (!this.isEvidentiaryLabel(association.label)) {
@@ -174,7 +174,7 @@ export class PersonCaseAssociationService {
       `Updated evidentiary status: ${associationId} ${oldStatus} -> ${newStatus}`,
     );
 
-    this.eventEmitter.emit('association.person-case.status-changed', {
+    this.eventEmitter.emit("association.person-case.status-changed", {
       organizationId,
       associationId,
       personId: association.personId,
@@ -185,13 +185,13 @@ export class PersonCaseAssociationService {
     });
 
     await this.auditService.log({
-      entityType: 'CASE',
+      entityType: "CASE",
       entityId: association.caseId,
-      action: 'association_status_changed',
+      action: "association_status_changed",
       actionDescription: `${association.label} status changed from ${oldStatus} to ${newStatus}`,
-      actionCategory: 'UPDATE',
+      actionCategory: "UPDATE",
       actorUserId: userId,
-      actorType: 'USER',
+      actorType: "USER",
       organizationId,
       context: {
         associationId,
@@ -223,7 +223,7 @@ export class PersonCaseAssociationService {
     });
 
     if (!association) {
-      throw new BadRequestException('Association not found');
+      throw new BadRequestException("Association not found");
     }
 
     if (!this.isRoleLabel(association.label)) {
@@ -233,7 +233,7 @@ export class PersonCaseAssociationService {
     }
 
     if (association.endedAt) {
-      throw new BadRequestException('Association has already ended');
+      throw new BadRequestException("Association has already ended");
     }
 
     const updated = await this.prisma.personCaseAssociation.update({
@@ -247,7 +247,7 @@ export class PersonCaseAssociationService {
 
     this.logger.log(`Ended role association: ${associationId}`);
 
-    this.eventEmitter.emit('association.person-case.ended', {
+    this.eventEmitter.emit("association.person-case.ended", {
       organizationId,
       associationId,
       personId: association.personId,
@@ -256,13 +256,13 @@ export class PersonCaseAssociationService {
     });
 
     await this.auditService.log({
-      entityType: 'CASE',
+      entityType: "CASE",
       entityId: association.caseId,
-      action: 'association_ended',
+      action: "association_ended",
       actionDescription: `${association.label} role ended`,
-      actionCategory: 'UPDATE',
+      actionCategory: "UPDATE",
       actorUserId: userId,
-      actorType: 'USER',
+      actorType: "USER",
       organizationId,
       context: {
         associationId,
@@ -283,7 +283,7 @@ export class PersonCaseAssociationService {
     return this.prisma.personCaseAssociation.findMany({
       where: { organizationId, caseId },
       include: { person: true },
-      orderBy: { createdAt: 'asc' },
+      orderBy: { createdAt: "asc" },
     });
   }
 
@@ -295,7 +295,7 @@ export class PersonCaseAssociationService {
     return this.prisma.personCaseAssociation.findMany({
       where: { organizationId, personId },
       include: { case: true },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
     });
   }
 
@@ -363,7 +363,59 @@ export class PersonCaseAssociationService {
           },
         },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
     });
+  }
+
+  /**
+   * Remove a person-case association.
+   *
+   * Note: For evidentiary associations (REPORTER, SUBJECT, WITNESS),
+   * consider using updateEvidentiaryStatus to CLEARED instead,
+   * to maintain audit trail.
+   *
+   * @throws BadRequestException if association doesn't exist
+   */
+  async remove(associationId: string, userId: string, organizationId: string) {
+    const association = await this.prisma.personCaseAssociation.findFirst({
+      where: { id: associationId, organizationId },
+      include: { person: true },
+    });
+
+    if (!association) {
+      throw new BadRequestException("Association not found");
+    }
+
+    await this.prisma.personCaseAssociation.delete({
+      where: { id: associationId },
+    });
+
+    this.logger.log(`Removed Person-Case association: ${associationId}`);
+
+    this.eventEmitter.emit("association.person-case.removed", {
+      organizationId,
+      associationId,
+      personId: association.personId,
+      caseId: association.caseId,
+      label: association.label,
+    });
+
+    await this.auditService.log({
+      entityType: "CASE",
+      entityId: association.caseId,
+      action: "association_removed",
+      actionDescription: `${association.label} association removed for ${association.person ? `${association.person.firstName || ""} ${association.person.lastName || ""}`.trim() || association.personId : association.personId}`,
+      actionCategory: "DELETE",
+      actorUserId: userId,
+      actorType: "USER",
+      organizationId,
+      context: {
+        associationId,
+        personId: association.personId,
+        label: association.label,
+      },
+    });
+
+    return { success: true };
   }
 }
