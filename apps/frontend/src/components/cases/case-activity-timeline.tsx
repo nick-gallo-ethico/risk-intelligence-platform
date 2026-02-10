@@ -1,87 +1,139 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
-import { Plus, Phone, Mail, MessageSquare } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
-import { ActivityFilters } from './activity-filters';
-import { ActivityEntry } from './activity-entry';
-import { groupByDate } from '@/lib/date-utils';
-import { apiClient } from '@/lib/api';
-import type { Case } from '@/types/case';
-import type { Activity, ActivityFilterType, ActivityListResponse } from '@/types/activity';
+import { useState, useEffect, useMemo, useCallback } from "react";
+import { Plus, Phone, Mail, MessageSquare, RefreshCw } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ActivityFilters } from "./activity-filters";
+import { ActivityEntry } from "./activity-entry";
+import { groupByDate } from "@/lib/date-utils";
+import { apiClient } from "@/lib/api";
+import type { Case } from "@/types/case";
+import type { Activity, ActivityFilterType } from "@/types/activity";
+
+/**
+ * Backend TimelineResponseDto shape from ActivityTimelineController
+ */
+interface TimelineResponse {
+  entries: Array<{
+    id: string;
+    entityType: string;
+    entityId: string;
+    action: string;
+    actionDescription: string;
+    actorUserId: string | null;
+    actorName: string | null;
+    createdAt: string;
+    isRelatedEntity: boolean;
+    relatedEntityInfo?: {
+      parentEntityType: string;
+      parentEntityId: string;
+      relationship: string;
+    };
+    changes?: Record<string, { old: unknown; new: unknown }> | null;
+    context?: Record<string, unknown> | null;
+  }>;
+  total: number;
+  hasMore: boolean;
+  page: number;
+  limit: number;
+}
 
 interface CaseActivityTimelineProps {
   caseData: Case | null;
   isLoading: boolean;
 }
 
-export function CaseActivityTimeline({ caseData, isLoading }: CaseActivityTimelineProps) {
+export function CaseActivityTimeline({
+  caseData,
+  isLoading,
+}: CaseActivityTimelineProps) {
   const [activities, setActivities] = useState<Activity[]>([]);
   const [activitiesLoading, setActivitiesLoading] = useState(false);
   const [activitiesError, setActivitiesError] = useState<string | null>(null);
-  const [activeFilter, setActiveFilter] = useState<ActivityFilterType>('all');
+  const [activeFilter, setActiveFilter] = useState<ActivityFilterType>("all");
   const [addNoteModalOpen, setAddNoteModalOpen] = useState(false);
 
-  // Fetch activities when case data is available
-  useEffect(() => {
+  // Fetch activities from backend
+  const fetchActivities = useCallback(async () => {
     if (!caseData?.id) {
       setActivities([]);
       return;
     }
 
-    const fetchActivities = async () => {
-      setActivitiesLoading(true);
-      setActivitiesError(null);
+    setActivitiesLoading(true);
+    setActivitiesError(null);
 
+    try {
+      // Correct API path: /activity/CASE/:id (not /activity/entity/CASE/:id)
+      const response = await apiClient.get<TimelineResponse>(
+        `/activity/CASE/${caseData.id}?includeRelated=true&limit=50`,
+      );
+
+      // Transform TimelineResponse.entries to Activity[] format
+      const transformedActivities: Activity[] = response.entries.map(
+        (entry) => ({
+          id: entry.id,
+          entityType: entry.entityType as Activity["entityType"],
+          entityId: entry.entityId,
+          action: entry.action as Activity["action"],
+          actionDescription: entry.actionDescription,
+          changes: entry.changes || null,
+          actorUserId: entry.actorUserId,
+          actorType: entry.actorUserId ? "USER" : "SYSTEM",
+          actorName: entry.actorName,
+          createdAt:
+            typeof entry.createdAt === "string"
+              ? entry.createdAt
+              : new Date(entry.createdAt).toISOString(),
+        }),
+      );
+
+      setActivities(transformedActivities);
+    } catch (error) {
+      console.error("Failed to fetch activities:", error);
+
+      // Try fallback endpoint: /cases/:id/activity (CasesController)
       try {
-        const response = await apiClient.get<ActivityListResponse>(
-          `/activity/entity/CASE/${caseData.id}`
+        const fallbackResponse = await apiClient.get<{ data: Activity[] }>(
+          `/cases/${caseData.id}/activity`,
         );
-        setActivities(response.data);
-      } catch (error) {
-        console.error('Failed to fetch activities:', error);
-        setActivitiesError('Failed to load activities');
-        // Create a fallback activity from case data
-        setActivities([
-          {
-            id: `created-${caseData.id}`,
-            entityType: 'CASE',
-            entityId: caseData.id,
-            action: 'created',
-            actionDescription: 'Case created',
-            changes: null,
-            actorUserId: caseData.createdById,
-            actorType: 'USER',
-            actorName: caseData.createdBy
-              ? `${caseData.createdBy.firstName} ${caseData.createdBy.lastName}`
-              : 'System',
-            createdAt: caseData.createdAt,
-          },
-        ]);
-      } finally {
-        setActivitiesLoading(false);
+        if (fallbackResponse.data) {
+          setActivities(fallbackResponse.data);
+          return;
+        }
+      } catch (fallbackError) {
+        console.error("Fallback activity fetch also failed:", fallbackError);
       }
-    };
 
+      // No fake fallback - show error with retry option
+      setActivitiesError("Failed to load activities. Please try again.");
+      setActivities([]);
+    } finally {
+      setActivitiesLoading(false);
+    }
+  }, [caseData?.id]);
+
+  // Fetch activities when case data is available
+  useEffect(() => {
     fetchActivities();
-  }, [caseData?.id, caseData?.createdById, caseData?.createdBy, caseData?.createdAt]);
+  }, [fetchActivities]);
 
   // Filter activities based on active filter
   const filteredActivities = useMemo(() => {
-    if (activeFilter === 'all') {
+    if (activeFilter === "all") {
       return activities;
     }
 
     return activities.filter((activity) => {
       switch (activeFilter) {
-        case 'notes':
-          return activity.action === 'commented';
-        case 'status':
-          return activity.action === 'status_changed';
-        case 'files':
-          return activity.action === 'file_uploaded';
+        case "notes":
+          return activity.action === "commented";
+        case "status":
+          return activity.action === "status_changed";
+        case "files":
+          return activity.action === "file_uploaded";
         default:
           return true;
       }
@@ -92,9 +144,9 @@ export function CaseActivityTimeline({ caseData, isLoading }: CaseActivityTimeli
   const filterCounts = useMemo(() => {
     return {
       all: activities.length,
-      notes: activities.filter((a) => a.action === 'commented').length,
-      status: activities.filter((a) => a.action === 'status_changed').length,
-      files: activities.filter((a) => a.action === 'file_uploaded').length,
+      notes: activities.filter((a) => a.action === "commented").length,
+      status: activities.filter((a) => a.action === "status_changed").length,
+      files: activities.filter((a) => a.action === "file_uploaded").length,
     };
   }, [activities]);
 
@@ -106,7 +158,7 @@ export function CaseActivityTimeline({ caseData, isLoading }: CaseActivityTimeli
   const handleAddNote = useCallback(() => {
     setAddNoteModalOpen(true);
     // TODO: Implement modal in future task
-    console.log('Add note clicked - modal placeholder');
+    console.log("Add note clicked - modal placeholder");
   }, []);
 
   if (isLoading) {
@@ -149,7 +201,9 @@ export function CaseActivityTimeline({ caseData, isLoading }: CaseActivityTimeli
             <CardTitle className="text-lg">Case Details</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-gray-700 whitespace-pre-wrap">{caseData.details}</p>
+            <p className="text-gray-700 whitespace-pre-wrap">
+              {caseData.details}
+            </p>
           </CardContent>
         </Card>
       </div>
@@ -177,7 +231,16 @@ export function CaseActivityTimeline({ caseData, isLoading }: CaseActivityTimeli
             <ActivityTimelineSkeleton />
           ) : activitiesError && activities.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
-              <p>{activitiesError}</p>
+              <p className="mb-3">{activitiesError}</p>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={fetchActivities}
+                className="gap-2"
+              >
+                <RefreshCw className="w-4 h-4" />
+                Retry
+              </Button>
             </div>
           ) : filteredActivities.length === 0 ? (
             <EmptyState filter={activeFilter} />
@@ -231,22 +294,26 @@ interface EmptyStateProps {
 }
 
 function EmptyState({ filter }: EmptyStateProps) {
-  const messages: Record<ActivityFilterType, { title: string; description: string }> = {
+  const messages: Record<
+    ActivityFilterType,
+    { title: string; description: string }
+  > = {
     all: {
-      title: 'No activity yet',
-      description: 'Activity will appear here as changes are made to this case.',
+      title: "No activity yet",
+      description:
+        "Activity will appear here as changes are made to this case.",
     },
     notes: {
-      title: 'No notes yet',
+      title: "No notes yet",
       description: 'Click "Add Note" to add the first note to this case.',
     },
     status: {
-      title: 'No status changes',
-      description: 'Status change history will appear here.',
+      title: "No status changes",
+      description: "Status change history will appear here.",
     },
     files: {
-      title: 'No files uploaded',
-      description: 'Uploaded files will appear here.',
+      title: "No files uploaded",
+      description: "Uploaded files will appear here.",
     },
   };
 
