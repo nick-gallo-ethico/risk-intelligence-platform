@@ -13,11 +13,12 @@ import { Module } from "@nestjs/common";
 import { CacheModule } from "@nestjs/cache-manager";
 import { PrismaModule } from "../prisma/prisma.module";
 import { OrganizationController } from "./organization.controller";
+import { CategoriesController } from "./categories.controller";
 import { OrganizationService } from "./organization.service";
 
 @Module({
   imports: [PrismaModule, CacheModule.register()],
-  controllers: [OrganizationController],
+  controllers: [OrganizationController, CategoriesController],
   providers: [OrganizationService],
   exports: [OrganizationService],
 })

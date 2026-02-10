@@ -1,25 +1,26 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { ElasticsearchService } from '@nestjs/elasticsearch';
+import { Injectable, Logger } from "@nestjs/common";
+import { ElasticsearchService } from "@nestjs/elasticsearch";
 import type {
   SearchResponse,
   SearchHit,
   QueryDslQueryContainer,
-} from '@elastic/elasticsearch/lib/api/types';
-import { UserRole } from '@prisma/client';
-import { IndexingService } from './indexing/indexing.service';
+} from "@elastic/elasticsearch/lib/api/types";
+import { UserRole } from "@prisma/client";
+import { IndexingService } from "./indexing/indexing.service";
 import {
   PermissionFilterService,
   PermissionContext,
-} from './query/permission-filter.service';
+} from "./query/permission-filter.service";
+import { PrismaService } from "../prisma/prisma.service";
 
 /**
  * Supported entity types for unified search.
  */
 export type UnifiedSearchEntityType =
-  | 'cases'
-  | 'rius'
-  | 'investigations'
-  | 'persons';
+  | "cases"
+  | "rius"
+  | "investigations"
+  | "persons";
 
 /**
  * Options for unified search query.
@@ -82,10 +83,10 @@ export class UnifiedSearchService {
 
   /** All supported entity types */
   private readonly ALL_ENTITY_TYPES: UnifiedSearchEntityType[] = [
-    'cases',
-    'rius',
-    'investigations',
-    'persons',
+    "cases",
+    "rius",
+    "investigations",
+    "persons",
   ];
 
   /** Default results per entity type */
@@ -95,6 +96,7 @@ export class UnifiedSearchService {
     private readonly esService: ElasticsearchService,
     private readonly indexingService: IndexingService,
     private readonly permissionService: PermissionFilterService,
+    private readonly prisma: PrismaService,
   ) {}
 
   /**
@@ -168,10 +170,8 @@ export class UnifiedSearchService {
 
     try {
       // Build permission filters for this entity type
-      const permissionFilters = await this.permissionService.buildPermissionFilter(
-        ctx,
-        entityType,
-      );
+      const permissionFilters =
+        await this.permissionService.buildPermissionFilter(ctx, entityType);
 
       // Build search fields based on entity type
       const searchFields = this.getSearchFieldsForType(
@@ -186,9 +186,9 @@ export class UnifiedSearchService {
           multi_match: {
             query: query.trim(),
             fields: searchFields,
-            fuzziness: 'AUTO',
-            operator: 'and',
-            type: 'best_fields',
+            fuzziness: "AUTO",
+            operator: "and",
+            type: "best_fields",
           },
         });
       }
@@ -197,7 +197,7 @@ export class UnifiedSearchService {
       const response: SearchResponse<Record<string, unknown>> =
         await this.esService.search({
           index: indexName,
-          timeout: '500ms',
+          timeout: "500ms",
           query: {
             bool: {
               must: must.length > 0 ? must : [{ match_all: {} }],
@@ -205,20 +205,23 @@ export class UnifiedSearchService {
             },
           },
           highlight: {
-            pre_tags: ['<mark>'],
-            post_tags: ['</mark>'],
+            pre_tags: ["<mark>"],
+            post_tags: ["</mark>"],
             fields: {
               details: { fragment_size: 150, number_of_fragments: 2 },
               summary: { fragment_size: 150, number_of_fragments: 2 },
               aiSummary: { fragment_size: 150, number_of_fragments: 2 },
               description: { fragment_size: 150, number_of_fragments: 2 },
               notes: { fragment_size: 150, number_of_fragments: 2 },
-              'customFields.*': { fragment_size: 100, number_of_fragments: 1 },
+              "customFields.*": { fragment_size: 100, number_of_fragments: 1 },
             },
           },
           from: 0,
           size: limit,
-          sort: [{ _score: { order: 'desc' } }, { createdAt: { order: 'desc' } }],
+          sort: [
+            { _score: { order: "desc" } },
+            { createdAt: { order: "desc" } },
+          ],
           _source: {
             excludes: this.permissionService.buildFieldVisibilityFilter(
               ctx,
@@ -231,6 +234,17 @@ export class UnifiedSearchService {
       const hits = this.transformHits(response, entityType);
       const total = this.getTotalHits(response);
 
+      // If ES returned 0 hits for cases, try PostgreSQL FTS as backup
+      if (entityType === "cases" && total === 0 && query && query.trim()) {
+        this.logger.debug(
+          `ES returned 0 hits for cases - trying PostgreSQL FTS`,
+        );
+        const ftsResult = await this.searchCasesWithFts(ctx, query, limit);
+        if (ftsResult.count > 0) {
+          return ftsResult;
+        }
+      }
+
       return {
         entityType,
         count: total,
@@ -240,14 +254,25 @@ export class UnifiedSearchService {
       // Handle index not found (no data yet for this tenant/type)
       if (this.isIndexNotFoundError(error)) {
         this.logger.debug(
-          `Index ${indexName} not found - returning empty results`,
+          `Index ${indexName} not found - trying PostgreSQL FTS fallback for ${entityType}`,
         );
+
+        // For cases, use PostgreSQL FTS fallback
+        if (entityType === "cases") {
+          return this.searchCasesWithFts(ctx, query, limit);
+        }
+
         return { entityType, count: 0, hits: [] };
       }
 
       this.logger.error(
-        `Unified search failed for ${entityType}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        `Unified search failed for ${entityType}: ${error instanceof Error ? error.message : "Unknown error"}`,
       );
+
+      // For cases, try FTS fallback even on other ES errors
+      if (entityType === "cases") {
+        return this.searchCasesWithFts(ctx, query, limit);
+      }
 
       // Return empty results rather than failing the entire search
       return { entityType, count: 0, hits: [] };
@@ -264,52 +289,52 @@ export class UnifiedSearchService {
   ): string[] {
     const baseFields = {
       cases: [
-        'referenceNumber^10',
-        'details^2',
-        'summary^3',
-        'aiSummary^2',
-        'categoryName^2',
-        'primaryCategoryName^2',
-        'locationName',
-        'locationCity',
-        'assigneeName',
-        'createdByName',
+        "referenceNumber^10",
+        "details^2",
+        "summary^3",
+        "aiSummary^2",
+        "categoryName^2",
+        "primaryCategoryName^2",
+        "locationName",
+        "locationCity",
+        "assigneeName",
+        "createdByName",
       ],
       rius: [
-        'referenceNumber^10',
-        'details^2',
-        'summary^3',
-        'aiSummary^2',
-        'categoryName^2',
-        'locationName',
-        'locationCity',
-        'createdByName',
+        "referenceNumber^10",
+        "details^2",
+        "summary^3",
+        "aiSummary^2",
+        "categoryName^2",
+        "locationName",
+        "locationCity",
+        "createdByName",
       ],
       investigations: [
-        'referenceNumber^10',
-        'title^3',
-        'description^2',
-        'findings^2',
-        'notes',
-        'primaryInvestigatorName',
+        "referenceNumber^10",
+        "title^3",
+        "description^2",
+        "findings^2",
+        "notes",
+        "primaryInvestigatorName",
       ],
       persons: [
-        'firstName^3',
-        'lastName^3',
-        'email^2',
-        'employeeId^5',
-        'jobTitle',
-        'department',
-        'businessUnitName',
-        'locationName',
+        "firstName^3",
+        "lastName^3",
+        "email^2",
+        "employeeId^5",
+        "jobTitle",
+        "department",
+        "businessUnitName",
+        "locationName",
       ],
     };
 
-    const fields = baseFields[entityType] || ['*'];
+    const fields = baseFields[entityType] || ["*"];
 
     // Add custom fields to search if enabled
     if (includeCustomFields) {
-      fields.push('customFields.*');
+      fields.push("customFields.*");
     }
 
     return fields;
@@ -324,7 +349,7 @@ export class UnifiedSearchService {
   ): UnifiedSearchHit[] {
     return response.hits.hits.map(
       (hit: SearchHit<Record<string, unknown>>) => ({
-        id: hit._id ?? '',
+        id: hit._id ?? "",
         entityType,
         score: hit._score || 0,
         document: (hit._source as Record<string, unknown>) || {},
@@ -336,8 +361,10 @@ export class UnifiedSearchService {
   /**
    * Extract total hit count from response.
    */
-  private getTotalHits(response: SearchResponse<Record<string, unknown>>): number {
-    return typeof response.hits.total === 'number'
+  private getTotalHits(
+    response: SearchResponse<Record<string, unknown>>,
+  ): number {
+    return typeof response.hits.total === "number"
       ? response.hits.total
       : response.hits.total?.value || 0;
   }
@@ -346,14 +373,102 @@ export class UnifiedSearchService {
    * Check if error is an index not found error.
    */
   private isIndexNotFoundError(error: unknown): boolean {
-    if (
-      error &&
-      typeof error === 'object' &&
-      'meta' in error
-    ) {
+    if (error && typeof error === "object" && "meta" in error) {
       const meta = (error as { meta?: { statusCode?: number } }).meta;
       return meta?.statusCode === 404;
     }
     return false;
+  }
+
+  /**
+   * PostgreSQL FTS fallback for cases when ES is unavailable.
+   * Uses the search_vector column that's already populated.
+   *
+   * Per decision 14.1-04: Raw SQL must use @@map table names (cases, not Case)
+   * and snake_case column names (organization_id, reference_number, etc.)
+   */
+  private async searchCasesWithFts(
+    ctx: PermissionContext,
+    query: string,
+    limit: number,
+  ): Promise<EntityTypeResult> {
+    if (!query || !query.trim()) {
+      return { entityType: "cases", count: 0, hits: [] };
+    }
+
+    // Build tsquery from search terms
+    const searchWords = query
+      .trim()
+      .split(/\s+/)
+      .filter((word) => word.length > 0)
+      .map((word) => word.replace(/[^\w-]/g, ""))
+      .filter((word) => word.length > 0);
+
+    if (searchWords.length === 0) {
+      return { entityType: "cases", count: 0, hits: [] };
+    }
+
+    // Use prefix matching for partial words: "harass" matches "harassment"
+    const tsQuery = searchWords.map((word) => `${word}:*`).join(" & ");
+
+    try {
+      const results = await this.prisma.$queryRawUnsafe<
+        Array<{
+          id: string;
+          reference_number: string;
+          details: string | null;
+          summary: string | null;
+          status: string;
+          severity: string;
+          created_at: Date;
+          score: number;
+        }>
+      >(
+        `SELECT
+          id,
+          reference_number,
+          details,
+          summary,
+          status,
+          severity,
+          created_at,
+          ts_rank(search_vector, to_tsquery('english', $1)) as score
+        FROM cases
+        WHERE organization_id = $2
+          AND search_vector @@ to_tsquery('english', $1)
+        ORDER BY score DESC, created_at DESC
+        LIMIT $3`,
+        tsQuery,
+        ctx.organizationId,
+        limit,
+      );
+
+      this.logger.debug(
+        `PostgreSQL FTS returned ${results.length} case results for query "${query}"`,
+      );
+
+      return {
+        entityType: "cases",
+        count: results.length,
+        hits: results.map((r) => ({
+          id: r.id,
+          entityType: "cases",
+          score: Number(r.score) || 0,
+          document: {
+            referenceNumber: r.reference_number,
+            details: r.details,
+            summary: r.summary,
+            status: r.status,
+            severity: r.severity,
+            createdAt: r.created_at,
+          },
+        })),
+      };
+    } catch (error) {
+      this.logger.error(
+        `PostgreSQL FTS failed for cases: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
+      return { entityType: "cases", count: 0, hits: [] };
+    }
   }
 }
