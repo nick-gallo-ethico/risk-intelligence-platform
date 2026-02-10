@@ -13,7 +13,7 @@
  * - External party involvement examples
  */
 
-import { SEED_CONFIG } from '../config';
+import { SEED_CONFIG } from "../config";
 
 /**
  * Flagship case definition
@@ -30,17 +30,17 @@ export interface FlagshipCase {
   /** Category for classification */
   category: string;
   /** Severity level */
-  severity: 'HIGH' | 'MEDIUM' | 'LOW';
+  severity: "HIGH" | "MEDIUM" | "LOW";
   /** Has CCO/executive escalation */
   hasEscalation: boolean;
   /** Involves external party (legal, law enforcement) */
   hasExternalParty: boolean;
   /** External party type if applicable */
-  externalPartyType?: 'legal' | 'law_enforcement' | 'regulator';
+  externalPartyType?: "legal" | "law_enforcement" | "regulator";
   /** Number of investigations (some complex cases have multiple) */
   investigationCount: number;
   /** Case status */
-  status: 'NEW' | 'OPEN' | 'CLOSED';
+  status: "NEW" | "OPEN" | "CLOSED";
   /** Pre-written AI summary for demo */
   aiSummary: string;
   /** AI risk score (0-100) */
@@ -50,7 +50,7 @@ export interface FlagshipCase {
   /** Key demo points to highlight */
   demoPoints: string[];
   /** Outcome if closed */
-  outcome?: 'SUBSTANTIATED' | 'UNSUBSTANTIATED' | 'INCONCLUSIVE';
+  outcome?: "SUBSTANTIATED" | "UNSUBSTANTIATED" | "INCONCLUSIVE";
   /** Reference number prefix */
   referencePrefix: string;
 }
@@ -60,7 +60,7 @@ export interface FlagshipCase {
  */
 export const FLAGSHIP_CASES: FlagshipCase[] = [
   {
-    name: 'The Chicago Warehouse Incident',
+    name: "The Chicago Warehouse Incident",
     narrative: `On January 15th, a third-shift warehouse supervisor was reported for creating a hostile work environment through repeated intimidation tactics.
 
 Multiple employees reported that supervisor Marcus Reynolds regularly uses profanity and aggressive language when addressing floor workers. On the date in question, Reynolds allegedly threw a clipboard at the wall near an employee after a shipping error was discovered.
@@ -80,26 +80,26 @@ Investigation into Reynolds' employment history revealed that he transferred fro
 
 The case has been escalated to the Chief Compliance Officer due to the severity of the alleged conduct, the pattern of prior complaints, and potential liability exposure. Interviews have been scheduled with all three reporters, the night security officer who was present during the clipboard incident, and Reynolds' direct supervisor. HR has placed Reynolds on administrative leave pending investigation completion.`,
     summary: `Anonymous and identified reports from three warehouse employees allege supervisor Marcus Reynolds created a hostile work environment through intimidation and verbal abuse, culminating in a January 14th incident where he threw a clipboard near an employee. Prior informal complaints at his previous facility went unaddressed. Escalated to CCO. Investigation active.`,
-    category: 'Harassment',
-    severity: 'HIGH',
+    category: "Harassment",
+    severity: "HIGH",
     hasEscalation: true,
     hasExternalParty: false,
     investigationCount: 1,
-    status: 'OPEN',
+    status: "OPEN",
     aiSummary:
-      'High-severity harassment case involving warehouse supervisor. Pattern of escalating hostile behavior with multiple independent reports. Prior informal complaints went unresolved. Recommend immediate intervention and comprehensive investigation.',
+      "High-severity harassment case involving warehouse supervisor. Pattern of escalating hostile behavior with multiple independent reports. Prior informal complaints went unresolved. Recommend immediate intervention and comprehensive investigation.",
     aiRiskScore: 85,
     durationDays: 0, // Still open
     demoPoints: [
-      'Multiple independent reporters corroborating same pattern',
-      'Prior complaint history showing escalation',
-      'AI identified severity escalation pattern',
-      'Real-time collaboration on investigation notes',
+      "Multiple independent reporters corroborating same pattern",
+      "Prior complaint history showing escalation",
+      "AI identified severity escalation pattern",
+      "Real-time collaboration on investigation notes",
     ],
-    referencePrefix: 'CASE-2026-CHI',
+    referencePrefix: "CASE-2026-CHI",
   },
   {
-    name: 'Q3 Financial Irregularities',
+    name: "Q3 Financial Irregularities",
     narrative: `During routine quarterly reconciliation, the internal audit team discovered discrepancies in expense reports submitted by Regional Sales Director Patricia Hendricks.
 
 Over the past 18 months, Hendricks submitted approximately $127,000 in expense reports that cannot be verified against actual business activities. Specific concerns include:
@@ -124,28 +124,28 @@ Hendricks was interviewed on December 4, 2025, with HR and legal counsel present
 
 The investigation was completed on January 9, 2026, with findings substantiated. The case was escalated to the CCO and presented to the Audit Committee on January 15. Employment action was taken on January 18, and civil recovery proceedings were initiated through outside counsel. The company has implemented additional expense controls including real-time receipt verification and manager approval for claims exceeding $500.`,
     summary: `Internal audit discovered $127,000 in unverified expense claims by Regional Sales Director Patricia Hendricks over 18 months. Forensic review revealed systematic patterns including fabricated client dinners, hotel stays in cities not visited, and unauthorized resort charges. Investigation substantiated. Employment terminated and civil recovery initiated.`,
-    category: 'Financial Misconduct',
-    severity: 'HIGH',
+    category: "Financial Misconduct",
+    severity: "HIGH",
     hasEscalation: true,
     hasExternalParty: true,
-    externalPartyType: 'legal',
+    externalPartyType: "legal",
     investigationCount: 2, // HR and Legal investigations
-    status: 'CLOSED',
+    status: "CLOSED",
     aiSummary:
-      'Significant expense fraud investigation involving $127K in unverified claims over 18 months. Pattern analysis reveals consistent misuse of expense system. Legal counsel engaged. High-performing employee with no prior issues - unusual profile requires thorough documentation.',
+      "Significant expense fraud investigation involving $127K in unverified claims over 18 months. Pattern analysis reveals consistent misuse of expense system. Legal counsel engaged. High-performing employee with no prior issues - unusual profile requires thorough documentation.",
     aiRiskScore: 92,
     durationDays: 67,
     demoPoints: [
-      'Complex financial investigation with document analysis',
-      'Dual investigation tracks (HR and Legal)',
-      'CCO escalation and board notification',
-      'Pattern detection across 18-month timeframe',
+      "Complex financial investigation with document analysis",
+      "Dual investigation tracks (HR and Legal)",
+      "CCO escalation and board notification",
+      "Pattern detection across 18-month timeframe",
     ],
-    outcome: 'SUBSTANTIATED',
-    referencePrefix: 'CASE-2025-FIN',
+    outcome: "SUBSTANTIATED",
+    referencePrefix: "CASE-2025-FIN",
   },
   {
-    name: 'Executive Expense Report',
+    name: "Executive Expense Report",
     narrative: `An anonymous reporter in the executive admin pool has raised concerns about expense practices by the SVP of Marketing, Jonathan Park.
 
 The reporter states they process expense reports and have noticed that Park routinely submits personal expenses including:
@@ -168,26 +168,26 @@ Due to the seniority of the subject, this case has been escalated to the Chief C
 
 Initial review of the attached expense reports identified three entries flagged by the reporter: a $4,200 airfare entry to Cancun during a period with no scheduled conferences, spa charges of $890 at a Phoenix resort, and $2,100 in gift purchases from a luxury retailer. Investigation is proceeding with enhanced confidentiality protocols.`,
     summary: `Anonymous report from executive admin pool alleges SVP Marketing Jonathan Park has systematically submitted personal expenses as business costs for two or more years. Specific allegations include family vacation airfare, spouse's spa treatments, and personal gifts. Reporter fears retaliation. Escalated to CCO with restricted access. Forensic review initiated.`,
-    category: 'Financial Misconduct',
-    severity: 'HIGH',
+    category: "Financial Misconduct",
+    severity: "HIGH",
     hasEscalation: true,
     hasExternalParty: false,
     investigationCount: 1,
-    status: 'OPEN',
+    status: "OPEN",
     aiSummary:
-      'Anonymous report alleging executive expense fraud by SVP Marketing. Reporter provides specific examples and documentary evidence. High retaliation concern noted. Sensitive investigation requiring executive oversight and strict confidentiality controls.',
+      "Anonymous report alleging executive expense fraud by SVP Marketing. Reporter provides specific examples and documentary evidence. High retaliation concern noted. Sensitive investigation requiring executive oversight and strict confidentiality controls.",
     aiRiskScore: 88,
     durationDays: 0,
     demoPoints: [
-      'Anonymous reporting with document attachments',
-      'Executive-level subject requiring special handling',
-      'Reporter concerns about retaliation documented',
-      'Audit trail of who accessed sensitive case',
+      "Anonymous reporting with document attachments",
+      "Executive-level subject requiring special handling",
+      "Reporter concerns about retaliation documented",
+      "Audit trail of who accessed sensitive case",
     ],
-    referencePrefix: 'CASE-2026-EXP',
+    referencePrefix: "CASE-2026-EXP",
   },
   {
-    name: 'Manufacturing Safety Incident',
+    name: "Manufacturing Safety Incident",
     narrative: `On December 3rd at approximately 2:15 PM, a serious safety incident occurred at the Denver manufacturing facility when employee Kevin Martinez suffered a hand injury on the metal stamping press in Bay 4.
 
 Investigation revealed that the safety interlock on the press had been deliberately bypassed using a metal shim. When interviewed, floor workers indicated this was a "common practice" to meet production quotas. Supervisor Janet Williams was allegedly aware of this practice and had verbally approved it.
@@ -214,28 +214,28 @@ A review of production metrics revealed that Bay 4 has consistently exceeded its
 
 Outside safety consultants from Industrial Safety Partners have been engaged to conduct a comprehensive facility audit. Preliminary remediation actions include removing all bypass modifications, retraining all press operators, and implementing daily supervisor safety sign-offs. The investigation concluded on January 17, 2026, with all allegations substantiated.`,
     summary: `OSHA-reportable injury at Denver manufacturing facility when employee suffered hand trauma due to deliberately bypassed safety interlock. Investigation revealed systemic issues: three additional bypassed presses, four months without safety inspections, incomplete operator training, and supervisor approval of unsafe practices. Regulatory investigation ongoing. All findings substantiated.`,
-    category: 'Safety',
-    severity: 'HIGH',
+    category: "Safety",
+    severity: "HIGH",
     hasEscalation: true,
     hasExternalParty: true,
-    externalPartyType: 'regulator',
+    externalPartyType: "regulator",
     investigationCount: 2, // Safety investigation and Management review
-    status: 'CLOSED',
+    status: "CLOSED",
     aiSummary:
-      'Critical safety incident with systemic failures. Deliberately bypassed equipment safeguards, supervisor knowledge/approval, and training gaps. OSHA reportable injury. Pattern suggests production pressure overriding safety culture. Regulatory exposure significant.',
+      "Critical safety incident with systemic failures. Deliberately bypassed equipment safeguards, supervisor knowledge/approval, and training gaps. OSHA reportable injury. Pattern suggests production pressure overriding safety culture. Regulatory exposure significant.",
     aiRiskScore: 95,
     durationDays: 45,
     demoPoints: [
-      'OSHA-reportable incident with regulatory involvement',
-      'Systemic issues uncovered beyond initial incident',
-      'Multiple root causes identified',
-      'Remediation tracking and verification',
+      "OSHA-reportable incident with regulatory involvement",
+      "Systemic issues uncovered beyond initial incident",
+      "Multiple root causes identified",
+      "Remediation tracking and verification",
     ],
-    outcome: 'SUBSTANTIATED',
-    referencePrefix: 'CASE-2025-SAF',
+    outcome: "SUBSTANTIATED",
+    referencePrefix: "CASE-2025-SAF",
   },
   {
-    name: 'Healthcare Data Breach',
+    name: "Healthcare Data Breach",
     narrative: `The IT Security team identified unauthorized access to patient records in the Charlotte hospital system on January 8th.
 
 Analysis of access logs revealed that Dr. Sarah Chen accessed medical records for 47 patients who were not under her care. These access events occurred over a 3-month period, primarily during evening hours.
@@ -262,28 +262,28 @@ The Privacy Officer determined this incident constitutes a reportable HIPAA brea
 
 The investigation concluded on February 15, 2026, with findings substantiated. Hospital leadership has implemented additional access monitoring protocols, and the case has been referred to the State Medical Board for consideration of licensure implications.`,
     summary: `IT Security detected unauthorized access to 47 patient records by Dr. Sarah Chen over a 3-month period. Cross-referencing revealed 31 patients were employees and 16 were family members of employees at a company where Dr. Chen's spouse is HR Director. HIPAA breach confirmed, regulatory notifications made. Investigation substantiated, privileges suspended.`,
-    category: 'Data Privacy',
-    severity: 'HIGH',
+    category: "Data Privacy",
+    severity: "HIGH",
     hasEscalation: true,
     hasExternalParty: true,
-    externalPartyType: 'regulator',
+    externalPartyType: "regulator",
     investigationCount: 1,
-    status: 'CLOSED',
+    status: "CLOSED",
     aiSummary:
-      'HIPAA violation involving unauthorized PHI access. 47 patient records accessed without legitimate purpose. Pattern suggests deliberate snooping, possibly related to employment decisions. Regulatory notification required. Administrative leave implemented.',
+      "HIPAA violation involving unauthorized PHI access. 47 patient records accessed without legitimate purpose. Pattern suggests deliberate snooping, possibly related to employment decisions. Regulatory notification required. Administrative leave implemented.",
     aiRiskScore: 93,
     durationDays: 38,
     demoPoints: [
-      'Healthcare compliance and HIPAA handling',
-      'IT forensics and access log analysis',
-      'Regulatory notification workflow',
-      'Administrative action tracking',
+      "Healthcare compliance and HIPAA handling",
+      "IT forensics and access log analysis",
+      "Regulatory notification workflow",
+      "Administrative action tracking",
     ],
-    outcome: 'SUBSTANTIATED',
-    referencePrefix: 'CASE-2026-HIP',
+    outcome: "SUBSTANTIATED",
+    referencePrefix: "CASE-2026-HIP",
   },
   {
-    name: 'Systematic Discrimination Pattern',
+    name: "Systematic Discrimination Pattern",
     narrative: `A class of seven female engineers in the Software Development department have collectively filed a discrimination complaint.
 
 The complaint alleges that Director of Engineering Robert Thompson has systematically passed over qualified female candidates for promotion, given lower performance ratings to female team members, and made comments creating a hostile work environment.
@@ -315,27 +315,27 @@ Additionally, the reporters allege that female engineers were systematically exc
 
 One reporter, Lisa Nakamura, has indicated that she has retained external employment counsel and is evaluating her options. General Counsel has implemented a litigation hold on all documents related to engineering promotions, performance reviews, and project assignments for the 2023-2026 period. The case has been escalated to the CCO and CEO for executive oversight.`,
     summary: `Seven female software engineers filed a coordinated discrimination complaint against Engineering Director Robert Thompson, alleging systematic bias in promotions, performance ratings (0.7-point average disadvantage), project assignments, and hostile workplace comments. Reporters provided statistical analysis and two male colleagues corroborated. One reporter has retained external counsel. Litigation hold implemented.`,
-    category: 'Discrimination',
-    severity: 'HIGH',
+    category: "Discrimination",
+    severity: "HIGH",
     hasEscalation: true,
     hasExternalParty: true,
-    externalPartyType: 'legal',
+    externalPartyType: "legal",
     investigationCount: 1,
-    status: 'OPEN',
+    status: "OPEN",
     aiSummary:
-      'Systematic gender discrimination allegation from seven female engineers. Documented pattern of promotion bias, rating disparities, and hostile comments. Strong documentary evidence provided. Legal exposure high due to class nature and external counsel engagement.',
+      "Systematic gender discrimination allegation from seven female engineers. Documented pattern of promotion bias, rating disparities, and hostile comments. Strong documentary evidence provided. Legal exposure high due to class nature and external counsel engagement.",
     aiRiskScore: 91,
     durationDays: 0,
     demoPoints: [
-      'Multi-reporter coordinated complaint',
-      'Statistical pattern analysis',
-      'Documentary evidence management',
-      'Litigation hold and preservation',
+      "Multi-reporter coordinated complaint",
+      "Statistical pattern analysis",
+      "Documentary evidence management",
+      "Litigation hold and preservation",
     ],
-    referencePrefix: 'CASE-2026-DIS',
+    referencePrefix: "CASE-2026-DIS",
   },
   {
-    name: 'Vendor Kickback Scheme',
+    name: "Vendor Kickback Scheme",
     narrative: `The internal audit team has uncovered evidence of a potential kickback arrangement between Procurement Manager David Wilson and IT vendor TechServe Solutions.
 
 Over the past two years, TechServe has been awarded 14 contracts totaling $2.3 million. Analysis revealed:
@@ -365,28 +365,28 @@ Given the dollar amounts involved and potential wire fraud implications, General
 
 The internal investigation concluded on January 12, 2026, with all allegations substantiated. Criminal proceedings are ongoing under FBI jurisdiction.`,
     summary: `Internal audit investigation revealed a kickback scheme between Procurement Manager David Wilson and TechServe Solutions involving $2.3M in vendor contracts. TechServe won 14 contracts despite higher bids, Wilson bypassed vendor vetting, and $89,000 in unexplained deposits were found. Undisclosed college roommate relationship with vendor CEO. FBI engaged. All allegations substantiated.`,
-    category: 'Fraud',
-    severity: 'HIGH',
+    category: "Fraud",
+    severity: "HIGH",
     hasEscalation: true,
     hasExternalParty: true,
-    externalPartyType: 'law_enforcement',
+    externalPartyType: "law_enforcement",
     investigationCount: 2,
-    status: 'CLOSED',
+    status: "CLOSED",
     aiSummary:
-      'Complex fraud investigation involving $2.3M in vendor contracts and $89K in suspected kickbacks. Undisclosed personal relationship, documented bid manipulation, and financial anomalies. FBI engaged due to federal implications. Comprehensive forensic and financial analysis completed.',
+      "Complex fraud investigation involving $2.3M in vendor contracts and $89K in suspected kickbacks. Undisclosed personal relationship, documented bid manipulation, and financial anomalies. FBI engaged due to federal implications. Comprehensive forensic and financial analysis completed.",
     aiRiskScore: 97,
     durationDays: 89,
     demoPoints: [
-      'Law enforcement coordination',
-      'Financial forensics integration',
-      'Conflict of interest policy violation',
-      'Multi-year pattern analysis',
+      "Law enforcement coordination",
+      "Financial forensics integration",
+      "Conflict of interest policy violation",
+      "Multi-year pattern analysis",
     ],
-    outcome: 'SUBSTANTIATED',
-    referencePrefix: 'CASE-2025-FRD',
+    outcome: "SUBSTANTIATED",
+    referencePrefix: "CASE-2025-FRD",
   },
   {
-    name: 'Workplace Violence Threat',
+    name: "Workplace Violence Threat",
     narrative: `On January 20th at 4:45 PM, Security received an urgent report that warehouse employee James Mitchell made threatening statements toward his supervisor and coworkers.
 
 According to witnesses, Mitchell became agitated during a team meeting about schedule changes and stated:
@@ -418,28 +418,28 @@ The company's threat assessment team, consisting of Security, HR, Legal, and an 
 
 Mitchell was formally separated from employment on January 25, 2026, following completion of the investigation. A no-contact order was served, and affected employees were provided information about personal safety measures. The investigation concluded on February 1, 2026, with findings substantiated. No further incidents have been reported.`,
     summary: `Warehouse employee James Mitchell made specific threatening statements during team meeting including "You'll all regret this" and "I know where everyone parks." Prior incidents of escalating hostility documented, references to gun collection reported. Employee removed from premises, law enforcement notified, threat assessment team activated. Threat deemed credible. Employment terminated.`,
-    category: 'Workplace Violence',
-    severity: 'HIGH',
+    category: "Workplace Violence",
+    severity: "HIGH",
     hasEscalation: true,
     hasExternalParty: true,
-    externalPartyType: 'law_enforcement',
+    externalPartyType: "law_enforcement",
     investigationCount: 1,
-    status: 'CLOSED',
+    status: "CLOSED",
     aiSummary:
-      'Credible workplace violence threat requiring immediate intervention. Employee made specific threatening statements, pattern of escalating hostility, and references to weapons. Law enforcement notified, employee removed from premises, enhanced security implemented. Threat assessment critical priority.',
+      "Credible workplace violence threat requiring immediate intervention. Employee made specific threatening statements, pattern of escalating hostility, and references to weapons. Law enforcement notified, employee removed from premises, enhanced security implemented. Threat assessment critical priority.",
     aiRiskScore: 98,
     durationDays: 12,
     demoPoints: [
-      'Urgent threat response workflow',
-      'Security coordination',
-      'Law enforcement notification',
-      'Threat assessment team activation',
+      "Urgent threat response workflow",
+      "Security coordination",
+      "Law enforcement notification",
+      "Threat assessment team activation",
     ],
-    outcome: 'SUBSTANTIATED',
-    referencePrefix: 'CASE-2026-WPV',
+    outcome: "SUBSTANTIATED",
+    referencePrefix: "CASE-2026-WPV",
   },
   {
-    name: 'COI Disclosure - Board Member',
+    name: "COI Disclosure - Board Member",
     narrative: `Board member Eleanor Vance has submitted a proactive conflict of interest disclosure regarding her spouse's recent appointment.
 
 Disclosure details:
@@ -472,27 +472,27 @@ The Committee approved the following framework: Vance will recuse from all Clien
 
 Vance acknowledged and accepted the mitigation framework on January 22, 2026. The case was closed on January 27, 2026, with documentation filed with the Board Secretary for ongoing monitoring. Annual re-certification will be required while the conflict persists.`,
     summary: `Board member Eleanor Vance disclosed spouse's appointment as CMO at HealthFirst Systems, a major client representing 8% of Healthcare Division revenue. Multiple conflict touchpoints identified including committee chairmanship and contract renewal authority. Governance Committee approved formal recusal framework covering committee participation, Board discussions, and financial briefings.`,
-    category: 'Conflict of Interest',
-    severity: 'MEDIUM',
+    category: "Conflict of Interest",
+    severity: "MEDIUM",
     hasEscalation: true,
     hasExternalParty: false,
     investigationCount: 1,
-    status: 'CLOSED',
+    status: "CLOSED",
     aiSummary:
-      'Board-level conflict of interest disclosure regarding spouse appointment at major client. Proactive disclosure, though delayed. Multiple conflict touchpoints identified. Requires formal recusal framework and Board documentation. Standard COI management with elevated stakeholder sensitivity.',
+      "Board-level conflict of interest disclosure regarding spouse appointment at major client. Proactive disclosure, though delayed. Multiple conflict touchpoints identified. Requires formal recusal framework and Board documentation. Standard COI management with elevated stakeholder sensitivity.",
     aiRiskScore: 65,
     durationDays: 21,
     demoPoints: [
-      'Board-level disclosure handling',
-      'COI management framework',
-      'Recusal documentation',
-      'Proactive disclosure workflow',
+      "Board-level disclosure handling",
+      "COI management framework",
+      "Recusal documentation",
+      "Proactive disclosure workflow",
     ],
-    outcome: 'SUBSTANTIATED',
-    referencePrefix: 'CASE-2026-COI',
+    outcome: "SUBSTANTIATED",
+    referencePrefix: "CASE-2026-COI",
   },
   {
-    name: 'Retaliation After Safety Report',
+    name: "Retaliation After Safety Report",
     narrative: `Employee Michael Torres filed this complaint alleging retaliation for his previous safety report (CASE-2025-SAF-001, "Bay 4 Press Incident").
 
 Torres was one of the whistleblowers in the original investigation. Since that case was closed:
@@ -522,23 +522,23 @@ This case has been designated high-priority due to the direct connection to prio
 
 The investigation is proceeding with interviews of all parties, review of historical scheduling and performance documentation, and analysis of whether similarly situated employees who did not participate in the safety investigation experienced comparable treatment. Williams has been counseled not to discuss the case with Torres or other employees pending investigation completion.`,
     summary: `Manufacturing employee Michael Torres alleges retaliation for whistleblowing in the Bay 4 safety investigation. Since case closure, he experienced shift change to nights, bay reassignment, elimination of overtime, and lowered performance rating. Supervisor Janet Williams allegedly stated "People who cause problems get treated like problems." Case linked to prior substantiated CASE-2025-SAF-001.`,
-    category: 'Retaliation',
-    severity: 'HIGH',
+    category: "Retaliation",
+    severity: "HIGH",
     hasEscalation: true,
     hasExternalParty: false,
     investigationCount: 1,
-    status: 'OPEN',
+    status: "OPEN",
     aiSummary:
-      'Retaliation complaint from safety whistleblower. Multiple adverse employment actions documented following protected activity. Direct statement from supervisor suggests retaliatory intent. Case linked to prior substantiated safety investigation. High legal exposure.',
+      "Retaliation complaint from safety whistleblower. Multiple adverse employment actions documented following protected activity. Direct statement from supervisor suggests retaliatory intent. Case linked to prior substantiated safety investigation. High legal exposure.",
     aiRiskScore: 89,
     durationDays: 0,
     demoPoints: [
-      'Case-to-case linkage',
-      'Protected activity retaliation tracking',
-      'Temporal pattern analysis',
-      'Witness statement correlation',
+      "Case-to-case linkage",
+      "Protected activity retaliation tracking",
+      "Temporal pattern analysis",
+      "Witness statement correlation",
     ],
-    referencePrefix: 'CASE-2026-RET',
+    referencePrefix: "CASE-2026-RET",
   },
 ];
 
@@ -549,7 +549,7 @@ The investigation is proceeding with interviews of all parties, review of histor
  * @returns Filtered flagship cases
  */
 export function getFlagshipCasesByStatus(
-  status: 'NEW' | 'OPEN' | 'CLOSED',
+  status: "NEW" | "OPEN" | "CLOSED",
 ): FlagshipCase[] {
   return FLAGSHIP_CASES.filter((c) => c.status === status);
 }
@@ -601,7 +601,8 @@ export function prepareFlagshipCasesForSeeding(
 }> {
   return FLAGSHIP_CASES.map((flagship) => {
     // Find matching category ID
-    const categoryId = categoryNameToId.get(flagship.category) ||
+    const categoryId =
+      categoryNameToId.get(flagship.category) ||
       Array.from(categoryNameToId.values())[0]; // Fallback to first category
 
     return {
@@ -622,12 +623,17 @@ export function getFlagshipStats(): {
   withExternalParty: number;
   avgRiskScore: number;
 } {
-  const open = FLAGSHIP_CASES.filter((c) => c.status === 'OPEN' || c.status === 'NEW').length;
-  const closed = FLAGSHIP_CASES.filter((c) => c.status === 'CLOSED').length;
+  const open = FLAGSHIP_CASES.filter(
+    (c) => c.status === "OPEN" || c.status === "NEW",
+  ).length;
+  const closed = FLAGSHIP_CASES.filter((c) => c.status === "CLOSED").length;
   const withEscalation = FLAGSHIP_CASES.filter((c) => c.hasEscalation).length;
-  const withExternalParty = FLAGSHIP_CASES.filter((c) => c.hasExternalParty).length;
+  const withExternalParty = FLAGSHIP_CASES.filter(
+    (c) => c.hasExternalParty,
+  ).length;
   const avgRiskScore =
-    FLAGSHIP_CASES.reduce((sum, c) => sum + c.aiRiskScore, 0) / FLAGSHIP_CASES.length;
+    FLAGSHIP_CASES.reduce((sum, c) => sum + c.aiRiskScore, 0) /
+    FLAGSHIP_CASES.length;
 
   return {
     total: FLAGSHIP_CASES.length,
