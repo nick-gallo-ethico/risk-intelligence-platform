@@ -5,17 +5,17 @@
 See: .planning/PROJECT.md (updated 2026-02-02)
 
 **Core value:** Users can manage their entire compliance workflow - from anonymous report intake to investigation closure to board reporting - in one AI-assisted platform, with every task unified into a single "My Work" view.
-**Current focus:** Phase 14.2 - Case Creation & Search Fixes
+**Current focus:** Phase 15 - Case Detail Page Overhaul
 
 ## Current Position
 
-Phase: 14.2 of 24 (Case Creation & Search Fixes)
-Plan: 3 of 3 in current phase (01 and 02 complete)
-Status: Phase 14.2 IN PROGRESS
-Last activity: 2026-02-10 - Completed 14.2-01 Category dropdowns for case creation
-**Next Phase:** Phase 14.2-03 Verification Checkpoint
+Phase: 15 of 24 (Case Detail Page Overhaul)
+Plan: 1 of ? in current phase (01 complete)
+Status: Phase 15 IN PROGRESS
+Last activity: 2026-02-10 - Completed 15-01 Backend REST endpoints for case merge and person-case associations
+**Next Phase:** Phase 15-02 (Frontend case detail page)
 
-Progress: [====================================================------------------] ~77% (~205 of ~260 estimated total plans)
+Progress: [====================================================------------------] ~78% (~206 of ~260 estimated total plans)
 
 ### Phase 14 Critical Bug Fixes & Navigation COMPLETE (2026-02-09)
 
@@ -47,7 +47,18 @@ Plans 01-03 complete, human verification revealed additional issues:
 - Category/Subcategory dropdowns missing from case creation form
 - Unified search returning empty results despite populated search vectors
 
-### Phase 14.2 Case Creation & Search Fixes IN PROGRESS (2026-02-10)
+### Phase 15 Case Detail Page Overhaul IN PROGRESS (2026-02-10)
+
+Three-column case detail page with activity feed, AI panel, and merge operations.
+
+Plans:
+
+- 15-01: Backend REST endpoints for case merge and person-case associations (COMPLETE - 418105e)
+  - POST /cases/:id/merge, GET /cases/:id/merge-history, GET /cases/:id/can-merge/:targetId
+  - GET/POST/DELETE /cases/:caseId/persons for person-case associations
+- 15-02: Frontend case detail page (PENDING)
+
+### Phase 14.2 Case Creation & Search Fixes COMPLETE (2026-02-10)
 
 Created to address issues found during 14.1 human verification:
 
@@ -58,7 +69,7 @@ Plans:
 
 - 14.2-01: Categories API endpoint and frontend integration (COMPLETE - 9cde4bc)
 - 14.2-02: PostgreSQL FTS fallback for unified search (COMPLETE - c5038c5)
-- 14.2-03: Verification checkpoint (PENDING)
+- 14.2-03: Verification checkpoint (COMPLETE - enum alignment fixes committed)
 
 ### Phase 13.1 Saved Views Fixes Complete (2026-02-09)
 
