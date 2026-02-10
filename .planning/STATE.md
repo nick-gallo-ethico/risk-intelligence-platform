@@ -10,12 +10,12 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 15 of 24 (Case Detail Page Overhaul)
-Plan: 1 of ? in current phase (01 complete)
+Plan: 7 of ? in current phase (01, 07 complete)
 Status: Phase 15 IN PROGRESS
-Last activity: 2026-02-10 - Completed 15-01 Backend REST endpoints for case merge and person-case associations
-**Next Phase:** Phase 15-02 (Frontend case detail page)
+Last activity: 2026-02-10 - Completed 15-07 Enhanced seed data (flagship case details, activities, connected people)
+**Next Phase:** Continue Phase 15 execution
 
-Progress: [====================================================------------------] ~78% (~206 of ~260 estimated total plans)
+Progress: [====================================================------------------] ~79% (~207 of ~260 estimated total plans)
 
 ### Phase 14 Critical Bug Fixes & Navigation COMPLETE (2026-02-09)
 
@@ -56,7 +56,11 @@ Plans:
 - 15-01: Backend REST endpoints for case merge and person-case associations (COMPLETE - 418105e)
   - POST /cases/:id/merge, GET /cases/:id/merge-history, GET /cases/:id/can-merge/:targetId
   - GET/POST/DELETE /cases/:caseId/persons for person-case associations
-- 15-02: Frontend case detail page (PENDING)
+- 15-07: Enhanced seed data for flagship cases (COMPLETE - c9a4fcf)
+  - 200-400 word details and 50-75 word summaries for all 10 flagship cases
+  - Activity timeline seeding (6-10 entries per case)
+  - Connected people seeding (2-4 person associations per case with SUBJECT/REPORTER/WITNESS labels)
+- 15-02 through 15-06: Frontend case detail page components (PENDING)
 
 ### Phase 14.2 Case Creation & Search Fixes COMPLETE (2026-02-10)
 
@@ -639,7 +643,7 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-02-10
-Stopped at: Completed 14.2-02 PostgreSQL FTS fallback for unified search
+Stopped at: Completed 15-07 Enhanced seed data (flagship case details, activities, connected people)
 Resume file: None
 
 **Phase 14.2 Status: IN PROGRESS**
