@@ -1,23 +1,23 @@
-'use client';
+"use client";
 
-import { UseFormWatch, UseFormSetValue, FieldErrors } from 'react-hook-form';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
+import { UseFormWatch, UseFormSetValue, FieldErrors } from "react-hook-form";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
 import {
   CaseCreationFormData,
   sourceChannelOptions,
   caseTypeOptions,
   severityOptions,
-} from '@/lib/validations/case-schema';
-import { cn } from '@/lib/utils';
-import { useAuthenticatedCategories } from '@/hooks/useAuthenticatedCategories';
+} from "@/lib/validations/case-schema";
+import { cn } from "@/lib/utils";
+import { useAuthenticatedCategories } from "@/hooks/useAuthenticatedCategories";
 
 interface BasicInfoSectionProps {
   errors: FieldErrors<CaseCreationFormData>;
@@ -34,22 +34,23 @@ export function BasicInfoSection({
   setValue,
   watch,
 }: BasicInfoSectionProps) {
-  const sourceChannel = watch('sourceChannel');
-  const caseType = watch('caseType');
-  const severity = watch('severity');
-  const primaryCategoryId = watch('primaryCategoryId');
-  const secondaryCategoryId = watch('secondaryCategoryId');
+  const sourceChannel = watch("sourceChannel");
+  const caseType = watch("caseType");
+  const severity = watch("severity");
+  const primaryCategoryId = watch("primaryCategoryId");
+  const secondaryCategoryId = watch("secondaryCategoryId");
 
   // Fetch categories for the authenticated user
-  const { flatCategories, isLoading: categoriesLoading } = useAuthenticatedCategories();
+  const { flatCategories, isLoading: categoriesLoading } =
+    useAuthenticatedCategories();
 
   // Filter for CASE module categories only
   const caseCategories = flatCategories.filter(
-    (c) => c.module === 'CASE' && c.isEnabled
+    (c) => c.module === "CASE" && c.isEnabled,
   );
   const topLevelCategories = caseCategories.filter((c) => c.level === 0);
   const subcategories = caseCategories.filter(
-    (c) => c.parentId === primaryCategoryId
+    (c) => c.parentId === primaryCategoryId,
   );
 
   return (
@@ -67,12 +68,15 @@ export function BasicInfoSection({
             <Select
               value={sourceChannel}
               onValueChange={(value) =>
-                setValue('sourceChannel', value as CaseCreationFormData['sourceChannel'])
+                setValue(
+                  "sourceChannel",
+                  value as CaseCreationFormData["sourceChannel"],
+                )
               }
             >
               <SelectTrigger
                 id="sourceChannel"
-                className={cn(errors.sourceChannel && 'border-destructive')}
+                className={cn(errors.sourceChannel && "border-destructive")}
               >
                 <SelectValue placeholder="Select source..." />
               </SelectTrigger>
@@ -97,7 +101,7 @@ export function BasicInfoSection({
             <Select
               value={caseType || undefined}
               onValueChange={(value) =>
-                setValue('caseType', value as CaseCreationFormData['caseType'])
+                setValue("caseType", value as CaseCreationFormData["caseType"])
               }
             >
               <SelectTrigger id="caseType">
@@ -124,7 +128,7 @@ export function BasicInfoSection({
             <Select
               value={severity || undefined}
               onValueChange={(value) =>
-                setValue('severity', value as CaseCreationFormData['severity'])
+                setValue("severity", value as CaseCreationFormData["severity"])
               }
             >
               <SelectTrigger id="severity">
@@ -136,11 +140,11 @@ export function BasicInfoSection({
                     <div className="flex items-center gap-2">
                       <span
                         className={cn(
-                          'inline-block w-2 h-2 rounded-full',
-                          option.value === 'LOW' && 'bg-green-500',
-                          option.value === 'MEDIUM' && 'bg-yellow-500',
-                          option.value === 'HIGH' && 'bg-orange-500',
-                          option.value === 'CRITICAL' && 'bg-red-500'
+                          "inline-block w-2 h-2 rounded-full",
+                          option.value === "LOW" && "bg-green-500",
+                          option.value === "MEDIUM" && "bg-yellow-500",
+                          option.value === "HIGH" && "bg-orange-500",
+                          option.value === "CRITICAL" && "bg-red-500",
                         )}
                       />
                       {option.label}
@@ -165,16 +169,16 @@ export function BasicInfoSection({
             <Select
               value={primaryCategoryId || undefined}
               onValueChange={(value) => {
-                setValue('primaryCategoryId', value);
+                setValue("primaryCategoryId", value);
                 // Reset subcategory when category changes
-                setValue('secondaryCategoryId', '');
+                setValue("secondaryCategoryId", "");
               }}
               disabled={categoriesLoading}
             >
               <SelectTrigger id="primaryCategoryId">
                 <SelectValue
                   placeholder={
-                    categoriesLoading ? 'Loading...' : 'Select category...'
+                    categoriesLoading ? "Loading..." : "Select category..."
                   }
                 />
               </SelectTrigger>
@@ -199,7 +203,9 @@ export function BasicInfoSection({
               <Label htmlFor="secondaryCategoryId">Subcategory</Label>
               <Select
                 value={secondaryCategoryId || undefined}
-                onValueChange={(value) => setValue('secondaryCategoryId', value)}
+                onValueChange={(value) =>
+                  setValue("secondaryCategoryId", value)
+                }
               >
                 <SelectTrigger id="secondaryCategoryId">
                   <SelectValue placeholder="Select subcategory..." />

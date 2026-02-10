@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useQuery } from '@tanstack/react-query';
+import { useQuery } from "@tanstack/react-query";
 
 /**
  * Category from the API with tree structure support.
@@ -41,10 +41,12 @@ interface CategoriesResponse {
  * Fetch categories from the public API.
  */
 async function fetchTenantCategories(tenantSlug: string): Promise<Category[]> {
-  const response = await fetch(`/api/v1/public/ethics/${tenantSlug}/categories`);
+  const response = await fetch(
+    `/api/v1/public/ethics/${tenantSlug}/categories`,
+  );
 
   if (!response.ok) {
-    throw new Error('Failed to fetch categories');
+    throw new Error("Failed to fetch categories");
   }
 
   const data: CategoriesResponse = await response.json();
@@ -77,10 +79,12 @@ function buildCategoryTree(categories: Category[]): Category[] {
 
   // Sort by sortOrder
   const sortCategories = (cats: Category[]): Category[] => {
-    return cats.sort((a, b) => a.sortOrder - b.sortOrder).map((cat) => ({
-      ...cat,
-      children: cat.children ? sortCategories(cat.children) : [],
-    }));
+    return cats
+      .sort((a, b) => a.sortOrder - b.sortOrder)
+      .map((cat) => ({
+        ...cat,
+        children: cat.children ? sortCategories(cat.children) : [],
+      }));
   };
 
   return sortCategories(roots);
@@ -114,14 +118,16 @@ export interface UseTenantCategoriesResult {
  * const { categories, isLoading } = useTenantCategories('acme-corp');
  * ```
  */
-export function useTenantCategories(tenantSlug: string): UseTenantCategoriesResult {
+export function useTenantCategories(
+  tenantSlug: string,
+): UseTenantCategoriesResult {
   const {
     data: flatCategories,
     isLoading,
     error,
     refetch,
   } = useQuery({
-    queryKey: ['tenant-categories', tenantSlug],
+    queryKey: ["tenant-categories", tenantSlug],
     queryFn: () => fetchTenantCategories(tenantSlug),
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes (formerly cacheTime)
