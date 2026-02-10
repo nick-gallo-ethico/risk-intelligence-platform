@@ -130,12 +130,16 @@ export default function NotificationsPage() {
     queryFn: async (): Promise<NotificationsResponse> => {
       try {
         const response = await api.get("/notifications", {
-          params: { page, limit: PAGE_SIZE },
+          params: { offset: (page - 1) * PAGE_SIZE, limit: PAGE_SIZE },
         });
         // Handle various response shapes
         // Backend returns { notifications: [...], total, unreadCount }
-        if (response.data?.notifications && Array.isArray(response.data.notifications)) {
-          const total = response.data.total || response.data.notifications.length;
+        if (
+          response.data?.notifications &&
+          Array.isArray(response.data.notifications)
+        ) {
+          const total =
+            response.data.total || response.data.notifications.length;
           return {
             data: response.data.notifications,
             total,
@@ -278,7 +282,8 @@ export default function NotificationsPage() {
                   <Bell className="h-12 w-12 text-muted-foreground mb-4" />
                   <h3 className="text-lg font-medium">No notifications</h3>
                   <p className="text-sm text-muted-foreground mt-1">
-                    You're all caught up! New notifications will appear here.
+                    You&apos;re all caught up! New notifications will appear
+                    here.
                   </p>
                 </div>
               ) : (
@@ -298,7 +303,9 @@ export default function NotificationsPage() {
                             notification.priority || "LOW",
                           )}`}
                         >
-                          {getNotificationIcon(notification.category || notification.type)}
+                          {getNotificationIcon(
+                            notification.category || notification.type,
+                          )}
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1">

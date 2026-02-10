@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import Link from 'next/link';
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import Link from "next/link";
 import {
   ArrowLeft,
   ScrollText,
@@ -14,20 +14,20 @@ import {
   FileText,
   Shield,
   Calendar,
-} from 'lucide-react';
+} from "lucide-react";
 
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -35,9 +35,9 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { api } from '@/lib/api';
-import { formatDistanceToNow } from 'date-fns';
+} from "@/components/ui/table";
+import { api } from "@/lib/api";
+import { formatDistanceToNow } from "date-fns";
 
 interface AuditLogEntry {
   id: string;
@@ -75,8 +75,8 @@ interface AuditLogResponse {
  * Shows who did what, when, and with what changes.
  */
 export default function AuditLogPage() {
-  const [search, setSearch] = useState('');
-  const [entityType, setEntityType] = useState<string>('all');
+  const [search, setSearch] = useState("");
+  const [entityType, setEntityType] = useState<string>("all");
   const [page, setPage] = useState(1);
 
   const {
@@ -84,22 +84,27 @@ export default function AuditLogPage() {
     isLoading,
     error,
   } = useQuery({
-    queryKey: ['audit-log', entityType, search, page],
+    queryKey: ["audit-log", entityType, search, page],
     queryFn: async (): Promise<AuditLogResponse> => {
       const params: Record<string, string | number> = {
-        page,
+        offset: (page - 1) * 50,
         limit: 50,
       };
-      if (entityType !== 'all') {
+      if (entityType !== "all") {
         params.entityType = entityType;
       }
       if (search) {
         params.search = search;
       }
-      const response = await api.get('/audit', { params });
+      const response = await api.get("/audit", { params });
       // Handle various response shapes
       if (Array.isArray(response.data)) {
-        return { data: response.data, total: response.data.length, limit: 50, page };
+        return {
+          data: response.data,
+          total: response.data.length,
+          limit: 50,
+          page,
+        };
       }
       return response.data || { data: [], total: 0, limit: 50, page };
     },
@@ -107,29 +112,32 @@ export default function AuditLogPage() {
 
   const getEntityIcon = (type: string) => {
     switch (type.toUpperCase()) {
-      case 'USER':
+      case "USER":
         return <User className="h-4 w-4" />;
-      case 'CASE':
-      case 'INVESTIGATION':
+      case "CASE":
+      case "INVESTIGATION":
         return <FileText className="h-4 w-4" />;
-      case 'POLICY':
+      case "POLICY":
         return <Shield className="h-4 w-4" />;
       default:
         return <Settings className="h-4 w-4" />;
     }
   };
 
-  const getActionBadgeVariant = (action: string): 'default' | 'secondary' | 'destructive' | 'outline' => {
-    if (action.includes('delete') || action.includes('removed')) return 'destructive';
-    if (action.includes('create') || action.includes('added')) return 'default';
-    return 'secondary';
+  const getActionBadgeVariant = (
+    action: string,
+  ): "default" | "secondary" | "destructive" | "outline" => {
+    if (action.includes("delete") || action.includes("removed"))
+      return "destructive";
+    if (action.includes("create") || action.includes("added")) return "default";
+    return "secondary";
   };
 
   const formatActorName = (entry: AuditLogEntry) => {
     if (entry.actorUser) {
       return `${entry.actorUser.firstName} ${entry.actorUser.lastName}`;
     }
-    return entry.actorUserId || 'System';
+    return entry.actorUserId || "System";
   };
 
   if (error) {
@@ -137,7 +145,9 @@ export default function AuditLogPage() {
       <div className="container mx-auto py-6 max-w-6xl">
         <div className="flex flex-col items-center justify-center py-12">
           <ScrollText className="h-12 w-12 text-muted-foreground mb-4" />
-          <h2 className="text-xl font-semibold mb-2">Failed to Load Audit Log</h2>
+          <h2 className="text-xl font-semibold mb-2">
+            Failed to Load Audit Log
+          </h2>
           <p className="text-muted-foreground mb-4">
             There was an error loading the audit log. Please try again.
           </p>
@@ -268,9 +278,13 @@ export default function AuditLogPage() {
                           <User className="h-4 w-4 text-primary" />
                         </div>
                         <div>
-                          <p className="text-sm font-medium">{formatActorName(entry)}</p>
+                          <p className="text-sm font-medium">
+                            {formatActorName(entry)}
+                          </p>
                           {entry.ipAddress && (
-                            <p className="text-xs text-muted-foreground">{entry.ipAddress}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {entry.ipAddress}
+                            </p>
                           )}
                         </div>
                       </div>
@@ -278,7 +292,9 @@ export default function AuditLogPage() {
                     <TableCell>
                       <div className="flex items-center gap-1 text-sm text-muted-foreground">
                         <Calendar className="h-3 w-3" />
-                        {formatDistanceToNow(new Date(entry.createdAt), { addSuffix: true })}
+                        {formatDistanceToNow(new Date(entry.createdAt), {
+                          addSuffix: true,
+                        })}
                       </div>
                     </TableCell>
                   </TableRow>
@@ -288,7 +304,9 @@ export default function AuditLogPage() {
           ) : (
             <div className="flex flex-col items-center justify-center py-12">
               <ScrollText className="h-8 w-8 text-muted-foreground mb-2" />
-              <p className="text-muted-foreground">No audit log entries found</p>
+              <p className="text-muted-foreground">
+                No audit log entries found
+              </p>
             </div>
           )}
         </CardContent>
@@ -298,8 +316,9 @@ export default function AuditLogPage() {
       {auditLog && auditLog.total > auditLog.limit && (
         <div className="flex justify-between items-center mt-4">
           <p className="text-sm text-muted-foreground">
-            Showing {(page - 1) * auditLog.limit + 1} to{' '}
-            {Math.min(page * auditLog.limit, auditLog.total)} of {auditLog.total} entries
+            Showing {(page - 1) * auditLog.limit + 1} to{" "}
+            {Math.min(page * auditLog.limit, auditLog.total)} of{" "}
+            {auditLog.total} entries
           </p>
           <div className="flex gap-2">
             <Button

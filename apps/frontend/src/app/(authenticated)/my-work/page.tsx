@@ -156,7 +156,7 @@ export default function MyWorkPage() {
     queryFn: async (): Promise<MyWorkResponse> => {
       try {
         const params: Record<string, string | number> = {
-          page,
+          offset: (page - 1) * PAGE_SIZE,
           limit: PAGE_SIZE,
         };
 
@@ -172,7 +172,7 @@ export default function MyWorkPage() {
         // Handle sectioned response (legacy)
         if (response.data?.sections) {
           const allTasks = response.data.sections.flatMap(
-            (s: { tasks: UnifiedTask[] }) => s.tasks
+            (s: { tasks: UnifiedTask[] }) => s.tasks,
           );
           return {
             data: allTasks,
@@ -180,7 +180,7 @@ export default function MyWorkPage() {
             page: 1,
             limit: PAGE_SIZE,
             totalPages: Math.ceil(
-              (response.data.total || allTasks.length) / PAGE_SIZE
+              (response.data.total || allTasks.length) / PAGE_SIZE,
             ),
           };
         }
@@ -218,7 +218,7 @@ export default function MyWorkPage() {
         router.push(task.url);
       }
     },
-    [router]
+    [router],
   );
 
   /**
@@ -233,14 +233,18 @@ export default function MyWorkPage() {
   let tasks = data?.data || [];
   if (filter === "overdue") {
     tasks = tasks.filter(
-      (t) => t.dueDate && isPast(new Date(t.dueDate)) && !isToday(new Date(t.dueDate))
+      (t) =>
+        t.dueDate &&
+        isPast(new Date(t.dueDate)) &&
+        !isToday(new Date(t.dueDate)),
     );
   }
 
   const total = data?.total || 0;
   const totalPages = data?.totalPages || Math.ceil(total / PAGE_SIZE);
   const overdueCount = (data?.data || []).filter(
-    (t) => t.dueDate && isPast(new Date(t.dueDate)) && !isToday(new Date(t.dueDate))
+    (t) =>
+      t.dueDate && isPast(new Date(t.dueDate)) && !isToday(new Date(t.dueDate)),
   ).length;
 
   return (
