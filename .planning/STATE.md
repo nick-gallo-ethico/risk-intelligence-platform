@@ -10,10 +10,10 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 15 of 24 (Case Detail Page Overhaul)
-Plan: 7 of ? in current phase (01, 07 complete)
+Plan: 02 of 7 in current phase (01, 02, 07 complete)
 Status: Phase 15 IN PROGRESS
-Last activity: 2026-02-10 - Completed 15-07 Enhanced seed data (flagship case details, activities, connected people)
-**Next Phase:** Continue Phase 15 execution
+Last activity: 2026-02-10 - Completed 15-02 Three-column layout and left column components
+**Next Phase:** Continue Phase 15 execution (15-03 through 15-06)
 
 Progress: [====================================================------------------] ~79% (~207 of ~260 estimated total plans)
 
@@ -60,7 +60,12 @@ Plans:
   - 200-400 word details and 50-75 word summaries for all 10 flagship cases
   - Activity timeline seeding (6-10 entries per case)
   - Connected people seeding (2-4 person associations per case with SUBJECT/REPORTER/WITNESS labels)
-- 15-02 through 15-06: Frontend case detail page components (PENDING)
+- 15-02: Three-column layout and left column components (COMPLETE - ebc5733)
+  - CSS Grid three-column layout (300px|1fr|300px)
+  - CaseInfoSummary component (ref number, status, severity, pipeline, days open, SLA)
+  - ActionButtonRow component (5 quick action buttons: Note, Interview, Document, Task, Email)
+  - Right column placeholder for connected entities (Plan 05)
+- 15-03 through 15-06: Frontend case detail page components (PENDING)
 
 ### Phase 14.2 Case Creation & Search Fixes COMPLETE (2026-02-10)
 
@@ -643,7 +648,7 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-02-10
-Stopped at: Completed 15-07 Enhanced seed data (flagship case details, activities, connected people)
+Stopped at: Completed 15-02 Three-column layout and left column components
 Resume file: None
 
 **Phase 14.2 Status: IN PROGRESS**

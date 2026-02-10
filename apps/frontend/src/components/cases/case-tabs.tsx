@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useCallback } from 'react';
-import { useSearchParams, useRouter, usePathname } from 'next/navigation';
+import { useCallback } from "react";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import {
   FileText,
   Search,
@@ -9,33 +9,38 @@ import {
   Paperclip,
   Activity,
   ClipboardCheck,
-} from 'lucide-react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
-import { cn } from '@/lib/utils';
-import { LinkedRiuList } from './linked-riu-list';
-import { CaseActivityTimeline } from './case-activity-timeline';
-import { CaseInvestigationsPanel } from './case-investigations-panel';
-import { MessagesTab } from './messages-tab';
-import { FilesTab } from './files-tab';
-import { RemediationTab } from './remediation-tab';
-import type { Case, RiuAssociation } from '@/types/case';
+  ScrollText,
+  ArrowRight,
+} from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
+import { LinkedRiuList } from "./linked-riu-list";
+import { CaseActivityTimeline } from "./case-activity-timeline";
+import { CaseInvestigationsPanel } from "./case-investigations-panel";
+import { MessagesTab } from "./messages-tab";
+import { FilesTab } from "./files-tab";
+import { RemediationTab } from "./remediation-tab";
+import { SummaryTab } from "./summary-tab";
+import type { Case, RiuAssociation } from "@/types/case";
 
 /**
  * Tab configuration with icons and counts
+ * Order: Overview, Activities, Summary, Investigations, Messages, Files, Remediation
  */
 const TABS = [
-  { id: 'overview', label: 'Overview', icon: FileText },
-  { id: 'investigations', label: 'Investigations', icon: Search },
-  { id: 'messages', label: 'Messages', icon: MessageSquare },
-  { id: 'files', label: 'Files', icon: Paperclip },
-  { id: 'activity', label: 'Activity', icon: Activity },
-  { id: 'remediation', label: 'Remediation', icon: ClipboardCheck },
+  { id: "overview", label: "Overview", icon: FileText },
+  { id: "activity", label: "Activities", icon: Activity },
+  { id: "summary", label: "Summary", icon: ScrollText },
+  { id: "investigations", label: "Investigations", icon: Search },
+  { id: "messages", label: "Messages", icon: MessageSquare },
+  { id: "files", label: "Files", icon: Paperclip },
+  { id: "remediation", label: "Remediation", icon: ClipboardCheck },
 ] as const;
 
-type TabId = (typeof TABS)[number]['id'];
+type TabId = (typeof TABS)[number]["id"];
 
 interface TabCounts {
   investigations?: number;
@@ -43,6 +48,7 @@ interface TabCounts {
   unreadMessages?: number;
   files?: number;
   activity?: number;
+  summary?: number;
   remediation?: number;
 }
 
@@ -75,23 +81,23 @@ export function CaseTabs({
   caseData,
   isLoading,
   counts = {},
-  defaultTab = 'overview',
+  defaultTab = "overview",
 }: CaseTabsProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
 
   // Get current tab from URL or use default
-  const currentTab = (searchParams?.get('tab') as TabId) || defaultTab;
+  const currentTab = (searchParams?.get("tab") as TabId) || defaultTab;
 
   // Handle tab change - update URL
   const handleTabChange = useCallback(
     (tab: string) => {
-      const params = new URLSearchParams(searchParams?.toString() ?? '');
-      params.set('tab', tab);
+      const params = new URLSearchParams(searchParams?.toString() ?? "");
+      params.set("tab", tab);
       router.push(`${pathname}?${params.toString()}`, { scroll: false });
     },
-    [router, pathname, searchParams]
+    [router, pathname, searchParams],
   );
 
   // Handle RIU click - navigate to RIU detail
@@ -99,7 +105,7 @@ export function CaseTabs({
     (riuId: string) => {
       router.push(`/rius/${riuId}`);
     },
-    [router]
+    [router],
   );
 
   if (isLoading) {
@@ -122,17 +128,17 @@ export function CaseTabs({
           {TABS.map((tab) => {
             const Icon = tab.icon;
             const count = counts[tab.id as keyof TabCounts];
-            const hasUnread = tab.id === 'messages' && counts.unreadMessages;
+            const hasUnread = tab.id === "messages" && counts.unreadMessages;
 
             return (
               <TabsTrigger
                 key={tab.id}
                 value={tab.id}
                 className={cn(
-                  'relative h-12 rounded-none border-b-2 border-transparent px-4 py-2 font-medium',
-                  'data-[state=active]:border-blue-600 data-[state=active]:text-blue-600',
-                  'data-[state=inactive]:text-gray-500 data-[state=inactive]:hover:text-gray-700',
-                  'transition-colors'
+                  "relative h-12 rounded-none border-b-2 border-transparent px-4 py-2 font-medium",
+                  "data-[state=active]:border-blue-600 data-[state=active]:text-blue-600",
+                  "data-[state=inactive]:text-gray-500 data-[state=inactive]:hover:text-gray-700",
+                  "transition-colors",
                 )}
               >
                 <div className="flex items-center gap-2">
@@ -140,10 +146,10 @@ export function CaseTabs({
                   <span className="hidden sm:inline">{tab.label}</span>
                   {count !== undefined && count > 0 && (
                     <Badge
-                      variant={hasUnread ? 'default' : 'secondary'}
+                      variant={hasUnread ? "default" : "secondary"}
                       className={cn(
-                        'h-5 min-w-5 px-1.5 text-xs',
-                        hasUnread && 'bg-red-500'
+                        "h-5 min-w-5 px-1.5 text-xs",
+                        hasUnread && "bg-red-500",
                       )}
                     >
                       {hasUnread ? counts.unreadMessages : count}
@@ -164,7 +170,11 @@ export function CaseTabs({
           className="h-full m-0 p-0 data-[state=inactive]:hidden"
         >
           <div className="h-full overflow-y-auto">
-            <OverviewTab caseData={caseData} onRiuClick={handleRiuClick} />
+            <OverviewTab
+              caseData={caseData}
+              onRiuClick={handleRiuClick}
+              onTabChange={handleTabChange}
+            />
           </div>
         </TabsContent>
 
@@ -211,6 +221,16 @@ export function CaseTabs({
           </div>
         </TabsContent>
 
+        {/* Summary Tab */}
+        <TabsContent
+          value="summary"
+          className="h-full m-0 p-0 data-[state=inactive]:hidden"
+        >
+          <div className="h-full overflow-y-auto">
+            <SummaryTab caseData={caseData} />
+          </div>
+        </TabsContent>
+
         {/* Remediation Tab */}
         <TabsContent
           value="remediation"
@@ -226,16 +246,133 @@ export function CaseTabs({
 }
 
 /**
- * Overview tab content - linked RIUs, summary, key dates
+ * Pipeline stages for lifecycle visualization
+ */
+const PIPELINE_STAGES = ["New", "Triage", "Investigation", "Review", "Closed"];
+
+/**
+ * Overview tab content - lifecycle, linked RIUs, details, key dates, activity link
  */
 interface OverviewTabProps {
   caseData: Case;
   onRiuClick?: (riuId: string) => void;
+  onTabChange?: (tab: string) => void;
 }
 
-function OverviewTab({ caseData, onRiuClick }: OverviewTabProps) {
+function OverviewTab({ caseData, onRiuClick, onTabChange }: OverviewTabProps) {
+  // Determine current stage index based on pipelineStage or status
+  const currentStageIndex = (() => {
+    if (caseData.pipelineStage) {
+      const idx = PIPELINE_STAGES.findIndex(
+        (s) => s.toLowerCase() === caseData.pipelineStage?.toLowerCase(),
+      );
+      return idx >= 0 ? idx : 0;
+    }
+    // Map status to stage if no pipelineStage
+    switch (caseData.status) {
+      case "CLOSED":
+        return 4;
+      case "OPEN":
+        return 2;
+      case "NEW":
+      default:
+        return 0;
+    }
+  })();
+
   return (
     <div className="p-6 space-y-6">
+      {/* Lifecycle Section */}
+      <section>
+        <h3 className="text-sm font-semibold text-gray-700 mb-3">Lifecycle</h3>
+        <div className="bg-white border rounded-lg p-4">
+          {/* Pipeline Progress */}
+          <div className="mb-4">
+            <div className="flex items-center justify-between">
+              {PIPELINE_STAGES.map((stage, idx) => (
+                <div key={stage} className="flex-1 flex items-center">
+                  <div className="flex flex-col items-center">
+                    <div
+                      className={cn(
+                        "w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium",
+                        idx < currentStageIndex
+                          ? "bg-green-500 text-white"
+                          : idx === currentStageIndex
+                            ? "bg-blue-600 text-white ring-2 ring-blue-200"
+                            : "bg-gray-200 text-gray-500",
+                      )}
+                    >
+                      {idx + 1}
+                    </div>
+                    <span
+                      className={cn(
+                        "text-xs mt-1",
+                        idx === currentStageIndex
+                          ? "font-medium text-blue-600"
+                          : "text-gray-500",
+                      )}
+                    >
+                      {stage}
+                    </span>
+                  </div>
+                  {idx < PIPELINE_STAGES.length - 1 && (
+                    <div
+                      className={cn(
+                        "flex-1 h-0.5 mx-1",
+                        idx < currentStageIndex
+                          ? "bg-green-500"
+                          : "bg-gray-200",
+                      )}
+                    />
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Status and Assignees */}
+          <div className="flex items-center gap-4 pt-3 border-t">
+            <div>
+              <span className="text-xs text-gray-500">Status: </span>
+              <Badge
+                variant={
+                  caseData.status === "CLOSED"
+                    ? "secondary"
+                    : caseData.status === "OPEN"
+                      ? "default"
+                      : "outline"
+                }
+              >
+                {caseData.status}
+              </Badge>
+            </div>
+            {caseData.assignedInvestigators &&
+              caseData.assignedInvestigators.length > 0 && (
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-500">Assigned:</span>
+                  <div className="flex -space-x-2">
+                    {caseData.assignedInvestigators.slice(0, 3).map((inv) => (
+                      <div
+                        key={inv.id}
+                        className="w-6 h-6 rounded-full bg-gray-300 border-2 border-white flex items-center justify-center text-xs font-medium text-gray-600"
+                        title={`${inv.firstName} ${inv.lastName}`}
+                      >
+                        {inv.firstName?.[0]}
+                        {inv.lastName?.[0]}
+                      </div>
+                    ))}
+                    {caseData.assignedInvestigators.length > 3 && (
+                      <div className="w-6 h-6 rounded-full bg-gray-200 border-2 border-white flex items-center justify-center text-xs font-medium text-gray-600">
+                        +{caseData.assignedInvestigators.length - 3}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+          </div>
+        </div>
+      </section>
+
       {/* Linked RIUs Section */}
       <section>
         <LinkedRiuList
@@ -246,10 +383,12 @@ function OverviewTab({ caseData, onRiuClick }: OverviewTabProps) {
 
       {/* Case Details Section */}
       <section>
-        <h3 className="text-sm font-semibold text-gray-700 mb-3">Case Details</h3>
+        <h3 className="text-sm font-semibold text-gray-700 mb-3">
+          Case Details
+        </h3>
         <div className="bg-gray-50 rounded-lg p-4">
           <p className="text-sm text-gray-700 whitespace-pre-wrap">
-            {caseData.details}
+            {caseData.details || "No case details available."}
           </p>
         </div>
       </section>
@@ -259,52 +398,85 @@ function OverviewTab({ caseData, onRiuClick }: OverviewTabProps) {
         <h3 className="text-sm font-semibold text-gray-700 mb-3">Key Dates</h3>
         <div className="grid grid-cols-2 gap-4">
           <div className="bg-white border rounded-lg p-3">
-            <p className="text-xs text-gray-500 uppercase tracking-wide">Created</p>
+            <p className="text-xs text-gray-500 uppercase tracking-wide">
+              Created
+            </p>
             <p className="text-sm font-medium text-gray-900 mt-1">
-              {new Date(caseData.createdAt).toLocaleDateString('en-US', {
-                month: 'long',
-                day: 'numeric',
-                year: 'numeric',
-                hour: 'numeric',
-                minute: '2-digit',
+              {new Date(caseData.createdAt).toLocaleDateString("en-US", {
+                month: "long",
+                day: "numeric",
+                year: "numeric",
+                hour: "numeric",
+                minute: "2-digit",
               })}
             </p>
           </div>
           <div className="bg-white border rounded-lg p-3">
-            <p className="text-xs text-gray-500 uppercase tracking-wide">Intake</p>
+            <p className="text-xs text-gray-500 uppercase tracking-wide">
+              Intake
+            </p>
             <p className="text-sm font-medium text-gray-900 mt-1">
-              {new Date(caseData.intakeTimestamp).toLocaleDateString('en-US', {
-                month: 'long',
-                day: 'numeric',
-                year: 'numeric',
-                hour: 'numeric',
-                minute: '2-digit',
+              {new Date(caseData.intakeTimestamp).toLocaleDateString("en-US", {
+                month: "long",
+                day: "numeric",
+                year: "numeric",
+                hour: "numeric",
+                minute: "2-digit",
               })}
             </p>
           </div>
           {caseData.slaDueAt && (
             <div className="bg-white border rounded-lg p-3">
-              <p className="text-xs text-gray-500 uppercase tracking-wide">SLA Due</p>
+              <p className="text-xs text-gray-500 uppercase tracking-wide">
+                SLA Due
+              </p>
               <p className="text-sm font-medium text-gray-900 mt-1">
-                {new Date(caseData.slaDueAt).toLocaleDateString('en-US', {
-                  month: 'long',
-                  day: 'numeric',
-                  year: 'numeric',
+                {new Date(caseData.slaDueAt).toLocaleDateString("en-US", {
+                  month: "long",
+                  day: "numeric",
+                  year: "numeric",
                 })}
               </p>
             </div>
           )}
           <div className="bg-white border rounded-lg p-3">
-            <p className="text-xs text-gray-500 uppercase tracking-wide">Last Updated</p>
+            <p className="text-xs text-gray-500 uppercase tracking-wide">
+              Last Updated
+            </p>
             <p className="text-sm font-medium text-gray-900 mt-1">
-              {new Date(caseData.updatedAt).toLocaleDateString('en-US', {
-                month: 'long',
-                day: 'numeric',
-                year: 'numeric',
-                hour: 'numeric',
-                minute: '2-digit',
+              {new Date(caseData.updatedAt).toLocaleDateString("en-US", {
+                month: "long",
+                day: "numeric",
+                year: "numeric",
+                hour: "numeric",
+                minute: "2-digit",
               })}
             </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Recent Activity Link */}
+      <section>
+        <div className="bg-gray-50 border rounded-lg p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-sm font-semibold text-gray-700">
+                Recent Activity
+              </h3>
+              <p className="text-xs text-gray-500 mt-1">
+                View the full activity timeline for this case
+              </p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onTabChange?.("activity")}
+              className="gap-1"
+            >
+              View Activities
+              <ArrowRight className="w-4 h-4" />
+            </Button>
           </div>
         </div>
       </section>
@@ -321,7 +493,7 @@ export function CaseTabsSkeleton() {
       {/* Tab List Skeleton */}
       <div className="border-b bg-white">
         <div className="flex items-center gap-4 p-2">
-          {[1, 2, 3, 4, 5, 6].map((i) => (
+          {[1, 2, 3, 4, 5, 6, 7].map((i) => (
             <Skeleton key={i} className="h-8 w-24" />
           ))}
         </div>
