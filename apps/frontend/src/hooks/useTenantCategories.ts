@@ -24,6 +24,10 @@ export interface Category {
   isMostCommon?: boolean;
   /** Whether this category is enabled */
   isEnabled: boolean;
+  /** Hierarchy level (0 = top-level, 1 = subcategory, etc.) */
+  level?: number;
+  /** Module this category belongs to (CASE, DISCLOSURE, etc.) */
+  module?: string;
 }
 
 /**

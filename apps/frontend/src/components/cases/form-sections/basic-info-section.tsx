@@ -17,6 +17,7 @@ import {
   severityOptions,
 } from '@/lib/validations/case-schema';
 import { cn } from '@/lib/utils';
+import { useAuthenticatedCategories } from '@/hooks/useAuthenticatedCategories';
 
 interface BasicInfoSectionProps {
   errors: FieldErrors<CaseCreationFormData>;
@@ -26,7 +27,7 @@ interface BasicInfoSectionProps {
 
 /**
  * Basic Information section of the case creation form.
- * Contains: Source Channel, Case Type, Severity
+ * Contains: Source Channel, Case Type, Severity, Category, Subcategory
  */
 export function BasicInfoSection({
   errors,
@@ -36,6 +37,20 @@ export function BasicInfoSection({
   const sourceChannel = watch('sourceChannel');
   const caseType = watch('caseType');
   const severity = watch('severity');
+  const primaryCategoryId = watch('primaryCategoryId');
+  const secondaryCategoryId = watch('secondaryCategoryId');
+
+  // Fetch categories for the authenticated user
+  const { flatCategories, isLoading: categoriesLoading } = useAuthenticatedCategories();
+
+  // Filter for CASE module categories only
+  const caseCategories = flatCategories.filter(
+    (c) => c.module === 'CASE' && c.isEnabled
+  );
+  const topLevelCategories = caseCategories.filter((c) => c.level === 0);
+  const subcategories = caseCategories.filter(
+    (c) => c.parentId === primaryCategoryId
+  );
 
   return (
     <Card>
@@ -140,6 +155,70 @@ export function BasicInfoSection({
               </p>
             )}
           </div>
+        </div>
+
+        {/* Category Selection Row */}
+        <div className="grid gap-4 md:grid-cols-2">
+          {/* Primary Category */}
+          <div className="space-y-2">
+            <Label htmlFor="primaryCategoryId">Category</Label>
+            <Select
+              value={primaryCategoryId || undefined}
+              onValueChange={(value) => {
+                setValue('primaryCategoryId', value);
+                // Reset subcategory when category changes
+                setValue('secondaryCategoryId', '');
+              }}
+              disabled={categoriesLoading}
+            >
+              <SelectTrigger id="primaryCategoryId">
+                <SelectValue
+                  placeholder={
+                    categoriesLoading ? 'Loading...' : 'Select category...'
+                  }
+                />
+              </SelectTrigger>
+              <SelectContent>
+                {topLevelCategories.map((category) => (
+                  <SelectItem key={category.id} value={category.id}>
+                    {category.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {errors.primaryCategoryId && (
+              <p className="text-sm text-destructive">
+                {errors.primaryCategoryId.message}
+              </p>
+            )}
+          </div>
+
+          {/* Subcategory - only show if primary category selected and has subcategories */}
+          {primaryCategoryId && subcategories.length > 0 && (
+            <div className="space-y-2">
+              <Label htmlFor="secondaryCategoryId">Subcategory</Label>
+              <Select
+                value={secondaryCategoryId || undefined}
+                onValueChange={(value) => setValue('secondaryCategoryId', value)}
+              >
+                <SelectTrigger id="secondaryCategoryId">
+                  <SelectValue placeholder="Select subcategory..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {subcategories.map((category) => (
+                    <SelectItem key={category.id} value={category.id}>
+                      {category.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {errors.secondaryCategoryId && (
+                <p className="text-sm text-destructive">
+                  {errors.secondaryCategoryId.message}
+                </p>
+              )}
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>

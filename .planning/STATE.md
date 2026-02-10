@@ -5,17 +5,17 @@
 See: .planning/PROJECT.md (updated 2026-02-02)
 
 **Core value:** Users can manage their entire compliance workflow - from anonymous report intake to investigation closure to board reporting - in one AI-assisted platform, with every task unified into a single "My Work" view.
-**Current focus:** Phase 14.1 - Data & Config Fixes OR Phase 16 - AI Integration Fix
+**Current focus:** Phase 14.2 - Case Creation & Search Fixes
 
 ## Current Position
 
-Phase: 14 of 24 (Critical Bug Fixes & Navigation)
-Plan: 5 of 5 in current phase
-Status: Phase 14 COMPLETE (verified)
-Last activity: 2026-02-09 - Phase 14 verified
-**Next Phase:** Phase 14.1 (Data & Config Fixes) or Phase 16 (AI Integration Fix)
+Phase: 14.2 of 24 (Case Creation & Search Fixes)
+Plan: 2 of 3 in current phase
+Status: Phase 14.2 IN PROGRESS
+Last activity: 2026-02-10 - Completed 14.2-02 PostgreSQL FTS fallback for unified search
+**Next Phase:** Phase 14.2 (Case Creation & Search Fixes)
 
-Progress: [====================================================------------------] ~77% (~202 of ~260 estimated total plans)
+Progress: [====================================================------------------] ~77% (~204 of ~260 estimated total plans)
 
 ### Phase 14 Critical Bug Fixes & Navigation COMPLETE (2026-02-09)
 
@@ -27,14 +27,38 @@ All 5 plans executed and verified:
 - 14-04: Dashboard performance (reduced fetch limit), task navigation
 - 14-05: Verification checkpoint (all 11 success criteria verified)
 
-### Phase 14.1 Data & Config Fixes COMPLETE (2026-02-09)
+### Phase 14.1 Data & Config Fixes PARTIAL (2026-02-09)
 
-All data and configuration fixes applied:
+Plans 01-03 complete, human verification revealed additional issues:
 
 - 14.1-01: Notification seeder for demo data (COMPLETE)
-- 14.1-02: Activity seeder wiring for audit log (COMPLETE - work done in 14.1-01)
+- 14.1-02: Activity seeder wiring for audit log (COMPLETE)
 - 14.1-03: Fix demo user case ownership for My Tasks (COMPLETE)
-- 14.1-04: Verification checkpoint (COMPLETE - human verification pending)
+- 14.1-04: Verification checkpoint (PARTIAL - fixes committed, new issues found)
+
+**Fixes committed in 14.1 (commit 33043f8):**
+
+- Notifications page: Fixed page→offset pagination (96 notifications now display)
+- My Work page: Fixed page→offset pagination (70 tasks now display)
+- Audit Log page: Fixed page→offset pagination (35,094 entries now display)
+
+**Issues moved to Phase 14.2:**
+
+- Category/Subcategory dropdowns missing from case creation form
+- Unified search returning empty results despite populated search vectors
+
+### Phase 14.2 Case Creation & Search Fixes IN PROGRESS (2026-02-10)
+
+Created to address issues found during 14.1 human verification:
+
+1. **Category/Subcategory in Case Creation** - Backend supports it (CreateCaseDto has primaryCategoryId, secondaryCategoryId), but frontend form is missing the dropdowns
+2. **Unified Search Fix** - COMPLETE (14.2-02): PostgreSQL FTS fallback added
+
+Plans:
+
+- 14.2-01: Categories API endpoint and frontend integration (PENDING)
+- 14.2-02: PostgreSQL FTS fallback for unified search (COMPLETE - c5038c5)
+- 14.2-03: Verification checkpoint (PENDING)
 
 ### Phase 13.1 Saved Views Fixes Complete (2026-02-09)
 
@@ -584,6 +608,8 @@ Recent decisions affecting current work:
 - 14.1-03: DEMO_CASE_OWNERS constant defines the 4 demo users for case ownership
 - 14.1-03: Default fallback to random user when demo quotas are met
 - 14.1-04: Raw SQL must use @@map table names (cases not Case) and snake_case column names
+- 14.2-02: Use prefix matching (word:\*) in FTS for partial word searches ("harass" matches "harassment")
+- 14.2-02: Try FTS fallback on both ES index-not-found AND ES 0-results for cases
 
 ### Pending Todos
 
@@ -601,17 +627,15 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-02-09
-Stopped at: Completed 14.1-04-PLAN.md (Verification Checkpoint - human verification pending)
+Last session: 2026-02-10
+Stopped at: Completed 14.2-02 PostgreSQL FTS fallback for unified search
 Resume file: None
 
-**Phase 14.1 Status: COMPLETE (pending human verification)**
-All 4 plans executed successfully:
+**Phase 14.2 Status: IN PROGRESS**
+Plan 14.2-02 completed. Remaining:
 
-- 14.1-01: Notification seeder (721 notifications for 9 demo users)
-- 14.1-02: Activity seeder wiring (35,094 audit log entries)
-- 14.1-03: Demo user case ownership (25 cases each for 4 demo users)
-- 14.1-04: Verification checkpoint (seed runs successfully, human testing pending)
+1. 14.2-01: Add Category/Subcategory dropdowns to case creation form
+2. 14.2-03: Verification checkpoint
 
 **Phase 12 Status: COMPLETE**
 All 19 plans executed successfully:

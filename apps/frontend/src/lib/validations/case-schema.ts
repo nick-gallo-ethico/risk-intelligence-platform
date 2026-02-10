@@ -72,6 +72,10 @@ export const caseCreationSchema = z.object({
   caseType: z.enum(caseTypeValues).optional(),
   severity: z.enum(severityValues).optional(),
 
+  // Category selection
+  primaryCategoryId: z.string().uuid('Invalid category ID').optional().or(z.literal('')),
+  secondaryCategoryId: z.string().uuid('Invalid subcategory ID').optional().or(z.literal('')),
+
   // Section 2: Details
   summary: z
     .string()
@@ -132,6 +136,8 @@ export const defaultCaseFormValues: Partial<CaseCreationFormData> = {
   sourceChannel: 'DIRECT_ENTRY',
   caseType: 'REPORT',
   severity: 'MEDIUM',
+  primaryCategoryId: '',
+  secondaryCategoryId: '',
   details: '',
   summary: '',
   reporterAnonymous: false,
