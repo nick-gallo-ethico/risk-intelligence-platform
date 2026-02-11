@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 16 of 24 (AI Integration Fix) - IN PROGRESS
-Plan: 7 of 8 in current phase (01 COMPLETE, 02-03 SKIPPED, 04-05 COMPLETE, 06 COMPLETE, 07 COMPLETE)
-Status: Phase 16 IN PROGRESS - AI frontend components complete
-Last activity: 2026-02-11 - Completed 16-05 (useAiActions hook, AiActionPreview dialog). Task 3 skipped per execution notes.
+Plan: 4 of 8 in current phase (01 COMPLETE, 02-03 SKIPPED, 04 COMPLETE, 05-06 COMPLETE, 07 COMPLETE)
+Status: Phase 16 IN PROGRESS - AI skill components complete
+Last activity: 2026-02-11 - Completed 16-04 (useAiSkills hook, AI summary/category/risk components).
 
 Progress: [====================================================------------------] ~80% (~210 of ~260 estimated total plans)
 
@@ -131,8 +131,12 @@ Plans:
   - ContextLoaderService returns fallback context instead of throwing on missing org/user
 - 16-02: AI panel context + useAiChat hook (SKIPPED - Phase 15 built equivalent)
 - 16-03: Socket.io client + WebSocket hooks (SKIPPED - Phase 15 built equivalent)
-- 16-04: AI skill components (summarize, category-suggest, risk-score) (COMPLETE - a479070, d0849e2, 67986f1, 821d2c7)
-  - useAiSkills hook, AiSummaryButton, AiCategorySuggest, AiRiskScore components
+- 16-04: AI skill components (summarize, category-suggest, risk-score) (COMPLETE - a479070, d0849e2, 67986f1, 821d2c7, f70180b)
+  - useAiSkills hook for generic skill execution via POST /ai/skills/:skillId/execute
+  - AiSummaryButton with brief/comprehensive dropdown
+  - AiCategorySuggest with confidence-scored suggestions
+  - AiRiskScore with visual severity indicators and factor breakdown
+  - Triage skill registration documented (deferred pending disclosures integration)
 - 16-05: AI action preview components + useAiActions hook (COMPLETE - committed with 16-04)
   - useAiActions hook with preview/execute/undo pattern
   - AiActionPreview confirmation dialog with field-level changes
@@ -711,6 +715,9 @@ Recent decisions affecting current work:
 - 15-06: Connection status badge in header with color-coded states (green/yellow/red)
 - 15-11: Email compose/send deferred to future Notifications & Communications phase - V1 scope is log-only via EmailLogModal
 - 15-11: EmailLogModal allows logging external emails (sent/received outside platform) to case activity feed
+- 16-04: useAiSkills<T> generic hook for typed skill execution via POST /ai/skills/:skillId/execute
+- 16-04: Triage skill registration deferred - requires AiTriageService from disclosures module (circular dependency concern)
+- 16-04: AI skill components use collapsible cards for detailed insights (category suggestions, risk factors)
 
 ### Pending Todos
 
@@ -729,7 +736,7 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-02-11
-Stopped at: Phase 16 Plan 06 COMPLETE - AI health check endpoint
+Stopped at: Phase 16 Plan 04 COMPLETE - AI skill components
 Resume file: None
 
 **Phase 14.2 Status: IN PROGRESS**
