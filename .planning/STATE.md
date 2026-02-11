@@ -5,14 +5,14 @@
 See: .planning/PROJECT.md (updated 2026-02-02)
 
 **Core value:** Users can manage their entire compliance workflow - from anonymous report intake to investigation closure to board reporting - in one AI-assisted platform, with every task unified into a single "My Work" view.
-**Current focus:** Phase 17 Campaigns Hub - Plan 03 COMPLETE
+**Current focus:** Phase 18 Reports & Data Management - Plan 01 COMPLETE
 
 ## Current Position
 
-Phase: 17 of 24 (Campaigns Hub)
-Plan: 3 of ? in current phase
-Status: In progress - Plan 03 COMPLETE
-Last activity: 2026-02-11 - Completed 17-03-PLAN.md (Forms Hub). Commits 4733750, 58ba8ad.
+Phase: 18 of 24 (Reports & Data Management)
+Plan: 1 of ? in current phase
+Status: In progress - Plan 01 COMPLETE
+Last activity: 2026-02-11 - Completed 18-01-PLAN.md (Reports Data Foundation). Commits 58ba8ad, bed1c0c.
 
 Progress: [====================================================------------------] ~84% (~218 of ~260 estimated total plans)
 
@@ -39,10 +39,12 @@ Progress: [====================================================-----------------
 
 ### Phase 18 Reports & Data Management IN PROGRESS (2026-02-11)
 
-- 18-01: SavedReport Prisma model and DTOs (COMPLETE - parallel agent)
-  - SavedReport model added to schema.prisma
-  - Report DTOs created in dto/report.dto.ts
-  - SavedReport entity types in entities/saved-report.entity.ts
+- 18-01: Reports Data Foundation (COMPLETE - 58ba8ad, bed1c0c)
+  - SavedReport Prisma model with full configuration persistence
+  - ReportFieldRegistryService with 30-50 fields per entity type
+  - Dynamic custom property inclusion per tenant
+  - Report DTOs with class-validator decorators
+  - Decision: Static field registries (not Prisma introspection) for comprehensive catalogs
 - 18-02: Report execution and CRUD services (COMPLETE - 72eee7d, 17bf85f)
   - ReportExecutionService for running reports against database
   - ReportService for SavedReport CRUD operations
@@ -772,8 +774,13 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-02-11
-Stopped at: Phase 16 COMPLETE - UAT verified, all issues fixed
+Stopped at: Phase 18 Plan 01 COMPLETE - Reports Data Foundation
 Resume file: None
+
+**Phase 18 Status: IN PROGRESS**
+Plan 18-01 completed (SavedReport model, ReportFieldRegistryService).
+Plan 18-02 completed (ReportExecutionService, ReportService).
+Remaining plans TBD (report designer frontend, scheduling).
 
 **Phase 14.2 Status: IN PROGRESS**
 Plan 14.2-02 completed. Remaining:
