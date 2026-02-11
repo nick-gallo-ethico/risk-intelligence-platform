@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 15 of 24 (Case Detail Page Overhaul)
-Plan: 11 of 11 in current phase (all complete including gap closure plans)
-Status: Phase 15 COMPLETE (with documented deferrals)
-Last activity: 2026-02-11 - Completed 15-11 Email compose/send deferral documentation
+Plan: 08 of 11 in current phase (gap closure in progress)
+Status: Phase 15 gap closure in progress
+Last activity: 2026-02-11 - Completed 15-08 Quick action modals (Gap 4 closed)
 **Next Phase:** Phase 16 - AI Integration Fix
 
 Progress: [====================================================------------------] ~79% (~207 of ~260 estimated total plans)
@@ -91,8 +91,13 @@ Plans:
 
 **Gap Closure Plans (15-08 to 15-11):**
 
-- 15-08: RIU intake form answers display (addresses Gap 1)
-- 15-09: Quick action modals for Interview, Document, Task (addresses Gap 4)
+- 15-08: Quick action modals for Interview, Document, Task (addresses Gap 4) - COMPLETE (523464f, fba1c69, b193be5)
+  - LogInterviewModal with interviewee name/type, scheduled date, pre-interview notes
+  - AttachDocumentModal with file selection, title, type, description (metadata only for MVP)
+  - CreateTaskModal with title, description, assignee, due date, priority
+  - All modals log to activity feed via POST /cases/:id/activity
+  - Removed console.log placeholders from handleAction switch
+- 15-09: RIU intake form answers display (addresses Gap 1)
 - 15-10: AI backend action verification (addresses Gap 3)
 - 15-11: Email compose/send deferral documentation (addresses Gap 2) - COMPLETE
 
