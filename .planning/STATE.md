@@ -5,16 +5,37 @@
 See: .planning/PROJECT.md (updated 2026-02-02)
 
 **Core value:** Users can manage their entire compliance workflow - from anonymous report intake to investigation closure to board reporting - in one AI-assisted platform, with every task unified into a single "My Work" view.
-**Current focus:** Phase 18 Reports & Data Management - Plan 02 COMPLETE
+**Current focus:** Phase 17 Campaigns Hub - Plan 03 COMPLETE
 
 ## Current Position
 
-Phase: 18 of 24 (Reports & Data Management)
-Plan: 2 of 9 in current phase (Wave 1)
-Status: In progress - Plan 02 COMPLETE
-Last activity: 2026-02-11 - Completed 18-02-PLAN.md (ReportExecutionService and ReportService). Commits 72eee7d, 17bf85f.
+Phase: 17 of 24 (Campaigns Hub)
+Plan: 3 of ? in current phase
+Status: In progress - Plan 03 COMPLETE
+Last activity: 2026-02-11 - Completed 17-03-PLAN.md (Forms Hub). Commits 4733750, 58ba8ad.
 
-Progress: [====================================================------------------] ~84% (~216 of ~260 estimated total plans)
+Progress: [====================================================------------------] ~84% (~218 of ~260 estimated total plans)
+
+### Phase 17 Campaigns Hub IN PROGRESS (2026-02-11)
+
+- 17-01: Wire backend dashboard endpoints and navigation (COMPLETE - 00d0bb3)
+  - GET /campaigns/dashboard/stats, /dashboard/overdue, /dashboard/upcoming
+  - POST /campaigns/:id/remind for manual reminder triggering
+  - Added Campaigns and Forms to sidebar navigation
+  - Created /campaigns/new page with CampaignBuilder wizard
+- 17-02: Campaign detail page with tabbed layout (COMPLETE - 4733750, df2118c)
+  - CampaignDetail component (580 lines) with Overview/Assignments/Settings tabs
+  - Lifecycle action buttons: Launch (DRAFT), Pause/Cancel/Remind (ACTIVE), Resume/Cancel (PAUSED)
+  - Assignment table with employee snapshot and status badges
+  - AlertDialog confirmations for Launch and Cancel operations
+  - API extensions: getAssignments, getOverdueCampaigns, getUpcomingDeadlines, sendReminders
+  - Hooks: useCampaignAssignments, useOverdueCampaigns, useUpcomingDeadlines, useSendReminders
+- 17-03: Forms hub with list, create, and edit pages (COMPLETE - 58ba8ad)
+  - /forms page with type filters and quick links to disclosures/intake-forms
+  - /forms/new page with type selector and FormBuilder integration
+  - /forms/[id] page for editing with publish/clone actions
+  - FormsList component with type filtering tabs and status badges
+  - Forms API client (forms-api.ts) and React Query hooks (use-forms.ts)
 
 ### Phase 18 Reports & Data Management IN PROGRESS (2026-02-11)
 
@@ -27,14 +48,6 @@ Progress: [====================================================-----------------
   - ReportService for SavedReport CRUD operations
   - Support for 7 entity types with tenant isolation
   - Filter operators, grouped aggregation, relationship fields
-
-### Phase 17 Campaigns Hub COMPLETE (2026-02-11)
-
-- 17-01: Wire backend dashboard endpoints and navigation (COMPLETE - 00d0bb3, 4733750)
-  - GET /campaigns/dashboard/stats, /dashboard/overdue, /dashboard/upcoming
-  - POST /campaigns/:id/remind for manual reminder triggering
-  - Added Campaigns and Forms to sidebar navigation
-  - Created /campaigns/new page with CampaignBuilder wizard
 
 ### Phase 14 Critical Bug Fixes & Navigation COMPLETE (2026-02-09)
 
