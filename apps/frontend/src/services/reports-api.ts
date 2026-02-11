@@ -132,6 +132,110 @@ export async function exportReport(
   });
 }
 
+// =========================================================================
+// Schedule API Types
+// =========================================================================
+
+/**
+ * Schedule type for delivery frequency
+ */
+export type ScheduleType = "DAILY" | "WEEKLY" | "MONTHLY";
+
+/**
+ * Export format for scheduled delivery
+ */
+export type ScheduleExportFormat = "EXCEL" | "CSV" | "PDF";
+
+/**
+ * Configuration for a scheduled export
+ */
+export interface ScheduledExportConfig {
+  id?: string;
+  name: string;
+  scheduleType: ScheduleType;
+  time: string; // HH:MM format
+  dayOfWeek?: number; // 0-6 for weekly (0=Sunday)
+  dayOfMonth?: number; // 1-31 for monthly
+  timezone: string;
+  format: ScheduleExportFormat;
+  recipients: string[];
+  isActive: boolean;
+}
+
+// =========================================================================
+// Schedule API Functions
+// =========================================================================
+
+/**
+ * Create a schedule for a report.
+ */
+export async function scheduleReport(
+  reportId: string,
+  config: Omit<ScheduledExportConfig, "id" | "isActive">,
+): Promise<ScheduledExportConfig> {
+  return apiClient.post<ScheduledExportConfig>(
+    `/reports/${reportId}/schedule`,
+    config,
+  );
+}
+
+/**
+ * Get the schedule for a report.
+ */
+export async function getSchedule(
+  reportId: string,
+): Promise<ScheduledExportConfig | null> {
+  try {
+    return await apiClient.get<ScheduledExportConfig>(
+      `/reports/${reportId}/schedule`,
+    );
+  } catch {
+    // Return null if no schedule exists
+    return null;
+  }
+}
+
+/**
+ * Update an existing schedule.
+ */
+export async function updateSchedule(
+  reportId: string,
+  config: Partial<ScheduledExportConfig>,
+): Promise<ScheduledExportConfig> {
+  return apiClient.put<ScheduledExportConfig>(
+    `/reports/${reportId}/schedule`,
+    config,
+  );
+}
+
+/**
+ * Delete a schedule.
+ */
+export async function deleteSchedule(reportId: string): Promise<void> {
+  return apiClient.delete(`/reports/${reportId}/schedule`);
+}
+
+/**
+ * Pause a schedule.
+ */
+export async function pauseSchedule(reportId: string): Promise<void> {
+  return apiClient.post(`/reports/${reportId}/schedule/pause`);
+}
+
+/**
+ * Resume a paused schedule.
+ */
+export async function resumeSchedule(reportId: string): Promise<void> {
+  return apiClient.post(`/reports/${reportId}/schedule/resume`);
+}
+
+/**
+ * Trigger immediate execution of a scheduled report.
+ */
+export async function runScheduleNow(reportId: string): Promise<void> {
+  return apiClient.post(`/reports/${reportId}/schedule/run-now`);
+}
+
 /**
  * Export wrapper for easy importing.
  */
@@ -148,6 +252,14 @@ export const reportsApi = {
   getTemplates,
   generateFromNL,
   exportReport,
+  // Schedule methods
+  scheduleReport,
+  getSchedule,
+  updateSchedule,
+  deleteSchedule,
+  pauseSchedule,
+  resumeSchedule,
+  runScheduleNow,
 };
 
 export default reportsApi;
