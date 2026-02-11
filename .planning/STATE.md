@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 19 of 24 (Workflow Engine UI)
-Plan: 4 of 7 in current phase
-Status: Plan 19-04 COMPLETE - Visual workflow builder canvas
-Last activity: 2026-02-11 - Completed 19-04 (workflow builder canvas)
+Plan: 6 of 7 in current phase
+Status: Plan 19-06 COMPLETE - Workflow instances page and progress indicator
+Last activity: 2026-02-11 - Completed 19-06 (instances page)
 
-Progress: [======================================================----------------] ~86% (~224 of ~260 estimated total plans)
+Progress: [======================================================----------------] ~87% (~226 of ~260 estimated total plans)
 
 ### Phase 17 Campaigns Hub IN PROGRESS (2026-02-11)
 
@@ -124,6 +124,14 @@ Progress: [======================================================---------------
   - WorkflowCanvas: React Flow canvas with drag-drop, delete key, minimap, controls
   - WorkflowBuilder: Three-column layout (palette | canvas | properties placeholder)
   - useWorkflowBuilder hook: State management with nodes/edges converters and actions
+- 19-06: Workflow instances page and progress indicator (COMPLETE - 9141038, ef702fe)
+  - /settings/workflows/[id]/instances page with status filter tabs (All, Active, Completed, Cancelled, Paused)
+  - InstanceListTable: Entity, Stage, Status, SLA Status, Started, Due Date columns
+  - Row selection with checkboxes and bulk Pause/Resume/Cancel actions
+  - InstanceDetailDialog: Full instance state, step states table, action buttons
+  - WorkflowProgressIndicator: Reusable horizontal stage pipeline component
+    - Completed stages green with checkmark, current blue pulsing, future gray
+    - Compact mode for embedding in cards (Plan 07)
 
 ### Phase 18 COMPLETE (2026-02-11)
 
@@ -859,12 +867,12 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-02-11
-Stopped at: Phase 19 Plan 03 COMPLETE - Workflow list page
+Stopped at: Phase 19 Plan 06 COMPLETE - Workflow instances page
 Resume file: None
 
 **Phase 19 Status: IN PROGRESS**
-Plan 19-03 completed (workflow list page with table, filters, create dialog).
-Remaining: 19-04 through 19-07 (workflow builder canvas and components).
+Plan 19-06 completed (instances page with bulk actions, detail dialog, progress indicator).
+Remaining: 19-07 (workflow entity integration - embed progress indicator in case/policy pages).
 
 **Phase 14.2 Status: IN PROGRESS**
 Plan 14.2-02 completed. Remaining:
