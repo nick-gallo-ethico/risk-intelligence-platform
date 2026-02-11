@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 16 of 24 (AI Integration Fix) - IN PROGRESS
-Plan: 6 of 8 in current phase (01 COMPLETE, 02-03 SKIPPED, 06 COMPLETE, 07 COMPLETE)
-Status: Phase 16 IN PROGRESS - health check endpoint complete
-Last activity: 2026-02-11 - Completed 16-06 Task 1 (GET /ai/health endpoint). Tasks 2-4 skipped per execution notes.
+Plan: 7 of 8 in current phase (01 COMPLETE, 02-03 SKIPPED, 04-05 COMPLETE, 06 COMPLETE, 07 COMPLETE)
+Status: Phase 16 IN PROGRESS - AI frontend components complete
+Last activity: 2026-02-11 - Completed 16-05 (useAiActions hook, AiActionPreview dialog). Task 3 skipped per execution notes.
 
 Progress: [====================================================------------------] ~80% (~210 of ~260 estimated total plans)
 
@@ -131,9 +131,12 @@ Plans:
   - ContextLoaderService returns fallback context instead of throwing on missing org/user
 - 16-02: AI panel context + useAiChat hook (SKIPPED - Phase 15 built equivalent)
 - 16-03: Socket.io client + WebSocket hooks (SKIPPED - Phase 15 built equivalent)
-- 16-04: AI skill components (summarize, category-suggest, risk-score) (PARTIAL - a479070, d0849e2)
-  - useAiSkills hook and AiSummaryButton component added
-- 16-05: AI action preview components + useAiActions hook (PARTIAL - Tasks 1-2 only)
+- 16-04: AI skill components (summarize, category-suggest, risk-score) (COMPLETE - a479070, d0849e2, 67986f1, 821d2c7)
+  - useAiSkills hook, AiSummaryButton, AiCategorySuggest, AiRiskScore components
+- 16-05: AI action preview components + useAiActions hook (COMPLETE - committed with 16-04)
+  - useAiActions hook with preview/execute/undo pattern
+  - AiActionPreview confirmation dialog with field-level changes
+  - Task 3 skipped: Phase 15 ai-chat-panel uses WebSocket actions
 - 16-06: Health check + case detail wiring (COMPLETE - a479070)
   - Task 1: GET /ai/health endpoint returning status, capabilities, model
   - Tasks 2-4: SKIPPED per execution notes (Phase 15 overlap)
