@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 16 of 24 (AI Integration Fix) - IN PROGRESS
-Plan: 1 of 8 in current phase (01 COMPLETE, plans 02-03 SKIPPED, 07 COMPLETE)
-Status: Phase 16 IN PROGRESS - backend AI blockers fixed
-Last activity: 2026-02-11 - Completed 16-01 (REST chat endpoint, auth guard, context-loader fallbacks). Plans 16-02 and 16-03 SKIPPED.
+Plan: 6 of 8 in current phase (01 COMPLETE, 02-03 SKIPPED, 06 COMPLETE, 07 COMPLETE)
+Status: Phase 16 IN PROGRESS - health check endpoint complete
+Last activity: 2026-02-11 - Completed 16-06 Task 1 (GET /ai/health endpoint). Tasks 2-4 skipped per execution notes.
 
 Progress: [====================================================------------------] ~80% (~210 of ~260 estimated total plans)
 
@@ -131,9 +131,12 @@ Plans:
   - ContextLoaderService returns fallback context instead of throwing on missing org/user
 - 16-02: AI panel context + useAiChat hook (SKIPPED - Phase 15 built equivalent)
 - 16-03: Socket.io client + WebSocket hooks (SKIPPED - Phase 15 built equivalent)
-- 16-04: AI skill components (summarize, category-suggest, risk-score) (PENDING)
+- 16-04: AI skill components (summarize, category-suggest, risk-score) (PARTIAL - a479070, d0849e2)
+  - useAiSkills hook and AiSummaryButton component added
 - 16-05: AI action preview components + useAiActions hook (PARTIAL - Tasks 1-2 only)
-- 16-06: Health check + case detail wiring (PARTIAL - Task 1 only)
+- 16-06: Health check + case detail wiring (COMPLETE - a479070)
+  - Task 1: GET /ai/health endpoint returning status, capabilities, model
+  - Tasks 2-4: SKIPPED per execution notes (Phase 15 overlap)
 - 16-07: Execution notes documenting Phase 15 overlap (COMPLETE - bf41124)
 - 16-08: Verification checkpoint (PENDING)
 
@@ -723,7 +726,7 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-02-11
-Stopped at: Phase 16 Plan 07 COMPLETE - execution notes for Phase 15 overlap
+Stopped at: Phase 16 Plan 06 COMPLETE - AI health check endpoint
 Resume file: None
 
 **Phase 14.2 Status: IN PROGRESS**
