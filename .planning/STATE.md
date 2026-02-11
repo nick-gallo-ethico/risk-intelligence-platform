@@ -9,13 +9,12 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 
 ## Current Position
 
-Phase: 15 of 24 (Case Detail Page Overhaul) - COMPLETE
-Plan: 11 of 11 in current phase (all plans complete, verified 12/12)
-Status: Phase 15 COMPLETE - all gaps closed, human-verified
-Last activity: 2026-02-11 - Phase 15 verified: AI actions (change-status, add-case-note) working end-to-end. Critical Zod 4.x compatibility fix applied.
-**Next Phase:** Phase 16 - AI Integration Fix
+Phase: 16 of 24 (AI Integration Fix) - IN PROGRESS
+Plan: 7 of 8 in current phase (plans 02-03 SKIPPED, 07 COMPLETE)
+Status: Phase 16 IN PROGRESS - execution notes created for Phase 15 overlap
+Last activity: 2026-02-11 - Completed 16-07 (execution notes) documenting Phase 15/16 overlap. Plans 16-02 and 16-03 SKIPPED.
 
-Progress: [====================================================------------------] ~79% (~207 of ~260 estimated total plans)
+Progress: [====================================================------------------] ~80% (~210 of ~260 estimated total plans)
 
 ### Phase 14 Critical Bug Fixes & Navigation COMPLETE (2026-02-09)
 
@@ -110,6 +109,30 @@ Plans:
 **Documented Deferrals:**
 
 - Email compose/send from platform deferred to future Notifications phase (V1 scope: log-only)
+
+### Phase 16 AI Integration Fix IN PROGRESS (2026-02-11)
+
+Plans 16-01 through 16-06 were created before Phase 15 completed. Phase 15 built the AI chat panel
+and WebSocket infrastructure, causing overlap with plans 16-02 and 16-03.
+
+**Execution notes created (16-07)** documenting:
+
+- Plans 16-02 and 16-03: SKIPPED (Phase 15 built ai-chat-panel.tsx with WebSocket streaming)
+- Plans 16-04 and 16-05: EXECUTE (skill components and action preview are additive)
+- Plan 16-06: PARTIAL (only health check endpoint needed; case wiring done in Phase 15)
+
+See: `.planning/phases/16-ai-integration-fix/16-EXECUTION-NOTES.md`
+
+Plans:
+
+- 16-01: Backend REST chat endpoint + auth guard + context-loader fallback (PENDING)
+- 16-02: AI panel context + useAiChat hook (SKIPPED - Phase 15 built equivalent)
+- 16-03: Socket.io client + WebSocket hooks (SKIPPED - Phase 15 built equivalent)
+- 16-04: AI skill components (summarize, category-suggest, risk-score) (PENDING)
+- 16-05: AI action preview components + useAiActions hook (PARTIAL - Tasks 1-2 only)
+- 16-06: Health check + case detail wiring (PARTIAL - Task 1 only)
+- 16-07: Execution notes documenting Phase 15 overlap (COMPLETE - bf41124)
+- 16-08: Verification checkpoint (PENDING)
 
 ### Phase 14.2 Case Creation & Search Fixes COMPLETE (2026-02-10)
 
@@ -697,7 +720,7 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-02-11
-Stopped at: Phase 15 COMPLETE - all 11 plans done, verification passed 12/12
+Stopped at: Phase 16 Plan 07 COMPLETE - execution notes for Phase 15 overlap
 Resume file: None
 
 **Phase 14.2 Status: IN PROGRESS**
