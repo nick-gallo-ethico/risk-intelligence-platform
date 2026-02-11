@@ -19,6 +19,16 @@ import { categorySuggestSkill } from "./platform/category-suggest.skill";
 import { riskScoreSkill } from "./platform/risk-score.skill";
 import { translateSkill } from "./platform/translate.skill";
 
+// TODO: Register triage skill when disclosures module integration is ready
+// The triage skill (./triage.skill.ts) is complete but requires:
+// - AiTriageService from disclosures module
+// - SchemaIntrospectionService from AI module
+// Registration requires either:
+// 1. Injecting these services into SkillRegistry (may create circular deps)
+// 2. Using a lazy registration pattern from DisclosuresModule
+// 3. Using a shared skills module that both can import
+// See: RS.47 for bulk triage safety patterns implemented in triage.skill.ts
+
 /**
  * SkillRegistry manages registration and execution of AI skills.
  *
@@ -153,16 +163,10 @@ export class SkillRegistry implements OnModuleInit {
       ) {
         return false;
       }
-      if (
-        skill.scope === SkillScope.TEAM &&
-        skill.scopeId !== params.teamId
-      ) {
+      if (skill.scope === SkillScope.TEAM && skill.scopeId !== params.teamId) {
         return false;
       }
-      if (
-        skill.scope === SkillScope.USER &&
-        skill.scopeId !== params.userId
-      ) {
+      if (skill.scope === SkillScope.USER && skill.scopeId !== params.userId) {
         return false;
       }
 
