@@ -17,6 +17,7 @@ import {
   Plug,
   Megaphone,
   FileInput,
+  Workflow,
   type LucideIcon,
 } from "lucide-react";
 import type { UserRole } from "@/types/auth";
@@ -89,6 +90,12 @@ export const navigationItems: NavItem[] = [
  * Admin navigation items - requires SYSTEM_ADMIN or COMPLIANCE_OFFICER role
  */
 export const adminItems: NavItem[] = [
+  {
+    title: "Workflows",
+    url: "/settings/workflows",
+    icon: Workflow,
+    requiredRoles: ["SYSTEM_ADMIN", "COMPLIANCE_OFFICER"],
+  },
   {
     title: "Users",
     url: "/settings/users",

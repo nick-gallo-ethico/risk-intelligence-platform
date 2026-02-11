@@ -27,6 +27,10 @@ import {
 import { seedSavedViews } from "./seeders/saved-views.seeder";
 import { seedActivityTimelines } from "./seeders/activity.seeder";
 import { seedNotifications } from "./seeders/notification.seeder";
+import { seedAcmePhase09 } from "./seeders/acme-phase-09";
+import { seedAcmePhase12 } from "./seeders/acme-phase-12";
+import { seedPhase17 } from "./seeders/acme-phase-17";
+import { seedPhase18 } from "./seeders/acme-phase-18";
 
 const prisma = new PrismaClient();
 
@@ -283,6 +287,23 @@ async function main() {
     caseIds,
   );
   console.log(`Created ${notificationCount} notifications for demo users`);
+
+  // ========================================
+  // Phase Seeders (cumulative, order matters)
+  // ========================================
+  console.log("\nRunning phase seeders...");
+
+  // Phase 09: Policies & Disclosures
+  await seedAcmePhase09();
+
+  // Phase 12: Project Management
+  await seedAcmePhase12();
+
+  // Phase 17: Campaigns Hub
+  await seedPhase17();
+
+  // Phase 18: Reports & Data Management
+  await seedPhase18();
 
   // ========================================
   // Calculate Demo Metrics
