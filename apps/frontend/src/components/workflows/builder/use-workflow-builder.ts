@@ -62,6 +62,8 @@ export interface UseWorkflowBuilderReturn {
   addStage: (preset: StagePreset, position: { x: number; y: number }) => void;
   removeSelected: () => void;
   setInitialStage: (stageId: string) => void;
+  updateNode: (nodeId: string, stage: WorkflowStage) => void;
+  updateEdge: (edgeId: string, transition: WorkflowTransition) => void;
 
   // State flags
   isDirty: boolean;
@@ -352,6 +354,32 @@ export function useWorkflowBuilder(): UseWorkflowBuilderReturn {
     [setNodes],
   );
 
+  // Update a node's stage data
+  const updateNode = useCallback(
+    (nodeId: string, stage: WorkflowStage) => {
+      setNodes((nds) =>
+        nds.map((n) =>
+          n.id === nodeId ? { ...n, data: { ...n.data, stage } } : n,
+        ),
+      );
+      setIsDirty(true);
+    },
+    [setNodes],
+  );
+
+  // Update an edge's transition data
+  const updateEdge = useCallback(
+    (edgeId: string, transition: WorkflowTransition) => {
+      setEdges((eds) =>
+        eds.map((e) =>
+          e.id === edgeId ? { ...e, data: { ...e.data, transition } } : e,
+        ),
+      );
+      setIsDirty(true);
+    },
+    [setEdges],
+  );
+
   // Export helpers
   const nodesToStages = useCallback(() => nodesBackToStages(nodes), [nodes]);
 
@@ -372,6 +400,8 @@ export function useWorkflowBuilder(): UseWorkflowBuilderReturn {
     addStage,
     removeSelected,
     setInitialStage,
+    updateNode,
+    updateEdge,
     isDirty,
     setIsDirty,
     nodesToStages,
