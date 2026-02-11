@@ -53,7 +53,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 16: AI Integration Fix** - Debug and fix non-functional AI, wire AI panel, enable AI actions on cases
 - [ ] **Phase 17: Campaigns Hub** - Centralized campaigns area, form creation, campaign lifecycle management
 - [ ] **Phase 18: Reports & Data Management** - Report designer UI, field availability, export from views
-- [ ] **Phase 19: Workflow Engine UI** - Visual workflow builder, workflow management section, apply to cases/approvals/disclosures
+- [x] **Phase 19: Workflow Engine UI** - Visual workflow builder, workflow management section, apply to cases/approvals/disclosures
 - [ ] **Phase 20: Settings Overhaul (HubSpot-Style)** - Preferences, account management, data management, properties, permission sets
 - [ ] **Phase 21: Project Management (Monday.com-Style)** - Kanban boards, task views, timelines, project tracking
 - [ ] **Phase 22: Dark Mode & Theme** - Dark mode toggle, consistent nav theming, theme system
@@ -770,13 +770,13 @@ Plans:
 
 Plans:
 
-- [ ] 19-01-PLAN.md (Wave 1) — Backend API gaps: list instances, clone template, version history, instance count enrichment
-- [ ] 19-02-PLAN.md (Wave 1) — Frontend foundation: install @xyflow/react, TypeScript types, API service, React Query hooks, navigation
-- [ ] 19-03-PLAN.md (Wave 2) — Workflow list page with table, filters, row actions, create dialog
-- [ ] 19-04-PLAN.md (Wave 2) — Visual workflow builder canvas with React Flow: custom stage nodes, transition edges, drag-from-palette
-- [ ] 19-05-PLAN.md (Wave 3) — Property panels, toolbar, save/publish, create/edit page routes
-- [ ] 19-06-PLAN.md (Wave 3) — Workflow instances page with table, bulk actions, detail dialog, progress indicator
-- [ ] 19-07-PLAN.md (Wave 4) — Entity detail integration (case/policy workflow cards) and Acme Co. demo seed data
+- [x] 19-01-PLAN.md (Wave 1) — Backend API gaps: list instances, clone template, version history, instance count enrichment
+- [x] 19-02-PLAN.md (Wave 1) — Frontend foundation: install @xyflow/react, TypeScript types, API service, React Query hooks, navigation
+- [x] 19-03-PLAN.md (Wave 2) — Workflow list page with table, filters, row actions, create dialog
+- [x] 19-04-PLAN.md (Wave 2) — Visual workflow builder canvas with React Flow: custom stage nodes, transition edges, drag-from-palette
+- [x] 19-05-PLAN.md (Wave 3) — Property panels, toolbar, save/publish, create/edit page routes
+- [x] 19-06-PLAN.md (Wave 3) — Workflow instances page with table, bulk actions, detail dialog, progress indicator
+- [x] 19-07-PLAN.md (Wave 4) — Entity detail integration (case/policy workflow cards) and Acme Co. demo seed data
 
 ### Phase 20: Settings Overhaul (HubSpot-Style)
 
@@ -939,7 +939,7 @@ Phases execute in dependency order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 
 | 16. AI Integration Fix                  | 8/8            | Complete | 2026-02-11 |
 | 17. Campaigns Hub                       | 4/4            | Complete | 2026-02-11 |
 | 18. Reports & Data Management           | 9/9            | Complete | 2026-02-11 |
-| 19. Workflow Engine UI                  | 0/7            | Planned  | -          |
+| 19. Workflow Engine UI                  | 7/7            | Complete | 2026-02-11 |
 | 20. Settings Overhaul (HubSpot)         | 0/TBD          | Planned  | -          |
 | 21. Project Management (Monday.com)     | 0/6            | Planned  | -          |
 | 22. Dark Mode & Theme                   | 0/14           | Planned  | -          |
@@ -949,9 +949,9 @@ Phases execute in dependency order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 
 ---
 
 _Roadmap created: 2026-02-02_
-_Updated: 2026-02-11 (Phase 18 complete — Reports & Data Management)_
+_Updated: 2026-02-11 (Phase 19 complete — Workflow Engine UI)_
 _Depth: Comprehensive_
 _Total phases: 24 (+ 11.1 and decimal insertions)_
-_Total plans: 220+ completed, ~40-50 estimated remaining_
+_Total plans: 229+ completed, ~31-40 estimated remaining_
 _Total v1 requirements: 149 + QA punch list items_
 _Issues reference: .planning/V1-ISSUES-AND-GAPS.md_
