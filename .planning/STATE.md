@@ -5,14 +5,14 @@
 See: .planning/PROJECT.md (updated 2026-02-02)
 
 **Core value:** Users can manage their entire compliance workflow - from anonymous report intake to investigation closure to board reporting - in one AI-assisted platform, with every task unified into a single "My Work" view.
-**Current focus:** Phase 18 Reports & Data Management - Plan 08 COMPLETE
+**Current focus:** Phase 18 Reports & Data Management - Plan 07 COMPLETE
 
 ## Current Position
 
 Phase: 18 of 24 (Reports & Data Management)
-Plan: 8 of 9 in current phase
-Status: In progress - Plan 08 COMPLETE
-Last activity: 2026-02-11 - Completed 18-08-PLAN.md (AI report generator and export integration). Commits 2b032ff, e4db332.
+Plan: 7 of 9 in current phase
+Status: In progress - Plan 07 COMPLETE
+Last activity: 2026-02-11 - Completed 18-07-PLAN.md (Report detail page with chart components). Commits 321631c, a9018c1.
 
 Progress: [====================================================------------------] ~84% (~220 of ~260 estimated total plans)
 
@@ -79,8 +79,12 @@ Progress: [====================================================-----------------
   - ReportFilterBuilder with type-aware operators and value inputs
   - /reports/new page with template pre-population support
   - RadioGroup UI component for visibility selection
-- 18-07: Report detail page with chart components (IN PROGRESS - parallel)
-  - ReportChart and ReportKpi visualization components (321631c)
+- 18-07: Report detail page with chart components (COMPLETE - 321631c, a9018c1)
+  - ReportChart renders bar/line/pie/stacked_bar/funnel using recharts
+  - ReportKpi displays single metrics with change indicators
+  - ReportResultsViewer with table pagination, chart/kpi rendering
+  - /reports/[id] page with auto-run, edit/duplicate/delete actions
+  - Added exportReport API method
 - 18-08: AI report generator and export integration (COMPLETE - 2b032ff, e4db332)
   - AiReportGenerator dialog for natural language report queries
   - Example queries, AI interpretation display, results preview
