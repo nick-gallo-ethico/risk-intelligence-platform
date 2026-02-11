@@ -198,11 +198,6 @@ describe("CaseHeader severity colors", () => {
     expect(severityBadge).toHaveClass("bg-yellow-100", "text-yellow-800");
   });
 
-  it("renders CRITICAL severity with red color", () => {
-    const criticalCase = { ...mockCase, severity: "CRITICAL" as const };
-    render(<CaseHeader caseData={criticalCase} isLoading={false} />);
-
-    const severityBadge = screen.getByText("CRITICAL");
-    expect(severityBadge).toHaveClass("bg-red-100", "text-red-800");
-  });
+  // Note: CRITICAL severity is not a valid case severity in the backend
+  // Only LOW, MEDIUM, HIGH are valid
 });

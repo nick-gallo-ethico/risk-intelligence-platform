@@ -1,22 +1,22 @@
-'use client';
+"use client";
 
-import { useRouter } from 'next/navigation';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
-import type { Case, CaseStatus, Severity } from '@/types/case';
+import { useRouter } from "next/navigation";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import type { Case, CaseStatus, Severity } from "@/types/case";
 
 const STATUS_COLORS: Record<CaseStatus, string> = {
-  NEW: 'bg-blue-100 text-blue-800',
-  OPEN: 'bg-yellow-100 text-yellow-800',
-  CLOSED: 'bg-gray-100 text-gray-800',
+  NEW: "bg-blue-100 text-blue-800",
+  OPEN: "bg-yellow-100 text-yellow-800",
+  CLOSED: "bg-gray-100 text-gray-800",
 };
 
+// Severity matches backend Prisma enum
 const SEVERITY_COLORS: Record<Severity, string> = {
-  LOW: 'bg-green-100 text-green-800',
-  MEDIUM: 'bg-yellow-100 text-yellow-800',
-  HIGH: 'bg-orange-100 text-orange-800',
-  CRITICAL: 'bg-red-100 text-red-800',
+  LOW: "bg-green-100 text-green-800",
+  MEDIUM: "bg-yellow-100 text-yellow-800",
+  HIGH: "bg-orange-100 text-orange-800",
 };
 
 interface CaseHeaderProps {
@@ -41,7 +41,7 @@ export function CaseHeader({ caseData, isLoading }: CaseHeaderProps) {
         {/* Breadcrumb */}
         <nav className="flex items-center text-sm text-gray-500 mb-3">
           <button
-            onClick={() => router.push('/cases')}
+            onClick={() => router.push("/cases")}
             className="hover:text-gray-700 transition-colors"
           >
             Cases
@@ -88,9 +88,7 @@ export function CaseHeader({ caseData, isLoading }: CaseHeaderProps) {
 
         {/* Summary Line */}
         {caseData.summary && (
-          <p className="mt-2 text-gray-600 line-clamp-2">
-            {caseData.summary}
-          </p>
+          <p className="mt-2 text-gray-600 line-clamp-2">{caseData.summary}</p>
         )}
       </div>
     </div>

@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback } from "react";
 import {
   ChevronDown,
   ChevronUp,
@@ -10,63 +10,75 @@ import {
   Bot,
   FileText,
   Star,
-} from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
+} from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from '@/components/ui/collapsible';
-import { cn } from '@/lib/utils';
+} from "@/components/ui/collapsible";
+import { cn } from "@/lib/utils";
 import type {
   RiuAssociation,
   RiuAssociationType,
   RiuType,
   Severity,
   SourceChannel,
-} from '@/types/case';
+} from "@/types/case";
 
 /**
  * Association type display configuration
  */
-const ASSOCIATION_CONFIG: Record<RiuAssociationType, { label: string; color: string }> = {
-  PRIMARY: { label: 'Primary', color: 'bg-blue-100 text-blue-800 border-blue-200' },
-  RELATED: { label: 'Related', color: 'bg-gray-100 text-gray-800 border-gray-200' },
-  MERGED_FROM: { label: 'Merged', color: 'bg-purple-100 text-purple-800 border-purple-200' },
+const ASSOCIATION_CONFIG: Record<
+  RiuAssociationType,
+  { label: string; color: string }
+> = {
+  PRIMARY: {
+    label: "Primary",
+    color: "bg-blue-100 text-blue-800 border-blue-200",
+  },
+  RELATED: {
+    label: "Related",
+    color: "bg-gray-100 text-gray-800 border-gray-200",
+  },
+  MERGED_FROM: {
+    label: "Merged",
+    color: "bg-purple-100 text-purple-800 border-purple-200",
+  },
 };
 
 /**
  * RIU type display configuration with icons
  */
-const RIU_TYPE_CONFIG: Record<RiuType, { label: string; icon: typeof Phone }> = {
-  HOTLINE_REPORT: { label: 'Hotline', icon: Phone },
-  WEB_FORM_SUBMISSION: { label: 'Web Form', icon: Globe },
-  DISCLOSURE_RESPONSE: { label: 'Disclosure', icon: FileText },
-  CHATBOT_TRANSCRIPT: { label: 'Chatbot', icon: Bot },
-};
+const RIU_TYPE_CONFIG: Record<RiuType, { label: string; icon: typeof Phone }> =
+  {
+    HOTLINE_REPORT: { label: "Hotline", icon: Phone },
+    WEB_FORM_SUBMISSION: { label: "Web Form", icon: Globe },
+    DISCLOSURE_RESPONSE: { label: "Disclosure", icon: FileText },
+    CHATBOT_TRANSCRIPT: { label: "Chatbot", icon: Bot },
+  };
 
 /**
  * Source channel display labels
  */
 const SOURCE_LABELS: Record<SourceChannel, string> = {
-  HOTLINE: 'Phone',
-  WEB_FORM: 'Web',
-  PROXY: 'Proxy',
-  DIRECT_ENTRY: 'Direct',
-  CHATBOT: 'Chat',
+  HOTLINE: "Phone",
+  WEB_FORM: "Web",
+  PROXY: "Proxy",
+  DIRECT_ENTRY: "Direct",
+  CHATBOT: "Chat",
 };
 
 /**
- * Severity color configuration
+ * Severity color configuration - matches backend Prisma enum
  */
 const SEVERITY_COLORS: Record<Severity, string> = {
-  LOW: 'bg-green-100 text-green-800',
-  MEDIUM: 'bg-yellow-100 text-yellow-800',
-  HIGH: 'bg-orange-100 text-orange-800',
-  CRITICAL: 'bg-red-100 text-red-800',
+  LOW: "bg-green-100 text-green-800",
+  MEDIUM: "bg-yellow-100 text-yellow-800",
+  HIGH: "bg-orange-100 text-orange-800",
 };
 
 interface LinkedRiuListProps {
@@ -114,8 +126,12 @@ export function LinkedRiuList({
   }
 
   // Separate primary from other associations
-  const primaryAssociation = associations.find((a) => a.associationType === 'PRIMARY');
-  const otherAssociations = associations.filter((a) => a.associationType !== 'PRIMARY');
+  const primaryAssociation = associations.find(
+    (a) => a.associationType === "PRIMARY",
+  );
+  const otherAssociations = associations.filter(
+    (a) => a.associationType !== "PRIMARY",
+  );
 
   return (
     <div className="space-y-3">
@@ -196,10 +212,10 @@ function RiuCard({
   return (
     <Card
       className={cn(
-        'transition-all duration-200',
+        "transition-all duration-200",
         isPrimary
-          ? 'border-2 border-blue-300 shadow-sm bg-blue-50/30'
-          : 'border border-gray-200 hover:border-gray-300'
+          ? "border-2 border-blue-300 shadow-sm bg-blue-50/30"
+          : "border border-gray-200 hover:border-gray-300",
       )}
     >
       <Collapsible open={isExpanded} onOpenChange={onToggle}>
@@ -220,8 +236,8 @@ function RiuCard({
               {/* RIU type icon */}
               <div
                 className={cn(
-                  'flex-shrink-0 p-1.5 rounded',
-                  isPrimary ? 'bg-blue-100' : 'bg-gray-100'
+                  "flex-shrink-0 p-1.5 rounded",
+                  isPrimary ? "bg-blue-100" : "bg-gray-100",
                 )}
               >
                 <TypeIcon className="w-4 h-4 text-gray-600" />
@@ -235,25 +251,25 @@ function RiuCard({
                   </span>
                   <Badge
                     variant="outline"
-                    className={cn('text-xs', assocConfig.color)}
+                    className={cn("text-xs", assocConfig.color)}
                   >
                     {assocConfig.label}
                   </Badge>
                   {riu.severity && (
                     <Badge
                       variant="outline"
-                      className={cn('text-xs', SEVERITY_COLORS[riu.severity])}
+                      className={cn("text-xs", SEVERITY_COLORS[riu.severity])}
                     >
                       {riu.severity}
                     </Badge>
                   )}
                 </div>
                 <div className="text-xs text-gray-500 mt-0.5 truncate">
-                  {typeConfig.label} via {SOURCE_LABELS[riu.sourceChannel]} |{' '}
-                  {new Date(riu.createdAt).toLocaleDateString('en-US', {
-                    month: 'short',
-                    day: 'numeric',
-                    year: 'numeric',
+                  {typeConfig.label} via {SOURCE_LABELS[riu.sourceChannel]} |{" "}
+                  {new Date(riu.createdAt).toLocaleDateString("en-US", {
+                    month: "short",
+                    day: "numeric",
+                    year: "numeric",
                   })}
                 </div>
               </div>
@@ -275,8 +291,8 @@ function RiuCard({
           <CardContent className="pt-0 pb-3 px-3">
             <div
               className={cn(
-                'rounded-md p-3 mt-1',
-                isPrimary ? 'bg-white border border-blue-100' : 'bg-gray-50'
+                "rounded-md p-3 mt-1",
+                isPrimary ? "bg-white border border-blue-100" : "bg-gray-50",
               )}
             >
               {/* Summary */}

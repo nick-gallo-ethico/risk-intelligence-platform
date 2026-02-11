@@ -14,17 +14,17 @@ export const sourceChannelOptions = [
   { value: "CHATBOT", label: "Chatbot" },
 ] as const;
 
+// CaseType matches backend Prisma enum
 export const caseTypeOptions = [
   { value: "REPORT", label: "Report" },
-  { value: "INQUIRY", label: "Inquiry" },
-  { value: "FOLLOW_UP", label: "Follow-up" },
+  { value: "RFI", label: "Request for Information" },
 ] as const;
 
+// Severity matches backend Prisma enum
 export const severityOptions = [
   { value: "LOW", label: "Low", color: "bg-green-100 text-green-800" },
   { value: "MEDIUM", label: "Medium", color: "bg-yellow-100 text-yellow-800" },
   { value: "HIGH", label: "High", color: "bg-orange-100 text-orange-800" },
-  { value: "CRITICAL", label: "Critical", color: "bg-red-100 text-red-800" },
 ] as const;
 
 // ReporterType matches backend Prisma enum
@@ -65,8 +65,9 @@ const sourceChannelValues = [
   "DIRECT_ENTRY",
   "CHATBOT",
 ] as const;
-const caseTypeValues = ["REPORT", "INQUIRY", "FOLLOW_UP"] as const;
-const severityValues = ["LOW", "MEDIUM", "HIGH", "CRITICAL"] as const;
+// CaseType and Severity values must match backend Prisma enums
+const caseTypeValues = ["REPORT", "RFI"] as const;
+const severityValues = ["LOW", "MEDIUM", "HIGH"] as const;
 const reporterTypeValues = ["ANONYMOUS", "IDENTIFIED", "PROXY"] as const;
 
 export const caseCreationSchema = z.object({

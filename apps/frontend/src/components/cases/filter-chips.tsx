@@ -1,10 +1,15 @@
-'use client';
+"use client";
 
-import { X } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import type { CaseFilters } from '@/hooks/use-case-filters';
-import type { CaseStatus, Severity, SourceChannel, CaseType } from '@/types/case';
+import { X } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import type { CaseFilters } from "@/hooks/use-case-filters";
+import type {
+  CaseStatus,
+  Severity,
+  SourceChannel,
+  CaseType,
+} from "@/types/case";
 
 interface FilterChipsProps {
   filters: CaseFilters;
@@ -14,37 +19,37 @@ interface FilterChipsProps {
 }
 
 const STATUS_LABELS: Record<CaseStatus, string> = {
-  NEW: 'New',
-  OPEN: 'Open',
-  CLOSED: 'Closed',
+  NEW: "New",
+  OPEN: "Open",
+  CLOSED: "Closed",
 };
 
+// Severity matches backend Prisma enum
 const SEVERITY_LABELS: Record<Severity, string> = {
-  LOW: 'Low',
-  MEDIUM: 'Medium',
-  HIGH: 'High',
-  CRITICAL: 'Critical',
+  LOW: "Low",
+  MEDIUM: "Medium",
+  HIGH: "High",
 };
 
 const SOURCE_LABELS: Record<SourceChannel, string> = {
-  HOTLINE: 'Hotline',
-  WEB_FORM: 'Web Form',
-  PROXY: 'Proxy',
-  DIRECT_ENTRY: 'Direct Entry',
-  CHATBOT: 'Chatbot',
+  HOTLINE: "Hotline",
+  WEB_FORM: "Web Form",
+  PROXY: "Proxy",
+  DIRECT_ENTRY: "Direct Entry",
+  CHATBOT: "Chatbot",
 };
 
+// CaseType matches backend Prisma enum
 const TYPE_LABELS: Record<CaseType, string> = {
-  REPORT: 'Report',
-  INQUIRY: 'Inquiry',
-  FOLLOW_UP: 'Follow-up',
+  REPORT: "Report",
+  RFI: "Request for Information",
 };
 
 function formatDate(dateString: string): string {
-  return new Date(dateString).toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
+  return new Date(dateString).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
   });
 }
 
@@ -66,7 +71,7 @@ export function FilterChips({
   if (!hasFilters) {
     return totalResults !== undefined ? (
       <div className="text-sm text-muted-foreground">
-        {totalResults} {totalResults === 1 ? 'result' : 'results'}
+        {totalResults} {totalResults === 1 ? "result" : "results"}
       </div>
     ) : null;
   }
@@ -75,7 +80,7 @@ export function FilterChips({
     <div className="flex flex-wrap items-center gap-2">
       {totalResults !== undefined && (
         <span className="text-sm text-muted-foreground mr-2">
-          {totalResults} {totalResults === 1 ? 'result' : 'results'}
+          {totalResults} {totalResults === 1 ? "result" : "results"}
         </span>
       )}
 
@@ -89,7 +94,7 @@ export function FilterChips({
           Status: {STATUS_LABELS[status]}
           <button
             type="button"
-            onClick={() => onClearFilter('statuses', status)}
+            onClick={() => onClearFilter("statuses", status)}
             className="ml-1 rounded-full p-0.5 hover:bg-muted"
           >
             <X className="h-3 w-3" />
@@ -108,7 +113,7 @@ export function FilterChips({
           Severity: {SEVERITY_LABELS[severity]}
           <button
             type="button"
-            onClick={() => onClearFilter('severities', severity)}
+            onClick={() => onClearFilter("severities", severity)}
             className="ml-1 rounded-full p-0.5 hover:bg-muted"
           >
             <X className="h-3 w-3" />
@@ -123,7 +128,7 @@ export function FilterChips({
           Source: {SOURCE_LABELS[filters.sourceChannel]}
           <button
             type="button"
-            onClick={() => onClearFilter('sourceChannel')}
+            onClick={() => onClearFilter("sourceChannel")}
             className="ml-1 rounded-full p-0.5 hover:bg-muted"
           >
             <X className="h-3 w-3" />
@@ -138,7 +143,7 @@ export function FilterChips({
           Type: {TYPE_LABELS[filters.caseType]}
           <button
             type="button"
-            onClick={() => onClearFilter('caseType')}
+            onClick={() => onClearFilter("caseType")}
             className="ml-1 rounded-full p-0.5 hover:bg-muted"
           >
             <X className="h-3 w-3" />
@@ -150,7 +155,7 @@ export function FilterChips({
       {/* Date range chip */}
       {(filters.dateFrom || filters.dateTo) && (
         <Badge variant="secondary" className="gap-1 pr-1">
-          Date:{' '}
+          Date:{" "}
           {filters.dateFrom && filters.dateTo
             ? `${formatDate(filters.dateFrom)} - ${formatDate(filters.dateTo)}`
             : filters.dateFrom
@@ -158,7 +163,7 @@ export function FilterChips({
               : `Until ${formatDate(filters.dateTo!)}`}
           <button
             type="button"
-            onClick={() => onClearFilter('dateFrom')}
+            onClick={() => onClearFilter("dateFrom")}
             className="ml-1 rounded-full p-0.5 hover:bg-muted"
           >
             <X className="h-3 w-3" />
@@ -173,7 +178,7 @@ export function FilterChips({
           Search: &quot;{filters.search}&quot;
           <button
             type="button"
-            onClick={() => onClearFilter('search')}
+            onClick={() => onClearFilter("search")}
             className="ml-1 rounded-full p-0.5 hover:bg-muted"
           >
             <X className="h-3 w-3" />

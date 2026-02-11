@@ -9,9 +9,11 @@ export type SourceChannel =
   | "PROXY"
   | "DIRECT_ENTRY"
   | "CHATBOT";
-export type CaseType = "REPORT" | "INQUIRY" | "FOLLOW_UP";
+// CaseType matches backend Prisma enum
+export type CaseType = "REPORT" | "RFI";
 export type ReporterType = "ANONYMOUS" | "IDENTIFIED" | "PROXY";
-export type Severity = "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+// Severity matches backend Prisma enum
+export type Severity = "LOW" | "MEDIUM" | "HIGH";
 export type SlaStatus = "ON_TRACK" | "WARNING" | "BREACHED" | "CRITICAL";
 export type RiuAssociationType = "PRIMARY" | "RELATED" | "MERGED_FROM";
 export type RiuType =

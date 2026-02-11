@@ -1,18 +1,24 @@
-'use client';
+"use client";
 
-import { useCallback, useEffect, useState } from 'react';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import { StatusBadge } from '@/components/ui/status-badge';
-import { SeverityBadge } from '@/components/ui/severity-badge';
-import { toast } from '@/components/ui/toaster';
-import { PropertySection } from './property-section';
-import { EditableField } from './editable-field';
-import { FileUpload, FileList } from '@/components/files';
-import { apiClient } from '@/lib/api';
-import { attachmentsApi } from '@/lib/attachments-api';
-import type { Case, CaseStatus, Severity, SourceChannel, UpdateCaseInput } from '@/types/case';
-import type { Attachment } from '@/types/attachment';
+import { useCallback, useEffect, useState } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { StatusBadge } from "@/components/ui/status-badge";
+import { SeverityBadge } from "@/components/ui/severity-badge";
+import { toast } from "@/components/ui/toaster";
+import { PropertySection } from "./property-section";
+import { EditableField } from "./editable-field";
+import { FileUpload, FileList } from "@/components/files";
+import { apiClient } from "@/lib/api";
+import { attachmentsApi } from "@/lib/attachments-api";
+import type {
+  Case,
+  CaseStatus,
+  Severity,
+  SourceChannel,
+  UpdateCaseInput,
+} from "@/types/case";
+import type { Attachment } from "@/types/attachment";
 
 interface CasePropertiesPanelProps {
   caseData: Case | null;
@@ -21,40 +27,40 @@ interface CasePropertiesPanelProps {
 }
 
 const STATUS_OPTIONS = [
-  { value: 'NEW', label: 'New' },
-  { value: 'OPEN', label: 'Open' },
-  { value: 'CLOSED', label: 'Closed' },
+  { value: "NEW", label: "New" },
+  { value: "OPEN", label: "Open" },
+  { value: "CLOSED", label: "Closed" },
 ];
 
+// Severity matches backend Prisma enum
 const SEVERITY_OPTIONS = [
-  { value: 'LOW', label: 'Low' },
-  { value: 'MEDIUM', label: 'Medium' },
-  { value: 'HIGH', label: 'High' },
-  { value: 'CRITICAL', label: 'Critical' },
+  { value: "LOW", label: "Low" },
+  { value: "MEDIUM", label: "Medium" },
+  { value: "HIGH", label: "High" },
 ];
 
 const SOURCE_CHANNEL_OPTIONS = [
-  { value: 'HOTLINE', label: 'Hotline' },
-  { value: 'WEB_FORM', label: 'Web Form' },
-  { value: 'PROXY', label: 'Proxy' },
-  { value: 'DIRECT_ENTRY', label: 'Direct Entry' },
-  { value: 'CHATBOT', label: 'Chatbot' },
+  { value: "HOTLINE", label: "Hotline" },
+  { value: "WEB_FORM", label: "Web Form" },
+  { value: "PROXY", label: "Proxy" },
+  { value: "DIRECT_ENTRY", label: "Direct Entry" },
+  { value: "CHATBOT", label: "Chatbot" },
 ];
 
 function formatDate(dateString: string) {
-  return new Date(dateString).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
+  return new Date(dateString).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
   });
 }
 
 function formatSourceChannel(channel: SourceChannel): string {
   return channel
     .toLowerCase()
-    .replace(/_/g, ' ')
+    .replace(/_/g, " ")
     .replace(/\b\w/g, (l) => l.toUpperCase());
 }
 
@@ -85,22 +91,25 @@ export function CasePropertiesPanel({
 
     setAttachmentsLoading(true);
     attachmentsApi
-      .getForEntity('CASE', caseData.id)
+      .getForEntity("CASE", caseData.id)
       .then((response) => {
         setAttachments(response.items);
       })
       .catch((err) => {
-        console.error('Failed to fetch attachments:', err);
+        console.error("Failed to fetch attachments:", err);
       })
       .finally(() => {
         setAttachmentsLoading(false);
       });
   }, [caseData?.id]);
 
-  const handleAttachmentUploadComplete = useCallback((attachment: Attachment) => {
-    setAttachments((prev) => [...prev, attachment]);
-    setShowUpload(false);
-  }, []);
+  const handleAttachmentUploadComplete = useCallback(
+    (attachment: Attachment) => {
+      setAttachments((prev) => [...prev, attachment]);
+      setShowUpload(false);
+    },
+    [],
+  );
 
   const handleAttachmentDelete = useCallback((id: string) => {
     setAttachments((prev) => prev.filter((a) => a.id !== id));
@@ -113,18 +122,18 @@ export function CasePropertiesPanel({
       try {
         const updatedCase = await apiClient.patch<Case>(
           `/cases/${caseData.id}`,
-          { [field]: value }
+          { [field]: value },
         );
-        toast.success('Case updated successfully');
+        toast.success("Case updated successfully");
         onUpdate?.(updatedCase);
       } catch (error) {
         const message =
-          error instanceof Error ? error.message : 'Failed to update case';
+          error instanceof Error ? error.message : "Failed to update case";
         toast.error(message);
         throw error; // Re-throw to keep edit mode open
       }
     },
-    [caseData, onUpdate]
+    [caseData, onUpdate],
   );
 
   if (isLoading) {
@@ -144,7 +153,7 @@ export function CasePropertiesPanel({
           value={caseData.status}
           fieldType="select"
           options={STATUS_OPTIONS}
-          onSave={(value) => updateCase('status', value as CaseStatus)}
+          onSave={(value) => updateCase("status", value as CaseStatus)}
           renderValue={(val) =>
             val ? <StatusBadge status={val as CaseStatus} /> : null
           }
@@ -154,7 +163,7 @@ export function CasePropertiesPanel({
           value={caseData.severity}
           fieldType="select"
           options={SEVERITY_OPTIONS}
-          onSave={(value) => updateCase('severity', value as Severity)}
+          onSave={(value) => updateCase("severity", value as Severity)}
           renderValue={(val) =>
             val ? <SeverityBadge severity={val as Severity} /> : null
           }
@@ -164,14 +173,14 @@ export function CasePropertiesPanel({
           value={caseData.severityReason}
           fieldType="text"
           placeholder="Not specified"
-          onSave={(value) => updateCase('severityReason', value as string)}
+          onSave={(value) => updateCase("severityReason", value as string)}
         />
         <EditableField
           label="Tags"
           value={caseData.tags}
           fieldType="tags"
           placeholder="No tags"
-          onSave={(value) => updateCase('tags', value as string[])}
+          onSave={(value) => updateCase("tags", value as string[])}
         />
       </PropertySection>
 
@@ -182,7 +191,9 @@ export function CasePropertiesPanel({
           value={caseData.sourceChannel}
           fieldType="select"
           options={SOURCE_CHANNEL_OPTIONS}
-          onSave={(value) => updateCase('sourceChannel', value as SourceChannel)}
+          onSave={(value) =>
+            updateCase("sourceChannel", value as SourceChannel)
+          }
           renderValue={(val) =>
             val ? formatSourceChannel(val as SourceChannel) : null
           }
@@ -211,7 +222,7 @@ export function CasePropertiesPanel({
         />
         <EditableField
           label="Anonymous"
-          value={caseData.reporterAnonymous ? 'Yes' : 'No'}
+          value={caseData.reporterAnonymous ? "Yes" : "No"}
           readOnly
           onSave={async () => {}}
         />
@@ -222,21 +233,21 @@ export function CasePropertiesPanel({
               value={caseData.reporterName}
               fieldType="text"
               placeholder="Not provided"
-              onSave={(value) => updateCase('reporterName', value as string)}
+              onSave={(value) => updateCase("reporterName", value as string)}
             />
             <EditableField
               label="Email"
               value={caseData.reporterEmail}
               fieldType="text"
               placeholder="Not provided"
-              onSave={(value) => updateCase('reporterEmail', value as string)}
+              onSave={(value) => updateCase("reporterEmail", value as string)}
             />
             <EditableField
               label="Phone"
               value={caseData.reporterPhone}
               fieldType="text"
               placeholder="Not provided"
-              onSave={(value) => updateCase('reporterPhone', value as string)}
+              onSave={(value) => updateCase("reporterPhone", value as string)}
             />
           </>
         )}
@@ -249,21 +260,21 @@ export function CasePropertiesPanel({
           value={caseData.locationCity}
           fieldType="text"
           placeholder="Not specified"
-          onSave={(value) => updateCase('locationCity', value as string)}
+          onSave={(value) => updateCase("locationCity", value as string)}
         />
         <EditableField
           label="State"
           value={caseData.locationState}
           fieldType="text"
           placeholder="Not specified"
-          onSave={(value) => updateCase('locationState', value as string)}
+          onSave={(value) => updateCase("locationState", value as string)}
         />
         <EditableField
           label="Country"
           value={caseData.locationCountry}
           fieldType="text"
           placeholder="Not specified"
-          onSave={(value) => updateCase('locationCountry', value as string)}
+          onSave={(value) => updateCase("locationCountry", value as string)}
         />
       </PropertySection>
 

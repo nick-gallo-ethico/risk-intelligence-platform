@@ -144,7 +144,6 @@ export function BasicInfoSection({
                           option.value === "LOW" && "bg-green-500",
                           option.value === "MEDIUM" && "bg-yellow-500",
                           option.value === "HIGH" && "bg-orange-500",
-                          option.value === "CRITICAL" && "bg-red-500",
                         )}
                       />
                       {option.label}

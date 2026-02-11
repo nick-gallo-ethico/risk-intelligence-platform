@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { format } from 'date-fns';
+import { useState } from "react";
+import { format } from "date-fns";
 import {
   CalendarIcon,
   ChevronDown,
@@ -9,32 +9,37 @@ import {
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Label } from '@/components/ui/label';
-import { Calendar } from '@/components/ui/calendar';
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from '@/components/ui/popover';
+} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from '@/components/ui/collapsible';
-import { SearchInput } from './search-input';
-import { cn } from '@/lib/utils';
-import type { CaseFilters } from '@/hooks/use-case-filters';
-import type { CaseStatus, Severity, SourceChannel, CaseType } from '@/types/case';
+} from "@/components/ui/collapsible";
+import { SearchInput } from "./search-input";
+import { cn } from "@/lib/utils";
+import type { CaseFilters } from "@/hooks/use-case-filters";
+import type {
+  CaseStatus,
+  Severity,
+  SourceChannel,
+  CaseType,
+} from "@/types/case";
 
 interface CaseListFiltersProps {
   filters: CaseFilters;
@@ -42,37 +47,37 @@ interface CaseListFiltersProps {
 }
 
 const STATUSES: { value: CaseStatus; label: string }[] = [
-  { value: 'NEW', label: 'New' },
-  { value: 'OPEN', label: 'Open' },
-  { value: 'CLOSED', label: 'Closed' },
+  { value: "NEW", label: "New" },
+  { value: "OPEN", label: "Open" },
+  { value: "CLOSED", label: "Closed" },
 ];
 
+// Severity matches backend Prisma enum
 const SEVERITIES: { value: Severity; label: string }[] = [
-  { value: 'LOW', label: 'Low' },
-  { value: 'MEDIUM', label: 'Medium' },
-  { value: 'HIGH', label: 'High' },
-  { value: 'CRITICAL', label: 'Critical' },
+  { value: "LOW", label: "Low" },
+  { value: "MEDIUM", label: "Medium" },
+  { value: "HIGH", label: "High" },
 ];
 
 const SOURCES: { value: SourceChannel; label: string }[] = [
-  { value: 'HOTLINE', label: 'Hotline' },
-  { value: 'WEB_FORM', label: 'Web Form' },
-  { value: 'PROXY', label: 'Proxy' },
-  { value: 'DIRECT_ENTRY', label: 'Direct Entry' },
-  { value: 'CHATBOT', label: 'Chatbot' },
+  { value: "HOTLINE", label: "Hotline" },
+  { value: "WEB_FORM", label: "Web Form" },
+  { value: "PROXY", label: "Proxy" },
+  { value: "DIRECT_ENTRY", label: "Direct Entry" },
+  { value: "CHATBOT", label: "Chatbot" },
 ];
 
+// CaseType matches backend Prisma enum
 const TYPES: { value: CaseType; label: string }[] = [
-  { value: 'REPORT', label: 'Report' },
-  { value: 'INQUIRY', label: 'Inquiry' },
-  { value: 'FOLLOW_UP', label: 'Follow-up' },
+  { value: "REPORT", label: "Report" },
+  { value: "RFI", label: "Request for Information" },
 ];
 
 const SORT_OPTIONS = [
-  { value: 'createdAt', label: 'Created Date' },
-  { value: 'updatedAt', label: 'Updated Date' },
-  { value: 'referenceNumber', label: 'Reference' },
-  { value: 'severity', label: 'Severity' },
+  { value: "createdAt", label: "Created Date" },
+  { value: "updatedAt", label: "Updated Date" },
+  { value: "referenceNumber", label: "Reference" },
+  { value: "severity", label: "Severity" },
 ];
 
 function MultiSelectDropdown({
@@ -155,12 +160,12 @@ function DateRangePicker({
 
   const displayText =
     fromDate && toDate
-      ? `${format(fromDate, 'MMM d')} - ${format(toDate, 'MMM d')}`
+      ? `${format(fromDate, "MMM d")} - ${format(toDate, "MMM d")}`
       : fromDate
-        ? `From ${format(fromDate, 'MMM d')}`
+        ? `From ${format(fromDate, "MMM d")}`
         : toDate
-          ? `Until ${format(toDate, 'MMM d')}`
-          : 'Date Range';
+          ? `Until ${format(toDate, "MMM d")}`
+          : "Date Range";
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -178,7 +183,7 @@ function DateRangePicker({
               mode="single"
               selected={fromDate}
               onSelect={(date) =>
-                onChange(date ? date.toISOString().split('T')[0] : null, dateTo)
+                onChange(date ? date.toISOString().split("T")[0] : null, dateTo)
               }
               initialFocus
             />
@@ -189,7 +194,10 @@ function DateRangePicker({
               mode="single"
               selected={toDate}
               onSelect={(date) =>
-                onChange(dateFrom, date ? date.toISOString().split('T')[0] : null)
+                onChange(
+                  dateFrom,
+                  date ? date.toISOString().split("T")[0] : null,
+                )
               }
               disabled={(date) => (fromDate ? date < fromDate : false)}
             />
@@ -273,11 +281,11 @@ export function CaseListFilters({
 
             {/* Source channel select */}
             <Select
-              value={filters.sourceChannel || 'all'}
+              value={filters.sourceChannel || "all"}
               onValueChange={(value) =>
                 onUpdateFilters({
                   sourceChannel:
-                    value === 'all' ? null : (value as SourceChannel),
+                    value === "all" ? null : (value as SourceChannel),
                 })
               }
             >
@@ -296,10 +304,10 @@ export function CaseListFilters({
 
             {/* Case type select */}
             <Select
-              value={filters.caseType || 'all'}
+              value={filters.caseType || "all"}
               onValueChange={(value) =>
                 onUpdateFilters({
-                  caseType: value === 'all' ? null : (value as CaseType),
+                  caseType: value === "all" ? null : (value as CaseType),
                 })
               }
             >
@@ -352,16 +360,16 @@ export function CaseListFilters({
                 size="icon"
                 onClick={() =>
                   onUpdateFilters({
-                    sortOrder: filters.sortOrder === 'asc' ? 'desc' : 'asc',
+                    sortOrder: filters.sortOrder === "asc" ? "desc" : "asc",
                   })
                 }
                 title={
-                  filters.sortOrder === 'asc'
-                    ? 'Ascending (oldest first)'
-                    : 'Descending (newest first)'
+                  filters.sortOrder === "asc"
+                    ? "Ascending (oldest first)"
+                    : "Descending (newest first)"
                 }
               >
-                {filters.sortOrder === 'asc' ? (
+                {filters.sortOrder === "asc" ? (
                   <ArrowUp className="h-4 w-4" />
                 ) : (
                   <ArrowDown className="h-4 w-4" />

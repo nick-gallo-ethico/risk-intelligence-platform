@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useState, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import {
   Copy,
   Check,
@@ -13,52 +13,82 @@ import {
   UserPlus,
   RefreshCw,
   GitMerge,
-} from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
-import { Skeleton } from '@/components/ui/skeleton';
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from '@/components/ui/avatar';
-import { cn } from '@/lib/utils';
-import type { Case, CaseStatus, Severity, SlaStatus } from '@/types/case';
+} from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { cn } from "@/lib/utils";
+import type { Case, CaseStatus, Severity, SlaStatus } from "@/types/case";
 
 /**
  * Status color mapping for case status badges
  */
-const STATUS_CONFIG: Record<CaseStatus, { bg: string; text: string; label: string }> = {
-  NEW: { bg: 'bg-blue-100', text: 'text-blue-800', label: 'New' },
-  OPEN: { bg: 'bg-yellow-100', text: 'text-yellow-800', label: 'Open' },
-  CLOSED: { bg: 'bg-gray-100', text: 'text-gray-800', label: 'Closed' },
+const STATUS_CONFIG: Record<
+  CaseStatus,
+  { bg: string; text: string; label: string }
+> = {
+  NEW: { bg: "bg-blue-100", text: "text-blue-800", label: "New" },
+  OPEN: { bg: "bg-yellow-100", text: "text-yellow-800", label: "Open" },
+  CLOSED: { bg: "bg-gray-100", text: "text-gray-800", label: "Closed" },
 };
 
 /**
- * Severity color mapping
+ * Severity color mapping - matches backend Prisma enum
  */
-const SEVERITY_CONFIG: Record<Severity, { bg: string; text: string; label: string }> = {
-  LOW: { bg: 'bg-green-100', text: 'text-green-800', label: 'Low' },
-  MEDIUM: { bg: 'bg-yellow-100', text: 'text-yellow-800', label: 'Medium' },
-  HIGH: { bg: 'bg-orange-100', text: 'text-orange-800', label: 'High' },
-  CRITICAL: { bg: 'bg-red-100', text: 'text-red-800', label: 'Critical' },
+const SEVERITY_CONFIG: Record<
+  Severity,
+  { bg: string; text: string; label: string }
+> = {
+  LOW: { bg: "bg-green-100", text: "text-green-800", label: "Low" },
+  MEDIUM: { bg: "bg-yellow-100", text: "text-yellow-800", label: "Medium" },
+  HIGH: { bg: "bg-orange-100", text: "text-orange-800", label: "High" },
 };
 
 /**
  * SLA status color mapping
  */
-const SLA_CONFIG: Record<SlaStatus, { bg: string; text: string; icon: typeof Check; label: string }> = {
-  ON_TRACK: { bg: 'bg-green-50', text: 'text-green-700', icon: Check, label: 'On Track' },
-  WARNING: { bg: 'bg-yellow-50', text: 'text-yellow-700', icon: AlertTriangle, label: 'Warning' },
-  BREACHED: { bg: 'bg-red-50', text: 'text-red-700', icon: AlertCircle, label: 'Breached' },
-  CRITICAL: { bg: 'bg-red-100', text: 'text-red-800', icon: AlertCircle, label: 'Critical' },
+const SLA_CONFIG: Record<
+  SlaStatus,
+  { bg: string; text: string; icon: typeof Check; label: string }
+> = {
+  ON_TRACK: {
+    bg: "bg-green-50",
+    text: "text-green-700",
+    icon: Check,
+    label: "On Track",
+  },
+  WARNING: {
+    bg: "bg-yellow-50",
+    text: "text-yellow-700",
+    icon: AlertTriangle,
+    label: "Warning",
+  },
+  BREACHED: {
+    bg: "bg-red-50",
+    text: "text-red-700",
+    icon: AlertCircle,
+    label: "Breached",
+  },
+  CRITICAL: {
+    bg: "bg-red-100",
+    text: "text-red-800",
+    icon: AlertCircle,
+    label: "Critical",
+  },
 };
 
 /**
  * Pipeline stage progress mapping
  */
-const PIPELINE_STAGES = ['INTAKE', 'TRIAGE', 'INVESTIGATION', 'REVIEW', 'CLOSURE'];
+const PIPELINE_STAGES = [
+  "INTAKE",
+  "TRIAGE",
+  "INVESTIGATION",
+  "REVIEW",
+  "CLOSURE",
+];
 
 interface CaseDetailHeaderProps {
   caseData: Case | null;
@@ -99,7 +129,7 @@ export function CaseDetailHeader({
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
-      console.error('Failed to copy reference number:', error);
+      console.error("Failed to copy reference number:", error);
     }
   }, [caseData?.referenceNumber]);
 
@@ -112,19 +142,23 @@ export function CaseDetailHeader({
   }
 
   const statusConfig = STATUS_CONFIG[caseData.status];
-  const severityConfig = caseData.severity ? SEVERITY_CONFIG[caseData.severity] : null;
+  const severityConfig = caseData.severity
+    ? SEVERITY_CONFIG[caseData.severity]
+    : null;
   const slaConfig = caseData.slaStatus ? SLA_CONFIG[caseData.slaStatus] : null;
 
   // Calculate case age in days
   const caseAge = Math.floor(
-    (Date.now() - new Date(caseData.createdAt).getTime()) / (1000 * 60 * 60 * 24)
+    (Date.now() - new Date(caseData.createdAt).getTime()) /
+      (1000 * 60 * 60 * 24),
   );
 
   // Calculate pipeline progress
   const currentStageIndex = caseData.pipelineStage
     ? PIPELINE_STAGES.indexOf(caseData.pipelineStage.toUpperCase())
     : 0;
-  const pipelineProgress = ((currentStageIndex + 1) / PIPELINE_STAGES.length) * 100;
+  const pipelineProgress =
+    ((currentStageIndex + 1) / PIPELINE_STAGES.length) * 100;
 
   return (
     <div className="bg-white border-b">
@@ -132,7 +166,7 @@ export function CaseDetailHeader({
         {/* Breadcrumb */}
         <nav className="flex items-center text-sm text-gray-500 mb-3">
           <button
-            onClick={() => router.push('/cases')}
+            onClick={() => router.push("/cases")}
             className="hover:text-gray-700 transition-colors"
           >
             Cases
@@ -170,7 +204,11 @@ export function CaseDetailHeader({
               {/* Status Badge */}
               <Badge
                 variant="outline"
-                className={cn(statusConfig.bg, statusConfig.text, 'border-transparent')}
+                className={cn(
+                  statusConfig.bg,
+                  statusConfig.text,
+                  "border-transparent",
+                )}
               >
                 {statusConfig.label}
               </Badge>
@@ -179,7 +217,11 @@ export function CaseDetailHeader({
               {severityConfig && (
                 <Badge
                   variant="outline"
-                  className={cn(severityConfig.bg, severityConfig.text, 'border-transparent')}
+                  className={cn(
+                    severityConfig.bg,
+                    severityConfig.text,
+                    "border-transparent",
+                  )}
                 >
                   {severityConfig.label}
                 </Badge>
@@ -191,7 +233,9 @@ export function CaseDetailHeader({
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <span className="font-medium">{caseData.category.name}</span>
                 {caseData.category.code && (
-                  <span className="text-gray-400">({caseData.category.code})</span>
+                  <span className="text-gray-400">
+                    ({caseData.category.code})
+                  </span>
                 )}
               </div>
             )}
@@ -232,9 +276,7 @@ export function CaseDetailHeader({
 
         {/* Summary */}
         {caseData.summary && (
-          <p className="text-gray-600 line-clamp-2 mb-4">
-            {caseData.summary}
-          </p>
+          <p className="text-gray-600 line-clamp-2 mb-4">{caseData.summary}</p>
         )}
 
         {/* Info Row: Pipeline, Dates, Investigators, SLA */}
@@ -242,11 +284,13 @@ export function CaseDetailHeader({
           {/* Pipeline Stage */}
           {caseData.pipelineStage && (
             <div className="flex items-center gap-3">
-              <span className="text-xs text-gray-500 uppercase font-medium">Stage</span>
+              <span className="text-xs text-gray-500 uppercase font-medium">
+                Stage
+              </span>
               <div className="flex items-center gap-2 min-w-[180px]">
                 <Progress value={pipelineProgress} className="w-20 h-1.5" />
                 <span className="text-sm font-medium text-gray-700 capitalize">
-                  {caseData.pipelineStage.toLowerCase().replace('_', ' ')}
+                  {caseData.pipelineStage.toLowerCase().replace("_", " ")}
                 </span>
               </div>
             </div>
@@ -256,63 +300,64 @@ export function CaseDetailHeader({
           <div className="flex items-center gap-2 text-sm">
             <Clock className="w-4 h-4 text-gray-400" />
             <span className="text-gray-600">
-              {new Date(caseData.createdAt).toLocaleDateString('en-US', {
-                month: 'short',
-                day: 'numeric',
-                year: 'numeric',
+              {new Date(caseData.createdAt).toLocaleDateString("en-US", {
+                month: "short",
+                day: "numeric",
+                year: "numeric",
               })}
             </span>
             <span className="text-gray-400">|</span>
             <span className="text-gray-500">
-              {caseAge === 0 ? 'Today' : `${caseAge}d old`}
+              {caseAge === 0 ? "Today" : `${caseAge}d old`}
             </span>
           </div>
 
           {/* Assigned Investigators */}
-          {caseData.assignedInvestigators && caseData.assignedInvestigators.length > 0 && (
-            <div className="flex items-center gap-2">
-              <Users className="w-4 h-4 text-gray-400" />
-              <div className="flex -space-x-2">
-                {caseData.assignedInvestigators.slice(0, 3).map((user) => (
-                  <Avatar
-                    key={user.id}
-                    className="w-7 h-7 border-2 border-white"
-                  >
-                    <AvatarImage
-                      src={user.avatarUrl}
-                      alt={`${user.firstName} ${user.lastName}`}
-                    />
-                    <AvatarFallback className="text-xs">
-                      {user.firstName[0]}
-                      {user.lastName[0]}
-                    </AvatarFallback>
-                  </Avatar>
-                ))}
-                {caseData.assignedInvestigators.length > 3 && (
-                  <div className="w-7 h-7 rounded-full bg-gray-100 border-2 border-white flex items-center justify-center">
-                    <span className="text-xs text-gray-600">
-                      +{caseData.assignedInvestigators.length - 3}
-                    </span>
-                  </div>
-                )}
+          {caseData.assignedInvestigators &&
+            caseData.assignedInvestigators.length > 0 && (
+              <div className="flex items-center gap-2">
+                <Users className="w-4 h-4 text-gray-400" />
+                <div className="flex -space-x-2">
+                  {caseData.assignedInvestigators.slice(0, 3).map((user) => (
+                    <Avatar
+                      key={user.id}
+                      className="w-7 h-7 border-2 border-white"
+                    >
+                      <AvatarImage
+                        src={user.avatarUrl}
+                        alt={`${user.firstName} ${user.lastName}`}
+                      />
+                      <AvatarFallback className="text-xs">
+                        {user.firstName[0]}
+                        {user.lastName[0]}
+                      </AvatarFallback>
+                    </Avatar>
+                  ))}
+                  {caseData.assignedInvestigators.length > 3 && (
+                    <div className="w-7 h-7 rounded-full bg-gray-100 border-2 border-white flex items-center justify-center">
+                      <span className="text-xs text-gray-600">
+                        +{caseData.assignedInvestigators.length - 3}
+                      </span>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
           {/* SLA Status */}
           {slaConfig && (
             <div
               className={cn(
-                'flex items-center gap-1.5 px-2.5 py-1 rounded-md',
-                slaConfig.bg
+                "flex items-center gap-1.5 px-2.5 py-1 rounded-md",
+                slaConfig.bg,
               )}
             >
-              <slaConfig.icon className={cn('w-4 h-4', slaConfig.text)} />
-              <span className={cn('text-sm font-medium', slaConfig.text)}>
+              <slaConfig.icon className={cn("w-4 h-4", slaConfig.text)} />
+              <span className={cn("text-sm font-medium", slaConfig.text)}>
                 {slaConfig.label}
               </span>
               {caseData.slaDueAt && (
-                <span className={cn('text-xs', slaConfig.text)}>
+                <span className={cn("text-xs", slaConfig.text)}>
                   (Due {new Date(caseData.slaDueAt).toLocaleDateString()})
                 </span>
               )}
