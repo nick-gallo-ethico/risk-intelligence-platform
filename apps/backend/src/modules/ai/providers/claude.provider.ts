@@ -40,12 +40,12 @@ export class ClaudeProvider implements AIProvider, OnModuleInit {
   };
 
   readonly availableModels = [
+    "claude-opus-4-6",
     "claude-sonnet-4-5",
-    "claude-opus-4",
     "claude-3-5-haiku-latest",
   ];
 
-  readonly defaultModel = "claude-sonnet-4-5";
+  readonly defaultModel = "claude-sonnet-4-5-20250929";
 
   constructor(private readonly configService: ConfigService) {}
 

@@ -201,7 +201,7 @@ export abstract class BaseAgent {
 
       for (const action of actions) {
         tools.push({
-          name: `action:${action.id}`,
+          name: `action_${action.id}`,
           description: `[ACTION] ${action.description}. This will modify the ${context.entityType}.`,
           inputSchema: zodToJsonSchema(action.inputSchema),
         });
@@ -225,8 +225,8 @@ export abstract class BaseAgent {
     context: AgentContext,
   ): Promise<{ success: boolean; result?: unknown; error?: string }> {
     // Check if it's an action (prefixed with "action:")
-    if (toolName.startsWith("action:")) {
-      const actionId = toolName.replace("action:", "");
+    if (toolName.startsWith("action_")) {
+      const actionId = toolName.replace("action_", "");
       return this.executeAction(actionId, input, context);
     }
 
@@ -279,6 +279,10 @@ export abstract class BaseAgent {
     }
 
     try {
+      this.logger.debug(
+        `Executing action ${actionId} with input: ${JSON.stringify(input)} for ${context.entityType}:${context.entityId}`,
+      );
+
       const result = await this.actionExecutor.execute(
         actionId,
         input,
@@ -294,6 +298,10 @@ export abstract class BaseAgent {
         true, // skipPreview for AI-initiated actions
       );
 
+      this.logger.debug(
+        `Action ${actionId} result: success=${result.success}, error=${result.error || "none"}`,
+      );
+
       return {
         success: result.success,
         result: result.result,
@@ -301,6 +309,7 @@ export abstract class BaseAgent {
       };
     } catch (error: unknown) {
       const err = error as Error;
+      this.logger.error(`Action ${actionId} threw: ${err.message}`, err.stack);
       return {
         success: false,
         error: err.message || "Action execution failed",
@@ -418,8 +427,8 @@ export abstract class BaseAgent {
           );
 
           // If this was an action (not a skill), emit action_executed event
-          if (event.toolCall.name.startsWith("action:")) {
-            const actionId = event.toolCall.name.replace("action:", "");
+          if (event.toolCall.name.startsWith("action_")) {
+            const actionId = event.toolCall.name.replace("action_", "");
             yield {
               type: "action_executed",
               actionResult: {
@@ -437,7 +446,7 @@ export abstract class BaseAgent {
           if (result.success) {
             yield {
               type: "text_delta",
-              text: `\n\n✓ ${event.toolCall.name.replace("action:", "")}: ${
+              text: `\n\n✓ ${event.toolCall.name.replace("action_", "")}: ${
                 typeof result.result === "object"
                   ? JSON.stringify(result.result)
                   : result.result || "Completed successfully"
@@ -446,7 +455,7 @@ export abstract class BaseAgent {
           } else {
             yield {
               type: "text_delta",
-              text: `\n\n✗ ${event.toolCall.name.replace("action:", "")} failed: ${result.error}\n\n`,
+              text: `\n\n✗ ${event.toolCall.name.replace("action_", "")} failed: ${result.error}\n\n`,
             };
           }
 

@@ -4,6 +4,8 @@ import { ContextLoaderService } from "../services/context-loader.service";
 import { ConversationService } from "../services/conversation.service";
 import { SkillRegistry } from "../skills/skill.registry";
 import { AiRateLimiterService } from "../services/rate-limiter.service";
+import { ActionCatalog } from "../actions/action.catalog";
+import { ActionExecutorService } from "../actions/action-executor.service";
 
 /**
  * Agent configuration for compliance manager (org-wide) workflows.
@@ -46,6 +48,8 @@ export class ComplianceManagerAgent extends BaseAgent {
     conversationService: ConversationService,
     skillRegistry: SkillRegistry,
     rateLimiter: AiRateLimiterService,
+    actionCatalog?: ActionCatalog,
+    actionExecutor?: ActionExecutorService,
   ) {
     super(
       COMPLIANCE_MANAGER_AGENT_CONFIG,
@@ -54,6 +58,8 @@ export class ComplianceManagerAgent extends BaseAgent {
       conversationService,
       skillRegistry,
       rateLimiter,
+      actionCatalog,
+      actionExecutor,
     );
   }
 

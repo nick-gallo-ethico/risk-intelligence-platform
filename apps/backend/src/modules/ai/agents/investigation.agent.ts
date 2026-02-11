@@ -4,6 +4,8 @@ import { ContextLoaderService } from "../services/context-loader.service";
 import { ConversationService } from "../services/conversation.service";
 import { SkillRegistry } from "../skills/skill.registry";
 import { AiRateLimiterService } from "../services/rate-limiter.service";
+import { ActionCatalog } from "../actions/action.catalog";
+import { ActionExecutorService } from "../actions/action-executor.service";
 
 /**
  * Agent configuration for investigation workflows.
@@ -15,12 +17,7 @@ const INVESTIGATION_AGENT_CONFIG: AgentConfig = {
     "AI assistant specialized for investigation workflows - interviews, evidence analysis, and findings documentation.",
   entityTypes: ["investigation"],
   requiredRole: "INVESTIGATOR",
-  defaultSkills: [
-    "note-cleanup",
-    "summarize",
-    "risk-score",
-    "translate",
-  ],
+  defaultSkills: ["note-cleanup", "summarize", "risk-score", "translate"],
   systemPromptTemplate: "investigation-agent",
 };
 
@@ -46,6 +43,8 @@ export class InvestigationAgent extends BaseAgent {
     conversationService: ConversationService,
     skillRegistry: SkillRegistry,
     rateLimiter: AiRateLimiterService,
+    actionCatalog?: ActionCatalog,
+    actionExecutor?: ActionExecutorService,
   ) {
     super(
       INVESTIGATION_AGENT_CONFIG,
@@ -54,6 +53,8 @@ export class InvestigationAgent extends BaseAgent {
       conversationService,
       skillRegistry,
       rateLimiter,
+      actionCatalog,
+      actionExecutor,
     );
   }
 

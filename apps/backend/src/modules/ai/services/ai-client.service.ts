@@ -28,14 +28,15 @@ export class AiClientService implements OnModuleInit {
   private client: Anthropic | null = null;
   private readonly activeStreams = new Map<string, AbortController>();
 
-  // Default model - claude-sonnet-4-5 for good balance of speed/quality
+  // Default model - claude-sonnet-4-5 for fast, reliable chat
   // Can be overridden via AI_DEFAULT_MODEL env var
   private readonly defaultModel: string;
   private readonly maxTokens: number;
 
   constructor(private readonly configService: ConfigService) {
     this.defaultModel =
-      this.configService.get<string>("AI_DEFAULT_MODEL") || "claude-sonnet-4-5";
+      this.configService.get<string>("AI_DEFAULT_MODEL") ||
+      "claude-sonnet-4-5-20250929";
     this.maxTokens = this.configService.get<number>("AI_MAX_TOKENS") || 4096;
   }
 

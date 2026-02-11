@@ -85,7 +85,7 @@ export class ScreenshotToFormService {
       );
     }
     this.model =
-      this.configService.get<string>("AI_VISION_MODEL") || "claude-sonnet-4-5";
+      this.configService.get<string>("AI_VISION_MODEL") || "claude-opus-4-6";
   }
 
   /**

@@ -411,11 +411,59 @@ export class AiGateway implements OnGatewayConnection, OnGatewayDisconnect {
       return null;
     }
 
+    const role = auth.userRole || "EMPLOYEE";
+    const permissions =
+      auth.permissions?.length > 0
+        ? auth.permissions
+        : this.getDefaultPermissionsForRole(role);
+
     return {
       organizationId: auth.organizationId,
       userId: auth.userId,
-      userRole: auth.userRole || "EMPLOYEE",
-      permissions: auth.permissions || [],
+      userRole: role,
+      permissions,
     };
+  }
+
+  /**
+   * Derive default permissions from user role when frontend doesn't provide them.
+   * Maps RBAC roles to the granular permissions required by AI actions and skills.
+   */
+  private getDefaultPermissionsForRole(role: string): string[] {
+    switch (role) {
+      case "SYSTEM_ADMIN":
+      case "COMPLIANCE_OFFICER":
+        return [
+          "cases:notes:create",
+          "cases:update:status",
+          "investigations:notes:create",
+          "investigations:update:status",
+          "ai:skills:note-cleanup",
+          "ai:skills:summarize",
+          "ai:skills:category-suggest",
+          "ai:skills:risk-score",
+          "ai:skills:translate",
+        ];
+      case "INVESTIGATOR":
+      case "TRIAGE_LEAD":
+        return [
+          "cases:notes:create",
+          "cases:update:status",
+          "investigations:notes:create",
+          "investigations:update:status",
+          "ai:skills:note-cleanup",
+          "ai:skills:summarize",
+        ];
+      case "DEPARTMENT_ADMIN":
+      case "POLICY_AUTHOR":
+      case "POLICY_REVIEWER":
+        return [
+          "cases:notes:create",
+          "ai:skills:summarize",
+          "ai:skills:note-cleanup",
+        ];
+      default:
+        return ["ai:skills:summarize"];
+    }
   }
 }

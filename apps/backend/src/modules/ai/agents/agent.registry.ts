@@ -4,6 +4,8 @@ import { ContextLoaderService } from "../services/context-loader.service";
 import { ConversationService } from "../services/conversation.service";
 import { SkillRegistry } from "../skills/skill.registry";
 import { AiRateLimiterService } from "../services/rate-limiter.service";
+import { ActionCatalog } from "../actions/action.catalog";
+import { ActionExecutorService } from "../actions/action-executor.service";
 import { BaseAgent, AgentContext } from "./base.agent";
 import { InvestigationAgent } from "./investigation.agent";
 import { CaseAgent } from "./case.agent";
@@ -18,6 +20,8 @@ type AgentConstructor = new (
   conversationService: ConversationService,
   skillRegistry: SkillRegistry,
   rateLimiter: AiRateLimiterService,
+  actionCatalog?: ActionCatalog,
+  actionExecutor?: ActionExecutorService,
 ) => BaseAgent;
 
 /**
@@ -70,6 +74,8 @@ export class AgentRegistry implements OnModuleInit {
     private readonly conversationService: ConversationService,
     private readonly skillRegistry: SkillRegistry,
     private readonly rateLimiter: AiRateLimiterService,
+    private readonly actionCatalog: ActionCatalog,
+    private readonly actionExecutor: ActionExecutorService,
   ) {}
 
   onModuleInit() {
@@ -127,6 +133,8 @@ export class AgentRegistry implements OnModuleInit {
       this.conversationService,
       this.skillRegistry,
       this.rateLimiter,
+      this.actionCatalog,
+      this.actionExecutor,
     );
 
     this.agentInstances.set(contextKey, agent);
@@ -189,9 +197,12 @@ export class AgentRegistry implements OnModuleInit {
    * @param agentType - Agent type ID
    * @returns Agent metadata or null if not found
    */
-  getAgentMetadata(
-    agentType: string,
-  ): { id: string; name: string; description: string; entityTypes: string[] } | null {
+  getAgentMetadata(agentType: string): {
+    id: string;
+    name: string;
+    description: string;
+    entityTypes: string[];
+  } | null {
     const AgentClass = this.agents.get(agentType);
     if (!AgentClass) {
       return null;
@@ -204,6 +215,8 @@ export class AgentRegistry implements OnModuleInit {
       this.conversationService,
       this.skillRegistry,
       this.rateLimiter,
+      this.actionCatalog,
+      this.actionExecutor,
     );
 
     return {

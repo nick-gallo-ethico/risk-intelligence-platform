@@ -53,7 +53,7 @@ export default () => ({
 
   ai: {
     anthropicApiKey: process.env.ANTHROPIC_API_KEY || "",
-    defaultModel: process.env.AI_DEFAULT_MODEL || "claude-sonnet-4-5",
+    defaultModel: process.env.AI_DEFAULT_MODEL || "claude-opus-4-6",
     maxTokens: parseInt(process.env.AI_MAX_TOKENS || "4096", 10),
   },
 
