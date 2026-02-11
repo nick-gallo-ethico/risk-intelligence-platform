@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 15 of 24 (Case Detail Page Overhaul)
-Plan: 06 of 7 in current phase (01, 02, 03, 04, 05, 06, 07 complete)
-Status: Phase 15 COMPLETE
-Last activity: 2026-02-11 - Completed 15-06 AI panel Sheet implementation
+Plan: 11 of 11 in current phase (all complete including gap closure plans)
+Status: Phase 15 COMPLETE (with documented deferrals)
+Last activity: 2026-02-11 - Completed 15-11 Email compose/send deferral documentation
 **Next Phase:** Phase 16 - AI Integration Fix
 
 Progress: [====================================================------------------] ~79% (~207 of ~260 estimated total plans)
@@ -88,6 +88,17 @@ Plans:
   - Connection status indicator with retry on error
   - Suggested prompts, streaming cursor, stop button
   - Tool use indicators and action execution callbacks
+
+**Gap Closure Plans (15-08 to 15-11):**
+
+- 15-08: RIU intake form answers display (addresses Gap 1)
+- 15-09: Quick action modals for Interview, Document, Task (addresses Gap 4)
+- 15-10: AI backend action verification (addresses Gap 3)
+- 15-11: Email compose/send deferral documentation (addresses Gap 2) - COMPLETE
+
+**Documented Deferrals:**
+
+- Email compose/send from platform deferred to future Notifications phase (V1 scope: log-only)
 
 ### Phase 14.2 Case Creation & Search Fixes COMPLETE (2026-02-10)
 
@@ -655,6 +666,8 @@ Recent decisions affecting current work:
 - 15-06: socket.io-client for WebSocket AI chat (transports: websocket first, polling fallback)
 - 15-06: Hardcoded suggested prompts for fast initial load (API endpoint available at /ai/agents/:type/suggestions)
 - 15-06: Connection status badge in header with color-coded states (green/yellow/red)
+- 15-11: Email compose/send deferred to future Notifications & Communications phase - V1 scope is log-only via EmailLogModal
+- 15-11: EmailLogModal allows logging external emails (sent/received outside platform) to case activity feed
 
 ### Pending Todos
 
@@ -673,7 +686,7 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-02-11
-Stopped at: Completed Phase 15 (Case Detail Page Overhaul)
+Stopped at: Completed 15-11-PLAN.md (Email compose/send deferral documentation)
 Resume file: None
 
 **Phase 14.2 Status: IN PROGRESS**
