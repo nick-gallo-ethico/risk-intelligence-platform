@@ -5,14 +5,14 @@
 See: .planning/PROJECT.md (updated 2026-02-02)
 
 **Core value:** Users can manage their entire compliance workflow - from anonymous report intake to investigation closure to board reporting - in one AI-assisted platform, with every task unified into a single "My Work" view.
-**Current focus:** Phase 18 Reports & Data Management - Plan 06 COMPLETE
+**Current focus:** Phase 18 Reports & Data Management - Plan 08 COMPLETE
 
 ## Current Position
 
 Phase: 18 of 24 (Reports & Data Management)
-Plan: 6 of 9 in current phase
-Status: In progress - Plan 06 COMPLETE
-Last activity: 2026-02-11 - Completed 18-06-PLAN.md (Report designer wizard). Commits 0d940af, 18dd5fe.
+Plan: 8 of 9 in current phase
+Status: In progress - Plan 08 COMPLETE
+Last activity: 2026-02-11 - Completed 18-08-PLAN.md (AI report generator and export integration). Commits 2b032ff, e4db332.
 
 Progress: [====================================================------------------] ~84% (~220 of ~260 estimated total plans)
 
@@ -79,6 +79,15 @@ Progress: [====================================================-----------------
   - ReportFilterBuilder with type-aware operators and value inputs
   - /reports/new page with template pre-population support
   - RadioGroup UI component for visibility selection
+- 18-07: Report detail page with chart components (IN PROGRESS - parallel)
+  - ReportChart and ReportKpi visualization components (321631c)
+- 18-08: AI report generator and export integration (COMPLETE - 2b032ff, e4db332)
+  - AiReportGenerator dialog for natural language report queries
+  - Example queries, AI interpretation display, results preview
+  - ExportButton wired to backend /exports/flat-file API
+  - Client-side export fallback for small datasets (<100 rows)
+  - Job polling with 3s interval, 5 minute timeout
+  - PDF export format added
 
 ### Phase 14 Critical Bug Fixes & Navigation COMPLETE (2026-02-09)
 

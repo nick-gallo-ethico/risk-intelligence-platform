@@ -111,6 +111,28 @@ export async function generateFromNL(
 }
 
 /**
+ * Export report result response type.
+ */
+export interface ExportReportResponse {
+  jobId?: string;
+  downloadUrl?: string;
+  status: string;
+}
+
+/**
+ * Export report results to a file format.
+ * Returns job ID for async processing or direct download URL.
+ */
+export async function exportReport(
+  id: string,
+  format: "excel" | "csv" | "pdf",
+): Promise<ExportReportResponse> {
+  return apiClient.post<ExportReportResponse>(`/reports/${id}/export`, {
+    format,
+  });
+}
+
+/**
  * Export wrapper for easy importing.
  */
 export const reportsApi = {
@@ -125,6 +147,7 @@ export const reportsApi = {
   duplicateReport,
   getTemplates,
   generateFromNL,
+  exportReport,
 };
 
 export default reportsApi;
