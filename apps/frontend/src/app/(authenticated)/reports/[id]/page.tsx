@@ -27,6 +27,10 @@ import {
   Lock,
   AlertCircle,
   RefreshCw,
+  Clock,
+  Play,
+  Pause,
+  Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -51,6 +55,10 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ReportResultsViewer } from "@/components/reports/ReportResultsViewer";
+import {
+  ScheduleReportDialog,
+  type ScheduledExportConfig,
+} from "@/components/reports/ScheduleReportDialog";
 import { reportsApi } from "@/services/reports-api";
 import type { SavedReport, ReportResult } from "@/types/reports";
 
@@ -92,6 +100,43 @@ const ENTITY_TYPE_LABELS: Record<string, string> = {
   disclosures: "Disclosures",
   investigations: "Investigations",
 };
+
+/**
+ * Days of week labels
+ */
+const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+/**
+ * Format schedule description for display
+ */
+function formatScheduleDescription(schedule: ScheduledExportConfig): string {
+  const time = schedule.time || "08:00";
+  const [hours, minutes] = time.split(":");
+  const hour = parseInt(hours, 10);
+  const ampm = hour >= 12 ? "PM" : "AM";
+  const hour12 = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+  const timeStr = `${hour12}:${minutes} ${ampm}`;
+
+  switch (schedule.scheduleType) {
+    case "DAILY":
+      return `Daily at ${timeStr}`;
+    case "WEEKLY":
+      const day = DAY_LABELS[schedule.dayOfWeek ?? 1];
+      return `Weekly ${day} at ${timeStr}`;
+    case "MONTHLY":
+      const ordinal =
+        schedule.dayOfMonth === 1
+          ? "1st"
+          : schedule.dayOfMonth === 2
+            ? "2nd"
+            : schedule.dayOfMonth === 3
+              ? "3rd"
+              : `${schedule.dayOfMonth}th`;
+      return `Monthly ${ordinal} at ${timeStr}`;
+    default:
+      return `Scheduled at ${timeStr}`;
+  }
+}
 
 // =========================================================================
 // Loading Skeleton
@@ -203,6 +248,13 @@ export default function ReportDetailPage({ params }: ReportDetailPageProps) {
   const [notFound, setNotFound] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
+  // Schedule state
+  const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false);
+  const [schedule, setSchedule] = useState<ScheduledExportConfig | null>(null);
+  const [isLoadingSchedule, setIsLoadingSchedule] = useState(false);
+  const [isTogglingSchedule, setIsTogglingSchedule] = useState(false);
+  const [isRunningNow, setIsRunningNow] = useState(false);
+
   // Check for auto-run parameter
   const shouldAutoRun = searchParams?.get("run") === "true";
 
@@ -244,6 +296,29 @@ export default function ReportDetailPage({ params }: ReportDetailPageProps) {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [report, shouldAutoRun]);
+
+  // Fetch schedule when report has scheduledExportId
+  useEffect(() => {
+    async function fetchSchedule() {
+      if (!report?.scheduledExportId) {
+        setSchedule(null);
+        return;
+      }
+
+      setIsLoadingSchedule(true);
+      try {
+        const scheduleData = await reportsApi.getSchedule(reportId);
+        setSchedule(scheduleData);
+      } catch (err) {
+        console.warn("Failed to fetch schedule:", err);
+        setSchedule(null);
+      } finally {
+        setIsLoadingSchedule(false);
+      }
+    }
+
+    fetchSchedule();
+  }, [report?.scheduledExportId, reportId]);
 
   // Run report handler
   const handleRunReport = useCallback(async () => {
@@ -333,6 +408,64 @@ export default function ReportDetailPage({ params }: ReportDetailPageProps) {
     }
   }, [report, router]);
 
+  // Schedule created/updated handler
+  const handleScheduleCreated = useCallback(
+    async (newSchedule: ScheduledExportConfig | null) => {
+      if (!newSchedule) {
+        // Schedule was deleted
+        setSchedule(null);
+        if (report) {
+          setReport({ ...report, scheduledExportId: undefined });
+        }
+      } else {
+        setSchedule(newSchedule);
+        if (report) {
+          setReport({ ...report, scheduledExportId: newSchedule.id });
+        }
+      }
+    },
+    [report],
+  );
+
+  // Toggle schedule pause/resume
+  const handleToggleSchedule = useCallback(async () => {
+    if (!report || !schedule) return;
+
+    setIsTogglingSchedule(true);
+    try {
+      if (schedule.isActive) {
+        await reportsApi.pauseSchedule(report.id);
+        setSchedule({ ...schedule, isActive: false });
+        toast.success("Schedule paused");
+      } else {
+        await reportsApi.resumeSchedule(report.id);
+        setSchedule({ ...schedule, isActive: true });
+        toast.success("Schedule resumed");
+      }
+    } catch (err) {
+      console.warn("Failed to toggle schedule:", err);
+      toast.error("Failed to update schedule");
+    } finally {
+      setIsTogglingSchedule(false);
+    }
+  }, [report, schedule]);
+
+  // Run schedule now
+  const handleRunScheduleNow = useCallback(async () => {
+    if (!report) return;
+
+    setIsRunningNow(true);
+    try {
+      await reportsApi.runScheduleNow(report.id);
+      toast.success("Report scheduled for immediate delivery");
+    } catch (err) {
+      console.warn("Failed to run schedule now:", err);
+      toast.error("Failed to run schedule");
+    } finally {
+      setIsRunningNow(false);
+    }
+  }, [report]);
+
   // Loading state
   if (isLoading) {
     return <ReportDetailSkeleton />;
@@ -401,6 +534,58 @@ export default function ReportDetailPage({ params }: ReportDetailPageProps) {
 
         {/* Actions */}
         <div className="flex items-center gap-2">
+          {/* Schedule status badge and actions */}
+          {schedule && !isLoadingSchedule && (
+            <div className="flex items-center gap-2 mr-2">
+              <Badge
+                variant={schedule.isActive ? "default" : "secondary"}
+                className="gap-1"
+              >
+                <Clock className="h-3 w-3" />
+                {formatScheduleDescription(schedule)}
+                {!schedule.isActive && " (paused)"}
+              </Badge>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleToggleSchedule}
+                disabled={isTogglingSchedule}
+                title={schedule.isActive ? "Pause schedule" : "Resume schedule"}
+              >
+                {isTogglingSchedule ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : schedule.isActive ? (
+                  <Pause className="h-4 w-4" />
+                ) : (
+                  <Play className="h-4 w-4" />
+                )}
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleRunScheduleNow}
+                disabled={isRunningNow}
+                title="Run now"
+              >
+                {isRunningNow ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <RefreshCw className="h-4 w-4" />
+                )}
+              </Button>
+            </div>
+          )}
+
+          {/* Schedule button */}
+          <Button
+            variant="outline"
+            onClick={() => setScheduleDialogOpen(true)}
+            disabled={isLoadingSchedule}
+          >
+            <Clock className="mr-2 h-4 w-4" />
+            {schedule ? "Edit Schedule" : "Schedule"}
+          </Button>
+
           <Button variant="outline" onClick={handleEdit}>
             <Pencil className="mr-2 h-4 w-4" />
             Edit
@@ -463,6 +648,16 @@ export default function ReportDetailPage({ params }: ReportDetailPageProps) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Schedule dialog */}
+      <ScheduleReportDialog
+        open={scheduleDialogOpen}
+        onOpenChange={setScheduleDialogOpen}
+        reportId={report.id}
+        reportName={report.name}
+        existingSchedule={schedule}
+        onScheduleCreated={handleScheduleCreated}
+      />
     </div>
   );
 }
