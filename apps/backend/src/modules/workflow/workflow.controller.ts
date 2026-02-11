@@ -22,6 +22,7 @@ import {
   UpdateWorkflowTemplateDto,
   TransitionDto,
   StartWorkflowDto,
+  ListInstancesDto,
 } from "./dto";
 
 interface AuthenticatedUser {
@@ -64,7 +65,7 @@ export class WorkflowController {
   }
 
   /**
-   * List all workflow templates.
+   * List all workflow templates with instance counts.
    */
   @Get("templates")
   async listTemplates(
@@ -72,10 +73,37 @@ export class WorkflowController {
     @Query("entityType") entityType?: WorkflowEntityType,
     @Query("isActive") isActive?: string
   ) {
-    return this.workflowService.findAll(organizationId, {
+    return this.workflowService.findAllWithCounts(organizationId, {
       entityType,
       isActive: isActive === "true" ? true : isActive === "false" ? false : undefined,
     });
+  }
+
+  /**
+   * Get version history for a workflow template.
+   * Returns all versions ordered by version number descending.
+   * Must be defined BEFORE templates/:id to avoid route conflict.
+   */
+  @Get("templates/:id/versions")
+  async getTemplateVersions(
+    @Param("id", ParseUUIDPipe) id: string,
+    @TenantId() organizationId: string
+  ) {
+    return this.workflowService.findVersions(organizationId, id);
+  }
+
+  /**
+   * Clone a workflow template.
+   * Creates a copy with "(Copy)" appended to name, in draft state.
+   */
+  @Post("templates/:id/clone")
+  @Roles(UserRole.SYSTEM_ADMIN, UserRole.COMPLIANCE_OFFICER)
+  async cloneTemplate(
+    @Param("id", ParseUUIDPipe) id: string,
+    @CurrentUser() user: AuthenticatedUser,
+    @TenantId() organizationId: string
+  ) {
+    return this.workflowService.clone(organizationId, id, user.id);
   }
 
   /**
@@ -133,6 +161,19 @@ export class WorkflowController {
   // ============================================
   // Instance Endpoints
   // ============================================
+
+  /**
+   * List all workflow instances with optional filters.
+   * Supports filtering by templateId, status, entityType.
+   * Must be defined BEFORE instances/:id to avoid route conflict.
+   */
+  @Get("instances")
+  async listInstances(
+    @Query() query: ListInstancesDto,
+    @TenantId() organizationId: string
+  ) {
+    return this.workflowService.listInstances(organizationId, query);
+  }
 
   /**
    * Start a new workflow instance for an entity.

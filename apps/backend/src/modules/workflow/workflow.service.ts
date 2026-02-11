@@ -14,8 +14,16 @@ import {
 import {
   CreateWorkflowTemplateDto,
   UpdateWorkflowTemplateDto,
+  ListInstancesDto,
 } from "./dto";
 import { WorkflowStage, WorkflowTransition } from "./types/workflow.types";
+
+/**
+ * Type for workflow template with instance count.
+ */
+export type WorkflowTemplateWithCount = WorkflowTemplate & {
+  _instanceCount: number;
+};
 
 /**
  * WorkflowService manages workflow template CRUD operations.
@@ -325,5 +333,183 @@ export class WorkflowService {
     if (!hasTerminalStage) {
       this.logger.warn("Template has no terminal stages - ensure completion is handled externally");
     }
+  }
+
+  // ============================================
+  // Additional Methods for UI Support
+  // ============================================
+
+  /**
+   * List workflow instances with optional filters and pagination.
+   *
+   * @param organizationId - Organization ID
+   * @param filters - Optional filters (templateId, status, entityType) and pagination
+   * @returns Paginated list of workflow instances
+   */
+  async listInstances(
+    organizationId: string,
+    filters: ListInstancesDto
+  ): Promise<{
+    data: any[];
+    total: number;
+    page: number;
+    limit: number;
+  }> {
+    const { templateId, status, entityType, page = 1, limit = 20 } = filters;
+
+    // Build where clause
+    const where: any = { organizationId };
+    if (templateId) where.templateId = templateId;
+    if (status) where.status = status;
+    if (entityType) where.entityType = entityType;
+
+    // Query with pagination
+    const [data, total] = await Promise.all([
+      this.prisma.workflowInstance.findMany({
+        where,
+        orderBy: { createdAt: "desc" },
+        skip: (page - 1) * limit,
+        take: limit,
+        include: {
+          template: {
+            select: { id: true, name: true, version: true },
+          },
+        },
+      }),
+      this.prisma.workflowInstance.count({ where }),
+    ]);
+
+    return { data, total, page, limit };
+  }
+
+  /**
+   * Clone a workflow template.
+   * Creates a new template with same configuration but:
+   * - Name appended with " (Copy)"
+   * - Version reset to 1
+   * - isActive = false (draft state)
+   * - isDefault = false
+   *
+   * @param organizationId - Organization ID
+   * @param templateId - Template ID to clone
+   * @param userId - User performing the clone
+   * @returns The cloned template
+   */
+  async clone(
+    organizationId: string,
+    templateId: string,
+    userId: string
+  ): Promise<WorkflowTemplate> {
+    const original = await this.prisma.workflowTemplate.findFirst({
+      where: { id: templateId, organizationId },
+    });
+
+    if (!original) {
+      throw new NotFoundException(`Workflow template ${templateId} not found`);
+    }
+
+    const cloned = await this.prisma.workflowTemplate.create({
+      data: {
+        organizationId,
+        name: `${original.name} (Copy)`,
+        description: original.description,
+        entityType: original.entityType,
+        version: 1,
+        stages: original.stages as object,
+        transitions: original.transitions as object,
+        initialStage: original.initialStage,
+        defaultSlaDays: original.defaultSlaDays,
+        tags: original.tags,
+        isDefault: false,
+        isActive: false,
+        createdById: userId,
+        sourceTemplateId: original.id,
+      },
+    });
+
+    this.logger.log(`Cloned workflow template ${templateId} to ${cloned.id}`);
+    return cloned;
+  }
+
+  /**
+   * Find all versions of a workflow template.
+   * Uses name matching since versioned templates share the same name.
+   *
+   * @param organizationId - Organization ID
+   * @param templateId - Any version's template ID
+   * @returns All versions of the template, ordered by version descending
+   */
+  async findVersions(
+    organizationId: string,
+    templateId: string
+  ): Promise<WorkflowTemplate[]> {
+    const template = await this.prisma.workflowTemplate.findFirst({
+      where: { id: templateId, organizationId },
+    });
+
+    if (!template) {
+      throw new NotFoundException(`Workflow template ${templateId} not found`);
+    }
+
+    // Find all templates with the same name in this organization
+    return this.prisma.workflowTemplate.findMany({
+      where: {
+        organizationId,
+        name: template.name,
+      },
+      orderBy: { version: "desc" },
+    });
+  }
+
+  /**
+   * Get all workflow templates with instance counts.
+   * Enriches each template with _instanceCount showing active instances.
+   *
+   * @param organizationId - Organization ID
+   * @param options - Optional filters
+   * @returns Templates with _instanceCount property
+   */
+  async findAllWithCounts(
+    organizationId: string,
+    options?: {
+      entityType?: WorkflowEntityType;
+      isActive?: boolean;
+    }
+  ): Promise<WorkflowTemplateWithCount[]> {
+    // Get all templates matching filters
+    const templates = await this.prisma.workflowTemplate.findMany({
+      where: {
+        organizationId,
+        entityType: options?.entityType,
+        isActive: options?.isActive,
+      },
+      orderBy: [{ entityType: "asc" }, { name: "asc" }, { version: "desc" }],
+    });
+
+    if (templates.length === 0) {
+      return [];
+    }
+
+    // Get instance counts for all templates in one query
+    const counts = await this.prisma.workflowInstance.groupBy({
+      by: ["templateId"],
+      where: {
+        organizationId,
+        templateId: { in: templates.map((t) => t.id) },
+        status: WorkflowInstanceStatus.ACTIVE,
+      },
+      _count: { id: true },
+    });
+
+    // Create a map for quick lookup
+    const countMap = new Map(
+      counts.map((c) => [c.templateId, c._count.id])
+    );
+
+    // Enrich templates with counts
+    return templates.map((template) => ({
+      ...template,
+      _instanceCount: countMap.get(template.id) || 0,
+    }));
   }
 }
