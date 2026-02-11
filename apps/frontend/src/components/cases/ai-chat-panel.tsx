@@ -46,6 +46,62 @@ const SUGGESTED_PROMPTS = [
   "Help me write a closing summary",
 ];
 
+// Module-level socket singleton - survives React re-renders and StrictMode
+let globalSocket: Socket | null = null;
+let globalSocketEntityKey: string | null = null;
+
+function getOrCreateSocket(
+  entityType: string,
+  entityId: string,
+): Socket | null {
+  const entityKey = `${entityType}:${entityId}`;
+
+  // Return existing socket if it matches the entity
+  if (globalSocket?.connected && globalSocketEntityKey === entityKey) {
+    return globalSocket;
+  }
+
+  // Disconnect existing socket if entity changed
+  if (globalSocket) {
+    globalSocket.removeAllListeners();
+    globalSocket.disconnect();
+    globalSocket = null;
+    globalSocketEntityKey = null;
+  }
+
+  const token = authStorage.getAccessToken();
+  const user = authStorage.getUser<{
+    id: string;
+    organizationId: string;
+    role: string;
+    permissions?: string[];
+  }>();
+
+  if (!token || !user) {
+    return null;
+  }
+
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+
+  globalSocket = io(`${apiUrl}/ai`, {
+    auth: {
+      token,
+      organizationId: user.organizationId,
+      userId: user.id,
+      userRole: user.role,
+      permissions: user.permissions || [],
+    },
+    transports: ["websocket", "polling"],
+    reconnection: true,
+    reconnectionAttempts: 3,
+    reconnectionDelay: 1000,
+    timeout: 10000,
+  });
+  globalSocketEntityKey = entityKey;
+
+  return globalSocket;
+}
+
 /**
  * AiChatPanel - AI chat assistant for case analysis
  *
@@ -64,10 +120,10 @@ export function AiChatPanel({
     useState<ConnectionStatus>("disconnected");
   const [error, setError] = useState<string | null>(null);
 
-  const socketRef = useRef<Socket | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const isConnectedRef = useRef(false); // Prevents double connection in React StrictMode
+  const isSendingRef = useRef(false);
+  const handlerIdRef = useRef(0); // Unique ID for this component instance's handlers
 
   // Generate unique message IDs
   const generateId = useCallback(() => {
@@ -83,7 +139,6 @@ export function AiChatPanel({
   useEffect(() => {
     const fetchHistory = async () => {
       try {
-        // First, find the conversation for this entity
         const listResponse = await apiClient.get<{
           conversations: Array<{ id: string }>;
           total: number;
@@ -98,8 +153,6 @@ export function AiChatPanel({
 
         if (listResponse?.conversations?.[0]?.id) {
           const conversationId = listResponse.conversations[0].id;
-
-          // Then fetch the conversation with messages
           const convResponse = await apiClient.get<{
             id: string;
             messages: Array<{
@@ -125,7 +178,6 @@ export function AiChatPanel({
           }
         }
       } catch (err) {
-        // Conversation history not available - not critical, start fresh
         console.debug("No conversation history available:", err);
       }
     };
@@ -135,98 +187,79 @@ export function AiChatPanel({
 
   // Connect to WebSocket on mount
   useEffect(() => {
-    // Prevent double connection in React StrictMode
-    if (isConnectedRef.current) {
-      return;
-    }
+    // Generate unique handler ID for this effect instance
+    const currentHandlerId = ++handlerIdRef.current;
 
-    const token = authStorage.getAccessToken();
-    const user = authStorage.getUser<{
-      id: string;
-      organizationId: string;
-      role: string;
-      permissions?: string[];
-    }>();
+    const socket = getOrCreateSocket(entityType, entityId);
 
-    if (!token || !user) {
+    if (!socket) {
       setError("Please log in to use AI assistant");
       setConnectionStatus("error");
       return;
     }
 
-    setConnectionStatus("connecting");
+    setConnectionStatus(socket.connected ? "connected" : "connecting");
     setError(null);
-    isConnectedRef.current = true;
 
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+    // Remove any existing listeners before adding new ones
+    socket.removeAllListeners();
 
-    const socket = io(`${apiUrl}/ai`, {
-      auth: {
-        token,
-        organizationId: user.organizationId,
-        userId: user.id,
-        userRole: user.role,
-        permissions: user.permissions || [],
-      },
-      transports: ["websocket", "polling"],
-      reconnection: true,
-      reconnectionAttempts: 3,
-      reconnectionDelay: 1000,
-      timeout: 10000,
-    });
-
-    socketRef.current = socket;
-
-    socket.on("connect", () => {
+    const onConnect = () => {
+      if (handlerIdRef.current !== currentHandlerId) return;
       setConnectionStatus("connected");
       setError(null);
-    });
+    };
 
-    socket.on("disconnect", (reason) => {
+    const onDisconnect = (reason: string) => {
+      if (handlerIdRef.current !== currentHandlerId) return;
       setConnectionStatus("disconnected");
       if (reason === "io server disconnect") {
-        // Server disconnected, might need to reconnect manually
         setError("Disconnected from AI service");
       }
-    });
+    };
 
-    socket.on("connect_error", (err) => {
+    const onConnectError = (err: Error) => {
+      if (handlerIdRef.current !== currentHandlerId) return;
       console.error("AI WebSocket connection error:", err);
       setConnectionStatus("error");
       setError("AI service unavailable. Please try again later.");
-    });
+    };
 
-    // Handle streaming text chunks
-    socket.on("text_delta", (data: { text: string }) => {
+    const onTextDelta = (data: { text: string }) => {
+      if (handlerIdRef.current !== currentHandlerId) return;
       setMessages((prev) => {
-        const updated = [...prev];
-        const lastMessage = updated[updated.length - 1];
+        const lastMessage = prev[prev.length - 1];
         if (
           lastMessage &&
           lastMessage.role === "assistant" &&
           lastMessage.isStreaming
         ) {
-          lastMessage.content += data.text;
+          // Immutable update - create new array with new message object
+          return [
+            ...prev.slice(0, -1),
+            { ...lastMessage, content: lastMessage.content + data.text },
+          ];
         }
-        return updated;
+        return prev;
       });
-    });
+    };
 
-    // Handle message completion
-    socket.on("message_complete", () => {
+    const onMessageComplete = () => {
+      if (handlerIdRef.current !== currentHandlerId) return;
       setMessages((prev) => {
-        const updated = [...prev];
-        const lastMessage = updated[updated.length - 1];
+        const lastMessage = prev[prev.length - 1];
         if (lastMessage && lastMessage.role === "assistant") {
-          lastMessage.isStreaming = false;
+          // Immutable update
+          return [...prev.slice(0, -1), { ...lastMessage, isStreaming: false }];
         }
-        return updated;
+        return prev;
       });
       setIsStreaming(false);
-    });
+      isSendingRef.current = false;
+    };
 
-    // Handle tool use indicators
-    socket.on("tool_use", (data: { toolName: string; input?: unknown }) => {
+    const onToolUse = (data: { toolName: string; input?: unknown }) => {
+      if (handlerIdRef.current !== currentHandlerId) return;
       const toolMessage: ChatMessage = {
         id: generateId(),
         role: "system",
@@ -235,20 +268,17 @@ export function AiChatPanel({
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, toolMessage]);
-    });
+    };
 
-    // Handle action execution (refresh case data)
-    socket.on(
-      "action_executed",
-      (data: { action: string; success: boolean }) => {
-        if (data.success && onActionComplete) {
-          onActionComplete();
-        }
-      },
-    );
+    const onActionExecuted = (data: { action: string; success: boolean }) => {
+      if (handlerIdRef.current !== currentHandlerId) return;
+      if (data.success && onActionComplete) {
+        onActionComplete();
+      }
+    };
 
-    // Handle errors
-    socket.on("error", (data: { message: string }) => {
+    const onError = (data: { message: string }) => {
+      if (handlerIdRef.current !== currentHandlerId) return;
       const errorMessage: ChatMessage = {
         id: generateId(),
         role: "system",
@@ -257,13 +287,34 @@ export function AiChatPanel({
       };
       setMessages((prev) => [...prev, errorMessage]);
       setIsStreaming(false);
-    });
+      isSendingRef.current = false;
+    };
 
-    // Cleanup on unmount
+    // Add listeners
+    socket.on("connect", onConnect);
+    socket.on("disconnect", onDisconnect);
+    socket.on("connect_error", onConnectError);
+    socket.on("text_delta", onTextDelta);
+    socket.on("message_complete", onMessageComplete);
+    socket.on("tool_use", onToolUse);
+    socket.on("action_executed", onActionExecuted);
+    socket.on("error", onError);
+
+    // If already connected, trigger the handler
+    if (socket.connected) {
+      onConnect();
+    }
+
+    // Cleanup: just remove listeners, don't disconnect the socket
     return () => {
-      socket.disconnect();
-      socketRef.current = null;
-      isConnectedRef.current = false;
+      socket.off("connect", onConnect);
+      socket.off("disconnect", onDisconnect);
+      socket.off("connect_error", onConnectError);
+      socket.off("text_delta", onTextDelta);
+      socket.off("message_complete", onMessageComplete);
+      socket.off("tool_use", onToolUse);
+      socket.off("action_executed", onActionExecuted);
+      socket.off("error", onError);
     };
   }, [entityType, entityId, onActionComplete, generateId]);
 
@@ -274,8 +325,15 @@ export function AiChatPanel({
         return;
       }
 
-      const socket = socketRef.current;
-      if (!socket) return;
+      if (isSendingRef.current) {
+        return;
+      }
+      isSendingRef.current = true;
+
+      if (!globalSocket?.connected) {
+        isSendingRef.current = false;
+        return;
+      }
 
       // Add user message
       const userMessage: ChatMessage = {
@@ -299,7 +357,7 @@ export function AiChatPanel({
       setIsStreaming(true);
 
       // Send to WebSocket
-      socket.emit("chat", {
+      globalSocket.emit("chat", {
         message: text.trim(),
         entityType,
         entityId,
@@ -310,18 +368,18 @@ export function AiChatPanel({
 
   // Stop streaming
   const stopStreaming = useCallback(() => {
-    const socket = socketRef.current;
-    if (socket) {
-      socket.emit("stop");
+    if (globalSocket) {
+      globalSocket.emit("stop");
     }
     setIsStreaming(false);
+    isSendingRef.current = false;
     setMessages((prev) => {
-      const updated = [...prev];
-      const lastMessage = updated[updated.length - 1];
+      const lastMessage = prev[prev.length - 1];
       if (lastMessage && lastMessage.role === "assistant") {
-        lastMessage.isStreaming = false;
+        // Immutable update
+        return [...prev.slice(0, -1), { ...lastMessage, isStreaming: false }];
       }
-      return updated;
+      return prev;
     });
   }, []);
 
@@ -340,8 +398,19 @@ export function AiChatPanel({
   const retryConnection = useCallback(() => {
     setError(null);
     setConnectionStatus("connecting");
-    socketRef.current?.connect();
-  }, []);
+    // Force reconnect by disconnecting first
+    if (globalSocket) {
+      globalSocket.removeAllListeners();
+      globalSocket.disconnect();
+      globalSocket = null;
+      globalSocketEntityKey = null;
+    }
+    // Will reconnect on next render
+    const socket = getOrCreateSocket(entityType, entityId);
+    if (socket) {
+      socket.connect();
+    }
+  }, [entityType, entityId]);
 
   // Handle suggested prompt click
   const handleSuggestedPrompt = useCallback(
