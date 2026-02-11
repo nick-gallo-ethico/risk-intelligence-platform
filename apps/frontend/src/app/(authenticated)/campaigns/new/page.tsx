@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { CampaignBuilder, type CampaignDraft } from "@/components/campaigns";
 import { useCreateCampaign, useLaunchCampaign } from "@/hooks/use-campaigns";
-import type { CampaignType, CreateCampaignDto } from "@/types/campaign";
+import type { CreateCampaignDto } from "@/types/campaign";
 
 /**
  * Create Campaign Page
@@ -28,8 +28,7 @@ export default function CreateCampaignPage() {
     return {
       name: draft.name,
       description: draft.description,
-      // CampaignDraft.type is now aligned with CampaignType from types/campaign.ts
-      type: draft.type as CampaignType,
+      type: draft.type as CreateCampaignDto["type"],
       formTemplateId: draft.formTemplateId,
       dueDate:
         draft.schedule?.deadlineDate?.toISOString() || new Date().toISOString(),
