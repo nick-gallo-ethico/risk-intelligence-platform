@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 
 ## Current Position
 
-Phase: 18 of 24 (Reports & Data Management) - COMPLETE
-Plan: 9 of 9 in current phase
-Status: Phase 18 COMPLETE - All 9 plans executed, verified 8/8 must-haves
-Last activity: 2026-02-11 - Phase 18 verified and complete.
+Phase: 19 of 24 (Workflow Engine UI)
+Plan: 2 of 7 in current phase
+Status: Plan 19-02 COMPLETE - Frontend foundation (types, API, hooks, nav)
+Last activity: 2026-02-11 - Completed 19-02 (frontend workflow foundation)
 
-Progress: [======================================================----------------] ~85% (~222 of ~260 estimated total plans)
+Progress: [======================================================----------------] ~86% (~224 of ~260 estimated total plans)
 
 ### Phase 17 Campaigns Hub IN PROGRESS (2026-02-11)
 
@@ -97,6 +97,20 @@ Progress: [======================================================---------------
   - 7 schedule endpoints on ReportController: create, get, update, delete, pause, resume, run-now
   - Report detail page shows schedule status badge with pause/resume toggle
   - Schedule linked to SavedReport via scheduledExportId field
+
+### Phase 19 Workflow Engine UI IN PROGRESS (2026-02-11)
+
+- 19-01: Backend UI support endpoints (COMPLETE - 9db917d)
+  - GET /workflows/instances: List instances with filters (templateId, status, entityType) and pagination
+  - POST /workflows/templates/:id/clone: Clone template with "(Copy)" suffix, draft state
+  - GET /workflows/templates/:id/versions: Get version history ordered by version desc
+  - GET /workflows/templates: Enriched with \_instanceCount for each template
+- 19-02: Frontend foundation (COMPLETE - 4bc3a7b, 9db917d)
+  - Installed @xyflow/react@12.10.0 for workflow canvas
+  - TypeScript types (620+ lines): WorkflowTemplate, WorkflowInstance, stages, steps, transitions
+  - API service (workflowsApi) covering all 18 workflow endpoints
+  - React Query hooks (18 hooks): templates/instances CRUD, transitions, lifecycle mutations
+  - Workflows navigation entry in admin sidebar for SYSTEM_ADMIN/COMPLIANCE_OFFICER
 
 ### Phase 18 COMPLETE (2026-02-11)
 
@@ -832,13 +846,12 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-02-11
-Stopped at: Phase 18 Plan 01 COMPLETE - Reports Data Foundation
+Stopped at: Phase 19 Plan 01 COMPLETE - Workflow UI backend endpoints
 Resume file: None
 
-**Phase 18 Status: IN PROGRESS**
-Plan 18-01 completed (SavedReport model, ReportFieldRegistryService).
-Plan 18-02 completed (ReportExecutionService, ReportService).
-Remaining plans TBD (report designer frontend, scheduling).
+**Phase 19 Status: IN PROGRESS**
+Plan 19-01 completed (list instances, clone, versions, instance counts).
+Remaining: 19-02 through 19-07 (frontend workflow builder components).
 
 **Phase 14.2 Status: IN PROGRESS**
 Plan 14.2-02 completed. Remaining:
