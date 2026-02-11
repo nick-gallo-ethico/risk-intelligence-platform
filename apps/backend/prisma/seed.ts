@@ -31,6 +31,7 @@ import { seedAcmePhase09 } from "./seeders/acme-phase-09";
 import { seedAcmePhase12 } from "./seeders/acme-phase-12";
 import { seedPhase17 } from "./seeders/acme-phase-17";
 import { seedPhase18 } from "./seeders/acme-phase-18";
+import { seedPhase19 } from "./seeders/acme-phase-19";
 
 const prisma = new PrismaClient();
 
@@ -304,6 +305,9 @@ async function main() {
 
   // Phase 18: Reports & Data Management
   await seedPhase18();
+
+  // Phase 19: Workflow Engine UI
+  await seedPhase19();
 
   // ========================================
   // Calculate Demo Metrics
