@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import * as React from 'react';
-import { useState, useEffect, useMemo } from 'react';
-import { format, addDays, isBefore, isAfter, startOfDay } from 'date-fns';
+import * as React from "react";
+import { useState, useEffect, useMemo } from "react";
+import { format, addDays, isBefore, isAfter, startOfDay } from "date-fns";
 import {
   Calendar as CalendarIcon,
   Clock,
@@ -12,47 +12,53 @@ import {
   AlertTriangle,
   Info,
   Loader2,
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Badge } from '@/components/ui/badge';
-import { Calendar } from '@/components/ui/calendar';
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
+import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from '@/components/ui/popover';
+} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from '@/components/ui/collapsible';
+} from "@/components/ui/collapsible";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from '@/components/ui/tooltip';
-import { cn } from '@/lib/utils';
-import { apiClient } from '@/lib/api';
+} from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
+import { apiClient } from "@/lib/api";
 
 // Launch type enum
-export type LaunchType = 'immediate' | 'scheduled' | 'staggered';
+export type LaunchType = "immediate" | "scheduled" | "staggered";
 
 // Staggered wave configuration
 export interface StaggeredWave {
   id: string;
-  type: 'percentage' | 'count';
+  type: "percentage" | "count";
   value: number;
   daysOffset: number;
 }
@@ -66,7 +72,7 @@ export interface ReminderMilestone {
 }
 
 // Deadline type
-export type DeadlineType = 'absolute' | 'relative';
+export type DeadlineType = "absolute" | "relative";
 
 // Schedule configuration
 export interface ScheduleConfiguration {
@@ -111,35 +117,35 @@ const REMINDER_PRESETS = {
 // Wave presets
 const WAVE_PRESETS = {
   quarterDaily: [
-    { type: 'percentage' as const, value: 25, daysOffset: 0 },
-    { type: 'percentage' as const, value: 25, daysOffset: 1 },
-    { type: 'percentage' as const, value: 25, daysOffset: 2 },
-    { type: 'percentage' as const, value: 25, daysOffset: 3 },
+    { type: "percentage" as const, value: 25, daysOffset: 0 },
+    { type: "percentage" as const, value: 25, daysOffset: 1 },
+    { type: "percentage" as const, value: 25, daysOffset: 2 },
+    { type: "percentage" as const, value: 25, daysOffset: 3 },
   ],
   pilotFirst: [
-    { type: 'percentage' as const, value: 10, daysOffset: 0 },
-    { type: 'percentage' as const, value: 45, daysOffset: 2 },
-    { type: 'percentage' as const, value: 45, daysOffset: 4 },
+    { type: "percentage" as const, value: 10, daysOffset: 0 },
+    { type: "percentage" as const, value: 45, daysOffset: 2 },
+    { type: "percentage" as const, value: 45, daysOffset: 4 },
   ],
   gradual: [
-    { type: 'percentage' as const, value: 10, daysOffset: 0 },
-    { type: 'percentage' as const, value: 20, daysOffset: 1 },
-    { type: 'percentage' as const, value: 30, daysOffset: 2 },
-    { type: 'percentage' as const, value: 40, daysOffset: 3 },
+    { type: "percentage" as const, value: 10, daysOffset: 0 },
+    { type: "percentage" as const, value: 20, daysOffset: 1 },
+    { type: "percentage" as const, value: 30, daysOffset: 2 },
+    { type: "percentage" as const, value: 40, daysOffset: 3 },
   ],
 };
 
 // Timezones
 const TIMEZONES = [
-  { value: 'America/New_York', label: 'Eastern Time (ET)' },
-  { value: 'America/Chicago', label: 'Central Time (CT)' },
-  { value: 'America/Denver', label: 'Mountain Time (MT)' },
-  { value: 'America/Los_Angeles', label: 'Pacific Time (PT)' },
-  { value: 'Europe/London', label: 'Greenwich Mean Time (GMT)' },
-  { value: 'Europe/Paris', label: 'Central European Time (CET)' },
-  { value: 'Asia/Singapore', label: 'Singapore Time (SGT)' },
-  { value: 'Asia/Tokyo', label: 'Japan Standard Time (JST)' },
-  { value: 'UTC', label: 'Coordinated Universal Time (UTC)' },
+  { value: "America/New_York", label: "Eastern Time (ET)" },
+  { value: "America/Chicago", label: "Central Time (CT)" },
+  { value: "America/Denver", label: "Mountain Time (MT)" },
+  { value: "America/Los_Angeles", label: "Pacific Time (PT)" },
+  { value: "Europe/London", label: "Greenwich Mean Time (GMT)" },
+  { value: "Europe/Paris", label: "Central European Time (CET)" },
+  { value: "Asia/Singapore", label: "Singapore Time (SGT)" },
+  { value: "Asia/Tokyo", label: "Japan Standard Time (JST)" },
+  { value: "UTC", label: "Coordinated Universal Time (UTC)" },
 ];
 
 // Generate unique ID
@@ -166,11 +172,11 @@ function WaveTimeline({ waves, audienceCount }: WaveTimelineProps) {
         {waves.map((wave, index) => {
           const left = (wave.daysOffset / (totalDays || 1)) * 100;
           const width =
-            wave.type === 'percentage'
+            wave.type === "percentage"
               ? wave.value
               : (wave.value / audienceCount) * 100;
           const count =
-            wave.type === 'percentage'
+            wave.type === "percentage"
               ? Math.round((wave.value / 100) * audienceCount)
               : wave.value;
 
@@ -187,8 +193,8 @@ function WaveTimeline({ waves, audienceCount }: WaveTimelineProps) {
                   >
                     <div
                       className={cn(
-                        'w-full rounded-t-sm bg-primary/70 transition-all hover:bg-primary',
-                        index === 0 && 'bg-primary'
+                        "w-full rounded-t-sm bg-primary/70 transition-all hover:bg-primary",
+                        index === 0 && "bg-primary",
                       )}
                       style={{
                         height: `${Math.max((wave.value / 100) * 48, 8)}px`,
@@ -199,9 +205,7 @@ function WaveTimeline({ waves, audienceCount }: WaveTimelineProps) {
                 <TooltipContent>
                   <p>
                     Day {wave.daysOffset}: {count.toLocaleString()} people (
-                    {wave.type === 'percentage'
-                      ? `${wave.value}%`
-                      : wave.value}
+                    {wave.type === "percentage" ? `${wave.value}%` : wave.value}
                     )
                   </p>
                 </TooltipContent>
@@ -228,7 +232,7 @@ function ReminderTimeline({ reminders, deadlineDate }: ReminderTimelineProps) {
   if (reminders.length === 0) return null;
 
   const sortedReminders = [...reminders].sort(
-    (a, b) => b.daysBeforeDeadline - a.daysBeforeDeadline
+    (a, b) => b.daysBeforeDeadline - a.daysBeforeDeadline,
   );
   const maxDays = Math.max(...reminders.map((r) => r.daysBeforeDeadline));
 
@@ -255,12 +259,12 @@ function ReminderTimeline({ reminders, deadlineDate }: ReminderTimelineProps) {
                       >
                         <div
                           className={cn(
-                            'h-3 w-3 rounded-full border-2 border-background',
+                            "h-3 w-3 rounded-full border-2 border-background",
                             reminder.ccHR
-                              ? 'bg-destructive'
+                              ? "bg-destructive"
                               : reminder.ccManager
-                                ? 'bg-amber-500'
-                                : 'bg-primary'
+                                ? "bg-amber-500"
+                                : "bg-primary",
                           )}
                         />
                       </div>
@@ -268,8 +272,8 @@ function ReminderTimeline({ reminders, deadlineDate }: ReminderTimelineProps) {
                     <TooltipContent>
                       <p>
                         {reminder.daysBeforeDeadline} days before deadline
-                        {reminder.ccManager && ' + CC Manager'}
-                        {reminder.ccHR && ' + CC HR'}
+                        {reminder.ccManager && " + CC Manager"}
+                        {reminder.ccHR && " + CC HR"}
                       </p>
                     </TooltipContent>
                   </Tooltip>
@@ -306,16 +310,22 @@ export function ScheduleConfig({
 }: ScheduleConfigProps) {
   // State
   const [config, setConfig] = useState<ScheduleConfiguration>(() => ({
-    launchType: value?.launchType || 'immediate',
+    launchType: value?.launchType || "immediate",
     launchDate: value?.launchDate,
-    launchTime: value?.launchTime || '09:00',
-    timezone: value?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone,
+    launchTime: value?.launchTime || "09:00",
+    timezone:
+      value?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone,
     waves: value?.waves,
-    deadlineType: value?.deadlineType || 'absolute',
+    deadlineType: value?.deadlineType || "absolute",
     deadlineDate: value?.deadlineDate,
     relativeDays: value?.relativeDays || 14,
     reminders: value?.reminders || [
-      { id: generateId(), daysBeforeDeadline: 7, ccManager: false, ccHR: false },
+      {
+        id: generateId(),
+        daysBeforeDeadline: 7,
+        ccManager: false,
+        ccHR: false,
+      },
       { id: generateId(), daysBeforeDeadline: 3, ccManager: true, ccHR: false },
       { id: generateId(), daysBeforeDeadline: 1, ccManager: true, ccHR: true },
     ],
@@ -331,13 +341,11 @@ export function ScheduleConfig({
       setLoadingBlackouts(true);
       try {
         const response = await apiClient.get<{ dates: string[] }>(
-          '/campaigns/blackout-dates'
+          "/campaigns/blackout-dates",
         );
-        setBlackoutDates(
-          response.dates.map((d) => new Date(d))
-        );
+        setBlackoutDates(response.dates.map((d) => new Date(d)));
       } catch (error) {
-        console.error('Failed to load blackout dates:', error);
+        console.error("Failed to load blackout dates:", error);
         // Demo blackout dates
         const today = new Date();
         setBlackoutDates([
@@ -355,15 +363,19 @@ export function ScheduleConfig({
     loadBlackoutDates();
   }, []);
 
+  // Stable ref for onChange to avoid infinite loops
+  const onChangeRef = React.useRef(onChange);
+  onChangeRef.current = onChange;
+
   // Update parent on config change
   useEffect(() => {
-    onChange(config);
-  }, [config, onChange]);
+    onChangeRef.current(config);
+  }, [config]);
 
   // Check if date is blackout
   const isBlackoutDate = (date: Date): boolean => {
     return blackoutDates.some(
-      (bd) => startOfDay(bd).getTime() === startOfDay(date).getTime()
+      (bd) => startOfDay(bd).getTime() === startOfDay(date).getTime(),
     );
   };
 
@@ -382,7 +394,7 @@ export function ScheduleConfig({
   const handleAddWave = () => {
     const newWave: StaggeredWave = {
       id: generateId(),
-      type: 'percentage',
+      type: "percentage",
       value: 25,
       daysOffset: config.waves?.length || 0,
     };
@@ -431,10 +443,13 @@ export function ScheduleConfig({
     });
   };
 
-  const handleUpdateReminder = (id: string, updates: Partial<ReminderMilestone>) => {
+  const handleUpdateReminder = (
+    id: string,
+    updates: Partial<ReminderMilestone>,
+  ) => {
     updateConfig({
       reminders: config.reminders.map((r) =>
-        r.id === id ? { ...r, ...updates } : r
+        r.id === id ? { ...r, ...updates } : r,
       ),
     });
   };
@@ -455,7 +470,7 @@ export function ScheduleConfig({
   };
 
   return (
-    <div className={cn('space-y-6', className)}>
+    <div className={cn("space-y-6", className)}>
       {/* Launch Timing */}
       <Card>
         <CardHeader>
@@ -469,12 +484,12 @@ export function ScheduleConfig({
           <div className="grid gap-3 sm:grid-cols-3">
             <button
               type="button"
-              onClick={() => updateConfig({ launchType: 'immediate' })}
+              onClick={() => updateConfig({ launchType: "immediate" })}
               className={cn(
-                'flex flex-col items-center rounded-lg border p-4 text-center transition-colors',
-                config.launchType === 'immediate'
-                  ? 'border-primary bg-primary/5'
-                  : 'border-muted hover:border-muted-foreground/50'
+                "flex flex-col items-center rounded-lg border p-4 text-center transition-colors",
+                config.launchType === "immediate"
+                  ? "border-primary bg-primary/5"
+                  : "border-muted hover:border-muted-foreground/50",
               )}
             >
               <Clock className="mb-2 h-6 w-6" />
@@ -484,24 +499,26 @@ export function ScheduleConfig({
 
             <button
               type="button"
-              onClick={() => updateConfig({ launchType: 'scheduled' })}
+              onClick={() => updateConfig({ launchType: "scheduled" })}
               className={cn(
-                'flex flex-col items-center rounded-lg border p-4 text-center transition-colors',
-                config.launchType === 'scheduled'
-                  ? 'border-primary bg-primary/5'
-                  : 'border-muted hover:border-muted-foreground/50'
+                "flex flex-col items-center rounded-lg border p-4 text-center transition-colors",
+                config.launchType === "scheduled"
+                  ? "border-primary bg-primary/5"
+                  : "border-muted hover:border-muted-foreground/50",
               )}
             >
               <CalendarIcon className="mb-2 h-6 w-6" />
               <span className="font-medium">Scheduled</span>
-              <span className="text-xs text-muted-foreground">Pick date/time</span>
+              <span className="text-xs text-muted-foreground">
+                Pick date/time
+              </span>
             </button>
 
             <button
               type="button"
               onClick={() => {
                 updateConfig({
-                  launchType: 'staggered',
+                  launchType: "staggered",
                   waves:
                     config.waves && config.waves.length > 0
                       ? config.waves
@@ -512,10 +529,10 @@ export function ScheduleConfig({
                 });
               }}
               className={cn(
-                'flex flex-col items-center rounded-lg border p-4 text-center transition-colors',
-                config.launchType === 'staggered'
-                  ? 'border-primary bg-primary/5'
-                  : 'border-muted hover:border-muted-foreground/50'
+                "flex flex-col items-center rounded-lg border p-4 text-center transition-colors",
+                config.launchType === "staggered"
+                  ? "border-primary bg-primary/5"
+                  : "border-muted hover:border-muted-foreground/50",
               )}
             >
               <div className="mb-2 flex gap-0.5">
@@ -524,12 +541,14 @@ export function ScheduleConfig({
                 <div className="h-3 w-1.5 self-end rounded bg-current opacity-50" />
               </div>
               <span className="font-medium">Staggered</span>
-              <span className="text-xs text-muted-foreground">Roll out in waves</span>
+              <span className="text-xs text-muted-foreground">
+                Roll out in waves
+              </span>
             </button>
           </div>
 
           {/* Scheduled date/time picker */}
-          {config.launchType === 'scheduled' && (
+          {config.launchType === "scheduled" && (
             <div className="space-y-4 rounded-lg border p-4">
               <div className="grid gap-4 sm:grid-cols-3">
                 <div className="space-y-2">
@@ -539,14 +558,14 @@ export function ScheduleConfig({
                       <Button
                         variant="outline"
                         className={cn(
-                          'w-full justify-start text-left font-normal',
-                          !config.launchDate && 'text-muted-foreground'
+                          "w-full justify-start text-left font-normal",
+                          !config.launchDate && "text-muted-foreground",
                         )}
                       >
                         <CalendarIcon className="mr-2 h-4 w-4" />
                         {config.launchDate
-                          ? format(config.launchDate, 'PPP')
-                          : 'Pick a date'}
+                          ? format(config.launchDate, "PPP")
+                          : "Pick a date"}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">
@@ -562,7 +581,8 @@ export function ScheduleConfig({
                           blackout: blackoutDates,
                         }}
                         modifiersClassNames={{
-                          blackout: 'bg-muted text-muted-foreground line-through',
+                          blackout:
+                            "bg-muted text-muted-foreground line-through",
                         }}
                         initialFocus
                       />
@@ -575,7 +595,9 @@ export function ScheduleConfig({
                   <Input
                     type="time"
                     value={config.launchTime}
-                    onChange={(e) => updateConfig({ launchTime: e.target.value })}
+                    onChange={(e) =>
+                      updateConfig({ launchTime: e.target.value })
+                    }
                   />
                 </div>
 
@@ -603,7 +625,8 @@ export function ScheduleConfig({
                 <div className="flex items-center gap-2 rounded-md bg-amber-50 p-3 text-amber-800">
                   <AlertTriangle className="h-4 w-4" />
                   <span className="text-sm">
-                    This date is marked as a blackout period. Consider choosing a different date.
+                    This date is marked as a blackout period. Consider choosing
+                    a different date.
                   </span>
                 </div>
               )}
@@ -611,18 +634,26 @@ export function ScheduleConfig({
           )}
 
           {/* Staggered rollout configuration */}
-          {config.launchType === 'staggered' && (
+          {config.launchType === "staggered" && (
             <div className="space-y-4 rounded-lg border p-4">
               <div className="flex items-center justify-between">
-                <Label className="text-sm font-medium">Wave Configuration</Label>
+                <Label className="text-sm font-medium">
+                  Wave Configuration
+                </Label>
                 <div className="flex gap-2">
-                  <Select onValueChange={(value) => handleApplyWavePreset(value as keyof typeof WAVE_PRESETS)}>
+                  <Select
+                    onValueChange={(value) =>
+                      handleApplyWavePreset(value as keyof typeof WAVE_PRESETS)
+                    }
+                  >
                     <SelectTrigger className="w-[150px]">
                       <SelectValue placeholder="Apply preset" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="quarterDaily">25% per day</SelectItem>
-                      <SelectItem value="pilotFirst">Pilot first (10%)</SelectItem>
+                      <SelectItem value="pilotFirst">
+                        Pilot first (10%)
+                      </SelectItem>
                       <SelectItem value="gradual">Gradual ramp-up</SelectItem>
                     </SelectContent>
                   </Select>
@@ -642,7 +673,7 @@ export function ScheduleConfig({
                       value={wave.type}
                       onValueChange={(value) =>
                         handleUpdateWave(wave.id, {
-                          type: value as 'percentage' | 'count',
+                          type: value as "percentage" | "count",
                         })
                       }
                     >
@@ -664,12 +695,14 @@ export function ScheduleConfig({
                       }
                       className="w-20"
                       min={1}
-                      max={wave.type === 'percentage' ? 100 : audienceCount}
+                      max={wave.type === "percentage" ? 100 : audienceCount}
                     />
                     <span className="text-sm text-muted-foreground">
-                      {wave.type === 'percentage' ? '%' : 'people'}
+                      {wave.type === "percentage" ? "%" : "people"}
                     </span>
-                    <span className="text-sm text-muted-foreground">on day</span>
+                    <span className="text-sm text-muted-foreground">
+                      on day
+                    </span>
                     <Input
                       type="number"
                       value={wave.daysOffset}
@@ -698,7 +731,10 @@ export function ScheduleConfig({
                 Add Wave
               </Button>
 
-              <WaveTimeline waves={config.waves || []} audienceCount={audienceCount} />
+              <WaveTimeline
+                waves={config.waves || []}
+                audienceCount={audienceCount}
+              />
             </div>
           )}
         </CardContent>
@@ -716,12 +752,12 @@ export function ScheduleConfig({
           <div className="grid gap-4 sm:grid-cols-2">
             <button
               type="button"
-              onClick={() => updateConfig({ deadlineType: 'absolute' })}
+              onClick={() => updateConfig({ deadlineType: "absolute" })}
               className={cn(
-                'flex flex-col items-start rounded-lg border p-4 text-left transition-colors',
-                config.deadlineType === 'absolute'
-                  ? 'border-primary bg-primary/5'
-                  : 'border-muted hover:border-muted-foreground/50'
+                "flex flex-col items-start rounded-lg border p-4 text-left transition-colors",
+                config.deadlineType === "absolute"
+                  ? "border-primary bg-primary/5"
+                  : "border-muted hover:border-muted-foreground/50",
               )}
             >
               <span className="font-medium">Specific Date</span>
@@ -732,12 +768,12 @@ export function ScheduleConfig({
 
             <button
               type="button"
-              onClick={() => updateConfig({ deadlineType: 'relative' })}
+              onClick={() => updateConfig({ deadlineType: "relative" })}
               className={cn(
-                'flex flex-col items-start rounded-lg border p-4 text-left transition-colors',
-                config.deadlineType === 'relative'
-                  ? 'border-primary bg-primary/5'
-                  : 'border-muted hover:border-muted-foreground/50'
+                "flex flex-col items-start rounded-lg border p-4 text-left transition-colors",
+                config.deadlineType === "relative"
+                  ? "border-primary bg-primary/5"
+                  : "border-muted hover:border-muted-foreground/50",
               )}
             >
               <span className="font-medium">Relative</span>
@@ -747,7 +783,7 @@ export function ScheduleConfig({
             </button>
           </div>
 
-          {config.deadlineType === 'absolute' && (
+          {config.deadlineType === "absolute" && (
             <div className="space-y-2">
               <Label>Deadline Date</Label>
               <Popover>
@@ -755,14 +791,14 @@ export function ScheduleConfig({
                   <Button
                     variant="outline"
                     className={cn(
-                      'w-full justify-start text-left font-normal sm:w-[280px]',
-                      !config.deadlineDate && 'text-muted-foreground'
+                      "w-full justify-start text-left font-normal sm:w-[280px]",
+                      !config.deadlineDate && "text-muted-foreground",
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
                     {config.deadlineDate
-                      ? format(config.deadlineDate, 'PPP')
-                      : 'Pick a deadline'}
+                      ? format(config.deadlineDate, "PPP")
+                      : "Pick a deadline"}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
@@ -775,7 +811,7 @@ export function ScheduleConfig({
                       blackout: blackoutDates,
                     }}
                     modifiersClassNames={{
-                      blackout: 'bg-amber-100 text-amber-800',
+                      blackout: "bg-amber-100 text-amber-800",
                     }}
                     initialFocus
                   />
@@ -786,15 +822,15 @@ export function ScheduleConfig({
                 <div className="flex items-center gap-2 rounded-md bg-amber-50 p-3 text-amber-800">
                   <AlertTriangle className="h-4 w-4" />
                   <span className="text-sm">
-                    This deadline falls during a blackout period. The deadline will
-                    be automatically extended.
+                    This deadline falls during a blackout period. The deadline
+                    will be automatically extended.
                   </span>
                 </div>
               )}
             </div>
           )}
 
-          {config.deadlineType === 'relative' && (
+          {config.deadlineType === "relative" && (
             <div className="flex items-center gap-2">
               <Input
                 type="number"
@@ -827,7 +863,9 @@ export function ScheduleConfig({
             <Label className="text-sm font-medium">Reminder Schedule</Label>
             <Select
               onValueChange={(value) =>
-                handleApplyReminderPreset(value as keyof typeof REMINDER_PRESETS)
+                handleApplyReminderPreset(
+                  value as keyof typeof REMINDER_PRESETS,
+                )
               }
             >
               <SelectTrigger className="w-[150px]">
@@ -835,7 +873,9 @@ export function ScheduleConfig({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="standard">Standard (5, 10, 13)</SelectItem>
-                <SelectItem value="aggressive">Aggressive (3, 7, 10, 14)</SelectItem>
+                <SelectItem value="aggressive">
+                  Aggressive (3, 7, 10, 14)
+                </SelectItem>
                 <SelectItem value="minimal">Minimal (7, 14)</SelectItem>
               </SelectContent>
             </Select>

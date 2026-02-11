@@ -228,16 +228,23 @@ export function AiChatPanel({
     const onTextDelta = (data: { text: string }) => {
       if (handlerIdRef.current !== currentHandlerId) return;
       setMessages((prev) => {
-        const lastMessage = prev[prev.length - 1];
-        if (
-          lastMessage &&
-          lastMessage.role === "assistant" &&
-          lastMessage.isStreaming
-        ) {
-          // Immutable update - create new array with new message object
+        // Find the last streaming assistant message (may not be the very last
+        // message due to tool_use system messages inserted after it)
+        let streamingIdx = -1;
+        for (let i = prev.length - 1; i >= 0; i--) {
+          if (prev[i].role === "assistant" && prev[i].isStreaming) {
+            streamingIdx = i;
+            break;
+          }
+        }
+        if (streamingIdx >= 0) {
           return [
-            ...prev.slice(0, -1),
-            { ...lastMessage, content: lastMessage.content + data.text },
+            ...prev.slice(0, streamingIdx),
+            {
+              ...prev[streamingIdx],
+              content: prev[streamingIdx].content + data.text,
+            },
+            ...prev.slice(streamingIdx + 1),
           ];
         }
         return prev;
@@ -247,12 +254,17 @@ export function AiChatPanel({
     const onMessageComplete = () => {
       if (handlerIdRef.current !== currentHandlerId) return;
       setMessages((prev) => {
-        const lastMessage = prev[prev.length - 1];
-        if (lastMessage && lastMessage.role === "assistant") {
-          // Immutable update
-          return [...prev.slice(0, -1), { ...lastMessage, isStreaming: false }];
-        }
-        return prev;
+        // Find and update the last streaming assistant message,
+        // and clear any tool_use spinners
+        return prev.map((m) => {
+          if (m.role === "assistant" && m.isStreaming) {
+            return { ...m, isStreaming: false };
+          }
+          if (m.isToolUse) {
+            return { ...m, isToolUse: false };
+          }
+          return m;
+        });
       });
       setIsStreaming(false);
       isSendingRef.current = false;

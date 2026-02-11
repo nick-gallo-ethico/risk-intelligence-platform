@@ -1,16 +1,16 @@
-'use client';
+"use client";
 
-import { useEffect, useCallback } from 'react';
-import { useEditor, EditorContent } from '@tiptap/react';
-import StarterKit from '@tiptap/starter-kit';
-import Link from '@tiptap/extension-link';
-import Placeholder from '@tiptap/extension-placeholder';
-import CharacterCountExtension from '@tiptap/extension-character-count';
-import Underline from '@tiptap/extension-underline';
-import { EditorToolbar } from './editor-toolbar';
-import { CharacterCount } from './character-count';
-import { useDraft } from '@/hooks/use-draft';
-import { cn } from '@/lib/utils';
+import { useEffect, useCallback, useMemo } from "react";
+import { useEditor, EditorContent } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
+import Link from "@tiptap/extension-link";
+import Placeholder from "@tiptap/extension-placeholder";
+import CharacterCountExtension from "@tiptap/extension-character-count";
+import Underline from "@tiptap/extension-underline";
+import { EditorToolbar } from "./editor-toolbar";
+import { CharacterCount } from "./character-count";
+import { useDraft } from "@/hooks/use-draft";
+import { cn } from "@/lib/utils";
 
 interface RichTextEditorProps {
   /** Initial HTML content */
@@ -48,9 +48,9 @@ interface RichTextEditorProps {
  * - Accessible keyboard shortcuts
  */
 export function RichTextEditor({
-  content = '',
+  content = "",
   onChange,
-  placeholder = 'Add your investigation notes here...',
+  placeholder = "Add your investigation notes here...",
   maxLength = 50000,
   warnAt = 45000,
   readOnly = false,
@@ -58,19 +58,16 @@ export function RichTextEditor({
   onSave,
   isSaving = false,
   className,
-  minHeight = '200px',
+  minHeight = "200px",
 }: RichTextEditorProps) {
   // Draft persistence
-  const { draft, saveDraft, clearDraft, hasDraft, isLoaded } = useDraft(
-    draftKey
-  );
+  const { draft, saveDraft, clearDraft, hasDraft, isLoaded } =
+    useDraft(draftKey);
 
-  // Initialize Tiptap editor
-  const editor = useEditor({
-    immediatelyRender: false, // Required for SSR/Next.js to avoid hydration mismatches
-    extensions: [
+  // Memoize extensions to prevent duplicate registration in React Strict Mode
+  const extensions = useMemo(
+    () => [
       StarterKit.configure({
-        // Disable features we're replacing with custom extensions
         heading: {
           levels: [1, 2, 3],
         },
@@ -79,30 +76,37 @@ export function RichTextEditor({
       Link.configure({
         openOnClick: false,
         HTMLAttributes: {
-          class: 'text-primary underline hover:text-primary/80',
-          rel: 'noopener noreferrer',
-          target: '_blank',
+          class: "text-primary underline hover:text-primary/80",
+          rel: "noopener noreferrer",
+          target: "_blank",
         },
       }),
       Placeholder.configure({
         placeholder,
         emptyEditorClass:
-          'before:content-[attr(data-placeholder)] before:text-muted-foreground before:float-left before:h-0 before:pointer-events-none',
+          "before:content-[attr(data-placeholder)] before:text-muted-foreground before:float-left before:h-0 before:pointer-events-none",
       }),
       CharacterCountExtension.configure({
         limit: maxLength,
       }),
     ],
-    content: '',
+    [placeholder, maxLength],
+  );
+
+  // Initialize Tiptap editor
+  const editor = useEditor({
+    immediatelyRender: false, // Required for SSR/Next.js to avoid hydration mismatches
+    extensions,
+    content: "",
     editable: !readOnly,
     editorProps: {
       attributes: {
         class: cn(
-          'prose prose-sm dark:prose-invert max-w-none focus:outline-none',
-          'prose-p:my-2 prose-ul:my-2 prose-ol:my-2',
-          'prose-blockquote:border-l-4 prose-blockquote:border-muted-foreground prose-blockquote:pl-4 prose-blockquote:italic',
-          'prose-code:bg-muted prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:text-sm',
-          'prose-pre:bg-muted prose-pre:p-4 prose-pre:rounded-md'
+          "prose prose-sm dark:prose-invert max-w-none focus:outline-none",
+          "prose-p:my-2 prose-ul:my-2 prose-ol:my-2",
+          "prose-blockquote:border-l-4 prose-blockquote:border-muted-foreground prose-blockquote:pl-4 prose-blockquote:italic",
+          "prose-code:bg-muted prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:text-sm",
+          "prose-pre:bg-muted prose-pre:p-4 prose-pre:rounded-md",
         ),
       },
     },
@@ -160,10 +164,7 @@ export function RichTextEditor({
   if (!editor) {
     return (
       <div
-        className={cn(
-          'border rounded-md animate-pulse bg-muted',
-          className
-        )}
+        className={cn("border rounded-md animate-pulse bg-muted", className)}
         style={{ minHeight }}
       />
     );
@@ -172,9 +173,9 @@ export function RichTextEditor({
   return (
     <div
       className={cn(
-        'border rounded-md overflow-hidden bg-background',
-        readOnly && 'bg-muted/30',
-        className
+        "border rounded-md overflow-hidden bg-background",
+        readOnly && "bg-muted/30",
+        className,
       )}
     >
       {/* Draft recovery notice */}
@@ -199,7 +200,7 @@ export function RichTextEditor({
       {/* Editor content */}
       <EditorContent
         editor={editor}
-        className={cn('px-4 py-3', readOnly && 'cursor-default')}
+        className={cn("px-4 py-3", readOnly && "cursor-default")}
         style={{ minHeight }}
       />
 
@@ -220,12 +221,12 @@ export function RichTextEditor({
                 onClick={handleSave}
                 disabled={isSaving || isOverLimit}
                 className={cn(
-                  'px-4 py-1.5 text-sm font-medium rounded-md transition-colors',
-                  'bg-primary text-primary-foreground hover:bg-primary/90',
-                  'disabled:opacity-50 disabled:cursor-not-allowed'
+                  "px-4 py-1.5 text-sm font-medium rounded-md transition-colors",
+                  "bg-primary text-primary-foreground hover:bg-primary/90",
+                  "disabled:opacity-50 disabled:cursor-not-allowed",
                 )}
               >
-                {isSaving ? 'Saving...' : 'Save'}
+                {isSaving ? "Saving..." : "Save"}
               </button>
             </div>
           )}

@@ -1,28 +1,42 @@
-'use client';
+"use client";
 
-import * as React from 'react';
-import { useState, useEffect, useCallback, useMemo } from 'react';
-import { Search, ChevronDown, Users, AlertTriangle, Loader2, Download, X } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
+import * as React from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
+import {
+  Search,
+  ChevronDown,
+  Users,
+  AlertTriangle,
+  Loader2,
+  Download,
+  X,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from '@/components/ui/dialog';
+} from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -30,54 +44,54 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
+} from "@/components/ui/table";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from '@/components/ui/collapsible';
-import { cn } from '@/lib/utils';
-import { apiClient } from '@/lib/api';
+} from "@/components/ui/collapsible";
+import { cn } from "@/lib/utils";
+import { apiClient } from "@/lib/api";
 
 // Types matching backend segment criteria DTOs
-export type SegmentLogic = 'AND' | 'OR';
+export type SegmentLogic = "AND" | "OR";
 
 export type SegmentOperator =
-  | 'equals'
-  | 'not_equals'
-  | 'contains'
-  | 'not_contains'
-  | 'starts_with'
-  | 'ends_with'
-  | 'gt'
-  | 'gte'
-  | 'lt'
-  | 'lte'
-  | 'in'
-  | 'not_in'
-  | 'is_true'
-  | 'is_false'
-  | 'is_null'
-  | 'is_not_null';
+  | "equals"
+  | "not_equals"
+  | "contains"
+  | "not_contains"
+  | "starts_with"
+  | "ends_with"
+  | "gt"
+  | "gte"
+  | "lt"
+  | "lte"
+  | "in"
+  | "not_in"
+  | "is_true"
+  | "is_false"
+  | "is_null"
+  | "is_not_null";
 
 export type SegmentField =
-  | 'locationId'
-  | 'locationCode'
-  | 'location.region'
-  | 'location.country'
-  | 'divisionId'
-  | 'businessUnitId'
-  | 'departmentId'
-  | 'teamId'
-  | 'jobTitle'
-  | 'jobLevel'
-  | 'employmentStatus'
-  | 'employmentType'
-  | 'workMode'
-  | 'complianceRole'
-  | 'managerId'
-  | 'primaryLanguage'
-  | 'hireDate';
+  | "locationId"
+  | "locationCode"
+  | "location.region"
+  | "location.country"
+  | "divisionId"
+  | "businessUnitId"
+  | "departmentId"
+  | "teamId"
+  | "jobTitle"
+  | "jobLevel"
+  | "employmentStatus"
+  | "employmentType"
+  | "workMode"
+  | "complianceRole"
+  | "managerId"
+  | "primaryLanguage"
+  | "hireDate";
 
 export interface SegmentCondition {
   field: SegmentField;
@@ -131,25 +145,28 @@ interface ReferenceItem {
 interface SegmentBuilderProps {
   value?: SegmentCriteria;
   onChange: (criteria: SegmentCriteria | null) => void;
+  onCountChange?: (count: number) => void;
   className?: string;
 }
 
 // Convert simple mode selections to segment criteria
-function simpleModeToCriteria(selection: SimpleModeSelection): SegmentCriteria | null {
+function simpleModeToCriteria(
+  selection: SimpleModeSelection,
+): SegmentCriteria | null {
   const conditions: SegmentCondition[] = [];
 
   if (selection.departments.length > 0) {
     conditions.push({
-      field: 'departmentId',
-      operator: 'in',
+      field: "departmentId",
+      operator: "in",
       value: selection.departments,
     });
   }
 
   if (selection.locations.length > 0) {
     conditions.push({
-      field: 'locationId',
-      operator: 'in',
+      field: "locationId",
+      operator: "in",
       value: selection.locations,
     });
   }
@@ -159,13 +176,15 @@ function simpleModeToCriteria(selection: SimpleModeSelection): SegmentCriteria |
   }
 
   return {
-    logic: 'AND',
+    logic: "AND",
     conditions,
   };
 }
 
 // Parse criteria back to simple mode (if possible)
-function criteriaToSimpleMode(criteria: SegmentCriteria | null): SimpleModeSelection | null {
+function criteriaToSimpleMode(
+  criteria: SegmentCriteria | null,
+): SimpleModeSelection | null {
   if (!criteria || !criteria.conditions) {
     return { departments: [], locations: [], includeTeams: false };
   }
@@ -174,8 +193,7 @@ function criteriaToSimpleMode(criteria: SegmentCriteria | null): SimpleModeSelec
   const hasGroups = criteria.groups && criteria.groups.length > 0;
   const hasAdvancedConditions = criteria.conditions.some(
     (c) =>
-      !['departmentId', 'locationId'].includes(c.field) ||
-      c.operator !== 'in'
+      !["departmentId", "locationId"].includes(c.field) || c.operator !== "in",
   );
 
   if (hasGroups || hasAdvancedConditions) {
@@ -186,9 +204,12 @@ function criteriaToSimpleMode(criteria: SegmentCriteria | null): SimpleModeSelec
   const locations: string[] = [];
 
   for (const condition of criteria.conditions) {
-    if (condition.field === 'departmentId' && Array.isArray(condition.value)) {
+    if (condition.field === "departmentId" && Array.isArray(condition.value)) {
       departments.push(...(condition.value as string[]));
-    } else if (condition.field === 'locationId' && Array.isArray(condition.value)) {
+    } else if (
+      condition.field === "locationId" &&
+      Array.isArray(condition.value)
+    ) {
       locations.push(...(condition.value as string[]));
     }
   }
@@ -200,10 +221,10 @@ function criteriaToSimpleMode(criteria: SegmentCriteria | null): SimpleModeSelec
 function buildCriteriaDescription(
   criteria: SegmentCriteria | null,
   departments: ReferenceItem[],
-  locations: ReferenceItem[]
+  locations: ReferenceItem[],
 ): string {
   if (!criteria) {
-    return 'All active employees';
+    return "All active employees";
   }
 
   const parts: string[] = [];
@@ -218,17 +239,17 @@ function buildCriteriaDescription(
   }
 
   if (parts.length === 0) {
-    return 'All active employees';
+    return "All active employees";
   }
 
-  const connector = criteria.logic === 'AND' ? ' and ' : ' or ';
+  const connector = criteria.logic === "AND" ? " and " : " or ";
   return `Everyone ${parts.join(connector)}`;
 }
 
 function describeCondition(
   condition: SegmentCondition,
   departments: ReferenceItem[],
-  locations: ReferenceItem[]
+  locations: ReferenceItem[],
 ): string {
   const { field, operator, value } = condition;
 
@@ -239,30 +260,30 @@ function describeCondition(
     if (ids.length > 3) {
       names.push(`+${ids.length - 3} more`);
     }
-    return names.join(', ');
+    return names.join(", ");
   };
 
-  if (field === 'departmentId' && operator === 'in' && Array.isArray(value)) {
+  if (field === "departmentId" && operator === "in" && Array.isArray(value)) {
     return `in [${resolveNames(value as string[], departments)}]`;
   }
 
-  if (field === 'locationId' && operator === 'in' && Array.isArray(value)) {
+  if (field === "locationId" && operator === "in" && Array.isArray(value)) {
     return `at [${resolveNames(value as string[], locations)}]`;
   }
 
-  if (field === 'jobTitle' && operator === 'contains') {
+  if (field === "jobTitle" && operator === "contains") {
     return `with job title containing "${value}"`;
   }
 
-  if (field === 'hireDate' && operator === 'lt') {
+  if (field === "hireDate" && operator === "lt") {
     return `hired before ${value}`;
   }
 
-  if (field === 'hireDate' && operator === 'gte') {
+  if (field === "hireDate" && operator === "gte") {
     return `hired on or after ${value}`;
   }
 
-  return '';
+  return "";
 }
 
 // Multi-select picker component with search
@@ -280,10 +301,10 @@ function MultiSelectPicker({
   items,
   selected,
   onChange,
-  placeholder = 'Search...',
+  placeholder = "Search...",
   loading = false,
 }: MultiSelectPickerProps) {
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState("");
 
   const filteredItems = useMemo(() => {
     if (!search) return items;
@@ -291,7 +312,7 @@ function MultiSelectPicker({
     return items.filter(
       (item) =>
         item.name.toLowerCase().includes(lower) ||
-        item.code?.toLowerCase().includes(lower)
+        item.code?.toLowerCase().includes(lower),
     );
   }, [items, search]);
 
@@ -409,34 +430,34 @@ function AdvancedConditionRow({
   isLast,
 }: AdvancedConditionRowProps) {
   const fieldOptions: { value: SegmentField; label: string }[] = [
-    { value: 'departmentId', label: 'Department' },
-    { value: 'locationId', label: 'Location' },
-    { value: 'businessUnitId', label: 'Business Unit' },
-    { value: 'divisionId', label: 'Division' },
-    { value: 'teamId', label: 'Team' },
-    { value: 'jobTitle', label: 'Job Title' },
-    { value: 'jobLevel', label: 'Job Level' },
-    { value: 'employmentType', label: 'Employment Type' },
-    { value: 'workMode', label: 'Work Mode' },
-    { value: 'complianceRole', label: 'Compliance Role' },
-    { value: 'managerId', label: 'Manager' },
-    { value: 'primaryLanguage', label: 'Primary Language' },
-    { value: 'hireDate', label: 'Hire Date' },
+    { value: "departmentId", label: "Department" },
+    { value: "locationId", label: "Location" },
+    { value: "businessUnitId", label: "Business Unit" },
+    { value: "divisionId", label: "Division" },
+    { value: "teamId", label: "Team" },
+    { value: "jobTitle", label: "Job Title" },
+    { value: "jobLevel", label: "Job Level" },
+    { value: "employmentType", label: "Employment Type" },
+    { value: "workMode", label: "Work Mode" },
+    { value: "complianceRole", label: "Compliance Role" },
+    { value: "managerId", label: "Manager" },
+    { value: "primaryLanguage", label: "Primary Language" },
+    { value: "hireDate", label: "Hire Date" },
   ];
 
   const operatorOptions: { value: SegmentOperator; label: string }[] = [
-    { value: 'equals', label: 'equals' },
-    { value: 'not_equals', label: 'does not equal' },
-    { value: 'contains', label: 'contains' },
-    { value: 'not_contains', label: 'does not contain' },
-    { value: 'in', label: 'is one of' },
-    { value: 'not_in', label: 'is not one of' },
-    { value: 'gt', label: 'is greater than' },
-    { value: 'gte', label: 'is greater than or equal' },
-    { value: 'lt', label: 'is less than' },
-    { value: 'lte', label: 'is less than or equal' },
-    { value: 'is_null', label: 'is empty' },
-    { value: 'is_not_null', label: 'is not empty' },
+    { value: "equals", label: "equals" },
+    { value: "not_equals", label: "does not equal" },
+    { value: "contains", label: "contains" },
+    { value: "not_contains", label: "does not contain" },
+    { value: "in", label: "is one of" },
+    { value: "not_in", label: "is not one of" },
+    { value: "gt", label: "is greater than" },
+    { value: "gte", label: "is greater than or equal" },
+    { value: "lt", label: "is less than" },
+    { value: "lte", label: "is less than or equal" },
+    { value: "is_null", label: "is empty" },
+    { value: "is_not_null", label: "is not empty" },
   ];
 
   return (
@@ -477,23 +498,23 @@ function AdvancedConditionRow({
         </SelectContent>
       </Select>
 
-      {!['is_null', 'is_not_null', 'is_true', 'is_false'].includes(
-        condition.operator
+      {!["is_null", "is_not_null", "is_true", "is_false"].includes(
+        condition.operator,
       ) && (
         <Input
           placeholder="Value"
           value={
             Array.isArray(condition.value)
-              ? condition.value.join(', ')
-              : String(condition.value || '')
+              ? condition.value.join(", ")
+              : String(condition.value || "")
           }
           onChange={(e) => {
             const val = e.target.value;
             onChange({
               ...condition,
               value:
-                condition.operator === 'in' || condition.operator === 'not_in'
-                  ? val.split(',').map((s) => s.trim())
+                condition.operator === "in" || condition.operator === "not_in"
+                  ? val.split(",").map((s) => s.trim())
                   : val,
             });
           }}
@@ -537,7 +558,7 @@ function PreviewModal({
           <DialogDescription>
             {preview
               ? `Showing ${preview.sampleEmployees.length} of ${preview.totalCount} matching employees`
-              : 'Loading preview...'}
+              : "Loading preview..."}
           </DialogDescription>
         </DialogHeader>
 
@@ -563,8 +584,8 @@ function PreviewModal({
                       <TableCell className="font-medium">
                         {emp.firstName} {emp.lastName}
                       </TableCell>
-                      <TableCell>{emp.department || '-'}</TableCell>
-                      <TableCell>{emp.location || '-'}</TableCell>
+                      <TableCell>{emp.department || "-"}</TableCell>
+                      <TableCell>{emp.location || "-"}</TableCell>
                       <TableCell className="text-muted-foreground">
                         {emp.email}
                       </TableCell>
@@ -599,7 +620,12 @@ function PreviewModal({
  *
  * Live preview updates on criteria changes with 500ms debounce.
  */
-export function SegmentBuilder({ value, onChange, className }: SegmentBuilderProps) {
+export function SegmentBuilder({
+  value,
+  onChange,
+  onCountChange,
+  className,
+}: SegmentBuilderProps) {
   // Mode state
   const [isAdvancedMode, setIsAdvancedMode] = useState(false);
 
@@ -612,7 +638,7 @@ export function SegmentBuilder({ value, onChange, className }: SegmentBuilderPro
 
   // Advanced mode state
   const [advancedCriteria, setAdvancedCriteria] = useState<SegmentCriteria>({
-    logic: 'AND',
+    logic: "AND",
     conditions: [],
   });
 
@@ -629,7 +655,8 @@ export function SegmentBuilder({ value, onChange, className }: SegmentBuilderPro
   // Compute current criteria
   const currentCriteria = useMemo(() => {
     if (isAdvancedMode) {
-      return advancedCriteria.conditions && advancedCriteria.conditions.length > 0
+      return advancedCriteria.conditions &&
+        advancedCriteria.conditions.length > 0
         ? advancedCriteria
         : null;
     }
@@ -639,7 +666,7 @@ export function SegmentBuilder({ value, onChange, className }: SegmentBuilderPro
   // Natural language description
   const description = useMemo(
     () => buildCriteriaDescription(currentCriteria, departments, locations),
-    [currentCriteria, departments, locations]
+    [currentCriteria, departments, locations],
   );
 
   // Load reference data
@@ -648,31 +675,31 @@ export function SegmentBuilder({ value, onChange, className }: SegmentBuilderPro
       setLoadingRefs(true);
       try {
         const [deptResponse, locResponse] = await Promise.all([
-          apiClient.get<{ departments: ReferenceItem[] }>('/departments'),
-          apiClient.get<{ locations: ReferenceItem[] }>('/locations'),
+          apiClient.get<{ departments: ReferenceItem[] }>("/departments"),
+          apiClient.get<{ locations: ReferenceItem[] }>("/locations"),
         ]);
         setDepartments(deptResponse.departments || []);
         setLocations(locResponse.locations || []);
       } catch (error) {
-        console.error('Failed to load reference data:', error);
+        console.error("Failed to load reference data:", error);
         // Set demo data for development
         setDepartments([
-          { id: 'dept-1', name: 'Finance', code: 'FIN' },
-          { id: 'dept-2', name: 'Procurement', code: 'PROC' },
-          { id: 'dept-3', name: 'Engineering', code: 'ENG' },
-          { id: 'dept-4', name: 'Human Resources', code: 'HR' },
-          { id: 'dept-5', name: 'Legal', code: 'LEG' },
-          { id: 'dept-6', name: 'Sales', code: 'SLS' },
-          { id: 'dept-7', name: 'Marketing', code: 'MKT' },
-          { id: 'dept-8', name: 'Operations', code: 'OPS' },
+          { id: "dept-1", name: "Finance", code: "FIN" },
+          { id: "dept-2", name: "Procurement", code: "PROC" },
+          { id: "dept-3", name: "Engineering", code: "ENG" },
+          { id: "dept-4", name: "Human Resources", code: "HR" },
+          { id: "dept-5", name: "Legal", code: "LEG" },
+          { id: "dept-6", name: "Sales", code: "SLS" },
+          { id: "dept-7", name: "Marketing", code: "MKT" },
+          { id: "dept-8", name: "Operations", code: "OPS" },
         ]);
         setLocations([
-          { id: 'loc-1', name: 'New York', code: 'NYC' },
-          { id: 'loc-2', name: 'Los Angeles', code: 'LA' },
-          { id: 'loc-3', name: 'Chicago', code: 'CHI' },
-          { id: 'loc-4', name: 'London', code: 'LDN' },
-          { id: 'loc-5', name: 'Singapore', code: 'SG' },
-          { id: 'loc-6', name: 'Remote', code: 'RMT' },
+          { id: "loc-1", name: "New York", code: "NYC" },
+          { id: "loc-2", name: "Los Angeles", code: "LA" },
+          { id: "loc-3", name: "Chicago", code: "CHI" },
+          { id: "loc-4", name: "London", code: "LDN" },
+          { id: "loc-5", name: "Singapore", code: "SG" },
+          { id: "loc-6", name: "Remote", code: "RMT" },
         ]);
       } finally {
         setLoadingRefs(false);
@@ -696,70 +723,117 @@ export function SegmentBuilder({ value, onChange, className }: SegmentBuilderPro
     }
   }, []);
 
-  // Preview with debounce
-  const fetchPreview = useCallback(async (criteria: SegmentCriteria | null) => {
-    if (!criteria) {
-      setPreview({ totalCount: 0, sampleEmployees: [] });
-      return;
-    }
+  // Compute a deterministic demo count from the criteria
+  const getDemoCount = useCallback(
+    (criteria: SegmentCriteria | null): number => {
+      if (
+        !criteria ||
+        !criteria.conditions ||
+        criteria.conditions.length === 0
+      ) {
+        return 0;
+      }
+      // Deterministic count based on number of selected values
+      let total = 0;
+      for (const c of criteria.conditions) {
+        if (Array.isArray(c.value)) {
+          total += c.value.length * 45;
+        } else if (c.value) {
+          total += 120;
+        }
+      }
+      return total || 150;
+    },
+    [],
+  );
 
-    setLoadingPreview(true);
-    try {
-      const response = await apiClient.post<AudiencePreview>(
-        '/campaigns/audience/preview',
-        { criteria }
-      );
-      setPreview(response);
-    } catch (error) {
-      console.error('Failed to fetch preview:', error);
-      // Demo preview for development
-      const count = Math.floor(Math.random() * 500) + 50;
-      setPreview({
-        totalCount: count,
-        sampleEmployees: [
-          {
-            id: '1',
-            firstName: 'John',
-            lastName: 'Smith',
-            email: 'john.smith@company.com',
-            jobTitle: 'Senior Analyst',
-            department: 'Finance',
-            location: 'New York',
-          },
-          {
-            id: '2',
-            firstName: 'Sarah',
-            lastName: 'Johnson',
-            email: 'sarah.johnson@company.com',
-            jobTitle: 'Manager',
-            department: 'Procurement',
-            location: 'Chicago',
-          },
-          {
-            id: '3',
-            firstName: 'Michael',
-            lastName: 'Chen',
-            email: 'michael.chen@company.com',
-            jobTitle: 'Director',
-            department: 'Engineering',
-            location: 'Los Angeles',
-          },
-        ],
-      });
-    } finally {
-      setLoadingPreview(false);
+  // Preview with debounce
+  const fetchPreview = useCallback(
+    async (criteria: SegmentCriteria | null) => {
+      if (!criteria) {
+        setPreview({ totalCount: 0, sampleEmployees: [] });
+        return;
+      }
+
+      setLoadingPreview(true);
+      try {
+        const response = await apiClient.post<AudiencePreview>(
+          "/campaigns/audience/preview",
+          { criteria },
+        );
+        setPreview(response);
+      } catch (error) {
+        console.error("Failed to fetch preview:", error);
+        // Demo preview for development - deterministic count
+        const count = getDemoCount(criteria);
+        setPreview({
+          totalCount: count,
+          sampleEmployees: [
+            {
+              id: "1",
+              firstName: "John",
+              lastName: "Smith",
+              email: "john.smith@company.com",
+              jobTitle: "Senior Analyst",
+              department: "Finance",
+              location: "New York",
+            },
+            {
+              id: "2",
+              firstName: "Sarah",
+              lastName: "Johnson",
+              email: "sarah.johnson@company.com",
+              jobTitle: "Manager",
+              department: "Procurement",
+              location: "Chicago",
+            },
+            {
+              id: "3",
+              firstName: "Michael",
+              lastName: "Chen",
+              email: "michael.chen@company.com",
+              jobTitle: "Director",
+              department: "Engineering",
+              location: "Los Angeles",
+            },
+          ],
+        });
+      } finally {
+        setLoadingPreview(false);
+      }
+    },
+    [getDemoCount],
+  );
+
+  // Stable refs for callbacks to avoid infinite loops
+  const onChangeRef = React.useRef(onChange);
+  onChangeRef.current = onChange;
+  const onCountChangeRef = React.useRef(onCountChange);
+  onCountChangeRef.current = onCountChange;
+
+  // Serialize criteria for stable effect dependency
+  const criteriaKey = useMemo(
+    () => JSON.stringify(currentCriteria),
+    [currentCriteria],
+  );
+
+  // Notify parent when preview count changes
+  useEffect(() => {
+    if (preview && onCountChangeRef.current) {
+      onCountChangeRef.current(preview.totalCount);
     }
-  }, []);
+  }, [preview]);
 
   // Debounced preview update
   useEffect(() => {
     const timer = setTimeout(() => {
       fetchPreview(currentCriteria);
-      onChange(currentCriteria);
+      onChangeRef.current(currentCriteria);
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [currentCriteria, fetchPreview, onChange]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [criteriaKey, fetchPreview]);
 
   // Handle simple mode changes
   const handleSimpleChange = (updates: Partial<SimpleModeSelection>) => {
@@ -772,12 +846,15 @@ export function SegmentBuilder({ value, onChange, className }: SegmentBuilderPro
       ...prev,
       conditions: [
         ...(prev.conditions || []),
-        { field: 'departmentId', operator: 'equals', value: '' },
+        { field: "departmentId", operator: "equals", value: "" },
       ],
     }));
   };
 
-  const handleUpdateCondition = (index: number, condition: SegmentCondition) => {
+  const handleUpdateCondition = (
+    index: number,
+    condition: SegmentCondition,
+  ) => {
     setAdvancedCriteria((prev) => ({
       ...prev,
       conditions: prev.conditions?.map((c, i) => (i === index ? condition : c)),
@@ -795,21 +872,21 @@ export function SegmentBuilder({ value, onChange, className }: SegmentBuilderPro
   const handleExport = () => {
     if (!preview) return;
 
-    const headers = ['Name', 'Email', 'Department', 'Location', 'Job Title'];
+    const headers = ["Name", "Email", "Department", "Location", "Job Title"];
     const rows = preview.sampleEmployees.map((emp) => [
       `${emp.firstName} ${emp.lastName}`,
       emp.email,
-      emp.department || '',
-      emp.location || '',
-      emp.jobTitle || '',
+      emp.department || "",
+      emp.location || "",
+      emp.jobTitle || "",
     ]);
 
-    const csv = [headers, ...rows].map((row) => row.join(',')).join('\n');
-    const blob = new Blob([csv], { type: 'text/csv' });
+    const csv = [headers, ...rows].map((row) => row.join(",")).join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
+    const link = document.createElement("a");
     link.href = url;
-    link.download = 'audience-preview.csv';
+    link.download = "audience-preview.csv";
     link.click();
     URL.revokeObjectURL(url);
   };
@@ -825,7 +902,7 @@ export function SegmentBuilder({ value, onChange, className }: SegmentBuilderPro
   };
 
   return (
-    <div className={cn('space-y-4', className)}>
+    <div className={cn("space-y-4", className)}>
       {/* Mode toggle */}
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-medium">Target Audience</h3>
@@ -844,7 +921,7 @@ export function SegmentBuilder({ value, onChange, className }: SegmentBuilderPro
             }
           }}
         >
-          {isAdvancedMode ? 'Simple Mode' : 'Advanced Mode'}
+          {isAdvancedMode ? "Simple Mode" : "Advanced Mode"}
         </Button>
       </div>
 
@@ -912,7 +989,9 @@ export function SegmentBuilder({ value, onChange, className }: SegmentBuilderPro
                     <SelectItem value="OR">ANY</SelectItem>
                   </SelectContent>
                 </Select>
-                <span className="text-sm font-medium">of these conditions:</span>
+                <span className="text-sm font-medium">
+                  of these conditions:
+                </span>
               </div>
 
               <div className="space-y-2">
@@ -922,7 +1001,9 @@ export function SegmentBuilder({ value, onChange, className }: SegmentBuilderPro
                     condition={condition}
                     onChange={(c) => handleUpdateCondition(index, c)}
                     onRemove={() => handleRemoveCondition(index)}
-                    isLast={index === (advancedCriteria.conditions?.length || 0) - 1}
+                    isLast={
+                      index === (advancedCriteria.conditions?.length || 0) - 1
+                    }
                   />
                 ))}
               </div>

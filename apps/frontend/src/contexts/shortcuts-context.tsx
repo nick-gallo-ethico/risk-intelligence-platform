@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 /**
  * ShortcutsContext
@@ -13,11 +13,18 @@
  * - Global shortcut registration (Cmd+K, ?)
  */
 
-import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useGlobalShortcuts } from '@/hooks/use-keyboard-shortcuts';
-import { CommandPalette } from '@/components/common/command-palette';
-import { ShortcutsHelpDialog } from '@/components/common/shortcuts-help-dialog';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useEffect,
+  useRef,
+} from "react";
+import { useRouter } from "next/navigation";
+import { useGlobalShortcuts } from "@/hooks/use-keyboard-shortcuts";
+import { CommandPalette } from "@/components/common/command-palette";
+import { ShortcutsHelpDialog } from "@/components/common/shortcuts-help-dialog";
 
 /**
  * Recent item for command palette navigation.
@@ -25,7 +32,7 @@ import { ShortcutsHelpDialog } from '@/components/common/shortcuts-help-dialog';
 export interface RecentItem {
   id: string;
   label: string;
-  type: 'case' | 'investigation' | 'page';
+  type: "case" | "investigation" | "page";
   href: string;
   timestamp: number;
 }
@@ -45,7 +52,7 @@ interface ShortcutsContextValue {
   /** Close the shortcuts help dialog */
   closeShortcutsHelp: () => void;
   /** Add a recent item */
-  addRecentItem: (item: Omit<RecentItem, 'timestamp'>) => void;
+  addRecentItem: (item: Omit<RecentItem, "timestamp">) => void;
   /** Get recent items */
   recentItems: RecentItem[];
   /** Whether shortcuts are currently enabled */
@@ -64,7 +71,7 @@ const MAX_RECENT_ITEMS = 10;
 /**
  * Local storage key for recent items.
  */
-const RECENT_ITEMS_KEY = 'ethico_recent_items';
+const RECENT_ITEMS_KEY = "ethico_recent_items";
 
 /**
  * Provider component for shortcuts functionality.
@@ -87,7 +94,7 @@ export function ShortcutsProvider({ children }: { children: React.ReactNode }) {
         setRecentItems(items);
       }
     } catch (e) {
-      console.error('Failed to load recent items:', e);
+      console.error("Failed to load recent items:", e);
     }
   }, []);
 
@@ -96,7 +103,7 @@ export function ShortcutsProvider({ children }: { children: React.ReactNode }) {
     try {
       localStorage.setItem(RECENT_ITEMS_KEY, JSON.stringify(recentItems));
     } catch (e) {
-      console.error('Failed to save recent items:', e);
+      console.error("Failed to save recent items:", e);
     }
   }, [recentItems]);
 
@@ -123,30 +130,27 @@ export function ShortcutsProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   // Add recent item
-  const addRecentItem = useCallback(
-    (item: Omit<RecentItem, 'timestamp'>) => {
-      setRecentItems((prev) => {
-        // Remove existing item with same id
-        const filtered = prev.filter((i) => i.id !== item.id);
+  const addRecentItem = useCallback((item: Omit<RecentItem, "timestamp">) => {
+    setRecentItems((prev) => {
+      // Remove existing item with same id
+      const filtered = prev.filter((i) => i.id !== item.id);
 
-        // Add new item at start
-        const newItem: RecentItem = {
-          ...item,
-          timestamp: Date.now(),
-        };
+      // Add new item at start
+      const newItem: RecentItem = {
+        ...item,
+        timestamp: Date.now(),
+      };
 
-        // Keep only MAX_RECENT_ITEMS
-        return [newItem, ...filtered].slice(0, MAX_RECENT_ITEMS);
-      });
-    },
-    []
-  );
+      // Keep only MAX_RECENT_ITEMS
+      return [newItem, ...filtered].slice(0, MAX_RECENT_ITEMS);
+    });
+  }, []);
 
   // Register global shortcuts
   useGlobalShortcuts({
     onCommandPalette: openCommandPalette,
     onHelp: openShortcutsHelp,
-    onNewCase: () => router.push('/cases/new'),
+    onNewCase: () => router.push("/cases/new"),
     enabled: shortcutsEnabled,
   });
 
@@ -188,7 +192,7 @@ export function ShortcutsProvider({ children }: { children: React.ReactNode }) {
 export function useShortcuts(): ShortcutsContextValue {
   const context = useContext(ShortcutsContext);
   if (!context) {
-    throw new Error('useShortcuts must be used within a ShortcutsProvider');
+    throw new Error("useShortcuts must be used within a ShortcutsProvider");
   }
   return context;
 }
@@ -196,13 +200,19 @@ export function useShortcuts(): ShortcutsContextValue {
 /**
  * Hook to add item to recent when visiting a page.
  * Automatically tracks navigation for command palette recent items.
+ *
+ * Uses a ref to track the previous item ID to avoid infinite loops
+ * when callers pass inline objects (which create new references each render).
  */
-export function useTrackRecentItem(item: Omit<RecentItem, 'timestamp'> | null) {
+export function useTrackRecentItem(item: Omit<RecentItem, "timestamp"> | null) {
   const { addRecentItem } = useShortcuts();
+  const lastTrackedIdRef = useRef<string | null>(null);
 
   useEffect(() => {
-    if (item) {
+    // Only track if we have an item and it's different from the last tracked one
+    if (item && item.id !== lastTrackedIdRef.current) {
+      lastTrackedIdRef.current = item.id;
       addRecentItem(item);
     }
-  }, [item, addRecentItem]);
+  }, [item?.id, item?.label, item?.type, item?.href, addRecentItem]);
 }

@@ -46,6 +46,7 @@ import {
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { apiClient } from "@/lib/api";
+import { formsApi } from "@/lib/forms-api";
 import { SegmentBuilder, type SegmentCriteria } from "./SegmentBuilder";
 import { ScheduleConfig, type ScheduleConfiguration } from "./ScheduleConfig";
 
@@ -133,6 +134,54 @@ const CAMPAIGN_TYPES: {
   },
 ];
 
+// Demo form templates for development when no forms exist in DB
+function getDemoTemplates(): FormTemplate[] {
+  return [
+    {
+      id: "form-1",
+      name: "Annual COI Disclosure",
+      description: "Standard conflict of interest disclosure form",
+      type: "DISCLOSURE",
+    },
+    {
+      id: "form-2",
+      name: "Gift & Entertainment Report",
+      description: "Report gifts and entertainment received or given",
+      type: "DISCLOSURE",
+    },
+    {
+      id: "form-3",
+      name: "Outside Employment Declaration",
+      description: "Declare outside business activities",
+      type: "DISCLOSURE",
+    },
+    {
+      id: "form-4",
+      name: "Code of Conduct Attestation",
+      description: "Annual code of conduct certification",
+      type: "ATTESTATION",
+    },
+    {
+      id: "form-5",
+      name: "Policy Acknowledgment",
+      description: "Confirm receipt and understanding of company policies",
+      type: "ATTESTATION",
+    },
+    {
+      id: "form-6",
+      name: "Employee Culture Survey",
+      description: "Annual culture and engagement assessment",
+      type: "SURVEY",
+    },
+    {
+      id: "form-7",
+      name: "Compliance Feedback Survey",
+      description: "Collect feedback on compliance program effectiveness",
+      type: "SURVEY",
+    },
+  ];
+}
+
 // Props
 interface CampaignBuilderProps {
   campaignId?: string;
@@ -190,42 +239,25 @@ export function CampaignBuilder({
     const loadTemplates = async () => {
       setLoadingTemplates(true);
       try {
-        const response = await apiClient.get<{ forms: FormTemplate[] }>(
-          "/forms/definitions",
-          {
-            params: { type: draft.type },
-          },
-        );
-        setTemplates(response.forms || []);
+        const response = await formsApi.list({ type: draft.type as any });
+        const forms = response.data || [];
+        if (forms.length > 0) {
+          setTemplates(
+            forms.map((f) => ({
+              id: f.id,
+              name: f.name,
+              description: f.description,
+              type: f.type,
+            })),
+          );
+        } else {
+          // No forms in DB yet — show demo templates
+          setTemplates(getDemoTemplates());
+        }
       } catch (err) {
         console.error("Failed to load form templates:", err);
         // Demo templates for development
-        setTemplates([
-          {
-            id: "form-1",
-            name: "Annual COI Disclosure",
-            description: "Standard conflict of interest disclosure form",
-            type: "DISCLOSURE",
-          },
-          {
-            id: "form-2",
-            name: "Gift & Entertainment Report",
-            description: "Report gifts and entertainment received or given",
-            type: "DISCLOSURE",
-          },
-          {
-            id: "form-3",
-            name: "Outside Employment Declaration",
-            description: "Declare outside business activities",
-            type: "DISCLOSURE",
-          },
-          {
-            id: "form-4",
-            name: "Code of Conduct Attestation",
-            description: "Annual code of conduct certification",
-            type: "ATTESTATION",
-          },
-        ]);
+        setTemplates(getDemoTemplates());
       } finally {
         setLoadingTemplates(false);
       }
@@ -570,14 +602,7 @@ export function CampaignBuilder({
                     ) : filteredTemplates.length > 0 ? (
                       filteredTemplates.map((template) => (
                         <SelectItem key={template.id} value={template.id}>
-                          <div className="flex flex-col">
-                            <span>{template.name}</span>
-                            {template.description && (
-                              <span className="text-xs text-muted-foreground">
-                                {template.description}
-                              </span>
-                            )}
-                          </div>
+                          {template.name}
                         </SelectItem>
                       ))
                     ) : (
@@ -598,6 +623,9 @@ export function CampaignBuilder({
             value={draft.audienceCriteria || undefined}
             onChange={(criteria) => {
               updateDraft({ audienceCriteria: criteria });
+            }}
+            onCountChange={(count) => {
+              updateDraft({ audienceCount: count });
             }}
           />
         )}
