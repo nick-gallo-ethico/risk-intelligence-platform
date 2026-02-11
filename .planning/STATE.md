@@ -10,10 +10,10 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 15 of 24 (Case Detail Page Overhaul)
-Plan: 03 of 7 in current phase (01, 02, 03, 07 complete)
+Plan: 04 of 7 in current phase (01, 02, 03, 04, 07 complete)
 Status: Phase 15 IN PROGRESS
-Last activity: 2026-02-10 - Completed 15-03 Center column tabs and activity feed
-**Next Phase:** Continue Phase 15 execution (15-04 through 15-06)
+Last activity: 2026-02-10 - Completed 15-04 Action modals (Assign, Status, Merge, Note, Email)
+**Next Phase:** Continue Phase 15 execution (15-05, 15-06)
 
 Progress: [====================================================------------------] ~79% (~207 of ~260 estimated total plans)
 
@@ -70,7 +70,14 @@ Plans:
   - Added Summary tab with AI/manual summary and case details
   - 7 tabs: Overview, Activities, Summary, Investigations, Messages, Files, Remediation
   - Enhanced Overview with pipeline progress visualization and assignee display
-- 15-04 through 15-06: Remaining frontend case detail components (PENDING)
+- 15-04: Action modals for case operations (COMPLETE - 316c502)
+  - AssignModal: multi-select investigators with role filtering
+  - StatusChangeModal: dropdown with rationale, warning for closing
+  - MergeModal: two-step search + confirm flow with redirect
+  - AddNoteModal: simple note logging to activity feed
+  - EmailLogModal: log external email communications
+  - Wired all modals in page.tsx with open/close state management
+- 15-05, 15-06: Remaining frontend case detail components (PENDING)
 
 ### Phase 14.2 Case Creation & Search Fixes COMPLETE (2026-02-10)
 
