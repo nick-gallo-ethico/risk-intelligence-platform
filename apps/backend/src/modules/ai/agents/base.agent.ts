@@ -4,9 +4,15 @@ import { ContextLoaderService } from "../services/context-loader.service";
 import { ConversationService } from "../services/conversation.service";
 import { SkillRegistry } from "../skills/skill.registry";
 import { AiRateLimiterService } from "../services/rate-limiter.service";
+import { ActionCatalog } from "../actions/action.catalog";
+import { ActionExecutorService } from "../actions/action-executor.service";
 import { AIContext } from "../dto/context.dto";
-import { SkillDefinition, SkillContext } from "../skills/skill.types";
-import { AIStreamEvent } from "../interfaces/ai-provider.interface";
+import {
+  SkillDefinition,
+  SkillContext,
+  zodToJsonSchema,
+} from "../skills/skill.types";
+import { AIStreamEvent, AITool } from "../interfaces/ai-provider.interface";
 
 /**
  * Configuration for an agent type.
@@ -90,6 +96,8 @@ export abstract class BaseAgent {
     protected readonly conversationService: ConversationService,
     protected readonly skillRegistry: SkillRegistry,
     protected readonly rateLimiter: AiRateLimiterService,
+    protected readonly actionCatalog?: ActionCatalog,
+    protected readonly actionExecutor?: ActionExecutorService,
   ) {
     this.logger = new Logger(config.name);
   }
@@ -171,6 +179,136 @@ export abstract class BaseAgent {
   }
 
   /**
+   * Get all tools (skills + actions) available for this agent.
+   * Actions are prefixed with 'action:' to distinguish from skills.
+   *
+   * @param context - Agent context with permissions
+   * @returns Array of AITool definitions
+   */
+  protected getAllTools(context: AgentContext): AITool[] {
+    const tools: AITool[] = [];
+
+    // Add skills as tools
+    const skills = this.getAvailableSkills(context);
+    tools.push(...this.skillRegistry.toClaudeTools(skills));
+
+    // Add actions as tools (if actionCatalog available)
+    if (this.actionCatalog && context.entityType) {
+      const actions = this.actionCatalog.getAvailableActions({
+        entityType: context.entityType,
+        userPermissions: context.permissions,
+      });
+
+      for (const action of actions) {
+        tools.push({
+          name: `action:${action.id}`,
+          description: `[ACTION] ${action.description}. This will modify the ${context.entityType}.`,
+          inputSchema: zodToJsonSchema(action.inputSchema),
+        });
+      }
+    }
+
+    return tools;
+  }
+
+  /**
+   * Execute a tool call (skill or action).
+   *
+   * @param toolName - Name of the tool (or action:id for actions)
+   * @param input - Tool input
+   * @param context - Agent context
+   * @returns Tool result
+   */
+  protected async executeToolCall(
+    toolName: string,
+    input: unknown,
+    context: AgentContext,
+  ): Promise<{ success: boolean; result?: unknown; error?: string }> {
+    // Check if it's an action (prefixed with "action:")
+    if (toolName.startsWith("action:")) {
+      const actionId = toolName.replace("action:", "");
+      return this.executeAction(actionId, input, context);
+    }
+
+    // Otherwise it's a skill
+    return this.executeSkill(toolName, input, context);
+  }
+
+  /**
+   * Execute a skill by ID.
+   */
+  private async executeSkill(
+    skillId: string,
+    input: unknown,
+    context: AgentContext,
+  ): Promise<{ success: boolean; result?: unknown; error?: string }> {
+    const skillContext: SkillContext = {
+      organizationId: context.organizationId,
+      userId: context.userId,
+      entityType: context.entityType,
+      entityId: context.entityId,
+      permissions: context.permissions,
+    };
+
+    const result = await this.skillRegistry.executeSkill(
+      skillId,
+      input,
+      skillContext,
+    );
+
+    return {
+      success: result.success,
+      result: result.data,
+      error: result.error,
+    };
+  }
+
+  /**
+   * Execute an action by ID.
+   */
+  private async executeAction(
+    actionId: string,
+    input: unknown,
+    context: AgentContext,
+  ): Promise<{ success: boolean; result?: unknown; error?: string }> {
+    if (!this.actionExecutor || !context.entityType || !context.entityId) {
+      return {
+        success: false,
+        error: "Action execution not available in this context",
+      };
+    }
+
+    try {
+      const result = await this.actionExecutor.execute(
+        actionId,
+        input,
+        {
+          organizationId: context.organizationId,
+          userId: context.userId,
+          userRole: context.userRole,
+          permissions: context.permissions,
+          entityType: context.entityType,
+          entityId: context.entityId,
+          conversationId: this.conversationId || undefined,
+        },
+        true, // skipPreview for AI-initiated actions
+      );
+
+      return {
+        success: result.success,
+        result: result.result,
+        error: result.error,
+      };
+    } catch (error: unknown) {
+      const err = error as Error;
+      return {
+        success: false,
+        error: err.message || "Action execution failed",
+      };
+    }
+  }
+
+  /**
    * Build system prompt for this agent.
    * Combines context hierarchy with agent-specific instructions.
    *
@@ -237,9 +375,8 @@ export abstract class BaseAgent {
     // Build system prompt
     const systemPrompt = await this.buildSystemPrompt(context);
 
-    // Get available skills as tools
-    const skills = this.getAvailableSkills(context);
-    const tools = this.skillRegistry.toClaudeTools(skills);
+    // Get all available tools (skills + actions)
+    const tools = this.getAllTools(context);
 
     // Get AI provider
     const provider = this.providerRegistry.getDefaultProvider();
@@ -268,25 +405,50 @@ export abstract class BaseAgent {
         } else if (event.type === "tool_use" && event.toolCall) {
           yield event;
 
-          // Execute skill
-          const skillContext: SkillContext = {
-            organizationId: context.organizationId,
-            userId: context.userId,
-            entityType: context.entityType,
-            entityId: context.entityId,
-            permissions: context.permissions,
-          };
-
-          const result = await this.skillRegistry.executeSkill(
+          // Execute tool (skill or action)
+          const result = await this.executeToolCall(
             event.toolCall.name,
             event.toolCall.input,
-            skillContext,
+            context,
           );
 
-          // Log skill execution result
+          // Log tool execution result
           this.logger.debug(
-            `Skill ${event.toolCall.name} result: ${result.success}`,
+            `Tool ${event.toolCall.name} result: ${result.success}`,
           );
+
+          // If this was an action (not a skill), emit action_executed event
+          if (event.toolCall.name.startsWith("action:")) {
+            const actionId = event.toolCall.name.replace("action:", "");
+            yield {
+              type: "action_executed",
+              actionResult: {
+                action: actionId,
+                success: result.success,
+                message: result.success
+                  ? "Completed successfully"
+                  : result.error,
+                result: result.result,
+              },
+            };
+          }
+
+          // Yield the tool result for the UI to display
+          if (result.success) {
+            yield {
+              type: "text_delta",
+              text: `\n\n✓ ${event.toolCall.name.replace("action:", "")}: ${
+                typeof result.result === "object"
+                  ? JSON.stringify(result.result)
+                  : result.result || "Completed successfully"
+              }\n\n`,
+            };
+          } else {
+            yield {
+              type: "text_delta",
+              text: `\n\n✗ ${event.toolCall.name.replace("action:", "")} failed: ${result.error}\n\n`,
+            };
+          }
 
           // Note: In a full implementation, we would continue the conversation
           // with the tool result. For now, we just log and continue.

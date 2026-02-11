@@ -41,15 +41,33 @@ export interface AIToolCall {
 }
 
 /**
+ * Result of an action execution.
+ * Emitted when an AI-triggered action completes.
+ */
+export interface AIActionResult {
+  action: string;
+  success: boolean;
+  message?: string;
+  result?: unknown;
+}
+
+/**
  * Stream event types emitted during streaming responses.
  * These events allow real-time processing of AI responses.
  */
 export interface AIStreamEvent {
-  type: "text_delta" | "tool_use" | "message_complete" | "usage" | "error";
+  type:
+    | "text_delta"
+    | "tool_use"
+    | "message_complete"
+    | "usage"
+    | "error"
+    | "action_executed";
   text?: string;
   toolCall?: AIToolCall;
   usage?: AIUsage;
   error?: string;
+  actionResult?: AIActionResult;
 }
 
 /**

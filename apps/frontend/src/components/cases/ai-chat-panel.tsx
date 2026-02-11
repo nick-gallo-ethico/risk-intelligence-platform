@@ -17,6 +17,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { authStorage } from "@/lib/auth-storage";
+import { apiClient } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
 interface AiChatPanelProps {
@@ -66,6 +67,7 @@ export function AiChatPanel({
   const socketRef = useRef<Socket | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const isConnectedRef = useRef(false); // Prevents double connection in React StrictMode
 
   // Generate unique message IDs
   const generateId = useCallback(() => {
@@ -77,11 +79,76 @@ export function AiChatPanel({
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  // Fetch conversation history on mount
+  useEffect(() => {
+    const fetchHistory = async () => {
+      try {
+        // First, find the conversation for this entity
+        const listResponse = await apiClient.get<{
+          conversations: Array<{ id: string }>;
+          total: number;
+        }>("/ai/conversations", {
+          params: {
+            entityType,
+            entityId,
+            status: "ACTIVE",
+            limit: 1,
+          },
+        });
+
+        if (listResponse?.conversations?.[0]?.id) {
+          const conversationId = listResponse.conversations[0].id;
+
+          // Then fetch the conversation with messages
+          const convResponse = await apiClient.get<{
+            id: string;
+            messages: Array<{
+              id: string;
+              role: "user" | "assistant";
+              content: string;
+              createdAt: string;
+            }>;
+          }>(`/ai/conversations/${conversationId}`, {
+            params: { messageLimit: 50 },
+          });
+
+          if (convResponse?.messages && convResponse.messages.length > 0) {
+            const historyMessages: ChatMessage[] = convResponse.messages.map(
+              (msg) => ({
+                id: msg.id,
+                role: msg.role,
+                content: msg.content,
+                timestamp: new Date(msg.createdAt),
+              }),
+            );
+            setMessages(historyMessages);
+          }
+        }
+      } catch (err) {
+        // Conversation history not available - not critical, start fresh
+        console.debug("No conversation history available:", err);
+      }
+    };
+
+    fetchHistory();
+  }, [entityType, entityId]);
+
   // Connect to WebSocket on mount
   useEffect(() => {
-    const token = authStorage.getAccessToken();
+    // Prevent double connection in React StrictMode
+    if (isConnectedRef.current) {
+      return;
+    }
 
-    if (!token) {
+    const token = authStorage.getAccessToken();
+    const user = authStorage.getUser<{
+      id: string;
+      organizationId: string;
+      role: string;
+      permissions?: string[];
+    }>();
+
+    if (!token || !user) {
       setError("Please log in to use AI assistant");
       setConnectionStatus("error");
       return;
@@ -89,11 +156,18 @@ export function AiChatPanel({
 
     setConnectionStatus("connecting");
     setError(null);
+    isConnectedRef.current = true;
 
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
     const socket = io(`${apiUrl}/ai`, {
-      auth: { token },
+      auth: {
+        token,
+        organizationId: user.organizationId,
+        userId: user.id,
+        userRole: user.role,
+        permissions: user.permissions || [],
+      },
       transports: ["websocket", "polling"],
       reconnection: true,
       reconnectionAttempts: 3,
@@ -123,7 +197,7 @@ export function AiChatPanel({
     });
 
     // Handle streaming text chunks
-    socket.on("text_delta", (data: { content: string }) => {
+    socket.on("text_delta", (data: { text: string }) => {
       setMessages((prev) => {
         const updated = [...prev];
         const lastMessage = updated[updated.length - 1];
@@ -132,7 +206,7 @@ export function AiChatPanel({
           lastMessage.role === "assistant" &&
           lastMessage.isStreaming
         ) {
-          lastMessage.content += data.content;
+          lastMessage.content += data.text;
         }
         return updated;
       });
@@ -152,11 +226,11 @@ export function AiChatPanel({
     });
 
     // Handle tool use indicators
-    socket.on("tool_use", (data: { tool: string; description?: string }) => {
+    socket.on("tool_use", (data: { toolName: string; input?: unknown }) => {
       const toolMessage: ChatMessage = {
         id: generateId(),
         role: "system",
-        content: data.description || `Using tool: ${data.tool}`,
+        content: `Using tool: ${data.toolName}`,
         isToolUse: true,
         timestamp: new Date(),
       };
@@ -189,6 +263,7 @@ export function AiChatPanel({
     return () => {
       socket.disconnect();
       socketRef.current = null;
+      isConnectedRef.current = false;
     };
   }, [entityType, entityId, onActionComplete, generateId]);
 

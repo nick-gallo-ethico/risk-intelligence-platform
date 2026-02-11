@@ -1,11 +1,11 @@
-import { z } from 'zod';
+import { z } from "zod";
 import {
   ActionDefinition,
   ActionCategory,
   ActionContext,
   UNDO_WINDOWS,
-} from '../action.types';
-import { PrismaService } from '../../../prisma/prisma.service';
+} from "../action.types";
+import { PrismaService } from "../../../prisma/prisma.service";
 
 /**
  * Input schema for change-status action.
@@ -23,17 +23,17 @@ export type ChangeStatusInput = z.infer<typeof changeStatusInputSchema>;
  */
 const STATUS_TRANSITIONS: Record<string, Record<string, string[]>> = {
   case: {
-    NEW: ['OPEN', 'CLOSED'],
-    OPEN: ['NEW', 'CLOSED'],
-    CLOSED: ['OPEN'],
+    NEW: ["OPEN", "CLOSED"],
+    OPEN: ["NEW", "CLOSED"],
+    CLOSED: ["OPEN"],
   },
   investigation: {
-    NEW: ['ASSIGNED', 'CLOSED', 'ON_HOLD'],
-    ASSIGNED: ['NEW', 'INVESTIGATING', 'CLOSED', 'ON_HOLD'],
-    INVESTIGATING: ['ASSIGNED', 'PENDING_REVIEW', 'CLOSED', 'ON_HOLD'],
-    PENDING_REVIEW: ['INVESTIGATING', 'CLOSED', 'ON_HOLD'],
-    CLOSED: ['INVESTIGATING'],
-    ON_HOLD: ['NEW', 'ASSIGNED', 'INVESTIGATING'],
+    NEW: ["ASSIGNED", "CLOSED", "ON_HOLD"],
+    ASSIGNED: ["NEW", "INVESTIGATING", "CLOSED", "ON_HOLD"],
+    INVESTIGATING: ["ASSIGNED", "PENDING_REVIEW", "CLOSED", "ON_HOLD"],
+    PENDING_REVIEW: ["INVESTIGATING", "CLOSED", "ON_HOLD"],
+    CLOSED: ["INVESTIGATING"],
+    ON_HOLD: ["NEW", "ASSIGNED", "INVESTIGATING"],
   },
 };
 
@@ -47,12 +47,15 @@ export function createChangeStatusAction(
   prisma: PrismaService,
 ): ActionDefinition<ChangeStatusInput> {
   return {
-    id: 'change-status',
-    name: 'Change Status',
-    description: 'Change the status of a case or investigation',
+    id: "change-status",
+    name: "Change Status",
+    description: "Change the status of a case or investigation",
     category: ActionCategory.STANDARD,
-    entityTypes: ['case', 'investigation'],
-    requiredPermissions: ['cases:update:status', 'investigations:update:status'],
+    entityTypes: ["case", "investigation"],
+    requiredPermissions: [
+      "cases:update:status",
+      "investigations:update:status",
+    ],
     undoWindowSeconds: UNDO_WINDOWS.STANDARD,
     inputSchema: changeStatusInputSchema,
 
@@ -60,13 +63,13 @@ export function createChangeStatusAction(
       // Fetch current status
       let currentStatus: string | null = null;
 
-      if (context.entityType === 'case') {
+      if (context.entityType === "case") {
         const caseData = await prisma.case.findUnique({
           where: { id: context.entityId },
           select: { status: true },
         });
         currentStatus = caseData?.status || null;
-      } else if (context.entityType === 'investigation') {
+      } else if (context.entityType === "investigation") {
         const investigation = await prisma.investigation.findUnique({
           where: { id: context.entityId },
           select: { status: true },
@@ -75,7 +78,7 @@ export function createChangeStatusAction(
       }
 
       if (!currentStatus) {
-        return { allowed: false, reason: 'Entity not found' };
+        return { allowed: false, reason: "Entity not found" };
       }
 
       // Check valid transitions
@@ -85,7 +88,7 @@ export function createChangeStatusAction(
       if (!validNextStatuses.includes(input.newStatus)) {
         return {
           allowed: false,
-          reason: `Cannot transition from ${currentStatus} to ${input.newStatus}. Valid transitions: ${validNextStatuses.join(', ') || 'none'}`,
+          reason: `Cannot transition from ${currentStatus} to ${input.newStatus}. Valid transitions: ${validNextStatuses.join(", ") || "none"}`,
         };
       }
 
@@ -94,32 +97,32 @@ export function createChangeStatusAction(
 
     async generatePreview(input: ChangeStatusInput, context: ActionContext) {
       // Fetch current status for preview
-      let currentStatus = 'UNKNOWN';
+      let currentStatus = "UNKNOWN";
 
-      if (context.entityType === 'case') {
+      if (context.entityType === "case") {
         const caseData = await prisma.case.findUnique({
           where: { id: context.entityId },
           select: { status: true },
         });
-        currentStatus = caseData?.status || 'UNKNOWN';
-      } else if (context.entityType === 'investigation') {
+        currentStatus = caseData?.status || "UNKNOWN";
+      } else if (context.entityType === "investigation") {
         const investigation = await prisma.investigation.findUnique({
           where: { id: context.entityId },
           select: { status: true },
         });
-        currentStatus = investigation?.status || 'UNKNOWN';
+        currentStatus = investigation?.status || "UNKNOWN";
       }
 
       const warnings: string[] = [];
-      if (input.newStatus === 'CLOSED') {
-        warnings.push('Closing will send notifications to assigned users');
+      if (input.newStatus === "CLOSED") {
+        warnings.push("Closing will send notifications to assigned users");
       }
 
       return {
         description: `Change ${context.entityType} status from ${currentStatus} to ${input.newStatus}`,
         changes: [
           {
-            field: 'status',
+            field: "status",
             oldValue: currentStatus,
             newValue: input.newStatus,
           },
@@ -131,43 +134,96 @@ export function createChangeStatusAction(
     async execute(input: ChangeStatusInput, context: ActionContext) {
       let previousStatus: string;
 
-      if (context.entityType === 'case') {
+      // Get user name for activity description
+      const user = await prisma.user.findUnique({
+        where: { id: context.userId },
+        select: { firstName: true, lastName: true },
+      });
+      const userName = user
+        ? `${user.firstName} ${user.lastName}`
+        : "AI Assistant";
+
+      if (context.entityType === "case") {
         // Fetch current status
         const current = await prisma.case.findUnique({
           where: { id: context.entityId },
           select: { status: true },
         });
-        previousStatus = current?.status || 'UNKNOWN';
+        previousStatus = current?.status || "UNKNOWN";
 
         // Update status using raw update since status is an enum
         await prisma.case.update({
           where: { id: context.entityId },
           data: {
-            status: input.newStatus as 'NEW' | 'OPEN' | 'CLOSED',
+            status: input.newStatus as "NEW" | "OPEN" | "CLOSED",
             statusRationale: input.reason,
           },
         });
-      } else if (context.entityType === 'investigation') {
+
+        // Log to AuditLog for Activity feed visibility
+        await prisma.auditLog.create({
+          data: {
+            organizationId: context.organizationId,
+            entityType: "CASE",
+            entityId: context.entityId,
+            action: "status_changed",
+            actionCategory: "UPDATE",
+            actionDescription: `${userName} changed status from ${previousStatus} to ${input.newStatus} via AI${input.reason ? `: ${input.reason}` : ""}`,
+            actorUserId: context.userId,
+            actorType: "AI",
+            actorName: userName,
+            changes: {
+              status: { from: previousStatus, to: input.newStatus },
+            },
+            context: {
+              source: "ai_action",
+              reason: input.reason,
+            },
+          },
+        });
+      } else if (context.entityType === "investigation") {
         // Fetch current status
         const current = await prisma.investigation.findUnique({
           where: { id: context.entityId },
           select: { status: true },
         });
-        previousStatus = current?.status || 'UNKNOWN';
+        previousStatus = current?.status || "UNKNOWN";
 
         // Update status
         await prisma.investigation.update({
           where: { id: context.entityId },
           data: {
             status: input.newStatus as
-              | 'NEW'
-              | 'ASSIGNED'
-              | 'INVESTIGATING'
-              | 'PENDING_REVIEW'
-              | 'CLOSED'
-              | 'ON_HOLD',
+              | "NEW"
+              | "ASSIGNED"
+              | "INVESTIGATING"
+              | "PENDING_REVIEW"
+              | "CLOSED"
+              | "ON_HOLD",
             statusRationale: input.reason,
             statusChangedAt: new Date(),
+          },
+        });
+
+        // Log to AuditLog for Activity feed visibility
+        await prisma.auditLog.create({
+          data: {
+            organizationId: context.organizationId,
+            entityType: "INVESTIGATION",
+            entityId: context.entityId,
+            action: "status_changed",
+            actionCategory: "UPDATE",
+            actionDescription: `${userName} changed status from ${previousStatus} to ${input.newStatus} via AI${input.reason ? `: ${input.reason}` : ""}`,
+            actorUserId: context.userId,
+            actorType: "AI",
+            actorName: userName,
+            changes: {
+              status: { from: previousStatus, to: input.newStatus },
+            },
+            context: {
+              source: "ai_action",
+              reason: input.reason,
+            },
           },
         });
       } else {
@@ -192,29 +248,29 @@ export function createChangeStatusAction(
     ) {
       const previousStatus = previousState.status as string;
       if (!previousStatus) {
-        throw new Error('Cannot undo: previous status not found');
+        throw new Error("Cannot undo: previous status not found");
       }
 
-      if (context.entityType === 'case') {
+      if (context.entityType === "case") {
         await prisma.case.update({
           where: { id: context.entityId },
           data: {
-            status: previousStatus as 'NEW' | 'OPEN' | 'CLOSED',
-            statusRationale: 'Undo: reverted to previous status',
+            status: previousStatus as "NEW" | "OPEN" | "CLOSED",
+            statusRationale: "Undo: reverted to previous status",
           },
         });
-      } else if (context.entityType === 'investigation') {
+      } else if (context.entityType === "investigation") {
         await prisma.investigation.update({
           where: { id: context.entityId },
           data: {
             status: previousStatus as
-              | 'NEW'
-              | 'ASSIGNED'
-              | 'INVESTIGATING'
-              | 'PENDING_REVIEW'
-              | 'CLOSED'
-              | 'ON_HOLD',
-            statusRationale: 'Undo: reverted to previous status',
+              | "NEW"
+              | "ASSIGNED"
+              | "INVESTIGATING"
+              | "PENDING_REVIEW"
+              | "CLOSED"
+              | "ON_HOLD",
+            statusRationale: "Undo: reverted to previous status",
             statusChangedAt: new Date(),
           },
         });
@@ -228,12 +284,12 @@ export function createChangeStatusAction(
  * Used by ActionCatalog - replaced with factory version at runtime.
  */
 export const changeStatusAction: ActionDefinition<ChangeStatusInput> = {
-  id: 'change-status',
-  name: 'Change Status',
-  description: 'Change the status of a case or investigation',
+  id: "change-status",
+  name: "Change Status",
+  description: "Change the status of a case or investigation",
   category: ActionCategory.STANDARD,
-  entityTypes: ['case', 'investigation'],
-  requiredPermissions: ['cases:update:status', 'investigations:update:status'],
+  entityTypes: ["case", "investigation"],
+  requiredPermissions: ["cases:update:status", "investigations:update:status"],
   undoWindowSeconds: UNDO_WINDOWS.STANDARD,
   inputSchema: changeStatusInputSchema,
 
@@ -247,8 +303,8 @@ export const changeStatusAction: ActionDefinition<ChangeStatusInput> = {
       description: `Change ${context.entityType} status to ${input.newStatus}`,
       changes: [
         {
-          field: 'status',
-          oldValue: 'CURRENT',
+          field: "status",
+          oldValue: "CURRENT",
           newValue: input.newStatus,
         },
       ],
@@ -259,7 +315,7 @@ export const changeStatusAction: ActionDefinition<ChangeStatusInput> = {
     // Placeholder - real implementation uses factory
     return {
       success: false,
-      message: 'Action not properly initialized - use factory function',
+      message: "Action not properly initialized - use factory function",
     };
   },
 
@@ -269,6 +325,6 @@ export const changeStatusAction: ActionDefinition<ChangeStatusInput> = {
     context: ActionContext,
   ) {
     // Placeholder - real implementation uses factory
-    throw new Error('Action not properly initialized - use factory function');
+    throw new Error("Action not properly initialized - use factory function");
   },
 };

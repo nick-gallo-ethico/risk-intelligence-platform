@@ -143,7 +143,8 @@ export function ConnectedDocumentsCard({
           },
         },
       );
-      setAttachments(response.data);
+      // apiClient returns the response data directly, so response IS the AttachmentListResponse
+      setAttachments(response?.data || []);
     } catch (err) {
       console.error("Failed to fetch documents:", err);
       setError("Failed to load documents");

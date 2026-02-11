@@ -41,13 +41,14 @@ import {
  * - message_start: Streaming begins
  * - text_delta: Incremental text chunk
  * - tool_use: Agent invoked a tool
+ * - action_executed: AI-triggered action completed (triggers data refresh)
  * - message_complete: Streaming finished
  * - error: Error occurred
  * - stopped: Stream was stopped
  * - conversation_paused: Conversation paused
  * - conversation_resumed: Conversation resumed
  * - skill_result: Skill execution result
- * - action_result: Action execution result
+ * - action_result: Action execution result (manual action request)
  *
  * Usage (client-side):
  * ```javascript
@@ -214,6 +215,14 @@ export class AiGateway implements OnGatewayConnection, OnGatewayDisconnect {
             toolName: event.toolCall.name,
             input: event.toolCall.input,
           });
+        } else if (event.type === "action_executed" && event.actionResult) {
+          // Emit action_executed event for frontend to refresh data
+          client.emit("action_executed", {
+            conversationId,
+            action: event.actionResult.action,
+            success: event.actionResult.success,
+            message: event.actionResult.message,
+          });
         } else if (event.type === "error") {
           client.emit("error", {
             conversationId,
@@ -227,7 +236,10 @@ export class AiGateway implements OnGatewayConnection, OnGatewayDisconnect {
         client.emit("message_complete", { conversationId });
       }
     } catch (error) {
-      this.logger.error(`Chat error: ${(error as Error).message}`, (error as Error).stack);
+      this.logger.error(
+        `Chat error: ${(error as Error).message}`,
+        (error as Error).stack,
+      );
       client.emit("error", {
         message: (error as Error).message || "Chat failed",
       });
@@ -247,7 +259,9 @@ export class AiGateway implements OnGatewayConnection, OnGatewayDisconnect {
   ): Promise<void> {
     this.activeStreams.set(client.id, false);
     client.emit("stopped", { conversationId: payload.conversationId });
-    this.logger.debug(`Stream stopped for conversation: ${payload.conversationId}`);
+    this.logger.debug(
+      `Stream stopped for conversation: ${payload.conversationId}`,
+    );
   }
 
   /**
