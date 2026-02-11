@@ -87,6 +87,7 @@ Note: Task 2 artifacts were pre-committed in plan 19-01 as part of backend endpo
 ## Types Created
 
 ### Enums/Unions
+
 - `WorkflowEntityType`: CASE, INVESTIGATION, DISCLOSURE, POLICY, CAMPAIGN
 - `WorkflowInstanceStatus`: ACTIVE, COMPLETED, CANCELLED, PAUSED
 - `SlaStatus`: ON_TRACK, WARNING, OVERDUE
@@ -94,6 +95,7 @@ Note: Task 2 artifacts were pre-committed in plan 19-01 as part of backend endpo
 - `AssigneeStrategy`: 7 assignment strategies (specific_user, round_robin, etc.)
 
 ### Entities
+
 - `WorkflowStage` - Stage with steps, gates, SLA
 - `WorkflowStep` - Step configuration with type, config, assignee strategy
 - `StageGate` - Transition gates (required_fields, approval, condition, time)
@@ -102,15 +104,18 @@ Note: Task 2 artifacts were pre-committed in plan 19-01 as part of backend endpo
 - `WorkflowInstance` - Running workflow instance
 
 ### DTOs
+
 - `CreateWorkflowTemplateDto`, `UpdateWorkflowTemplateDto`
 - `StartWorkflowDto`, `TransitionDto`
 
 ### Display Helpers
+
 - Labels and color classes for statuses, entity types, SLA
 
 ## API Endpoints Covered
 
 ### Templates
+
 - `listTemplates(params?)` - GET /workflows/templates
 - `getTemplate(id)` - GET /workflows/templates/:id
 - `getDefaultTemplate(entityType)` - GET /workflows/templates/default/:entityType
@@ -121,6 +126,7 @@ Note: Task 2 artifacts were pre-committed in plan 19-01 as part of backend endpo
 - `getTemplateVersions(id)` - GET /workflows/templates/:id/versions
 
 ### Instances
+
 - `listInstances(params?)` - GET /workflows/instances
 - `getInstance(id)` - GET /workflows/instances/:id
 - `getInstanceByEntity(entityType, entityId)` - GET /workflows/entity/:entityType/:entityId
@@ -135,6 +141,7 @@ Note: Task 2 artifacts were pre-committed in plan 19-01 as part of backend endpo
 ## React Query Hooks
 
 ### Query Hooks
+
 - `useWorkflowTemplates(params?)` - List templates
 - `useWorkflowTemplate(id)` - Get single template
 - `useDefaultWorkflowTemplate(entityType)` - Get default for entity type
@@ -145,6 +152,7 @@ Note: Task 2 artifacts were pre-committed in plan 19-01 as part of backend endpo
 - `useAllowedTransitions(instanceId)` - Get available transitions
 
 ### Mutation Hooks
+
 - `useCreateTemplate()` - Create new template
 - `useUpdateTemplate()` - Update template
 - `useDeleteTemplate()` - Delete template
@@ -184,6 +192,7 @@ None - no external service configuration required.
 - Navigation entry will show Workflows for admin users
 
 ---
-*Phase: 19-workflow-engine-ui*
-*Plan: 02*
-*Completed: 2026-02-11*
+
+_Phase: 19-workflow-engine-ui_
+_Plan: 02_
+_Completed: 2026-02-11_
