@@ -60,7 +60,10 @@ export interface SkillDefinition<TInput = unknown, TOutput = unknown> {
   /** Zod schema for validating input */
   inputSchema: z.ZodType<TInput>;
   /** Execute the skill */
-  execute: (input: TInput, context: SkillContext) => Promise<SkillResult<TOutput>>;
+  execute: (
+    input: TInput,
+    context: SkillContext,
+  ) => Promise<SkillResult<TOutput>>;
 }
 
 /**
@@ -106,13 +109,19 @@ export function zodToJsonSchema(schema: z.ZodType): Record<string, unknown> {
 
 /**
  * Get the Zod type name in a version-agnostic way.
+ * Zod 3.x uses _def.typeName ("ZodString"), Zod 4.x uses _def.type ("string").
+ * We normalize to PascalCase "ZodXxx" format for consistent matching.
  */
 function getZodTypeName(zodType: z.ZodType): string {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const def = zodType._def as any;
-  // Try different ways Zod versions expose type name
+  // Zod 3.x: _def.typeName is "ZodString", "ZodObject", etc.
   if (def.typeName) return def.typeName as string;
-  if (def.type) return def.type as string;
+  // Zod 4.x: _def.type is "string", "object", etc. - normalize to "ZodString" format
+  if (def.type) {
+    const t = def.type as string;
+    return "Zod" + t.charAt(0).toUpperCase() + t.slice(1);
+  }
   return zodType.constructor.name;
 }
 
@@ -155,18 +164,27 @@ function zodTypeToJsonSchema(zodType: z.ZodType): Record<string, unknown> {
     }
 
     case "ZodArray": {
-      const itemType = def.type || def.element;
+      // Zod 3.x: def.type is the element schema; Zod 4.x: def.element is the element schema
+      const itemType =
+        def.element || (typeof def.type === "object" ? def.type : undefined);
       return {
         type: "array",
-        items: itemType ? zodTypeToJsonSchema(itemType as z.ZodType) : { type: "string" },
+        items: itemType
+          ? zodTypeToJsonSchema(itemType as z.ZodType)
+          : { type: "string" },
       };
     }
 
     case "ZodOptional": {
       const innerType = def.innerType || def.wrapped;
-      return innerType
+      const inner = innerType
         ? zodTypeToJsonSchema(innerType as z.ZodType)
         : { type: "string" };
+      // Preserve description from the optional wrapper if inner doesn't have one
+      return {
+        ...inner,
+        ...(description && !inner.description && { description }),
+      };
     }
 
     case "ZodDefault": {
@@ -178,7 +196,12 @@ function zodTypeToJsonSchema(zodType: z.ZodType): Record<string, unknown> {
         typeof def.defaultValue === "function"
           ? (def.defaultValue as () => unknown)()
           : def.defaultValue;
-      return { ...inner, ...(defaultValue !== undefined && { default: defaultValue }) };
+      // Preserve description from the default wrapper if inner doesn't have one
+      return {
+        ...inner,
+        ...(defaultValue !== undefined && { default: defaultValue }),
+        ...(description && !inner.description && { description }),
+      };
     }
 
     default:
