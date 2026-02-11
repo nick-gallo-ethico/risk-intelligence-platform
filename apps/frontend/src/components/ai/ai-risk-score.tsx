@@ -15,7 +15,7 @@
  * @see risk-score.skill.ts for backend implementation
  */
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import {
   Sparkles,
   Loader2,
@@ -192,6 +192,15 @@ function getProgressColor(score: number): string {
 }
 
 /**
+ * Get confidence color based on value.
+ */
+function getConfidenceColor(confidence: number): string {
+  if (confidence >= 0.8) return "text-green-600";
+  if (confidence >= 0.6) return "text-yellow-600";
+  return "text-orange-600";
+}
+
+/**
  * Component for displaying AI-generated risk scores.
  *
  * @example
@@ -253,11 +262,12 @@ export function AiRiskScore({
   ]);
 
   // Auto-trigger on mount
-  useState(() => {
+  useEffect(() => {
     if (autoTrigger && content.length >= 10) {
       getRiskScore();
     }
-  });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoTrigger]);
 
   // Error state
   if (error) {
@@ -413,7 +423,12 @@ export function AiRiskScore({
             <div className="p-3 bg-gray-50 rounded-lg">
               <p className="text-sm">{riskScore.summary}</p>
               {riskScore.confidence && (
-                <p className="text-xs text-gray-500 mt-1">
+                <p
+                  className={cn(
+                    "text-xs mt-1",
+                    getConfidenceColor(riskScore.confidence),
+                  )}
+                >
                   Assessment confidence:{" "}
                   {Math.round(riskScore.confidence * 100)}%
                 </p>
