@@ -1,4 +1,4 @@
-export { SegmentBuilder } from './SegmentBuilder';
+export { SegmentBuilder } from "./SegmentBuilder";
 export type {
   SegmentCriteria,
   SegmentCondition,
@@ -9,25 +9,28 @@ export type {
   SimpleModeSelection,
   PreviewEmployee,
   AudiencePreview,
-} from './SegmentBuilder';
+} from "./SegmentBuilder";
 
-export { ScheduleConfig } from './ScheduleConfig';
+export { ScheduleConfig } from "./ScheduleConfig";
 export type {
   ScheduleConfiguration,
   LaunchType,
   StaggeredWave,
   ReminderMilestone,
   DeadlineType,
-} from './ScheduleConfig';
+} from "./ScheduleConfig";
 
-export { CampaignBuilder } from './CampaignBuilder';
+export { CampaignBuilder } from "./CampaignBuilder";
 export type {
   CampaignType,
   FormTemplate,
   CampaignDraft,
-} from './CampaignBuilder';
+} from "./CampaignBuilder";
 
 // List page components
-export { CampaignsSummaryCards } from './campaigns-summary-cards';
-export { CampaignsFilters } from './campaigns-filters';
-export { CampaignsTable } from './campaigns-table';
+export { CampaignsSummaryCards } from "./campaigns-summary-cards";
+export { CampaignsFilters } from "./campaigns-filters";
+export { CampaignsTable } from "./campaigns-table";
+
+// Detail page components
+export { CampaignDetail } from "./campaign-detail";
