@@ -5,16 +5,36 @@
 See: .planning/PROJECT.md (updated 2026-02-02)
 
 **Core value:** Users can manage their entire compliance workflow - from anonymous report intake to investigation closure to board reporting - in one AI-assisted platform, with every task unified into a single "My Work" view.
-**Current focus:** Phase 15 COMPLETE - ready for Phase 16
+**Current focus:** Phase 18 Reports & Data Management - Plan 02 COMPLETE
 
 ## Current Position
 
-Phase: 16 of 24 (AI Integration Fix) - IN PROGRESS
-Plan: 4 of 8 in current phase (01 COMPLETE, 02-03 SKIPPED, 04 COMPLETE, 05-06 COMPLETE, 07 COMPLETE)
-Status: Phase 16 IN PROGRESS - AI skill components complete
-Last activity: 2026-02-11 - Completed 16-04 (useAiSkills hook, AI summary/category/risk components).
+Phase: 18 of 24 (Reports & Data Management)
+Plan: 2 of 9 in current phase (Wave 1)
+Status: In progress - Plan 02 COMPLETE
+Last activity: 2026-02-11 - Completed 18-02-PLAN.md (ReportExecutionService and ReportService). Commits 72eee7d, 17bf85f.
 
-Progress: [====================================================------------------] ~80% (~210 of ~260 estimated total plans)
+Progress: [====================================================------------------] ~84% (~216 of ~260 estimated total plans)
+
+### Phase 18 Reports & Data Management IN PROGRESS (2026-02-11)
+
+- 18-01: SavedReport Prisma model and DTOs (COMPLETE - parallel agent)
+  - SavedReport model added to schema.prisma
+  - Report DTOs created in dto/report.dto.ts
+  - SavedReport entity types in entities/saved-report.entity.ts
+- 18-02: Report execution and CRUD services (COMPLETE - 72eee7d, 17bf85f)
+  - ReportExecutionService for running reports against database
+  - ReportService for SavedReport CRUD operations
+  - Support for 7 entity types with tenant isolation
+  - Filter operators, grouped aggregation, relationship fields
+
+### Phase 17 Campaigns Hub COMPLETE (2026-02-11)
+
+- 17-01: Wire backend dashboard endpoints and navigation (COMPLETE - 00d0bb3, 4733750)
+  - GET /campaigns/dashboard/stats, /dashboard/overdue, /dashboard/upcoming
+  - POST /campaigns/:id/remind for manual reminder triggering
+  - Added Campaigns and Forms to sidebar navigation
+  - Created /campaigns/new page with CampaignBuilder wizard
 
 ### Phase 14 Critical Bug Fixes & Navigation COMPLETE (2026-02-09)
 
@@ -110,7 +130,7 @@ Plans:
 
 - Email compose/send from platform deferred to future Notifications phase (V1 scope: log-only)
 
-### Phase 16 AI Integration Fix IN PROGRESS (2026-02-11)
+### Phase 16 AI Integration Fix COMPLETE (2026-02-11)
 
 Plans 16-01 through 16-06 were created before Phase 15 completed. Phase 15 built the AI chat panel
 and WebSocket infrastructure, causing overlap with plans 16-02 and 16-03.
@@ -145,7 +165,10 @@ Plans:
   - Task 1: GET /ai/health endpoint returning status, capabilities, model
   - Tasks 2-4: SKIPPED per execution notes (Phase 15 overlap)
 - 16-07: Execution notes documenting Phase 15 overlap (COMPLETE - bf41124)
-- 16-08: Verification checkpoint (PENDING)
+- 16-08: UAT verification (COMPLETE - 51bf313)
+  - 17 tests: 15 passed, 2 issues found and fixed
+  - Fix 1: AiRiskScore confidence color coding (cosmetic)
+  - Fix 2: AiRiskScore auto-trigger useEffect (major - was non-functional)
 
 ### Phase 14.2 Case Creation & Search Fixes COMPLETE (2026-02-10)
 
@@ -736,7 +759,7 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-02-11
-Stopped at: Phase 16 Plan 04 COMPLETE - AI skill components
+Stopped at: Phase 16 COMPLETE - UAT verified, all issues fixed
 Resume file: None
 
 **Phase 14.2 Status: IN PROGRESS**

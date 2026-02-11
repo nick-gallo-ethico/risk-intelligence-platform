@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import * as React from 'react';
-import { useState, useCallback, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
-import { format } from 'date-fns';
+import * as React from "react";
+import { useState, useCallback, useMemo } from "react";
+import { useRouter } from "next/navigation";
+import { format } from "date-fns";
 import {
   ChevronLeft,
   ChevronRight,
@@ -16,20 +16,26 @@ import {
   FileText,
   Bell,
   Loader2,
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -37,14 +43,14 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { cn } from '@/lib/utils';
-import { apiClient } from '@/lib/api';
-import { SegmentBuilder, type SegmentCriteria } from './SegmentBuilder';
-import { ScheduleConfig, type ScheduleConfiguration } from './ScheduleConfig';
+} from "@/components/ui/dialog";
+import { cn } from "@/lib/utils";
+import { apiClient } from "@/lib/api";
+import { SegmentBuilder, type SegmentCriteria } from "./SegmentBuilder";
+import { ScheduleConfig, type ScheduleConfiguration } from "./ScheduleConfig";
 
-// Campaign types
-export type CampaignType = 'DISCLOSURE' | 'ATTESTATION' | 'SURVEY' | 'ACKNOWLEDGMENT';
+// Campaign types - must match backend CampaignType enum
+export type CampaignType = "DISCLOSURE" | "ATTESTATION" | "SURVEY";
 
 // Form template type
 export interface FormTemplate {
@@ -64,7 +70,7 @@ export interface CampaignDraft {
   audienceCriteria?: SegmentCriteria | null;
   audienceCount?: number;
   schedule?: ScheduleConfiguration;
-  status: 'draft' | 'scheduled' | 'active';
+  status: "draft" | "scheduled" | "active";
 }
 
 // Step configuration
@@ -77,52 +83,53 @@ interface Step {
 
 const STEPS: Step[] = [
   {
-    id: 'basic',
-    title: 'Basic Info',
-    description: 'Name, type, and form',
+    id: "basic",
+    title: "Basic Info",
+    description: "Name, type, and form",
     icon: <FileText className="h-5 w-5" />,
   },
   {
-    id: 'audience',
-    title: 'Audience',
-    description: 'Who should receive this',
+    id: "audience",
+    title: "Audience",
+    description: "Who should receive this",
     icon: <Users className="h-5 w-5" />,
   },
   {
-    id: 'schedule',
-    title: 'Schedule',
-    description: 'When to send',
+    id: "schedule",
+    title: "Schedule",
+    description: "When to send",
     icon: <Calendar className="h-5 w-5" />,
   },
   {
-    id: 'review',
-    title: 'Review',
-    description: 'Confirm and launch',
+    id: "review",
+    title: "Review",
+    description: "Confirm and launch",
     icon: <Check className="h-5 w-5" />,
   },
 ];
 
 // Campaign type options
-const CAMPAIGN_TYPES: { value: CampaignType; label: string; description: string }[] = [
+const CAMPAIGN_TYPES: {
+  value: CampaignType;
+  label: string;
+  description: string;
+}[] = [
   {
-    value: 'DISCLOSURE',
-    label: 'Disclosure',
-    description: 'Conflict of interest, gifts & entertainment, outside employment',
+    value: "DISCLOSURE",
+    label: "Disclosure",
+    description:
+      "Conflict of interest, gifts & entertainment, outside employment",
   },
   {
-    value: 'ATTESTATION',
-    label: 'Attestation',
-    description: 'Policy acknowledgment, code of conduct certification',
+    value: "ATTESTATION",
+    label: "Attestation",
+    description:
+      "Policy acknowledgment, code of conduct certification, training completion",
   },
   {
-    value: 'SURVEY',
-    label: 'Survey',
-    description: 'Employee feedback, culture assessment',
-  },
-  {
-    value: 'ACKNOWLEDGMENT',
-    label: 'Acknowledgment',
-    description: 'Training completion, document receipt',
+    value: "SURVEY",
+    label: "Survey",
+    description: "Employee feedback, culture assessment",
   },
 ];
 
@@ -158,12 +165,15 @@ export function CampaignBuilder({
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
 
   // Draft state
-  const [draft, setDraft] = useState<CampaignDraft>(() => initialData || {
-    name: '',
-    description: '',
-    type: 'DISCLOSURE',
-    status: 'draft',
-  });
+  const [draft, setDraft] = useState<CampaignDraft>(
+    () =>
+      initialData || {
+        name: "",
+        description: "",
+        type: "DISCLOSURE",
+        status: "draft",
+      },
+  );
 
   // Form templates
   const [templates, setTemplates] = useState<FormTemplate[]>([]);
@@ -180,37 +190,40 @@ export function CampaignBuilder({
     const loadTemplates = async () => {
       setLoadingTemplates(true);
       try {
-        const response = await apiClient.get<{ forms: FormTemplate[] }>('/forms/definitions', {
-          params: { type: draft.type },
-        });
+        const response = await apiClient.get<{ forms: FormTemplate[] }>(
+          "/forms/definitions",
+          {
+            params: { type: draft.type },
+          },
+        );
         setTemplates(response.forms || []);
       } catch (err) {
-        console.error('Failed to load form templates:', err);
+        console.error("Failed to load form templates:", err);
         // Demo templates for development
         setTemplates([
           {
-            id: 'form-1',
-            name: 'Annual COI Disclosure',
-            description: 'Standard conflict of interest disclosure form',
-            type: 'DISCLOSURE',
+            id: "form-1",
+            name: "Annual COI Disclosure",
+            description: "Standard conflict of interest disclosure form",
+            type: "DISCLOSURE",
           },
           {
-            id: 'form-2',
-            name: 'Gift & Entertainment Report',
-            description: 'Report gifts and entertainment received or given',
-            type: 'DISCLOSURE',
+            id: "form-2",
+            name: "Gift & Entertainment Report",
+            description: "Report gifts and entertainment received or given",
+            type: "DISCLOSURE",
           },
           {
-            id: 'form-3',
-            name: 'Outside Employment Declaration',
-            description: 'Declare outside business activities',
-            type: 'DISCLOSURE',
+            id: "form-3",
+            name: "Outside Employment Declaration",
+            description: "Declare outside business activities",
+            type: "DISCLOSURE",
           },
           {
-            id: 'form-4',
-            name: 'Code of Conduct Attestation',
-            description: 'Annual code of conduct certification',
-            type: 'ATTESTATION',
+            id: "form-4",
+            name: "Code of Conduct Attestation",
+            description: "Annual code of conduct certification",
+            type: "ATTESTATION",
           },
         ]);
       } finally {
@@ -286,18 +299,23 @@ export function CampaignBuilder({
         await onSave(draft);
       } else {
         // Default save implementation
-        const response = await apiClient.post<{ id: string }>('/campaigns/draft', {
-          ...draft,
-          audienceMode: draft.audienceCriteria ? 'SEGMENT' : 'ALL',
-          criteria: draft.audienceCriteria,
-          dueDate: draft.schedule?.deadlineDate?.toISOString(),
-          launchAt: draft.schedule?.launchDate?.toISOString(),
-          reminderDays: draft.schedule?.reminders.map((r) => r.daysBeforeDeadline),
-        });
+        const response = await apiClient.post<{ id: string }>(
+          "/campaigns/draft",
+          {
+            ...draft,
+            audienceMode: draft.audienceCriteria ? "SEGMENT" : "ALL",
+            criteria: draft.audienceCriteria,
+            dueDate: draft.schedule?.deadlineDate?.toISOString(),
+            launchAt: draft.schedule?.launchDate?.toISOString(),
+            reminderDays: draft.schedule?.reminders.map(
+              (r) => r.daysBeforeDeadline,
+            ),
+          },
+        );
         updateDraft({ id: response.id });
       }
     } catch (err: any) {
-      setError(err.message || 'Failed to save draft');
+      setError(err.message || "Failed to save draft");
     } finally {
       setSaving(false);
     }
@@ -314,32 +332,38 @@ export function CampaignBuilder({
       } else {
         // Save draft first if not saved
         if (!draft.id) {
-          const saveResponse = await apiClient.post<{ id: string }>('/campaigns', {
-            name: draft.name,
-            description: draft.description,
-            type: draft.type,
-            formDefinitionId: draft.formTemplateId,
-            audienceMode: draft.audienceCriteria ? 'SEGMENT' : 'ALL',
-            criteria: draft.audienceCriteria,
-            dueDate: draft.schedule?.deadlineDate?.toISOString(),
-            launchAt: draft.schedule?.launchDate?.toISOString(),
-            reminderDays: draft.schedule?.reminders.map((r) => r.daysBeforeDeadline),
-          });
+          const saveResponse = await apiClient.post<{ id: string }>(
+            "/campaigns",
+            {
+              name: draft.name,
+              description: draft.description,
+              type: draft.type,
+              formDefinitionId: draft.formTemplateId,
+              audienceMode: draft.audienceCriteria ? "SEGMENT" : "ALL",
+              criteria: draft.audienceCriteria,
+              dueDate: draft.schedule?.deadlineDate?.toISOString(),
+              launchAt: draft.schedule?.launchDate?.toISOString(),
+              reminderDays: draft.schedule?.reminders.map(
+                (r) => r.daysBeforeDeadline,
+              ),
+            },
+          );
           draft.id = saveResponse.id;
         }
 
         // Launch the campaign
         await apiClient.post(`/campaigns/${draft.id}/launch`, {
-          launchAt: draft.schedule?.launchType === 'immediate'
-            ? undefined
-            : draft.schedule?.launchDate?.toISOString(),
+          launchAt:
+            draft.schedule?.launchType === "immediate"
+              ? undefined
+              : draft.schedule?.launchDate?.toISOString(),
         });
       }
 
       // Redirect to campaign list or detail
-      router.push('/campaigns');
+      router.push("/campaigns");
     } catch (err: any) {
-      setError(err.message || 'Failed to launch campaign');
+      setError(err.message || "Failed to launch campaign");
       setShowLaunchConfirm(false);
     } finally {
       setLaunching(false);
@@ -348,13 +372,13 @@ export function CampaignBuilder({
 
   // Cancel and go back
   const handleCancel = () => {
-    router.push('/campaigns');
+    router.push("/campaigns");
   };
 
   // Filtered templates by campaign type
   const filteredTemplates = useMemo(
     () => templates.filter((t) => t.type === draft.type || !t.type),
-    [templates, draft.type]
+    [templates, draft.type],
   );
 
   // Can launch?
@@ -370,36 +394,42 @@ export function CampaignBuilder({
 
   // Get deadline summary text
   const getDeadlineSummary = () => {
-    if (!draft.schedule) return 'Not configured';
-    if (draft.schedule.deadlineType === 'absolute' && draft.schedule.deadlineDate) {
-      return format(draft.schedule.deadlineDate, 'PPP');
+    if (!draft.schedule) return "Not configured";
+    if (
+      draft.schedule.deadlineType === "absolute" &&
+      draft.schedule.deadlineDate
+    ) {
+      return format(draft.schedule.deadlineDate, "PPP");
     }
-    if (draft.schedule.deadlineType === 'relative' && draft.schedule.relativeDays) {
+    if (
+      draft.schedule.deadlineType === "relative" &&
+      draft.schedule.relativeDays
+    ) {
       return `${draft.schedule.relativeDays} days after assignment`;
     }
-    return 'Not configured';
+    return "Not configured";
   };
 
   // Get launch summary text
   const getLaunchSummary = () => {
-    if (!draft.schedule) return 'Not configured';
+    if (!draft.schedule) return "Not configured";
     switch (draft.schedule.launchType) {
-      case 'immediate':
-        return 'Immediately upon creation';
-      case 'scheduled':
+      case "immediate":
+        return "Immediately upon creation";
+      case "scheduled":
         if (draft.schedule.launchDate) {
-          return `${format(draft.schedule.launchDate, 'PPP')} at ${draft.schedule.launchTime || '09:00'}`;
+          return `${format(draft.schedule.launchDate, "PPP")} at ${draft.schedule.launchTime || "09:00"}`;
         }
-        return 'Date not set';
-      case 'staggered':
+        return "Date not set";
+      case "staggered":
         return `${draft.schedule.waves?.length || 0} waves`;
       default:
-        return 'Not configured';
+        return "Not configured";
     }
   };
 
   return (
-    <div className={cn('space-y-6', className)}>
+    <div className={cn("space-y-6", className)}>
       {/* Step indicator */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -410,14 +440,14 @@ export function CampaignBuilder({
                 onClick={() => goToStep(index)}
                 disabled={!canAccessStep(index)}
                 className={cn(
-                  'flex items-center gap-2 rounded-lg px-4 py-2 text-sm transition-colors',
+                  "flex items-center gap-2 rounded-lg px-4 py-2 text-sm transition-colors",
                   index === currentStep
-                    ? 'bg-primary text-primary-foreground'
+                    ? "bg-primary text-primary-foreground"
                     : completedSteps.has(index)
-                      ? 'bg-primary/10 text-primary hover:bg-primary/20'
+                      ? "bg-primary/10 text-primary hover:bg-primary/20"
                       : canAccessStep(index)
-                        ? 'bg-muted hover:bg-muted/80'
-                        : 'cursor-not-allowed bg-muted/50 text-muted-foreground'
+                        ? "bg-muted hover:bg-muted/80"
+                        : "cursor-not-allowed bg-muted/50 text-muted-foreground",
                 )}
               >
                 {completedSteps.has(index) && index !== currentStep ? (
@@ -435,7 +465,12 @@ export function CampaignBuilder({
         </div>
 
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={handleSaveDraft} disabled={saving}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleSaveDraft}
+            disabled={saving}
+          >
             {saving ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             ) : (
@@ -494,12 +529,17 @@ export function CampaignBuilder({
                     <button
                       key={type.value}
                       type="button"
-                      onClick={() => updateDraft({ type: type.value, formTemplateId: undefined })}
+                      onClick={() =>
+                        updateDraft({
+                          type: type.value,
+                          formTemplateId: undefined,
+                        })
+                      }
                       className={cn(
-                        'flex flex-col items-start rounded-lg border p-4 text-left transition-colors',
+                        "flex flex-col items-start rounded-lg border p-4 text-left transition-colors",
                         draft.type === type.value
-                          ? 'border-primary bg-primary/5'
-                          : 'border-muted hover:border-muted-foreground/50'
+                          ? "border-primary bg-primary/5"
+                          : "border-muted hover:border-muted-foreground/50",
                       )}
                     >
                       <span className="font-medium">{type.label}</span>
@@ -515,7 +555,9 @@ export function CampaignBuilder({
                 <Label htmlFor="template">Form Template</Label>
                 <Select
                   value={draft.formTemplateId}
-                  onValueChange={(value) => updateDraft({ formTemplateId: value })}
+                  onValueChange={(value) =>
+                    updateDraft({ formTemplateId: value })
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select a form template..." />
@@ -589,18 +631,28 @@ export function CampaignBuilder({
                     </h4>
                     <div className="space-y-2 rounded-lg border p-4">
                       <div className="flex justify-between">
-                        <span className="text-sm text-muted-foreground">Name</span>
-                        <span className="text-sm font-medium">{draft.name}</span>
+                        <span className="text-sm text-muted-foreground">
+                          Name
+                        </span>
+                        <span className="text-sm font-medium">
+                          {draft.name}
+                        </span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-sm text-muted-foreground">Type</span>
+                        <span className="text-sm text-muted-foreground">
+                          Type
+                        </span>
                         <Badge variant="secondary">{draft.type}</Badge>
                       </div>
                       {draft.formTemplateId && (
                         <div className="flex justify-between">
-                          <span className="text-sm text-muted-foreground">Form</span>
+                          <span className="text-sm text-muted-foreground">
+                            Form
+                          </span>
                           <span className="text-sm">
-                            {templates.find((t) => t.id === draft.formTemplateId)?.name || 'Selected'}
+                            {templates.find(
+                              (t) => t.id === draft.formTemplateId,
+                            )?.name || "Selected"}
                           </span>
                         </div>
                       )}
@@ -623,7 +675,9 @@ export function CampaignBuilder({
                     </h4>
                     <div className="space-y-2 rounded-lg border p-4">
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-muted-foreground">Recipients</span>
+                        <span className="text-sm text-muted-foreground">
+                          Recipients
+                        </span>
                         <span className="text-lg font-semibold">
                           {(draft.audienceCount || 0).toLocaleString()}
                         </span>
@@ -652,11 +706,15 @@ export function CampaignBuilder({
                     </h4>
                     <div className="space-y-2 rounded-lg border p-4">
                       <div className="flex justify-between">
-                        <span className="text-sm text-muted-foreground">Launch</span>
+                        <span className="text-sm text-muted-foreground">
+                          Launch
+                        </span>
                         <span className="text-sm">{getLaunchSummary()}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-sm text-muted-foreground">Deadline</span>
+                        <span className="text-sm text-muted-foreground">
+                          Deadline
+                        </span>
                         <span className="text-sm">{getDeadlineSummary()}</span>
                       </div>
                     </div>
@@ -678,19 +736,22 @@ export function CampaignBuilder({
                     </h4>
                     <div className="space-y-2 rounded-lg border p-4">
                       <div className="flex justify-between">
-                        <span className="text-sm text-muted-foreground">Reminders</span>
+                        <span className="text-sm text-muted-foreground">
+                          Reminders
+                        </span>
                         <span className="text-sm">
                           {draft.schedule?.reminders.length || 0} configured
                         </span>
                       </div>
-                      {draft.schedule?.reminders && draft.schedule.reminders.length > 0 && (
-                        <p className="text-xs text-muted-foreground">
-                          {draft.schedule.reminders
-                            .map((r) => `${r.daysBeforeDeadline}d`)
-                            .join(', ')}{' '}
-                          before deadline
-                        </p>
-                      )}
+                      {draft.schedule?.reminders &&
+                        draft.schedule.reminders.length > 0 && (
+                          <p className="text-xs text-muted-foreground">
+                            {draft.schedule.reminders
+                              .map((r) => `${r.daysBeforeDeadline}d`)
+                              .join(", ")}{" "}
+                            before deadline
+                          </p>
+                        )}
                     </div>
                     <Button
                       variant="ghost"
@@ -707,8 +768,8 @@ export function CampaignBuilder({
                 {draft.schedule?.deadlineDate && (
                   <div className="mt-6 rounded-lg bg-muted/50 p-4">
                     <p className="text-sm">
-                      <strong>Estimated completion:</strong>{' '}
-                      {format(draft.schedule.deadlineDate, 'PPPP')}
+                      <strong>Estimated completion:</strong>{" "}
+                      {format(draft.schedule.deadlineDate, "PPPP")}
                     </p>
                   </div>
                 )}
@@ -767,8 +828,9 @@ export function CampaignBuilder({
           <DialogHeader>
             <DialogTitle>Launch Campaign?</DialogTitle>
             <DialogDescription>
-              This will send notifications to {(draft.audienceCount || 0).toLocaleString()}{' '}
-              employees. Are you sure you want to proceed?
+              This will send notifications to{" "}
+              {(draft.audienceCount || 0).toLocaleString()} employees. Are you
+              sure you want to proceed?
             </DialogDescription>
           </DialogHeader>
 
@@ -776,14 +838,17 @@ export function CampaignBuilder({
             <div className="rounded-lg bg-muted p-4">
               <h4 className="mb-2 font-medium">{draft.name}</h4>
               <div className="space-y-1 text-sm text-muted-foreground">
-                <p>Type: {CAMPAIGN_TYPES.find((t) => t.value === draft.type)?.label}</p>
+                <p>
+                  Type:{" "}
+                  {CAMPAIGN_TYPES.find((t) => t.value === draft.type)?.label}
+                </p>
                 <p>Recipients: {(draft.audienceCount || 0).toLocaleString()}</p>
                 <p>Launch: {getLaunchSummary()}</p>
                 <p>Deadline: {getDeadlineSummary()}</p>
               </div>
             </div>
 
-            {draft.schedule?.launchType === 'immediate' && (
+            {draft.schedule?.launchType === "immediate" && (
               <div className="flex items-center gap-2 text-amber-600">
                 <AlertTriangle className="h-4 w-4" />
                 <span className="text-sm">
@@ -807,7 +872,7 @@ export function CampaignBuilder({
               ) : (
                 <Rocket className="mr-2 h-4 w-4" />
               )}
-              {launching ? 'Launching...' : 'Confirm Launch'}
+              {launching ? "Launching..." : "Confirm Launch"}
             </Button>
           </DialogFooter>
         </DialogContent>

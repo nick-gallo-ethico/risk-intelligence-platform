@@ -92,6 +92,7 @@ model Organization {
   reportTemplates            ReportTemplate[]
   rius                       RiskIntelligenceUnit[]
   RiuCaseAssociation         RiuCaseAssociation[]
+  savedReports               SavedReport[]
   savedViews                 SavedView[]
   ScheduledExportRun         ScheduledExportRun[]
   scheduledExports           ScheduledExport[]
@@ -182,6 +183,7 @@ model User {
   policyVersionsPublished           PolicyVersion[]            @relation("PolicyVersionPublishedBy")
   riusCreated                       RiskIntelligenceUnit[]     @relation("RiuCreatedBy")
   riuCaseAssociationsCreated        RiuCaseAssociation[]       @relation("RiuCaseAssociationCreatedBy")
+  savedReportsCreated               SavedReport[]              @relation("SavedReportCreatedBy")
   scheduledExportsCreated           ScheduledExport[]
   sessions                          Session[]
   subjectsCreated                   Subject[]                  @relation("SubjectCreatedBy")
@@ -3065,6 +3067,7 @@ model ScheduledExport {
   updatedAt       DateTime             @updatedAt @map("updated_at")
   createdById     String               @map("created_by_id")
   runs            ScheduledExportRun[]
+  savedReport     SavedReport?
   createdBy       User                 @relation(fields: [createdById], references: [id])
   organization    Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
@@ -3095,6 +3098,45 @@ model ScheduledExportRun {
   @@index([organizationId])
   @@index([scheduledExportId, startedAt])
   @@map("scheduled_export_runs")
+}
+
+/// SavedReport stores user-defined report configurations.
+/// Supports visualization (table, chart), filters, grouping, and scheduled delivery.
+/// Used by the report designer UI for creating and sharing custom compliance reports.
+model SavedReport {
+  id                String           @id @default(uuid())
+  organizationId    String           @map("organization_id")
+  name              String
+  description       String?
+  entityType        String           @map("entity_type")
+  columns           Json
+  filters           Json             @default("[]")
+  groupBy           Json?            @map("group_by")
+  aggregation       Json?
+  visualization     String           @default("table")
+  chartConfig       Json?            @map("chart_config")
+  sortBy            String?          @map("sort_by")
+  sortOrder         String?          @map("sort_order")
+  isTemplate        Boolean          @default(false) @map("is_template")
+  templateCategory  String?          @map("template_category")
+  visibility        String           @default("PRIVATE")
+  lastRunAt         DateTime?        @map("last_run_at")
+  lastRunDuration   Int?             @map("last_run_duration")
+  lastRunRowCount   Int?             @map("last_run_row_count")
+  isFavorite        Boolean          @default(false) @map("is_favorite")
+  scheduledExportId String?          @unique @map("scheduled_export_id")
+  createdById       String           @map("created_by_id")
+  createdAt         DateTime         @default(now()) @map("created_at")
+  updatedAt         DateTime         @updatedAt @map("updated_at")
+  organization      Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdBy         User             @relation("SavedReportCreatedBy", fields: [createdById], references: [id])
+  scheduledExport   ScheduledExport? @relation(fields: [scheduledExportId], references: [id])
+
+  @@index([organizationId])
+  @@index([organizationId, createdById])
+  @@index([organizationId, isTemplate])
+  @@index([organizationId, visibility])
+  @@map("saved_reports")
 }
 
 /// Milestone tracks key compliance deliverables with target dates.
