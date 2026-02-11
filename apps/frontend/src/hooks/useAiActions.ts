@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 /**
  * useAiActions Hook
@@ -17,8 +17,8 @@
  * @see ActionExecutorService (backend) for execution logic
  */
 
-import { useState, useCallback, useRef, useEffect } from 'react';
-import { apiClient } from '@/lib/api';
+import { useState, useCallback, useRef, useEffect } from "react";
+import { apiClient } from "@/lib/api";
 
 /**
  * Change preview showing field-level before/after values.
@@ -47,7 +47,7 @@ export interface AvailableAction {
   id: string;
   name: string;
   description: string;
-  category: 'quick' | 'standard' | 'critical' | 'external';
+  category: "quick" | "standard" | "critical" | "external";
   requiresPreview: boolean;
   undoable: boolean;
   undoWindowSeconds: number;
@@ -91,7 +91,7 @@ export interface UseAiActionsReturn {
       input: Record<string, unknown>;
       entityType: string;
       entityId: string;
-    }
+    },
   ) => Promise<ActionPreview | null>;
   /** Execute an action */
   execute: (
@@ -101,18 +101,18 @@ export interface UseAiActionsReturn {
       entityType: string;
       entityId: string;
       skipPreview?: boolean;
-    }
+    },
   ) => Promise<ActionExecutionResult | null>;
   /** Undo an executed action */
   undo: (
     actionRecordId: string,
-    params: { entityType: string; entityId: string }
+    params: { entityType: string; entityId: string },
   ) => Promise<boolean>;
   /** Check if an action can be undone */
   canUndo: (
     actionRecordId: string,
     entityType: string,
-    entityId: string
+    entityId: string,
   ) => Promise<CanUndoResult>;
   /** Loading state */
   isLoading: boolean;
@@ -155,8 +155,12 @@ export interface UseAiActionsReturn {
 export function useAiActions(): UseAiActionsReturn {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [currentPreview, setCurrentPreview] = useState<ActionPreview | null>(null);
-  const [lastResult, setLastResult] = useState<ActionExecutionResult | null>(null);
+  const [currentPreview, setCurrentPreview] = useState<ActionPreview | null>(
+    null,
+  );
+  const [lastResult, setLastResult] = useState<ActionExecutionResult | null>(
+    null,
+  );
 
   // Track mounted state to prevent state updates after unmount
   const isMountedRef = useRef(true);
@@ -171,15 +175,22 @@ export function useAiActions(): UseAiActionsReturn {
   /**
    * List available actions for an entity type.
    */
-  const listActions = useCallback(async (entityType?: string): Promise<AvailableAction[]> => {
-    try {
-      const params = entityType ? `?entityType=${encodeURIComponent(entityType)}` : '';
-      const response = await apiClient.get<AvailableAction[]>(`/ai/actions${params}`);
-      return response || [];
-    } catch {
-      return [];
-    }
-  }, []);
+  const listActions = useCallback(
+    async (entityType?: string): Promise<AvailableAction[]> => {
+      try {
+        const params = entityType
+          ? `?entityType=${encodeURIComponent(entityType)}`
+          : "";
+        const response = await apiClient.get<AvailableAction[]>(
+          `/ai/actions${params}`,
+        );
+        return response || [];
+      } catch {
+        return [];
+      }
+    },
+    [],
+  );
 
   /**
    * Preview an action before execution.
@@ -192,7 +203,7 @@ export function useAiActions(): UseAiActionsReturn {
         input: Record<string, unknown>;
         entityType: string;
         entityId: string;
-      }
+      },
     ): Promise<ActionPreview | null> => {
       setIsLoading(true);
       setError(null);
@@ -200,7 +211,7 @@ export function useAiActions(): UseAiActionsReturn {
       try {
         const response = await apiClient.post<ActionPreview>(
           `/ai/actions/${encodeURIComponent(actionId)}/preview`,
-          params
+          params,
         );
 
         if (!isMountedRef.current) return null;
@@ -210,8 +221,11 @@ export function useAiActions(): UseAiActionsReturn {
       } catch (err: unknown) {
         if (!isMountedRef.current) return null;
 
-        const axiosError = err as { response?: { data?: { message?: string } } };
-        const message = axiosError?.response?.data?.message || 'Action preview failed';
+        const axiosError = err as {
+          response?: { data?: { message?: string } };
+        };
+        const message =
+          axiosError?.response?.data?.message || "Action preview failed";
         setError(message);
         return null;
       } finally {
@@ -220,7 +234,7 @@ export function useAiActions(): UseAiActionsReturn {
         }
       }
     },
-    []
+    [],
   );
 
   /**
@@ -235,7 +249,7 @@ export function useAiActions(): UseAiActionsReturn {
         entityType: string;
         entityId: string;
         skipPreview?: boolean;
-      }
+      },
     ): Promise<ActionExecutionResult | null> => {
       setIsLoading(true);
       setError(null);
@@ -243,7 +257,7 @@ export function useAiActions(): UseAiActionsReturn {
       try {
         const response = await apiClient.post<ActionExecutionResult>(
           `/ai/actions/${encodeURIComponent(actionId)}/execute`,
-          params
+          params,
         );
 
         if (!isMountedRef.current) return null;
@@ -255,14 +269,17 @@ export function useAiActions(): UseAiActionsReturn {
           setLastResult(response);
           return response;
         } else {
-          setError(response.error || 'Action execution failed');
+          setError(response.error || "Action execution failed");
           return response;
         }
       } catch (err: unknown) {
         if (!isMountedRef.current) return null;
 
-        const axiosError = err as { response?: { data?: { message?: string } } };
-        const message = axiosError?.response?.data?.message || 'Action execution failed';
+        const axiosError = err as {
+          response?: { data?: { message?: string } };
+        };
+        const message =
+          axiosError?.response?.data?.message || "Action execution failed";
         setError(message);
         return null;
       } finally {
@@ -271,7 +288,7 @@ export function useAiActions(): UseAiActionsReturn {
         }
       }
     },
-    []
+    [],
   );
 
   /**
@@ -280,7 +297,7 @@ export function useAiActions(): UseAiActionsReturn {
   const undo = useCallback(
     async (
       actionRecordId: string,
-      params: { entityType: string; entityId: string }
+      params: { entityType: string; entityId: string },
     ): Promise<boolean> => {
       setIsLoading(true);
       setError(null);
@@ -288,7 +305,7 @@ export function useAiActions(): UseAiActionsReturn {
       try {
         const response = await apiClient.post<{ success: boolean }>(
           `/ai/actions/${encodeURIComponent(actionRecordId)}/undo`,
-          params
+          params,
         );
 
         if (!isMountedRef.current) return false;
@@ -301,8 +318,10 @@ export function useAiActions(): UseAiActionsReturn {
       } catch (err: unknown) {
         if (!isMountedRef.current) return false;
 
-        const axiosError = err as { response?: { data?: { message?: string } } };
-        const message = axiosError?.response?.data?.message || 'Undo failed';
+        const axiosError = err as {
+          response?: { data?: { message?: string } };
+        };
+        const message = axiosError?.response?.data?.message || "Undo failed";
         setError(message);
         return false;
       } finally {
@@ -311,7 +330,7 @@ export function useAiActions(): UseAiActionsReturn {
         }
       }
     },
-    []
+    [],
   );
 
   /**
@@ -321,7 +340,7 @@ export function useAiActions(): UseAiActionsReturn {
     async (
       actionRecordId: string,
       entityType: string,
-      entityId: string
+      entityId: string,
     ): Promise<CanUndoResult> => {
       try {
         const params = new URLSearchParams({
@@ -329,14 +348,14 @@ export function useAiActions(): UseAiActionsReturn {
           entityId,
         });
         const response = await apiClient.get<CanUndoResult>(
-          `/ai/actions/${encodeURIComponent(actionRecordId)}/can-undo?${params.toString()}`
+          `/ai/actions/${encodeURIComponent(actionRecordId)}/can-undo?${params.toString()}`,
         );
         return response || { canUndo: false };
       } catch {
         return { canUndo: false };
       }
     },
-    []
+    [],
   );
 
   /**
