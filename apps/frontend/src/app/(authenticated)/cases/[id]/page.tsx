@@ -25,6 +25,9 @@ import { StatusChangeModal } from "@/components/cases/status-change-modal";
 import { MergeModal } from "@/components/cases/merge-modal";
 import { AddNoteModal } from "@/components/cases/add-note-modal";
 import { EmailLogModal } from "@/components/cases/email-log-modal";
+import { LogInterviewModal } from "@/components/cases/log-interview-modal";
+import { AttachDocumentModal } from "@/components/cases/attach-document-modal";
+import { CreateTaskModal } from "@/components/cases/create-task-modal";
 import { Sparkles } from "lucide-react";
 import type { Case } from "@/types/case";
 
@@ -61,6 +64,9 @@ function CaseDetailPageContent() {
   const [mergeModalOpen, setMergeModalOpen] = useState(false);
   const [noteModalOpen, setNoteModalOpen] = useState(false);
   const [emailModalOpen, setEmailModalOpen] = useState(false);
+  const [interviewModalOpen, setInterviewModalOpen] = useState(false);
+  const [documentModalOpen, setDocumentModalOpen] = useState(false);
+  const [taskModalOpen, setTaskModalOpen] = useState(false);
   const [aiPanelOpen, setAiPanelOpen] = useState(false);
 
   const caseId = params?.id as string;
@@ -156,13 +162,13 @@ function CaseDetailPageContent() {
         setEmailModalOpen(true);
         break;
       case "interview":
-        console.log("Interview - coming soon");
+        setInterviewModalOpen(true);
         break;
       case "document":
-        console.log("Document - coming soon");
+        setDocumentModalOpen(true);
         break;
       case "task":
-        console.log("Task - coming soon");
+        setTaskModalOpen(true);
         break;
     }
   }, []);
@@ -292,6 +298,24 @@ function CaseDetailPageContent() {
             open={emailModalOpen}
             onOpenChange={setEmailModalOpen}
             onEmailLogged={fetchCase}
+          />
+          <LogInterviewModal
+            caseId={caseData.id}
+            open={interviewModalOpen}
+            onOpenChange={setInterviewModalOpen}
+            onInterviewLogged={fetchCase}
+          />
+          <AttachDocumentModal
+            caseId={caseData.id}
+            open={documentModalOpen}
+            onOpenChange={setDocumentModalOpen}
+            onDocumentAttached={fetchCase}
+          />
+          <CreateTaskModal
+            caseId={caseData.id}
+            open={taskModalOpen}
+            onOpenChange={setTaskModalOpen}
+            onTaskCreated={fetchCase}
           />
 
           {/* AI Chat Panel - slides out from right */}

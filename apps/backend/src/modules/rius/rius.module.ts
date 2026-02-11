@@ -1,12 +1,13 @@
-import { Module } from '@nestjs/common';
-import { RiusService } from './rius.service';
-import { RiuAccessService } from './riu-access.service';
-import { RiuAccessController } from './riu-access.controller';
+import { Module } from "@nestjs/common";
+import { RiusService } from "./rius.service";
+import { RiuAccessService } from "./riu-access.service";
+import { RiusController } from "./rius.controller";
+import { RiuAccessController } from "./riu-access.controller";
 import {
   HotlineRiuService,
   DisclosureRiuService,
   WebFormRiuService,
-} from './extensions';
+} from "./extensions";
 
 /**
  * RIU (Risk Intelligence Unit) Module
@@ -24,10 +25,11 @@ import {
  * - WebFormRiuService: Form metadata and validation tracking
  *
  * Controllers:
+ * - RiusController: Authenticated endpoints for RIU operations
  * - RiuAccessController: Public endpoints for anonymous status check and messaging
  */
 @Module({
-  controllers: [RiuAccessController],
+  controllers: [RiusController, RiuAccessController],
   providers: [
     RiusService,
     RiuAccessService,
