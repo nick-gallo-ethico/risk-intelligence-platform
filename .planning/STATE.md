@@ -10,10 +10,10 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 15 of 24 (Case Detail Page Overhaul)
-Plan: 05 of 7 in current phase (01, 02, 03, 04, 05, 07 complete)
-Status: Phase 15 IN PROGRESS
-Last activity: 2026-02-11 - Completed 15-05 Right column connected entities
-**Next Phase:** Continue Phase 15 execution (15-06)
+Plan: 06 of 7 in current phase (01, 02, 03, 04, 05, 06, 07 complete)
+Status: Phase 15 COMPLETE
+Last activity: 2026-02-11 - Completed 15-06 AI panel Sheet implementation
+**Next Phase:** Phase 16 - AI Integration Fix
 
 Progress: [====================================================------------------] ~79% (~207 of ~260 estimated total plans)
 
@@ -82,7 +82,12 @@ Plans:
   - AddPersonModal with search and free-form creation modes
   - ConnectedDocumentsCard with file type icons
   - AI Assistant trigger button with aiPanelOpen state
-- 15-06: AI panel Sheet implementation (PENDING)
+- 15-06: AI panel Sheet implementation (COMPLETE - 4f5497d)
+  - AiChatPanel component with socket.io-client WebSocket streaming
+  - Sheet overlay slides from right (400-480px width)
+  - Connection status indicator with retry on error
+  - Suggested prompts, streaming cursor, stop button
+  - Tool use indicators and action execution callbacks
 
 ### Phase 14.2 Case Creation & Search Fixes COMPLETE (2026-02-10)
 
@@ -647,6 +652,9 @@ Recent decisions affecting current work:
 - 14.1-04: Raw SQL must use @@map table names (cases not Case) and snake_case column names
 - 14.2-02: Use prefix matching (word:\*) in FTS for partial word searches ("harass" matches "harassment")
 - 14.2-02: Try FTS fallback on both ES index-not-found AND ES 0-results for cases
+- 15-06: socket.io-client for WebSocket AI chat (transports: websocket first, polling fallback)
+- 15-06: Hardcoded suggested prompts for fast initial load (API endpoint available at /ai/agents/:type/suggestions)
+- 15-06: Connection status badge in header with color-coded states (green/yellow/red)
 
 ### Pending Todos
 
@@ -664,8 +672,8 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-02-10
-Stopped at: Completed 15-02 Three-column layout and left column components
+Last session: 2026-02-11
+Stopped at: Completed Phase 15 (Case Detail Page Overhaul)
 Resume file: None
 
 **Phase 14.2 Status: IN PROGRESS**
