@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 19 of 24 (Workflow Engine UI)
-Plan: 6 of 7 in current phase
-Status: Plan 19-06 COMPLETE - Workflow instances page and progress indicator
-Last activity: 2026-02-11 - Completed 19-06 (instances page)
+Plan: 5 of 7 in current phase
+Status: Plan 19-05 COMPLETE - Workflow builder properties and pages
+Last activity: 2026-02-11 - Completed 19-05 (property panels, toolbar, page routes)
 
-Progress: [======================================================----------------] ~87% (~226 of ~260 estimated total plans)
+Progress: [======================================================----------------] ~87% (~227 of ~260 estimated total plans)
 
 ### Phase 17 Campaigns Hub IN PROGRESS (2026-02-11)
 
@@ -124,6 +124,14 @@ Progress: [======================================================---------------
   - WorkflowCanvas: React Flow canvas with drag-drop, delete key, minimap, controls
   - WorkflowBuilder: Three-column layout (palette | canvas | properties placeholder)
   - useWorkflowBuilder hook: State management with nodes/edges converters and actions
+- 19-05: Workflow builder properties and pages (COMPLETE - 9141038, ef5d13a)
+  - PropertyPanel: Right sidebar switching between stage/transition properties
+  - StageProperties: Edit name, description, color, SLA, terminal toggle, steps, gates
+  - TransitionProperties: Edit label, roles, conditions, actions
+  - StepEditor: Inline form for step editing with assignee strategies
+  - WorkflowToolbar: Name editing, entity type badge, version, save/publish with version-on-publish warning
+  - Page routes: /settings/workflows/new and /settings/workflows/[id]
+  - Unsaved changes warning via beforeunload event
 - 19-06: Workflow instances page and progress indicator (COMPLETE - 9141038, ef702fe)
   - /settings/workflows/[id]/instances page with status filter tabs (All, Active, Completed, Cancelled, Paused)
   - InstanceListTable: Entity, Stage, Status, SLA Status, Started, Due Date columns
@@ -867,11 +875,12 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-02-11
-Stopped at: Phase 19 Plan 06 COMPLETE - Workflow instances page
+Stopped at: Phase 19 Plan 05 COMPLETE - Workflow builder properties and pages
 Resume file: None
 
 **Phase 19 Status: IN PROGRESS**
-Plan 19-06 completed (instances page with bulk actions, detail dialog, progress indicator).
+Plan 19-05 completed (property panels, toolbar, page routes for workflow builder).
+Plan 19-06 also complete (instances page with bulk actions, detail dialog, progress indicator).
 Remaining: 19-07 (workflow entity integration - embed progress indicator in case/policy pages).
 
 **Phase 14.2 Status: IN PROGRESS**
