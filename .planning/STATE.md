@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 15 of 24 (Case Detail Page Overhaul)
-Plan: 08 of 11 in current phase (gap closure in progress)
+Plan: 09 of 11 in current phase (gap closure in progress)
 Status: Phase 15 gap closure in progress
-Last activity: 2026-02-11 - Completed 15-08 Quick action modals (Gap 4 closed)
+Last activity: 2026-02-11 - Completed 15-09 RIU intake form answers display (Gap 1 closed)
 **Next Phase:** Phase 16 - AI Integration Fix
 
 Progress: [====================================================------------------] ~79% (~207 of ~260 estimated total plans)
@@ -97,7 +97,10 @@ Plans:
   - CreateTaskModal with title, description, assignee, due date, priority
   - All modals log to activity feed via POST /cases/:id/activity
   - Removed console.log placeholders from handleAction switch
-- 15-09: RIU intake form answers display (addresses Gap 1)
+- 15-09: RIU intake form answers display (addresses Gap 1) - COMPLETE (cf78c36)
+  - GET /rius/:id/form-data endpoint with type-specific section builders
+  - LinkedRiuFormAnswers component with collapsible sections
+  - Integrated in Overview tab showing primary RIU intake details
 - 15-10: AI backend action verification (addresses Gap 3)
 - 15-11: Email compose/send deferral documentation (addresses Gap 2) - COMPLETE
 
