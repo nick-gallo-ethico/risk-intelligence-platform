@@ -7,12 +7,14 @@
  * - Report execution: Run reports and get results
  * - Report actions: Duplicate, favorite, export
  * - AI generation: Natural language to report configuration
+ * - Schedule management: Create, update, delete scheduled report delivery
  *
  * All operations enforce tenant isolation via organizationId from JWT.
  *
  * @see ReportService for business logic
  * @see ReportFieldRegistryService for field metadata
  * @see ReportExecutionService for query execution
+ * @see ScheduledExportService for schedule management
  */
 
 import {
@@ -36,6 +38,7 @@ import {
   ApiBearerAuth,
   ApiParam,
   ApiQuery,
+  ApiBody,
 } from "@nestjs/swagger";
 import { JwtAuthGuard } from "../../../common/guards/jwt-auth.guard";
 import { RolesGuard } from "../../../common/guards/roles.guard";
@@ -44,6 +47,12 @@ import { CurrentUser } from "../../../common/decorators/current-user.decorator";
 import { ReportService } from "./report.service";
 import { ReportFieldRegistryService } from "./report-field-registry.service";
 import { AiQueryService } from "../ai-query/ai-query.service";
+import {
+  ScheduledExportService,
+  CreateScheduledExportDto,
+  UpdateScheduledExportDto,
+} from "../exports/scheduled-export.service";
+import { PrismaService } from "../../prisma/prisma.service";
 import {
   CreateReportDto,
   UpdateReportDto,
@@ -54,7 +63,7 @@ import {
 } from "./dto/report.dto";
 import { ReportEntityType } from "./entities/saved-report.entity";
 import { QueryEntityType } from "../ai-query/dto/ai-query.dto";
-import { User } from "@prisma/client";
+import { User, ExportType, ExportFormat, DeliveryMethod } from "@prisma/client";
 
 /**
  * Map AI query entity type to report entity type.
@@ -78,6 +87,8 @@ export class ReportController {
     private readonly reportService: ReportService,
     private readonly fieldRegistryService: ReportFieldRegistryService,
     private readonly aiQueryService: AiQueryService,
+    private readonly scheduledExportService: ScheduledExportService,
+    private readonly prisma: PrismaService,
   ) {}
 
   // =========================================================================
@@ -605,5 +616,470 @@ export class ReportController {
       TEXT: "table",
     };
     return mapping[aiVizType] || "table";
+  }
+
+  // =========================================================================
+  // Schedule Management (Endpoints 13-19)
+  // =========================================================================
+
+  /**
+   * Helper to verify report exists and belongs to org.
+   */
+  private async verifyReportAccess(
+    reportId: string,
+    organizationId: string,
+  ): Promise<{
+    id: string;
+    scheduledExportId: string | null;
+    name: string;
+  }> {
+    const report = await this.prisma.savedReport.findFirst({
+      where: { id: reportId, organizationId },
+      select: { id: true, scheduledExportId: true, name: true },
+    });
+
+    if (!report) {
+      throw new NotFoundException(`Report ${reportId} not found`);
+    }
+
+    return report;
+  }
+
+  /**
+   * Create a schedule for a report.
+   */
+  @Post(":id/schedule")
+  @Roles(
+    UserRole.SYSTEM_ADMIN,
+    UserRole.COMPLIANCE_OFFICER,
+    UserRole.POLICY_AUTHOR,
+  )
+  @ApiOperation({
+    summary: "Create a schedule for a report",
+    description:
+      "Creates a scheduled export configuration for automatic report delivery. Supports daily, weekly, and monthly schedules.",
+  })
+  @ApiParam({ name: "id", description: "Report ID" })
+  @ApiBody({
+    schema: {
+      type: "object",
+      required: ["name", "scheduleType", "time", "format", "recipients"],
+      properties: {
+        name: { type: "string", description: "Schedule name" },
+        scheduleType: {
+          type: "string",
+          enum: ["DAILY", "WEEKLY", "MONTHLY"],
+        },
+        time: {
+          type: "string",
+          description: "Time in HH:MM format",
+          example: "08:00",
+        },
+        dayOfWeek: {
+          type: "number",
+          description: "Day of week (0-6) for weekly schedules",
+        },
+        dayOfMonth: {
+          type: "number",
+          description: "Day of month (1-31) for monthly schedules",
+        },
+        timezone: { type: "string", example: "America/New_York" },
+        format: { type: "string", enum: ["EXCEL", "CSV", "PDF"] },
+        recipients: {
+          type: "array",
+          items: { type: "string" },
+          description: "Email addresses",
+        },
+      },
+    },
+  })
+  @ApiResponse({ status: 201, description: "Schedule created successfully" })
+  @ApiResponse({ status: 400, description: "Invalid schedule configuration" })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  @ApiResponse({ status: 403, description: "Insufficient permissions" })
+  @ApiResponse({ status: 404, description: "Report not found" })
+  async createSchedule(
+    @CurrentUser() user: User,
+    @Param("id") id: string,
+    @Body()
+    dto: {
+      name: string;
+      scheduleType: "DAILY" | "WEEKLY" | "MONTHLY";
+      time: string;
+      dayOfWeek?: number;
+      dayOfMonth?: number;
+      timezone?: string;
+      format: "EXCEL" | "CSV" | "PDF";
+      recipients: string[];
+    },
+  ): Promise<unknown> {
+    const report = await this.verifyReportAccess(id, user.organizationId);
+
+    // Check if report already has a schedule
+    if (report.scheduledExportId) {
+      throw new NotFoundException(
+        "Report already has a schedule. Use PUT to update or DELETE to remove.",
+      );
+    }
+
+    // Map format string to ExportFormat enum
+    const formatMap: Record<string, ExportFormat> = {
+      EXCEL: ExportFormat.XLSX,
+      CSV: ExportFormat.CSV,
+      PDF: ExportFormat.PDF,
+    };
+
+    // Create the scheduled export
+    const scheduleDto: CreateScheduledExportDto = {
+      name: dto.name,
+      description: `Scheduled delivery for report: ${report.name}`,
+      exportType: ExportType.CUSTOM, // CUSTOM type for saved report exports
+      format: formatMap[dto.format] || ExportFormat.XLSX,
+      filters: { reportId: id },
+      columnConfig: {
+        includeInvestigations: false,
+        maxInvestigations: 0,
+        includeTaggedFields: false,
+        includeOverflow: false,
+      },
+      scheduleType: dto.scheduleType as "DAILY" | "WEEKLY" | "MONTHLY",
+      scheduleConfig: {
+        time: dto.time,
+        dayOfWeek: dto.dayOfWeek,
+        dayOfMonth: dto.dayOfMonth,
+      },
+      timezone: dto.timezone || "America/New_York",
+      deliveryMethod: DeliveryMethod.EMAIL,
+      recipients: dto.recipients,
+    };
+
+    const schedule = await this.scheduledExportService.createSchedule(
+      user.organizationId,
+      user.id,
+      scheduleDto,
+    );
+
+    // Link schedule to report
+    await this.prisma.savedReport.update({
+      where: { id },
+      data: { scheduledExportId: schedule.id },
+    });
+
+    // Transform to frontend format
+    return {
+      id: schedule.id,
+      name: schedule.name,
+      scheduleType: schedule.scheduleType,
+      time: (schedule.scheduleConfig as { time?: string })?.time || dto.time,
+      dayOfWeek: (schedule.scheduleConfig as { dayOfWeek?: number })?.dayOfWeek,
+      dayOfMonth: (schedule.scheduleConfig as { dayOfMonth?: number })
+        ?.dayOfMonth,
+      timezone: schedule.timezone,
+      format: dto.format,
+      recipients: schedule.recipients,
+      isActive: schedule.isActive,
+    };
+  }
+
+  /**
+   * Get the schedule for a report.
+   */
+  @Get(":id/schedule")
+  @ApiOperation({
+    summary: "Get the schedule for a report",
+    description: "Returns the schedule configuration if one exists.",
+  })
+  @ApiParam({ name: "id", description: "Report ID" })
+  @ApiResponse({ status: 200, description: "Schedule details" })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  @ApiResponse({ status: 404, description: "Report or schedule not found" })
+  async getSchedule(
+    @CurrentUser() user: User,
+    @Param("id") id: string,
+  ): Promise<unknown> {
+    const report = await this.verifyReportAccess(id, user.organizationId);
+
+    if (!report.scheduledExportId) {
+      throw new NotFoundException("No schedule exists for this report");
+    }
+
+    const schedule = await this.scheduledExportService.getSchedule(
+      user.organizationId,
+      report.scheduledExportId,
+    );
+
+    if (!schedule) {
+      throw new NotFoundException("Schedule not found");
+    }
+
+    // Map format back to frontend format
+    const formatReverseMap: Record<string, string> = {
+      XLSX: "EXCEL",
+      CSV: "CSV",
+      PDF: "PDF",
+    };
+
+    return {
+      id: schedule.id,
+      name: schedule.name,
+      scheduleType: schedule.scheduleType,
+      time: (schedule.scheduleConfig as { time?: string })?.time || "08:00",
+      dayOfWeek: (schedule.scheduleConfig as { dayOfWeek?: number })?.dayOfWeek,
+      dayOfMonth: (schedule.scheduleConfig as { dayOfMonth?: number })
+        ?.dayOfMonth,
+      timezone: schedule.timezone,
+      format: formatReverseMap[schedule.format] || "EXCEL",
+      recipients: schedule.recipients,
+      isActive: schedule.isActive,
+      lastRunAt: schedule.lastRunAt,
+      lastRunStatus: schedule.lastRunStatus,
+      nextRunAt: schedule.nextRunAt,
+    };
+  }
+
+  /**
+   * Update an existing schedule.
+   */
+  @Put(":id/schedule")
+  @Roles(
+    UserRole.SYSTEM_ADMIN,
+    UserRole.COMPLIANCE_OFFICER,
+    UserRole.POLICY_AUTHOR,
+  )
+  @ApiOperation({
+    summary: "Update a report schedule",
+    description: "Updates the schedule configuration for a report.",
+  })
+  @ApiParam({ name: "id", description: "Report ID" })
+  @ApiResponse({ status: 200, description: "Schedule updated successfully" })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  @ApiResponse({ status: 403, description: "Insufficient permissions" })
+  @ApiResponse({ status: 404, description: "Report or schedule not found" })
+  async updateSchedule(
+    @CurrentUser() user: User,
+    @Param("id") id: string,
+    @Body()
+    dto: {
+      name?: string;
+      scheduleType?: "DAILY" | "WEEKLY" | "MONTHLY";
+      time?: string;
+      dayOfWeek?: number;
+      dayOfMonth?: number;
+      timezone?: string;
+      format?: "EXCEL" | "CSV" | "PDF";
+      recipients?: string[];
+    },
+  ): Promise<unknown> {
+    const report = await this.verifyReportAccess(id, user.organizationId);
+
+    if (!report.scheduledExportId) {
+      throw new NotFoundException("No schedule exists for this report");
+    }
+
+    // Map format string to ExportFormat enum
+    const formatMap: Record<string, ExportFormat> = {
+      EXCEL: ExportFormat.XLSX,
+      CSV: ExportFormat.CSV,
+      PDF: ExportFormat.PDF,
+    };
+
+    const updateDto: UpdateScheduledExportDto = {};
+
+    if (dto.name !== undefined) updateDto.name = dto.name;
+    if (dto.format !== undefined) updateDto.format = formatMap[dto.format];
+    if (dto.recipients !== undefined) updateDto.recipients = dto.recipients;
+    if (dto.timezone !== undefined) updateDto.timezone = dto.timezone;
+    if (dto.scheduleType !== undefined)
+      updateDto.scheduleType = dto.scheduleType as
+        | "DAILY"
+        | "WEEKLY"
+        | "MONTHLY";
+
+    // Build schedule config if any timing params provided
+    if (
+      dto.time !== undefined ||
+      dto.dayOfWeek !== undefined ||
+      dto.dayOfMonth !== undefined
+    ) {
+      updateDto.scheduleConfig = {
+        time: dto.time || "08:00",
+        dayOfWeek: dto.dayOfWeek,
+        dayOfMonth: dto.dayOfMonth,
+      };
+    }
+
+    const schedule = await this.scheduledExportService.updateSchedule(
+      user.organizationId,
+      report.scheduledExportId,
+      updateDto,
+    );
+
+    // Map format back to frontend format
+    const formatReverseMap: Record<string, string> = {
+      XLSX: "EXCEL",
+      CSV: "CSV",
+      PDF: "PDF",
+    };
+
+    return {
+      id: schedule.id,
+      name: schedule.name,
+      scheduleType: schedule.scheduleType,
+      time: (schedule.scheduleConfig as { time?: string })?.time || "08:00",
+      dayOfWeek: (schedule.scheduleConfig as { dayOfWeek?: number })?.dayOfWeek,
+      dayOfMonth: (schedule.scheduleConfig as { dayOfMonth?: number })
+        ?.dayOfMonth,
+      timezone: schedule.timezone,
+      format: formatReverseMap[schedule.format] || "EXCEL",
+      recipients: schedule.recipients,
+      isActive: schedule.isActive,
+    };
+  }
+
+  /**
+   * Delete a schedule.
+   */
+  @Delete(":id/schedule")
+  @Roles(UserRole.SYSTEM_ADMIN, UserRole.COMPLIANCE_OFFICER)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({
+    summary: "Delete a report schedule",
+    description: "Removes the schedule from a report.",
+  })
+  @ApiParam({ name: "id", description: "Report ID" })
+  @ApiResponse({ status: 204, description: "Schedule deleted successfully" })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  @ApiResponse({ status: 403, description: "Insufficient permissions" })
+  @ApiResponse({ status: 404, description: "Report or schedule not found" })
+  async deleteSchedule(
+    @CurrentUser() user: User,
+    @Param("id") id: string,
+  ): Promise<void> {
+    const report = await this.verifyReportAccess(id, user.organizationId);
+
+    if (!report.scheduledExportId) {
+      throw new NotFoundException("No schedule exists for this report");
+    }
+
+    // Delete the scheduled export
+    await this.scheduledExportService.deleteSchedule(
+      user.organizationId,
+      report.scheduledExportId,
+    );
+
+    // Remove link from report
+    await this.prisma.savedReport.update({
+      where: { id },
+      data: { scheduledExportId: null },
+    });
+  }
+
+  /**
+   * Pause a schedule.
+   */
+  @Post(":id/schedule/pause")
+  @Roles(
+    UserRole.SYSTEM_ADMIN,
+    UserRole.COMPLIANCE_OFFICER,
+    UserRole.POLICY_AUTHOR,
+  )
+  @ApiOperation({
+    summary: "Pause a report schedule",
+    description: "Temporarily pauses scheduled delivery without deleting.",
+  })
+  @ApiParam({ name: "id", description: "Report ID" })
+  @ApiResponse({ status: 200, description: "Schedule paused" })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  @ApiResponse({ status: 403, description: "Insufficient permissions" })
+  @ApiResponse({ status: 404, description: "Report or schedule not found" })
+  async pauseSchedule(
+    @CurrentUser() user: User,
+    @Param("id") id: string,
+  ): Promise<{ message: string; isActive: boolean }> {
+    const report = await this.verifyReportAccess(id, user.organizationId);
+
+    if (!report.scheduledExportId) {
+      throw new NotFoundException("No schedule exists for this report");
+    }
+
+    await this.scheduledExportService.pauseSchedule(
+      user.organizationId,
+      report.scheduledExportId,
+    );
+
+    return { message: "Schedule paused", isActive: false };
+  }
+
+  /**
+   * Resume a paused schedule.
+   */
+  @Post(":id/schedule/resume")
+  @Roles(
+    UserRole.SYSTEM_ADMIN,
+    UserRole.COMPLIANCE_OFFICER,
+    UserRole.POLICY_AUTHOR,
+  )
+  @ApiOperation({
+    summary: "Resume a report schedule",
+    description: "Resumes a paused schedule and recalculates next run time.",
+  })
+  @ApiParam({ name: "id", description: "Report ID" })
+  @ApiResponse({ status: 200, description: "Schedule resumed" })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  @ApiResponse({ status: 403, description: "Insufficient permissions" })
+  @ApiResponse({ status: 404, description: "Report or schedule not found" })
+  async resumeSchedule(
+    @CurrentUser() user: User,
+    @Param("id") id: string,
+  ): Promise<{ message: string; isActive: boolean }> {
+    const report = await this.verifyReportAccess(id, user.organizationId);
+
+    if (!report.scheduledExportId) {
+      throw new NotFoundException("No schedule exists for this report");
+    }
+
+    await this.scheduledExportService.resumeSchedule(
+      user.organizationId,
+      report.scheduledExportId,
+    );
+
+    return { message: "Schedule resumed", isActive: true };
+  }
+
+  /**
+   * Trigger immediate execution of a scheduled report.
+   */
+  @Post(":id/schedule/run-now")
+  @Roles(UserRole.SYSTEM_ADMIN, UserRole.COMPLIANCE_OFFICER)
+  @HttpCode(HttpStatus.ACCEPTED)
+  @ApiOperation({
+    summary: "Run scheduled report immediately",
+    description:
+      "Triggers immediate execution of the scheduled report delivery.",
+  })
+  @ApiParam({ name: "id", description: "Report ID" })
+  @ApiResponse({
+    status: 202,
+    description: "Report queued for immediate delivery",
+  })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  @ApiResponse({ status: 403, description: "Insufficient permissions" })
+  @ApiResponse({ status: 404, description: "Report or schedule not found" })
+  async runScheduleNow(
+    @CurrentUser() user: User,
+    @Param("id") id: string,
+  ): Promise<{ message: string; runId: string }> {
+    const report = await this.verifyReportAccess(id, user.organizationId);
+
+    if (!report.scheduledExportId) {
+      throw new NotFoundException("No schedule exists for this report");
+    }
+
+    const runId = await this.scheduledExportService.runNow(
+      user.organizationId,
+      report.scheduledExportId,
+    );
+
+    return { message: "Report queued for immediate delivery", runId };
   }
 }
