@@ -5,14 +5,14 @@
 See: .planning/PROJECT.md (updated 2026-02-02)
 
 **Core value:** Users can manage their entire compliance workflow - from anonymous report intake to investigation closure to board reporting - in one AI-assisted platform, with every task unified into a single "My Work" view.
-**Current focus:** Phase 18 Reports & Data Management - Plan 05 COMPLETE
+**Current focus:** Phase 18 Reports & Data Management - Plan 04 COMPLETE
 
 ## Current Position
 
 Phase: 18 of 24 (Reports & Data Management)
-Plan: 5 of 9 in current phase
-Status: In progress - Plan 05 COMPLETE
-Last activity: 2026-02-11 - Completed 18-05-PLAN.md (Report list page). Commits 62b3592, 5b69516.
+Plan: 4 of 9 in current phase
+Status: In progress - Plan 04 COMPLETE
+Last activity: 2026-02-11 - Completed 18-04-PLAN.md (Report templates seeder). Commit 0d940af.
 
 Progress: [====================================================------------------] ~84% (~220 of ~260 estimated total plans)
 
@@ -58,6 +58,13 @@ Progress: [====================================================-----------------
   - Actions: duplicate, favorite, export
   - AI generation POST /reports/ai-generate
   - ReportModule and AiQueryModule wired into AnalyticsModule
+- 18-04: Report templates seeder (COMPLETE - 0d940af)
+  - 10 pre-built report templates (compliance, operations, executive categories)
+  - 5 sample user reports for demo CCO
+  - Templates: Case Volume, Time-to-Close, SLA Rate, Disclosure Completion,
+    Open Cases by Priority, Anonymous vs Named, Cases by Location,
+    Investigator Workload, RIU Intake Trends, Quarterly Board Summary
+  - Idempotent seeder with findFirst check before create
 - 18-05: Report list page at /reports (COMPLETE - 62b3592, 5b69516)
   - TypeScript types (SavedReport, ReportField, ReportResult, etc.)
   - API client (reportsApi) for all 12 backend endpoints
