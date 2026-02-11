@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-02)
 
 **Core value:** Users can manage their entire compliance workflow - from anonymous report intake to investigation closure to board reporting - in one AI-assisted platform, with every task unified into a single "My Work" view.
-**Current focus:** Phase 18 Reports & Data Management - Plan 01 COMPLETE
+**Current focus:** Phase 18 Reports & Data Management - Plan 03 COMPLETE
 
 ## Current Position
 
 Phase: 18 of 24 (Reports & Data Management)
-Plan: 1 of ? in current phase
-Status: In progress - Plan 01 COMPLETE
-Last activity: 2026-02-11 - Completed 18-01-PLAN.md (Reports Data Foundation). Commits 58ba8ad, bed1c0c.
+Plan: 3 of 9 in current phase
+Status: In progress - Plan 03 COMPLETE
+Last activity: 2026-02-11 - Completed 18-03-PLAN.md (ReportController REST API). Commits b5519e1, 0ba4718.
 
-Progress: [====================================================------------------] ~84% (~218 of ~260 estimated total plans)
+Progress: [====================================================------------------] ~84% (~220 of ~260 estimated total plans)
 
 ### Phase 17 Campaigns Hub IN PROGRESS (2026-02-11)
 
@@ -50,6 +50,14 @@ Progress: [====================================================-----------------
   - ReportService for SavedReport CRUD operations
   - Support for 7 entity types with tenant isolation
   - Filter operators, grouped aggregation, relationship fields
+- 18-03: ReportController REST API (COMPLETE - b5519e1, 0ba4718)
+  - 12 REST endpoints at /api/v1/reports/\*
+  - GET /fields/:entityType for report designer field picker
+  - CRUD endpoints (GET/POST/PUT/DELETE /reports)
+  - Execution endpoint POST /reports/:id/run
+  - Actions: duplicate, favorite, export
+  - AI generation POST /reports/ai-generate
+  - ReportModule and AiQueryModule wired into AnalyticsModule
 
 ### Phase 14 Critical Bug Fixes & Navigation COMPLETE (2026-02-09)
 
