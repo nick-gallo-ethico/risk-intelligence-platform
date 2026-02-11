@@ -678,7 +678,20 @@ Plans:
 8. WebSocket /ai namespace connects successfully from frontend
 9. AI conversations are persisted and can be resumed
 10. AI features degrade gracefully when API key is missing or rate-limited
-    **Plans**: TBD — run `/gsd:plan-phase 16`
+    **Plans**: 8 plans in 5 waves (6 original + 2 gap closure/verification)
+
+**Important:** See `.planning/phases/16-ai-integration-fix/16-EXECUTION-NOTES.md` for Phase 15 overlap guidance.
+
+Plans:
+
+- [ ] 16-01-PLAN.md (Wave 1) — Backend REST chat endpoint, auth guard, context-loader fallback
+- [ ] 16-02-PLAN.md (Wave 2) — **SKIP** - Phase 15 built ai-chat-panel.tsx
+- [ ] 16-03-PLAN.md (Wave 2) — **SKIP** - Phase 15 installed socket.io-client and WebSocket
+- [ ] 16-04-PLAN.md (Wave 3) — AI skill components (summarize, category-suggest, risk-score)
+- [ ] 16-05-PLAN.md (Wave 3) — AI action preview components (Tasks 1-2 only)
+- [ ] 16-06-PLAN.md (Wave 4) — AI health check endpoint (Task 1 only)
+- [ ] 16-07-PLAN.md (Wave 1) — Execution notes documenting Phase 15 overlap
+- [ ] 16-08-PLAN.md (Wave 5) — End-to-end verification checkpoint
 
 ### Phase 17: Campaigns Hub
 
@@ -923,7 +936,7 @@ Phases execute in dependency order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 
 | 14.1. Data & Config Fixes (INSERTED)    | 4/4            | Complete | 2026-02-09 |
 | 14.2. Case Creation & Search (INSERTED) | 3/3            | Complete | 2026-02-10 |
 | 15. Case Detail Page Overhaul           | 7/10           | Gaps     | -          |
-| 16. AI Integration Fix                  | 0/TBD          | Planned  | -          |
+| 16. AI Integration Fix                  | 0/8            | Planned  | -          |
 | 17. Campaigns Hub                       | 0/4            | Planned  | -          |
 | 18. Reports & Data Management           | 0/9            | Planned  | -          |
 | 19. Workflow Engine UI                  | 0/7            | Planned  | -          |
@@ -936,7 +949,7 @@ Phases execute in dependency order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 
 ---
 
 _Roadmap created: 2026-02-02_
-_Updated: 2026-02-10 (Phase 15 gap closure plans created)_
+_Updated: 2026-02-11 (Phase 16 plans 07-08 created for overlap handling and verification)_
 _Depth: Comprehensive_
 _Total phases: 24 (+ 11.1 and decimal insertions)_
 _Total plans: 190+ completed, ~50-70 estimated remaining_
