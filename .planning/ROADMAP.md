@@ -741,15 +741,15 @@ Plans:
 
 Plans:
 
-- [ ] 18-01-PLAN.md (Wave 1) — SavedReport Prisma model, ReportFieldRegistryService, DTOs
-- [ ] 18-02-PLAN.md (Wave 1) — ReportExecutionService and ReportService CRUD
-- [ ] 18-03-PLAN.md (Wave 2) — ReportController REST API and ReportModule wiring
-- [ ] 18-04-PLAN.md (Wave 2) — Pre-built report templates and demo data seeder
-- [ ] 18-05-PLAN.md (Wave 3) — Report list page, TypeScript types, API client
-- [ ] 18-06-PLAN.md (Wave 3) — Report designer wizard (5-step: data source, fields, filters, visualization, save)
-- [ ] 18-07-PLAN.md (Wave 4) — Report detail page with chart/table/KPI visualizations (recharts)
-- [ ] 18-08-PLAN.md (Wave 4) — AI report generation dialog and ExportButton backend wiring
-- [ ] 18-09-PLAN.md (Wave 5) — Scheduled report delivery UI and backend schedule endpoints
+- [x] 18-01-PLAN.md (Wave 1) — SavedReport Prisma model, ReportFieldRegistryService, DTOs
+- [x] 18-02-PLAN.md (Wave 1) — ReportExecutionService and ReportService CRUD
+- [x] 18-03-PLAN.md (Wave 2) — ReportController REST API and ReportModule wiring
+- [x] 18-04-PLAN.md (Wave 2) — Pre-built report templates and demo data seeder
+- [x] 18-05-PLAN.md (Wave 3) — Report list page, TypeScript types, API client
+- [x] 18-06-PLAN.md (Wave 3) — Report designer wizard (5-step: data source, fields, filters, visualization, save)
+- [x] 18-07-PLAN.md (Wave 4) — Report detail page with chart/table/KPI visualizations (recharts)
+- [x] 18-08-PLAN.md (Wave 4) — AI report generation dialog and ExportButton backend wiring
+- [x] 18-09-PLAN.md (Wave 5) — Scheduled report delivery UI and backend schedule endpoints
 
 ### Phase 19: Workflow Engine UI
 
@@ -936,9 +936,9 @@ Phases execute in dependency order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 
 | 14.1. Data & Config Fixes (INSERTED)    | 4/4            | Complete | 2026-02-09 |
 | 14.2. Case Creation & Search (INSERTED) | 3/3            | Complete | 2026-02-10 |
 | 15. Case Detail Page Overhaul           | 7/10           | Gaps     | -          |
-| 16. AI Integration Fix                  | 0/8            | Planned  | -          |
-| 17. Campaigns Hub                       | 0/4            | Planned  | -          |
-| 18. Reports & Data Management           | 0/9            | Planned  | -          |
+| 16. AI Integration Fix                  | 8/8            | Complete | 2026-02-11 |
+| 17. Campaigns Hub                       | 4/4            | Complete | 2026-02-11 |
+| 18. Reports & Data Management           | 9/9            | Complete | 2026-02-11 |
 | 19. Workflow Engine UI                  | 0/7            | Planned  | -          |
 | 20. Settings Overhaul (HubSpot)         | 0/TBD          | Planned  | -          |
 | 21. Project Management (Monday.com)     | 0/6            | Planned  | -          |
@@ -949,9 +949,9 @@ Phases execute in dependency order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 
 ---
 
 _Roadmap created: 2026-02-02_
-_Updated: 2026-02-11 (Phase 16 plans 07-08 created for overlap handling and verification)_
+_Updated: 2026-02-11 (Phase 18 complete — Reports & Data Management)_
 _Depth: Comprehensive_
 _Total phases: 24 (+ 11.1 and decimal insertions)_
-_Total plans: 190+ completed, ~50-70 estimated remaining_
+_Total plans: 220+ completed, ~40-50 estimated remaining_
 _Total v1 requirements: 149 + QA punch list items_
 _Issues reference: .planning/V1-ISSUES-AND-GAPS.md_
