@@ -59,6 +59,7 @@ function CaseDetailPageContent() {
   const [mergeModalOpen, setMergeModalOpen] = useState(false);
   const [noteModalOpen, setNoteModalOpen] = useState(false);
   const [emailModalOpen, setEmailModalOpen] = useState(false);
+  const [aiPanelOpen, setAiPanelOpen] = useState(false);
 
   const caseId = params?.id as string;
 
@@ -229,11 +230,25 @@ function CaseDetailPageContent() {
           />
         </main>
 
-        {/* RIGHT COLUMN - Connected entities (placeholder) */}
-        <aside className="border-l overflow-y-auto bg-gray-50/50 hidden lg:block p-4">
-          {/* Placeholder - populated in Plan 05 */}
-          <div className="text-sm text-gray-500 text-center py-8">
-            Connected entities will appear here
+        {/* RIGHT COLUMN - Connected entities */}
+        <aside className="border-l overflow-y-auto bg-gray-50/50 hidden lg:block">
+          <div className="p-4 space-y-4">
+            {caseData && (
+              <>
+                <ConnectedPeopleCard caseId={caseData.id} />
+                <ConnectedDocumentsCard caseId={caseData.id} />
+                <div className="pt-2">
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start gap-2"
+                    onClick={() => setAiPanelOpen(true)}
+                  >
+                    <Sparkles className="w-4 h-4" />
+                    Ask AI Assistant
+                  </Button>
+                </div>
+              </>
+            )}
           </div>
         </aside>
       </div>
@@ -363,8 +378,41 @@ function CaseDetailPageSkeleton() {
         </main>
 
         {/* Right column skeleton */}
-        <aside className="hidden lg:block bg-gray-50/50 border-l p-4">
-          <Skeleton className="h-4 w-40 mx-auto" />
+        <aside className="hidden lg:block bg-gray-50/50 border-l p-4 space-y-4">
+          {/* Connected People skeleton */}
+          <div className="rounded-lg border bg-card p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <Skeleton className="h-5 w-32" />
+              <Skeleton className="h-5 w-6 rounded-full" />
+            </div>
+            {[1, 2].map((i) => (
+              <div key={i} className="flex items-center gap-3">
+                <Skeleton className="h-8 w-8 rounded-full" />
+                <div className="space-y-1 flex-1">
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-3 w-16" />
+                </div>
+              </div>
+            ))}
+          </div>
+          {/* Connected Documents skeleton */}
+          <div className="rounded-lg border bg-card p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <Skeleton className="h-5 w-36" />
+              <Skeleton className="h-5 w-6 rounded-full" />
+            </div>
+            {[1, 2].map((i) => (
+              <div key={i} className="flex items-center gap-3">
+                <Skeleton className="h-8 w-8 rounded" />
+                <div className="space-y-1 flex-1">
+                  <Skeleton className="h-4 w-28" />
+                  <Skeleton className="h-3 w-20" />
+                </div>
+              </div>
+            ))}
+          </div>
+          {/* AI button skeleton */}
+          <Skeleton className="h-10 w-full mt-2" />
         </aside>
       </div>
     </div>
