@@ -18,7 +18,9 @@ import {
 import { CaseTabs } from "@/components/cases/case-tabs";
 import { ConnectedPeopleCard } from "@/components/cases/connected-people-card";
 import { ConnectedDocumentsCard } from "@/components/cases/connected-documents-card";
+import { AiChatPanel } from "@/components/cases/ai-chat-panel";
 import { AssignModal } from "@/components/cases/assign-modal";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { StatusChangeModal } from "@/components/cases/status-change-modal";
 import { MergeModal } from "@/components/cases/merge-modal";
 import { AddNoteModal } from "@/components/cases/add-note-modal";
@@ -291,6 +293,17 @@ function CaseDetailPageContent() {
             onOpenChange={setEmailModalOpen}
             onEmailLogged={fetchCase}
           />
+
+          {/* AI Chat Panel - slides out from right */}
+          <Sheet open={aiPanelOpen} onOpenChange={setAiPanelOpen}>
+            <SheetContent side="right" className="w-[400px] sm:w-[480px] p-0">
+              <AiChatPanel
+                entityType="case"
+                entityId={caseData.id}
+                onActionComplete={fetchCase}
+              />
+            </SheetContent>
+          </Sheet>
         </>
       )}
     </div>
