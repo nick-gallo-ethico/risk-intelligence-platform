@@ -120,8 +120,12 @@ export interface ReportFilter {
     | "lt"
     | "lte"
     | "in"
+    | "notIn"
     | "contains"
-    | "between";
+    | "startsWith"
+    | "between"
+    | "isNull"
+    | "isNotNull";
 
   /** Value to compare against */
   value: unknown;
