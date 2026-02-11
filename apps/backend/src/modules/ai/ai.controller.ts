@@ -6,7 +6,12 @@ import {
   Param,
   Query,
   Request,
+  UseGuards,
+  Injectable,
+  ExecutionContext,
 } from "@nestjs/common";
+import { Reflector } from "@nestjs/core";
+import { AuthGuard } from "@nestjs/passport";
 import { SkillRegistry } from "./skills/skill.registry";
 import { ActionCatalog } from "./actions/action.catalog";
 import { ActionExecutorService } from "./actions/action-executor.service";
@@ -30,22 +35,54 @@ interface AuthenticatedRequest {
 }
 
 /**
+ * OptionalJwtAuthGuard extends AuthGuard('jwt') but doesn't throw on missing auth.
+ * This allows endpoints to work with or without authentication:
+ * - Authenticated users get real `req.user` with organizationId, id, role, permissions
+ * - Unauthenticated users get `req.user = null` and fallbacks still work
+ */
+@Injectable()
+class OptionalJwtAuthGuard extends AuthGuard("jwt") {
+  constructor(private reflector: Reflector) {
+    super();
+  }
+
+  canActivate(context: ExecutionContext) {
+    // Always try to validate the token, but don't fail if missing
+    return super.canActivate(context);
+  }
+
+  handleRequest<TUser = unknown>(
+    err: unknown,
+    user: TUser,
+    _info: unknown,
+    _context: ExecutionContext,
+    _status?: unknown,
+  ): TUser | null {
+    // Don't throw on missing auth — return null user
+    // This allows the controller to use fallback "demo" values
+    return user || null;
+  }
+}
+
+/**
  * AiController provides REST endpoints for AI features.
  *
  * Endpoints are organized by feature:
+ * - Chat: REST endpoint for agent-based chat (non-streaming)
  * - Skills: List and execute AI skills
  * - Actions: List, preview, execute, and undo actions
  * - Conversations: CRUD and search for AI conversations
  * - Agents: List agents and get suggestions
  * - Usage: Get AI usage statistics
  *
- * All endpoints require authentication (JwtAuthGuard in production).
- * Tenant isolation enforced via organizationId from JWT.
+ * All endpoints use OptionalJwtAuthGuard - works with or without auth.
+ * Authenticated users get real context; unauthenticated users get "demo" fallbacks.
+ * Tenant isolation enforced via organizationId from JWT when available.
  *
  * @see AiGateway for WebSocket streaming endpoints
  */
 @Controller("ai")
-// @UseGuards(JwtAuthGuard) // Uncomment when auth module available
+@UseGuards(OptionalJwtAuthGuard)
 export class AiController {
   constructor(
     private readonly skillRegistry: SkillRegistry,
@@ -56,6 +93,87 @@ export class AiController {
     private readonly agentRegistry: AgentRegistry,
     private readonly rateLimiter: AiRateLimiterService,
   ) {}
+
+  // ============ Chat ============
+
+  /**
+   * Chat with an AI agent via REST (non-streaming).
+   * Routes through the agent system, collecting streamed response into single response.
+   *
+   * Use WebSocket endpoints in AiGateway for streaming responses.
+   *
+   * @param body - Chat request with message, optional entity context, and agent type
+   * @param req - Request with optional user context from JWT
+   * @returns Chat response with agent reply
+   */
+  @Post("chat")
+  async chat(
+    @Body()
+    body: {
+      message: string;
+      entityType?: string;
+      entityId?: string;
+      agentType?: string;
+      conversationId?: string;
+    },
+    @Request() req: AuthenticatedRequest,
+  ) {
+    const orgId = req.user?.organizationId || "demo";
+    const userId = req.user?.id || "demo";
+    const userRole = req.user?.role || "EMPLOYEE";
+    const permissions = req.user?.permissions || [];
+
+    // Determine agent type from explicit param, entity type, or default
+    const resolvedAgentType =
+      body.agentType ||
+      this.agentRegistry.getAgentTypeForEntity(body.entityType || "") ||
+      "compliance-manager";
+
+    const context = {
+      organizationId: orgId,
+      userId: userId,
+      userRole: userRole,
+      permissions: permissions,
+      entityType: body.entityType,
+      entityId: body.entityId,
+    };
+
+    try {
+      // Get or create agent
+      const agent = this.agentRegistry.getAgent(resolvedAgentType, context);
+      await agent.initialize(context);
+
+      // Collect streamed response into single response (non-streaming REST)
+      let fullContent = "";
+
+      for await (const event of agent.chat(body.message, context)) {
+        if (event.type === "text_delta" && event.text) {
+          fullContent += event.text;
+        } else if (event.type === "error") {
+          return {
+            success: false,
+            error: event.error || "AI processing failed",
+            agentType: resolvedAgentType,
+          };
+        }
+      }
+
+      return {
+        success: true,
+        response: fullContent,
+        agentType: resolvedAgentType,
+        entityType: body.entityType,
+        entityId: body.entityId,
+      };
+    } catch (error: unknown) {
+      const err = error as Error;
+      return {
+        success: false,
+        error: err.message || "Failed to process chat request",
+        agentType: resolvedAgentType,
+      };
+    }
+  }
 
   // ============ Skills ============
 
