@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 16 of 24 (AI Integration Fix) - IN PROGRESS
-Plan: 7 of 8 in current phase (plans 02-03 SKIPPED, 07 COMPLETE)
-Status: Phase 16 IN PROGRESS - execution notes created for Phase 15 overlap
-Last activity: 2026-02-11 - Completed 16-07 (execution notes) documenting Phase 15/16 overlap. Plans 16-02 and 16-03 SKIPPED.
+Plan: 1 of 8 in current phase (01 COMPLETE, plans 02-03 SKIPPED, 07 COMPLETE)
+Status: Phase 16 IN PROGRESS - backend AI blockers fixed
+Last activity: 2026-02-11 - Completed 16-01 (REST chat endpoint, auth guard, context-loader fallbacks). Plans 16-02 and 16-03 SKIPPED.
 
 Progress: [====================================================------------------] ~80% (~210 of ~260 estimated total plans)
 
@@ -125,7 +125,10 @@ See: `.planning/phases/16-ai-integration-fix/16-EXECUTION-NOTES.md`
 
 Plans:
 
-- 16-01: Backend REST chat endpoint + auth guard + context-loader fallback (PENDING)
+- 16-01: Backend REST chat endpoint + auth guard + context-loader fallback (COMPLETE - bf41124, d5aae62)
+  - POST /api/v1/ai/chat endpoint routing through agent system
+  - OptionalJwtAuthGuard allows unauthenticated requests with "demo" fallback
+  - ContextLoaderService returns fallback context instead of throwing on missing org/user
 - 16-02: AI panel context + useAiChat hook (SKIPPED - Phase 15 built equivalent)
 - 16-03: Socket.io client + WebSocket hooks (SKIPPED - Phase 15 built equivalent)
 - 16-04: AI skill components (summarize, category-suggest, risk-score) (PENDING)
