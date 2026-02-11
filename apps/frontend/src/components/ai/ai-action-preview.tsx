@@ -201,7 +201,9 @@ export function AiActionPreview({
           >
             <Undo2 className="h-3 w-3" />
             {undoWindowSeconds > 0 ? (
-              <span>Undo available for {formatUndoWindow(undoWindowSeconds)}</span>
+              <span>
+                Undo available for {formatUndoWindow(undoWindowSeconds)}
+              </span>
             ) : (
               <span>This action cannot be undone</span>
             )}
