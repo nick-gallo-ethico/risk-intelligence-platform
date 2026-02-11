@@ -1,18 +1,18 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuth } from '@/contexts/auth-context';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { casesApi } from '@/lib/cases-api';
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/contexts/auth-context";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { casesApi } from "@/lib/cases-api";
 import {
   QuickActions,
   StatsCards,
   RecentCases,
   MyAssignments,
   MyTasks,
-} from '@/components/dashboard';
-import type { Case } from '@/types/case';
+} from "@/components/dashboard";
+import type { Case } from "@/types/case";
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -22,7 +22,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
-      router.push('/login');
+      router.push("/login");
     }
   }, [authLoading, isAuthenticated, router]);
 
@@ -36,12 +36,12 @@ export default function DashboardPage() {
         // Fetch recent cases (reduced limit for faster dashboard load)
         const response = await casesApi.list({
           limit: 25,
-          sortBy: 'createdAt',
-          sortOrder: 'desc',
+          sortBy: "createdAt",
+          sortOrder: "desc",
         });
         setCases(response.data);
       } catch (error) {
-        console.error('Failed to fetch cases:', error);
+        console.error("Failed to fetch cases:", error);
       } finally {
         setIsLoadingCases(false);
       }
@@ -68,7 +68,7 @@ export default function DashboardPage() {
       <div>
         <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
         <p className="text-muted-foreground mt-1">
-          Welcome back, {user.firstName}. Here's your compliance overview.
+          Welcome back, {user.firstName}. Here&apos;s your compliance overview.
         </p>
       </div>
 
@@ -107,19 +107,31 @@ export default function DashboardPage() {
         <CardContent>
           <dl className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <dt className="text-sm font-medium text-muted-foreground">Email</dt>
+              <dt className="text-sm font-medium text-muted-foreground">
+                Email
+              </dt>
               <dd className="text-sm text-foreground">{user.email}</dd>
             </div>
             <div>
-              <dt className="text-sm font-medium text-muted-foreground">Role</dt>
-              <dd className="text-sm text-foreground">{user.role.replace(/_/g, ' ')}</dd>
+              <dt className="text-sm font-medium text-muted-foreground">
+                Role
+              </dt>
+              <dd className="text-sm text-foreground">
+                {user.role.replace(/_/g, " ")}
+              </dd>
             </div>
             <div>
-              <dt className="text-sm font-medium text-muted-foreground">User ID</dt>
-              <dd className="text-sm text-foreground font-mono text-xs">{user.id}</dd>
+              <dt className="text-sm font-medium text-muted-foreground">
+                User ID
+              </dt>
+              <dd className="text-sm text-foreground font-mono text-xs">
+                {user.id}
+              </dd>
             </div>
             <div>
-              <dt className="text-sm font-medium text-muted-foreground">Organization ID</dt>
+              <dt className="text-sm font-medium text-muted-foreground">
+                Organization ID
+              </dt>
               <dd className="text-sm text-foreground font-mono text-xs">
                 {user.organizationId}
               </dd>
