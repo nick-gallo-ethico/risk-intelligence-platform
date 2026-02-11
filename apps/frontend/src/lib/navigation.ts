@@ -15,9 +15,11 @@ import {
   Settings,
   ClipboardList,
   Plug,
+  Megaphone,
+  FileInput,
   type LucideIcon,
-} from 'lucide-react';
-import type { UserRole } from '@/types/auth';
+} from "lucide-react";
+import type { UserRole } from "@/types/auth";
 
 export interface NavItem {
   title: string;
@@ -37,38 +39,48 @@ export interface NavSubItem {
  */
 export const navigationItems: NavItem[] = [
   {
-    title: 'Home',
-    url: '/dashboard',
+    title: "Home",
+    url: "/dashboard",
     icon: Home,
   },
   {
-    title: 'Cases',
-    url: '/cases',
+    title: "Cases",
+    url: "/cases",
     icon: Briefcase,
   },
   {
-    title: 'Investigations',
-    url: '/investigations',
+    title: "Investigations",
+    url: "/investigations",
     icon: Search,
   },
   {
-    title: 'Disclosures',
-    url: '/disclosures',
+    title: "Disclosures",
+    url: "/disclosures",
     icon: FileWarning,
   },
   {
-    title: 'Policies',
-    url: '/policies',
+    title: "Policies",
+    url: "/policies",
     icon: FileText,
   },
   {
-    title: 'Projects',
-    url: '/projects',
+    title: "Campaigns",
+    url: "/campaigns",
+    icon: Megaphone,
+  },
+  {
+    title: "Forms",
+    url: "/forms",
+    icon: FileInput,
+  },
+  {
+    title: "Projects",
+    url: "/projects",
     icon: FolderKanban,
   },
   {
-    title: 'Analytics',
-    url: '/analytics',
+    title: "Analytics",
+    url: "/analytics",
     icon: BarChart3,
   },
 ];
@@ -78,41 +90,44 @@ export const navigationItems: NavItem[] = [
  */
 export const adminItems: NavItem[] = [
   {
-    title: 'Users',
-    url: '/settings/users',
+    title: "Users",
+    url: "/settings/users",
     icon: Users,
-    requiredRoles: ['SYSTEM_ADMIN'],
+    requiredRoles: ["SYSTEM_ADMIN"],
   },
   {
-    title: 'Roles',
-    url: '/settings/roles',
+    title: "Roles",
+    url: "/settings/roles",
     icon: Shield,
-    requiredRoles: ['SYSTEM_ADMIN'],
+    requiredRoles: ["SYSTEM_ADMIN"],
   },
   {
-    title: 'Settings',
-    url: '/settings/organization',
+    title: "Settings",
+    url: "/settings/organization",
     icon: Settings,
-    requiredRoles: ['SYSTEM_ADMIN', 'COMPLIANCE_OFFICER'],
+    requiredRoles: ["SYSTEM_ADMIN", "COMPLIANCE_OFFICER"],
   },
   {
-    title: 'Audit Log',
-    url: '/settings/audit',
+    title: "Audit Log",
+    url: "/settings/audit",
     icon: ClipboardList,
-    requiredRoles: ['SYSTEM_ADMIN', 'COMPLIANCE_OFFICER'],
+    requiredRoles: ["SYSTEM_ADMIN", "COMPLIANCE_OFFICER"],
   },
   {
-    title: 'Integrations',
-    url: '/settings/integrations',
+    title: "Integrations",
+    url: "/settings/integrations",
     icon: Plug,
-    requiredRoles: ['SYSTEM_ADMIN'],
+    requiredRoles: ["SYSTEM_ADMIN"],
   },
 ];
 
 /**
  * Check if a user role has access to a nav item
  */
-export function hasAccess(userRole: UserRole, requiredRoles?: UserRole[]): boolean {
+export function hasAccess(
+  userRole: UserRole,
+  requiredRoles?: UserRole[],
+): boolean {
   if (!requiredRoles || requiredRoles.length === 0) {
     return true;
   }

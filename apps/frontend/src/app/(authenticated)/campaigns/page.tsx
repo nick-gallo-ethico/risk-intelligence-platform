@@ -1,19 +1,19 @@
-'use client';
+"use client";
 
-import { useState, useCallback, useMemo, Suspense } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { Plus } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useState, useCallback, useMemo, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Plus, FileInput } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   CampaignsSummaryCards,
   CampaignsFilters,
   CampaignsTable,
-} from '@/components/campaigns';
-import { Pagination } from '@/components/cases/pagination';
-import { useCampaigns, useCampaignStats } from '@/hooks/use-campaigns';
-import type { CampaignQueryParams, CampaignStatus } from '@/types/campaign';
+} from "@/components/campaigns";
+import { Pagination } from "@/components/cases/pagination";
+import { useCampaigns, useCampaignStats } from "@/hooks/use-campaigns";
+import type { CampaignQueryParams, CampaignStatus } from "@/types/campaign";
 
 const PAGE_SIZE = 20;
 
@@ -22,9 +22,9 @@ const PAGE_SIZE = 20;
  */
 const TAB_PRESETS: Record<string, Partial<CampaignQueryParams>> = {
   all: {},
-  active: { status: 'ACTIVE' as CampaignStatus },
-  drafts: { status: 'DRAFT' as CampaignStatus },
-  completed: { status: 'COMPLETED' as CampaignStatus },
+  active: { status: "ACTIVE" as CampaignStatus },
+  drafts: { status: "DRAFT" as CampaignStatus },
+  completed: { status: "COMPLETED" as CampaignStatus },
 };
 
 function CampaignsContent() {
@@ -34,26 +34,29 @@ function CampaignsContent() {
   // Parse filters from URL search params
   const filtersFromUrl = useMemo((): CampaignQueryParams => {
     return {
-      type: (searchParams?.get('type') as CampaignQueryParams['type']) || undefined,
-      status: (searchParams?.get('status') as CampaignQueryParams['status']) || undefined,
-      ownerId: searchParams?.get('ownerId') || undefined,
-      startDateFrom: searchParams?.get('startDateFrom') || undefined,
-      startDateTo: searchParams?.get('startDateTo') || undefined,
-      search: searchParams?.get('search') || undefined,
-      sortBy: searchParams?.get('sortBy') || 'createdAt',
-      sortOrder: (searchParams?.get('sortOrder') as 'asc' | 'desc') || 'desc',
-      page: parseInt(searchParams?.get('page') || '0', 10),
-      limit: parseInt(searchParams?.get('limit') || String(PAGE_SIZE), 10),
+      type:
+        (searchParams?.get("type") as CampaignQueryParams["type"]) || undefined,
+      status:
+        (searchParams?.get("status") as CampaignQueryParams["status"]) ||
+        undefined,
+      ownerId: searchParams?.get("ownerId") || undefined,
+      startDateFrom: searchParams?.get("startDateFrom") || undefined,
+      startDateTo: searchParams?.get("startDateTo") || undefined,
+      search: searchParams?.get("search") || undefined,
+      sortBy: searchParams?.get("sortBy") || "createdAt",
+      sortOrder: (searchParams?.get("sortOrder") as "asc" | "desc") || "desc",
+      page: parseInt(searchParams?.get("page") || "0", 10),
+      limit: parseInt(searchParams?.get("limit") || String(PAGE_SIZE), 10),
     };
   }, [searchParams]);
 
   // Local state for active tab (derived from status filter)
   const activeTab = useMemo(() => {
-    if (!filtersFromUrl.status) return 'all';
-    if (filtersFromUrl.status === 'ACTIVE') return 'active';
-    if (filtersFromUrl.status === 'DRAFT') return 'drafts';
-    if (filtersFromUrl.status === 'COMPLETED') return 'completed';
-    return 'all';
+    if (!filtersFromUrl.status) return "all";
+    if (filtersFromUrl.status === "ACTIVE") return "active";
+    if (filtersFromUrl.status === "DRAFT") return "drafts";
+    if (filtersFromUrl.status === "COMPLETED") return "completed";
+    return "all";
   }, [filtersFromUrl.status]);
 
   // Fetch campaigns with filters
@@ -71,31 +74,31 @@ function CampaignsContent() {
    */
   const updateFilters = useCallback(
     (updates: Partial<CampaignQueryParams>) => {
-      const newParams = new URLSearchParams(searchParams?.toString() || '');
+      const newParams = new URLSearchParams(searchParams?.toString() || "");
       const newFilters = { ...filtersFromUrl, ...updates };
 
       // Reset page when filters change (except page itself)
-      if (!('page' in updates)) {
+      if (!("page" in updates)) {
         newFilters.page = 0;
       }
 
       // Update URL params
       const paramMapping: [keyof CampaignQueryParams, string][] = [
-        ['type', 'type'],
-        ['status', 'status'],
-        ['ownerId', 'ownerId'],
-        ['startDateFrom', 'startDateFrom'],
-        ['startDateTo', 'startDateTo'],
-        ['search', 'search'],
-        ['sortBy', 'sortBy'],
-        ['sortOrder', 'sortOrder'],
-        ['page', 'page'],
-        ['limit', 'limit'],
+        ["type", "type"],
+        ["status", "status"],
+        ["ownerId", "ownerId"],
+        ["startDateFrom", "startDateFrom"],
+        ["startDateTo", "startDateTo"],
+        ["search", "search"],
+        ["sortBy", "sortBy"],
+        ["sortOrder", "sortOrder"],
+        ["page", "page"],
+        ["limit", "limit"],
       ];
 
       for (const [key, paramName] of paramMapping) {
         const value = newFilters[key];
-        if (value !== undefined && value !== '' && value !== 0) {
+        if (value !== undefined && value !== "" && value !== 0) {
           newParams.set(paramName, String(value));
         } else {
           newParams.delete(paramName);
@@ -103,16 +106,17 @@ function CampaignsContent() {
       }
 
       // Clean up defaults
-      if (newFilters.sortBy === 'createdAt') newParams.delete('sortBy');
-      if (newFilters.sortOrder === 'desc') newParams.delete('sortOrder');
-      if ((newFilters.limit ?? PAGE_SIZE) === PAGE_SIZE) newParams.delete('limit');
+      if (newFilters.sortBy === "createdAt") newParams.delete("sortBy");
+      if (newFilters.sortOrder === "desc") newParams.delete("sortOrder");
+      if ((newFilters.limit ?? PAGE_SIZE) === PAGE_SIZE)
+        newParams.delete("limit");
 
       const queryString = newParams.toString();
-      router.push(`/campaigns${queryString ? `?${queryString}` : ''}`, {
+      router.push(`/campaigns${queryString ? `?${queryString}` : ""}`, {
         scroll: false,
       });
     },
-    [filtersFromUrl, router, searchParams]
+    [filtersFromUrl, router, searchParams],
   );
 
   /**
@@ -131,7 +135,7 @@ function CampaignsContent() {
         search: undefined,
       });
     },
-    [updateFilters]
+    [updateFilters],
   );
 
   /**
@@ -140,12 +144,12 @@ function CampaignsContent() {
   const handleSort = useCallback(
     (column: string) => {
       const newSortOrder =
-        filtersFromUrl.sortBy === column && filtersFromUrl.sortOrder === 'asc'
-          ? 'desc'
-          : 'asc';
+        filtersFromUrl.sortBy === column && filtersFromUrl.sortOrder === "asc"
+          ? "desc"
+          : "asc";
       updateFilters({ sortBy: column, sortOrder: newSortOrder });
     },
-    [filtersFromUrl.sortBy, filtersFromUrl.sortOrder, updateFilters]
+    [filtersFromUrl.sortBy, filtersFromUrl.sortOrder, updateFilters],
   );
 
   /**
@@ -155,14 +159,14 @@ function CampaignsContent() {
     (page: number) => {
       updateFilters({ page });
     },
-    [updateFilters]
+    [updateFilters],
   );
 
   const handlePageSizeChange = useCallback(
     (limit: number) => {
       updateFilters({ limit, page: 0 });
     },
-    [updateFilters]
+    [updateFilters],
   );
 
   const campaigns = campaignsData?.data ?? [];
@@ -178,10 +182,16 @@ function CampaignsContent() {
             Manage compliance campaigns
           </p>
         </div>
-        <Button onClick={() => router.push('/campaigns/new')}>
-          <Plus className="mr-2 h-4 w-4" />
-          Create Campaign
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={() => router.push("/forms")}>
+            <FileInput className="mr-2 h-4 w-4" />
+            Manage Forms
+          </Button>
+          <Button onClick={() => router.push("/campaigns/new")}>
+            <Plus className="mr-2 h-4 w-4" />
+            Create Campaign
+          </Button>
+        </div>
       </div>
 
       {/* Summary Cards */}
@@ -211,8 +221,8 @@ function CampaignsContent() {
             campaigns={campaigns}
             isLoading={isLoading}
             onSort={handleSort}
-            sortBy={filtersFromUrl.sortBy || 'createdAt'}
-            sortOrder={filtersFromUrl.sortOrder || 'desc'}
+            sortBy={filtersFromUrl.sortBy || "createdAt"}
+            sortOrder={filtersFromUrl.sortOrder || "desc"}
           />
 
           {/* Pagination */}

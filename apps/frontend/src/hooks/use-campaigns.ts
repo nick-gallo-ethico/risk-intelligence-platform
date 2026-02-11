@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 /**
  * Campaigns React Query Hooks
@@ -6,24 +6,30 @@
  * Provides data fetching hooks for campaigns with React Query.
  */
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { campaignsApi } from '@/lib/campaigns-api';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { campaignsApi } from "@/lib/campaigns-api";
 import type {
   CampaignQueryParams,
   CampaignDashboardStats,
   Campaign,
   CreateCampaignDto,
   UpdateCampaignDto,
-} from '@/types/campaign';
+  CampaignAssignmentStatus,
+} from "@/types/campaign";
 
 // Query keys for cache management
 export const campaignQueryKeys = {
-  all: ['campaigns'] as const,
-  lists: () => [...campaignQueryKeys.all, 'list'] as const,
-  list: (params?: CampaignQueryParams) => [...campaignQueryKeys.lists(), params] as const,
-  details: () => [...campaignQueryKeys.all, 'detail'] as const,
+  all: ["campaigns"] as const,
+  lists: () => [...campaignQueryKeys.all, "list"] as const,
+  list: (params?: CampaignQueryParams) =>
+    [...campaignQueryKeys.lists(), params] as const,
+  details: () => [...campaignQueryKeys.all, "detail"] as const,
   detail: (id: string) => [...campaignQueryKeys.details(), id] as const,
-  stats: () => [...campaignQueryKeys.all, 'stats'] as const,
+  stats: () => [...campaignQueryKeys.all, "stats"] as const,
+  assignments: (id: string) =>
+    [...campaignQueryKeys.all, "assignments", id] as const,
+  overdue: () => [...campaignQueryKeys.all, "overdue"] as const,
+  upcoming: () => [...campaignQueryKeys.all, "upcoming"] as const,
 };
 
 /**
@@ -109,7 +115,7 @@ export function useUpdateCampaign() {
       // Update the specific campaign in cache
       queryClient.setQueryData(
         campaignQueryKeys.detail(updatedCampaign.id),
-        updatedCampaign
+        updatedCampaign,
       );
       // Invalidate lists
       queryClient.invalidateQueries({ queryKey: campaignQueryKeys.lists() });
@@ -124,12 +130,17 @@ export function useLaunchCampaign() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, notifyImmediately }: { id: string; notifyImmediately?: boolean }) =>
-      campaignsApi.launch(id, notifyImmediately),
+    mutationFn: ({
+      id,
+      notifyImmediately,
+    }: {
+      id: string;
+      notifyImmediately?: boolean;
+    }) => campaignsApi.launch(id, notifyImmediately),
     onSuccess: (updatedCampaign) => {
       queryClient.setQueryData(
         campaignQueryKeys.detail(updatedCampaign.id),
-        updatedCampaign
+        updatedCampaign,
       );
       queryClient.invalidateQueries({ queryKey: campaignQueryKeys.lists() });
       queryClient.invalidateQueries({ queryKey: campaignQueryKeys.stats() });
@@ -148,7 +159,7 @@ export function usePauseCampaign() {
     onSuccess: (updatedCampaign) => {
       queryClient.setQueryData(
         campaignQueryKeys.detail(updatedCampaign.id),
-        updatedCampaign
+        updatedCampaign,
       );
       queryClient.invalidateQueries({ queryKey: campaignQueryKeys.lists() });
       queryClient.invalidateQueries({ queryKey: campaignQueryKeys.stats() });
@@ -167,7 +178,7 @@ export function useResumeCampaign() {
     onSuccess: (updatedCampaign) => {
       queryClient.setQueryData(
         campaignQueryKeys.detail(updatedCampaign.id),
-        updatedCampaign
+        updatedCampaign,
       );
       queryClient.invalidateQueries({ queryKey: campaignQueryKeys.lists() });
       queryClient.invalidateQueries({ queryKey: campaignQueryKeys.stats() });
@@ -187,7 +198,7 @@ export function useCancelCampaign() {
     onSuccess: (updatedCampaign) => {
       queryClient.setQueryData(
         campaignQueryKeys.detail(updatedCampaign.id),
-        updatedCampaign
+        updatedCampaign,
       );
       queryClient.invalidateQueries({ queryKey: campaignQueryKeys.lists() });
       queryClient.invalidateQueries({ queryKey: campaignQueryKeys.stats() });
@@ -205,9 +216,72 @@ export function useDeleteCampaign() {
     mutationFn: (id: string) => campaignsApi.delete(id),
     onSuccess: (_, deletedId) => {
       // Remove from cache
-      queryClient.removeQueries({ queryKey: campaignQueryKeys.detail(deletedId) });
+      queryClient.removeQueries({
+        queryKey: campaignQueryKeys.detail(deletedId),
+      });
       queryClient.invalidateQueries({ queryKey: campaignQueryKeys.lists() });
       queryClient.invalidateQueries({ queryKey: campaignQueryKeys.stats() });
+    },
+  });
+}
+
+/**
+ * Hook for fetching campaign assignments.
+ */
+export function useCampaignAssignments(
+  id: string,
+  params?: { status?: CampaignAssignmentStatus; skip?: number; take?: number },
+) {
+  return useQuery({
+    queryKey: [...campaignQueryKeys.assignments(id), params],
+    queryFn: () => campaignsApi.getAssignments(id, params),
+    enabled: !!id,
+    staleTime: 30 * 1000, // 30 seconds
+  });
+}
+
+/**
+ * Hook for fetching overdue campaigns for dashboard.
+ */
+export function useOverdueCampaigns(limit?: number) {
+  return useQuery({
+    queryKey: [...campaignQueryKeys.overdue(), limit],
+    queryFn: () => campaignsApi.getOverdueCampaigns(limit),
+    staleTime: 60 * 1000, // 1 minute
+  });
+}
+
+/**
+ * Hook for fetching campaigns with upcoming deadlines.
+ */
+export function useUpcomingDeadlines(params?: {
+  days?: number;
+  limit?: number;
+}) {
+  return useQuery({
+    queryKey: [...campaignQueryKeys.upcoming(), params],
+    queryFn: () => campaignsApi.getUpcomingDeadlines(params),
+    staleTime: 60 * 1000, // 1 minute
+  });
+}
+
+/**
+ * Hook for sending reminders to a campaign's incomplete assignments.
+ */
+export function useSendReminders() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => campaignsApi.sendReminders(id),
+    onSuccess: (_, campaignId) => {
+      // Invalidate the campaign detail and stats to reflect any changes
+      queryClient.invalidateQueries({
+        queryKey: campaignQueryKeys.detail(campaignId),
+      });
+      queryClient.invalidateQueries({ queryKey: campaignQueryKeys.stats() });
+      queryClient.invalidateQueries({
+        queryKey: campaignQueryKeys.assignments(campaignId),
+      });
     },
   });
 }
