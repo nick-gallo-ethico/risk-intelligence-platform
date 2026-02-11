@@ -1,8 +1,9 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
-import { ActionDefinition, ActionCategory } from './action.types';
-import { createAddNoteAction } from './actions/add-note.action';
-import { createChangeStatusAction } from './actions/change-status.action';
+import { Injectable, Logger, OnModuleInit } from "@nestjs/common";
+import { PrismaService } from "../../prisma/prisma.service";
+import { ActionDefinition, ActionCategory } from "./action.types";
+import { createAddNoteAction } from "./actions/add-note.action";
+import { createAddCaseNoteAction } from "./actions/add-case-note.action";
+import { createChangeStatusAction } from "./actions/change-status.action";
 
 /**
  * ActionCatalog manages the registry of available actions.
@@ -38,6 +39,7 @@ export class ActionCatalog implements OnModuleInit {
   onModuleInit() {
     // Register built-in actions with Prisma dependency
     this.registerAction(createAddNoteAction(this.prisma));
+    this.registerAction(createAddCaseNoteAction(this.prisma));
     this.registerAction(createChangeStatusAction(this.prisma));
 
     this.logger.log(
