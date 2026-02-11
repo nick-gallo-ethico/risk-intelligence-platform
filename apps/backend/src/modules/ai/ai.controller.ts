@@ -19,6 +19,7 @@ import { ConversationService } from "./services/conversation.service";
 import { ContextLoaderService } from "./services/context-loader.service";
 import { AgentRegistry } from "./agents/agent.registry";
 import { AiRateLimiterService } from "./services/rate-limiter.service";
+import { AiClientService } from "./services/ai-client.service";
 import { ConversationStatus } from "./dto/conversation.dto";
 
 /**
@@ -92,7 +93,35 @@ export class AiController {
     private readonly contextLoader: ContextLoaderService,
     private readonly agentRegistry: AgentRegistry,
     private readonly rateLimiter: AiRateLimiterService,
+    private readonly aiClientService: AiClientService,
   ) {}
+
+  // ============ Health ============
+
+  /**
+   * Health check endpoint for AI service status.
+   * Reports whether AI is configured, available capabilities, and model info.
+   * Used by frontend for graceful degradation when AI is unavailable.
+   */
+  @Get("health")
+  async getHealth() {
+    const isConfigured = this.aiClientService.isConfigured();
+    const skills = this.skillRegistry.listSkills();
+    const agents = this.agentRegistry.listAgentTypes();
+    const actions = this.actionCatalog.listActions();
+
+    return {
+      status: isConfigured ? "available" : "unavailable",
+      configured: isConfigured,
+      capabilities: {
+        chat: isConfigured,
+        skills: skills,
+        agents: agents,
+        actions: actions,
+      },
+      model: isConfigured ? this.aiClientService.getModel() : null,
+    };
+  }
 
   // ============ Chat ============
 
