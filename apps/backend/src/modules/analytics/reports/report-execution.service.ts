@@ -129,10 +129,7 @@ const ENTITY_LABELS: Record<string, string> = {
  * Relationship field mappings for joined field resolution
  * Maps field names like "categoryName" to the actual relationship and field
  */
-const RELATIONSHIP_MAP: Record<
-  string,
-  Record<string, RelationshipField>
-> = {
+const RELATIONSHIP_MAP: Record<string, Record<string, RelationshipField>> = {
   cases: {
     categoryName: { relation: "primaryCategory", field: "name" },
     assigneeName: { relation: "createdBy", field: "firstName" },
@@ -376,8 +373,11 @@ export class ReportExecutionService {
     if (aggregation.function === "COUNT") {
       aggregationArgs._count = { _all: true };
     } else if (aggregation.field) {
-      const aggKey =
-        `_${aggregation.function.toLowerCase()}` as "_sum" | "_avg" | "_min" | "_max";
+      const aggKey = `_${aggregation.function.toLowerCase()}` as
+        | "_sum"
+        | "_avg"
+        | "_min"
+        | "_max";
       aggregationArgs[aggKey] = { [aggregation.field]: true };
     }
 
@@ -402,7 +402,9 @@ export class ReportExecutionService {
     // Transform to groupedData format
     const groupedData: GroupedDataPoint[] = groupedResults.map((row) => {
       // Build label from group by fields
-      const labelParts = groupByFields.map((field) => String(row[field] ?? "Unknown"));
+      const labelParts = groupByFields.map((field) =>
+        String(row[field] ?? "Unknown"),
+      );
       const label = labelParts.join(" / ");
 
       // Extract value based on aggregation type
@@ -410,9 +412,13 @@ export class ReportExecutionService {
       if (aggregation.function === "COUNT") {
         value = row._count?._all || 0;
       } else if (aggregation.field) {
-        const aggKey =
-          `_${aggregation.function.toLowerCase()}` as "_sum" | "_avg" | "_min" | "_max";
-        value = (row[aggKey] as Record<string, number>)?.[aggregation.field] || 0;
+        const aggKey = `_${aggregation.function.toLowerCase()}` as
+          | "_sum"
+          | "_avg"
+          | "_min"
+          | "_max";
+        value =
+          (row[aggKey] as Record<string, number>)?.[aggregation.field] || 0;
       }
 
       // Build metadata from group fields
@@ -436,7 +442,10 @@ export class ReportExecutionService {
       })),
       {
         key: "value",
-        label: aggregation.function === "COUNT" ? "Count" : `${aggregation.function}(${aggregation.field})`,
+        label:
+          aggregation.function === "COUNT"
+            ? "Count"
+            : `${aggregation.function}(${aggregation.field})`,
         type: "number",
       },
     ];
@@ -450,9 +459,13 @@ export class ReportExecutionService {
       if (aggregation.function === "COUNT") {
         result.value = row._count?._all || 0;
       } else if (aggregation.field) {
-        const aggKey =
-          `_${aggregation.function.toLowerCase()}` as "_sum" | "_avg" | "_min" | "_max";
-        result.value = (row[aggKey] as Record<string, number>)?.[aggregation.field] || 0;
+        const aggKey = `_${aggregation.function.toLowerCase()}` as
+          | "_sum"
+          | "_avg"
+          | "_min"
+          | "_max";
+        result.value =
+          (row[aggKey] as Record<string, number>)?.[aggregation.field] || 0;
       }
       return result;
     });
