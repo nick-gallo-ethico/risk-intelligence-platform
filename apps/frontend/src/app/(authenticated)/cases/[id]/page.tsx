@@ -18,6 +18,7 @@ import {
 import { CaseTabs } from "@/components/cases/case-tabs";
 import { ConnectedPeopleCard } from "@/components/cases/connected-people-card";
 import { ConnectedDocumentsCard } from "@/components/cases/connected-documents-card";
+import { CaseWorkflowPanel } from "@/components/cases/case-workflow-panel";
 import { AiChatPanel } from "@/components/cases/ai-chat-panel";
 import { AssignModal } from "@/components/cases/assign-modal";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
@@ -243,6 +244,7 @@ function CaseDetailPageContent() {
           <div className="p-4 space-y-4">
             {caseData && (
               <>
+                <CaseWorkflowPanel caseId={caseData.id} />
                 <ConnectedPeopleCard caseId={caseData.id} />
                 <ConnectedDocumentsCard caseId={caseData.id} />
                 <div className="pt-2">

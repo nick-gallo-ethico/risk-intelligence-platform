@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { useParams, useRouter, useSearchParams } from 'next/navigation';
-import { ArrowLeft, FileText, AlertCircle } from 'lucide-react';
-import Link from 'next/link';
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { ArrowLeft, FileText, AlertCircle } from "lucide-react";
+import Link from "next/link";
 
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Dialog,
   DialogContent,
@@ -16,14 +16,15 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-} from '@/components/ui/dialog';
-import { PolicyDetailHeader } from '@/components/policies/policy-detail-header';
-import { PolicyVersionHistory } from '@/components/policies/policy-version-history';
-import { PolicyTranslationsPanel } from '@/components/policies/policy-translations-panel';
-import { PolicyAttestationsPanel } from '@/components/policies/policy-attestations-panel';
-import { PolicyCasesPanel } from '@/components/policies/policy-cases-panel';
-import { RichTextDisplay } from '@/components/rich-text/rich-text-display';
-import { policiesApi } from '@/services/policies';
+} from "@/components/ui/dialog";
+import { PolicyDetailHeader } from "@/components/policies/policy-detail-header";
+import { PolicyVersionHistory } from "@/components/policies/policy-version-history";
+import { PolicyTranslationsPanel } from "@/components/policies/policy-translations-panel";
+import { PolicyAttestationsPanel } from "@/components/policies/policy-attestations-panel";
+import { PolicyCasesPanel } from "@/components/policies/policy-cases-panel";
+import { PolicyWorkflowPanel } from "@/components/policies/policy-workflow-panel";
+import { RichTextDisplay } from "@/components/rich-text/rich-text-display";
+import { policiesApi } from "@/services/policies";
 
 /**
  * Policy detail page.
@@ -39,16 +40,17 @@ import { policiesApi } from '@/services/policies';
  */
 export default function PolicyDetailPage() {
   const params = useParams<{ id: string }>();
-  const id = params?.id ?? '';
+  const id = params?.id ?? "";
   const router = useRouter();
   const searchParams = useSearchParams();
-  const currentTab = searchParams?.get('tab') || 'content';
+  const currentTab = searchParams?.get("tab") || "content";
 
   // Dialog states
   const [isPublishDialogOpen, setIsPublishDialogOpen] = useState(false);
   const [isRetireDialogOpen, setIsRetireDialogOpen] = useState(false);
   const [isApprovalDialogOpen, setIsApprovalDialogOpen] = useState(false);
-  const [isCancelApprovalDialogOpen, setIsCancelApprovalDialogOpen] = useState(false);
+  const [isCancelApprovalDialogOpen, setIsCancelApprovalDialogOpen] =
+    useState(false);
 
   // Fetch policy
   const {
@@ -56,36 +58,37 @@ export default function PolicyDetailPage() {
     isLoading: isLoadingPolicy,
     error: policyError,
   } = useQuery({
-    queryKey: ['policy', id],
+    queryKey: ["policy", id],
     queryFn: () => policiesApi.getById(id),
     enabled: !!id,
   });
 
   // Fetch versions (always load for version count badge)
   const { data: versions } = useQuery({
-    queryKey: ['policy-versions', id],
+    queryKey: ["policy-versions", id],
     queryFn: () => policiesApi.getVersions(id),
     enabled: !!id,
   });
 
   // Handle tab changes - sync with URL
   const handleTabChange = (tab: string) => {
-    const currentParams = searchParams?.toString() || '';
+    const currentParams = searchParams?.toString() || "";
     const params = new URLSearchParams(currentParams);
-    if (tab === 'content') {
-      params.delete('tab');
+    if (tab === "content") {
+      params.delete("tab");
     } else {
-      params.set('tab', tab);
+      params.set("tab", tab);
     }
     const queryString = params.toString();
-    router.push(`/policies/${id}${queryString ? `?${queryString}` : ''}`);
+    router.push(`/policies/${id}${queryString ? `?${queryString}` : ""}`);
   };
 
   // Get the latest published version for display
   const latestVersion = versions?.find((v) => v.isLatest);
-  const displayContent = policy?.currentVersion && policy.currentVersion > 0
-    ? latestVersion?.content
-    : policy?.draftContent;
+  const displayContent =
+    policy?.currentVersion && policy.currentVersion > 0
+      ? latestVersion?.content
+      : policy?.draftContent;
 
   // Loading state
   if (isLoadingPolicy) {
@@ -113,7 +116,8 @@ export default function PolicyDetailPage() {
         <FileText className="h-12 w-12 text-muted-foreground mb-4" />
         <h2 className="text-xl font-semibold mb-2">Policy Not Found</h2>
         <p className="text-muted-foreground mb-4">
-          The policy you&apos;re looking for doesn&apos;t exist or has been deleted.
+          The policy you&apos;re looking for doesn&apos;t exist or has been
+          deleted.
         </p>
         <Button asChild>
           <Link href="/policies">View All Policies</Link>
@@ -137,18 +141,26 @@ export default function PolicyDetailPage() {
         <span className="text-foreground">{policy.title}</span>
       </div>
 
-      {/* Header */}
-      <PolicyDetailHeader
-        policy={policy}
-        onEdit={() => router.push(`/policies/${id}/edit`)}
-        onPublish={() => setIsPublishDialogOpen(true)}
-        onRetire={() => setIsRetireDialogOpen(true)}
-        onSubmitForApproval={() => setIsApprovalDialogOpen(true)}
-        onCreateAttestation={() =>
-          router.push(`/campaigns/new?type=attestation&policyId=${id}`)
-        }
-        onCancelApproval={() => setIsCancelApprovalDialogOpen(true)}
-      />
+      {/* Header with optional workflow panel */}
+      <div className="flex flex-col lg:flex-row gap-6">
+        <div className="flex-1">
+          <PolicyDetailHeader
+            policy={policy}
+            onEdit={() => router.push(`/policies/${id}/edit`)}
+            onPublish={() => setIsPublishDialogOpen(true)}
+            onRetire={() => setIsRetireDialogOpen(true)}
+            onSubmitForApproval={() => setIsApprovalDialogOpen(true)}
+            onCreateAttestation={() =>
+              router.push(`/campaigns/new?type=attestation&policyId=${id}`)
+            }
+            onCancelApproval={() => setIsCancelApprovalDialogOpen(true)}
+          />
+        </div>
+        {/* Workflow panel - shows when policy is in approval workflow */}
+        <div className="w-full lg:w-80 shrink-0">
+          <PolicyWorkflowPanel policyId={id} />
+        </div>
+      </div>
 
       {/* Tabbed Content */}
       <Tabs value={currentTab} onValueChange={handleTabChange}>
@@ -173,7 +185,10 @@ export default function PolicyDetailPage() {
         </TabsContent>
 
         <TabsContent value="translations" className="mt-6">
-          <PolicyTranslationsPanel policyId={id} latestVersionId={latestVersion?.id} />
+          <PolicyTranslationsPanel
+            policyId={id}
+            latestVersionId={latestVersion?.id}
+          />
         </TabsContent>
 
         <TabsContent value="attestations" className="mt-6">
@@ -265,7 +280,8 @@ function PublishDialog({ open, onOpenChange, policyId }: DialogProps) {
         </DialogHeader>
         <div className="py-4">
           <p className="text-sm text-muted-foreground">
-            Publishing dialog would include version label, change notes, and effective date.
+            Publishing dialog would include version label, change notes, and
+            effective date.
           </p>
         </div>
         <DialogFooter>
@@ -312,7 +328,8 @@ function ApprovalDialog({ open, onOpenChange, policyId }: DialogProps) {
         </DialogHeader>
         <div className="py-4">
           <p className="text-sm text-muted-foreground">
-            Approval dialog would include workflow selection and submission notes.
+            Approval dialog would include workflow selection and submission
+            notes.
           </p>
         </div>
         <DialogFooter>
@@ -333,7 +350,8 @@ function CancelApprovalDialog({ open, onOpenChange, policyId }: DialogProps) {
         <DialogHeader>
           <DialogTitle>Cancel Approval</DialogTitle>
           <DialogDescription>
-            This will cancel the current approval workflow and return the policy to draft.
+            This will cancel the current approval workflow and return the policy
+            to draft.
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
