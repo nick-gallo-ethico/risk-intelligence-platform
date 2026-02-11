@@ -16,6 +16,14 @@ import {
   type ActionType,
 } from "@/components/cases/action-button-row";
 import { CaseTabs } from "@/components/cases/case-tabs";
+import { ConnectedPeopleCard } from "@/components/cases/connected-people-card";
+import { ConnectedDocumentsCard } from "@/components/cases/connected-documents-card";
+import { AssignModal } from "@/components/cases/assign-modal";
+import { StatusChangeModal } from "@/components/cases/status-change-modal";
+import { MergeModal } from "@/components/cases/merge-modal";
+import { AddNoteModal } from "@/components/cases/add-note-modal";
+import { EmailLogModal } from "@/components/cases/email-log-modal";
+import { Sparkles } from "lucide-react";
 import type { Case } from "@/types/case";
 
 /**
@@ -44,6 +52,13 @@ function CaseDetailPageContent() {
   const [caseData, setCaseData] = useState<Case | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Modal open states
+  const [assignModalOpen, setAssignModalOpen] = useState(false);
+  const [statusModalOpen, setStatusModalOpen] = useState(false);
+  const [mergeModalOpen, setMergeModalOpen] = useState(false);
+  const [noteModalOpen, setNoteModalOpen] = useState(false);
+  const [emailModalOpen, setEmailModalOpen] = useState(false);
 
   const caseId = params?.id as string;
 
@@ -109,24 +124,44 @@ function CaseDetailPageContent() {
 
   // Action handlers for header buttons
   const handleAssign = useCallback(() => {
-    // TODO: Open assign modal
-    console.log("Assign clicked");
+    setAssignModalOpen(true);
   }, []);
 
   const handleChangeStatus = useCallback(() => {
-    // TODO: Open status change modal
-    console.log("Change status clicked");
+    setStatusModalOpen(true);
   }, []);
 
   const handleMerge = useCallback(() => {
-    // TODO: Open merge modal
-    console.log("Merge clicked");
+    setMergeModalOpen(true);
   }, []);
+
+  // Handle merge success - redirect to target case
+  const handleMergeSuccess = useCallback(
+    (targetCaseId: string) => {
+      router.push(`/cases/${targetCaseId}`);
+    },
+    [router],
+  );
 
   // Quick action handler for left column buttons
   const handleAction = useCallback((action: ActionType) => {
-    // TODO: Open corresponding modal in Plan 04
-    console.log("Action:", action);
+    switch (action) {
+      case "note":
+        setNoteModalOpen(true);
+        break;
+      case "email":
+        setEmailModalOpen(true);
+        break;
+      case "interview":
+        console.log("Interview - coming soon");
+        break;
+      case "document":
+        console.log("Document - coming soon");
+        break;
+      case "task":
+        console.log("Task - coming soon");
+        break;
+    }
   }, []);
 
   // Show loading while checking auth
@@ -202,6 +237,47 @@ function CaseDetailPageContent() {
           </div>
         </aside>
       </div>
+
+      {/* Modals - only render when caseData is available */}
+      {caseData && (
+        <>
+          <AssignModal
+            caseId={caseData.id}
+            currentAssigneeIds={
+              caseData.assignedInvestigators?.map((u) => u.id) ?? []
+            }
+            open={assignModalOpen}
+            onOpenChange={setAssignModalOpen}
+            onAssigned={fetchCase}
+          />
+          <StatusChangeModal
+            caseId={caseData.id}
+            currentStatus={caseData.status}
+            open={statusModalOpen}
+            onOpenChange={setStatusModalOpen}
+            onStatusChanged={fetchCase}
+          />
+          <MergeModal
+            caseId={caseData.id}
+            caseReferenceNumber={caseData.referenceNumber}
+            open={mergeModalOpen}
+            onOpenChange={setMergeModalOpen}
+            onMerged={handleMergeSuccess}
+          />
+          <AddNoteModal
+            caseId={caseData.id}
+            open={noteModalOpen}
+            onOpenChange={setNoteModalOpen}
+            onNoteAdded={fetchCase}
+          />
+          <EmailLogModal
+            caseId={caseData.id}
+            open={emailModalOpen}
+            onOpenChange={setEmailModalOpen}
+            onEmailLogged={fetchCase}
+          />
+        </>
+      )}
     </div>
   );
 }
