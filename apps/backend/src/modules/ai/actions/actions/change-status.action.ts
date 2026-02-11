@@ -9,10 +9,18 @@ import { PrismaService } from "../../../prisma/prisma.service";
 
 /**
  * Input schema for change-status action.
+ * newStatus must be one of the valid status values for the entity type.
  */
 export const changeStatusInputSchema = z.object({
-  newStatus: z.string(),
-  reason: z.string().optional(),
+  newStatus: z
+    .string()
+    .describe(
+      "The new status to set. For cases: NEW, OPEN, or CLOSED. For investigations: NEW, ASSIGNED, INVESTIGATING, PENDING_REVIEW, CLOSED, or ON_HOLD.",
+    ),
+  reason: z
+    .string()
+    .optional()
+    .describe("Optional reason for the status change"),
 });
 
 export type ChangeStatusInput = z.infer<typeof changeStatusInputSchema>;
@@ -52,14 +60,23 @@ export function createChangeStatusAction(
     description: "Change the status of a case or investigation",
     category: ActionCategory.STANDARD,
     entityTypes: ["case", "investigation"],
-    requiredPermissions: [
-      "cases:update:status",
-      "investigations:update:status",
-    ],
+    requiredPermissions: [],
     undoWindowSeconds: UNDO_WINDOWS.STANDARD,
     inputSchema: changeStatusInputSchema,
 
     async canExecute(input: ChangeStatusInput, context: ActionContext) {
+      // Check entity-appropriate permission
+      const requiredPerm =
+        context.entityType === "case"
+          ? "cases:update:status"
+          : "investigations:update:status";
+      if (!context.permissions.includes(requiredPerm)) {
+        return {
+          allowed: false,
+          reason: `Missing permission: ${requiredPerm}`,
+        };
+      }
+
       // Fetch current status
       let currentStatus: string | null = null;
 
@@ -289,7 +306,7 @@ export const changeStatusAction: ActionDefinition<ChangeStatusInput> = {
   description: "Change the status of a case or investigation",
   category: ActionCategory.STANDARD,
   entityTypes: ["case", "investigation"],
-  requiredPermissions: ["cases:update:status", "investigations:update:status"],
+  requiredPermissions: [],
   undoWindowSeconds: UNDO_WINDOWS.STANDARD,
   inputSchema: changeStatusInputSchema,
 

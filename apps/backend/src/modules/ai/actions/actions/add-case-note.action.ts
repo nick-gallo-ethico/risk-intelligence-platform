@@ -11,11 +11,16 @@ import { PrismaService } from "../../../prisma/prisma.service";
  * Input schema for add-case-note action.
  */
 export const addCaseNoteInputSchema = z.object({
-  content: z.string().min(1).max(50000),
+  content: z
+    .string()
+    .min(1)
+    .max(50000)
+    .describe("The note content to add to the case"),
   noteType: z
     .enum(["GENERAL", "FOLLOW_UP", "FINDING", "RECOMMENDATION"])
     .optional()
-    .default("GENERAL"),
+    .default("GENERAL")
+    .describe("Type of note: GENERAL, FOLLOW_UP, FINDING, or RECOMMENDATION"),
 });
 
 export type AddCaseNoteInput = z.infer<typeof addCaseNoteInputSchema>;
