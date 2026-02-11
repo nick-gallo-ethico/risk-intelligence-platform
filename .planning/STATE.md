@@ -5,14 +5,14 @@
 See: .planning/PROJECT.md (updated 2026-02-02)
 
 **Core value:** Users can manage their entire compliance workflow - from anonymous report intake to investigation closure to board reporting - in one AI-assisted platform, with every task unified into a single "My Work" view.
-**Current focus:** Phase 18 COMPLETE - ready for Phase 19
+**Current focus:** Phase 19 IN PROGRESS - Workflow Engine UI
 
 ## Current Position
 
 Phase: 19 of 24 (Workflow Engine UI)
-Plan: 2 of 7 in current phase
-Status: Plan 19-02 COMPLETE - Frontend foundation (types, API, hooks, nav)
-Last activity: 2026-02-11 - Completed 19-02 (frontend workflow foundation)
+Plan: 4 of 7 in current phase
+Status: Plan 19-04 COMPLETE - Visual workflow builder canvas
+Last activity: 2026-02-11 - Completed 19-04 (workflow builder canvas)
 
 Progress: [======================================================----------------] ~86% (~224 of ~260 estimated total plans)
 
@@ -111,6 +111,19 @@ Progress: [======================================================---------------
   - API service (workflowsApi) covering all 18 workflow endpoints
   - React Query hooks (18 hooks): templates/instances CRUD, transitions, lifecycle mutations
   - Workflows navigation entry in admin sidebar for SYSTEM_ADMIN/COMPLIANCE_OFFICER
+- 19-03: Workflow list page (COMPLETE - 2ec4331)
+  - /settings/workflows page with header, create button, and table
+  - WorkflowListFilters: Entity type dropdown, status toggle (All/Active/Inactive)
+  - WorkflowListTable: 7 columns (Name, Entity Type, Version, Status, Default, Instances, Updated)
+  - Row actions: Edit, Clone, View Instances, Set/Unset Default, Delete (with confirmation)
+  - CreateWorkflowDialog: Name validation, entity type selection, creates minimal template
+- 19-04: Visual workflow builder canvas (COMPLETE - 858a93b, c953530)
+  - StageNode: Custom React Flow node with color bar, badges, step/gate/SLA info
+  - TransitionEdge: Custom edge with label pill, condition/reason icons, hover animation
+  - StagePalette: 4 draggable presets (standard, approval, terminal, notification)
+  - WorkflowCanvas: React Flow canvas with drag-drop, delete key, minimap, controls
+  - WorkflowBuilder: Three-column layout (palette | canvas | properties placeholder)
+  - useWorkflowBuilder hook: State management with nodes/edges converters and actions
 
 ### Phase 18 COMPLETE (2026-02-11)
 
@@ -846,12 +859,12 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-02-11
-Stopped at: Phase 19 Plan 01 COMPLETE - Workflow UI backend endpoints
+Stopped at: Phase 19 Plan 03 COMPLETE - Workflow list page
 Resume file: None
 
 **Phase 19 Status: IN PROGRESS**
-Plan 19-01 completed (list instances, clone, versions, instance counts).
-Remaining: 19-02 through 19-07 (frontend workflow builder components).
+Plan 19-03 completed (workflow list page with table, filters, create dialog).
+Remaining: 19-04 through 19-07 (workflow builder canvas and components).
 
 **Phase 14.2 Status: IN PROGRESS**
 Plan 14.2-02 completed. Remaining:
