@@ -5,14 +5,14 @@
 See: .planning/PROJECT.md (updated 2026-02-02)
 
 **Core value:** Users can manage their entire compliance workflow - from anonymous report intake to investigation closure to board reporting - in one AI-assisted platform, with every task unified into a single "My Work" view.
-**Current focus:** Phase 15 - Case Detail Page Overhaul
+**Current focus:** Phase 15 COMPLETE - ready for Phase 16
 
 ## Current Position
 
-Phase: 15 of 24 (Case Detail Page Overhaul)
-Plan: 09 of 11 in current phase (gap closure in progress)
-Status: Phase 15 gap closure in progress
-Last activity: 2026-02-11 - Completed 15-09 RIU intake form answers display (Gap 1 closed)
+Phase: 15 of 24 (Case Detail Page Overhaul) - COMPLETE
+Plan: 11 of 11 in current phase (all plans complete, verified 12/12)
+Status: Phase 15 COMPLETE - all gaps closed, human-verified
+Last activity: 2026-02-11 - Phase 15 verified: AI actions (change-status, add-case-note) working end-to-end. Critical Zod 4.x compatibility fix applied.
 **Next Phase:** Phase 16 - AI Integration Fix
 
 Progress: [====================================================------------------] ~79% (~207 of ~260 estimated total plans)
@@ -47,7 +47,7 @@ Plans 01-03 complete, human verification revealed additional issues:
 - Category/Subcategory dropdowns missing from case creation form
 - Unified search returning empty results despite populated search vectors
 
-### Phase 15 Case Detail Page Overhaul IN PROGRESS (2026-02-10)
+### Phase 15 Case Detail Page Overhaul COMPLETE (2026-02-11)
 
 Three-column case detail page with activity feed, AI panel, and merge operations.
 
@@ -101,7 +101,10 @@ Plans:
   - GET /rius/:id/form-data endpoint with type-specific section builders
   - LinkedRiuFormAnswers component with collapsible sections
   - Integrated in Overview tab showing primary RIU intake details
-- 15-10: AI backend action verification (addresses Gap 3)
+- 15-10: AI backend action verification (addresses Gap 3) - COMPLETE (49e9253, a699b44, 1572f82)
+  - add-case-note action created, change-status verified end-to-end
+  - Critical fix: zodToJsonSchema broken for Zod 4.x (empty tool schemas sent to Claude)
+  - Human-verified: both change-status and add-case-note work in live app
 - 15-11: Email compose/send deferral documentation (addresses Gap 2) - COMPLETE
 
 **Documented Deferrals:**
@@ -694,7 +697,7 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-02-11
-Stopped at: Completed 15-11-PLAN.md (Email compose/send deferral documentation)
+Stopped at: Phase 15 COMPLETE - all 11 plans done, verification passed 12/12
 Resume file: None
 
 **Phase 14.2 Status: IN PROGRESS**

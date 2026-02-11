@@ -49,7 +49,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 14: Critical Bug Fixes & Navigation** - Route 404s, broken buttons, Select.Item error, search, user menu, nav styling
 - [ ] **Phase 14.1: Data & Config Fixes** - Notifications seed data, search indexing, category dropdowns, task aggregation fixes (INSERTED)
 - [ ] **Phase 14.2: Case Creation & Search Fixes** - Category/subcategory dropdowns in case creation, unified search fix (INSERTED)
-- [ ] **Phase 15: Case Detail Page Overhaul** - Three-column layout, activity feed, action buttons, AI panel, connected entities
+- [x] **Phase 15: Case Detail Page Overhaul** - Three-column layout, activity feed, action buttons, AI panel, connected entities
 - [ ] **Phase 16: AI Integration Fix** - Debug and fix non-functional AI, wire AI panel, enable AI actions on cases
 - [ ] **Phase 17: Campaigns Hub** - Centralized campaigns area, form creation, campaign lifecycle management
 - [ ] **Phase 18: Reports & Data Management** - Report designer UI, field availability, export from views
