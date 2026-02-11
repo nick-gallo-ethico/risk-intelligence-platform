@@ -5,14 +5,14 @@
 See: .planning/PROJECT.md (updated 2026-02-02)
 
 **Core value:** Users can manage their entire compliance workflow - from anonymous report intake to investigation closure to board reporting - in one AI-assisted platform, with every task unified into a single "My Work" view.
-**Current focus:** Phase 18 Reports & Data Management - Plan 03 COMPLETE
+**Current focus:** Phase 18 Reports & Data Management - Plan 05 COMPLETE
 
 ## Current Position
 
 Phase: 18 of 24 (Reports & Data Management)
-Plan: 3 of 9 in current phase
-Status: In progress - Plan 03 COMPLETE
-Last activity: 2026-02-11 - Completed 18-03-PLAN.md (ReportController REST API). Commits b5519e1, 0ba4718.
+Plan: 5 of 9 in current phase
+Status: In progress - Plan 05 COMPLETE
+Last activity: 2026-02-11 - Completed 18-05-PLAN.md (Report list page). Commits 62b3592, 5b69516.
 
 Progress: [====================================================------------------] ~84% (~220 of ~260 estimated total plans)
 
@@ -58,6 +58,13 @@ Progress: [====================================================-----------------
   - Actions: duplicate, favorite, export
   - AI generation POST /reports/ai-generate
   - ReportModule and AiQueryModule wired into AnalyticsModule
+- 18-05: Report list page at /reports (COMPLETE - 62b3592, 5b69516)
+  - TypeScript types (SavedReport, ReportField, ReportResult, etc.)
+  - API client (reportsApi) for all 12 backend endpoints
+  - /reports page with My Reports, Shared Reports, Templates tabs
+  - Template gallery with card grid layout
+  - AI query dialog for natural language report generation
+  - Search filtering, favorite toggle, duplicate, delete actions
 
 ### Phase 14 Critical Bug Fixes & Navigation COMPLETE (2026-02-09)
 
