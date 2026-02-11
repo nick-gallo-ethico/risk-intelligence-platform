@@ -65,21 +65,60 @@ export class ContextLoaderService implements OnModuleInit {
    * @returns Complete AIContext with all hierarchy levels
    */
   async loadContext(params: LoadContextDto): Promise<AIContext> {
-    const [orgContext, userContext, teamContext, entityContext] =
-      await Promise.all([
-        this.loadOrganizationContext(params.organizationId),
-        this.loadUserContext(params.userId, params.organizationId),
-        params.teamId
-          ? this.loadTeamContext(params.teamId, params.organizationId)
-          : null,
-        params.entityType && params.entityId
-          ? this.loadEntityContext(
-              params.entityType,
-              params.entityId,
-              params.organizationId,
-            )
-          : null,
-      ]);
+    // Wrap context loading in try-catch to ensure individual failures don't crash everything
+    // Each loader already returns fallback context on not-found, but this catches other errors
+    let orgContext: OrganizationContext;
+    let userContext: UserContext;
+    let teamContext: TeamContext | null = null;
+    let entityContext: EntityContext | null = null;
+
+    try {
+      [orgContext, userContext, teamContext, entityContext] = await Promise.all(
+        [
+          this.loadOrganizationContext(params.organizationId).catch((err) => {
+            this.logger.error(
+              `Failed to load org context for ${params.organizationId}: ${err.message}`,
+            );
+            return this.getFallbackOrgContext(params.organizationId);
+          }),
+          this.loadUserContext(params.userId, params.organizationId).catch(
+            (err) => {
+              this.logger.error(
+                `Failed to load user context for ${params.userId}: ${err.message}`,
+              );
+              return this.getFallbackUserContext(params.userId);
+            },
+          ),
+          params.teamId
+            ? this.loadTeamContext(params.teamId, params.organizationId).catch(
+                (err) => {
+                  this.logger.error(
+                    `Failed to load team context for ${params.teamId}: ${err.message}`,
+                  );
+                  return null;
+                },
+              )
+            : null,
+          params.entityType && params.entityId
+            ? this.loadEntityContext(
+                params.entityType,
+                params.entityId,
+                params.organizationId,
+              ).catch((err) => {
+                this.logger.error(
+                  `Failed to load entity context for ${params.entityType}:${params.entityId}: ${err.message}`,
+                );
+                return null;
+              })
+            : null,
+        ],
+      );
+    } catch (err) {
+      // If even Promise.all fails somehow, use minimal fallbacks
+      this.logger.error(`Context loading failed entirely: ${err}`);
+      orgContext = this.getFallbackOrgContext(params.organizationId);
+      userContext = this.getFallbackUserContext(params.userId);
+    }
 
     return {
       platform: this.platformContext,
@@ -92,6 +131,36 @@ export class ContextLoaderService implements OnModuleInit {
   }
 
   /**
+   * Get fallback organization context for use when loading fails.
+   */
+  private getFallbackOrgContext(orgId: string): OrganizationContext {
+    return {
+      id: orgId,
+      name: "Unknown Organization",
+      categories: [],
+      settings: {
+        aiEnabled: true,
+        formalityLevel: "professional" as const,
+        noteCleanupStyle: "light" as const,
+        summaryDefaultLength: "standard" as const,
+      },
+    };
+  }
+
+  /**
+   * Get fallback user context for use when loading fails.
+   */
+  private getFallbackUserContext(userId: string): UserContext {
+    return {
+      id: userId,
+      name: "Unknown User",
+      role: "EMPLOYEE",
+      preferences: undefined,
+      contextFile: undefined,
+    };
+  }
+
+  /**
    * Build a complete system prompt from context and agent type.
    * Uses templates when available, falls back to base template.
    *
@@ -99,7 +168,10 @@ export class ContextLoaderService implements OnModuleInit {
    * @param agentType - Type of agent (investigation, case, compliance-manager)
    * @returns System prompt string for AI call
    */
-  async buildSystemPrompt(context: AIContext, agentType: string): Promise<string> {
+  async buildSystemPrompt(
+    context: AIContext,
+    agentType: string,
+  ): Promise<string> {
     // Build system prompt from context
     // This is a basic implementation - can be enhanced with PromptService templates later
     const sections: string[] = [];
@@ -464,17 +536,32 @@ You are an AI assistant for compliance and ethics management. Your role is to:
           select: { id: true, name: true, path: true },
           take: 100,
         })
-        .then((cats) =>
-          cats.map((c) => ({
-            id: c.id,
-            name: c.name,
-            path: c.path ?? undefined,
-          })) as Array<{ id: string; name: string; path?: string }>,
+        .then(
+          (cats) =>
+            cats.map((c) => ({
+              id: c.id,
+              name: c.name,
+              path: c.path ?? undefined,
+            })) as Array<{ id: string; name: string; path?: string }>,
         ),
     ]);
 
     if (!org) {
-      throw new Error(`Organization not found: ${orgId}`);
+      // Return fallback context instead of throwing - allows AI to work even with "demo" org
+      this.logger.warn(
+        `Organization not found: ${orgId} - using fallback context`,
+      );
+      return {
+        id: orgId,
+        name: "Unknown Organization",
+        categories: [],
+        settings: {
+          aiEnabled: true,
+          formalityLevel: "professional" as const,
+          noteCleanupStyle: "light" as const,
+          summaryDefaultLength: "standard" as const,
+        },
+      };
     }
 
     const settings = org.settings as Record<string, unknown> | null;
@@ -494,8 +581,10 @@ You are an AI assistant for compliance and ethics management. Your role is to:
         noteCleanupStyle:
           (settings?.noteCleanupStyle as "light" | "full") || "light",
         summaryDefaultLength:
-          (settings?.summaryDefaultLength as "brief" | "standard" | "detailed") ||
-          "standard",
+          (settings?.summaryDefaultLength as
+            | "brief"
+            | "standard"
+            | "detailed") || "standard",
       },
     };
 
@@ -534,7 +623,14 @@ You are an AI assistant for compliance and ethics management. Your role is to:
     ]);
 
     if (!team) {
-      throw new Error(`Team not found: ${teamId}`);
+      // Return fallback context instead of throwing
+      this.logger.warn(`Team not found: ${teamId} - using fallback context`);
+      return {
+        id: teamId,
+        name: "Unknown Team",
+        contextFile: undefined,
+        focusArea: undefined,
+      };
     }
 
     const context: TeamContext = {
@@ -583,7 +679,15 @@ You are an AI assistant for compliance and ethics management. Your role is to:
     ]);
 
     if (!user) {
-      throw new Error(`User not found: ${userId}`);
+      // Return fallback context instead of throwing - allows AI to work with "demo" user
+      this.logger.warn(`User not found: ${userId} - using fallback context`);
+      return {
+        id: userId,
+        name: "Unknown User",
+        role: "EMPLOYEE",
+        preferences: undefined,
+        contextFile: undefined,
+      };
     }
 
     const context: UserContext = {
@@ -608,7 +712,9 @@ You are an AI assistant for compliance and ethics management. Your role is to:
 
     const cached = await this.cacheManager.get<EntityContext>(cacheKey);
     if (cached) {
-      this.logger.debug(`Cache hit for entity context ${entityType}:${entityId}`);
+      this.logger.debug(
+        `Cache hit for entity context ${entityType}:${entityId}`,
+      );
       return cached;
     }
 
