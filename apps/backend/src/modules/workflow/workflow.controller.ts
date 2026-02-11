@@ -14,7 +14,12 @@ import {
 } from "@nestjs/common";
 import { WorkflowEntityType } from "@prisma/client";
 import { JwtAuthGuard, RolesGuard, TenantGuard } from "../../common/guards";
-import { CurrentUser, TenantId, Roles, UserRole } from "../../common/decorators";
+import {
+  CurrentUser,
+  TenantId,
+  Roles,
+  UserRole,
+} from "../../common/decorators";
 import { WorkflowService } from "./workflow.service";
 import { WorkflowEngineService } from "./engine/workflow-engine.service";
 import {
@@ -44,7 +49,7 @@ interface AuthenticatedUser {
 export class WorkflowController {
   constructor(
     private workflowService: WorkflowService,
-    private workflowEngine: WorkflowEngineService
+    private workflowEngine: WorkflowEngineService,
   ) {}
 
   // ============================================
@@ -59,7 +64,7 @@ export class WorkflowController {
   async createTemplate(
     @Body() dto: CreateWorkflowTemplateDto,
     @CurrentUser() user: AuthenticatedUser,
-    @TenantId() organizationId: string
+    @TenantId() organizationId: string,
   ) {
     return this.workflowService.create(organizationId, dto, user.id);
   }
@@ -71,11 +76,12 @@ export class WorkflowController {
   async listTemplates(
     @TenantId() organizationId: string,
     @Query("entityType") entityType?: WorkflowEntityType,
-    @Query("isActive") isActive?: string
+    @Query("isActive") isActive?: string,
   ) {
     return this.workflowService.findAllWithCounts(organizationId, {
       entityType,
-      isActive: isActive === "true" ? true : isActive === "false" ? false : undefined,
+      isActive:
+        isActive === "true" ? true : isActive === "false" ? false : undefined,
     });
   }
 
@@ -87,7 +93,7 @@ export class WorkflowController {
   @Get("templates/:id/versions")
   async getTemplateVersions(
     @Param("id", ParseUUIDPipe) id: string,
-    @TenantId() organizationId: string
+    @TenantId() organizationId: string,
   ) {
     return this.workflowService.findVersions(organizationId, id);
   }
@@ -101,9 +107,21 @@ export class WorkflowController {
   async cloneTemplate(
     @Param("id", ParseUUIDPipe) id: string,
     @CurrentUser() user: AuthenticatedUser,
-    @TenantId() organizationId: string
+    @TenantId() organizationId: string,
   ) {
     return this.workflowService.clone(organizationId, id, user.id);
+  }
+
+  /**
+   * Get the default template for an entity type.
+   * Must be defined BEFORE templates/:id to avoid route conflict.
+   */
+  @Get("templates/default/:entityType")
+  async getDefaultTemplate(
+    @Param("entityType") entityType: WorkflowEntityType,
+    @TenantId() organizationId: string,
+  ) {
+    return this.workflowService.findDefault(organizationId, entityType);
   }
 
   /**
@@ -112,24 +130,13 @@ export class WorkflowController {
   @Get("templates/:id")
   async getTemplate(
     @Param("id", ParseUUIDPipe) id: string,
-    @TenantId() organizationId: string
+    @TenantId() organizationId: string,
   ) {
     const template = await this.workflowService.findById(organizationId, id);
     if (!template) {
       return { error: "Template not found" };
     }
     return template;
-  }
-
-  /**
-   * Get the default template for an entity type.
-   */
-  @Get("templates/default/:entityType")
-  async getDefaultTemplate(
-    @Param("entityType") entityType: WorkflowEntityType,
-    @TenantId() organizationId: string
-  ) {
-    return this.workflowService.findDefault(organizationId, entityType);
   }
 
   /**
@@ -140,7 +147,7 @@ export class WorkflowController {
   async updateTemplate(
     @Param("id", ParseUUIDPipe) id: string,
     @Body() dto: UpdateWorkflowTemplateDto,
-    @TenantId() organizationId: string
+    @TenantId() organizationId: string,
   ) {
     return this.workflowService.update(organizationId, id, dto);
   }
@@ -153,7 +160,7 @@ export class WorkflowController {
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteTemplate(
     @Param("id", ParseUUIDPipe) id: string,
-    @TenantId() organizationId: string
+    @TenantId() organizationId: string,
   ) {
     await this.workflowService.delete(organizationId, id);
   }
@@ -170,7 +177,7 @@ export class WorkflowController {
   @Get("instances")
   async listInstances(
     @Query() query: ListInstancesDto,
-    @TenantId() organizationId: string
+    @TenantId() organizationId: string,
   ) {
     return this.workflowService.listInstances(organizationId, query);
   }
@@ -182,7 +189,7 @@ export class WorkflowController {
   async startWorkflow(
     @Body() dto: StartWorkflowDto,
     @CurrentUser() user: AuthenticatedUser,
-    @TenantId() organizationId: string
+    @TenantId() organizationId: string,
   ) {
     const instanceId = await this.workflowEngine.startWorkflow({
       organizationId,
@@ -214,12 +221,12 @@ export class WorkflowController {
   async getByEntity(
     @Param("entityType") entityType: WorkflowEntityType,
     @Param("entityId", ParseUUIDPipe) entityId: string,
-    @TenantId() organizationId: string
+    @TenantId() organizationId: string,
   ) {
     return this.workflowEngine.getInstanceByEntity(
       organizationId,
       entityType,
-      entityId
+      entityId,
     );
   }
 
@@ -238,7 +245,7 @@ export class WorkflowController {
   async transition(
     @Param("id", ParseUUIDPipe) id: string,
     @Body() dto: TransitionDto,
-    @CurrentUser() user: AuthenticatedUser
+    @CurrentUser() user: AuthenticatedUser,
   ) {
     return this.workflowEngine.transition({
       instanceId: id,
@@ -256,7 +263,7 @@ export class WorkflowController {
   async complete(
     @Param("id", ParseUUIDPipe) id: string,
     @Body() body: { outcome?: string },
-    @CurrentUser() user: AuthenticatedUser
+    @CurrentUser() user: AuthenticatedUser,
   ) {
     await this.workflowEngine.complete({
       instanceId: id,
@@ -274,7 +281,7 @@ export class WorkflowController {
   async cancel(
     @Param("id", ParseUUIDPipe) id: string,
     @Body() body: { reason?: string },
-    @CurrentUser() user: AuthenticatedUser
+    @CurrentUser() user: AuthenticatedUser,
   ) {
     await this.workflowEngine.cancel(id, user.id, body.reason);
     return { success: true };
@@ -288,7 +295,7 @@ export class WorkflowController {
   async pause(
     @Param("id", ParseUUIDPipe) id: string,
     @Body() body: { reason?: string },
-    @CurrentUser() user: AuthenticatedUser
+    @CurrentUser() user: AuthenticatedUser,
   ) {
     await this.workflowEngine.pause(id, user.id, body.reason);
     return { success: true };
@@ -301,7 +308,7 @@ export class WorkflowController {
   @Roles(UserRole.SYSTEM_ADMIN, UserRole.COMPLIANCE_OFFICER)
   async resume(
     @Param("id", ParseUUIDPipe) id: string,
-    @CurrentUser() user: AuthenticatedUser
+    @CurrentUser() user: AuthenticatedUser,
   ) {
     await this.workflowEngine.resume(id, user.id);
     return { success: true };
