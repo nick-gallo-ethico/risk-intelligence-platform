@@ -10,10 +10,10 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 15 of 24 (Case Detail Page Overhaul)
-Plan: 04 of 7 in current phase (01, 02, 03, 04, 07 complete)
+Plan: 05 of 7 in current phase (01, 02, 03, 04, 05, 07 complete)
 Status: Phase 15 IN PROGRESS
-Last activity: 2026-02-10 - Completed 15-04 Action modals (Assign, Status, Merge, Note, Email)
-**Next Phase:** Continue Phase 15 execution (15-05, 15-06)
+Last activity: 2026-02-11 - Completed 15-05 Right column connected entities
+**Next Phase:** Continue Phase 15 execution (15-06)
 
 Progress: [====================================================------------------] ~79% (~207 of ~260 estimated total plans)
 
@@ -77,7 +77,12 @@ Plans:
   - AddNoteModal: simple note logging to activity feed
   - EmailLogModal: log external email communications
   - Wired all modals in page.tsx with open/close state management
-- 15-05, 15-06: Remaining frontend case detail components (PENDING)
+- 15-05: Right column connected entities (COMPLETE - 33dcce8)
+  - ConnectedPeopleCard with evidentiary label grouping (SUBJECT/REPORTER/WITNESS)
+  - AddPersonModal with search and free-form creation modes
+  - ConnectedDocumentsCard with file type icons
+  - AI Assistant trigger button with aiPanelOpen state
+- 15-06: AI panel Sheet implementation (PENDING)
 
 ### Phase 14.2 Case Creation & Search Fixes COMPLETE (2026-02-10)
 
