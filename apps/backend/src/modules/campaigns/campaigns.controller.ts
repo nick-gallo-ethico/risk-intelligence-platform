@@ -21,6 +21,8 @@ import {
 import { CampaignsService } from "./campaigns.service";
 import { SegmentService } from "./targeting/segment.service";
 import { CampaignAssignmentService } from "./assignments/campaign-assignment.service";
+import { CampaignDashboardService } from "./campaign-dashboard.service";
+import { CampaignReminderService } from "./campaign-reminder.service";
 import {
   CreateCampaignDto,
   UpdateCampaignDto,
@@ -50,6 +52,8 @@ export class CampaignsController {
     private campaignsService: CampaignsService,
     private segmentService: SegmentService,
     private assignmentService: CampaignAssignmentService,
+    private dashboardService: CampaignDashboardService,
+    private reminderService: CampaignReminderService,
   ) {}
 
   // ==================== Campaign Endpoints ====================
@@ -84,6 +88,56 @@ export class CampaignsController {
       skip: skip ? Number(skip) : undefined,
       take: take ? Number(take) : undefined,
     });
+  }
+
+  // ==================== Dashboard Endpoints ====================
+
+  @Get("dashboard/stats")
+  @ApiOperation({ summary: "Get dashboard statistics for campaigns" })
+  @ApiResponse({
+    status: 200,
+    description: "Dashboard statistics retrieved successfully",
+  })
+  async getDashboardStats() {
+    // @TenantId() orgId: string,
+    return this.dashboardService.getDashboardStats(TEMP_ORG_ID);
+  }
+
+  @Get("dashboard/overdue")
+  @ApiOperation({ summary: "Get campaigns with overdue assignments" })
+  @ApiQuery({ name: "limit", required: false, type: Number })
+  @ApiResponse({
+    status: 200,
+    description: "Overdue campaigns retrieved successfully",
+  })
+  async getOverdueCampaigns(
+    @Query("limit") limit?: number,
+    // @TenantId() orgId: string,
+  ) {
+    return this.dashboardService.getOverdueCampaigns(
+      TEMP_ORG_ID,
+      limit ? Number(limit) : 10,
+    );
+  }
+
+  @Get("dashboard/upcoming")
+  @ApiOperation({ summary: "Get active campaigns with upcoming deadlines" })
+  @ApiQuery({ name: "days", required: false, type: Number })
+  @ApiQuery({ name: "limit", required: false, type: Number })
+  @ApiResponse({
+    status: 200,
+    description: "Upcoming deadline campaigns retrieved successfully",
+  })
+  async getUpcomingDeadlines(
+    @Query("days") days?: number,
+    @Query("limit") limit?: number,
+    // @TenantId() orgId: string,
+  ) {
+    return this.dashboardService.getUpcomingDeadlines(
+      TEMP_ORG_ID,
+      days ? Number(days) : 7,
+      limit ? Number(limit) : 10,
+    );
   }
 
   @Get(":id")
@@ -156,6 +210,31 @@ export class CampaignsController {
     // @TenantId() orgId: string,
   ) {
     return this.campaignsService.cancel(id, TEMP_USER_ID, TEMP_ORG_ID, reason);
+  }
+
+  @Post(":id/remind")
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: "Trigger reminders for a campaign" })
+  @ApiParam({ name: "id", type: "string" })
+  @ApiResponse({
+    status: 200,
+    description: "Reminders queued successfully",
+  })
+  async sendReminders(
+    @Param("id", ParseUUIDPipe) id: string,
+    // @CurrentUser() user: User,
+    // @TenantId() orgId: string,
+  ) {
+    const pendingReminders =
+      await this.reminderService.findAssignmentsNeedingReminders(TEMP_ORG_ID);
+    const campaignReminders = pendingReminders.filter(
+      (r) => r.campaignId === id,
+    );
+    await this.reminderService.queueReminders(campaignReminders);
+    return {
+      message: "Reminders queued successfully",
+      count: campaignReminders.length,
+    };
   }
 
   @Delete(":id")
@@ -245,7 +324,8 @@ export class CampaignsController {
     // @TenantId() orgId: string,
   ) {
     return this.segmentService.findAll(TEMP_ORG_ID, {
-      activeOnly: activeOnly === true || activeOnly === "true" as unknown as boolean,
+      activeOnly:
+        activeOnly === true || activeOnly === ("true" as unknown as boolean),
       skip: skip ? Number(skip) : undefined,
       take: take ? Number(take) : undefined,
     });
