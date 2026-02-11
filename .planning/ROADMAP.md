@@ -44,10 +44,11 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 11: Analytics & Reporting** - Dashboards, custom reports, natural language queries
 - [x] **Phase 11.1: Frontend Navigation and UI Fixes** - Main sidebar, mobile nav, case tab fixes (INSERTED)
 - [x] **Phase 12: Internal Operations Portal** - Support console, implementation tools, hotline ops, client success
-- [ ] **Phase 13: HubSpot-Style Saved Views** - Reusable view tabs, column selection, advanced filters, board views across all modules
-- [ ] **Phase 13.1: Saved Views Fixes** - Board view, investigations endpoint, search vector, export endpoints (INSERTED)
+- [x] **Phase 13: HubSpot-Style Saved Views** - Reusable view tabs, column selection, advanced filters, board views across all modules
+- [x] **Phase 13.1: Saved Views Fixes** - Board view, investigations endpoint, search vector, export endpoints (INSERTED)
 - [x] **Phase 14: Critical Bug Fixes & Navigation** - Route 404s, broken buttons, Select.Item error, search, user menu, nav styling
 - [ ] **Phase 14.1: Data & Config Fixes** - Notifications seed data, search indexing, category dropdowns, task aggregation fixes (INSERTED)
+- [ ] **Phase 14.2: Case Creation & Search Fixes** - Category/subcategory dropdowns in case creation, unified search fix (INSERTED)
 - [ ] **Phase 15: Case Detail Page Overhaul** - Three-column layout, activity feed, action buttons, AI panel, connected entities
 - [ ] **Phase 16: AI Integration Fix** - Debug and fix non-functional AI, wire AI panel, enable AI actions on cases
 - [ ] **Phase 17: Campaigns Hub** - Centralized campaigns area, form creation, campaign lifecycle management
@@ -470,25 +471,25 @@ Plans:
 
 Plans:
 
-- [ ] 12-01-PLAN.md (Wave 1) - Cross-tenant access infrastructure: ImpersonationService, ElevatedAccessGuard, audit logging
-- [ ] 12-02-PLAN.md (Wave 1) - Implementation project models: ImplementationProject, ImplementationTask, ImplementationBlocker
-- [ ] 12-03-PLAN.md (Wave 1) - Client health metrics: TenantHealthScore, UsageMetric, FeatureAdoption models
-- [ ] 12-04-PLAN.md (Wave 2) - Support Console service: cross-tenant search, error log viewer, config inspector
-- [ ] 12-05-PLAN.md (Wave 2) - Implementation checklist service: templates, task tracking, phase milestones
-- [ ] 12-06-PLAN.md (Wave 2) - Migration wizard service: file upload, AI field mapping, validation, preview
-- [ ] 12-07-PLAN.md (Wave 2) - Hotline operations service: directive CRUD, bulk QA actions, case reassignment
-- [ ] 12-08-PLAN.md (Wave 3) - Client success service: health calculation, usage aggregation, renewal risk
-- [ ] 12-09-PLAN.md (Wave 3) - Training administration: certification tracks, progress tracking, exam management
-- [ ] 12-10-PLAN.md (Wave 3) - Go-live readiness: checklist engine, readiness score, sign-off workflow
-- [ ] 12-11-PLAN.md (Wave 4) - Support Console UI: tenant switcher, error viewer, config browser
-- [ ] 12-12-PLAN.md (Wave 4) - Implementation Portal UI: project dashboard, checklist tracker, blocker board
-- [ ] 12-13-PLAN.md (Wave 4) - Migration Wizard UI: upload, mapping, preview, import, verify steps
-- [ ] 12-14-PLAN.md (Wave 4) - Hotline Operations UI: directive editor, QA dashboard, assignment tools
-- [ ] 12-15-PLAN.md (Wave 5) - Client Success UI: health dashboard, usage charts, adoption metrics
-- [ ] 12-16-PLAN.md (Wave 5) - Training Portal UI: course catalog, certification status, exam interface
-- [ ] 12-17-PLAN.md (Wave 5) - Internal admin settings: feature flags, tenant config, system health
-- [ ] 12-18-PLAN.md (Tech Debt) - Backend tech debt: WebSocket E2E, auth edge cases, query optimization
-- [ ] 12-19-PLAN.md (Tech Debt) - Frontend tech debt: bundle splitting, lazy loading, accessibility audit
+- [x] 12-01-PLAN.md (Wave 1) - Cross-tenant access infrastructure: ImpersonationService, ElevatedAccessGuard, audit logging
+- [x] 12-02-PLAN.md (Wave 1) - Implementation project models: ImplementationProject, ImplementationTask, ImplementationBlocker
+- [x] 12-03-PLAN.md (Wave 1) - Client health metrics: TenantHealthScore, UsageMetric, FeatureAdoption models
+- [x] 12-04-PLAN.md (Wave 2) - Support Console service: cross-tenant search, error log viewer, config inspector
+- [x] 12-05-PLAN.md (Wave 2) - Implementation checklist service: templates, task tracking, phase milestones
+- [x] 12-06-PLAN.md (Wave 2) - Migration wizard service: file upload, AI field mapping, validation, preview
+- [x] 12-07-PLAN.md (Wave 2) - Hotline operations service: directive CRUD, bulk QA actions, case reassignment
+- [x] 12-08-PLAN.md (Wave 3) - Client success service: health calculation, usage aggregation, renewal risk
+- [x] 12-09-PLAN.md (Wave 3) - Training administration: certification tracks, progress tracking, exam management
+- [x] 12-10-PLAN.md (Wave 3) - Go-live readiness: checklist engine, readiness score, sign-off workflow
+- [x] 12-11-PLAN.md (Wave 4) - Support Console UI: tenant switcher, error viewer, config browser
+- [x] 12-12-PLAN.md (Wave 4) - Implementation Portal UI: project dashboard, checklist tracker, blocker board
+- [x] 12-13-PLAN.md (Wave 4) - Migration Wizard UI: upload, mapping, preview, import, verify steps
+- [x] 12-14-PLAN.md (Wave 4) - Hotline Operations UI: directive editor, QA dashboard, assignment tools
+- [x] 12-15-PLAN.md (Wave 5) - Client Success UI: health dashboard, usage charts, adoption metrics
+- [x] 12-16-PLAN.md (Wave 5) - Training Portal UI: course catalog, certification status, exam interface
+- [x] 12-17-PLAN.md (Wave 5) - Internal admin settings: feature flags, tenant config, system health
+- [x] 12-18-PLAN.md (Tech Debt) - Backend tech debt: WebSocket E2E, auth edge cases, query optimization
+- [x] 12-19-PLAN.md (Tech Debt) - Frontend tech debt: bundle splitting, lazy loading, accessibility audit
 
 ### Phase 13: HubSpot-Style Saved Views System
 
@@ -516,21 +517,21 @@ Plans:
 
 Plans:
 
-- [ ] 13-01-PLAN.md (Wave 1) - Extend SavedView Prisma model with frozenColumnCount, viewMode, boardGroupBy, recordCount fields
-- [ ] 13-02-PLAN.md (Wave 1) - Install @tanstack/react-table, create types.ts, operators.ts, constants.ts, view-config.ts
-- [ ] 13-03-PLAN.md (Wave 1) - Create SavedViewProvider context, useSavedViewContext hook, useSavedViewsApi hooks
-- [ ] 13-04-PLAN.md (Wave 2) - Create ViewTabsBar, SortableViewTab, ViewTabContextMenu, AddViewButton, CreateViewDialog
-- [ ] 13-05-PLAN.md (Wave 2) - Create ViewToolbar, ViewModeToggle, SaveButton, SortButton, ExportButton
-- [ ] 13-06-PLAN.md (Wave 2) - Create ColumnSelectionModal with PropertyPicker and SelectedColumnsList
-- [ ] 13-07-PLAN.md (Wave 2) - Create QuickFiltersRow with DateRangeFilter, MultiSelectFilter, QuickFilterDropdown
-- [ ] 13-08-PLAN.md (Wave 3) - Create AdvancedFiltersPanel slide-out with FilterGroupCard and FilterConditionRow
-- [ ] 13-09-PLAN.md (Wave 3) - Create DataTable with TanStack Table, PaginationBar, BulkActionsBar
-- [ ] 13-10-PLAN.md (Wave 3) - Create BoardView with BoardColumn and BoardCard (drag-drop with @dnd-kit)
-- [ ] 13-11-PLAN.md (Wave 4) - Cases module integration: config, hook, and page update
-- [ ] 13-12-PLAN.md (Wave 4) - Investigations and Policies module integration
-- [ ] 13-13-PLAN.md (Wave 4) - Disclosures and Intake Forms module integration
-- [ ] 13-14-PLAN.md (Wave 5) - URL state sync with useViewUrlState hook, enhanced BulkActionsBar
-- [ ] 13-15-PLAN.md (Wave 5) - Demo data seeder for saved views, verification checkpoint
+- [x] 13-01-PLAN.md (Wave 1) - Extend SavedView Prisma model with frozenColumnCount, viewMode, boardGroupBy, recordCount fields
+- [x] 13-02-PLAN.md (Wave 1) - Install @tanstack/react-table, create types.ts, operators.ts, constants.ts, view-config.ts
+- [x] 13-03-PLAN.md (Wave 1) - Create SavedViewProvider context, useSavedViewContext hook, useSavedViewsApi hooks
+- [x] 13-04-PLAN.md (Wave 2) - Create ViewTabsBar, SortableViewTab, ViewTabContextMenu, AddViewButton, CreateViewDialog
+- [x] 13-05-PLAN.md (Wave 2) - Create ViewToolbar, ViewModeToggle, SaveButton, SortButton, ExportButton
+- [x] 13-06-PLAN.md (Wave 2) - Create ColumnSelectionModal with PropertyPicker and SelectedColumnsList
+- [x] 13-07-PLAN.md (Wave 2) - Create QuickFiltersRow with DateRangeFilter, MultiSelectFilter, QuickFilterDropdown
+- [x] 13-08-PLAN.md (Wave 3) - Create AdvancedFiltersPanel slide-out with FilterGroupCard and FilterConditionRow
+- [x] 13-09-PLAN.md (Wave 3) - Create DataTable with TanStack Table, PaginationBar, BulkActionsBar
+- [x] 13-10-PLAN.md (Wave 3) - Create BoardView with BoardColumn and BoardCard (drag-drop with @dnd-kit)
+- [x] 13-11-PLAN.md (Wave 4) - Cases module integration: config, hook, and page update
+- [x] 13-12-PLAN.md (Wave 4) - Investigations and Policies module integration
+- [x] 13-13-PLAN.md (Wave 4) - Disclosures and Intake Forms module integration
+- [x] 13-14-PLAN.md (Wave 5) - URL state sync with useViewUrlState hook, enhanced BulkActionsBar
+- [x] 13-15-PLAN.md (Wave 5) - Demo data seeder for saved views, verification checkpoint
 
 ### Phase 13.1: Saved Views Fixes (INSERTED)
 
@@ -572,10 +573,10 @@ Plans:
 
 Plans:
 
-- [ ] 14-01-PLAN.md (Wave 1) — Top nav & sidebar overhaul: auth context, logout, Ethico SVG logo, dark nav theme
-- [ ] 14-02-PLAN.md (Wave 1) — Create /notifications and /my-work pages (fix 404s)
-- [ ] 14-03-PLAN.md (Wave 1) — Create /search and /profile pages, fix SelectItem empty string error
-- [ ] 14-04-PLAN.md (Wave 1) — Dashboard performance (reduce fetch limit), task navigation, audit log verification
+- [x] 14-01-PLAN.md (Wave 1) — Top nav & sidebar overhaul: auth context, logout, Ethico SVG logo, dark nav theme
+- [x] 14-02-PLAN.md (Wave 1) — Create /notifications and /my-work pages (fix 404s)
+- [x] 14-03-PLAN.md (Wave 1) — Create /search and /profile pages, fix SelectItem empty string error
+- [x] 14-04-PLAN.md (Wave 1) — Dashboard performance (reduce fetch limit), task navigation, audit log verification
 - [x] 14-05-PLAN.md (Wave 2) — Verification checkpoint: automated checks + human verification of all 11 fixes
 
 ### Phase 14.1: Data & Config Fixes (INSERTED)
@@ -595,15 +596,36 @@ Plans:
 
 Plans:
 
-- [ ] 14.1-01-PLAN.md (Wave 1) — Notification seeder for demo users (50-100 per user, diverse types)
-- [ ] 14.1-02-PLAN.md (Wave 1) — Wire activity.seeder.ts into seed.ts (audit log data)
-- [ ] 14.1-03-PLAN.md (Wave 1) — Demo user case ownership for My Tasks (createdById assignment)
-- [ ] 14.1-04-PLAN.md (Wave 2) — Verification checkpoint: re-seed and human verification of all 5 fixes
+- [x] 14.1-01-PLAN.md (Wave 1) — Notification seeder for demo users (50-100 per user, diverse types)
+- [x] 14.1-02-PLAN.md (Wave 1) — Wire activity.seeder.ts into seed.ts (audit log data)
+- [x] 14.1-03-PLAN.md (Wave 1) — Demo user case ownership for My Tasks (createdById assignment)
+- [x] 14.1-04-PLAN.md (Wave 2) — Verification checkpoint: re-seed and human verification of all 5 fixes
+
+### Phase 14.2: Case Creation & Search Fixes (INSERTED)
+
+**Goal**: Add missing Category/Subcategory dropdowns to case creation form and fix unified search returning empty results.
+**Depends on**: Phase 14.1 (pagination fixes complete)
+**Requirements**: Issues identified in Phase 14.1 human verification
+**Success Criteria** (what must be TRUE):
+
+1. Case creation form shows Category dropdown with all level-0 categories
+2. Subcategory dropdown populates based on selected category (level-1 categories)
+3. Created cases have correct primaryCategoryId and secondaryCategoryId
+4. Unified search returns results for case content (e.g., "harassment")
+5. Unified search returns results for case numbers (e.g., "CASE-2025")
+
+**Plans**: 3 plans in 2 waves
+
+Plans:
+
+- [x] 14.2-01-PLAN.md (Wave 1) — Categories API endpoint and frontend integration
+- [x] 14.2-02-PLAN.md (Wave 1) — PostgreSQL FTS fallback for unified search
+- [x] 14.2-03-PLAN.md (Wave 2) — Verification checkpoint
 
 ### Phase 15: Case Detail Page Overhaul
 
 **Goal**: Rebuild the case detail page into a three-column layout that serves as the primary workspace for investigators — with a complete activity feed, action buttons, AI panel, and connected entity cards. This is the page where users spend 80% of their time.
-**Depends on**: Phase 14 (routes must work), Phase 16 (AI must work for AI panel), Phase 6 (case entities, activity timeline), Phase 4 (person/RIU associations)
+**Depends on**: Phase 14 (routes must work), Phase 6 (case entities, activity timeline), Phase 4 (person/RIU associations)
 **Requirements**: Issues documented in `.planning/V1-ISSUES-AND-GAPS.md` Phase 15 section
 **Success Criteria** (what must be TRUE):
 
@@ -624,17 +646,20 @@ Plans:
 - Updated case seed data with 200-400 word details and 50-75 word summaries
 - Activity feed entries (notes, status changes, assignments) on flagship cases
 - Connected people and documents on flagship cases
-  **Plans**: 7 plans in 4 waves
+  **Plans**: 10 plans in 4 waves (7 original + 3 gap closure)
 
 Plans:
 
-- [ ] 15-01-PLAN.md (Wave 1) — Backend API gaps: merge endpoints, person-case association controller
-- [ ] 15-02-PLAN.md (Wave 2) — Three-column grid layout + left column (CaseInfoSummary, ActionButtonRow)
-- [ ] 15-03-PLAN.md (Wave 2) — Center column tabs: fix activity API path, add Summary tab, enhance Overview
-- [ ] 15-04-PLAN.md (Wave 3) — Action modals: Assign, Status, Merge, AddNote, EmailLog wired to APIs
-- [ ] 15-05-PLAN.md (Wave 3) — Right column: ConnectedPeople, ConnectedDocuments, AddPerson modal
-- [ ] 15-06-PLAN.md (Wave 4) — AI slide-out panel with WebSocket streaming chat
-- [ ] 15-07-PLAN.md (Wave 1) — Seed data enhancement: 200-400 word details, 50-75 word summaries, activities
+- [x] 15-01-PLAN.md (Wave 1) — Backend API gaps: merge endpoints, person-case association controller
+- [x] 15-07-PLAN.md (Wave 1) — Seed data enhancement: 200-400 word details, 50-75 word summaries, activities
+- [x] 15-02-PLAN.md (Wave 2) — Three-column grid layout + left column (CaseInfoSummary, ActionButtonRow)
+- [x] 15-03-PLAN.md (Wave 2) — Center column tabs: fix activity API path, add Summary tab, enhance Overview
+- [x] 15-04-PLAN.md (Wave 3) — Action modals: Assign, Status, Merge, AddNote, EmailLog wired to APIs
+- [x] 15-05-PLAN.md (Wave 3) — Right column: ConnectedPeople, ConnectedDocuments, AddPerson modal
+- [x] 15-06-PLAN.md (Wave 4) — AI slide-out panel with WebSocket streaming chat
+- [ ] 15-08-PLAN.md (Gap Closure Wave 1) — Quick action modals: Interview, Document, Task
+- [ ] 15-09-PLAN.md (Gap Closure Wave 1) — RIU form answers display in Overview tab
+- [ ] 15-10-PLAN.md (Gap Closure Wave 1) — AI case note action and human verification checkpoint
 
 ### Phase 16: AI Integration Fix
 
@@ -873,44 +898,45 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in dependency order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11 → 11.1 → 12 → 13 → 13.1 → 14 → 14.1 → 16 → 15 → 17 → 18 → 19 → 20 → 21 → 22 → 23 → 24
+Phases execute in dependency order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11 → 11.1 → 12 → 13 → 13.1 → 14 → 14.1 → 14.2 → 15 → 16 → 17 → 18 → 19 → 20 → 21 → 22 → 23 → 24
 
-> **Note on order**: Phase 16 (AI Fix) executes before Phase 15 (Case Detail Overhaul) because the case page's AI panel depends on working AI infrastructure. Phase 13.1 fixes UAT gaps from Phase 13. Phase 14.1 fixes data seeding gaps from Phase 14.
+> **Note on order**: Phase 13.1 fixes UAT gaps from Phase 13. Phase 14.1 fixes data seeding gaps from Phase 14. Phase 15 gap closure plans address verification failures.
 
-| Phase                                | Plans Complete | Status   | Completed  |
-| ------------------------------------ | -------------- | -------- | ---------- |
-| 1. Foundation Infrastructure         | 9/9            | Complete | 2026-02-02 |
-| 2. Demo Tenant & Seed Data           | 7/7            | Complete | 2026-02-03 |
-| 3. Authentication & SSO              | 8/8            | Complete | 2026-02-03 |
-| 4. Core Entities                     | 10/10          | Complete | 2026-02-03 |
-| 5. AI Infrastructure                 | 11/11          | Complete | 2026-02-03 |
-| 6. Case Management                   | 11/17          | Complete | 2026-02-04 |
-| 7. Notifications & Email             | 8/8            | Complete | 2026-02-04 |
-| 8. Portals                           | 17/17          | Complete | 2026-02-04 |
-| 9. Campaigns & Disclosures           | 17/17          | Complete | 2026-02-04 |
-| 10. Policy Management                | 11/11          | Complete | 2026-02-05 |
-| 11. Analytics & Reporting            | 21/21          | Complete | 2026-02-05 |
-| 11.1. Frontend Navigation (INSERTED) | 6/6            | Complete | 2026-02-05 |
-| 12. Internal Operations Portal       | 19/19          | Complete | 2026-02-06 |
-| 13. HubSpot-Style Saved Views        | 15/15          | Complete | 2026-02-07 |
-| 13.1. Saved Views Fixes (INSERTED)   | 1/1            | Verified | 2026-02-09 |
-| 14. Critical Bug Fixes & Navigation  | 5/5            | Complete | 2026-02-09 |
-| 14.1. Data & Config Fixes (INSERTED) | 0/4            | Planned  | -          |
-| 15. Case Detail Page Overhaul        | 0/7            | Planned  | -          |
-| 16. AI Integration Fix               | 0/TBD          | Planned  | -          |
-| 17. Campaigns Hub                    | 0/4            | Planned  | -          |
-| 18. Reports & Data Management        | 0/9            | Planned  | -          |
-| 19. Workflow Engine UI               | 0/7            | Planned  | -          |
-| 20. Settings Overhaul (HubSpot)      | 0/TBD          | Planned  | -          |
-| 21. Project Management (Monday.com)  | 0/6            | Planned  | -          |
-| 22. Dark Mode & Theme                | 0/14           | Planned  | -          |
-| 23. Help & Support System            | 0/5            | Planned  | -          |
-| 24. Policy Content & Seed Data       | 0/3            | Planned  | -          |
+| Phase                                   | Plans Complete | Status   | Completed  |
+| --------------------------------------- | -------------- | -------- | ---------- |
+| 1. Foundation Infrastructure            | 9/9            | Complete | 2026-02-02 |
+| 2. Demo Tenant & Seed Data              | 7/7            | Complete | 2026-02-03 |
+| 3. Authentication & SSO                 | 8/8            | Complete | 2026-02-03 |
+| 4. Core Entities                        | 10/10          | Complete | 2026-02-03 |
+| 5. AI Infrastructure                    | 11/11          | Complete | 2026-02-03 |
+| 6. Case Management                      | 11/17          | Complete | 2026-02-04 |
+| 7. Notifications & Email                | 8/8            | Complete | 2026-02-04 |
+| 8. Portals                              | 17/17          | Complete | 2026-02-04 |
+| 9. Campaigns & Disclosures              | 17/17          | Complete | 2026-02-04 |
+| 10. Policy Management                   | 11/11          | Complete | 2026-02-05 |
+| 11. Analytics & Reporting               | 21/21          | Complete | 2026-02-05 |
+| 11.1. Frontend Navigation (INSERTED)    | 6/6            | Complete | 2026-02-05 |
+| 12. Internal Operations Portal          | 19/19          | Complete | 2026-02-06 |
+| 13. HubSpot-Style Saved Views           | 15/15          | Complete | 2026-02-07 |
+| 13.1. Saved Views Fixes (INSERTED)      | 1/1            | Verified | 2026-02-09 |
+| 14. Critical Bug Fixes & Navigation     | 5/5            | Complete | 2026-02-09 |
+| 14.1. Data & Config Fixes (INSERTED)    | 4/4            | Complete | 2026-02-09 |
+| 14.2. Case Creation & Search (INSERTED) | 3/3            | Complete | 2026-02-10 |
+| 15. Case Detail Page Overhaul           | 7/10           | Gaps     | -          |
+| 16. AI Integration Fix                  | 0/TBD          | Planned  | -          |
+| 17. Campaigns Hub                       | 0/4            | Planned  | -          |
+| 18. Reports & Data Management           | 0/9            | Planned  | -          |
+| 19. Workflow Engine UI                  | 0/7            | Planned  | -          |
+| 20. Settings Overhaul (HubSpot)         | 0/TBD          | Planned  | -          |
+| 21. Project Management (Monday.com)     | 0/6            | Planned  | -          |
+| 22. Dark Mode & Theme                   | 0/14           | Planned  | -          |
+| 23. Help & Support System               | 0/5            | Planned  | -          |
+| 24. Policy Content & Seed Data          | 0/3            | Planned  | -          |
 
 ---
 
 _Roadmap created: 2026-02-02_
-_Updated: 2026-02-09 (Phase 14 complete, Phase 14.1 Data & Config Fixes planned)_
+_Updated: 2026-02-10 (Phase 15 gap closure plans created)_
 _Depth: Comprehensive_
 _Total phases: 24 (+ 11.1 and decimal insertions)_
 _Total plans: 190+ completed, ~50-70 estimated remaining_
