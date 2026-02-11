@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { LinkedRiuList } from "./linked-riu-list";
+import { LinkedRiuFormAnswers } from "./linked-riu-form-answers";
 import { CaseActivityTimeline } from "./case-activity-timeline";
 import { CaseInvestigationsPanel } from "./case-investigations-panel";
 import { MessagesTab } from "./messages-tab";
@@ -380,6 +381,30 @@ function OverviewTab({ caseData, onRiuClick, onTabChange }: OverviewTabProps) {
           onRiuClick={onRiuClick}
         />
       </section>
+
+      {/* Original Intake Details Section */}
+      {caseData.riuAssociations && caseData.riuAssociations.length > 0 && (
+        <section>
+          <h3 className="text-sm font-semibold text-gray-700 mb-3">
+            Original Intake Details
+          </h3>
+          <div className="bg-white border rounded-lg p-4">
+            {(() => {
+              const primaryRiu =
+                caseData.riuAssociations.find(
+                  (a) => a.associationType === "PRIMARY",
+                ) || caseData.riuAssociations[0];
+
+              return (
+                <LinkedRiuFormAnswers
+                  riuId={primaryRiu.riuId}
+                  riuType={primaryRiu.riu.type}
+                />
+              );
+            })()}
+          </div>
+        </section>
+      )}
 
       {/* Case Details Section */}
       <section>
