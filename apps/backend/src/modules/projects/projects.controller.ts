@@ -21,6 +21,9 @@ import {
   ApiQuery,
 } from "@nestjs/swagger";
 import { MilestoneService } from "./milestone.service";
+import { ProjectService } from "./project.service";
+import { ProjectTaskService } from "./project-task.service";
+import { ProjectGroupService } from "./project-group.service";
 import {
   CreateMilestoneDto,
   UpdateMilestoneDto,
@@ -30,6 +33,25 @@ import {
   MilestoneResponseDto,
   PaginatedMilestoneResult,
 } from "./dto/milestone.dto";
+import {
+  ProjectDetailResponseDto,
+  ProjectQueryDto,
+  PaginatedProjectResult,
+} from "./dto/project.dto";
+import {
+  CreateProjectTaskDto,
+  UpdateProjectTaskDto,
+  ProjectTaskQueryDto,
+  BulkUpdateTasksDto,
+  ReorderTasksDto,
+  ProjectTaskResponseDto,
+  PaginatedProjectTaskResult,
+} from "./dto/project-task.dto";
+import {
+  CreateProjectGroupDto,
+  UpdateProjectGroupDto,
+  ReorderGroupsDto,
+} from "./dto/project-group.dto";
 import { JwtAuthGuard, TenantGuard, RolesGuard } from "../../common/guards";
 import {
   CurrentUser,
@@ -38,7 +60,7 @@ import {
   UserRole,
 } from "../../common/decorators";
 import { RequestUser } from "../auth/interfaces/jwt-payload.interface";
-import { MilestoneItem } from "@prisma/client";
+import { MilestoneItem, ProjectGroup, ProjectTask } from "@prisma/client";
 
 /**
  * Controller for project/milestone management.
@@ -46,13 +68,28 @@ import { MilestoneItem } from "@prisma/client";
  *
  * The frontend uses "projects" terminology while the backend
  * model uses "milestones" - this controller bridges that gap.
+ *
+ * Extended in 21-02 with:
+ * - Task CRUD endpoints
+ * - Group CRUD endpoints
+ * - Bulk update for drag-drop
+ * - Reorder endpoints
  */
 @ApiTags("Projects")
 @ApiBearerAuth("JWT")
 @Controller("projects")
 @UseGuards(JwtAuthGuard, TenantGuard)
 export class ProjectsController {
-  constructor(private readonly milestoneService: MilestoneService) {}
+  constructor(
+    private readonly milestoneService: MilestoneService,
+    private readonly projectService: ProjectService,
+    private readonly projectTaskService: ProjectTaskService,
+    private readonly projectGroupService: ProjectGroupService,
+  ) {}
+
+  // =========================================================================
+  // Project CRUD
+  // =========================================================================
 
   /**
    * POST /api/v1/projects
@@ -85,35 +122,39 @@ export class ProjectsController {
 
   /**
    * GET /api/v1/projects
-   * Returns paginated list of projects/milestones.
+   * Returns paginated list of projects/milestones with task counts.
    */
   @Get()
   @ApiOperation({
     summary: "List projects",
-    description: "Returns paginated list of projects with filtering options",
+    description:
+      "Returns paginated list of projects with filtering options and task counts",
   })
   @ApiQuery({ name: "status", required: false })
   @ApiQuery({ name: "category", required: false })
   @ApiQuery({ name: "ownerId", required: false })
+  @ApiQuery({ name: "search", required: false })
   @ApiQuery({ name: "offset", required: false, type: Number })
   @ApiQuery({ name: "limit", required: false, type: Number })
   @ApiResponse({ status: 200, description: "List of projects" })
   @ApiResponse({ status: 401, description: "Unauthorized" })
   async findAll(
-    @Query() query: MilestoneQueryDto,
+    @Query() query: ProjectQueryDto,
     @TenantId() organizationId: string,
-  ): Promise<PaginatedMilestoneResult> {
-    return this.milestoneService.list(organizationId, query);
+  ): Promise<PaginatedProjectResult> {
+    return this.projectService.getProjectsWithTaskCounts(organizationId, query);
   }
 
   /**
    * GET /api/v1/projects/:id
-   * Returns a single project/milestone by ID.
+   * Returns a single project/milestone by ID with full detail.
+   * Includes groups, tasks, columns, and task counts.
    */
   @Get(":id")
   @ApiOperation({
     summary: "Get project by ID",
-    description: "Returns a single project with its items",
+    description:
+      "Returns a single project with groups, tasks, columns, and task counts",
   })
   @ApiParam({ name: "id", description: "Project UUID" })
   @ApiResponse({ status: 200, description: "Project found" })
@@ -122,8 +163,8 @@ export class ProjectsController {
   async findOne(
     @Param("id", ParseUUIDPipe) id: string,
     @TenantId() organizationId: string,
-  ): Promise<MilestoneResponseDto | null> {
-    return this.milestoneService.get(organizationId, id);
+  ): Promise<ProjectDetailResponseDto | null> {
+    return this.projectService.getDetail(organizationId, id);
   }
 
   /**
@@ -148,9 +189,9 @@ export class ProjectsController {
     @Body() dto: UpdateMilestoneDto,
     @CurrentUser() user: RequestUser,
     @TenantId() organizationId: string,
-  ): Promise<MilestoneResponseDto | null> {
+  ): Promise<ProjectDetailResponseDto | null> {
     await this.milestoneService.update(organizationId, id, user.id, dto);
-    return this.milestoneService.get(organizationId, id);
+    return this.projectService.getDetail(organizationId, id);
   }
 
   /**
@@ -179,7 +220,7 @@ export class ProjectsController {
   }
 
   // =========================================================================
-  // Project Items (Tasks)
+  // Project Items (Legacy Tasks)
   // =========================================================================
 
   /**
@@ -267,5 +308,336 @@ export class ProjectsController {
     @TenantId() organizationId: string,
   ): Promise<void> {
     await this.milestoneService.removeItem(organizationId, itemId, user.id);
+  }
+
+  // =========================================================================
+  // Project Tasks (Monday.com-style board tasks)
+  // =========================================================================
+
+  /**
+   * GET /api/v1/projects/:id/tasks
+   * Lists tasks for a project with filtering and pagination.
+   */
+  @Get(":id/tasks")
+  @ApiOperation({
+    summary: "List project tasks",
+    description:
+      "Returns paginated list of tasks for a project with filtering options",
+  })
+  @ApiParam({ name: "id", description: "Project UUID" })
+  @ApiQuery({ name: "status", required: false })
+  @ApiQuery({ name: "priority", required: false })
+  @ApiQuery({ name: "assigneeId", required: false })
+  @ApiQuery({ name: "groupId", required: false })
+  @ApiQuery({ name: "search", required: false })
+  @ApiQuery({ name: "sortBy", required: false })
+  @ApiQuery({ name: "sortOrder", required: false })
+  @ApiQuery({ name: "offset", required: false, type: Number })
+  @ApiQuery({ name: "limit", required: false, type: Number })
+  @ApiResponse({ status: 200, description: "List of tasks" })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  @ApiResponse({ status: 404, description: "Project not found" })
+  async listTasks(
+    @Param("id", ParseUUIDPipe) id: string,
+    @Query() query: ProjectTaskQueryDto,
+    @TenantId() organizationId: string,
+  ): Promise<PaginatedProjectTaskResult> {
+    return this.projectTaskService.list(organizationId, id, query);
+  }
+
+  /**
+   * POST /api/v1/projects/:id/tasks
+   * Creates a new task in a project.
+   */
+  @Post(":id/tasks")
+  @Roles(UserRole.COMPLIANCE_OFFICER, UserRole.MANAGER, UserRole.SYSTEM_ADMIN)
+  @UseGuards(RolesGuard)
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({
+    summary: "Create project task",
+    description: "Creates a new task in a project",
+  })
+  @ApiParam({ name: "id", description: "Project UUID" })
+  @ApiResponse({ status: 201, description: "Task created successfully" })
+  @ApiResponse({ status: 400, description: "Validation error" })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  @ApiResponse({ status: 403, description: "Forbidden" })
+  @ApiResponse({ status: 404, description: "Project not found" })
+  async createTask(
+    @Param("id", ParseUUIDPipe) id: string,
+    @Body() dto: CreateProjectTaskDto,
+    @CurrentUser() user: RequestUser,
+    @TenantId() organizationId: string,
+  ): Promise<ProjectTask> {
+    return this.projectTaskService.create(organizationId, id, user.id, dto);
+  }
+
+  /**
+   * PUT /api/v1/projects/:id/tasks/:taskId
+   * Updates a task in a project.
+   */
+  @Put(":id/tasks/:taskId")
+  @Roles(UserRole.COMPLIANCE_OFFICER, UserRole.MANAGER, UserRole.SYSTEM_ADMIN)
+  @UseGuards(RolesGuard)
+  @ApiOperation({
+    summary: "Update project task",
+    description: "Updates a task in a project",
+  })
+  @ApiParam({ name: "id", description: "Project UUID" })
+  @ApiParam({ name: "taskId", description: "Task UUID" })
+  @ApiResponse({ status: 200, description: "Task updated" })
+  @ApiResponse({ status: 400, description: "Validation error" })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  @ApiResponse({ status: 403, description: "Forbidden" })
+  @ApiResponse({ status: 404, description: "Task not found" })
+  async updateTask(
+    @Param("id", ParseUUIDPipe) _id: string,
+    @Param("taskId", ParseUUIDPipe) taskId: string,
+    @Body() dto: UpdateProjectTaskDto,
+    @CurrentUser() user: RequestUser,
+    @TenantId() organizationId: string,
+  ): Promise<ProjectTask> {
+    return this.projectTaskService.update(organizationId, taskId, user.id, dto);
+  }
+
+  /**
+   * DELETE /api/v1/projects/:id/tasks/:taskId
+   * Deletes a task from a project.
+   */
+  @Delete(":id/tasks/:taskId")
+  @Roles(UserRole.COMPLIANCE_OFFICER, UserRole.MANAGER, UserRole.SYSTEM_ADMIN)
+  @UseGuards(RolesGuard)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({
+    summary: "Delete project task",
+    description: "Deletes a task and its subtasks from a project",
+  })
+  @ApiParam({ name: "id", description: "Project UUID" })
+  @ApiParam({ name: "taskId", description: "Task UUID" })
+  @ApiResponse({ status: 204, description: "Task deleted" })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  @ApiResponse({ status: 403, description: "Forbidden" })
+  @ApiResponse({ status: 404, description: "Task not found" })
+  async deleteTask(
+    @Param("id", ParseUUIDPipe) _id: string,
+    @Param("taskId", ParseUUIDPipe) taskId: string,
+    @CurrentUser() user: RequestUser,
+    @TenantId() organizationId: string,
+  ): Promise<void> {
+    await this.projectTaskService.delete(organizationId, taskId, user.id);
+  }
+
+  /**
+   * PUT /api/v1/projects/:id/tasks/bulk
+   * Bulk updates multiple tasks (for drag-drop operations).
+   */
+  @Put(":id/tasks/bulk")
+  @Roles(UserRole.COMPLIANCE_OFFICER, UserRole.MANAGER, UserRole.SYSTEM_ADMIN)
+  @UseGuards(RolesGuard)
+  @ApiOperation({
+    summary: "Bulk update tasks",
+    description:
+      "Updates multiple tasks at once (for drag-drop status/group changes)",
+  })
+  @ApiParam({ name: "id", description: "Project UUID" })
+  @ApiResponse({ status: 200, description: "Tasks updated" })
+  @ApiResponse({ status: 400, description: "Validation error" })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  @ApiResponse({ status: 403, description: "Forbidden" })
+  @ApiResponse({ status: 404, description: "One or more tasks not found" })
+  async bulkUpdateTasks(
+    @Param("id", ParseUUIDPipe) _id: string,
+    @Body() dto: BulkUpdateTasksDto,
+    @CurrentUser() user: RequestUser,
+    @TenantId() organizationId: string,
+  ): Promise<{ updated: number }> {
+    return this.projectTaskService.bulkUpdate(organizationId, user.id, dto);
+  }
+
+  /**
+   * PUT /api/v1/projects/:id/tasks/reorder
+   * Reorders tasks within a group.
+   */
+  @Put(":id/tasks/reorder")
+  @Roles(UserRole.COMPLIANCE_OFFICER, UserRole.MANAGER, UserRole.SYSTEM_ADMIN)
+  @UseGuards(RolesGuard)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({
+    summary: "Reorder tasks",
+    description: "Reorders tasks within a group by providing new order",
+  })
+  @ApiParam({ name: "id", description: "Project UUID" })
+  @ApiQuery({ name: "groupId", required: false, description: "Group UUID" })
+  @ApiResponse({ status: 204, description: "Tasks reordered" })
+  @ApiResponse({ status: 400, description: "Validation error" })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  @ApiResponse({ status: 403, description: "Forbidden" })
+  @ApiResponse({ status: 404, description: "One or more tasks not found" })
+  async reorderTasks(
+    @Param("id", ParseUUIDPipe) id: string,
+    @Query("groupId") groupId: string | undefined,
+    @Body() dto: ReorderTasksDto,
+    @TenantId() organizationId: string,
+  ): Promise<void> {
+    await this.projectTaskService.reorder(
+      organizationId,
+      id,
+      groupId || null,
+      dto.orderedIds,
+    );
+  }
+
+  /**
+   * GET /api/v1/projects/:id/tasks/:taskId/subtasks
+   * Gets subtasks for a parent task.
+   */
+  @Get(":id/tasks/:taskId/subtasks")
+  @ApiOperation({
+    summary: "Get subtasks",
+    description: "Returns subtasks for a parent task",
+  })
+  @ApiParam({ name: "id", description: "Project UUID" })
+  @ApiParam({ name: "taskId", description: "Parent task UUID" })
+  @ApiResponse({ status: 200, description: "List of subtasks" })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  @ApiResponse({ status: 404, description: "Task not found" })
+  async getSubtasks(
+    @Param("id", ParseUUIDPipe) _id: string,
+    @Param("taskId", ParseUUIDPipe) taskId: string,
+    @TenantId() organizationId: string,
+  ): Promise<ProjectTaskResponseDto[]> {
+    return this.projectTaskService.getSubtasks(organizationId, taskId);
+  }
+
+  // =========================================================================
+  // Project Groups
+  // =========================================================================
+
+  /**
+   * GET /api/v1/projects/:id/groups
+   * Lists all groups for a project.
+   */
+  @Get(":id/groups")
+  @ApiOperation({
+    summary: "List project groups",
+    description: "Returns all groups/sections for a project",
+  })
+  @ApiParam({ name: "id", description: "Project UUID" })
+  @ApiResponse({ status: 200, description: "List of groups" })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  @ApiResponse({ status: 404, description: "Project not found" })
+  async listGroups(
+    @Param("id", ParseUUIDPipe) id: string,
+    @TenantId() organizationId: string,
+  ): Promise<ProjectGroup[]> {
+    return this.projectGroupService.list(organizationId, id);
+  }
+
+  /**
+   * POST /api/v1/projects/:id/groups
+   * Creates a new group in a project.
+   */
+  @Post(":id/groups")
+  @Roles(UserRole.COMPLIANCE_OFFICER, UserRole.MANAGER, UserRole.SYSTEM_ADMIN)
+  @UseGuards(RolesGuard)
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({
+    summary: "Create project group",
+    description: "Creates a new group/section in a project",
+  })
+  @ApiParam({ name: "id", description: "Project UUID" })
+  @ApiResponse({ status: 201, description: "Group created successfully" })
+  @ApiResponse({ status: 400, description: "Validation error" })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  @ApiResponse({ status: 403, description: "Forbidden" })
+  @ApiResponse({ status: 404, description: "Project not found" })
+  async createGroup(
+    @Param("id", ParseUUIDPipe) id: string,
+    @Body() dto: CreateProjectGroupDto,
+    @CurrentUser() user: RequestUser,
+    @TenantId() organizationId: string,
+  ): Promise<ProjectGroup> {
+    return this.projectGroupService.create(organizationId, id, user.id, dto);
+  }
+
+  /**
+   * PUT /api/v1/projects/:id/groups/:groupId
+   * Updates a group in a project.
+   */
+  @Put(":id/groups/:groupId")
+  @Roles(UserRole.COMPLIANCE_OFFICER, UserRole.MANAGER, UserRole.SYSTEM_ADMIN)
+  @UseGuards(RolesGuard)
+  @ApiOperation({
+    summary: "Update project group",
+    description: "Updates a group/section in a project",
+  })
+  @ApiParam({ name: "id", description: "Project UUID" })
+  @ApiParam({ name: "groupId", description: "Group UUID" })
+  @ApiResponse({ status: 200, description: "Group updated" })
+  @ApiResponse({ status: 400, description: "Validation error" })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  @ApiResponse({ status: 403, description: "Forbidden" })
+  @ApiResponse({ status: 404, description: "Group not found" })
+  async updateGroup(
+    @Param("id", ParseUUIDPipe) _id: string,
+    @Param("groupId", ParseUUIDPipe) groupId: string,
+    @Body() dto: UpdateProjectGroupDto,
+    @TenantId() organizationId: string,
+  ): Promise<ProjectGroup> {
+    return this.projectGroupService.update(organizationId, groupId, dto);
+  }
+
+  /**
+   * DELETE /api/v1/projects/:id/groups/:groupId
+   * Deletes a group from a project.
+   */
+  @Delete(":id/groups/:groupId")
+  @Roles(UserRole.COMPLIANCE_OFFICER, UserRole.MANAGER, UserRole.SYSTEM_ADMIN)
+  @UseGuards(RolesGuard)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({
+    summary: "Delete project group",
+    description:
+      "Deletes a group/section from a project. Tasks in the group become ungrouped.",
+  })
+  @ApiParam({ name: "id", description: "Project UUID" })
+  @ApiParam({ name: "groupId", description: "Group UUID" })
+  @ApiResponse({ status: 204, description: "Group deleted" })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  @ApiResponse({ status: 403, description: "Forbidden" })
+  @ApiResponse({ status: 404, description: "Group not found" })
+  async deleteGroup(
+    @Param("id", ParseUUIDPipe) _id: string,
+    @Param("groupId", ParseUUIDPipe) groupId: string,
+    @CurrentUser() user: RequestUser,
+    @TenantId() organizationId: string,
+  ): Promise<void> {
+    await this.projectGroupService.delete(organizationId, groupId, user.id);
+  }
+
+  /**
+   * PUT /api/v1/projects/:id/groups/reorder
+   * Reorders groups within a project.
+   */
+  @Put(":id/groups/reorder")
+  @Roles(UserRole.COMPLIANCE_OFFICER, UserRole.MANAGER, UserRole.SYSTEM_ADMIN)
+  @UseGuards(RolesGuard)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({
+    summary: "Reorder groups",
+    description: "Reorders groups within a project by providing new order",
+  })
+  @ApiParam({ name: "id", description: "Project UUID" })
+  @ApiResponse({ status: 204, description: "Groups reordered" })
+  @ApiResponse({ status: 400, description: "Validation error" })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  @ApiResponse({ status: 403, description: "Forbidden" })
+  @ApiResponse({ status: 404, description: "One or more groups not found" })
+  async reorderGroups(
+    @Param("id", ParseUUIDPipe) id: string,
+    @Body() dto: ReorderGroupsDto,
+    @TenantId() organizationId: string,
+  ): Promise<void> {
+    await this.projectGroupService.reorder(organizationId, id, dto.orderedIds);
   }
 }
