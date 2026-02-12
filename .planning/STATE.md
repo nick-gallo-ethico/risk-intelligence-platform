@@ -10,19 +10,22 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 20 of 24 (Settings Overhaul)
-Plan: 2 of 6 in current phase
+Plan: 1 of 6 in current phase
 Status: Phase 20 IN PROGRESS - Settings hub pages
-Last activity: 2026-02-12 - Completed 20-02 (user notification preferences)
+Last activity: 2026-02-12 - Completed 20-01 (settings hub restructure and profile page)
 
-Progress: [=========================================================--------------] ~89% (~232 of ~260 estimated total plans)
+Progress: [=========================================================--------------] ~89% (~231 of ~260 estimated total plans)
 
 ### Phase 20 Settings Overhaul IN PROGRESS (2026-02-12)
 
-- 20-01: User profile page with tabs (COMPLETE - 160c8d8)
+- 20-01: Settings hub restructure and user profile page (COMPLETE - b1f74b8, 160c8d8, 1259464, 48874ac)
+  - Settings hub restructured with 4 HubSpot-style sections
+  - Your Preferences, Account Management, Data Management, Tools
   - /settings/profile with Profile/Security/Task Defaults tabs
   - Profile tab: display name, title, timezone, language
   - Security tab: change password form, MFA toggle, active sessions
   - Task Defaults: default reminder, assignment mode, auto-accept
+  - Navigation updated with Properties and AI Settings links
 - 20-02: User notification preferences page (COMPLETE - b1f74b8, 160c8d8)
   - /settings/notifications with HubSpot-style toggle-to-save pattern
   - Categories grouped: Urgent (assignments, deadlines, escalations), Activity (status, comments), Collaboration (mentions)
@@ -890,14 +893,13 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-02-11
-Stopped at: Phase 19 Plan 05 COMPLETE - Workflow builder properties and pages
+Last session: 2026-02-12
+Stopped at: Phase 20 Plan 01 COMPLETE - Settings hub restructure and user profile page
 Resume file: None
 
-**Phase 19 Status: IN PROGRESS**
-Plan 19-05 completed (property panels, toolbar, page routes for workflow builder).
-Plan 19-06 also complete (instances page with bulk actions, detail dialog, progress indicator).
-Remaining: 19-07 (workflow entity integration - embed progress indicator in case/policy pages).
+**Phase 20 Status: IN PROGRESS**
+Plan 20-01 completed (settings hub 4 sections, profile page with tabs, navigation updates).
+Remaining: 20-03 through 20-06 (account defaults, properties/objects, AI settings, import/export).
 
 **Phase 14.2 Status: IN PROGRESS**
 Plan 14.2-02 completed. Remaining:
