@@ -52,7 +52,7 @@ export default function SettingsPage() {
           title: "Notifications",
           description:
             "Email alerts, in-app notifications, and digest settings",
-          href: "/settings/profile?tab=notifications",
+          href: "/settings/notifications",
         },
         {
           icon: ListChecks,
