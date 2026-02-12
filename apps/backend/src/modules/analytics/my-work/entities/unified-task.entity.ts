@@ -14,17 +14,19 @@
  */
 export enum TaskType {
   /** Case assigned to user for triage or investigation */
-  CASE_ASSIGNMENT = 'case_assignment',
+  CASE_ASSIGNMENT = "case_assignment",
   /** Investigation step requiring action */
-  INVESTIGATION_STEP = 'investigation_step',
+  INVESTIGATION_STEP = "investigation_step",
   /** Remediation action item */
-  REMEDIATION_TASK = 'remediation_task',
+  REMEDIATION_TASK = "remediation_task",
   /** Disclosure requiring review (conflict alert) */
-  DISCLOSURE_REVIEW = 'disclosure_review',
+  DISCLOSURE_REVIEW = "disclosure_review",
   /** Campaign assignment (disclosure, attestation, survey response) */
-  CAMPAIGN_RESPONSE = 'campaign_response',
+  CAMPAIGN_RESPONSE = "campaign_response",
   /** Workflow approval request */
-  APPROVAL_REQUEST = 'approval_request',
+  APPROVAL_REQUEST = "approval_request",
+  /** Project task from Monday.com-style project board */
+  PROJECT_TASK = "project_task",
 }
 
 /**
@@ -32,9 +34,10 @@ export enum TaskType {
  * Used in priority-weighted due date sorting.
  */
 export enum TaskPriority {
-  HIGH = 'high',
-  MEDIUM = 'medium',
-  LOW = 'low',
+  CRITICAL = "critical",
+  HIGH = "high",
+  MEDIUM = "medium",
+  LOW = "low",
 }
 
 /**
@@ -42,11 +45,11 @@ export enum TaskPriority {
  */
 export enum TaskStatus {
   /** Task not yet started */
-  PENDING = 'pending',
+  PENDING = "pending",
   /** Task currently being worked on */
-  IN_PROGRESS = 'in_progress',
+  IN_PROGRESS = "in_progress",
   /** Task past due date */
-  OVERDUE = 'overdue',
+  OVERDUE = "overdue",
 }
 
 /**
@@ -54,6 +57,7 @@ export enum TaskStatus {
  * Higher weight = more urgent at same time distance.
  */
 export const PRIORITY_WEIGHTS: Record<TaskPriority, number> = {
+  [TaskPriority.CRITICAL]: 4,
   [TaskPriority.HIGH]: 3,
   [TaskPriority.MEDIUM]: 2,
   [TaskPriority.LOW]: 1,

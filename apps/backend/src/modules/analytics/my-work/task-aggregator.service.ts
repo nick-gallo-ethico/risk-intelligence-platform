@@ -14,6 +14,9 @@ import {
   WorkflowInstanceStatus,
   Severity,
   Prisma,
+  ProjectTask,
+  ProjectTaskStatus,
+  ProjectTaskPriority,
 } from "@prisma/client";
 import { PrismaService } from "../../prisma/prisma.service";
 import {
@@ -89,6 +92,11 @@ type WorkflowInstanceWithTemplate = WorkflowInstance & {
   template: { name: string };
 };
 
+type ProjectTaskWithMilestone = ProjectTask & {
+  milestone: { id: string; name: string };
+  group?: { id: string; name: string } | null;
+};
+
 /**
  * TaskAggregatorService aggregates tasks from multiple entity types
  * into a unified "My Work" queue.
@@ -100,6 +108,7 @@ type WorkflowInstanceWithTemplate = WorkflowInstance & {
  * - Disclosure reviews (conflict alerts)
  * - Campaign responses
  * - Approval requests (workflow instances)
+ * - Project tasks (Monday.com-style board tasks)
  */
 @Injectable()
 export class TaskAggregatorService {
@@ -129,6 +138,7 @@ export class TaskAggregatorService {
       disclosures,
       campaigns,
       approvals,
+      projectTasks,
     ] = await Promise.all([
       this.fetchCaseAssignments({ organizationId, userId, filters }),
       this.fetchInvestigationSteps({ organizationId, userId, filters }),
@@ -136,6 +146,7 @@ export class TaskAggregatorService {
       this.fetchDisclosureReviews({ organizationId, userId, filters }),
       this.fetchCampaignResponses({ organizationId, userId, filters }),
       this.fetchApprovalRequests({ organizationId, userId, filters }),
+      this.fetchProjectTasks({ organizationId, userId, filters }),
     ]);
 
     // Transform to unified format
@@ -148,6 +159,9 @@ export class TaskAggregatorService {
       ...disclosures.map((d) => this.disclosureToTask(d, organizationId)),
       ...campaigns.map((c) => this.campaignToTask(c, organizationId)),
       ...approvals.map((a) => this.approvalToTask(a, organizationId)),
+      ...projectTasks.map((t) =>
+        this.projectTaskToUnifiedTask(t, organizationId),
+      ),
     ];
 
     // Apply type filters if specified
@@ -213,6 +227,7 @@ export class TaskAggregatorService {
       disclosuresCount,
       campaignsCount,
       approvalsCount,
+      projectTasksCount,
     ] = await Promise.all([
       this.prisma.case.count({
         where: {
@@ -260,6 +275,15 @@ export class TaskAggregatorService {
           status: WorkflowInstanceStatus.ACTIVE,
         },
       }),
+      this.prisma.projectTask.count({
+        where: {
+          organizationId,
+          assigneeId: userId,
+          status: {
+            notIn: [ProjectTaskStatus.DONE, ProjectTaskStatus.CANCELLED],
+          },
+        },
+      }),
     ]);
 
     return {
@@ -269,6 +293,7 @@ export class TaskAggregatorService {
       [TaskType.DISCLOSURE_REVIEW]: disclosuresCount,
       [TaskType.CAMPAIGN_RESPONSE]: campaignsCount,
       [TaskType.APPROVAL_REQUEST]: approvalsCount,
+      [TaskType.PROJECT_TASK]: projectTasksCount,
     };
   }
 
@@ -553,6 +578,55 @@ export class TaskAggregatorService {
     });
   }
 
+  /**
+   * Fetch project tasks assigned to the user.
+   * Includes tasks from Monday.com-style project boards.
+   */
+  private async fetchProjectTasks(params: {
+    organizationId: string;
+    userId: string;
+    filters?: TaskFiltersDto;
+  }): Promise<ProjectTaskWithMilestone[]> {
+    const { organizationId, userId, filters } = params;
+
+    // Skip if type filter excludes project tasks
+    if (filters?.types && !filters.types.includes(TaskType.PROJECT_TASK)) {
+      return [];
+    }
+
+    const where: Prisma.ProjectTaskWhereInput = {
+      organizationId,
+      assigneeId: userId,
+      status: {
+        notIn: [ProjectTaskStatus.DONE, ProjectTaskStatus.CANCELLED],
+      },
+    };
+
+    // Apply due date filters if provided
+    if (filters?.dueDateStart || filters?.dueDateEnd) {
+      where.dueDate = {};
+      if (filters.dueDateStart) {
+        where.dueDate.gte = new Date(filters.dueDateStart);
+      }
+      if (filters.dueDateEnd) {
+        where.dueDate.lte = new Date(filters.dueDateEnd);
+      }
+    }
+
+    return this.prisma.projectTask.findMany({
+      where,
+      include: {
+        milestone: {
+          select: { id: true, name: true },
+        },
+        group: {
+          select: { id: true, name: true },
+        },
+      },
+      take: 100,
+    });
+  }
+
   // ==========================================
   // Private: Transform Methods
   // ==========================================
@@ -757,6 +831,38 @@ export class TaskAggregatorService {
     };
   }
 
+  /**
+   * Transform ProjectTask to UnifiedTask.
+   */
+  private projectTaskToUnifiedTask(
+    task: ProjectTaskWithMilestone,
+    organizationId: string,
+  ): UnifiedTask {
+    return {
+      id: `${TaskType.PROJECT_TASK}-${task.id}`,
+      type: TaskType.PROJECT_TASK,
+      entityType: "ProjectTask",
+      entityId: task.id,
+      title: task.title,
+      description: task.description || undefined,
+      dueDate: task.dueDate,
+      priority: this.projectPriorityToTaskPriority(task.priority),
+      status: this.projectStatusToTaskStatus(task.status, task.dueDate),
+      assignedAt: task.createdAt,
+      assigneeId: task.assigneeId || undefined,
+      metadata: {
+        projectId: task.milestoneId,
+        projectName: task.milestone.name,
+        groupId: task.groupId,
+        groupName: task.group?.name,
+        status: task.status,
+        priority: task.priority,
+      },
+      url: `/projects/${task.milestoneId}?task=${task.id}`,
+      organizationId,
+    };
+  }
+
   // ==========================================
   // Private: Sorting & Filtering
   // ==========================================
@@ -941,5 +1047,53 @@ export class TaskAggregatorService {
     }
 
     return TaskStatus.PENDING;
+  }
+
+  /**
+   * Convert ProjectTaskPriority to TaskPriority.
+   */
+  private projectPriorityToTaskPriority(
+    priority: ProjectTaskPriority,
+  ): TaskPriority {
+    switch (priority) {
+      case ProjectTaskPriority.CRITICAL:
+        return TaskPriority.CRITICAL;
+      case ProjectTaskPriority.HIGH:
+        return TaskPriority.HIGH;
+      case ProjectTaskPriority.MEDIUM:
+        return TaskPriority.MEDIUM;
+      case ProjectTaskPriority.LOW:
+      default:
+        return TaskPriority.LOW;
+    }
+  }
+
+  /**
+   * Convert ProjectTaskStatus to TaskStatus.
+   */
+  private projectStatusToTaskStatus(
+    status: ProjectTaskStatus,
+    dueDate: Date | null,
+  ): TaskStatus {
+    const now = new Date();
+
+    // Check for overdue first
+    if (
+      dueDate &&
+      dueDate < now &&
+      status !== ProjectTaskStatus.DONE &&
+      status !== ProjectTaskStatus.CANCELLED
+    ) {
+      return TaskStatus.OVERDUE;
+    }
+
+    switch (status) {
+      case ProjectTaskStatus.IN_PROGRESS:
+      case ProjectTaskStatus.STUCK:
+        return TaskStatus.IN_PROGRESS;
+      case ProjectTaskStatus.NOT_STARTED:
+      default:
+        return TaskStatus.PENDING;
+    }
   }
 }
