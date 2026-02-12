@@ -66,9 +66,14 @@ Progress: [===================================================================+]
   - View mode (table|board|timeline) persisted in URL searchParams
   - All three views integrated into project detail page
 
-- 21-06: Task Conversations (COMPLETE - ba446a5)
+- 21-06: Task Conversations (COMPLETE - ba446a5, 81a26c7)
   - MentionInput with @mention autocomplete, keyboard navigation
   - TaskUpdateThread with threaded replies, reactions, edit/delete
+  - TaskActivityLog with filterable change feed (All, Updates, Status, Assignments, Files)
+  - TaskFileList with drag-drop upload, progress indicator, grid/list view toggle
+  - TaskSubscriberList with add/remove subscribers, self-subscribe toggle, compact mode
+  - TaskDependencyList with Depends-on/Blocking sections, dependency type selection
+  - TaskDetailPanel enhanced with 4-tab workspace (Details, Updates, Activity, Files)
   - 15+ hooks for updates, activity, files, subscribers, dependencies
 
 - 21-07: Column Configuration UI (COMPLETE - 777aa66, 81a26c7)
@@ -1018,7 +1023,7 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-02-12
-Stopped at: Completed 21-04-PLAN.md (Project Detail Page)
+Stopped at: Completed 21-06-PLAN.md (Task Conversations & 4-Tab Workspace)
 Resume file: None
 
 **Phase 20 Status: COMPLETE**
