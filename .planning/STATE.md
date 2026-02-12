@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 21 of 24+ (Project Management)
-Plan: 8 of 10 in current phase (COMPLETE)
+Plan: 9 of 10 in current phase (COMPLETE)
 Status: In progress
-Last activity: 2026-02-12 - Completed 21-08 (@Mentions Notifications & Real-Time)
+Last activity: 2026-02-12 - Completed 21-09 (Workload & Dashboard Views)
 
 Progress: [===================================================================+] ~100% (Phase 21 adds new plans beyond original 24)
 
@@ -92,6 +92,16 @@ Progress: [===================================================================+]
   - useProjectWebSocket hook for React Query cache invalidation on real-time events
   - MentionInput enhanced with ARIA attributes: listbox, aria-expanded, aria-activedescendant
   - Live region announcements for screen readers, keyboard navigation preserved
+
+- 21-09: Workload & Dashboard Views (COMPLETE - 400a639, db7c007)
+  - ProjectStatsService with aggregated metrics (status/priority counts, workload, progress)
+  - GET /projects/:id/stats endpoint for dashboard data
+  - useProjectStats hook with 60s auto-refresh
+  - ProjectWorkloadView with horizontal stacked bars per assignee
+  - Capacity threshold selector, overload indicators, expandable task lists
+  - ProjectDashboardView with 4 KPI cards, donut chart, trend line, group progress
+  - All 5 view modes integrated: table, board, timeline, workload, dashboard
+  - View mode persisted in URL searchParams
 
 ### Phase 24 Policy Content & Seed Data COMPLETE (2026-02-12)
 
@@ -1014,6 +1024,11 @@ Recent decisions affecting current work:
 - 16-04: useAiSkills<T> generic hook for typed skill execution via POST /ai/skills/:skillId/execute
 - 16-04: Triage skill registration deferred - requires AiTriageService from disclosures module (circular dependency concern)
 - 16-04: AI skill components use collapsible cards for detailed insights (category suggestions, risk factors)
+- 21-09: milestoneId FK used for ProjectGroup/ProjectTask queries (not projectId in Prisma)
+- 21-09: 60-second auto-refresh interval for stats data via useProjectStats
+- 21-09: Capacity threshold selector range 5-20 tasks per person for workload overload detection
+- 21-09: Completion trend chart shows cumulative total over 30 days
+- 21-09: Group progress sorted ascending by completion (lowest first to highlight blockers)
 
 ### Pending Todos
 
@@ -1032,7 +1047,7 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-02-12
-Stopped at: Completed 21-06-PLAN.md (Task Conversations & 4-Tab Workspace)
+Stopped at: Completed 21-09-PLAN.md (Workload & Dashboard Views)
 Resume file: None
 
 **Phase 20 Status: COMPLETE**
