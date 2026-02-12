@@ -188,7 +188,9 @@ function generateCaseReferenceNumber(
 // ============================================
 
 /**
- * Generate AI summary for a case
+ * Generate AI summary for a case (50-75 words)
+ * Produces comprehensive summaries with severity assessment, category analysis,
+ * investigation approach, and recommended actions.
  */
 function generateAiSummary(
   details: string,
@@ -197,33 +199,80 @@ function generateAiSummary(
 ): string {
   const severityText = {
     [Severity.HIGH]: "High-severity",
-    [Severity.MEDIUM]: "Moderate",
-    [Severity.LOW]: "Low-priority",
+    [Severity.MEDIUM]: "Moderate-severity",
+    [Severity.LOW]: "Low-severity",
   };
 
+  // Extended prefixes (15-20 words)
   const summaryPrefixes = [
-    `${severityText[severity]} ${categoryName.toLowerCase()} report.`,
-    `Report involving potential ${categoryName.toLowerCase()} concerns.`,
-    `${categoryName} allegation requiring investigation.`,
+    `${severityText[severity]} ${categoryName.toLowerCase()} report requiring comprehensive investigation based on initial intake assessment and organizational risk profile analysis.`,
+    `Report involving potential ${categoryName.toLowerCase()} concerns with preliminary risk indicators suggesting elevated attention may be warranted for this matter.`,
+    `${categoryName} allegation requiring formal investigation protocol activation based on severity classification and policy implications identified during triage.`,
+    `${severityText[severity]} compliance matter involving ${categoryName.toLowerCase()} with multiple stakeholder considerations requiring structured investigation approach.`,
   ];
 
-  const summaryMiddle = [
-    "Multiple factors indicate thorough review warranted.",
-    "Pattern analysis suggests this may require immediate attention.",
-    "Initial assessment indicates standard investigation protocol applies.",
-    "Preliminary review suggests straightforward investigation path.",
-    "Risk indicators warrant comprehensive investigation approach.",
+  // Category-specific analysis sentences (15-20 words)
+  const categoryDetails: Record<string, string[]> = {
+    harassment: [
+      "Pattern analysis indicates potential hostile work environment factors requiring witness corroboration and documentation review.",
+      "Behavioral indicators suggest escalating conduct pattern warranting immediate protective measures consideration.",
+    ],
+    discrimination: [
+      "Statistical analysis may be warranted to identify potential disparate treatment patterns across affected population.",
+      "Protected class considerations require careful documentation and comparative analysis of similarly situated individuals.",
+    ],
+    retaliation: [
+      "Temporal proximity to protected activity requires analysis of adverse action pattern and management chain involvement.",
+      "Whistleblower protection implications necessitate enhanced confidentiality protocols and chain of custody documentation.",
+    ],
+    financial_misconduct: [
+      "Financial forensics recommended to quantify exposure and identify transaction patterns requiring remediation.",
+      "Asset preservation and documentation retention protocols should be implemented pending investigation completion.",
+    ],
+    fraud: [
+      "Forensic analysis indicated to identify scope of potential misconduct and quantify organizational exposure.",
+      "Evidence preservation and witness sequencing critical to maintain investigation integrity.",
+    ],
+    safety: [
+      "Regulatory compliance assessment required including OSHA notification timeline and remediation tracking.",
+      "Root cause analysis should identify systemic factors contributing to reported safety concerns.",
+    ],
+    conflict_of_interest: [
+      "Disclosure completeness assessment required along with recusal framework development.",
+      "Relationship mapping and decision authority review recommended to identify conflict touchpoints.",
+    ],
+    data_privacy: [
+      "Breach scope assessment and regulatory notification timeline evaluation required for compliance.",
+      "Access log forensics and data flow analysis recommended to identify exposure extent.",
+    ],
+    policy_violation: [
+      "Policy applicability review and violation severity assessment required for proportionate response.",
+      "Precedent analysis recommended to ensure consistent enforcement approach.",
+    ],
+    workplace_violence: [
+      "Threat assessment protocol activation required with security coordination and law enforcement notification consideration.",
+      "Behavioral risk factors indicate need for immediate protective measures and ongoing monitoring.",
+    ],
+    default: [
+      "Standard investigation protocols apply with documentation review and stakeholder interviews recommended.",
+      "Risk assessment indicates structured approach required with appropriate escalation thresholds.",
+    ],
+  };
+
+  // Get category-specific detail or default
+  const categoryKey = categoryName.toLowerCase().replace(/[^a-z_]/g, "_");
+  const details_array = categoryDetails[categoryKey] || categoryDetails.default;
+
+  // Recommended actions (15-20 words)
+  const recommendedActions = [
+    "Recommend expedited timeline with witness interviews, documentation review, and management briefing upon completion.",
+    "Prioritize based on organizational risk factors and stakeholder sensitivity with regular status reporting.",
+    "Follow established investigation procedures with enhanced documentation for potential escalation pathway.",
+    "Consider witness sequencing, documentary evidence preservation, and interim protective measures as warranted.",
+    "Monitor for potential related reports and emerging patterns across organizational units.",
   ];
 
-  const summaryEnd = [
-    "Recommend standard investigation timeline.",
-    "Prioritize based on organizational risk factors.",
-    "Consider witness interviews and documentation review.",
-    "Follow established investigation procedures.",
-    "Monitor for potential related reports.",
-  ];
-
-  return `${pickRandom(summaryPrefixes)} ${pickRandom(summaryMiddle)} ${pickRandom(summaryEnd)}`;
+  return `${pickRandom(summaryPrefixes)} ${pickRandom(details_array)} ${pickRandom(recommendedActions)}`;
 }
 
 /**

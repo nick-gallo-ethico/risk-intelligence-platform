@@ -10,8 +10,8 @@
  * - Placeholder tokens for dynamic content
  */
 
-import { faker } from '@faker-js/faker';
-import { pickRandom, randomInt, chance } from '../utils';
+import { faker } from "@faker-js/faker";
+import { pickRandom, randomInt, chance } from "../utils";
 
 /**
  * Narrative template structure
@@ -23,6 +23,8 @@ export interface NarrativeTemplate {
   body: string;
   /** Optional additional details */
   details?: string[];
+  /** Optional conclusion paragraph for the template */
+  conclusion?: string;
 }
 
 /**
@@ -47,42 +49,55 @@ export const NARRATIVE_TEMPLATES: Record<string, CategoryNarrativeConfig> = {
     anonymityRate: 0.55,
     templates: [
       {
-        opener: "I've been hesitant to come forward, but the situation has become unbearable.",
-        body: 'For the past {duration}, {subject_role} has been making comments about my {attribute}. It started with what seemed like jokes, but has escalated to {specific_behavior}. Other team members have witnessed this, including on {date_reference}.',
+        opener:
+          "I've been hesitant to come forward, but the situation has become unbearable.",
+        body: "For the past {duration}, {subject_role} has been making comments about my {attribute}. It started with what seemed like jokes, but has escalated to {specific_behavior}. Other team members have witnessed this, including on {date_reference}.",
         details: [
-          'appearance during team meetings',
-          'personal life choices in front of clients',
-          'background in ways that made me uncomfortable',
-          'work performance in a demeaning way',
+          "appearance during team meetings",
+          "personal life choices in front of clients",
+          "background in ways that made me uncomfortable",
+          "work performance in a demeaning way",
         ],
+        conclusion:
+          "I have documented these incidents in a personal log and can provide additional details if needed. I am requesting that this matter be investigated confidentially as I fear potential retaliation.",
       },
       {
-        opener: 'I am reporting behavior that I believe constitutes workplace harassment.',
-        body: 'On {date_reference}, {subject_role} made repeated unwelcome comments about {topic}. When I asked them to stop, they responded by {response}. This is not the first time - similar incidents occurred on {previous_dates}.',
+        opener:
+          "I am reporting behavior that I believe constitutes workplace harassment.",
+        body: "On {date_reference}, {subject_role} made repeated unwelcome comments about {topic}. When I asked them to stop, they responded by {response}. This is not the first time - similar incidents occurred on {previous_dates}.",
         details: [
-          'my personal relationships',
-          'my physical appearance',
-          'my cultural background',
-          'my religious practices',
+          "my personal relationships",
+          "my physical appearance",
+          "my cultural background",
+          "my religious practices",
         ],
+        conclusion:
+          "This pattern of behavior has created a hostile work environment that is affecting my ability to perform my job effectively. I have tried to address this directly with the individual but the behavior has only worsened.",
       },
       {
-        opener: 'I need to report ongoing inappropriate behavior from a colleague.',
-        body: '{subject_role} has been {behavior_type} for approximately {duration}. Specific instances include: {instance_1}, {instance_2}, and most recently {instance_3}. I have documentation of {evidence_type}.',
+        opener:
+          "I need to report ongoing inappropriate behavior from a colleague.",
+        body: "{subject_role} has been {behavior_type} for approximately {duration}. Specific instances include: {instance_1}, {instance_2}, and most recently {instance_3}. I have documentation of {evidence_type}.",
         details: [
-          'sending inappropriate messages',
-          'making unwanted physical contact',
-          'making sexually suggestive comments',
-          'creating a hostile atmosphere in meetings',
+          "sending inappropriate messages",
+          "making unwanted physical contact",
+          "making sexually suggestive comments",
+          "creating a hostile atmosphere in meetings",
         ],
+        conclusion:
+          "Other team members have witnessed these incidents and may be willing to provide statements. I am concerned this will continue to escalate if not addressed promptly by management.",
       },
       {
-        opener: 'I am writing to formally report harassment in my department.',
-        body: 'The behavior I am reporting involves {subject_role} consistently {behavior_description}. This has been happening since {start_date} and affects not just me but several colleagues. We have tried addressing this informally but the behavior continues.',
+        opener: "I am writing to formally report harassment in my department.",
+        body: "The behavior I am reporting involves {subject_role} consistently {behavior_description}. This has been happening since {start_date} and affects not just me but several colleagues. We have tried addressing this informally but the behavior continues.",
+        conclusion:
+          "Our attempts to resolve this informally have been unsuccessful and the behavior persists. We are now seeking formal intervention to ensure a safe and professional work environment.",
       },
       {
-        opener: 'I witnessed what I believe to be harassment of a coworker.',
-        body: 'On {date_reference}, I observed {subject_role} {witnessed_behavior} toward {victim_description}. The affected person appeared {victim_reaction}. I felt obligated to report this as it clearly violated company policy.',
+        opener: "I witnessed what I believe to be harassment of a coworker.",
+        body: "On {date_reference}, I observed {subject_role} {witnessed_behavior} toward {victim_description}. The affected person appeared {victim_reaction}. I felt obligated to report this as it clearly violated company policy.",
+        conclusion:
+          "I believe this should be investigated thoroughly to protect employees from this type of conduct. I am willing to provide a formal statement and cooperate fully with any investigation.",
       },
     ],
   },
@@ -94,20 +109,32 @@ export const NARRATIVE_TEMPLATES: Record<string, CategoryNarrativeConfig> = {
     anonymityRate: 0.7,
     templates: [
       {
-        opener: 'I believe I am being retaliated against for my previous report.',
-        body: 'Since I reported {original_issue} on {original_date}, I have experienced {retaliation_actions}. My performance reviews went from {old_rating} to {new_rating} despite no change in my work quality. Additionally, {additional_retaliation}.',
+        opener:
+          "I believe I am being retaliated against for my previous report.",
+        body: "Since I reported {original_issue} on {original_date}, I have experienced {retaliation_actions}. My performance reviews went from {old_rating} to {new_rating} despite no change in my work quality. Additionally, {additional_retaliation}.",
+        conclusion:
+          "The timing of these adverse actions cannot be coincidental. I request that this matter be investigated as potential unlawful retaliation for engaging in protected activity under company policy and applicable law.",
       },
       {
-        opener: 'I need to report what I believe is retaliation for participating in an investigation.',
-        body: 'After I provided information in the {investigation_type} investigation, {subject_role} has {retaliation_behavior}. I was told this would be confidential, but it appears {subject_role} knows I participated because {evidence}.',
+        opener:
+          "I need to report what I believe is retaliation for participating in an investigation.",
+        body: "After I provided information in the {investigation_type} investigation, {subject_role} has {retaliation_behavior}. I was told this would be confidential, but it appears {subject_role} knows I participated because {evidence}.",
+        conclusion:
+          "I am concerned about how my identity was disclosed and whether proper confidentiality protocols were followed. The retaliatory conduct has made me reluctant to participate in future investigations.",
       },
       {
-        opener: 'I am filing this report because I fear I am being punished for speaking up.',
-        body: 'Ever since I raised concerns about {original_concern} to HR on {date_reference}, I have been {consequences}. My {work_aspect} has been negatively impacted, and I have been {exclusion_behavior}.',
+        opener:
+          "I am filing this report because I fear I am being punished for speaking up.",
+        body: "Ever since I raised concerns about {original_concern} to HR on {date_reference}, I have been {consequences}. My {work_aspect} has been negatively impacted, and I have been {exclusion_behavior}.",
+        conclusion:
+          "This pattern of adverse treatment began immediately after my report and has continued to escalate. I believe I am being targeted for exercising my right to report concerns through appropriate channels.",
       },
       {
-        opener: 'This is a follow-up to my previous report - the situation has gotten worse.',
+        opener:
+          "This is a follow-up to my previous report - the situation has gotten worse.",
         body: "After filing my initial complaint (case reference {case_number}), I've been subjected to {retaliation_list}. {subject_role} made it clear through {communication_method} that there would be consequences for reporting.",
+        conclusion:
+          "I am now in a worse position than before I reported, which is exactly what the anti-retaliation policy is supposed to prevent. I request immediate intervention to stop this conduct.",
       },
     ],
   },
@@ -119,20 +146,32 @@ export const NARRATIVE_TEMPLATES: Record<string, CategoryNarrativeConfig> = {
     anonymityRate: 0.5,
     templates: [
       {
-        opener: 'I believe I have been discriminated against based on my {protected_characteristic}.',
-        body: 'Despite having {qualifications}, I was passed over for {opportunity} in favor of {comparison_description}. When I asked for feedback, {subject_role} told me {discriminatory_statement}. This is part of a pattern.',
+        opener:
+          "I believe I have been discriminated against based on my {protected_characteristic}.",
+        body: "Despite having {qualifications}, I was passed over for {opportunity} in favor of {comparison_description}. When I asked for feedback, {subject_role} told me {discriminatory_statement}. This is part of a pattern.",
+        conclusion:
+          "I believe this treatment is based on unlawful discrimination rather than legitimate business reasons. I request a thorough review of the decision-making process and consideration of appropriate remedial action.",
       },
       {
-        opener: 'I am reporting systemic discrimination in the {department} department.',
-        body: 'Over the past {duration}, I have observed that employees who are {characteristic_group} are consistently {discriminatory_treatment}. Specifically, {example_1}, {example_2}, and {example_3}.',
+        opener:
+          "I am reporting systemic discrimination in the {department} department.",
+        body: "Over the past {duration}, I have observed that employees who are {characteristic_group} are consistently {discriminatory_treatment}. Specifically, {example_1}, {example_2}, and {example_3}.",
+        conclusion:
+          "This pattern affects multiple individuals and suggests a systemic problem rather than isolated incidents. Statistical analysis of hiring, promotion, and compensation decisions would likely reveal significant disparities.",
       },
       {
-        opener: 'I need to report what I believe is discriminatory hiring practices.',
-        body: 'As someone involved in the hiring process for {team}, I have witnessed {subject_role} repeatedly {discriminatory_hiring_behavior}. Qualified candidates who are {affected_group} are systematically {treatment}.',
+        opener:
+          "I need to report what I believe is discriminatory hiring practices.",
+        body: "As someone involved in the hiring process for {team}, I have witnessed {subject_role} repeatedly {discriminatory_hiring_behavior}. Qualified candidates who are {affected_group} are systematically {treatment}.",
+        conclusion:
+          "These practices appear to violate both company policy and applicable employment law. I can provide specific examples with candidate names and interview notes if needed for the investigation.",
       },
       {
-        opener: 'I am filing this complaint because of discriminatory comments made about my {characteristic}.',
-        body: 'On {date_reference}, during {context}, {subject_role} made comments about my {characteristic} including {quote_1}. This made me feel {reaction} and I believe it affects how I am treated professionally.',
+        opener:
+          "I am filing this complaint because of discriminatory comments made about my {characteristic}.",
+        body: "On {date_reference}, during {context}, {subject_role} made comments about my {characteristic} including {quote_1}. This made me feel {reaction} and I believe it affects how I am treated professionally.",
+        conclusion:
+          "These comments have created a hostile work environment and affected my standing with colleagues and management. I request that this be addressed formally to prevent further discriminatory conduct.",
       },
     ],
   },
@@ -144,24 +183,37 @@ export const NARRATIVE_TEMPLATES: Record<string, CategoryNarrativeConfig> = {
     anonymityRate: 0.35,
     templates: [
       {
-        opener: 'I have documentation that suggests improper financial practices.',
-        body: 'While reviewing {document_type} for {time_period}, I noticed {discrepancy}. The amounts involved appear to be approximately {amount_range}. I have copies of {evidence_type} that support my concerns.',
+        opener:
+          "I have documentation that suggests improper financial practices.",
+        body: "While reviewing {document_type} for {time_period}, I noticed {discrepancy}. The amounts involved appear to be approximately {amount_range}. I have copies of {evidence_type} that support my concerns.",
+        conclusion:
+          "I have preserved copies of the relevant documents and can provide them to investigators. The pattern I identified suggests this may be ongoing and the actual amounts could be significantly higher.",
       },
       {
-        opener: 'I need to report suspicious financial activity I discovered in my role.',
-        body: 'As {reporter_role}, I have access to {data_type}. I found that {subject_role} has been {financial_misconduct} totaling approximately {amount}. This appears to have been happening since {start_date}.',
+        opener:
+          "I need to report suspicious financial activity I discovered in my role.",
+        body: "As {reporter_role}, I have access to {data_type}. I found that {subject_role} has been {financial_misconduct} totaling approximately {amount}. This appears to have been happening since {start_date}.",
+        conclusion:
+          "I believe a thorough forensic review of the relevant accounts and transactions is warranted. I am willing to assist investigators in understanding the financial systems and identifying additional anomalies.",
       },
       {
-        opener: 'I am reporting what I believe is expense fraud.',
-        body: '{subject_role} has been submitting {expense_type} that I know to be {fraud_description}. For example, on {date_reference}, they claimed {claimed_expense} but I was present and know {actual_situation}.',
+        opener: "I am reporting what I believe is expense fraud.",
+        body: "{subject_role} has been submitting {expense_type} that I know to be {fraud_description}. For example, on {date_reference}, they claimed {claimed_expense} but I was present and know {actual_situation}.",
+        conclusion:
+          "These false claims represent a pattern of intentional misrepresentation for personal financial gain. I recommend reviewing all expense reports submitted by this individual for the past year.",
       },
       {
-        opener: 'I have concerns about the integrity of financial records in our department.',
-        body: 'I have noticed {irregularity} in our {record_type}. Specifically, {detail_1}, {detail_2}. The discrepancy amounts to {amount} over {time_period}. I believe {subject_role} may be responsible.',
+        opener:
+          "I have concerns about the integrity of financial records in our department.",
+        body: "I have noticed {irregularity} in our {record_type}. Specifically, {detail_1}, {detail_2}. The discrepancy amounts to {amount} over {time_period}. I believe {subject_role} may be responsible.",
+        conclusion:
+          "The accounting irregularities I have identified require immediate investigation to determine the full scope of the problem and prevent further financial loss to the organization.",
       },
       {
-        opener: 'I discovered what appears to be fraudulent vendor billing.',
-        body: 'While processing invoices, I found that {vendor_name} invoices approved by {subject_role} show {irregularity}. The vendor address matches {suspicious_detail}. Total questionable payments: {amount}.',
+        opener: "I discovered what appears to be fraudulent vendor billing.",
+        body: "While processing invoices, I found that {vendor_name} invoices approved by {subject_role} show {irregularity}. The vendor address matches {suspicious_detail}. Total questionable payments: {amount}.",
+        conclusion:
+          "I recommend immediate suspension of payments to this vendor and a review of all invoices approved by the individual in question. There may be a conflict of interest that should be investigated.",
       },
     ],
   },
@@ -173,24 +225,36 @@ export const NARRATIVE_TEMPLATES: Record<string, CategoryNarrativeConfig> = {
     anonymityRate: 0.3,
     templates: [
       {
-        opener: 'This is a safety concern that needs immediate attention.',
-        body: 'On {date_reference}, I observed {safety_issue} in {location}. This violates {regulation_reference}. {consequence_statement}. I have photos/documentation from {evidence_date}.',
+        opener: "This is a safety concern that needs immediate attention.",
+        body: "On {date_reference}, I observed {safety_issue} in {location}. This violates {regulation_reference}. {consequence_statement}. I have photos/documentation from {evidence_date}.",
+        conclusion:
+          "This hazard presents an immediate risk to employee safety and should be corrected before serious injury occurs. I request confirmation that this issue will be addressed promptly.",
       },
       {
-        opener: 'I am reporting a serious safety violation at our {facility_type}.',
-        body: '{subject_role} has been requiring employees to {unsafe_practice}. This is happening in {location} and affects approximately {affected_count} workers. I have witnessed {specific_incident} on {date_reference}.',
+        opener:
+          "I am reporting a serious safety violation at our {facility_type}.",
+        body: "{subject_role} has been requiring employees to {unsafe_practice}. This is happening in {location} and affects approximately {affected_count} workers. I have witnessed {specific_incident} on {date_reference}.",
+        conclusion:
+          "Workers feel pressured to comply with these unsafe practices to keep their jobs. Management needs to intervene to protect employees and ensure compliance with safety regulations.",
       },
       {
-        opener: 'There is an ongoing safety hazard that management refuses to address.',
-        body: 'I reported {hazard_description} to {manager} on {first_report_date}. Despite my report, nothing has been done. The hazard continues to {ongoing_risk}. Someone could be {potential_injury}.',
+        opener:
+          "There is an ongoing safety hazard that management refuses to address.",
+        body: "I reported {hazard_description} to {manager} on {first_report_date}. Despite my report, nothing has been done. The hazard continues to {ongoing_risk}. Someone could be {potential_injury}.",
+        conclusion:
+          "I am escalating this report because previous attempts to address this issue through normal channels have been unsuccessful. Regulatory authorities may need to be contacted if this is not resolved.",
       },
       {
-        opener: 'I need to report unsafe working conditions in {department}.',
-        body: 'Employees are being asked to {unsafe_task} without proper {missing_safety_measure}. On {date_reference}, {near_miss_description}. We have raised concerns but are told to {management_response}.',
+        opener: "I need to report unsafe working conditions in {department}.",
+        body: "Employees are being asked to {unsafe_task} without proper {missing_safety_measure}. On {date_reference}, {near_miss_description}. We have raised concerns but are told to {management_response}.",
+        conclusion:
+          "The near-miss incident I described could easily have resulted in serious injury. Continued disregard for these safety concerns exposes the company to significant liability.",
       },
       {
-        opener: 'I am reporting a safety violation involving {equipment_type}.',
-        body: 'The {equipment_type} in {location} has been {equipment_issue}. Despite being reported on {report_date}, it remains in use. OSHA requires {requirement}, but we have {violation}.',
+        opener: "I am reporting a safety violation involving {equipment_type}.",
+        body: "The {equipment_type} in {location} has been {equipment_issue}. Despite being reported on {report_date}, it remains in use. OSHA requires {requirement}, but we have {violation}.",
+        conclusion:
+          "Operating defective equipment puts workers at risk and violates regulatory requirements. This equipment should be taken out of service until proper repairs are completed.",
       },
     ],
   },
@@ -202,20 +266,24 @@ export const NARRATIVE_TEMPLATES: Record<string, CategoryNarrativeConfig> = {
     anonymityRate: 0.25,
     templates: [
       {
-        opener: 'I am reporting a potential conflict of interest involving myself.',
-        body: 'I recently discovered that {relationship_description}. This could create a conflict with my role in {work_context}. I am disclosing this proactively to ensure transparency and seek guidance.',
+        opener:
+          "I am reporting a potential conflict of interest involving myself.",
+        body: "I recently discovered that {relationship_description}. This could create a conflict with my role in {work_context}. I am disclosing this proactively to ensure transparency and seek guidance.",
       },
       {
-        opener: 'I need to report a conflict of interest I observed with a colleague.',
-        body: '{subject_role} has been {conflicting_activity} while also responsible for {company_responsibility}. I became aware of this when {discovery_method}. This appears to violate {policy_reference}.',
+        opener:
+          "I need to report a conflict of interest I observed with a colleague.",
+        body: "{subject_role} has been {conflicting_activity} while also responsible for {company_responsibility}. I became aware of this when {discovery_method}. This appears to violate {policy_reference}.",
       },
       {
-        opener: 'I have concerns about an undisclosed relationship affecting business decisions.',
-        body: '{subject_role} has a {relationship_type} with {external_party}. Despite this, they have been {decision_making_role}. Recent decisions including {specific_decisions} appear to favor this relationship.',
+        opener:
+          "I have concerns about an undisclosed relationship affecting business decisions.",
+        body: "{subject_role} has a {relationship_type} with {external_party}. Despite this, they have been {decision_making_role}. Recent decisions including {specific_decisions} appear to favor this relationship.",
       },
       {
-        opener: 'I am disclosing an outside business interest that may create a conflict.',
-        body: 'I have {business_interest} in {outside_company}. This company {potential_conflict} with my responsibilities at {company}. I am disclosing this as required by policy section {policy_section}.',
+        opener:
+          "I am disclosing an outside business interest that may create a conflict.",
+        body: "I have {business_interest} in {outside_company}. This company {potential_conflict} with my responsibilities at {company}. I am disclosing this as required by policy section {policy_section}.",
       },
     ],
   },
@@ -227,20 +295,21 @@ export const NARRATIVE_TEMPLATES: Record<string, CategoryNarrativeConfig> = {
     anonymityRate: 0.4,
     templates: [
       {
-        opener: 'I am reporting a potential data breach or privacy violation.',
-        body: 'On {date_reference}, I discovered that {data_type} was {exposure_method}. Approximately {record_count} records may be affected. I believe this was caused by {cause_description}.',
+        opener: "I am reporting a potential data breach or privacy violation.",
+        body: "On {date_reference}, I discovered that {data_type} was {exposure_method}. Approximately {record_count} records may be affected. I believe this was caused by {cause_description}.",
       },
       {
-        opener: 'I need to report unauthorized access to confidential information.',
-        body: '{subject_role} accessed {data_type} without proper authorization on {date_reference}. They have no legitimate business need for this data. I discovered this when {discovery_method}.',
+        opener:
+          "I need to report unauthorized access to confidential information.",
+        body: "{subject_role} accessed {data_type} without proper authorization on {date_reference}. They have no legitimate business need for this data. I discovered this when {discovery_method}.",
       },
       {
-        opener: 'I have witnessed improper handling of sensitive data.',
-        body: '{subject_role} has been {improper_handling} involving {data_type}. This violates {regulation}. Specific instances include {example_1} and {example_2}.',
+        opener: "I have witnessed improper handling of sensitive data.",
+        body: "{subject_role} has been {improper_handling} involving {data_type}. This violates {regulation}. Specific instances include {example_1} and {example_2}.",
       },
       {
-        opener: 'I am reporting a HIPAA violation I observed.',
-        body: 'On {date_reference}, {subject_role} {hipaa_violation}. This involved PHI for {patient_count} patients. The information included {phi_types}. I reported this to {reported_to} but no action was taken.',
+        opener: "I am reporting a HIPAA violation I observed.",
+        body: "On {date_reference}, {subject_role} {hipaa_violation}. This involved PHI for {patient_count} patients. The information included {phi_types}. I reported this to {reported_to} but no action was taken.",
       },
     ],
   },
@@ -252,20 +321,21 @@ export const NARRATIVE_TEMPLATES: Record<string, CategoryNarrativeConfig> = {
     anonymityRate: 0.35,
     templates: [
       {
-        opener: 'I am reporting a violation of company policy.',
-        body: '{subject_role} has been {policy_violation} in violation of {policy_name}. This has been happening since {start_date}. I have documented {evidence_description}.',
+        opener: "I am reporting a violation of company policy.",
+        body: "{subject_role} has been {policy_violation} in violation of {policy_name}. This has been happening since {start_date}. I have documented {evidence_description}.",
       },
       {
-        opener: 'I need to report ongoing policy non-compliance in {department}.',
-        body: 'Multiple employees in {department} are {violation_description}. This is being tolerated or encouraged by {manager}. The policy requires {policy_requirement} but we are {actual_practice}.',
+        opener:
+          "I need to report ongoing policy non-compliance in {department}.",
+        body: "Multiple employees in {department} are {violation_description}. This is being tolerated or encouraged by {manager}. The policy requires {policy_requirement} but we are {actual_practice}.",
       },
       {
-        opener: 'I am reporting misuse of company resources.',
-        body: '{subject_role} has been using company {resource_type} for {personal_use}. This includes {specific_examples}. I estimate the value at {estimated_value} over {time_period}.',
+        opener: "I am reporting misuse of company resources.",
+        body: "{subject_role} has been using company {resource_type} for {personal_use}. This includes {specific_examples}. I estimate the value at {estimated_value} over {time_period}.",
       },
       {
-        opener: 'I need to report a manager who is violating HR policies.',
-        body: '{subject_role} has been {hr_violation}. This affects {affected_employees}. Despite complaints from {complaint_source}, the behavior continues. Specific instances: {instance_list}.',
+        opener: "I need to report a manager who is violating HR policies.",
+        body: "{subject_role} has been {hr_violation}. This affects {affected_employees}. Despite complaints from {complaint_source}, the behavior continues. Specific instances: {instance_list}.",
       },
     ],
   },
@@ -277,16 +347,17 @@ export const NARRATIVE_TEMPLATES: Record<string, CategoryNarrativeConfig> = {
     anonymityRate: 0.6,
     templates: [
       {
-        opener: 'I am reporting threatening behavior from a coworker.',
-        body: 'On {date_reference}, {subject_role} {threatening_behavior}. They said {threat_quote}. I felt {reporter_reaction}. Others witnessed this including {witnesses}.',
+        opener: "I am reporting threatening behavior from a coworker.",
+        body: "On {date_reference}, {subject_role} {threatening_behavior}. They said {threat_quote}. I felt {reporter_reaction}. Others witnessed this including {witnesses}.",
       },
       {
-        opener: 'I need to report concerning behavior that could escalate to violence.',
-        body: '{subject_role} has been displaying {concerning_behavior} over the past {duration}. They have made statements like {concerning_statement}. I am worried about {specific_concern}.',
+        opener:
+          "I need to report concerning behavior that could escalate to violence.",
+        body: "{subject_role} has been displaying {concerning_behavior} over the past {duration}. They have made statements like {concerning_statement}. I am worried about {specific_concern}.",
       },
       {
-        opener: 'This is an urgent report about a physical altercation.',
-        body: 'On {date_reference} at approximately {time}, {subject_1} and {subject_2} engaged in {altercation_description} in {location}. {injury_status}. Security was {security_response}.',
+        opener: "This is an urgent report about a physical altercation.",
+        body: "On {date_reference} at approximately {time}, {subject_1} and {subject_2} engaged in {altercation_description} in {location}. {injury_status}. Security was {security_response}.",
       },
     ],
   },
@@ -298,16 +369,16 @@ export const NARRATIVE_TEMPLATES: Record<string, CategoryNarrativeConfig> = {
     anonymityRate: 0.45,
     templates: [
       {
-        opener: 'I need to report theft of company property.',
-        body: 'I witnessed {subject_role} {theft_description} from {location} on {date_reference}. The items taken included {stolen_items}. Estimated value: {value}.',
+        opener: "I need to report theft of company property.",
+        body: "I witnessed {subject_role} {theft_description} from {location} on {date_reference}. The items taken included {stolen_items}. Estimated value: {value}.",
       },
       {
-        opener: 'I am reporting suspected ongoing theft in {department}.',
-        body: 'Over the past {duration}, {items_type} have been disappearing from {location}. I believe {subject_role} is responsible because {evidence_reason}. Total missing items: {item_count}.',
+        opener: "I am reporting suspected ongoing theft in {department}.",
+        body: "Over the past {duration}, {items_type} have been disappearing from {location}. I believe {subject_role} is responsible because {evidence_reason}. Total missing items: {item_count}.",
       },
       {
-        opener: 'I need to report misappropriation of company assets.',
-        body: '{subject_role} has been {misappropriation_method} company {asset_type}. I discovered this when {discovery}. The value involved is approximately {amount}.',
+        opener: "I need to report misappropriation of company assets.",
+        body: "{subject_role} has been {misappropriation_method} company {asset_type}. I discovered this when {discovery}. The value involved is approximately {amount}.",
       },
     ],
   },
@@ -319,16 +390,16 @@ export const NARRATIVE_TEMPLATES: Record<string, CategoryNarrativeConfig> = {
     anonymityRate: 0.2,
     templates: [
       {
-        opener: 'I am disclosing a gift I received from a vendor.',
-        body: 'On {date_reference}, I received {gift_description} from {vendor_name}. The estimated value is {value}. I am disclosing this as required by our gift policy.',
+        opener: "I am disclosing a gift I received from a vendor.",
+        body: "On {date_reference}, I received {gift_description} from {vendor_name}. The estimated value is {value}. I am disclosing this as required by our gift policy.",
       },
       {
-        opener: 'I need to report a colleague accepting inappropriate gifts.',
-        body: '{subject_role} has been accepting {gift_type} from {vendor_name}. This includes {specific_gifts}. Total estimated value: {total_value}. This vendor {business_relationship}.',
+        opener: "I need to report a colleague accepting inappropriate gifts.",
+        body: "{subject_role} has been accepting {gift_type} from {vendor_name}. This includes {specific_gifts}. Total estimated value: {total_value}. This vendor {business_relationship}.",
       },
       {
-        opener: 'I am reporting excessive entertainment spending with vendors.',
-        body: '{subject_role} has been {entertainment_activity} with {vendor_name} at company expense. Recent expenses include {expense_examples}. The frequency is {frequency} which seems excessive.',
+        opener: "I am reporting excessive entertainment spending with vendors.",
+        body: "{subject_role} has been {entertainment_activity} with {vendor_name} at company expense. Recent expenses include {expense_examples}. The frequency is {frequency} which seems excessive.",
       },
     ],
   },
@@ -340,16 +411,16 @@ export const NARRATIVE_TEMPLATES: Record<string, CategoryNarrativeConfig> = {
     anonymityRate: 0.3,
     templates: [
       {
-        opener: 'I have a question about company policy.',
-        body: 'I need clarification on {policy_area}. Specifically, {question}. I want to make sure I am following proper procedures for {context}.',
+        opener: "I have a question about company policy.",
+        body: "I need clarification on {policy_area}. Specifically, {question}. I want to make sure I am following proper procedures for {context}.",
       },
       {
-        opener: 'I need guidance on a compliance matter.',
-        body: 'In my role as {reporter_role}, I encountered a situation involving {situation}. I am unsure how to proceed given {uncertainty}. Please advise.',
+        opener: "I need guidance on a compliance matter.",
+        body: "In my role as {reporter_role}, I encountered a situation involving {situation}. I am unsure how to proceed given {uncertainty}. Please advise.",
       },
       {
-        opener: 'This is a general inquiry about reporting procedures.',
-        body: 'I may have information about {potential_issue}. Before filing a formal report, I want to understand {inquiry}. Please contact me at {contact_method}.',
+        opener: "This is a general inquiry about reporting procedures.",
+        body: "I may have information about {potential_issue}. Before filing a formal report, I want to understand {inquiry}. Please contact me at {contact_method}.",
       },
     ],
   },
@@ -359,38 +430,43 @@ export const NARRATIVE_TEMPLATES: Record<string, CategoryNarrativeConfig> = {
  * Placeholder replacement values for dynamic content
  */
 const PLACEHOLDER_VALUES: Record<string, string[] | (() => string)> = {
-  duration: ['several weeks', 'the past few months', 'approximately six months', 'over a year'],
+  duration: [
+    "several weeks",
+    "the past few months",
+    "approximately six months",
+    "over a year",
+  ],
   subject_role: [
-    'my direct supervisor',
-    'a senior manager',
-    'a team lead',
-    'a department head',
-    'a colleague',
-    'a member of my team',
-    'the project manager',
+    "my direct supervisor",
+    "a senior manager",
+    "a team lead",
+    "a department head",
+    "a colleague",
+    "a member of my team",
+    "the project manager",
   ],
   attribute: [
-    'appearance',
-    'personal life',
-    'age',
-    'cultural background',
-    'gender',
-    'family status',
-    'disability',
+    "appearance",
+    "personal life",
+    "age",
+    "cultural background",
+    "gender",
+    "family status",
+    "disability",
   ],
   specific_behavior: [
-    'explicit comments in emails',
-    'inappropriate touching',
-    'public humiliation',
-    'exclusion from meetings',
-    'threatening my job security',
-    'spreading rumors',
-    'blocking my career advancement',
+    "explicit comments in emails",
+    "inappropriate touching",
+    "public humiliation",
+    "exclusion from meetings",
+    "threatening my job security",
+    "spreading rumors",
+    "blocking my career advancement",
   ],
   date_reference: () =>
-    faker.date.recent({ days: 30 }).toLocaleDateString('en-US', {
-      month: 'long',
-      day: 'numeric',
+    faker.date.recent({ days: 30 }).toLocaleDateString("en-US", {
+      month: "long",
+      day: "numeric",
     }),
   previous_dates: () => {
     const dates = [
@@ -399,84 +475,185 @@ const PLACEHOLDER_VALUES: Record<string, string[] | (() => string)> = {
     ];
     return dates
       .map((d) =>
-        d.toLocaleDateString('en-US', { month: 'long', day: 'numeric' }),
+        d.toLocaleDateString("en-US", { month: "long", day: "numeric" }),
       )
-      .join(' and ');
+      .join(" and ");
   },
   topic: [
-    'my personal relationships',
-    'my body',
-    'my ethnicity',
-    'my religion',
-    'my sexual orientation',
-    'my medical condition',
+    "my personal relationships",
+    "my body",
+    "my ethnicity",
+    "my religion",
+    "my sexual orientation",
+    "my medical condition",
   ],
   response: [
-    'laughing and calling me sensitive',
+    "laughing and calling me sensitive",
     "saying I couldn't take a joke",
-    'increasing the frequency of comments',
-    'involving other colleagues',
-    'retaliating against me',
+    "increasing the frequency of comments",
+    "involving other colleagues",
+    "retaliating against me",
   ],
-  behavior_type: ['making inappropriate comments', 'creating a hostile environment', 'engaging in bullying behavior'],
-  protected_characteristic: ['age', 'gender', 'race', 'national origin', 'disability', 'religion', 'pregnancy status'],
-  qualifications: ['15 years of experience', 'excellent performance reviews', 'advanced certifications', 'proven track record'],
-  opportunity: ['the promotion', 'the project lead position', 'the training opportunity', 'the salary increase'],
-  comparison_description: ['someone with less experience', 'a less qualified candidate', 'someone who just joined'],
+  behavior_type: [
+    "making inappropriate comments",
+    "creating a hostile environment",
+    "engaging in bullying behavior",
+  ],
+  protected_characteristic: [
+    "age",
+    "gender",
+    "race",
+    "national origin",
+    "disability",
+    "religion",
+    "pregnancy status",
+  ],
+  qualifications: [
+    "15 years of experience",
+    "excellent performance reviews",
+    "advanced certifications",
+    "proven track record",
+  ],
+  opportunity: [
+    "the promotion",
+    "the project lead position",
+    "the training opportunity",
+    "the salary increase",
+  ],
+  comparison_description: [
+    "someone with less experience",
+    "a less qualified candidate",
+    "someone who just joined",
+  ],
   discriminatory_statement: [
     '"you wouldn\'t fit the culture"',
     '"we need someone with more energy"',
     '"clients prefer someone different"',
   ],
-  document_type: ['quarterly reports', 'expense reports', 'vendor invoices', 'budget allocations', 'purchase orders'],
-  time_period: ['Q3 2025', 'the last six months', 'FY 2025', 'the past year'],
+  document_type: [
+    "quarterly reports",
+    "expense reports",
+    "vendor invoices",
+    "budget allocations",
+    "purchase orders",
+  ],
+  time_period: ["Q3 2025", "the last six months", "FY 2025", "the past year"],
   discrepancy: [
-    'duplicate payments',
-    'payments to unknown vendors',
-    'inflated invoices',
-    'missing documentation',
-    'unauthorized transfers',
+    "duplicate payments",
+    "payments to unknown vendors",
+    "inflated invoices",
+    "missing documentation",
+    "unauthorized transfers",
   ],
-  amount_range: ['$15,000-$25,000', '$50,000-$100,000', 'over $200,000', 'between $5,000 and $10,000'],
-  evidence_type: ['invoices', 'email correspondence', 'bank statements', 'approval records'],
+  amount_range: [
+    "$15,000-$25,000",
+    "$50,000-$100,000",
+    "over $200,000",
+    "between $5,000 and $10,000",
+  ],
+  evidence_type: [
+    "invoices",
+    "email correspondence",
+    "bank statements",
+    "approval records",
+  ],
   safety_issue: [
-    'exposed electrical wiring',
-    'blocked emergency exits',
-    'malfunctioning safety equipment',
-    'improper chemical storage',
-    'missing safety guards on machinery',
+    "exposed electrical wiring",
+    "blocked emergency exits",
+    "malfunctioning safety equipment",
+    "improper chemical storage",
+    "missing safety guards on machinery",
   ],
-  location: ['the warehouse', 'building B', 'the manufacturing floor', 'the loading dock', 'the laboratory'],
-  regulation_reference: ['OSHA standards', 'fire safety codes', 'EPA regulations', 'company safety protocols'],
+  location: [
+    "the warehouse",
+    "building B",
+    "the manufacturing floor",
+    "the loading dock",
+    "the laboratory",
+  ],
+  regulation_reference: [
+    "OSHA standards",
+    "fire safety codes",
+    "EPA regulations",
+    "company safety protocols",
+  ],
   consequence_statement: [
-    'Someone could be seriously injured',
-    'This creates an immediate hazard',
-    'A previous incident occurred due to this',
-    'We have already had near-misses',
+    "Someone could be seriously injured",
+    "This creates an immediate hazard",
+    "A previous incident occurred due to this",
+    "We have already had near-misses",
   ],
-  data_type: ['customer PII', 'employee records', 'financial data', 'health information', 'trade secrets'],
-  exposure_method: ['sent to external parties', 'left accessible on shared drives', 'visible in public areas', 'shared via unsecured email'],
-  record_count: ['hundreds of', 'thousands of', 'approximately 500', 'over 1,000'],
-  policy_name: ['the Code of Conduct', 'IT Security Policy', 'Expense Policy', 'Travel Policy', 'Anti-Harassment Policy'],
-  policy_violation: ['falsifying time records', 'using company equipment for personal business', 'sharing confidential information'],
-  gift_description: ['a gift basket valued at approximately $150', 'tickets to a sporting event', 'a dinner at an expensive restaurant'],
-  vendor_name: ['Acme Suppliers', 'Tech Solutions Inc.', 'Global Services Ltd.', 'Premium Partners Corp.'],
-  value: ['$75', '$150', '$300', '$500', 'approximately $250'],
-  original_issue: ['the harassment', 'safety concerns', 'financial irregularities', 'discrimination'],
+  data_type: [
+    "customer PII",
+    "employee records",
+    "financial data",
+    "health information",
+    "trade secrets",
+  ],
+  exposure_method: [
+    "sent to external parties",
+    "left accessible on shared drives",
+    "visible in public areas",
+    "shared via unsecured email",
+  ],
+  record_count: [
+    "hundreds of",
+    "thousands of",
+    "approximately 500",
+    "over 1,000",
+  ],
+  policy_name: [
+    "the Code of Conduct",
+    "IT Security Policy",
+    "Expense Policy",
+    "Travel Policy",
+    "Anti-Harassment Policy",
+  ],
+  policy_violation: [
+    "falsifying time records",
+    "using company equipment for personal business",
+    "sharing confidential information",
+  ],
+  gift_description: [
+    "a gift basket valued at approximately $150",
+    "tickets to a sporting event",
+    "a dinner at an expensive restaurant",
+  ],
+  vendor_name: [
+    "Acme Suppliers",
+    "Tech Solutions Inc.",
+    "Global Services Ltd.",
+    "Premium Partners Corp.",
+  ],
+  value: ["$75", "$150", "$300", "$500", "approximately $250"],
+  original_issue: [
+    "the harassment",
+    "safety concerns",
+    "financial irregularities",
+    "discrimination",
+  ],
   original_date: () =>
-    faker.date.past({ years: 1 }).toLocaleDateString('en-US', {
-      month: 'long',
-      day: 'numeric',
-      year: 'numeric',
+    faker.date.past({ years: 1 }).toLocaleDateString("en-US", {
+      month: "long",
+      day: "numeric",
+      year: "numeric",
     }),
   retaliation_actions: [
-    'being excluded from key meetings',
-    'having my projects reassigned',
-    'receiving negative performance feedback',
-    'being moved to a less desirable shift',
+    "being excluded from key meetings",
+    "having my projects reassigned",
+    "receiving negative performance feedback",
+    "being moved to a less desirable shift",
   ],
-  old_rating: ['"exceeds expectations"', '"meets expectations"', '"strong performer"'],
-  new_rating: ['"needs improvement"', '"below expectations"', '"underperforming"'],
+  old_rating: [
+    '"exceeds expectations"',
+    '"meets expectations"',
+    '"strong performer"',
+  ],
+  new_rating: [
+    '"needs improvement"',
+    '"below expectations"',
+    '"underperforming"',
+  ],
 };
 
 /**
@@ -493,13 +670,26 @@ function replacePlaceholders(text: string): string {
       return faker.lorem.words(2);
     }
 
-    if (typeof values === 'function') {
+    if (typeof values === "function") {
       return values();
     }
 
     return pickRandom(values);
   });
 }
+
+/**
+ * Generic closing paragraphs for narratives without template-specific conclusions
+ * Each is 40-60 words to help reach 200+ word target
+ */
+const GENERIC_CLOSING_PARAGRAPHS = [
+  "I am submitting this report in good faith with the expectation that it will be taken seriously and investigated thoroughly. I am willing to provide additional information or documentation as needed, and I request to be kept informed of the progress and outcome of any investigation that results from this report.",
+  "I believe this matter warrants immediate attention and formal investigation. I have tried to provide as much detail as possible to assist with the investigation. Please contact me if additional information or clarification is needed. I expect this report to be handled confidentially.",
+  "This situation has been affecting my work and wellbeing, and I felt it was important to bring it to the attention of the appropriate authorities within the organization. I trust that this will be handled professionally and that appropriate action will be taken to address the issues I have raised.",
+  "I understand the seriousness of filing this type of report and have carefully considered whether to come forward. I believe this conduct violates company policy and potentially applicable laws or regulations. I am prepared to cooperate fully with any investigation and provide testimony if required.",
+  "I have documented these incidents as they occurred because I anticipated that a formal report might eventually be necessary. I hope this information will be useful in investigating this matter and preventing similar conduct in the future. I appreciate the company taking employee concerns seriously.",
+  "Given the sensitive nature of this report, I request that my identity be protected to the extent possible during any investigation. The behaviors I have described have created a difficult working environment, and I am hopeful that by reporting this, positive changes can be made.",
+];
 
 /**
  * Generate a narrative for a specific category
@@ -516,21 +706,33 @@ export function generateNarrative(
   options: { forceAnonymous?: boolean; includeLongNarrative?: boolean } = {},
 ): { narrative: string; suggestedAnonymityRate: number } {
   // Normalize category key
-  const categoryKey = category.toLowerCase().replace(/[^a-z_]/g, '_');
+  const categoryKey = category.toLowerCase().replace(/[^a-z_]/g, "_");
 
   // Get category config or default
-  const config = NARRATIVE_TEMPLATES[categoryKey] || NARRATIVE_TEMPLATES.policy_violation;
+  const config =
+    NARRATIVE_TEMPLATES[categoryKey] || NARRATIVE_TEMPLATES.policy_violation;
 
   // Select a random template
   const template = pickRandom(config.templates);
 
   // Build the narrative
-  let narrative = replacePlaceholders(template.opener) + '\n\n' + replacePlaceholders(template.body);
+  let narrative =
+    replacePlaceholders(template.opener) +
+    "\n\n" +
+    replacePlaceholders(template.body);
 
   // Add optional details
   if (template.details && chance(0.5)) {
     const detail = pickRandom(template.details);
     narrative += ` Specifically, this involved ${detail}.`;
+  }
+
+  // Add template-specific conclusion if available, otherwise use generic closing
+  if (template.conclusion) {
+    narrative += "\n\n" + replacePlaceholders(template.conclusion);
+  } else {
+    // Always add a closing paragraph to ensure 200+ word narratives
+    narrative += "\n\n" + pickRandom(GENERIC_CLOSING_PARAGRAPHS);
   }
 
   // Add long narrative content if requested
@@ -549,21 +751,21 @@ export function generateNarrative(
  */
 function generateLongNarrativeAddendum(): string {
   const sections = [
-    '\n\n## Timeline of Events\n\n',
+    "\n\n## Timeline of Events\n\n",
     generateTimeline(),
-    '\n\n## Supporting Details\n\n',
+    "\n\n## Supporting Details\n\n",
     faker.lorem.paragraphs(3),
-    '\n\n## Additional Context\n\n',
+    "\n\n## Additional Context\n\n",
     faker.lorem.paragraphs(2),
-    '\n\n## Impact Assessment\n\n',
+    "\n\n## Impact Assessment\n\n",
     faker.lorem.paragraph(),
-    '\n\n## Witness Information\n\n',
+    "\n\n## Witness Information\n\n",
     `The following individuals may have relevant information: ${faker.person.fullName()}, ${faker.person.fullName()}, and ${faker.person.fullName()}.`,
-    '\n\n## Documentation\n\n',
-    `I have the following documentation available: ${faker.helpers.arrayElements(['emails', 'photos', 'meeting notes', 'chat logs', 'performance reviews', 'calendar invites'], 3).join(', ')}.`,
+    "\n\n## Documentation\n\n",
+    `I have the following documentation available: ${faker.helpers.arrayElements(["emails", "photos", "meeting notes", "chat logs", "performance reviews", "calendar invites"], 3).join(", ")}.`,
   ];
 
-  return sections.join('');
+  return sections.join("");
 }
 
 /**
@@ -574,16 +776,18 @@ function generateTimeline(): string {
   const baseDate = faker.date.past({ years: 1 });
 
   for (let i = 0; i < 5; i++) {
-    const eventDate = new Date(baseDate.getTime() + i * 30 * 24 * 60 * 60 * 1000);
-    const dateStr = eventDate.toLocaleDateString('en-US', {
-      month: 'long',
-      day: 'numeric',
-      year: 'numeric',
+    const eventDate = new Date(
+      baseDate.getTime() + i * 30 * 24 * 60 * 60 * 1000,
+    );
+    const dateStr = eventDate.toLocaleDateString("en-US", {
+      month: "long",
+      day: "numeric",
+      year: "numeric",
     });
     events.push(`- ${dateStr}: ${faker.lorem.sentence()}`);
   }
 
-  return events.join('\n');
+  return events.join("\n");
 }
 
 /**
@@ -593,7 +797,7 @@ function generateTimeline(): string {
  */
 export function generateUnicodeNarrative(): string {
   const unicodeExamples = [
-    'Employee 李明 (Li Ming) reported that the incident occurred in the Shanghai office.',
+    "Employee 李明 (Li Ming) reported that the incident occurred in the Shanghai office.",
     "My colleague Müller made inappropriate comments about François' accent.",
     "The email subject was '¡Urgente! Revisión necesaria' which seemed unprofessional.",
     "Witness statement from Björk Guðmundsdóttir confirms the timeline.",
@@ -607,7 +811,9 @@ export function generateUnicodeNarrative(): string {
 
   const opener = pickRandom(unicodeExamples);
   const body = faker.lorem.paragraphs(2);
-  const additionalUnicode = pickRandom(unicodeExamples.filter((e) => e !== opener));
+  const additionalUnicode = pickRandom(
+    unicodeExamples.filter((e) => e !== opener),
+  );
 
   return `${opener}\n\n${body}\n\n${additionalUnicode}`;
 }
@@ -618,7 +824,7 @@ export function generateUnicodeNarrative(): string {
  * @returns Minimal valid narrative
  */
 export function generateMinimalNarrative(): string {
-  return 'Report filed.';
+  return "Report filed.";
 }
 
 /**
@@ -628,7 +834,7 @@ export function generateMinimalNarrative(): string {
  * @returns Anonymity rate (0-1)
  */
 export function getCategoryAnonymityRate(category: string): number {
-  const categoryKey = category.toLowerCase().replace(/[^a-z_]/g, '_');
+  const categoryKey = category.toLowerCase().replace(/[^a-z_]/g, "_");
   const config = NARRATIVE_TEMPLATES[categoryKey];
   return config?.anonymityRate ?? 0.4; // Default to 40% if category not found
 }
