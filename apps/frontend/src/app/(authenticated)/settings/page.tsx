@@ -71,8 +71,8 @@ export default function SettingsPage() {
           icon: Settings2,
           title: "Account Defaults",
           description:
-            "Organization settings, timezone, branding, and defaults",
-          href: "/settings/organization",
+            "Case defaults, communication settings, and date/time configuration",
+          href: "/settings/defaults",
         },
         {
           icon: Users,
@@ -141,7 +141,7 @@ export default function SettingsPage() {
           icon: ArrowUpDown,
           title: "Import / Export",
           description: "Bulk import data or export reports and records",
-          href: "/settings/import-export",
+          href: "/analytics?tab=exports",
         },
       ],
     },
