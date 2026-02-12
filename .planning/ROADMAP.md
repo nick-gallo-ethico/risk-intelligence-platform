@@ -911,9 +911,9 @@ Plans:
 
 Plans:
 
-- [ ] 24-01-PLAN.md — Replace 26 boilerplate policies with substantial unique content, expand ADDITIONAL policies, add status/date variety
-- [ ] 24-02-PLAN.md — Expand flagship case narratives to 200-400 words, fix AI summary generation to 50-75 words, enhance narrative templates
-- [ ] 24-03-PLAN.md — Enable policy seeder in orchestrator, add Phase 24 verification checks for content quality and lengths
+- [x] 24-01-PLAN.md — Replace 26 boilerplate policies with substantial unique content, expand ADDITIONAL policies, add status/date variety
+- [x] 24-02-PLAN.md — Expand flagship case narratives to 200-400 words, fix AI summary generation to 50-75 words, enhance narrative templates
+- [x] 24-03-PLAN.md — Enable policy seeder in orchestrator, add Phase 24 verification checks for content quality and lengths
 
 ---
 
@@ -949,18 +949,18 @@ Phases execute in dependency order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 
 | 17. Campaigns Hub                       | 4/4            | Complete | 2026-02-11 |
 | 18. Reports & Data Management           | 9/9            | Complete | 2026-02-11 |
 | 19. Workflow Engine UI                  | 7/7            | Complete | 2026-02-11 |
-| 20. Settings Overhaul (HubSpot)         | 6/6            | Complete | 2026-02-11 |
+| 20. Settings Overhaul (HubSpot)         | 6/6            | Complete | 2026-02-12 |
 | 21. Project Management (Monday.com)     | 0/6            | Planned  | -          |
 | 22. Dark Mode & Theme                   | 0/14           | Planned  | -          |
 | 23. Help & Support System               | 0/5            | Planned  | -          |
-| 24. Policy Content & Seed Data          | 0/3            | Planned  | -          |
+| 24. Policy Content & Seed Data          | 3/3            | Complete | 2026-02-12 |
 
 ---
 
 _Roadmap created: 2026-02-02_
-_Updated: 2026-02-11 (Phase 20 complete — Settings Overhaul)_
+_Updated: 2026-02-12 (Phase 24 complete — Policy Content & Seed Data)_
 _Depth: Comprehensive_
 _Total phases: 24 (+ 11.1 and decimal insertions)_
-_Total plans: 235+ completed, ~25-34 estimated remaining_
+_Total plans: 242+ completed, ~19-28 estimated remaining_
 _Total v1 requirements: 149 + QA punch list items_
 _Issues reference: .planning/V1-ISSUES-AND-GAPS.md_
