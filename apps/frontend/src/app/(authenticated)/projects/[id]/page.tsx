@@ -67,6 +67,8 @@ import {
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { ProjectTaskTable } from "@/components/projects/ProjectTaskTable";
+import { ProjectBoardView } from "@/components/projects/ProjectBoardView";
+import { ProjectTimelineView } from "@/components/projects/ProjectTimelineView";
 import { TaskDetailPanel } from "@/components/projects/TaskDetailPanel";
 import type {
   ProjectStatus,
@@ -586,9 +588,14 @@ function ProjectDetailPageContent() {
 
   const projectId = params?.id as string;
   const taskIdFromUrl = searchParams?.get("task") ?? null;
+  const viewModeFromUrl = searchParams?.get("view") as ViewMode | null;
 
-  // State
-  const [viewMode, setViewMode] = useState<ViewMode>("table");
+  // State - initialize view mode from URL or default to "table"
+  const [viewMode, setViewMode] = useState<ViewMode>(
+    viewModeFromUrl && ["table", "board", "timeline"].includes(viewModeFromUrl)
+      ? viewModeFromUrl
+      : "table",
+  );
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(
     taskIdFromUrl,
   );
@@ -619,21 +626,29 @@ function ProjectDetailPageContent() {
       : null,
   );
 
-  // Update URL when task is selected
+  // Update URL when task is selected or view mode changes
   useEffect(() => {
-    if (selectedTaskId) {
-      const params = new URLSearchParams(window.location.search);
-      params.set("task", selectedTaskId);
-      window.history.replaceState({}, "", `?${params.toString()}`);
+    const params = new URLSearchParams(window.location.search);
+
+    // Update view param
+    if (viewMode !== "table") {
+      params.set("view", viewMode);
     } else {
-      const params = new URLSearchParams(window.location.search);
-      params.delete("task");
-      const newUrl = params.toString()
-        ? `?${params.toString()}`
-        : window.location.pathname;
-      window.history.replaceState({}, "", newUrl);
+      params.delete("view");
     }
-  }, [selectedTaskId]);
+
+    // Update task param
+    if (selectedTaskId) {
+      params.set("task", selectedTaskId);
+    } else {
+      params.delete("task");
+    }
+
+    const newUrl = params.toString()
+      ? `?${params.toString()}`
+      : window.location.pathname;
+    window.history.replaceState({}, "", newUrl);
+  }, [selectedTaskId, viewMode]);
 
   // Handle task click
   const handleTaskClick = useCallback((task: ProjectTask) => {
@@ -722,14 +737,20 @@ function ProjectDetailPageContent() {
           />
         )}
         {viewMode === "board" && (
-          <div className="flex items-center justify-center h-full text-muted-foreground">
-            Board view - see Plan 05
-          </div>
+          <ProjectBoardView
+            project={project ?? null}
+            isLoading={isLoading}
+            onTaskClick={handleTaskClick}
+            onRefresh={refetch}
+          />
         )}
         {viewMode === "timeline" && (
-          <div className="flex items-center justify-center h-full text-muted-foreground">
-            Timeline view - see Plan 05
-          </div>
+          <ProjectTimelineView
+            project={project ?? null}
+            isLoading={isLoading}
+            onTaskClick={handleTaskClick}
+            onRefresh={refetch}
+          />
         )}
       </div>
 
