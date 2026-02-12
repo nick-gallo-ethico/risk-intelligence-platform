@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 21 of 24+ (Project Management)
-Plan: 1 of 10 in current phase (COMPLETE)
+Plan: 2 of 10 in current phase (COMPLETE)
 Status: In progress
-Last activity: 2026-02-12 - Completed 21-01 (Backend Data Model & Services)
+Last activity: 2026-02-12 - Completed 21-02 (REST API & My Work Integration)
 
 Progress: [===================================================================+] ~100% (Phase 21 adds new plans beyond original 24)
 
@@ -26,6 +26,16 @@ Progress: [===================================================================+]
   - Created ProjectGroupService with CRUD and reorder
   - Created ProjectTemplateService with 6 built-in compliance templates
   - All services enforce organizationId tenant isolation
+
+- 21-02: REST API & My Work Integration (COMPLETE - b262ca6, 264dc91)
+  - Extended ProjectsController with 13 new endpoints for tasks and groups
+  - Created ProjectTemplateController with 5 template endpoints
+  - Task endpoints: list, create, update, delete, bulk update, reorder, subtasks
+  - Group endpoints: list, create, update, delete, reorder
+  - Template endpoints: list, get, create, delete, apply
+  - Integrated PROJECT_TASK into My Work unified queue
+  - Added CRITICAL priority level to TaskPriority enum
+  - Project tasks appear in getMyTasks() and getTaskCounts()
 
 ### Phase 24 Policy Content & Seed Data COMPLETE (2026-02-12)
 
