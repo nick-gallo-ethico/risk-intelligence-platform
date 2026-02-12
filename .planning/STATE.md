@@ -5,16 +5,27 @@
 See: .planning/PROJECT.md (updated 2026-02-02)
 
 **Core value:** Users can manage their entire compliance workflow - from anonymous report intake to investigation closure to board reporting - in one AI-assisted platform, with every task unified into a single "My Work" view.
-**Current focus:** Phase 24 Policy Content & Seed Data COMPLETE - All 24 phases finished!
+**Current focus:** Phase 21 Project Management - Monday.com-style project boards
 
 ## Current Position
 
-Phase: 24 of 24 (Policy Content & Seed Data)
-Plan: 3 of 3 in current phase (COMPLETE)
-Status: PHASE COMPLETE
-Last activity: 2026-02-12 - Completed 24-03 (Enable Policy Seeder & Verification)
+Phase: 21 of 24+ (Project Management)
+Plan: 1 of 10 in current phase (COMPLETE)
+Status: In progress
+Last activity: 2026-02-12 - Completed 21-01 (Backend Data Model & Services)
 
-Progress: [====================================================================] 100% (~260 of ~260 estimated total plans)
+Progress: [===================================================================+] ~100% (Phase 21 adds new plans beyond original 24)
+
+### Phase 21 Project Management IN PROGRESS (2026-02-12)
+
+- 21-01: Backend Data Model & Services (COMPLETE - 7a99bc5, 6341561)
+  - Added 4 Prisma models: ProjectGroup, ProjectTask, ProjectColumn, ProjectTemplate
+  - Added 3 enums: ProjectTaskStatus, ProjectTaskPriority, ProjectColumnType
+  - Created ProjectService with getDetail, updateProgress, getProjectsWithTaskCounts
+  - Created ProjectTaskService with CRUD, bulk update, reorder, subtask support
+  - Created ProjectGroupService with CRUD and reorder
+  - Created ProjectTemplateService with 6 built-in compliance templates
+  - All services enforce organizationId tenant isolation
 
 ### Phase 24 Policy Content & Seed Data COMPLETE (2026-02-12)
 
