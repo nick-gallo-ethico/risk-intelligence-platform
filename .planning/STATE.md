@@ -9,12 +9,28 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 
 ## Current Position
 
-Phase: 19 of 24 (Workflow Engine UI)
-Plan: 7 of 7 in current phase
-Status: Phase 19 COMPLETE - Workflow Engine UI fully delivered
-Last activity: 2026-02-11 - Completed 19-07 (entity detail integration, demo seed)
+Phase: 20 of 24 (Settings Overhaul)
+Plan: 2 of 6 in current phase
+Status: Phase 20 IN PROGRESS - Settings hub pages
+Last activity: 2026-02-12 - Completed 20-02 (user notification preferences)
 
-Progress: [=========================================================--------------] ~88% (~230 of ~260 estimated total plans)
+Progress: [=========================================================--------------] ~89% (~232 of ~260 estimated total plans)
+
+### Phase 20 Settings Overhaul IN PROGRESS (2026-02-12)
+
+- 20-01: User profile page with tabs (COMPLETE - 160c8d8)
+  - /settings/profile with Profile/Security/Task Defaults tabs
+  - Profile tab: display name, title, timezone, language
+  - Security tab: change password form, MFA toggle, active sessions
+  - Task Defaults: default reminder, assignment mode, auto-accept
+- 20-02: User notification preferences page (COMPLETE - b1f74b8, 160c8d8)
+  - /settings/notifications with HubSpot-style toggle-to-save pattern
+  - Categories grouped: Urgent (assignments, deadlines, escalations), Activity (status, comments), Collaboration (mentions)
+  - Email and In-App columns with per-category toggles
+  - Quiet hours with time pickers and timezone select
+  - Out of office with return date and backup user delegation
+  - Enforced categories shown with lock icon (cannot disable)
+  - React Query hooks with optimistic updates
 
 ### Phase 17 Campaigns Hub IN PROGRESS (2026-02-11)
 
