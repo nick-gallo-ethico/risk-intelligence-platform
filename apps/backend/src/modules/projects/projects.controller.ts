@@ -25,6 +25,10 @@ import { ProjectService } from "./project.service";
 import { ProjectTaskService } from "./project-task.service";
 import { ProjectGroupService } from "./project-group.service";
 import {
+  ProjectStatsService,
+  ProjectStatsResponse,
+} from "./services/project-stats.service";
+import {
   CreateMilestoneDto,
   UpdateMilestoneDto,
   CreateMilestoneItemDto,
@@ -85,6 +89,7 @@ export class ProjectsController {
     private readonly projectService: ProjectService,
     private readonly projectTaskService: ProjectTaskService,
     private readonly projectGroupService: ProjectGroupService,
+    private readonly projectStatsService: ProjectStatsService,
   ) {}
 
   // =========================================================================
@@ -165,6 +170,35 @@ export class ProjectsController {
     @TenantId() organizationId: string,
   ): Promise<ProjectDetailResponseDto | null> {
     return this.projectService.getDetail(organizationId, id);
+  }
+
+  /**
+   * GET /api/v1/projects/:id/stats
+   * Returns aggregated statistics for a project.
+   * Includes status/priority counts, workload per assignee, progress over time.
+   */
+  @Get(":id/stats")
+  @Roles(
+    UserRole.COMPLIANCE_OFFICER,
+    UserRole.MANAGER,
+    UserRole.SYSTEM_ADMIN,
+    UserRole.POLICY_AUTHOR,
+  )
+  @UseGuards(RolesGuard)
+  @ApiOperation({
+    summary: "Get project statistics",
+    description:
+      "Returns aggregated statistics including status distribution, workload per assignee, and progress over time",
+  })
+  @ApiParam({ name: "id", description: "Project UUID" })
+  @ApiResponse({ status: 200, description: "Project statistics" })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  @ApiResponse({ status: 404, description: "Project not found" })
+  async getProjectStats(
+    @Param("id", ParseUUIDPipe) id: string,
+    @TenantId() organizationId: string,
+  ): Promise<ProjectStatsResponse> {
+    return this.projectStatsService.getProjectStats(id, organizationId);
   }
 
   /**

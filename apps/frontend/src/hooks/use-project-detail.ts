@@ -36,6 +36,7 @@ export const projectDetailQueryKeys = {
   all: ["projects"] as const,
   detail: (id: string) =>
     [...projectDetailQueryKeys.all, "detail", id] as const,
+  stats: (id: string) => [...projectDetailQueryKeys.all, "stats", id] as const,
   tasks: (projectId: string) =>
     [...projectDetailQueryKeys.all, projectId, "tasks"] as const,
   groups: (projectId: string) =>
@@ -177,6 +178,70 @@ export function useProjectDetail(projectId: string | undefined) {
     },
     enabled: !!projectId,
     staleTime: 30 * 1000, // 30 seconds
+  });
+}
+
+/**
+ * Response type for project statistics endpoint.
+ */
+export interface ProjectStatsResponse {
+  totalTasks: number;
+  completedTasks: number;
+  progressPercent: number;
+  statusCounts: Record<string, number>;
+  priorityCounts: Record<string, number>;
+  workload: WorkloadEntry[];
+  overdueTasks: number;
+  unassignedTasks: number;
+  completedByDay: Record<string, number>;
+  groupProgress: GroupProgressEntry[];
+  daysUntilTarget: number | null;
+}
+
+/**
+ * Workload entry for a single team member.
+ */
+export interface WorkloadEntry {
+  user: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  total: number;
+  done: number;
+  inProgress: number;
+  stuck: number;
+  overdue: number;
+}
+
+/**
+ * Progress entry for a single group.
+ */
+export interface GroupProgressEntry {
+  groupId: string;
+  groupName: string;
+  groupColor: string | null;
+  total: number;
+  done: number;
+  progressPercent: number;
+}
+
+/**
+ * Hook for fetching aggregated project statistics.
+ * Used by Workload and Dashboard views.
+ */
+export function useProjectStats(projectId: string | undefined) {
+  return useQuery({
+    queryKey: projectDetailQueryKeys.stats(projectId ?? ""),
+    queryFn: async () => {
+      if (!projectId) return null;
+      return apiClient.get<ProjectStatsResponse>(
+        `/projects/${projectId}/stats`,
+      );
+    },
+    enabled: !!projectId,
+    refetchInterval: 60000, // Refresh every 60 seconds
+    staleTime: 30 * 1000,
   });
 }
 
