@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 21 of 24+ (Project Management)
-Plan: 3 of 10 in current phase (COMPLETE)
+Plan: 4 of 10 in current phase (COMPLETE)
 Status: In progress
-Last activity: 2026-02-12 - Completed 21-03 (Frontend Project List Page)
+Last activity: 2026-02-12 - Completed 21-04 (Project Detail Page)
 
 Progress: [===================================================================+] ~100% (Phase 21 adds new plans beyond original 24)
 
@@ -45,6 +45,16 @@ Progress: [===================================================================+]
   - CreateProjectDialog with blank/template creation tabs
   - Table view with sortable columns, board view with status lanes
   - Fixed use-milestones.ts endpoint from /milestones to /projects
+
+- 21-04: Project Detail Page (COMPLETE - c2d159c)
+  - Created use-project-detail.ts with 12 React Query hooks
+  - Built projects/[id]/page.tsx with Monday.com-style layout
+  - ProjectTaskTable with grouped tasks and @dnd-kit drag reordering
+  - TaskRow with inline editing (status, priority, assignee, due date)
+  - ProjectGroupHeader with collapse, rename, color picker, delete
+  - AddTaskRow for rapid task entry at bottom of each group
+  - TaskDetailPanel slide-out sheet with full task editing
+  - Optimistic updates for immediate UI feedback on task edits
 
 ### Phase 24 Policy Content & Seed Data COMPLETE (2026-02-12)
 
@@ -985,7 +995,7 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-02-12
-Stopped at: Completed 24-03-PLAN.md - Phase 24 COMPLETE (final phase!)
+Stopped at: Completed 21-04-PLAN.md (Project Detail Page)
 Resume file: None
 
 **Phase 20 Status: COMPLETE**
