@@ -263,6 +263,15 @@ function generateAiSummary(
   const categoryKey = categoryName.toLowerCase().replace(/[^a-z_]/g, "_");
   const details_array = categoryDetails[categoryKey] || categoryDetails.default;
 
+  // Investigation context (10-15 words)
+  const investigationContext = [
+    "Cross-referencing with historical complaint data reveals potential connections to previously reported organizational concerns.",
+    "Preliminary stakeholder mapping identifies multiple departments and reporting lines potentially affected by these allegations.",
+    "Initial evidence assessment suggests documented communications and policy records will be central to findings.",
+    "Organizational context indicates this matter intersects with ongoing compliance monitoring and risk mitigation efforts.",
+    "Review of related compliance metrics and prior incident history provides additional context for investigation scope.",
+  ];
+
   // Recommended actions (15-20 words)
   const recommendedActions = [
     "Recommend expedited timeline with witness interviews, documentation review, and management briefing upon completion.",
@@ -272,7 +281,7 @@ function generateAiSummary(
     "Monitor for potential related reports and emerging patterns across organizational units.",
   ];
 
-  return `${pickRandom(summaryPrefixes)} ${pickRandom(details_array)} ${pickRandom(recommendedActions)}`;
+  return `${pickRandom(summaryPrefixes)} ${pickRandom(details_array)} ${pickRandom(investigationContext)} ${pickRandom(recommendedActions)}`;
 }
 
 /**
