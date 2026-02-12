@@ -4,7 +4,7 @@ import { useState, useCallback, Suspense } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { UserPlus, ArrowLeft, Search, X } from 'lucide-react';
+import { UserPlus, ArrowLeft, Search, X, Shield } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Button } from '@/components/ui/button';
@@ -233,12 +233,20 @@ function UsersPageContent() {
             Manage user access and roles
           </p>
         </div>
-        <Button asChild>
-          <Link href="/settings/users/invite">
-            <UserPlus className="mr-2 h-4 w-4" />
-            Invite User
-          </Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button asChild variant="outline">
+            <Link href="/settings/roles">
+              <Shield className="mr-2 h-4 w-4" />
+              View Roles & Permissions
+            </Link>
+          </Button>
+          <Button asChild>
+            <Link href="/settings/users/invite">
+              <UserPlus className="mr-2 h-4 w-4" />
+              Invite User
+            </Link>
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}
