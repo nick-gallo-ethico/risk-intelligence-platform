@@ -211,7 +211,7 @@ export class ProjectStatsService {
 
     // Group progress
     const groups = await this.prisma.projectGroup.findMany({
-      where: { projectId, organizationId },
+      where: { milestoneId: projectId, organizationId },
       orderBy: { sortOrder: "asc" },
     });
 
