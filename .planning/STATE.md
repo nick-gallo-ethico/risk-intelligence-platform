@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 21 of 24+ (Project Management)
-Plan: 5 of 10 in current phase (COMPLETE)
+Plan: 7 of 10 in current phase (COMPLETE)
 Status: In progress
-Last activity: 2026-02-12 - Completed 21-05 (Board & Timeline Views)
+Last activity: 2026-02-12 - Completed 21-07 (Column Configuration UI)
 
 Progress: [===================================================================+] ~100% (Phase 21 adds new plans beyond original 24)
 
@@ -65,6 +65,19 @@ Progress: [===================================================================+]
   - Zoom controls (week/month/quarter), dependency arrow SVG infrastructure
   - View mode (table|board|timeline) persisted in URL searchParams
   - All three views integrated into project detail page
+
+- 21-06: Task Conversations (COMPLETE - ba446a5)
+  - MentionInput with @mention autocomplete, keyboard navigation
+  - TaskUpdateThread with threaded replies, reactions, edit/delete
+  - 15+ hooks for updates, activity, files, subscribers, dependencies
+
+- 21-07: Column Configuration UI (COMPLETE - 777aa66, 81a26c7)
+  - ColumnCenterDialog with 15 column types in 3 categories
+  - ColumnConfigPanel with type-specific settings for each column type
+  - DynamicColumnCell renders inline-editing UI per column type
+  - Column management hooks (create, update, delete, reorder)
+  - Integrated into ProjectTaskTable with dynamic grid columns
+  - "+" button in header opens Column Center
 
 ### Phase 24 Policy Content & Seed Data COMPLETE (2026-02-12)
 
