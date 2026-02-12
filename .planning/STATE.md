@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 21 of 24+ (Project Management)
-Plan: 4 of 10 in current phase (COMPLETE)
+Plan: 5 of 10 in current phase (COMPLETE)
 Status: In progress
-Last activity: 2026-02-12 - Completed 21-04 (Project Detail Page)
+Last activity: 2026-02-12 - Completed 21-05 (Board & Timeline Views)
 
 Progress: [===================================================================+] ~100% (Phase 21 adds new plans beyond original 24)
 
@@ -55,6 +55,16 @@ Progress: [===================================================================+]
   - AddTaskRow for rapid task entry at bottom of each group
   - TaskDetailPanel slide-out sheet with full task editing
   - Optimistic updates for immediate UI feedback on task edits
+
+- 21-05: Board & Timeline Views (COMPLETE - a3ae4e8, 8c63665)
+  - ProjectBoardView with Kanban board, 5 status columns, drag-to-move
+  - Task cards show priority icon, assignee avatar, due date, subtask progress
+  - Collapsible columns, Cancelled collapsed by default
+  - ProjectTimelineView with Gantt-style task bars grouped by project group
+  - Milestone dots for tasks without dueDate, today line marker
+  - Zoom controls (week/month/quarter), dependency arrow SVG infrastructure
+  - View mode (table|board|timeline) persisted in URL searchParams
+  - All three views integrated into project detail page
 
 ### Phase 24 Policy Content & Seed Data COMPLETE (2026-02-12)
 
