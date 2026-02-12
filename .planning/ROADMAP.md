@@ -797,7 +797,16 @@ Plans:
 10. **Data Management > Properties**: Users can add/edit custom properties on objects and groups (HubSpot-style property management with field types, groups, required/optional)
 11. **Data Management > Objects**: View and configure platform objects (Forms, Cases, Investigations, Policies, Tickets, Disclosures, RIUs)
 12. Each sub-page has tabs for different components of that section
-    **Plans**: TBD — run `/gsd:plan-phase 20`
+    **Plans**: 6 plans in 4 waves
+
+Plans:
+
+- [ ] 20-01-PLAN.md (Wave 1) — Settings hub restructure & user profile page
+- [ ] 20-02-PLAN.md (Wave 1) — User notification preferences page
+- [ ] 20-03-PLAN.md (Wave 2) — Account management pages (defaults, approvals, permission sets)
+- [ ] 20-04-PLAN.md (Wave 2) — Integrations & AI settings pages
+- [ ] 20-05-PLAN.md (Wave 3) — Data management: properties & objects pages
+- [ ] 20-06-PLAN.md (Wave 4) — Settings navigation polish & verification
 
 ### Phase 21: Project Management (Monday.com-Style)
 
