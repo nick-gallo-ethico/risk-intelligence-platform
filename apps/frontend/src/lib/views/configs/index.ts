@@ -11,6 +11,7 @@ export { INVESTIGATIONS_VIEW_CONFIG } from "./investigations.config";
 export { POLICIES_VIEW_CONFIG } from "./policies.config";
 export { DISCLOSURES_VIEW_CONFIG } from "./disclosures.config";
 export { INTAKE_FORMS_VIEW_CONFIG } from "./intake-forms.config";
+export { PROJECTS_VIEW_CONFIG } from "./projects.config";
 
 // Import for map creation
 import { CASES_VIEW_CONFIG } from "./cases.config";
@@ -18,6 +19,7 @@ import { INVESTIGATIONS_VIEW_CONFIG } from "./investigations.config";
 import { POLICIES_VIEW_CONFIG } from "./policies.config";
 import { DISCLOSURES_VIEW_CONFIG } from "./disclosures.config";
 import { INTAKE_FORMS_VIEW_CONFIG } from "./intake-forms.config";
+import { PROJECTS_VIEW_CONFIG } from "./projects.config";
 import type { ModuleViewConfig } from "@/types/view-config";
 
 /**
@@ -32,6 +34,7 @@ export const MODULE_VIEW_CONFIGS: Record<string, ModuleViewConfig> = {
   POLICIES: POLICIES_VIEW_CONFIG,
   DISCLOSURES: DISCLOSURES_VIEW_CONFIG,
   INTAKE_FORMS: INTAKE_FORMS_VIEW_CONFIG,
+  PROJECTS: PROJECTS_VIEW_CONFIG,
 };
 
 /**
