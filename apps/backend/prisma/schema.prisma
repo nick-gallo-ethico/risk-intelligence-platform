@@ -71,6 +71,10 @@ model Organization {
   milestoneItems             MilestoneItem[]
   milestones                 Milestone[]
   NotificationDelivery       NotificationDelivery[]
+  projectColumns             ProjectColumn[]
+  projectGroups              ProjectGroup[]
+  projectTasks               ProjectTask[]
+  projectTemplates           ProjectTemplate[]
   notificationPreferences    NotificationPreference[]
   notifications              Notification[]
   orgBlackoutDates           OrgBlackoutDate[]
@@ -181,6 +185,9 @@ model User {
   policyCaseAssociationsCreated     PolicyCaseAssociation[]    @relation("PolicyCaseAssociationCreatedBy")
   policyTranslationsReviewed        PolicyVersionTranslation[] @relation("PolicyTranslationReviewer")
   policyVersionsPublished           PolicyVersion[]            @relation("PolicyVersionPublishedBy")
+  projectTasksAssigned              ProjectTask[]              @relation("ProjectTaskAssignee")
+  projectTasksCreated               ProjectTask[]              @relation("ProjectTaskCreatedBy")
+  projectTemplatesCreated           ProjectTemplate[]          @relation("ProjectTemplateCreatedBy")
   riusCreated                       RiskIntelligenceUnit[]     @relation("RiuCreatedBy")
   riuCaseAssociationsCreated        RiuCaseAssociation[]       @relation("RiuCaseAssociationCreatedBy")
   savedReportsCreated               SavedReport[]              @relation("SavedReportCreatedBy")
@@ -3159,7 +3166,10 @@ model Milestone {
   createdAt        DateTime          @default(now()) @map("created_at")
   updatedAt        DateTime          @updatedAt @map("updated_at")
   createdById      String            @map("created_by_id")
+  columns          ProjectColumn[]
+  groups           ProjectGroup[]
   items            MilestoneItem[]
+  tasks            ProjectTask[]
   createdBy        User              @relation("MilestoneCreatedBy", fields: [createdById], references: [id])
   organization     Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   owner            User?             @relation("MilestoneOwner", fields: [ownerId], references: [id])
@@ -3193,6 +3203,108 @@ model MilestoneItem {
   @@index([entityType, entityId])
   @@index([organizationId])
   @@map("milestone_items")
+}
+
+/// ProjectGroup represents a section/group within a project board (Monday.com-style).
+/// Groups help organize tasks into logical sections like "To Do", "In Progress", "Backlog".
+model ProjectGroup {
+  id             String        @id @default(uuid())
+  organizationId String        @map("organization_id")
+  milestoneId    String        @map("milestone_id")
+  name           String
+  color          String?
+  sortOrder      Int           @default(0) @map("sort_order")
+  isCollapsed    Boolean       @default(false) @map("is_collapsed")
+  createdAt      DateTime      @default(now()) @map("created_at")
+  updatedAt      DateTime      @updatedAt @map("updated_at")
+  milestone      Milestone     @relation(fields: [milestoneId], references: [id], onDelete: Cascade)
+  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  tasks          ProjectTask[]
+
+  @@index([milestoneId])
+  @@index([organizationId])
+  @@map("project_groups")
+}
+
+/// ProjectTask represents a rich task within a project board.
+/// Supports subtasks via self-reference, assignees, priorities, and custom fields.
+model ProjectTask {
+  id             String              @id @default(uuid())
+  organizationId String              @map("organization_id")
+  milestoneId    String              @map("milestone_id")
+  groupId        String?             @map("group_id")
+  title          String
+  description    String?
+  status         ProjectTaskStatus   @default(NOT_STARTED)
+  priority       ProjectTaskPriority @default(MEDIUM)
+  assigneeId     String?             @map("assignee_id")
+  startDate      DateTime?           @map("start_date")
+  dueDate        DateTime?           @map("due_date")
+  completedAt    DateTime?           @map("completed_at")
+  sortOrder      Int                 @default(0) @map("sort_order")
+  parentTaskId   String?             @map("parent_task_id")
+  customFields   Json?               @map("custom_fields")
+  createdAt      DateTime            @default(now()) @map("created_at")
+  updatedAt      DateTime            @updatedAt @map("updated_at")
+  createdById    String              @map("created_by_id")
+  assignee       User?               @relation("ProjectTaskAssignee", fields: [assigneeId], references: [id])
+  createdBy      User                @relation("ProjectTaskCreatedBy", fields: [createdById], references: [id])
+  group          ProjectGroup?       @relation(fields: [groupId], references: [id], onDelete: SetNull)
+  milestone      Milestone           @relation(fields: [milestoneId], references: [id], onDelete: Cascade)
+  organization   Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  parentTask     ProjectTask?        @relation("ProjectTaskSubtasks", fields: [parentTaskId], references: [id], onDelete: Cascade)
+  subtasks       ProjectTask[]       @relation("ProjectTaskSubtasks")
+
+  @@index([milestoneId])
+  @@index([groupId])
+  @@index([assigneeId])
+  @@index([organizationId, status])
+  @@index([parentTaskId])
+  @@map("project_tasks")
+}
+
+/// ProjectColumn defines customizable columns per project board.
+/// Columns can be STATUS, PERSON, DATE, TEXT, NUMBER, PRIORITY, or LABEL types.
+model ProjectColumn {
+  id             String            @id @default(uuid())
+  organizationId String            @map("organization_id")
+  milestoneId    String            @map("milestone_id")
+  name           String
+  type           ProjectColumnType
+  settings       Json?
+  sortOrder      Int               @default(0) @map("sort_order")
+  width          Int?
+  isRequired     Boolean           @default(false) @map("is_required")
+  createdAt      DateTime          @default(now()) @map("created_at")
+  updatedAt      DateTime          @updatedAt @map("updated_at")
+  milestone      Milestone         @relation(fields: [milestoneId], references: [id], onDelete: Cascade)
+  organization   Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([milestoneId])
+  @@index([organizationId])
+  @@map("project_columns")
+}
+
+/// ProjectTemplate stores reusable project structures.
+/// System templates (isSystem=true, organizationId=null) are available to all orgs.
+/// Organization templates are scoped to a specific tenant.
+model ProjectTemplate {
+  id             String            @id @default(uuid())
+  organizationId String?           @map("organization_id")
+  name           String
+  description    String?
+  category       MilestoneCategory
+  templateData   Json              @map("template_data")
+  isSystem       Boolean           @default(false) @map("is_system")
+  createdAt      DateTime          @default(now()) @map("created_at")
+  updatedAt      DateTime          @updatedAt @map("updated_at")
+  createdById    String?           @map("created_by_id")
+  createdBy      User?             @relation("ProjectTemplateCreatedBy", fields: [createdById], references: [id])
+  organization   Organization?     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([category])
+  @@map("project_templates")
 }
 
 /// ImplementationProject tracks client onboarding from discovery to go-live.
@@ -3808,6 +3920,7 @@ enum AuditEntityType {
   POLICY_TRANSLATION
   MILESTONE
   MILESTONE_ITEM
+  PROJECT_TASK
 
   @@map("audit_entity_type")
 }
@@ -4465,6 +4578,7 @@ enum ViewEntityType {
   POLICIES
   DISCLOSURES
   INTAKE_FORMS
+  PROJECTS
 
   @@map("view_entity_type")
 }
@@ -4933,6 +5047,40 @@ enum MilestoneItemType {
   CUSTOM
 
   @@map("milestone_item_type")
+}
+
+/// ProjectTaskStatus tracks the state of a project task in Monday.com-style boards.
+enum ProjectTaskStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  STUCK
+  DONE
+  CANCELLED
+
+  @@map("project_task_status")
+}
+
+/// ProjectTaskPriority indicates urgency level for project tasks.
+enum ProjectTaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+
+  @@map("project_task_priority")
+}
+
+/// ProjectColumnType defines the data type for customizable project columns.
+enum ProjectColumnType {
+  STATUS
+  PERSON
+  DATE
+  TEXT
+  NUMBER
+  PRIORITY
+  LABEL
+
+  @@map("project_column_type")
 }
 
 /// Implementation type determines which checklist template to use
