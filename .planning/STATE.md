@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 20 of 24 (Settings Overhaul)
-Plan: 4 of 6 in current phase
+Plan: 5 of 6 in current phase
 Status: Phase 20 IN PROGRESS - Settings pages
-Last activity: 2026-02-12 - Completed 20-03 (Account Management Pages)
+Last activity: 2026-02-12 - Completed 20-05 (Data Management Pages)
 
-Progress: [=========================================================--------------] ~89% (~234 of ~260 estimated total plans)
+Progress: [=========================================================--------------] ~89% (~235 of ~260 estimated total plans)
 
 ### Phase 20 Settings Overhaul IN PROGRESS (2026-02-12)
 
@@ -45,6 +45,12 @@ Progress: [=========================================================------------
   - AI settings API client with health check and usage endpoints
   - HRIS shows Merge.dev supported providers list
   - Webhooks and Storage marked "Coming Soon" for MVP
+- 20-05: Data Management Pages (COMPLETE - 427f826, 8a19eb2, 99a4888, 32eac8d)
+  - Custom properties API client with full CRUD operations
+  - Custom property TypeScript types and constants (10 data types, 4 entity types)
+  - /settings/properties page with HubSpot-style entity type tabs
+  - Properties grouped by groupName, create/edit dialog with type-dependent fields
+  - /settings/objects page with 8 platform object cards and relationships explanation
 
 ### Phase 17 Campaigns Hub IN PROGRESS (2026-02-11)
 
