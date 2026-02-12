@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 20 of 24 (Settings Overhaul)
-Plan: 1 of 6 in current phase
-Status: Phase 20 IN PROGRESS - Settings hub pages
-Last activity: 2026-02-12 - Completed 20-01 (settings hub restructure and profile page)
+Plan: 4 of 6 in current phase
+Status: Phase 20 IN PROGRESS - Settings pages
+Last activity: 2026-02-12 - Completed 20-04 (Integrations & AI Settings Pages)
 
-Progress: [=========================================================--------------] ~89% (~231 of ~260 estimated total plans)
+Progress: [=========================================================--------------] ~89% (~234 of ~260 estimated total plans)
 
 ### Phase 20 Settings Overhaul IN PROGRESS (2026-02-12)
 
@@ -34,6 +34,15 @@ Progress: [=========================================================------------
   - Out of office with return date and backup user delegation
   - Enforced categories shown with lock icon (cannot disable)
   - React Query hooks with optimistic updates
+- 20-03: Account Defaults and Approvals pages (COMPLETE - f89b950, c0797cb)
+  - /settings/organization (Account Defaults) with Case, Communication, Date/Time settings
+  - /settings/approvals with approval workflow configuration
+- 20-04: Integrations & AI Settings Pages (COMPLETE - c2db3af, 37410e4, ac6dbb8)
+  - /settings/integrations with 5 integration cards (HRIS, Email, SSO, Webhooks, Storage)
+  - /settings/ai with AI status, feature toggles, usage monitoring
+  - AI settings API client with health check and usage endpoints
+  - HRIS shows Merge.dev supported providers list
+  - Webhooks and Storage marked "Coming Soon" for MVP
 
 ### Phase 17 Campaigns Hub IN PROGRESS (2026-02-11)
 
@@ -894,12 +903,12 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-02-12
-Stopped at: Phase 20 Plan 01 COMPLETE - Settings hub restructure and user profile page
+Stopped at: Phase 20 Plan 04 COMPLETE - Integrations & AI Settings Pages
 Resume file: None
 
 **Phase 20 Status: IN PROGRESS**
-Plan 20-01 completed (settings hub 4 sections, profile page with tabs, navigation updates).
-Remaining: 20-03 through 20-06 (account defaults, properties/objects, AI settings, import/export).
+Plans 20-01 through 20-04 completed.
+Remaining: 20-05 (Properties/Objects), 20-06 (Import/Export).
 
 **Phase 14.2 Status: IN PROGRESS**
 Plan 14.2-02 completed. Remaining:

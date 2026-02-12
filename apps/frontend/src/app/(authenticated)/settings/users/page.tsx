@@ -1,36 +1,41 @@
-'use client';
+"use client";
 
-import { useState, useCallback, Suspense } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { UserPlus, ArrowLeft, Search, X, Shield } from 'lucide-react';
-import { toast } from 'sonner';
+import { useState, useCallback, Suspense } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { UserPlus, ArrowLeft, Search, X, Shield } from "lucide-react";
+import { toast } from "sonner";
 
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Skeleton } from '@/components/ui/skeleton';
-import { UserList } from '@/components/settings/user-list';
-import { usersApi } from '@/services/users';
-import { useAuth } from '@/contexts/auth-context';
+} from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
+import { UserList } from "@/components/settings/user-list";
+import { usersApi } from "@/services/users";
+import { useAuth } from "@/contexts/auth-context";
 import {
   USER_ROLES,
   ROLE_LABELS,
   STATUS_LABELS,
   type UserStatus,
   type UserFilters,
-} from '@/types/user';
-import type { UserRole } from '@/types/auth';
-import type { User } from '@/types/user';
+} from "@/types/user";
+import type { UserRole } from "@/types/auth";
+import type { User } from "@/types/user";
 
-const STATUSES: UserStatus[] = ['ACTIVE', 'PENDING_INVITE', 'INACTIVE', 'SUSPENDED'];
+const STATUSES: UserStatus[] = [
+  "ACTIVE",
+  "PENDING_INVITE",
+  "INACTIVE",
+  "SUSPENDED",
+];
 
 /**
  * Access denied component for non-admin users
@@ -44,7 +49,7 @@ function AccessDenied() {
       <p className="text-muted-foreground mb-4">
         Only System Administrators can access user management.
       </p>
-      <Button onClick={() => router.push('/dashboard')}>Go to Dashboard</Button>
+      <Button onClick={() => router.push("/dashboard")}>Go to Dashboard</Button>
     </div>
   );
 }
@@ -90,16 +95,20 @@ function UsersPageSkeleton() {
 function UsersPageContent() {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { user: currentUser, isAuthenticated, isLoading: authLoading } = useAuth();
+  const {
+    user: currentUser,
+    isAuthenticated,
+    isLoading: authLoading,
+  } = useAuth();
 
   // Filter state
   const [filters, setFilters] = useState<UserFilters>({});
-  const [searchInput, setSearchInput] = useState('');
+  const [searchInput, setSearchInput] = useState("");
   const [page, setPage] = useState(1);
   const pageSize = 20;
 
   // Only SYSTEM_ADMIN can access
-  const isAdmin = currentUser?.role === 'SYSTEM_ADMIN';
+  const isAdmin = currentUser?.role === "SYSTEM_ADMIN";
 
   // Debounced search
   const handleSearch = useCallback((value: string) => {
@@ -113,12 +122,8 @@ function UsersPageContent() {
   }, []);
 
   // Fetch users
-  const {
-    data,
-    isLoading,
-    error,
-  } = useQuery({
-    queryKey: ['users', filters, page, pageSize],
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["users", filters, page, pageSize],
     queryFn: () => usersApi.list(filters, page, pageSize),
     enabled: isAuthenticated && isAdmin,
   });
@@ -128,10 +133,10 @@ function UsersPageContent() {
     mutationFn: (user: User) => usersApi.deactivate(user.id),
     onSuccess: (_, user) => {
       toast.success(`${user.firstName} ${user.lastName} has been deactivated`);
-      queryClient.invalidateQueries({ queryKey: ['users'] });
+      queryClient.invalidateQueries({ queryKey: ["users"] });
     },
     onError: () => {
-      toast.error('Failed to deactivate user');
+      toast.error("Failed to deactivate user");
     },
   });
 
@@ -139,10 +144,10 @@ function UsersPageContent() {
     mutationFn: (user: User) => usersApi.reactivate(user.id),
     onSuccess: (_, user) => {
       toast.success(`${user.firstName} ${user.lastName} has been reactivated`);
-      queryClient.invalidateQueries({ queryKey: ['users'] });
+      queryClient.invalidateQueries({ queryKey: ["users"] });
     },
     onError: () => {
-      toast.error('Failed to reactivate user');
+      toast.error("Failed to reactivate user");
     },
   });
 
@@ -152,7 +157,7 @@ function UsersPageContent() {
       toast.success(`Invitation sent to ${user.email}`);
     },
     onError: () => {
-      toast.error('Failed to send invitation');
+      toast.error("Failed to send invitation");
     },
   });
 
@@ -160,10 +165,10 @@ function UsersPageContent() {
     mutationFn: (user: User) => usersApi.resetMfa(user.id),
     onSuccess: (_, user) => {
       toast.success(`MFA reset for ${user.firstName} ${user.lastName}`);
-      queryClient.invalidateQueries({ queryKey: ['users'] });
+      queryClient.invalidateQueries({ queryKey: ["users"] });
     },
     onError: () => {
-      toast.error('Failed to reset MFA');
+      toast.error("Failed to reset MFA");
     },
   });
 
@@ -171,7 +176,7 @@ function UsersPageContent() {
   const handleRoleChange = (value: string) => {
     setFilters((prev) => ({
       ...prev,
-      role: value === 'all' ? undefined : (value as UserRole),
+      role: value === "all" ? undefined : (value as UserRole),
     }));
     setPage(1);
   };
@@ -179,14 +184,14 @@ function UsersPageContent() {
   const handleStatusChange = (value: string) => {
     setFilters((prev) => ({
       ...prev,
-      status: value === 'all' ? undefined : (value as UserStatus),
+      status: value === "all" ? undefined : (value as UserStatus),
     }));
     setPage(1);
   };
 
   const clearFilters = () => {
     setFilters({});
-    setSearchInput('');
+    setSearchInput("");
     setPage(1);
   };
 
@@ -199,7 +204,7 @@ function UsersPageContent() {
 
   // Auth check
   if (!isAuthenticated) {
-    router.push('/login');
+    router.push("/login");
     return null;
   }
 
@@ -229,9 +234,7 @@ function UsersPageContent() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold">Users</h1>
-          <p className="text-muted-foreground">
-            Manage user access and roles
-          </p>
+          <p className="text-muted-foreground">Manage user access and roles</p>
         </div>
         <div className="flex items-center gap-2">
           <Button asChild variant="outline">
@@ -261,10 +264,7 @@ function UsersPageContent() {
           />
         </div>
 
-        <Select
-          value={filters.role || 'all'}
-          onValueChange={handleRoleChange}
-        >
+        <Select value={filters.role || "all"} onValueChange={handleRoleChange}>
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="All roles" />
           </SelectTrigger>
@@ -279,7 +279,7 @@ function UsersPageContent() {
         </Select>
 
         <Select
-          value={filters.status || 'all'}
+          value={filters.status || "all"}
           onValueChange={handleStatusChange}
         >
           <SelectTrigger className="w-[180px]">
@@ -319,7 +319,7 @@ function UsersPageContent() {
           total={data?.pagination?.total || 0}
           page={page}
           pageSize={pageSize}
-          currentUserId={currentUser?.id || ''}
+          currentUserId={currentUser?.id || ""}
           onPageChange={setPage}
           onEdit={(user) => router.push(`/settings/users/${user.id}`)}
           onDeactivate={(user) => deactivateMutation.mutate(user)}
