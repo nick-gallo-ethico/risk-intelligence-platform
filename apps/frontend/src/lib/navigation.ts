@@ -10,16 +10,10 @@ import {
   FileText,
   FolderKanban,
   BarChart3,
-  Users,
-  Shield,
   Settings,
-  ClipboardList,
-  Plug,
   Megaphone,
   FileInput,
   Workflow,
-  Database,
-  Sparkles,
   type LucideIcon,
 } from "lucide-react";
 import type { UserRole } from "@/types/auth";
@@ -90,6 +84,9 @@ export const navigationItems: NavItem[] = [
 
 /**
  * Admin navigation items - requires SYSTEM_ADMIN or COMPLIANCE_OFFICER role
+ *
+ * Simplified to just "Settings" (hub) and "Workflows" (high-traffic).
+ * All other settings items are accessible via the settings hub sidebar.
  */
 export const adminItems: NavItem[] = [
   {
@@ -99,46 +96,10 @@ export const adminItems: NavItem[] = [
     requiredRoles: ["SYSTEM_ADMIN", "COMPLIANCE_OFFICER"],
   },
   {
-    title: "Users",
-    url: "/settings/users",
-    icon: Users,
-    requiredRoles: ["SYSTEM_ADMIN"],
-  },
-  {
-    title: "Roles",
-    url: "/settings/roles",
-    icon: Shield,
-    requiredRoles: ["SYSTEM_ADMIN"],
-  },
-  {
     title: "Settings",
-    url: "/settings/organization",
+    url: "/settings",
     icon: Settings,
     requiredRoles: ["SYSTEM_ADMIN", "COMPLIANCE_OFFICER"],
-  },
-  {
-    title: "Audit Log",
-    url: "/settings/audit",
-    icon: ClipboardList,
-    requiredRoles: ["SYSTEM_ADMIN", "COMPLIANCE_OFFICER"],
-  },
-  {
-    title: "Integrations",
-    url: "/settings/integrations",
-    icon: Plug,
-    requiredRoles: ["SYSTEM_ADMIN"],
-  },
-  {
-    title: "Properties",
-    url: "/settings/properties",
-    icon: Database,
-    requiredRoles: ["SYSTEM_ADMIN", "COMPLIANCE_OFFICER"],
-  },
-  {
-    title: "AI Settings",
-    url: "/settings/ai",
-    icon: Sparkles,
-    requiredRoles: ["SYSTEM_ADMIN"],
   },
 ];
 
