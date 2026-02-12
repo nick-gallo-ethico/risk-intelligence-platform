@@ -801,12 +801,12 @@ Plans:
 
 Plans:
 
-- [ ] 20-01-PLAN.md (Wave 1) — Settings hub restructure & user profile page
-- [ ] 20-02-PLAN.md (Wave 1) — User notification preferences page
-- [ ] 20-03-PLAN.md (Wave 2) — Account management pages (defaults, approvals, permission sets)
-- [ ] 20-04-PLAN.md (Wave 2) — Integrations & AI settings pages
-- [ ] 20-05-PLAN.md (Wave 3) — Data management: properties & objects pages
-- [ ] 20-06-PLAN.md (Wave 4) — Settings navigation polish & verification
+- [x] 20-01-PLAN.md (Wave 1) — Settings hub restructure & user profile page
+- [x] 20-02-PLAN.md (Wave 1) — User notification preferences page
+- [x] 20-03-PLAN.md (Wave 2) — Account management pages (defaults, approvals, permission sets)
+- [x] 20-04-PLAN.md (Wave 2) — Integrations & AI settings pages
+- [x] 20-05-PLAN.md (Wave 3) — Data management: properties & objects pages
+- [x] 20-06-PLAN.md (Wave 4) — Settings navigation polish & verification
 
 ### Phase 21: Project Management (Monday.com-Style)
 
@@ -949,7 +949,7 @@ Phases execute in dependency order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 
 | 17. Campaigns Hub                       | 4/4            | Complete | 2026-02-11 |
 | 18. Reports & Data Management           | 9/9            | Complete | 2026-02-11 |
 | 19. Workflow Engine UI                  | 7/7            | Complete | 2026-02-11 |
-| 20. Settings Overhaul (HubSpot)         | 0/TBD          | Planned  | -          |
+| 20. Settings Overhaul (HubSpot)         | 6/6            | Complete | 2026-02-11 |
 | 21. Project Management (Monday.com)     | 0/6            | Planned  | -          |
 | 22. Dark Mode & Theme                   | 0/14           | Planned  | -          |
 | 23. Help & Support System               | 0/5            | Planned  | -          |
@@ -958,9 +958,9 @@ Phases execute in dependency order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 
 ---
 
 _Roadmap created: 2026-02-02_
-_Updated: 2026-02-11 (Phase 19 complete — Workflow Engine UI)_
+_Updated: 2026-02-11 (Phase 20 complete — Settings Overhaul)_
 _Depth: Comprehensive_
 _Total phases: 24 (+ 11.1 and decimal insertions)_
-_Total plans: 229+ completed, ~31-40 estimated remaining_
+_Total plans: 235+ completed, ~25-34 estimated remaining_
 _Total v1 requirements: 149 + QA punch list items_
 _Issues reference: .planning/V1-ISSUES-AND-GAPS.md_

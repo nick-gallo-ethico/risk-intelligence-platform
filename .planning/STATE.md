@@ -5,7 +5,7 @@
 See: .planning/PROJECT.md (updated 2026-02-02)
 
 **Core value:** Users can manage their entire compliance workflow - from anonymous report intake to investigation closure to board reporting - in one AI-assisted platform, with every task unified into a single "My Work" view.
-**Current focus:** Phase 20 COMPLETE - ready for Phase 21
+**Current focus:** Phase 20 COMPLETE - Settings Overhaul delivered. Ready for Phase 21
 
 ## Current Position
 
