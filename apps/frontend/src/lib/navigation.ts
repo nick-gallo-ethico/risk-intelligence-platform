@@ -18,6 +18,8 @@ import {
   Megaphone,
   FileInput,
   Workflow,
+  Database,
+  Sparkles,
   type LucideIcon,
 } from "lucide-react";
 import type { UserRole } from "@/types/auth";
@@ -124,6 +126,18 @@ export const adminItems: NavItem[] = [
     title: "Integrations",
     url: "/settings/integrations",
     icon: Plug,
+    requiredRoles: ["SYSTEM_ADMIN"],
+  },
+  {
+    title: "Properties",
+    url: "/settings/properties",
+    icon: Database,
+    requiredRoles: ["SYSTEM_ADMIN", "COMPLIANCE_OFFICER"],
+  },
+  {
+    title: "AI Settings",
+    url: "/settings/ai",
+    icon: Sparkles,
     requiredRoles: ["SYSTEM_ADMIN"],
   },
 ];
