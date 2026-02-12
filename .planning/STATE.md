@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 21 of 24+ (Project Management)
-Plan: 7 of 10 in current phase (COMPLETE)
+Plan: 8 of 10 in current phase (COMPLETE)
 Status: In progress
-Last activity: 2026-02-12 - Completed 21-07 (Column Configuration UI)
+Last activity: 2026-02-12 - Completed 21-08 (@Mentions Notifications & Real-Time)
 
 Progress: [===================================================================+] ~100% (Phase 21 adds new plans beyond original 24)
 
@@ -83,6 +83,15 @@ Progress: [===================================================================+]
   - Column management hooks (create, update, delete, reorder)
   - Integrated into ProjectTaskTable with dynamic grid columns
   - "+" button in header opens Column Center
+
+- 21-08: @Mentions Notifications & Real-Time (COMPLETE - 443fe23, 0f459b1)
+  - MentionService extracts @mentions from HTML data-mention-id and markdown @[Name](id)
+  - ProjectEventListener handles 5 notification events: assignment, @mention, comment, status, completion
+  - All notifications dispatch via NotificationService.notify() for preference-aware delivery
+  - WebSocket ProjectGateway with JWT auth, tenant-isolated rooms, presence tracking
+  - useProjectWebSocket hook for React Query cache invalidation on real-time events
+  - MentionInput enhanced with ARIA attributes: listbox, aria-expanded, aria-activedescendant
+  - Live region announcements for screen readers, keyboard navigation preserved
 
 ### Phase 24 Policy Content & Seed Data COMPLETE (2026-02-12)
 

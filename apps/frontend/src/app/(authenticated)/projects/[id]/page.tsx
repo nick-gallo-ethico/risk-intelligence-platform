@@ -59,6 +59,8 @@ import {
   Table2,
   LayoutGrid,
   GanttChart,
+  Users,
+  BarChart3,
   Edit2,
   Check,
   X,
@@ -69,6 +71,8 @@ import { cn } from "@/lib/utils";
 import { ProjectTaskTable } from "@/components/projects/ProjectTaskTable";
 import { ProjectBoardView } from "@/components/projects/ProjectBoardView";
 import { ProjectTimelineView } from "@/components/projects/ProjectTimelineView";
+import { ProjectWorkloadView } from "@/components/projects/ProjectWorkloadView";
+import { ProjectDashboardView } from "@/components/projects/ProjectDashboardView";
 import { TaskDetailPanel } from "@/components/projects/TaskDetailPanel";
 import type {
   ProjectStatus,
@@ -122,7 +126,7 @@ interface User {
 /**
  * View modes for the project detail page.
  */
-type ViewMode = "table" | "board" | "timeline";
+type ViewMode = "table" | "board" | "timeline" | "workload" | "dashboard";
 
 /**
  * Project Header Component - displays project info and actions.
@@ -472,6 +476,20 @@ function ViewModeTabs({
             <GanttChart className="h-4 w-4 mr-1.5" />
             Timeline
           </TabsTrigger>
+          <TabsTrigger
+            value="workload"
+            className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none"
+          >
+            <Users className="h-4 w-4 mr-1.5" />
+            Workload
+          </TabsTrigger>
+          <TabsTrigger
+            value="dashboard"
+            className="data-[state=active]:bg-transparent data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none"
+          >
+            <BarChart3 className="h-4 w-4 mr-1.5" />
+            Dashboard
+          </TabsTrigger>
         </TabsList>
       </Tabs>
     </div>
@@ -592,7 +610,10 @@ function ProjectDetailPageContent() {
 
   // State - initialize view mode from URL or default to "table"
   const [viewMode, setViewMode] = useState<ViewMode>(
-    viewModeFromUrl && ["table", "board", "timeline"].includes(viewModeFromUrl)
+    viewModeFromUrl &&
+      ["table", "board", "timeline", "workload", "dashboard"].includes(
+        viewModeFromUrl,
+      )
       ? viewModeFromUrl
       : "table",
   );
@@ -746,6 +767,22 @@ function ProjectDetailPageContent() {
         )}
         {viewMode === "timeline" && (
           <ProjectTimelineView
+            project={project ?? null}
+            isLoading={isLoading}
+            onTaskClick={handleTaskClick}
+            onRefresh={refetch}
+          />
+        )}
+        {viewMode === "workload" && (
+          <ProjectWorkloadView
+            project={project ?? null}
+            isLoading={isLoading}
+            onTaskClick={handleTaskClick}
+            onRefresh={refetch}
+          />
+        )}
+        {viewMode === "dashboard" && (
+          <ProjectDashboardView
             project={project ?? null}
             isLoading={isLoading}
             onTaskClick={handleTaskClick}
