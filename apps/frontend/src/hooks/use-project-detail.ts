@@ -15,9 +15,20 @@ import type {
   ProjectGroup,
   ProjectTask,
   ProjectColumn,
+  ProjectColumnType,
   ProjectTaskStatus,
   ProjectTaskPriority,
   UpdateProjectDto,
+  TaskUpdate,
+  TaskActivity,
+  TaskFile,
+  TaskSubscriber,
+  TaskDependency,
+  CreateTaskUpdateDto,
+  CreateTaskDependencyDto,
+  CreateColumnDto,
+  UpdateColumnDto,
+  ReorderColumnsDto,
 } from "@/types/project";
 
 // Query keys for cache management
@@ -29,6 +40,50 @@ export const projectDetailQueryKeys = {
     [...projectDetailQueryKeys.all, projectId, "tasks"] as const,
   groups: (projectId: string) =>
     [...projectDetailQueryKeys.all, projectId, "groups"] as const,
+  columns: (projectId: string) =>
+    [...projectDetailQueryKeys.all, projectId, "columns"] as const,
+  members: (projectId: string) =>
+    [...projectDetailQueryKeys.all, projectId, "members"] as const,
+  taskUpdates: (projectId: string, taskId: string) =>
+    [
+      ...projectDetailQueryKeys.all,
+      projectId,
+      "tasks",
+      taskId,
+      "updates",
+    ] as const,
+  taskActivity: (projectId: string, taskId: string) =>
+    [
+      ...projectDetailQueryKeys.all,
+      projectId,
+      "tasks",
+      taskId,
+      "activity",
+    ] as const,
+  taskFiles: (projectId: string, taskId: string) =>
+    [
+      ...projectDetailQueryKeys.all,
+      projectId,
+      "tasks",
+      taskId,
+      "files",
+    ] as const,
+  taskSubscribers: (projectId: string, taskId: string) =>
+    [
+      ...projectDetailQueryKeys.all,
+      projectId,
+      "tasks",
+      taskId,
+      "subscribers",
+    ] as const,
+  taskDependencies: (projectId: string, taskId: string) =>
+    [
+      ...projectDetailQueryKeys.all,
+      projectId,
+      "tasks",
+      taskId,
+      "dependencies",
+    ] as const,
 };
 
 /**
@@ -456,6 +511,597 @@ export function useReorderGroups(projectId: string) {
     },
     onError: () => {
       toast.error("Failed to reorder groups");
+    },
+  });
+}
+
+// ============================================
+// Project Columns Hooks
+// ============================================
+
+/**
+ * Hook for fetching project columns.
+ */
+export function useProjectColumns(projectId: string | undefined) {
+  return useQuery({
+    queryKey: projectDetailQueryKeys.columns(projectId ?? ""),
+    queryFn: async () => {
+      if (!projectId) return [];
+      // Columns are included in project detail, but we can also fetch separately
+      const detail = await apiClient.get<ProjectDetailResponse>(
+        `/projects/${projectId}`,
+      );
+      return detail.columns ?? [];
+    },
+    enabled: !!projectId,
+    staleTime: 30 * 1000,
+  });
+}
+
+/**
+ * Hook for creating a column.
+ */
+export function useCreateColumn(projectId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (dto: CreateColumnDto) => {
+      return apiClient.post<ProjectColumn>(
+        `/projects/${projectId}/columns`,
+        dto,
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: projectDetailQueryKeys.detail(projectId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: projectDetailQueryKeys.columns(projectId),
+      });
+      toast.success("Column created");
+    },
+    onError: () => {
+      toast.error("Failed to create column");
+    },
+  });
+}
+
+/**
+ * Hook for updating a column.
+ */
+export function useUpdateColumn(projectId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      columnId,
+      dto,
+    }: {
+      columnId: string;
+      dto: UpdateColumnDto;
+    }) => {
+      return apiClient.put<ProjectColumn>(
+        `/projects/${projectId}/columns/${columnId}`,
+        dto,
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: projectDetailQueryKeys.detail(projectId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: projectDetailQueryKeys.columns(projectId),
+      });
+      toast.success("Column updated");
+    },
+    onError: () => {
+      toast.error("Failed to update column");
+    },
+  });
+}
+
+/**
+ * Hook for deleting a column.
+ */
+export function useDeleteColumn(projectId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (columnId: string) => {
+      await apiClient.delete(`/projects/${projectId}/columns/${columnId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: projectDetailQueryKeys.detail(projectId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: projectDetailQueryKeys.columns(projectId),
+      });
+      toast.success("Column deleted");
+    },
+    onError: () => {
+      toast.error("Failed to delete column");
+    },
+  });
+}
+
+/**
+ * Hook for reordering columns.
+ */
+export function useReorderColumns(projectId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (dto: ReorderColumnsDto) => {
+      return apiClient.put(`/projects/${projectId}/columns/reorder`, dto);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: projectDetailQueryKeys.detail(projectId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: projectDetailQueryKeys.columns(projectId),
+      });
+    },
+    onError: () => {
+      toast.error("Failed to reorder columns");
+    },
+  });
+}
+
+// ============================================
+// Project Members Hooks
+// ============================================
+
+interface ProjectMember {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  role?: string;
+}
+
+/**
+ * Hook for fetching project members for @mention autocomplete.
+ */
+export function useProjectMembers(projectId: string | undefined) {
+  return useQuery({
+    queryKey: projectDetailQueryKeys.members(projectId ?? ""),
+    queryFn: async () => {
+      if (!projectId) return [];
+      // For now, fetch from /users endpoint since project-specific members may not exist
+      const users = await apiClient.get<ProjectMember[]>("/users");
+      return Array.isArray(users) ? users : [];
+    },
+    enabled: !!projectId,
+    staleTime: 60 * 1000, // 1 minute
+  });
+}
+
+// ============================================
+// Task Updates (Conversation Thread) Hooks
+// ============================================
+
+/**
+ * Hook for fetching task updates/conversation thread.
+ */
+export function useTaskUpdates(projectId: string, taskId: string | undefined) {
+  return useQuery({
+    queryKey: projectDetailQueryKeys.taskUpdates(projectId, taskId ?? ""),
+    queryFn: async () => {
+      if (!taskId) return [];
+      return apiClient.get<TaskUpdate[]>(
+        `/projects/${projectId}/tasks/${taskId}/updates`,
+      );
+    },
+    enabled: !!taskId,
+    staleTime: 30 * 1000,
+  });
+}
+
+/**
+ * Hook for creating a task update.
+ */
+export function useCreateTaskUpdate(projectId: string, taskId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (dto: CreateTaskUpdateDto) => {
+      return apiClient.post<TaskUpdate>(
+        `/projects/${projectId}/tasks/${taskId}/updates`,
+        dto,
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: projectDetailQueryKeys.taskUpdates(projectId, taskId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: projectDetailQueryKeys.taskActivity(projectId, taskId),
+      });
+    },
+    onError: () => {
+      toast.error("Failed to post update");
+    },
+  });
+}
+
+/**
+ * Hook for editing a task update.
+ */
+export function useEditTaskUpdate(projectId: string, taskId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      updateId,
+      content,
+    }: {
+      updateId: string;
+      content: string;
+    }) => {
+      return apiClient.put<TaskUpdate>(
+        `/projects/${projectId}/tasks/${taskId}/updates/${updateId}`,
+        { content },
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: projectDetailQueryKeys.taskUpdates(projectId, taskId),
+      });
+    },
+    onError: () => {
+      toast.error("Failed to edit update");
+    },
+  });
+}
+
+/**
+ * Hook for deleting a task update.
+ */
+export function useDeleteTaskUpdate(projectId: string, taskId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (updateId: string) => {
+      await apiClient.delete(
+        `/projects/${projectId}/tasks/${taskId}/updates/${updateId}`,
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: projectDetailQueryKeys.taskUpdates(projectId, taskId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: projectDetailQueryKeys.taskActivity(projectId, taskId),
+      });
+    },
+    onError: () => {
+      toast.error("Failed to delete update");
+    },
+  });
+}
+
+/**
+ * Hook for adding a reaction to an update.
+ */
+export function useAddTaskUpdateReaction(projectId: string, taskId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      updateId,
+      emoji,
+    }: {
+      updateId: string;
+      emoji: string;
+    }) => {
+      return apiClient.post(
+        `/projects/${projectId}/tasks/${taskId}/updates/${updateId}/reactions`,
+        { emoji },
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: projectDetailQueryKeys.taskUpdates(projectId, taskId),
+      });
+    },
+    onError: () => {
+      toast.error("Failed to add reaction");
+    },
+  });
+}
+
+// ============================================
+// Task Activity Log Hooks
+// ============================================
+
+/**
+ * Hook for fetching task activity log.
+ */
+export function useTaskActivity(
+  projectId: string,
+  taskId: string | undefined,
+  filter?: string,
+) {
+  return useQuery({
+    queryKey: [
+      ...projectDetailQueryKeys.taskActivity(projectId, taskId ?? ""),
+      filter,
+    ],
+    queryFn: async () => {
+      if (!taskId) return [];
+      const params = filter ? `?filter=${filter}` : "";
+      return apiClient.get<TaskActivity[]>(
+        `/projects/${projectId}/tasks/${taskId}/activity${params}`,
+      );
+    },
+    enabled: !!taskId,
+    staleTime: 30 * 1000,
+  });
+}
+
+// ============================================
+// Task Files Hooks
+// ============================================
+
+/**
+ * Hook for fetching task file attachments.
+ */
+export function useTaskFiles(projectId: string, taskId: string | undefined) {
+  return useQuery({
+    queryKey: projectDetailQueryKeys.taskFiles(projectId, taskId ?? ""),
+    queryFn: async () => {
+      if (!taskId) return [];
+      return apiClient.get<TaskFile[]>(
+        `/projects/${projectId}/tasks/${taskId}/files`,
+      );
+    },
+    enabled: !!taskId,
+    staleTime: 30 * 1000,
+  });
+}
+
+/**
+ * Hook for uploading a task file.
+ */
+export function useUploadTaskFile(projectId: string, taskId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append("file", file);
+      return apiClient.post<TaskFile>(
+        `/projects/${projectId}/tasks/${taskId}/files`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        },
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: projectDetailQueryKeys.taskFiles(projectId, taskId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: projectDetailQueryKeys.taskActivity(projectId, taskId),
+      });
+      toast.success("File uploaded");
+    },
+    onError: () => {
+      toast.error("Failed to upload file");
+    },
+  });
+}
+
+/**
+ * Hook for deleting a task file.
+ */
+export function useDeleteTaskFile(projectId: string, taskId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (fileId: string) => {
+      await apiClient.delete(
+        `/projects/${projectId}/tasks/${taskId}/files/${fileId}`,
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: projectDetailQueryKeys.taskFiles(projectId, taskId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: projectDetailQueryKeys.taskActivity(projectId, taskId),
+      });
+      toast.success("File deleted");
+    },
+    onError: () => {
+      toast.error("Failed to delete file");
+    },
+  });
+}
+
+/**
+ * Hook for getting a download URL for a task file.
+ */
+export function useDownloadTaskFile(projectId: string, taskId: string) {
+  return useMutation({
+    mutationFn: async (fileId: string) => {
+      const response = await apiClient.get<{ downloadUrl: string }>(
+        `/projects/${projectId}/tasks/${taskId}/files/${fileId}/download`,
+      );
+      return response.downloadUrl;
+    },
+    onError: () => {
+      toast.error("Failed to get download link");
+    },
+  });
+}
+
+// ============================================
+// Task Subscribers Hooks
+// ============================================
+
+/**
+ * Hook for fetching task subscribers.
+ */
+export function useTaskSubscribers(
+  projectId: string,
+  taskId: string | undefined,
+) {
+  return useQuery({
+    queryKey: projectDetailQueryKeys.taskSubscribers(projectId, taskId ?? ""),
+    queryFn: async () => {
+      if (!taskId) return [];
+      return apiClient.get<TaskSubscriber[]>(
+        `/projects/${projectId}/tasks/${taskId}/subscribers`,
+      );
+    },
+    enabled: !!taskId,
+    staleTime: 30 * 1000,
+  });
+}
+
+/**
+ * Hook for subscribing a user to a task.
+ */
+export function useSubscribeToTask(projectId: string, taskId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (userId: string) => {
+      return apiClient.post<TaskSubscriber>(
+        `/projects/${projectId}/tasks/${taskId}/subscribers`,
+        { userId },
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: projectDetailQueryKeys.taskSubscribers(projectId, taskId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: projectDetailQueryKeys.taskActivity(projectId, taskId),
+      });
+      toast.success("Subscribed to task");
+    },
+    onError: () => {
+      toast.error("Failed to subscribe");
+    },
+  });
+}
+
+/**
+ * Hook for unsubscribing a user from a task.
+ */
+export function useUnsubscribeFromTask(projectId: string, taskId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (subscriberId: string) => {
+      await apiClient.delete(
+        `/projects/${projectId}/tasks/${taskId}/subscribers/${subscriberId}`,
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: projectDetailQueryKeys.taskSubscribers(projectId, taskId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: projectDetailQueryKeys.taskActivity(projectId, taskId),
+      });
+      toast.success("Unsubscribed from task");
+    },
+    onError: () => {
+      toast.error("Failed to unsubscribe");
+    },
+  });
+}
+
+// ============================================
+// Task Dependencies Hooks
+// ============================================
+
+/**
+ * Hook for fetching task dependencies.
+ */
+export function useTaskDependencies(
+  projectId: string,
+  taskId: string | undefined,
+) {
+  return useQuery({
+    queryKey: projectDetailQueryKeys.taskDependencies(projectId, taskId ?? ""),
+    queryFn: async () => {
+      if (!taskId) return { dependsOn: [], blocking: [] };
+      return apiClient.get<{
+        dependsOn: TaskDependency[];
+        blocking: TaskDependency[];
+      }>(`/projects/${projectId}/tasks/${taskId}/dependencies`);
+    },
+    enabled: !!taskId,
+    staleTime: 30 * 1000,
+  });
+}
+
+/**
+ * Hook for creating a task dependency.
+ */
+export function useCreateTaskDependency(projectId: string, taskId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (dto: CreateTaskDependencyDto) => {
+      return apiClient.post<TaskDependency>(
+        `/projects/${projectId}/tasks/${taskId}/dependencies`,
+        dto,
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: projectDetailQueryKeys.taskDependencies(projectId, taskId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: projectDetailQueryKeys.taskActivity(projectId, taskId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: projectDetailQueryKeys.detail(projectId),
+      });
+      toast.success("Dependency added");
+    },
+    onError: () => {
+      toast.error("Failed to add dependency");
+    },
+  });
+}
+
+/**
+ * Hook for removing a task dependency.
+ */
+export function useDeleteTaskDependency(projectId: string, taskId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (dependencyId: string) => {
+      await apiClient.delete(
+        `/projects/${projectId}/tasks/${taskId}/dependencies/${dependencyId}`,
+      );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: projectDetailQueryKeys.taskDependencies(projectId, taskId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: projectDetailQueryKeys.taskActivity(projectId, taskId),
+      });
+      queryClient.invalidateQueries({
+        queryKey: projectDetailQueryKeys.detail(projectId),
+      });
+      toast.success("Dependency removed");
+    },
+    onError: () => {
+      toast.error("Failed to remove dependency");
     },
   });
 }
