@@ -12,7 +12,7 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 Phase: 20 of 24 (Settings Overhaul)
 Plan: 4 of 6 in current phase
 Status: Phase 20 IN PROGRESS - Settings pages
-Last activity: 2026-02-12 - Completed 20-04 (Integrations & AI Settings Pages)
+Last activity: 2026-02-12 - Completed 20-03 (Account Management Pages)
 
 Progress: [=========================================================--------------] ~89% (~234 of ~260 estimated total plans)
 
@@ -34,9 +34,11 @@ Progress: [=========================================================------------
   - Out of office with return date and backup user delegation
   - Enforced categories shown with lock icon (cannot disable)
   - React Query hooks with optimistic updates
-- 20-03: Account Defaults and Approvals pages (COMPLETE - f89b950, c0797cb)
-  - /settings/organization (Account Defaults) with Case, Communication, Date/Time settings
-  - /settings/approvals with approval workflow configuration
+- 20-03: Account Management Pages (COMPLETE - f89b950, c0797cb, c2db3af, ac6dbb8)
+  - /settings/defaults with Case Defaults, Communication Defaults, Date/Time settings
+  - /settings/approvals with approval workflow configuration (Policy, Disclosure, Case, Remediation)
+  - /settings/roles with Permission Sets page (full matrix + expandable role cards)
+  - /settings/users updated with View Roles & Permissions link
 - 20-04: Integrations & AI Settings Pages (COMPLETE - c2db3af, 37410e4, ac6dbb8)
   - /settings/integrations with 5 integration cards (HRIS, Email, SSO, Webhooks, Storage)
   - /settings/ai with AI status, feature toggles, usage monitoring
