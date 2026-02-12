@@ -1,6 +1,7 @@
 import { Module, forwardRef } from "@nestjs/common";
 import { PrismaModule } from "../prisma/prisma.module";
 import { AuditModule } from "../audit/audit.module";
+import { AuthModule } from "../auth/auth.module";
 import { NotificationsModule } from "../notifications/notifications.module";
 import { MilestoneService } from "./milestone.service";
 import { ProjectService } from "./project.service";
@@ -10,6 +11,7 @@ import { ProjectTemplateService } from "./project-template.service";
 import { ProjectStatsService } from "./services/project-stats.service";
 import { MentionService } from "./services/mention.service";
 import { ProjectEventListener } from "./listeners/project-event.listener";
+import { ProjectGateway } from "./gateways/project.gateway";
 import { ProjectsController } from "./projects.controller";
 import { ProjectTemplateController } from "./project-template.controller";
 
@@ -29,7 +31,12 @@ import { ProjectTemplateController } from "./project-template.controller";
  * - ProjectTemplateController: /api/v1/project-templates - Template CRUD and apply
  */
 @Module({
-  imports: [PrismaModule, AuditModule, forwardRef(() => NotificationsModule)],
+  imports: [
+    PrismaModule,
+    AuditModule,
+    AuthModule,
+    forwardRef(() => NotificationsModule),
+  ],
   controllers: [ProjectsController, ProjectTemplateController],
   providers: [
     MilestoneService,
@@ -40,6 +47,7 @@ import { ProjectTemplateController } from "./project-template.controller";
     ProjectStatsService,
     MentionService,
     ProjectEventListener,
+    ProjectGateway,
   ],
   exports: [
     MilestoneService,
@@ -49,6 +57,7 @@ import { ProjectTemplateController } from "./project-template.controller";
     ProjectTemplateService,
     ProjectStatsService,
     MentionService,
+    ProjectGateway,
   ],
 })
 export class ProjectsModule {}

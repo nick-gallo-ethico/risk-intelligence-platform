@@ -5,6 +5,12 @@
  *
  * Rich text input with @mention autocomplete support.
  * Used for task conversation threads with user mentions.
+ *
+ * Accessibility features (WCAG 2.1 AA):
+ * - Keyboard navigation: Arrow Up/Down to navigate, Enter/Tab to select, Escape to close
+ * - ARIA attributes: role, aria-expanded, aria-activedescendant, aria-label
+ * - Screen reader announcements for autocomplete results
+ * - Focus management with proper tab order
  */
 
 import React, {
@@ -12,15 +18,11 @@ import React, {
   useRef,
   useCallback,
   useEffect,
+  useId,
   KeyboardEvent,
 } from "react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { Send, Loader2 } from "lucide-react";
@@ -56,11 +58,21 @@ export function MentionInput({
   minHeight = 80,
 }: MentionInputProps) {
   const editorRef = useRef<HTMLDivElement>(null);
+  const listboxRef = useRef<HTMLDivElement>(null);
   const [showMentionPopover, setShowMentionPopover] = useState(false);
   const [mentionQuery, setMentionQuery] = useState("");
   const [mentionIndex, setMentionIndex] = useState(0);
   const [mentionPosition, setMentionPosition] = useState({ top: 0, left: 0 });
   const [hasContent, setHasContent] = useState(false);
+
+  // Unique IDs for ARIA attributes
+  const instanceId = useId();
+  const listboxId = `mention-listbox-${instanceId}`;
+  const getOptionId = (index: number) =>
+    `mention-option-${instanceId}-${index}`;
+
+  // Live region for screen reader announcements
+  const [announcement, setAnnouncement] = useState("");
 
   // Debounce timer for mention search
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
@@ -118,6 +130,22 @@ export function MentionInput({
         });
 
         setShowMentionPopover(true);
+
+        // Announce results to screen readers
+        const matchCount = users.filter((u) => {
+          const fullName = `${u.firstName} ${u.lastName}`.toLowerCase();
+          const query = mentionMatch[1].toLowerCase();
+          return (
+            !query ||
+            fullName.includes(query) ||
+            u.email.toLowerCase().includes(query)
+          );
+        }).length;
+        setAnnouncement(
+          matchCount === 0
+            ? "No matching users found"
+            : `${Math.min(matchCount, 10)} user${matchCount === 1 ? "" : "s"} found. Use arrow keys to navigate.`,
+        );
       }, 150);
     } else {
       setShowMentionPopover(false);
@@ -216,6 +244,9 @@ export function MentionInput({
     setShowMentionPopover(false);
     setMentionQuery("");
     setHasContent(true);
+
+    // Announce selection to screen readers
+    setAnnouncement(`Selected @${user.firstName} ${user.lastName}`);
   }, []);
 
   // Extract mentioned user IDs from content
@@ -275,8 +306,28 @@ export function MentionInput({
     document.execCommand("insertText", false, text);
   }, []);
 
+  // Scroll selected option into view when index changes
+  useEffect(() => {
+    if (showMentionPopover && listboxRef.current) {
+      const selectedOption = listboxRef.current.querySelector(
+        `[id="${getOptionId(mentionIndex)}"]`,
+      );
+      selectedOption?.scrollIntoView({ block: "nearest" });
+    }
+  }, [mentionIndex, showMentionPopover, getOptionId]);
+
   return (
     <div className="relative border rounded-lg bg-white">
+      {/* Screen reader live region for announcements */}
+      <div
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+        className="sr-only"
+      >
+        {announcement}
+      </div>
+
       {/* Editable area */}
       <div
         ref={editorRef}
@@ -293,12 +344,30 @@ export function MentionInput({
         data-placeholder={placeholder}
         role="textbox"
         aria-multiline="true"
-        aria-label="Update message"
+        aria-label="Write an update. Type @ to mention someone."
+        aria-haspopup="listbox"
+        aria-expanded={showMentionPopover && filteredUsers.length > 0}
+        aria-controls={showMentionPopover ? listboxId : undefined}
+        aria-activedescendant={
+          showMentionPopover && filteredUsers.length > 0
+            ? getOptionId(mentionIndex)
+            : undefined
+        }
+        aria-describedby={`${instanceId}-hint`}
       />
+
+      {/* Hidden hint for screen readers */}
+      <span id={`${instanceId}-hint`} className="sr-only">
+        Type @ to mention a team member. Press Ctrl+Enter to submit.
+      </span>
 
       {/* Mention autocomplete popover */}
       {showMentionPopover && filteredUsers.length > 0 && (
         <div
+          ref={listboxRef}
+          id={listboxId}
+          role="listbox"
+          aria-label="User suggestions"
           className="absolute z-50 w-64 rounded-md border bg-popover shadow-md"
           style={{
             top: mentionPosition.top + 4,
@@ -308,11 +377,15 @@ export function MentionInput({
           <ScrollArea className="max-h-48">
             <div className="p-1">
               {filteredUsers.slice(0, 10).map((user, index) => (
-                <button
+                <div
                   key={user.id}
+                  id={getOptionId(index)}
+                  role="option"
+                  aria-selected={index === mentionIndex}
                   onClick={() => insertMention(user)}
+                  onMouseEnter={() => setMentionIndex(index)}
                   className={cn(
-                    "w-full flex items-center gap-2 px-2 py-1.5 text-sm rounded-md transition-colors text-left",
+                    "w-full flex items-center gap-2 px-2 py-1.5 text-sm rounded-md transition-colors text-left cursor-pointer",
                     index === mentionIndex
                       ? "bg-blue-100 text-blue-900"
                       : "hover:bg-muted",
@@ -334,7 +407,7 @@ export function MentionInput({
                       </div>
                     )}
                   </div>
-                </button>
+                </div>
               ))}
             </div>
           </ScrollArea>
