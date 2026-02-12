@@ -11,6 +11,7 @@ import { seedEmployees } from "./seeders/employee.seeder";
 import { seedDemoUsers } from "./seeders/user.seeder";
 import { seedRius } from "./seeders/riu.seeder";
 import { seedCases, createRecentUnreadCases } from "./seeders/case.seeder";
+import { seedPolicies } from "./seeders/policy.seeder";
 import {
   seedInvestigations,
   getInvestigationStats,
@@ -104,6 +105,26 @@ async function main() {
   console.log("\nSeeding demo users...");
   const demoUserIds = await seedDemoUsers(prisma, organization.id);
   console.log(`Created ${demoUserIds.length} demo users`);
+
+  // Get CCO user for policy ownership
+  const ccoUser = await prisma.user.findFirst({
+    where: {
+      organizationId: organization.id,
+      email: "demo-cco@acme.local",
+    },
+    select: { id: true },
+  });
+
+  if (!ccoUser) {
+    throw new Error("Demo CCO user not found. Cannot seed policies.");
+  }
+
+  // Seed policies (50 compliance policies with translations)
+  console.log("\nSeeding policies (50 with translations)...");
+  const policyResult = await seedPolicies(prisma, organization.id, ccoUser.id);
+  console.log(
+    `Created ${policyResult.policyCount} policies with ${policyResult.translationCount} translations`,
+  );
 
   // ========================================
   // Prepare data for RIU seeding

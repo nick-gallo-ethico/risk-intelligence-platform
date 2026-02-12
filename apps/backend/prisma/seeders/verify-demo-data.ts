@@ -8,14 +8,14 @@
  *   npx ts-node prisma/seeders/verify-demo-data.ts
  */
 
-import { PrismaClient, PolicyStatus } from '@prisma/client';
+import { PrismaClient, PolicyStatus } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
 interface VerificationResult {
   category: string;
   check: string;
-  status: 'pass' | 'warn' | 'fail';
+  status: "pass" | "warn" | "fail";
   expected: string;
   actual: string;
   notes?: string;
@@ -28,7 +28,7 @@ function check(
   checkName: string,
   expected: string,
   actual: string | number,
-  status: 'pass' | 'warn' | 'fail',
+  status: "pass" | "warn" | "fail",
   notes?: string,
 ) {
   results.push({
@@ -42,84 +42,122 @@ function check(
 }
 
 async function verifyOrganization() {
-  console.log('\n📋 Verifying Organization...');
+  console.log("\n📋 Verifying Organization...");
 
   const org = await prisma.organization.findUnique({
-    where: { slug: 'acme-corp' },
+    where: { slug: "acme-corp" },
   });
 
   if (!org) {
-    check('Organization', 'Acme Corp exists', 'exists', 'not found', 'fail');
+    check("Organization", "Acme Corp exists", "exists", "not found", "fail");
     return null;
   }
 
-  check('Organization', 'Acme Corp exists', 'exists', org.name, 'pass');
+  check("Organization", "Acme Corp exists", "exists", org.name, "pass");
   return org.id;
 }
 
 async function verifyDemoUsers(orgId: string) {
-  console.log('\n👥 Verifying Demo Users...');
+  console.log("\n👥 Verifying Demo Users...");
 
   const expectedUsers = [
-    { email: 'demo-admin@acme.local', role: 'SYSTEM_ADMIN' },
-    { email: 'demo-cco@acme.local', role: 'COMPLIANCE_OFFICER' },
-    { email: 'demo-triage@acme.local', role: 'TRIAGE_LEAD' },
-    { email: 'demo-investigator@acme.local', role: 'INVESTIGATOR' },
-    { email: 'demo-investigator2@acme.local', role: 'INVESTIGATOR' },
-    { email: 'demo-policy@acme.local', role: 'POLICY_AUTHOR' },
-    { email: 'demo-reviewer@acme.local', role: 'POLICY_REVIEWER' },
-    { email: 'demo-manager@acme.local', role: 'MANAGER' },
-    { email: 'demo-employee@acme.local', role: 'EMPLOYEE' },
+    { email: "demo-admin@acme.local", role: "SYSTEM_ADMIN" },
+    { email: "demo-cco@acme.local", role: "COMPLIANCE_OFFICER" },
+    { email: "demo-triage@acme.local", role: "TRIAGE_LEAD" },
+    { email: "demo-investigator@acme.local", role: "INVESTIGATOR" },
+    { email: "demo-investigator2@acme.local", role: "INVESTIGATOR" },
+    { email: "demo-policy@acme.local", role: "POLICY_AUTHOR" },
+    { email: "demo-reviewer@acme.local", role: "POLICY_REVIEWER" },
+    { email: "demo-manager@acme.local", role: "MANAGER" },
+    { email: "demo-employee@acme.local", role: "EMPLOYEE" },
   ];
 
   const users = await prisma.user.findMany({
-    where: { organizationId: orgId, email: { in: expectedUsers.map((u) => u.email) } },
+    where: {
+      organizationId: orgId,
+      email: { in: expectedUsers.map((u) => u.email) },
+    },
     select: { email: true, role: true },
   });
 
   const userCount = users.length;
-  const status = userCount === expectedUsers.length ? 'pass' : userCount >= 5 ? 'warn' : 'fail';
-  check('Demo Users', 'Demo user accounts', `${expectedUsers.length} users`, userCount, status);
+  const status =
+    userCount === expectedUsers.length
+      ? "pass"
+      : userCount >= 5
+        ? "warn"
+        : "fail";
+  check(
+    "Demo Users",
+    "Demo user accounts",
+    `${expectedUsers.length} users`,
+    userCount,
+    status,
+  );
 
   for (const expected of expectedUsers) {
     const found = users.find((u) => u.email === expected.email);
     if (found) {
       const roleMatch = found.role === expected.role;
       check(
-        'Demo Users',
+        "Demo Users",
         `${expected.email}`,
         expected.role,
         found.role,
-        roleMatch ? 'pass' : 'warn',
+        roleMatch ? "pass" : "warn",
       );
     } else {
-      check('Demo Users', `${expected.email}`, expected.role, 'not found', 'fail');
+      check(
+        "Demo Users",
+        `${expected.email}`,
+        expected.role,
+        "not found",
+        "fail",
+      );
     }
   }
 }
 
 async function verifyEmployees(orgId: string) {
-  console.log('\n👔 Verifying Employees...');
+  console.log("\n👔 Verifying Employees...");
 
-  const employeeCount = await prisma.employee.count({ where: { organizationId: orgId } });
-  const status = employeeCount >= 15000 ? 'pass' : employeeCount >= 5000 ? 'warn' : 'fail';
-  check('Employees', 'Total employees', '~20,000', employeeCount, status);
+  const employeeCount = await prisma.employee.count({
+    where: { organizationId: orgId },
+  });
+  const status =
+    employeeCount >= 15000 ? "pass" : employeeCount >= 5000 ? "warn" : "fail";
+  check("Employees", "Total employees", "~20,000", employeeCount, status);
 
   // Check for executives
   const executives = await prisma.employee.count({
-    where: { organizationId: orgId, jobLevel: 'C_SUITE' },
+    where: { organizationId: orgId, jobLevel: "C_SUITE" },
   });
-  check('Employees', 'C-Suite executives', '>5', executives, executives > 5 ? 'pass' : 'warn');
+  check(
+    "Employees",
+    "C-Suite executives",
+    ">5",
+    executives,
+    executives > 5 ? "pass" : "warn",
+  );
 
   // Check for managers
   const managers = await prisma.employee.count({
-    where: { organizationId: orgId, jobLevel: { in: ['MANAGER', 'DIRECTOR', 'VP'] } },
+    where: {
+      organizationId: orgId,
+      jobLevel: { in: ["MANAGER", "DIRECTOR", "VP"] },
+    },
   });
-  check('Employees', 'Managers/Directors/VPs', '>500', managers, managers > 500 ? 'pass' : 'warn');
+  check(
+    "Employees",
+    "Managers/Directors/VPs",
+    ">500",
+    managers,
+    managers > 500 ? "pass" : "warn",
+  );
 }
 
 async function verifyLocations(orgId: string) {
-  console.log('\n🌍 Verifying Locations...');
+  console.log("\n🌍 Verifying Locations...");
 
   const locations = await prisma.location.findMany({
     where: { organizationId: orgId },
@@ -127,85 +165,138 @@ async function verifyLocations(orgId: string) {
   });
 
   const total = locations.length;
-  const usCount = locations.filter((l) => l.region === 'US' || l.region?.startsWith('US')).length;
-  const emeaCount = locations.filter((l) => l.region === 'EMEA').length;
-  const apacCount = locations.filter((l) => l.region === 'APAC').length;
+  const usCount = locations.filter(
+    (l) => l.region === "US" || l.region?.startsWith("US"),
+  ).length;
+  const emeaCount = locations.filter((l) => l.region === "EMEA").length;
+  const apacCount = locations.filter((l) => l.region === "APAC").length;
 
-  check('Locations', 'Total locations', '52', total, total >= 50 ? 'pass' : 'warn');
-  check('Locations', 'US locations', '~25', usCount, usCount >= 20 ? 'pass' : 'warn');
-  check('Locations', 'EMEA locations', '~15', emeaCount, emeaCount >= 10 ? 'pass' : 'warn');
-  check('Locations', 'APAC locations', '~12', apacCount, apacCount >= 8 ? 'pass' : 'warn');
+  check(
+    "Locations",
+    "Total locations",
+    "52",
+    total,
+    total >= 50 ? "pass" : "warn",
+  );
+  check(
+    "Locations",
+    "US locations",
+    "~25",
+    usCount,
+    usCount >= 20 ? "pass" : "warn",
+  );
+  check(
+    "Locations",
+    "EMEA locations",
+    "~15",
+    emeaCount,
+    emeaCount >= 10 ? "pass" : "warn",
+  );
+  check(
+    "Locations",
+    "APAC locations",
+    "~12",
+    apacCount,
+    apacCount >= 8 ? "pass" : "warn",
+  );
 }
 
 async function verifyCategories(orgId: string) {
-  console.log('\n📂 Verifying Categories...');
+  console.log("\n📂 Verifying Categories...");
 
-  const categories = await prisma.category.count({ where: { organizationId: orgId } });
-  check('Categories', 'Total categories', '~32', categories, categories >= 25 ? 'pass' : 'warn');
+  const categories = await prisma.category.count({
+    where: { organizationId: orgId },
+  });
+  check(
+    "Categories",
+    "Total categories",
+    "~32",
+    categories,
+    categories >= 25 ? "pass" : "warn",
+  );
 
   // Check for parent categories
   const parentCategories = await prisma.category.count({
     where: { organizationId: orgId, parentCategoryId: null },
   });
   check(
-    'Categories',
-    'Parent categories',
-    '~7',
+    "Categories",
+    "Parent categories",
+    "~7",
     parentCategories,
-    parentCategories >= 5 ? 'pass' : 'warn',
+    parentCategories >= 5 ? "pass" : "warn",
   );
 }
 
 async function verifyRIUs(orgId: string) {
-  console.log('\n📝 Verifying RIUs (Risk Intelligence Units)...');
+  console.log("\n📝 Verifying RIUs (Risk Intelligence Units)...");
 
-  const riuCount = await prisma.riskIntelligenceUnit.count({ where: { organizationId: orgId } });
-  const status = riuCount >= 4000 ? 'pass' : riuCount >= 2000 ? 'warn' : 'fail';
-  check('RIUs', 'Total RIUs', '~5,000', riuCount, status);
+  const riuCount = await prisma.riskIntelligenceUnit.count({
+    where: { organizationId: orgId },
+  });
+  const status = riuCount >= 4000 ? "pass" : riuCount >= 2000 ? "warn" : "fail";
+  check("RIUs", "Total RIUs", "~5,000", riuCount, status);
 
   // Check RIU types distribution
   const riuByType = await prisma.riskIntelligenceUnit.groupBy({
-    by: ['type'],
+    by: ["type"],
     where: { organizationId: orgId },
     _count: true,
   });
 
-  const hotlineCount = riuByType.find((r) => r.type === 'HOTLINE_REPORT')?._count || 0;
-  const webFormCount = riuByType.find((r) => r.type === 'WEB_FORM_SUBMISSION')?._count || 0;
+  const hotlineCount =
+    riuByType.find((r) => r.type === "HOTLINE_REPORT")?._count || 0;
+  const webFormCount =
+    riuByType.find((r) => r.type === "WEB_FORM_SUBMISSION")?._count || 0;
 
   check(
-    'RIUs',
-    'Hotline reports',
-    '~55% of total',
+    "RIUs",
+    "Hotline reports",
+    "~55% of total",
     `${hotlineCount} (${Math.round((hotlineCount / riuCount) * 100)}%)`,
-    hotlineCount > 0 ? 'pass' : 'warn',
+    hotlineCount > 0 ? "pass" : "warn",
   );
   check(
-    'RIUs',
-    'Web form submissions',
-    '~25% of total',
+    "RIUs",
+    "Web form submissions",
+    "~25% of total",
     `${webFormCount} (${Math.round((webFormCount / riuCount) * 100)}%)`,
-    webFormCount > 0 ? 'pass' : 'warn',
+    webFormCount > 0 ? "pass" : "warn",
   );
 }
 
 async function verifyCases(orgId: string) {
-  console.log('\n📁 Verifying Cases...');
+  console.log("\n📁 Verifying Cases...");
 
-  const totalCases = await prisma.case.count({ where: { organizationId: orgId } });
-  const status = totalCases >= 4000 ? 'pass' : totalCases >= 2000 ? 'warn' : 'fail';
-  check('Cases', 'Total cases', '~4,500', totalCases, status);
+  const totalCases = await prisma.case.count({
+    where: { organizationId: orgId },
+  });
+  const status =
+    totalCases >= 4000 ? "pass" : totalCases >= 2000 ? "warn" : "fail";
+  check("Cases", "Total cases", "~4,500", totalCases, status);
 
   const openCases = await prisma.case.count({
-    where: { organizationId: orgId, status: { in: ['NEW', 'OPEN'] } },
+    where: { organizationId: orgId, status: { in: ["NEW", "OPEN"] } },
   });
   const closedCases = await prisma.case.count({
-    where: { organizationId: orgId, status: 'CLOSED' },
+    where: { organizationId: orgId, status: "CLOSED" },
   });
 
   const openPercent = Math.round((openCases / totalCases) * 100);
-  check('Cases', 'Open cases', '~10%', `${openCases} (${openPercent}%)`, openPercent < 20 ? 'pass' : 'warn');
-  check('Cases', 'Closed cases', '~90%', closedCases, closedCases > openCases * 5 ? 'pass' : 'warn');
+  check(
+    "Cases",
+    "Open cases",
+    "~10%",
+    `${openCases} (${openPercent}%)`,
+    openPercent < 20 ? "pass" : "warn",
+  );
+  check(
+    "Cases",
+    "Closed cases",
+    "~90%",
+    closedCases,
+    closedCases > openCases * 5 ? "pass" : "warn",
+  );
 
   // Check for recent cases
   const recentDate = new Date();
@@ -213,45 +304,60 @@ async function verifyCases(orgId: string) {
   const recentCases = await prisma.case.count({
     where: { organizationId: orgId, createdAt: { gte: recentDate } },
   });
-  check('Cases', 'Cases in last 30 days', '>0', recentCases, recentCases > 0 ? 'pass' : 'warn');
+  check(
+    "Cases",
+    "Cases in last 30 days",
+    ">0",
+    recentCases,
+    recentCases > 0 ? "pass" : "warn",
+  );
 }
 
 async function verifyInvestigations(orgId: string) {
-  console.log('\n🔍 Verifying Investigations...');
+  console.log("\n🔍 Verifying Investigations...");
 
-  const total = await prisma.investigation.count({ where: { organizationId: orgId } });
-  const status = total >= 4000 ? 'pass' : total >= 2000 ? 'warn' : 'fail';
-  check('Investigations', 'Total investigations', '~5,000', total, status);
+  const total = await prisma.investigation.count({
+    where: { organizationId: orgId },
+  });
+  const status = total >= 4000 ? "pass" : total >= 2000 ? "warn" : "fail";
+  check("Investigations", "Total investigations", "~5,000", total, status);
 
   const substantiated = await prisma.investigation.count({
-    where: { organizationId: orgId, outcome: 'SUBSTANTIATED' },
+    where: { organizationId: orgId, outcome: "SUBSTANTIATED" },
   });
   const substantiationRate = Math.round((substantiated / total) * 100);
   check(
-    'Investigations',
-    'Substantiation rate',
-    '~60%',
+    "Investigations",
+    "Substantiation rate",
+    "~60%",
     `${substantiationRate}%`,
-    substantiationRate >= 50 && substantiationRate <= 70 ? 'pass' : 'warn',
+    substantiationRate >= 50 && substantiationRate <= 70 ? "pass" : "warn",
   );
 }
 
 async function verifyPolicies(orgId: string) {
-  console.log('\n📜 Verifying Policies...');
+  console.log("\n📜 Verifying Policies...");
 
-  const totalPolicies = await prisma.policy.count({ where: { organizationId: orgId } });
-  const status = totalPolicies >= 40 ? 'pass' : totalPolicies >= 20 ? 'warn' : 'fail';
-  check('Policies', 'Total policies', '~50', totalPolicies, status);
+  const totalPolicies = await prisma.policy.count({
+    where: { organizationId: orgId },
+  });
+  const status =
+    totalPolicies >= 40 ? "pass" : totalPolicies >= 20 ? "warn" : "fail";
+  check("Policies", "Total policies", "~50", totalPolicies, status);
 
   const publishedPolicies = await prisma.policy.count({
     where: { organizationId: orgId, status: PolicyStatus.PUBLISHED },
   });
   check(
-    'Policies',
-    'Published policies',
-    '>40',
+    "Policies",
+    "Published policies",
+    ">40",
     publishedPolicies,
-    publishedPolicies >= 40 ? 'pass' : publishedPolicies >= 20 ? 'warn' : 'fail',
+    publishedPolicies >= 40
+      ? "pass"
+      : publishedPolicies >= 20
+        ? "warn"
+        : "fail",
   );
 
   // Check for translations
@@ -259,86 +365,131 @@ async function verifyPolicies(orgId: string) {
     where: { organizationId: orgId },
   });
   check(
-    'Policies',
-    'Translations',
-    '>50',
+    "Policies",
+    "Translations",
+    ">50",
     translations,
-    translations >= 50 ? 'pass' : translations >= 20 ? 'warn' : 'fail',
+    translations >= 50 ? "pass" : translations >= 20 ? "warn" : "fail",
   );
 
   // Check language coverage
   const languages = await prisma.policyVersionTranslation.groupBy({
-    by: ['languageCode'],
+    by: ["languageCode"],
     where: { organizationId: orgId },
     _count: true,
   });
   check(
-    'Policies',
-    'Languages with translations',
-    '5 (ES, FR, DE, PT, ZH)',
+    "Policies",
+    "Languages with translations",
+    "5 (ES, FR, DE, PT, ZH)",
     `${languages.length} languages`,
-    languages.length >= 4 ? 'pass' : 'warn',
+    languages.length >= 4 ? "pass" : "warn",
   );
 }
 
 async function verifyCampaigns(orgId: string) {
-  console.log('\n📢 Verifying Campaigns...');
+  console.log("\n📢 Verifying Campaigns...");
 
-  const totalCampaigns = await prisma.campaign.count({ where: { organizationId: orgId } });
-  const status = totalCampaigns >= 10 ? 'pass' : totalCampaigns >= 3 ? 'warn' : 'fail';
-  check('Campaigns', 'Total campaigns', '~20', totalCampaigns, status);
+  const totalCampaigns = await prisma.campaign.count({
+    where: { organizationId: orgId },
+  });
+  const status =
+    totalCampaigns >= 10 ? "pass" : totalCampaigns >= 3 ? "warn" : "fail";
+  check("Campaigns", "Total campaigns", "~20", totalCampaigns, status);
 
   // Check for disclosure campaigns
   const disclosureCampaigns = await prisma.campaign.count({
-    where: { organizationId: orgId, type: 'DISCLOSURE' },
+    where: { organizationId: orgId, type: "DISCLOSURE" },
   });
-  check('Campaigns', 'Disclosure campaigns', '>3', disclosureCampaigns, disclosureCampaigns >= 3 ? 'pass' : 'warn');
+  check(
+    "Campaigns",
+    "Disclosure campaigns",
+    ">3",
+    disclosureCampaigns,
+    disclosureCampaigns >= 3 ? "pass" : "warn",
+  );
 
   // Check for campaign assignments
   const assignments = await prisma.campaignAssignment.count({
     where: { organizationId: orgId },
   });
-  check('Campaigns', 'Campaign assignments', '>1000', assignments, assignments >= 1000 ? 'pass' : 'warn');
+  check(
+    "Campaigns",
+    "Campaign assignments",
+    ">1000",
+    assignments,
+    assignments >= 1000 ? "pass" : "warn",
+  );
 }
 
 async function verifyTemplates(orgId: string) {
-  console.log('\n📋 Verifying Templates...');
+  console.log("\n📋 Verifying Templates...");
 
   // Workflow templates
   const workflowTemplates = await prisma.workflowTemplate.count({
     where: { organizationId: orgId },
   });
-  check('Templates', 'Workflow templates', '5', workflowTemplates, workflowTemplates >= 5 ? 'pass' : 'warn');
+  check(
+    "Templates",
+    "Workflow templates",
+    "5",
+    workflowTemplates,
+    workflowTemplates >= 5 ? "pass" : "warn",
+  );
 
   // Investigation templates
   const investigationTemplates = await prisma.investigationTemplate.count({
     where: { organizationId: orgId },
   });
-  check('Templates', 'Investigation templates', '8', investigationTemplates, investigationTemplates >= 8 ? 'pass' : 'warn');
+  check(
+    "Templates",
+    "Investigation templates",
+    "8",
+    investigationTemplates,
+    investigationTemplates >= 8 ? "pass" : "warn",
+  );
 
   // Disclosure form templates
   const disclosureForms = await prisma.disclosureFormTemplate.count({
     where: { organizationId: orgId },
   });
-  check('Templates', 'Disclosure form templates', '7', disclosureForms, disclosureForms >= 5 ? 'pass' : 'warn');
+  check(
+    "Templates",
+    "Disclosure form templates",
+    "7",
+    disclosureForms,
+    disclosureForms >= 5 ? "pass" : "warn",
+  );
 }
 
 async function verifyConflicts(orgId: string) {
-  console.log('\n⚠️ Verifying Conflicts...');
+  console.log("\n⚠️ Verifying Conflicts...");
 
   const pendingConflicts = await prisma.conflictAlert.count({
-    where: { organizationId: orgId, status: 'OPEN' },
+    where: { organizationId: orgId, status: "OPEN" },
   });
-  check('Conflicts', 'Open conflicts', '~8', pendingConflicts, pendingConflicts >= 5 ? 'pass' : 'warn');
+  check(
+    "Conflicts",
+    "Open conflicts",
+    "~8",
+    pendingConflicts,
+    pendingConflicts >= 5 ? "pass" : "warn",
+  );
 
   const dismissedConflicts = await prisma.conflictAlert.count({
-    where: { organizationId: orgId, status: 'DISMISSED' },
+    where: { organizationId: orgId, status: "DISMISSED" },
   });
-  check('Conflicts', 'Dismissed conflicts', '~4', dismissedConflicts, dismissedConflicts >= 2 ? 'pass' : 'warn');
+  check(
+    "Conflicts",
+    "Dismissed conflicts",
+    "~4",
+    dismissedConflicts,
+    dismissedConflicts >= 2 ? "pass" : "warn",
+  );
 }
 
 async function verifyHistoricalData(orgId: string) {
-  console.log('\n📅 Verifying Historical Data (3 Years)...');
+  console.log("\n📅 Verifying Historical Data (3 Years)...");
 
   const threeYearsAgo = new Date();
   threeYearsAgo.setFullYear(threeYearsAgo.getFullYear() - 3);
@@ -346,7 +497,13 @@ async function verifyHistoricalData(orgId: string) {
   const oldCases = await prisma.case.count({
     where: { organizationId: orgId, createdAt: { lte: threeYearsAgo } },
   });
-  check('Historical', 'Cases >3 years old', '>0', oldCases, oldCases > 0 ? 'pass' : 'warn');
+  check(
+    "Historical",
+    "Cases >3 years old",
+    ">0",
+    oldCases,
+    oldCases > 0 ? "pass" : "warn",
+  );
 
   // Check for cases in each year
   const years = [2023, 2024, 2025, 2026];
@@ -360,19 +517,329 @@ async function verifyHistoricalData(orgId: string) {
       },
     });
     check(
-      'Historical',
+      "Historical",
       `Cases in ${year}`,
-      '>0',
+      ">0",
       casesInYear,
-      casesInYear > 0 ? 'pass' : 'warn',
+      casesInYear > 0 ? "pass" : "warn",
     );
   }
 }
 
+// ===========================================
+// Phase 24 Verification: Content Quality
+// ===========================================
+
+/**
+ * Count words in a text string.
+ */
+function countWords(text: string | null): number {
+  if (!text) return 0;
+  return text
+    .trim()
+    .split(/\s+/)
+    .filter((w) => w.length > 0).length;
+}
+
+/**
+ * Strip HTML tags to get plain text.
+ */
+function stripHtml(html: string | null): string {
+  if (!html) return "";
+  return html
+    .replace(/<[^>]*>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/**
+ * Verify Phase 24 content quality requirements:
+ * - Policy content length and variety
+ * - Case description word counts
+ * - Case summary word counts
+ */
+async function verifyPhase24Content(orgId: string) {
+  console.log("\n📝 Verifying Phase 24 Content Quality...");
+
+  // ========================================
+  // Policy Content Quality
+  // ========================================
+
+  // Check 1: Policy content length (>500 chars plain text for 45+ of 50)
+  // Content is stored in PolicyVersion.content for published policies,
+  // or Policy.draftContent for drafts
+  const allPolicies = await prisma.policy.findMany({
+    where: { organizationId: orgId },
+    select: {
+      id: true,
+      draftContent: true,
+      policyType: true,
+      status: true,
+      effectiveDate: true,
+    },
+  });
+
+  // Get published version content for non-draft policies
+  const policyVersions = await prisma.policyVersion.findMany({
+    where: { organizationId: orgId, isLatest: true },
+    select: { policyId: true, content: true },
+  });
+  const versionContentMap = new Map(
+    policyVersions.map((v) => [v.policyId, v.content]),
+  );
+
+  const policiesWithSubstantialContent = allPolicies.filter((p) => {
+    // Use draft content for DRAFT policies, version content for PUBLISHED/RETIRED
+    const content =
+      p.status === "DRAFT" ? p.draftContent : versionContentMap.get(p.id);
+    const plainText = stripHtml(content || "");
+    return plainText.length > 500;
+  });
+
+  check(
+    "Phase 24",
+    "Policies with >500 chars content",
+    ">=45 of 50",
+    `${policiesWithSubstantialContent.length} of ${allPolicies.length}`,
+    policiesWithSubstantialContent.length >= 45
+      ? "pass"
+      : policiesWithSubstantialContent.length >= 35
+        ? "warn"
+        : "fail",
+  );
+
+  // Check 2: Policy type variety (8+ distinct types, not all OTHER)
+  const distinctTypes = new Set(allPolicies.map((p) => p.policyType));
+  check(
+    "Phase 24",
+    "Distinct policy types",
+    ">=8 types",
+    `${distinctTypes.size} types`,
+    distinctTypes.size >= 8
+      ? "pass"
+      : distinctTypes.size >= 5
+        ? "warn"
+        : "fail",
+  );
+
+  // Check 3: DRAFT policies (3-6 expected)
+  const draftPolicies = allPolicies.filter((p) => p.status === "DRAFT");
+  check(
+    "Phase 24",
+    "DRAFT status policies",
+    "3-6",
+    draftPolicies.length,
+    draftPolicies.length >= 3 && draftPolicies.length <= 8
+      ? "pass"
+      : draftPolicies.length >= 1
+        ? "warn"
+        : "fail",
+  );
+
+  // Check 4: RETIRED policies (3-6 expected)
+  const retiredPolicies = allPolicies.filter((p) => p.status === "RETIRED");
+  check(
+    "Phase 24",
+    "RETIRED status policies",
+    "3-6",
+    retiredPolicies.length,
+    retiredPolicies.length >= 3 && retiredPolicies.length <= 8
+      ? "pass"
+      : retiredPolicies.length >= 1
+        ? "warn"
+        : "fail",
+  );
+
+  // Check 5: Effective date variety (span 2+ years)
+  const effectiveYears = new Set(
+    allPolicies
+      .filter((p) => p.effectiveDate)
+      .map((p) => new Date(p.effectiveDate!).getFullYear()),
+  );
+  check(
+    "Phase 24",
+    "Effective date year span",
+    ">=2 years",
+    `${effectiveYears.size} years (${[...effectiveYears].sort().join(", ")})`,
+    effectiveYears.size >= 2 ? "pass" : "warn",
+  );
+
+  // ========================================
+  // Case Description Quality
+  // ========================================
+
+  // Flagship cases have reference numbers starting with specific patterns
+  // Patterns: ACME-2024-F001, ACME-2025-F002, etc.
+  const flagshipPatterns = ["%-F%", "%-FL%"];
+
+  // Check 6: Flagship case descriptions (200+ words)
+  const flagshipCases = await prisma.case.findMany({
+    where: {
+      organizationId: orgId,
+      OR: flagshipPatterns.map((pattern) => ({
+        referenceNumber: { contains: "-F" },
+      })),
+    },
+    select: { referenceNumber: true, details: true },
+    take: 20,
+  });
+
+  // Filter to actual flagship cases (containing -F followed by digits)
+  const actualFlagships = flagshipCases.filter(
+    (c) => c.referenceNumber && /\-F\d+/i.test(c.referenceNumber),
+  );
+
+  if (actualFlagships.length > 0) {
+    const flagshipsOver200Words = actualFlagships.filter(
+      (c) => countWords(c.details) >= 200,
+    );
+    check(
+      "Phase 24",
+      "Flagship cases with 200+ word descriptions",
+      `${Math.min(actualFlagships.length, 10)}/${Math.min(actualFlagships.length, 10)}`,
+      `${flagshipsOver200Words.length}/${actualFlagships.length}`,
+      flagshipsOver200Words.length >= Math.min(actualFlagships.length * 0.8, 8)
+        ? "pass"
+        : flagshipsOver200Words.length >=
+            Math.min(actualFlagships.length * 0.5, 5)
+          ? "warn"
+          : "fail",
+    );
+  } else {
+    // If no flagship cases found by pattern, sample high-severity cases (severity: HIGH)
+    const highSeverityCases = await prisma.case.findMany({
+      where: { organizationId: orgId, severity: "HIGH" },
+      select: { referenceNumber: true, details: true },
+      take: 10,
+    });
+
+    if (highSeverityCases.length > 0) {
+      const over200Words = highSeverityCases.filter(
+        (c) => countWords(c.details) >= 200,
+      );
+      check(
+        "Phase 24",
+        "High severity cases with 200+ word descriptions",
+        ">=5/10",
+        `${over200Words.length}/${highSeverityCases.length}`,
+        over200Words.length >= 5
+          ? "pass"
+          : over200Words.length >= 3
+            ? "warn"
+            : "fail",
+      );
+    } else {
+      check(
+        "Phase 24",
+        "Flagship/high-severity cases",
+        ">=10",
+        "0",
+        "warn",
+        "No flagship or high-severity cases found",
+      );
+    }
+  }
+
+  // Check 7: Regular case average word count (avg 150+ words)
+  const regularCases = await prisma.case.findMany({
+    where: { organizationId: orgId },
+    select: { details: true },
+    take: 100,
+  });
+
+  const wordCounts = regularCases.map((c) => countWords(c.details));
+  const avgWordCount =
+    wordCounts.length > 0
+      ? Math.round(wordCounts.reduce((a, b) => a + b, 0) / wordCounts.length)
+      : 0;
+
+  check(
+    "Phase 24",
+    "Case descriptions avg word count",
+    ">=150 words",
+    `${avgWordCount} words (sample of ${regularCases.length})`,
+    avgWordCount >= 150 ? "pass" : avgWordCount >= 100 ? "warn" : "fail",
+  );
+
+  // ========================================
+  // Case Summary Quality
+  // ========================================
+
+  // Check 8: Flagship case AI summaries (50+ words)
+  if (actualFlagships.length > 0) {
+    const flagshipIds = actualFlagships.map((c) => c.referenceNumber);
+    const flagshipWithSummaries = await prisma.case.findMany({
+      where: {
+        organizationId: orgId,
+        referenceNumber: {
+          in: flagshipIds.filter((r): r is string => r !== null),
+        },
+      },
+      select: { referenceNumber: true, aiSummary: true },
+    });
+
+    const summariesOver50Words = flagshipWithSummaries.filter(
+      (c) => countWords(c.aiSummary) >= 50,
+    );
+    check(
+      "Phase 24",
+      "Flagship cases with 50+ word AI summaries",
+      `${Math.min(flagshipWithSummaries.length, 10)}/${Math.min(flagshipWithSummaries.length, 10)}`,
+      `${summariesOver50Words.length}/${flagshipWithSummaries.length}`,
+      summariesOver50Words.length >=
+        Math.min(flagshipWithSummaries.length * 0.8, 8)
+        ? "pass"
+        : summariesOver50Words.length >=
+            Math.min(flagshipWithSummaries.length * 0.5, 5)
+          ? "warn"
+          : "fail",
+    );
+  }
+
+  // Check 9: Regular case AI summary average word count (avg 40+ words)
+  const casesWithSummaries = await prisma.case.findMany({
+    where: {
+      organizationId: orgId,
+      aiSummary: { not: null },
+    },
+    select: { aiSummary: true },
+    take: 100,
+  });
+
+  const summaryWordCounts = casesWithSummaries.map((c) =>
+    countWords(c.aiSummary),
+  );
+  const avgSummaryWordCount =
+    summaryWordCounts.length > 0
+      ? Math.round(
+          summaryWordCounts.reduce((a, b) => a + b, 0) /
+            summaryWordCounts.length,
+        )
+      : 0;
+
+  check(
+    "Phase 24",
+    "AI summaries avg word count",
+    ">=40 words",
+    `${avgSummaryWordCount} words (sample of ${casesWithSummaries.length})`,
+    avgSummaryWordCount >= 40
+      ? "pass"
+      : avgSummaryWordCount >= 30
+        ? "warn"
+        : "fail",
+  );
+}
+
 async function printResults() {
-  console.log('\n═══════════════════════════════════════════════════════════════');
-  console.log('                    DEMO VERIFICATION RESULTS                   ');
-  console.log('═══════════════════════════════════════════════════════════════');
+  console.log(
+    "\n═══════════════════════════════════════════════════════════════",
+  );
+  console.log(
+    "                    DEMO VERIFICATION RESULTS                   ",
+  );
+  console.log(
+    "═══════════════════════════════════════════════════════════════",
+  );
 
   const categories = [...new Set(results.map((r) => r.category))];
   let passed = 0;
@@ -381,11 +848,18 @@ async function printResults() {
 
   for (const category of categories) {
     console.log(`\n📌 ${category}`);
-    console.log('───────────────────────────────────────────────────────────────');
+    console.log(
+      "───────────────────────────────────────────────────────────────",
+    );
 
     const categoryResults = results.filter((r) => r.category === category);
     for (const result of categoryResults) {
-      const icon = result.status === 'pass' ? '✅' : result.status === 'warn' ? '⚠️' : '❌';
+      const icon =
+        result.status === "pass"
+          ? "✅"
+          : result.status === "warn"
+            ? "⚠️"
+            : "❌";
       console.log(`  ${icon} ${result.check}`);
       console.log(`     Expected: ${result.expected}`);
       console.log(`     Actual:   ${result.actual}`);
@@ -393,43 +867,65 @@ async function printResults() {
         console.log(`     Notes:    ${result.notes}`);
       }
 
-      if (result.status === 'pass') passed++;
-      else if (result.status === 'warn') warned++;
+      if (result.status === "pass") passed++;
+      else if (result.status === "warn") warned++;
       else failed++;
     }
   }
 
-  console.log('\n═══════════════════════════════════════════════════════════════');
-  console.log('                         SUMMARY                                ');
-  console.log('═══════════════════════════════════════════════════════════════');
+  console.log(
+    "\n═══════════════════════════════════════════════════════════════",
+  );
+  console.log(
+    "                         SUMMARY                                ",
+  );
+  console.log(
+    "═══════════════════════════════════════════════════════════════",
+  );
   console.log(`  ✅ Passed:  ${passed}`);
   console.log(`  ⚠️  Warnings: ${warned}`);
   console.log(`  ❌ Failed:  ${failed}`);
-  console.log('═══════════════════════════════════════════════════════════════');
+  console.log(
+    "═══════════════════════════════════════════════════════════════",
+  );
 
-  const overallStatus = failed > 0 ? 'FAIL' : warned > 5 ? 'WARN' : 'PASS';
+  const overallStatus = failed > 0 ? "FAIL" : warned > 5 ? "WARN" : "PASS";
   console.log(`\n  Overall Status: ${overallStatus}`);
 
-  if (overallStatus === 'PASS') {
-    console.log('\n  🎉 Demo environment is ready for demonstrations!');
-  } else if (overallStatus === 'WARN') {
-    console.log('\n  ⚠️  Demo environment has some warnings - review before demos.');
+  if (overallStatus === "PASS") {
+    console.log("\n  🎉 Demo environment is ready for demonstrations!");
+  } else if (overallStatus === "WARN") {
+    console.log(
+      "\n  ⚠️  Demo environment has some warnings - review before demos.",
+    );
   } else {
-    console.log('\n  ❌ Demo environment needs attention - run npm run db:seed');
+    console.log(
+      "\n  ❌ Demo environment needs attention - run npm run db:seed",
+    );
   }
 
-  console.log('═══════════════════════════════════════════════════════════════\n');
+  console.log(
+    "═══════════════════════════════════════════════════════════════\n",
+  );
 }
 
 async function main() {
-  console.log('╔═══════════════════════════════════════════════════════════════╗');
-  console.log('║           ACME CO. DEMO ENVIRONMENT VERIFICATION              ║');
-  console.log('╚═══════════════════════════════════════════════════════════════╝');
+  console.log(
+    "╔═══════════════════════════════════════════════════════════════╗",
+  );
+  console.log(
+    "║           ACME CO. DEMO ENVIRONMENT VERIFICATION              ║",
+  );
+  console.log(
+    "╚═══════════════════════════════════════════════════════════════╝",
+  );
 
   try {
     const orgId = await verifyOrganization();
     if (!orgId) {
-      console.log('\n❌ Acme Corp organization not found. Run npm run db:seed first.');
+      console.log(
+        "\n❌ Acme Corp organization not found. Run npm run db:seed first.",
+      );
       process.exit(1);
     }
 
@@ -445,10 +941,11 @@ async function main() {
     await verifyTemplates(orgId);
     await verifyConflicts(orgId);
     await verifyHistoricalData(orgId);
+    await verifyPhase24Content(orgId);
 
     await printResults();
   } catch (error) {
-    console.error('\n❌ Verification failed:', error);
+    console.error("\n❌ Verification failed:", error);
     process.exit(1);
   } finally {
     await prisma.$disconnect();

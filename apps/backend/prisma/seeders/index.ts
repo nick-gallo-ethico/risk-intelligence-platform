@@ -11,10 +11,11 @@
  *   npm run db:seed:demo
  */
 
-import { PrismaClient } from '@prisma/client';
-import { faker } from '@faker-js/faker';
-import { SEED_CONFIG } from './config';
-import { logSection, logInfo, logComplete } from './utils';
+import { PrismaClient } from "@prisma/client";
+import { faker } from "@faker-js/faker";
+import { SEED_CONFIG } from "./config";
+import { logSection, logInfo, logComplete } from "./utils";
+import { seedPolicies } from "./policy.seeder";
 
 /**
  * Initialize faker with deterministic seed and reference date.
@@ -61,8 +62,8 @@ function verifyDeterministicSeeding(): void {
   if (!isMatch) {
     throw new Error(
       `Deterministic seeding verification failed!\n` +
-        `Run 1: ${run1.join(', ')}\n` +
-        `Run 2: ${run2.join(', ')}`,
+        `Run 1: ${run1.join(", ")}\n` +
+        `Run 2: ${run2.join(", ")}`,
     );
   }
 
@@ -90,7 +91,7 @@ function verifyDeterministicSeeding(): void {
  * @param prisma PrismaClient instance
  */
 export async function seedDemoTenant(prisma: PrismaClient): Promise<void> {
-  logSection('Demo Tenant Seed');
+  logSection("Demo Tenant Seed");
   logInfo(`Initializing demo tenant seed with seed: ${SEED_CONFIG.masterSeed}`);
 
   // Initialize faker for deterministic data generation
@@ -102,8 +103,8 @@ export async function seedDemoTenant(prisma: PrismaClient): Promise<void> {
   // Re-initialize faker after verification (verification consumed some random values)
   initializeFaker();
 
-  logInfo('');
-  logInfo('Seed configuration:');
+  logInfo("");
+  logInfo("Seed configuration:");
   logInfo(`  Employees: ${SEED_CONFIG.volumes.employees.toLocaleString()}`);
   logInfo(`  RIUs: ${SEED_CONFIG.volumes.rius.toLocaleString()}`);
   logInfo(`  Cases: ${SEED_CONFIG.volumes.cases.toLocaleString()}`);
@@ -111,7 +112,7 @@ export async function seedDemoTenant(prisma: PrismaClient): Promise<void> {
   logInfo(`  Policies: ${SEED_CONFIG.volumes.policies}`);
   logInfo(`  History: ${SEED_CONFIG.historyYears} years`);
   logInfo(`  Open case ratio: ${SEED_CONFIG.volumes.openCaseRatio * 100}%`);
-  logInfo('');
+  logInfo("");
 
   // ============================================================
   // PLACEHOLDER: Seeder calls will be added in subsequent plans
@@ -127,7 +128,11 @@ export async function seedDemoTenant(prisma: PrismaClient): Promise<void> {
   // await seedDemoUsers(prisma);
 
   // Plan 02-05: Policies
-  // await seedPolicies(prisma);
+  // Note: In the main orchestrator (seed.ts), policies are seeded with:
+  //   const ccoUser = await prisma.user.findFirst({ where: { email: 'demo-cco@acme.local', organizationId } });
+  //   await seedPolicies(prisma, organizationId, ccoUser.id);
+  // This placeholder shows the intended pattern for this legacy orchestrator.
+  // Actual policy seeding is done via seed.ts.
 
   // Plan 02-06: RIUs and Cases
   // await seedRiusAndCases(prisma);
@@ -137,7 +142,7 @@ export async function seedDemoTenant(prisma: PrismaClient): Promise<void> {
 
   // ============================================================
 
-  logComplete('Demo tenant seed complete!');
+  logComplete("Demo tenant seed complete!");
 }
 
 /**
@@ -151,7 +156,7 @@ async function main(): Promise<void> {
   try {
     await seedDemoTenant(prisma);
   } catch (error) {
-    console.error('Seed failed:', error);
+    console.error("Seed failed:", error);
     throw error;
   } finally {
     await prisma.$disconnect();
