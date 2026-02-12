@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 21 of 24+ (Project Management)
-Plan: 2 of 10 in current phase (COMPLETE)
+Plan: 3 of 10 in current phase (COMPLETE)
 Status: In progress
-Last activity: 2026-02-12 - Completed 21-02 (REST API & My Work Integration)
+Last activity: 2026-02-12 - Completed 21-03 (Frontend Project List Page)
 
 Progress: [===================================================================+] ~100% (Phase 21 adds new plans beyond original 24)
 
@@ -36,6 +36,15 @@ Progress: [===================================================================+]
   - Integrated PROJECT_TASK into My Work unified queue
   - Added CRITICAL priority level to TaskPriority enum
   - Project tasks appear in getMyTasks() and getTaskCounts()
+
+- 21-03: Frontend Project List Page (COMPLETE - 041783e, a773cc6)
+  - Created types/project.ts with all project-related TypeScript types
+  - Created projects.config.ts view config with 12 columns, 4 default views
+  - Created useProjectsView.ts hook with data fetching and bulk actions
+  - Complete rewrite of projects/page.tsx with SavedViewProvider
+  - CreateProjectDialog with blank/template creation tabs
+  - Table view with sortable columns, board view with status lanes
+  - Fixed use-milestones.ts endpoint from /milestones to /projects
 
 ### Phase 24 Policy Content & Seed Data COMPLETE (2026-02-12)
 
