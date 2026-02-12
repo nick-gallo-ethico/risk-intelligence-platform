@@ -194,9 +194,7 @@ export default function IntegrationsPage() {
             integrations.storage.configured ? "connected" : "not-connected"
           }
           statusLabel={
-            integrations.storage.configured
-              ? "Connected"
-              : "Not Configured"
+            integrations.storage.configured ? "Connected" : "Not Configured"
           }
           details={
             integrations.storage.configured
