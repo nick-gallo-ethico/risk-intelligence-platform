@@ -5,16 +5,26 @@
 See: .planning/PROJECT.md (updated 2026-02-02)
 
 **Core value:** Users can manage their entire compliance workflow - from anonymous report intake to investigation closure to board reporting - in one AI-assisted platform, with every task unified into a single "My Work" view.
-**Current focus:** Phase 20 COMPLETE - Settings Overhaul delivered. Ready for Phase 21
+**Current focus:** Phase 24 Policy Content & Seed Data in progress
 
 ## Current Position
 
-Phase: 20 of 24 (Settings Overhaul)
-Plan: 6 of 6 in current phase
-Status: Phase 20 COMPLETE
-Last activity: 2026-02-12 - Completed 20-06 (Settings Navigation Polish)
+Phase: 24 of 24 (Policy Content & Seed Data)
+Plan: 2 of 3 in current phase
+Status: In Progress
+Last activity: 2026-02-12 - Completed 24-02 (Case Content Enhancement)
 
-Progress: [===========================================================-----------] ~90% (~236 of ~260 estimated total plans)
+Progress: [================================================================---------] ~92% (~240 of ~260 estimated total plans)
+
+### Phase 24 Policy Content & Seed Data IN PROGRESS (2026-02-12)
+
+- 24-02: Case Content Enhancement (COMPLETE - 0e5e5e7, 14ca112)
+  - Expanded all 10 flagship case narratives to 200-400 words
+  - Expanded all 10 flagship AI summaries to 50-75 words
+  - Enhanced generateAiSummary for 50-75 word output with category-specific analysis
+  - Updated NarrativeTemplate interface with optional conclusion field
+  - Added template-specific conclusions to 5 categories (23 templates)
+  - Added GENERIC_CLOSING_PARAGRAPHS for 200+ word narrative generation
 
 ### Phase 20 Settings Overhaul IN PROGRESS (2026-02-12)
 
@@ -928,7 +938,7 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-02-12
-Stopped at: Phase 20 COMPLETE - Settings Navigation Polish & Verification
+Stopped at: Completed 24-02-PLAN.md - Case Content Enhancement
 Resume file: None
 
 **Phase 20 Status: COMPLETE**
