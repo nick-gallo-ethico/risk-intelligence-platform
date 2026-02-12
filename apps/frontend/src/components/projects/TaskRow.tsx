@@ -45,7 +45,9 @@ import type {
   ProjectTask,
   ProjectTaskStatus,
   ProjectTaskPriority,
+  ProjectColumn,
 } from "@/types/project";
+import { DynamicColumnCell } from "./DynamicColumnCell";
 
 interface User {
   id: string;
@@ -100,6 +102,8 @@ interface TaskRowProps {
   onToggleSelect: () => void;
   onClick: () => void;
   onRefresh: () => void;
+  columns?: ProjectColumn[];
+  columnWidths?: Record<string, number>;
 }
 
 /**
@@ -112,6 +116,8 @@ export function TaskRow({
   onToggleSelect,
   onClick,
   onRefresh,
+  columns = [],
+  columnWidths = {},
 }: TaskRowProps) {
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [editedTitle, setEditedTitle] = useState(task.title);
@@ -226,12 +232,42 @@ export function TaskRow({
   const priorityConfig = PRIORITY_CONFIG[task.priority];
   const PriorityIcon = priorityConfig.icon;
 
+  // Handle custom field update
+  const handleCustomFieldUpdate = useCallback(
+    async (columnId: string, value: unknown) => {
+      const customFields = { ...(task.customFields || {}), [columnId]: value };
+      await updateTask.mutateAsync({
+        taskId: task.id,
+        dto: { customFields },
+      });
+      onRefresh();
+    },
+    [task.id, task.customFields, updateTask, onRefresh],
+  );
+
+  // Calculate grid template columns based on fixed columns + custom columns
+  const gridCols = [
+    "40px", // Checkbox/drag
+    "1fr", // Task title (flexible)
+    "120px", // Status
+    "100px", // Priority
+    "140px", // Assignee
+    "120px", // Due Date
+    "80px", // Subtasks
+    ...columns.map((col) =>
+      columnWidths[col.id]
+        ? `${columnWidths[col.id]}px`
+        : `${col.width || 120}px`,
+    ),
+    "40px", // Spacer for add column button alignment
+  ].join(" ");
+
   return (
     <div
       ref={setNodeRef}
-      style={style}
+      style={{ ...style, gridTemplateColumns: gridCols }}
       className={cn(
-        "grid grid-cols-[40px_1fr_120px_100px_140px_120px_80px] gap-2 items-center px-4 py-2 border-b last:border-b-0 hover:bg-gray-50 transition-colors group",
+        "grid gap-2 items-center px-4 py-2 border-b last:border-b-0 hover:bg-gray-50 transition-colors group",
         isDragging && "opacity-50 bg-blue-50",
         isSelected && "bg-blue-50/50",
       )}
@@ -461,6 +497,21 @@ export function TaskRow({
           <span>-</span>
         )}
       </div>
+
+      {/* Custom column cells */}
+      {columns.map((column) => (
+        <div key={column.id} onClick={(e) => e.stopPropagation()}>
+          <DynamicColumnCell
+            column={column}
+            task={task}
+            value={task.customFields?.[column.id]}
+            onUpdate={(value) => handleCustomFieldUpdate(column.id, value)}
+          />
+        </div>
+      ))}
+
+      {/* Spacer for add column button alignment */}
+      <div></div>
     </div>
   );
 }

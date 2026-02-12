@@ -6,6 +6,7 @@
  * Monday.com-style grouped task table with inline editing.
  * Groups tasks by their groupId and renders group headers,
  * task rows, and add-task rows for each group.
+ * Supports custom columns via Column Center.
  */
 
 import React, { useState, useCallback, useMemo } from "react";
@@ -23,21 +24,62 @@ import {
   SortableContext,
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
+  horizontalListSortingStrategy,
+  useSortable,
 } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Plus, GripVertical } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { ProjectGroupHeader } from "./ProjectGroupHeader";
 import { AddTaskRow } from "./AddTaskRow";
 import { TaskRow } from "./TaskRow";
-import { useReorderTasks } from "@/hooks/use-project-detail";
+import { ColumnCenterDialog } from "./ColumnCenterDialog";
+import {
+  useReorderTasks,
+  useReorderColumns,
+  useUpdateTask,
+} from "@/hooks/use-project-detail";
 import type { ProjectDetailResponse } from "@/hooks/use-project-detail";
-import type { ProjectTask, ProjectGroup } from "@/types/project";
+import type { ProjectTask, ProjectGroup, ProjectColumn } from "@/types/project";
 
 interface ProjectTaskTableProps {
   project: ProjectDetailResponse | null;
   isLoading: boolean;
   onTaskClick: (task: ProjectTask) => void;
   onRefresh: () => void;
+}
+
+/**
+ * Get column icon for header display.
+ */
+function getColumnTypeIcon(type: string): string {
+  const icons: Record<string, string> = {
+    STATUS: "circle",
+    PERSON: "user",
+    DATE: "calendar",
+    TIMELINE: "clock",
+    TEXT: "type",
+    LONG_TEXT: "align-left",
+    NUMBER: "hash",
+    DROPDOWN: "chevron-down",
+    CHECKBOX: "check-square",
+    LINK: "link",
+    TAGS: "tag",
+    FILES: "paperclip",
+    DEPENDENCY: "git-branch",
+    CONNECTED_ENTITY: "external-link",
+    PROGRESS: "trending-up",
+  };
+  return icons[type] || "circle";
 }
 
 /**
@@ -56,8 +98,17 @@ export function ProjectTaskTable({
     new Set(),
   );
   const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
+  const [columnCenterOpen, setColumnCenterOpen] = useState(false);
+  const [columnWidths, setColumnWidths] = useState<Record<string, number>>({});
 
   const reorderTasks = useReorderTasks(project?.id ?? "");
+  const reorderColumns = useReorderColumns(project?.id ?? "");
+
+  // Get sorted custom columns
+  const sortedColumns = useMemo(() => {
+    if (!project?.columns) return [];
+    return [...project.columns].sort((a, b) => a.sortOrder - b.sortOrder);
+  }, [project?.columns]);
 
   // DnD sensors
   const sensors = useSensors(
@@ -245,17 +296,15 @@ export function ProjectTaskTable({
 
                 {/* Tasks and add row */}
                 {!isCollapsed && (
-                  <div className="border-t">
+                  <div className="border-t overflow-x-auto">
                     {/* Column headers */}
-                    <div className="grid grid-cols-[40px_1fr_120px_100px_140px_120px_80px] gap-2 px-4 py-2 text-xs font-medium text-muted-foreground bg-gray-50 border-b">
-                      <div></div>
-                      <div>Task</div>
-                      <div>Status</div>
-                      <div>Priority</div>
-                      <div>Assignee</div>
-                      <div>Due Date</div>
-                      <div>Subtasks</div>
-                    </div>
+                    <ColumnHeaders
+                      columns={sortedColumns}
+                      columnWidths={columnWidths}
+                      onOpenColumnCenter={() => setColumnCenterOpen(true)}
+                      projectId={project.id}
+                      onRefresh={onRefresh}
+                    />
 
                     {/* Task rows */}
                     <SortableContext
@@ -271,6 +320,8 @@ export function ProjectTaskTable({
                           onToggleSelect={() => handleToggleSelect(task.id)}
                           onClick={() => onTaskClick(task)}
                           onRefresh={onRefresh}
+                          columns={sortedColumns}
+                          columnWidths={columnWidths}
                         />
                       ))}
                     </SortableContext>
@@ -327,17 +378,15 @@ export function ProjectTaskTable({
                 </div>
 
                 {!isCollapsed && (
-                  <div className="border-t">
+                  <div className="border-t overflow-x-auto">
                     {/* Column headers */}
-                    <div className="grid grid-cols-[40px_1fr_120px_100px_140px_120px_80px] gap-2 px-4 py-2 text-xs font-medium text-muted-foreground bg-gray-50 border-b">
-                      <div></div>
-                      <div>Task</div>
-                      <div>Status</div>
-                      <div>Priority</div>
-                      <div>Assignee</div>
-                      <div>Due Date</div>
-                      <div>Subtasks</div>
-                    </div>
+                    <ColumnHeaders
+                      columns={sortedColumns}
+                      columnWidths={columnWidths}
+                      onOpenColumnCenter={() => setColumnCenterOpen(true)}
+                      projectId={project.id}
+                      onRefresh={onRefresh}
+                    />
 
                     <SortableContext
                       items={taskIds}
@@ -352,6 +401,8 @@ export function ProjectTaskTable({
                           onToggleSelect={() => handleToggleSelect(task.id)}
                           onClick={() => onTaskClick(task)}
                           onRefresh={onRefresh}
+                          columns={sortedColumns}
+                          columnWidths={columnWidths}
                         />
                       ))}
                     </SortableContext>
@@ -379,6 +430,176 @@ export function ProjectTaskTable({
             )}
         </div>
       </DndContext>
+
+      {/* Column Center Dialog */}
+      <ColumnCenterDialog
+        open={columnCenterOpen}
+        onOpenChange={setColumnCenterOpen}
+        projectId={project.id}
+        columns={project.columns || []}
+        onRefresh={onRefresh}
+      />
+    </div>
+  );
+}
+
+/**
+ * ColumnHeaders - renders the table header row with custom columns.
+ */
+interface ColumnHeadersProps {
+  columns: ProjectColumn[];
+  columnWidths: Record<string, number>;
+  onOpenColumnCenter: () => void;
+  projectId: string;
+  onRefresh: () => void;
+}
+
+function ColumnHeaders({
+  columns,
+  columnWidths,
+  onOpenColumnCenter,
+  projectId,
+  onRefresh,
+}: ColumnHeadersProps) {
+  const reorderColumns = useReorderColumns(projectId);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
+  );
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = columns.findIndex((c) => c.id === active.id);
+    const newIndex = columns.findIndex((c) => c.id === over.id);
+
+    if (oldIndex !== -1 && newIndex !== -1) {
+      const reordered = [...columns];
+      const [moved] = reordered.splice(oldIndex, 1);
+      reordered.splice(newIndex, 0, moved);
+
+      await reorderColumns.mutateAsync({
+        orderedIds: reordered.map((c) => c.id),
+      });
+      onRefresh();
+    }
+  };
+
+  // Calculate grid template columns based on fixed columns + custom columns
+  const gridCols = [
+    "40px", // Checkbox/drag
+    "1fr", // Task title (flexible)
+    "120px", // Status
+    "100px", // Priority
+    "140px", // Assignee
+    "120px", // Due Date
+    "80px", // Subtasks
+    ...columns.map((col) =>
+      columnWidths[col.id]
+        ? `${columnWidths[col.id]}px`
+        : `${col.width || 120}px`,
+    ),
+    "40px", // Add column button
+  ].join(" ");
+
+  return (
+    <div
+      className="grid gap-2 px-4 py-2 text-xs font-medium text-muted-foreground bg-gray-50 border-b"
+      style={{ gridTemplateColumns: gridCols }}
+    >
+      <div></div>
+      <div>Task</div>
+      <div>Status</div>
+      <div>Priority</div>
+      <div>Assignee</div>
+      <div>Due Date</div>
+      <div>Subtasks</div>
+
+      {/* Custom column headers with drag to reorder */}
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+      >
+        <SortableContext
+          items={columns.map((c) => c.id)}
+          strategy={horizontalListSortingStrategy}
+        >
+          {columns.map((column) => (
+            <SortableColumnHeader
+              key={column.id}
+              column={column}
+              width={columnWidths[column.id] || column.width || 120}
+            />
+          ))}
+        </SortableContext>
+      </DndContext>
+
+      {/* Add column button */}
+      <div className="flex items-center justify-center">
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6"
+                onClick={onOpenColumnCenter}
+              >
+                <Plus className="h-3.5 w-3.5" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Add Column</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * SortableColumnHeader - draggable column header.
+ */
+interface SortableColumnHeaderProps {
+  column: ProjectColumn;
+  width: number;
+}
+
+function SortableColumnHeader({ column, width }: SortableColumnHeaderProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: column.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    width: `${width}px`,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={cn(
+        "flex items-center gap-1 cursor-grab group",
+        isDragging && "opacity-50",
+      )}
+      {...attributes}
+      {...listeners}
+    >
+      <GripVertical className="h-3 w-3 opacity-0 group-hover:opacity-50 transition-opacity flex-shrink-0" />
+      <span className="truncate">{column.name}</span>
     </div>
   );
 }
