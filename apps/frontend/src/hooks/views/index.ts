@@ -29,3 +29,5 @@ export { useDisclosuresView } from "./useDisclosuresView";
 export type { Disclosure } from "./useDisclosuresView";
 export { useIntakeFormsView } from "./useIntakeFormsView";
 export type { IntakeFormSubmission } from "./useIntakeFormsView";
+export { useProjectsView } from "./useProjectsView";
+export type { Project } from "./useProjectsView";
