@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useState, useCallback, useMemo } from "react";
+import { Suspense, useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/auth-context";
 import { useTrackRecentItem } from "@/contexts/shortcuts-context";
@@ -9,8 +9,6 @@ import { casesApi } from "@/lib/cases-api";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { RecordDetailLayout } from "@/components/record-detail/RecordDetailLayout";
-import { RecordHeader } from "@/components/record-detail/RecordHeader";
-import { ActionsDropdown } from "@/components/record-detail/ActionsDropdown";
 import { CASES_DETAIL_CONFIG } from "@/config/casesDetailConfig";
 import { CaseDetailHeader } from "@/components/cases/case-detail-header";
 import { CasePropertiesPanel } from "@/components/cases/case-properties-panel";
@@ -19,7 +17,6 @@ import {
   ActionButtonRow,
   type ActionType,
 } from "@/components/cases/action-button-row";
-import { toast } from "@/components/ui/toaster";
 import { CaseTabs } from "@/components/cases/case-tabs";
 import { ConnectedPeopleCard } from "@/components/cases/connected-people-card";
 import { ConnectedDocumentsCard } from "@/components/cases/connected-documents-card";
@@ -27,8 +24,6 @@ import { LinkedRiusCard } from "@/components/cases/linked-rius-card";
 import { RelatedCasesCard } from "@/components/cases/related-cases-card";
 import { RelatedPoliciesCard } from "@/components/cases/related-policies-card";
 import { CaseWorkflowPanel } from "@/components/cases/case-workflow-panel";
-import { TasksCard, type CaseTask } from "@/components/cases/tasks-card";
-import { RemediationStatusCard } from "@/components/cases/remediation-status-card";
 import { AiChatPanel } from "@/components/cases/ai-chat-panel";
 import { AssignModal } from "@/components/cases/assign-modal";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
@@ -81,7 +76,6 @@ function CaseDetailPageContent() {
   const [taskModalOpen, setTaskModalOpen] = useState(false);
   const [callModalOpen, setCallModalOpen] = useState(false);
   const [aiPanelOpen, setAiPanelOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<string>("overview");
 
   const caseId = params?.id as string;
 
@@ -190,66 +184,6 @@ function CaseDetailPageContent() {
     }
   }, []);
 
-  // Handler for toggling task completion from TasksCard
-  const handleToggleTaskComplete = useCallback(
-    async (taskId: string, completed: boolean) => {
-      // TODO: Implement API call to toggle task completion
-      console.log("Toggle task completion:", taskId, completed);
-      // After API call, refresh case data
-      fetchCase();
-    },
-    [fetchCase],
-  );
-
-  // Handler for navigating to remediation tab from RemediationStatusCard
-  const handleViewRemediationPlan = useCallback(() => {
-    setActiveTab("remediation");
-    // Scroll to top of center column if needed
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }, []);
-
-  // Extract tasks from case data (if available) or use empty array
-  // TODO: Wire to caseData.tasks when API provides it
-  const caseTasks: CaseTask[] = useMemo(() => {
-    // Return empty array - tasks will be populated when API endpoint exists
-    return [];
-  }, []);
-
-  // Extract remediation stats from case data (if available)
-  // TODO: Wire to caseData.remediationPlan when API provides it
-  const remediationStats = useMemo(() => {
-    // Return default empty state - will be populated when API endpoint exists
-    return {
-      totalActions: 0,
-      completedActions: 0,
-      nextAction: undefined as
-        | { title: string; dueDate: string; assignee: string }
-        | undefined,
-    };
-  }, []);
-
-  // Handlers for ActionsDropdown (must be before early returns per React rules of hooks)
-  const handleFollow = useCallback(() => {
-    // Not yet wired - toast shown in ActionsDropdown
-  }, []);
-
-  const handleViewProperties = useCallback(() => {
-    // Not yet wired - toast shown in ActionsDropdown
-  }, []);
-
-  const handleViewHistory = useCallback(() => {
-    // Not yet wired - toast shown in ActionsDropdown
-  }, []);
-
-  const handleExport = useCallback(() => {
-    // Not yet wired - toast shown in ActionsDropdown
-  }, []);
-
-  const handleDelete = useCallback(() => {
-    // TODO: Implement delete confirmation and API call
-    toast.info("Delete functionality coming soon");
-  }, []);
-
   // Show loading while checking auth
   if (authLoading) {
     return <CaseDetailPageSkeleton />;
@@ -275,79 +209,13 @@ function CaseDetailPageContent() {
     );
   }
 
-  // Calculate case age for RecordHeader
-  const caseAge = caseData
-    ? (() => {
-        const daysOpen = Math.floor(
-          (Date.now() - new Date(caseData.createdAt).getTime()) /
-            (1000 * 60 * 60 * 24),
-        );
-        if (caseData.status === "CLOSED") {
-          return `Closed after ${daysOpen} days`;
-        }
-        return daysOpen === 0
-          ? "Opened today"
-          : daysOpen === 1
-            ? "Open for 1 day"
-            : `Open for ${daysOpen} days`;
-      })()
-    : "";
-
-  // Format open date for RecordHeader
-  const openDate = caseData
-    ? new Date(caseData.createdAt).toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      })
-    : "";
-
-  // Map assigned investigators to RecordHeader format
-  const assignedTo = (caseData?.assignedInvestigators ?? []).map((u) => ({
-    id: u.id,
-    name: `${u.firstName} ${u.lastName}`,
-    avatarUrl: u.avatarUrl,
-  }));
-
-  // Left sidebar content - per spec Section 14
+  // Left sidebar content
   const leftSidebarContent = (
     <>
-      {/* 14.1 RecordHeader - Case identity */}
-      <RecordHeader
-        referenceNumber={caseData?.referenceNumber ?? ""}
-        status={caseData?.status ?? ""}
-        severity={caseData?.severity ?? ""}
-        category={caseData?.category?.name}
-        openDate={openDate}
-        caseAge={caseAge}
-        assignedTo={assignedTo}
-        isLoading={loading}
-      />
-
-      {/* 14.2 ActionsDropdown - 8 actions */}
-      <ActionsDropdown
-        onAssign={handleAssign}
-        onChangeStatus={handleChangeStatus}
-        onMerge={handleMerge}
-        onFollow={handleFollow}
-        onViewProperties={handleViewProperties}
-        onViewHistory={handleViewHistory}
-        onExport={handleExport}
-        onDelete={handleDelete}
-        isFollowing={false}
-        isAdmin={false} // TODO: Get from auth context
-      />
-
-      {/* 14.3 Quick Action Buttons */}
+      <CaseInfoSummary caseData={caseData} isLoading={loading} />
       <ActionButtonRow caseId={caseData?.id ?? ""} onAction={handleAction} />
-
-      {/* 14.4-14.6 Property Cards */}
       <div className="border-t">
-        <CasePropertiesPanel
-          caseData={caseData}
-          isLoading={loading}
-          onUpdate={(updatedCase) => setCaseData(updatedCase)}
-        />
+        <CasePropertiesPanel caseData={caseData} isLoading={loading} />
       </div>
     </>
   );
@@ -366,39 +234,19 @@ function CaseDetailPageContent() {
     />
   );
 
-  // Right sidebar content - 9 cards in spec order (Section 17.1)
+  // Right sidebar content
   const rightSidebarContent = (
     <div className="p-4 space-y-4">
       {caseData && (
         <>
-          {/* 1. Workflow Panel */}
           <CaseWorkflowPanel caseId={caseData.id} />
-          {/* 2. Connected People */}
+          {/* Association cards in HubSpot-recommended order */}
           <ConnectedPeopleCard caseId={caseData.id} />
-          {/* 3. Linked RIUs */}
           <LinkedRiusCard riuAssociations={caseData?.riuAssociations || []} />
-          {/* 4. Related Cases */}
           <RelatedCasesCard caseId={caseData.id} />
-          {/* 5. Related Policies */}
           <RelatedPoliciesCard caseId={caseData.id} />
-          {/* 6. Connected Documents */}
           <ConnectedDocumentsCard caseId={caseData.id} />
-          {/* 7. Tasks (NEW - per spec Section 17.3) */}
-          <TasksCard
-            caseId={caseData.id}
-            tasks={caseTasks}
-            onCreateTask={() => setTaskModalOpen(true)}
-            onToggleComplete={handleToggleTaskComplete}
-          />
-          {/* 8. Remediation Status (NEW - per spec Section 17.4) */}
-          <RemediationStatusCard
-            caseId={caseData.id}
-            totalActions={remediationStats.totalActions}
-            completedActions={remediationStats.completedActions}
-            nextAction={remediationStats.nextAction}
-            onViewPlan={handleViewRemediationPlan}
-          />
-          {/* 9. AI Assistant button at bottom */}
+          {/* AI Assistant button at bottom */}
           <div className="pt-2">
             <Button
               variant="outline"
