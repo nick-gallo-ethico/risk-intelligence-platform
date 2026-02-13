@@ -10,19 +10,24 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 25 of 25+ (Case & Investigation Page Redesign) — IN PROGRESS
-Plan: 02 of ?? in current phase
-Status: Executing 25-02, quick actions grid and properties panel complete
-Last activity: 2026-02-13 - Completed 25-02 (QuickActionGrid, LogCallModal, PropertySection)
+Plan: 01 of ?? in current phase (just completed)
+Status: Completed 25-01, ready for 25-02
+Last activity: 2026-02-13 - Completed 25-01 (tab reordering, activity timeline enhancements)
 
 Progress: [===================================================================+] ~100% (Phase 21 adds new plans beyond original 24)
 
 ### Phase 25 Case & Investigation Page Redesign IN PROGRESS (2026-02-13)
 
-- 25-01: Tab Reordering & Activity Timeline Fix (COMPLETE - ec291b9)
-  - Reordered case detail tabs: Overview, Activities, Investigations, Messages, Files, Remediation
-  - Activities tab now default (removed Summary tab per HubSpot pattern)
-  - Fixed timeline entry alignment by adding max-width constraint
-  - Updated tab counts to exclude removed Summary tab
+- 25-01: Case Tabs and Activity Timeline (COMPLETE - ec291b9, 95d1355, 33713fd)
+  - Reordered case tabs with Activities first (was Overview)
+  - Activities is now the default tab when opening a case
+  - Removed redundant "Recent Activity" section from Overview tab
+  - Added search bar to activity timeline for filtering by description/actor
+  - Added Upcoming section for future tasks/SLA deadlines
+  - Extended ActivityAction type with task_created, task_assigned, task_completed, sla_warning, sla_updated, sla_breached
+  - Enhanced date grouping labels: Today, Yesterday, This Week, Last Week, month/year
+  - Added user filter dropdown to filter activities by specific actor
+  - Added filter count indicator: "Showing X of Y activities"
 
 - 25-02: Quick Actions Grid & Properties Panel (COMPLETE - ef03540, dd95da5, c691f11)
   - Created shared QuickActionGrid component (horizontal icon+label grid)
