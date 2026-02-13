@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import Image from 'next/image';
-import { Sparkles, PanelLeftClose, PanelLeft } from 'lucide-react';
+import Link from "next/link";
+import Image from "next/image";
+import { Sparkles, PanelLeftClose, PanelLeft, HelpCircle } from "lucide-react";
 
 import {
   Sidebar,
@@ -14,10 +14,10 @@ import {
   SidebarMenuItem,
   SidebarRail,
   useSidebar,
-} from '@/components/ui/sidebar';
-import { NavMain } from './nav-main';
-import { NavAdmin } from './nav-admin';
-import { useAiPanel } from '@/contexts/ai-panel-context';
+} from "@/components/ui/sidebar";
+import { NavMain } from "./nav-main";
+import { NavAdmin } from "./nav-admin";
+import { useAiPanel } from "@/contexts/ai-panel-context";
 
 export function AppSidebar() {
   const { openPanel } = useAiPanel();
@@ -59,6 +59,14 @@ export function AppSidebar() {
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
+            <SidebarMenuButton tooltip="Help & Support" asChild>
+              <Link href="/help">
+                <HelpCircle />
+                <span>Help & Support</span>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
             <SidebarMenuButton tooltip="AI Assistant" onClick={openPanel}>
               <Sparkles className="text-blue-500" />
               <span>AI Assistant</span>
@@ -80,7 +88,7 @@ function SidebarCollapseToggle() {
 
   return (
     <SidebarMenuButton onClick={toggleSidebar} tooltip="Toggle Sidebar">
-      {state === 'expanded' ? (
+      {state === "expanded" ? (
         <>
           <PanelLeftClose />
           <span>Collapse</span>

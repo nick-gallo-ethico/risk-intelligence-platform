@@ -73,27 +73,29 @@ export function TopNav() {
   const searchInputRef = React.useRef<HTMLInputElement>(null);
 
   // Fetch notifications from API
-  const { data: notificationsData, isLoading: notificationsLoading } = useQuery({
-    queryKey: ["notifications-preview"],
-    queryFn: async () => {
-      try {
-        const response = await api.get("/notifications", {
-          params: { limit: 5 },
-        });
-        if (response.data?.data && Array.isArray(response.data.data)) {
-          return response.data.data as NotificationItem[];
+  const { data: notificationsData, isLoading: notificationsLoading } = useQuery(
+    {
+      queryKey: ["notifications-preview"],
+      queryFn: async () => {
+        try {
+          const response = await api.get("/notifications", {
+            params: { limit: 5 },
+          });
+          if (response.data?.data && Array.isArray(response.data.data)) {
+            return response.data.data as NotificationItem[];
+          }
+          if (Array.isArray(response.data)) {
+            return response.data as NotificationItem[];
+          }
+          return [];
+        } catch {
+          return [];
         }
-        if (Array.isArray(response.data)) {
-          return response.data as NotificationItem[];
-        }
-        return [];
-      } catch {
-        return [];
-      }
+      },
+      staleTime: 30000, // 30 seconds
+      refetchInterval: 60000, // Refresh every minute
     },
-    staleTime: 30000, // 30 seconds
-    refetchInterval: 60000, // Refresh every minute
-  });
+  );
 
   const notifications = notificationsData || [];
   const notificationCount = notifications.filter((n) => !n.isRead).length;
@@ -227,7 +229,11 @@ export function TopNav() {
         {/* Notifications */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="relative text-white/80 hover:text-white hover:bg-white/10">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="relative text-white/80 hover:text-white hover:bg-white/10"
+            >
               <Bell className="h-5 w-5" />
               {notificationCount > 0 && (
                 <Badge
@@ -264,24 +270,36 @@ export function TopNav() {
                   key={notification.id}
                   className={cn(
                     "flex flex-col items-start gap-1 cursor-pointer",
-                    !notification.isRead && "bg-primary/5"
+                    !notification.isRead && "bg-primary/5",
                   )}
                   onClick={() => {
                     if (notification.url) {
                       router.push(notification.url);
-                    } else if (notification.entityType && notification.entityId) {
-                      router.push(`/${notification.entityType.toLowerCase()}s/${notification.entityId}`);
+                    } else if (
+                      notification.entityType &&
+                      notification.entityId
+                    ) {
+                      router.push(
+                        `/${notification.entityType.toLowerCase()}s/${notification.entityId}`,
+                      );
                     }
                   }}
                 >
-                  <p className={cn("text-sm", !notification.isRead && "font-medium")}>
+                  <p
+                    className={cn(
+                      "text-sm",
+                      !notification.isRead && "font-medium",
+                    )}
+                  >
                     {notification.title}
                   </p>
                   <p className="text-xs text-muted-foreground line-clamp-2">
                     {notification.message}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}
+                    {formatDistanceToNow(new Date(notification.createdAt), {
+                      addSuffix: true,
+                    })}
                   </p>
                 </DropdownMenuItem>
               ))
@@ -296,24 +314,48 @@ export function TopNav() {
         </DropdownMenu>
 
         {/* Help */}
-        <Button variant="ghost" size="icon" title="Help & Support" className="text-white/80 hover:text-white hover:bg-white/10">
-          <HelpCircle className="h-5 w-5" />
-        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              title="Help & Support"
+              className="text-white/80 hover:text-white hover:bg-white/10"
+            >
+              <HelpCircle className="h-5 w-5" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuItem asChild>
+              <Link href="/help">Knowledge Base</Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link href="/help/tickets/new">Submit a Ticket</Link>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem asChild>
+              <Link href="/help/tickets">My Tickets</Link>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
 
         {/* User Profile Dropdown */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="flex items-center gap-2 px-2 hover:bg-white/10">
+            <Button
+              variant="ghost"
+              className="flex items-center gap-2 px-2 hover:bg-white/10"
+            >
               <Avatar className="h-8 w-8">
                 <AvatarFallback className="bg-white/20 text-white text-xs">
                   {displayInitials}
                 </AvatarFallback>
               </Avatar>
               <div className="hidden md:flex flex-col items-start">
-                <span className="text-sm font-medium text-white">{displayName}</span>
-                <span className="text-xs text-white/70">
-                  {displayRole}
+                <span className="text-sm font-medium text-white">
+                  {displayName}
                 </span>
+                <span className="text-xs text-white/70">{displayRole}</span>
               </div>
               <ChevronDown className="h-4 w-4 text-white/70 hidden md:block" />
             </Button>
