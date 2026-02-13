@@ -41,6 +41,7 @@ import { AnalyticsModule } from "./modules/analytics/analytics.module";
 import { ProjectsModule } from "./modules/projects/projects.module";
 import { OrganizationModule } from "./modules/organization/organization.module";
 import { OperationsModule } from "./modules/operations/operations.module";
+import { HelpModule } from "./modules/help/help.module";
 import { ActivityModule } from "./common/activity.module";
 import { StorageModule } from "./common/storage.module";
 import { TenantMiddleware } from "./common/middleware/tenant.middleware";
@@ -113,6 +114,7 @@ import configuration from "./config/configuration";
     ProjectsModule, // Project milestones with progress tracking (Phase 11)
     OrganizationModule, // Organization settings management (general, branding, notifications, security)
     OperationsModule, // Internal Operations Portal - Support Console, Implementation, Hotline Ops (Phase 12)
+    HelpModule, // Knowledge base articles and support tickets (Phase 23)
     HealthModule,
   ],
   controllers: [],
