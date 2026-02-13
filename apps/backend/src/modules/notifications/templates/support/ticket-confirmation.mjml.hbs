@@ -1,0 +1,77 @@
+{{!--
+  Support Ticket Confirmation Template
+
+  Sent when a user submits a new support ticket.
+
+  Expected context:
+  - ticket.id: Ticket UUID
+  - ticket.ticketNumber: Ticket reference (e.g., "TICKET-2024-00001")
+  - ticket.subject: Ticket subject line
+  - ticket.priority: Priority level (LOW, MEDIUM, HIGH, URGENT)
+  - ticket.category: Optional category
+  - ticket.createdAt: Creation timestamp
+  - org: Organization object with branding
+  - appUrl: Base application URL
+  - recipient.name: Recipient's display name
+--}}
+<mj-section mj-class="card">
+  <mj-column>
+    {{!-- Header --}}
+    <mj-text mj-class="heading-md" padding-bottom="8px">
+      Support Ticket Received
+    </mj-text>
+
+    <mj-text mj-class="text-body" padding-top="12px" padding-bottom="16px">
+      Hi {{recipient.name}},
+    </mj-text>
+
+    <mj-text mj-class="text-body" padding-bottom="16px">
+      Thank you for contacting our support team. Your ticket has been received
+      and assigned number <strong>{{ticket.ticketNumber}}</strong>.
+    </mj-text>
+
+    <mj-divider mj-class="divider" />
+
+    {{!-- Ticket details --}}
+    <mj-text mj-class="heading-sm" padding-bottom="12px">
+      Ticket Details
+    </mj-text>
+
+    <mj-text mj-class="text-body" line-height="1.8">
+      <strong>Ticket Number:</strong> {{ticket.ticketNumber}}<br/>
+      <strong>Subject:</strong> {{ticket.subject}}<br/>
+      <strong>Priority:</strong>
+      <span style="color: {{priorityColor ticket.priority}}; font-weight: 600;">
+        {{ticket.priority}}
+      </span><br/>
+      {{#if ticket.category}}
+      <strong>Category:</strong> {{ticket.category}}<br/>
+      {{/if}}
+      <strong>Submitted:</strong> {{formatDate ticket.createdAt}}<br/>
+    </mj-text>
+
+    {{!-- Response time notice --}}
+    <mj-text mj-class="text-body" padding-top="16px" padding-bottom="16px">
+      Our support team typically responds within
+      {{#if (eq ticket.priority 'URGENT')}}
+      4 hours
+      {{else if (eq ticket.priority 'HIGH')}}
+      24 hours
+      {{else}}
+      1-2 business days
+      {{/if}}.
+      We appreciate your patience.
+    </mj-text>
+
+    {{!-- CTA Button --}}
+    <mj-button mj-class="btn-primary"
+               href="{{appUrl}}/help/tickets"
+               padding-top="16px">
+      View My Tickets
+    </mj-button>
+
+    <mj-text mj-class="text-small" align="center" padding-top="16px">
+      You can track the status of your ticket at any time from the Help Center.
+    </mj-text>
+  </mj-column>
+</mj-section>
