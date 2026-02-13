@@ -5,14 +5,14 @@
 See: .planning/PROJECT.md (updated 2026-02-02)
 
 **Core value:** Users can manage their entire compliance workflow - from anonymous report intake to investigation closure to board reporting - in one AI-assisted platform, with every task unified into a single "My Work" view.
-**Current focus:** Phase 23 Help & Support System complete. Next: Phase 22 Dark Mode & Theme.
+**Current focus:** Phase 25 Case & Investigation Page Redesign - Wave 2 complete.
 
 ## Current Position
 
 Phase: 25 of 25+ (Case & Investigation Page Redesign) — IN PROGRESS
-Plan: 01 of ?? in current phase (just completed)
-Status: Completed 25-01, ready for 25-02
-Last activity: 2026-02-13 - Completed 25-01 (tab reordering, activity timeline enhancements)
+Plan: 03 of ?? in current phase (just completed)
+Status: Completed 25-01, 25-02, 25-03, ready for 25-04
+Last activity: 2026-02-13 - Completed 25-03 (right sidebar association cards)
 
 Progress: [===================================================================+] ~100% (Phase 21 adds new plans beyond original 24)
 
@@ -36,6 +36,15 @@ Progress: [===================================================================+]
   - Added ChevronRight with 90deg rotation to PropertySection
   - Added Settings2 gear icon to each property section header
   - showSettings and onSettingsClick props for future customization
+
+- 25-03: Right Sidebar Association Cards (COMPLETE - 6b07f2c, a138763, 5d9cedd)
+  - Created AssociationCard reusable wrapper component (icon, title, count badge, add, gear, search, view all)
+  - Created LinkedRiusCard with PRIMARY highlighted (blue border, star icon)
+  - Created RelatedCasesCard with status badges and association type
+  - Created RelatedPoliciesCard with version, status, department
+  - Refactored ConnectedPeopleCard: added search filtering, email with copy icon
+  - Refactored ConnectedDocumentsCard: now uses AssociationCard wrapper
+  - Case detail page wired with 5 cards in HubSpot order: People, RIUs, Cases, Policies, Documents
 
 ### Phase 21 Project Management IN PROGRESS (2026-02-12)
 
