@@ -235,7 +235,6 @@ function CaseDetailPageContent() {
               unreadMessages: 0,
               files: 0,
             }}
-            defaultTab="overview"
           />
         </main>
 

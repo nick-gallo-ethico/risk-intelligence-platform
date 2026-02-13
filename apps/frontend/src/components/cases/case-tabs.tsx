@@ -10,7 +10,6 @@ import {
   Activity,
   ClipboardCheck,
   ScrollText,
-  ArrowRight,
 } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
@@ -29,11 +28,12 @@ import type { Case, RiuAssociation } from "@/types/case";
 
 /**
  * Tab configuration with icons and counts
- * Order: Overview, Activities, Summary, Investigations, Messages, Files, Remediation
+ * Order: Activities, Overview, Summary, Investigations, Messages, Files, Remediation
+ * (Activities is default as investigators check recent activity first)
  */
 const TABS = [
-  { id: "overview", label: "Overview", icon: FileText },
   { id: "activity", label: "Activities", icon: Activity },
+  { id: "overview", label: "Overview", icon: FileText },
   { id: "summary", label: "Summary", icon: ScrollText },
   { id: "investigations", label: "Investigations", icon: Search },
   { id: "messages", label: "Messages", icon: MessageSquare },
@@ -82,7 +82,7 @@ export function CaseTabs({
   caseData,
   isLoading,
   counts = {},
-  defaultTab = "overview",
+  defaultTab = "activity",
 }: CaseTabsProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -171,11 +171,7 @@ export function CaseTabs({
           className="h-full m-0 p-0 data-[state=inactive]:hidden"
         >
           <div className="h-full overflow-y-auto">
-            <OverviewTab
-              caseData={caseData}
-              onRiuClick={handleRiuClick}
-              onTabChange={handleTabChange}
-            />
+            <OverviewTab caseData={caseData} onRiuClick={handleRiuClick} />
           </div>
         </TabsContent>
 
@@ -252,15 +248,14 @@ export function CaseTabs({
 const PIPELINE_STAGES = ["New", "Triage", "Investigation", "Review", "Closed"];
 
 /**
- * Overview tab content - lifecycle, linked RIUs, details, key dates, activity link
+ * Overview tab content - lifecycle, linked RIUs, details, key dates
  */
 interface OverviewTabProps {
   caseData: Case;
   onRiuClick?: (riuId: string) => void;
-  onTabChange?: (tab: string) => void;
 }
 
-function OverviewTab({ caseData, onRiuClick, onTabChange }: OverviewTabProps) {
+function OverviewTab({ caseData, onRiuClick }: OverviewTabProps) {
   // Determine current stage index based on pipelineStage or status
   const currentStageIndex = (() => {
     if (caseData.pipelineStage) {
@@ -477,31 +472,6 @@ function OverviewTab({ caseData, onRiuClick, onTabChange }: OverviewTabProps) {
                 minute: "2-digit",
               })}
             </p>
-          </div>
-        </div>
-      </section>
-
-      {/* Recent Activity Link */}
-      <section>
-        <div className="bg-gray-50 border rounded-lg p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-sm font-semibold text-gray-700">
-                Recent Activity
-              </h3>
-              <p className="text-xs text-gray-500 mt-1">
-                View the full activity timeline for this case
-              </p>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onTabChange?.("activity")}
-              className="gap-1"
-            >
-              View Activities
-              <ArrowRight className="w-4 h-4" />
-            </Button>
           </div>
         </div>
       </section>
