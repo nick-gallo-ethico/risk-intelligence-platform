@@ -3,37 +3,48 @@
  */
 
 export type InvestigationStatus =
-  | 'NEW'
-  | 'ASSIGNED'
-  | 'INVESTIGATING'
-  | 'PENDING_REVIEW'
-  | 'CLOSED'
-  | 'ON_HOLD';
+  | "NEW"
+  | "ASSIGNED"
+  | "INVESTIGATING"
+  | "PENDING_REVIEW"
+  | "CLOSED"
+  | "ON_HOLD";
 
-export type InvestigationType = 'FULL' | 'LIMITED' | 'INQUIRY';
+export type InvestigationType = "FULL" | "LIMITED" | "INQUIRY";
 
 export type InvestigationDepartment =
-  | 'HR'
-  | 'LEGAL'
-  | 'SAFETY'
-  | 'COMPLIANCE'
-  | 'OTHER';
+  | "HR"
+  | "LEGAL"
+  | "SAFETY"
+  | "COMPLIANCE"
+  | "OTHER";
 
-export type SlaStatus = 'ON_TRACK' | 'WARNING' | 'OVERDUE';
+export type SlaStatus = "ON_TRACK" | "WARNING" | "OVERDUE";
 
 export type InvestigationOutcome =
-  | 'SUBSTANTIATED'
-  | 'UNSUBSTANTIATED'
-  | 'INCONCLUSIVE'
-  | 'POLICY_VIOLATION'
-  | 'NO_VIOLATION'
-  | 'INSUFFICIENT_EVIDENCE';
+  | "SUBSTANTIATED"
+  | "UNSUBSTANTIATED"
+  | "INCONCLUSIVE"
+  | "POLICY_VIOLATION"
+  | "NO_VIOLATION"
+  | "INSUFFICIENT_EVIDENCE";
 
 export interface InvestigationUser {
   id: string;
   firstName: string;
   lastName: string;
   email: string;
+}
+
+export interface InvestigationCategory {
+  id: string;
+  name: string;
+  code?: string;
+}
+
+export interface InvestigationCase {
+  id: string;
+  referenceNumber: string;
 }
 
 export interface Investigation {
@@ -44,13 +55,16 @@ export interface Investigation {
 
   // Classification
   categoryId: string | null;
+  category?: InvestigationCategory;
   investigationType: InvestigationType;
+  type?: InvestigationType; // Alias for convenience
   department: InvestigationDepartment | null;
 
   // Assignment
   assignedTo: string[];
   primaryInvestigatorId: string | null;
   primaryInvestigator?: InvestigationUser;
+  assignedInvestigators?: InvestigationUser[]; // Array of all investigators
   assignedAt: string | null;
   assignedById: string | null;
 
@@ -80,8 +94,17 @@ export interface Investigation {
   createdById: string;
   createdBy?: InvestigationUser;
 
-  // Notes count (aggregated)
+  // Related entities
+  case?: InvestigationCase;
+
+  // Template & Checklist
+  templateId?: string | null;
+  templateName?: string | null;
+  checklistProgress?: number; // 0-100 percentage
+
+  // Counts (aggregated)
   notesCount?: number;
+  interviewsCount?: number;
 }
 
 export interface InvestigationListResponse {

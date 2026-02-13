@@ -1,36 +1,36 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useCallback } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import Link from 'next/link';
+import { useState, useEffect, useCallback } from "react";
+import { useParams, useRouter } from "next/navigation";
 import {
-  ArrowLeft,
   FileText,
   MessageSquare,
   Users,
   Paperclip,
   Activity,
-  Loader2,
   Plus,
-} from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Skeleton } from '@/components/ui/skeleton';
-import { InvestigationHeader } from '@/components/investigations/investigation-header';
-import { InvestigationOverview } from '@/components/investigations/investigation-overview';
-import { InvestigationNotes } from '@/components/investigations/investigation-notes';
-import { InvestigationFindings } from '@/components/investigations/investigation-findings';
-import { ChecklistPanel } from '@/components/investigations/checklist-panel';
-import { TemplateSelectorDialog } from '@/components/investigations/template-selector';
-import { useTrackRecentItem } from '@/contexts/shortcuts-context';
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Skeleton } from "@/components/ui/skeleton";
+import { InvestigationHeader } from "@/components/investigations/investigation-header";
+import { InvestigationInfoSummary } from "@/components/investigations/investigation-info-summary";
+import {
+  InvestigationActionButtons,
+  type InvestigationActionType,
+} from "@/components/investigations/investigation-action-buttons";
+import { InvestigationPropertiesPanel } from "@/components/investigations/investigation-properties-panel";
+import { InvestigationNotes } from "@/components/investigations/investigation-notes";
+import { InvestigationFindings } from "@/components/investigations/investigation-findings";
+import { ChecklistPanel } from "@/components/investigations/checklist-panel";
+import { TemplateSelectorDialog } from "@/components/investigations/template-selector";
+import { useTrackRecentItem } from "@/contexts/shortcuts-context";
 import {
   useGlobalShortcuts,
   useTabNavigation,
-  useListNavigation,
-  useChecklistShortcuts,
-} from '@/hooks/use-keyboard-shortcuts';
-import { getInvestigation } from '@/lib/investigation-api';
+} from "@/hooks/use-keyboard-shortcuts";
+import { getInvestigation } from "@/lib/investigation-api";
 import {
   getChecklistProgress,
   applyTemplate,
@@ -40,8 +40,8 @@ import {
   addCustomItem,
   deleteChecklist,
   type ChecklistProgress,
-} from '@/lib/checklist-api';
-import type { Investigation } from '@/types/investigation';
+} from "@/lib/checklist-api";
+import type { Investigation } from "@/types/investigation";
 
 /**
  * Investigation detail page with tabs for Checklist, Notes, Interviews, Files, Activity.
@@ -52,18 +52,33 @@ export default function InvestigationDetailPage() {
   const investigationId = params?.id as string;
 
   // State
-  const [investigation, setInvestigation] = useState<Investigation | null>(null);
-  const [checklistProgress, setChecklistProgress] = useState<ChecklistProgress | null>(null);
+  const [investigation, setInvestigation] = useState<Investigation | null>(
+    null,
+  );
+  const [checklistProgress, setChecklistProgress] =
+    useState<ChecklistProgress | null>(null);
   const [loading, setLoading] = useState(true);
   const [checklistLoading, setChecklistLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState('checklist');
+  const [activeTab, setActiveTab] = useState("checklist");
   const [showTemplateSelector, setShowTemplateSelector] = useState(false);
   const [applyingTemplate, setApplyingTemplate] = useState(false);
-  const [focusedChecklistItem, setFocusedChecklistItem] = useState<string | null>(null);
+
+  // Modal states for quick actions
+  const [noteModalOpen, setNoteModalOpen] = useState(false);
+  const [interviewModalOpen, setInterviewModalOpen] = useState(false);
+  const [evidenceModalOpen, setEvidenceModalOpen] = useState(false);
+  const [taskModalOpen, setTaskModalOpen] = useState(false);
 
   // Tab mapping for keyboard navigation (1-6)
-  const TABS = ['checklist', 'notes', 'interviews', 'files', 'activity', 'findings'];
+  const TABS = [
+    "checklist",
+    "notes",
+    "interviews",
+    "files",
+    "activity",
+    "findings",
+  ];
 
   // Register go back shortcut
   useGlobalShortcuts({
@@ -93,10 +108,10 @@ export default function InvestigationDetailPage() {
       ? {
           id: investigation.id,
           label: `Investigation #${investigation.investigationNumber}`,
-          type: 'investigation',
+          type: "investigation",
           href: `/investigations/${investigation.id}`,
         }
-      : null
+      : null,
   );
 
   // Fetch investigation data
@@ -107,8 +122,8 @@ export default function InvestigationDetailPage() {
       const data = await getInvestigation(investigationId);
       setInvestigation(data);
     } catch (err) {
-      console.error('Failed to fetch investigation:', err);
-      setError('Failed to load investigation');
+      console.error("Failed to fetch investigation:", err);
+      setError("Failed to load investigation");
     } finally {
       setLoading(false);
     }
@@ -120,7 +135,7 @@ export default function InvestigationDetailPage() {
       const progress = await getChecklistProgress(investigationId);
       setChecklistProgress(progress);
     } catch (err) {
-      console.error('Failed to fetch checklist:', err);
+      console.error("Failed to fetch checklist:", err);
       // Not an error if no checklist exists
       setChecklistProgress(null);
     }
@@ -140,7 +155,7 @@ export default function InvestigationDetailPage() {
       setChecklistProgress(progress);
       setShowTemplateSelector(false);
     } catch (err) {
-      console.error('Failed to apply template:', err);
+      console.error("Failed to apply template:", err);
       // TODO: Show toast error
     } finally {
       setApplyingTemplate(false);
@@ -151,7 +166,7 @@ export default function InvestigationDetailPage() {
   const handleCompleteItem = async (
     itemId: string,
     notes?: string,
-    attachmentIds?: string[]
+    attachmentIds?: string[],
   ) => {
     setChecklistLoading(true);
     try {
@@ -161,7 +176,7 @@ export default function InvestigationDetailPage() {
       });
       setChecklistProgress(progress);
     } catch (err) {
-      console.error('Failed to complete item:', err);
+      console.error("Failed to complete item:", err);
     } finally {
       setChecklistLoading(false);
     }
@@ -174,7 +189,7 @@ export default function InvestigationDetailPage() {
       const progress = await skipItem(investigationId, itemId, reason);
       setChecklistProgress(progress);
     } catch (err) {
-      console.error('Failed to skip item:', err);
+      console.error("Failed to skip item:", err);
     } finally {
       setChecklistLoading(false);
     }
@@ -187,7 +202,7 @@ export default function InvestigationDetailPage() {
       const progress = await uncompleteItem(investigationId, itemId);
       setChecklistProgress(progress);
     } catch (err) {
-      console.error('Failed to uncomplete item:', err);
+      console.error("Failed to uncomplete item:", err);
     } finally {
       setChecklistLoading(false);
     }
@@ -200,7 +215,7 @@ export default function InvestigationDetailPage() {
       const progress = await addCustomItem(investigationId, sectionId, text);
       setChecklistProgress(progress);
     } catch (err) {
-      console.error('Failed to add custom item:', err);
+      console.error("Failed to add custom item:", err);
     } finally {
       setChecklistLoading(false);
     }
@@ -213,7 +228,11 @@ export default function InvestigationDetailPage() {
 
   // Handle checklist removal
   const handleRemoveChecklist = async () => {
-    if (!confirm('Are you sure you want to remove the checklist? This cannot be undone.')) {
+    if (
+      !confirm(
+        "Are you sure you want to remove the checklist? This cannot be undone.",
+      )
+    ) {
       return;
     }
     setChecklistLoading(true);
@@ -221,192 +240,254 @@ export default function InvestigationDetailPage() {
       await deleteChecklist(investigationId);
       setChecklistProgress(null);
     } catch (err) {
-      console.error('Failed to remove checklist:', err);
+      console.error("Failed to remove checklist:", err);
     } finally {
       setChecklistLoading(false);
     }
   };
 
+  // Quick action handler for left column buttons
+  const handleAction = useCallback((action: InvestigationActionType) => {
+    switch (action) {
+      case "note":
+        setNoteModalOpen(true);
+        break;
+      case "interview":
+        setInterviewModalOpen(true);
+        break;
+      case "evidence":
+        setEvidenceModalOpen(true);
+        break;
+      case "task":
+        setTaskModalOpen(true);
+        break;
+      case "checklist":
+        setActiveTab("checklist");
+        break;
+    }
+  }, []);
+
   // Show findings tab for closed or pending review
   const showFindings =
-    investigation?.status === 'PENDING_REVIEW' ||
-    investigation?.status === 'CLOSED';
+    investigation?.status === "PENDING_REVIEW" ||
+    investigation?.status === "CLOSED";
 
   if (loading) {
-    return (
-      <div className="container mx-auto py-6 px-4 max-w-7xl">
-        <div className="space-y-6">
-          {/* Header skeleton */}
-          <div className="flex items-center gap-4">
-            <Skeleton className="h-9 w-9" />
-            <div className="space-y-2">
-              <Skeleton className="h-7 w-64" />
-              <Skeleton className="h-4 w-40" />
-            </div>
-          </div>
-          {/* Content skeleton */}
-          <div className="space-y-4">
-            <Skeleton className="h-12 w-full" />
-            <Skeleton className="h-64 w-full" />
-          </div>
-        </div>
-      </div>
-    );
+    return <InvestigationDetailPageSkeleton />;
   }
 
   if (error || !investigation) {
     return (
-      <div className="container mx-auto py-6 px-4 max-w-7xl">
-        <div className="text-center py-12">
-          <p className="text-red-600 mb-4">{error || 'Investigation not found'}</p>
-          <Button variant="outline" onClick={() => router.back()}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Go back
-          </Button>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">
+            Investigation Not Found
+          </h2>
+          <p className="text-gray-600 mb-4">
+            {error || "Investigation not found"}
+          </p>
+          <Button onClick={() => router.back()}>Go back</Button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto py-6 px-4 max-w-7xl">
-      {/* Back link */}
-      <div className="mb-4">
-        <Link
-          href={`/cases/${investigation.caseId}`}
-          className="inline-flex items-center text-sm text-gray-500 hover:text-gray-700"
-        >
-          <ArrowLeft className="h-4 w-4 mr-1" />
-          Back to case
-        </Link>
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      {/* Full-width header */}
+      <div className="border-b bg-white">
+        <div className="max-w-[1800px] mx-auto px-6 py-4">
+          <InvestigationHeader
+            investigation={investigation}
+            onAssign={() => {
+              /* TODO: Implement assign modal */
+            }}
+            onStatusChange={() => {
+              /* TODO: Implement status modal */
+            }}
+          />
+        </div>
       </div>
 
-      {/* Investigation header */}
-      <div className="mb-6">
-        <InvestigationHeader investigation={investigation} />
-      </div>
-
-      {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList>
-          <TabsTrigger value="checklist" className="flex items-center gap-2">
-            <FileText className="h-4 w-4" />
-            Checklist
-            {checklistProgress && (
-              <span className="text-xs text-gray-500 ml-1">
-                ({Math.round(checklistProgress.progressPercent)}%)
-              </span>
-            )}
-          </TabsTrigger>
-          <TabsTrigger value="notes" className="flex items-center gap-2">
-            <MessageSquare className="h-4 w-4" />
-            Notes
-            {investigation.notesCount !== undefined && investigation.notesCount > 0 && (
-              <span className="text-xs bg-gray-200 rounded-full px-1.5">
-                {investigation.notesCount}
-              </span>
-            )}
-          </TabsTrigger>
-          <TabsTrigger value="interviews" className="flex items-center gap-2">
-            <Users className="h-4 w-4" />
-            Interviews
-          </TabsTrigger>
-          <TabsTrigger value="files" className="flex items-center gap-2">
-            <Paperclip className="h-4 w-4" />
-            Files
-          </TabsTrigger>
-          <TabsTrigger value="activity" className="flex items-center gap-2">
-            <Activity className="h-4 w-4" />
-            Activity
-          </TabsTrigger>
-          {showFindings && (
-            <TabsTrigger value="findings" className="flex items-center gap-2">
-              Findings
-            </TabsTrigger>
-          )}
-        </TabsList>
-
-        {/* Checklist tab */}
-        <TabsContent value="checklist" className="mt-6">
-          {checklistProgress ? (
-            <ChecklistPanel
-              progress={checklistProgress}
-              onCompleteItem={handleCompleteItem}
-              onSkipItem={handleSkipItem}
-              onUncompleteItem={handleUncompleteItem}
-              onAddCustomItem={handleAddCustomItem}
-              onSwapTemplate={handleSwapTemplate}
-              onRemoveChecklist={handleRemoveChecklist}
-              loading={checklistLoading}
+      {/* Three-column grid */}
+      <div className="flex-1 max-w-[1800px] mx-auto w-full px-6 py-6">
+        <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr_300px] gap-6 h-full">
+          {/* Left Column - Summary, Actions, Properties */}
+          <div className="space-y-4 lg:sticky lg:top-6 lg:self-start hidden lg:block">
+            <InvestigationInfoSummary investigation={investigation} />
+            <InvestigationActionButtons
+              investigationId={investigation.id}
+              onAction={handleAction}
             />
-          ) : (
-            <div className="text-center py-12 border rounded-lg bg-gray-50">
-              <FileText className="h-12 w-12 mx-auto text-gray-400" />
-              <h3 className="mt-4 text-lg font-medium text-gray-900">
-                No checklist applied
-              </h3>
-              <p className="mt-1 text-sm text-gray-500">
-                Apply a template to guide your investigation with a structured
-                checklist.
-              </p>
-              <Button
-                className="mt-4"
-                onClick={() => setShowTemplateSelector(true)}
+            <InvestigationPropertiesPanel investigation={investigation} />
+          </div>
+
+          {/* Center Column - Tabs */}
+          <div className="min-h-0 bg-white border rounded-lg overflow-hidden">
+            <Tabs
+              value={activeTab}
+              onValueChange={setActiveTab}
+              className="h-full flex flex-col"
+            >
+              <TabsList className="border-b px-4 pt-2">
+                <TabsTrigger
+                  value="checklist"
+                  className="flex items-center gap-2"
+                >
+                  <FileText className="h-4 w-4" />
+                  Checklist
+                  {checklistProgress && (
+                    <span className="text-xs text-gray-500 ml-1">
+                      ({Math.round(checklistProgress.progressPercent)}%)
+                    </span>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger value="notes" className="flex items-center gap-2">
+                  <MessageSquare className="h-4 w-4" />
+                  Notes
+                  {investigation.notesCount !== undefined &&
+                    investigation.notesCount > 0 && (
+                      <span className="text-xs bg-gray-200 rounded-full px-1.5">
+                        {investigation.notesCount}
+                      </span>
+                    )}
+                </TabsTrigger>
+                <TabsTrigger
+                  value="interviews"
+                  className="flex items-center gap-2"
+                >
+                  <Users className="h-4 w-4" />
+                  Interviews
+                </TabsTrigger>
+                <TabsTrigger value="files" className="flex items-center gap-2">
+                  <Paperclip className="h-4 w-4" />
+                  Files
+                </TabsTrigger>
+                <TabsTrigger
+                  value="activity"
+                  className="flex items-center gap-2"
+                >
+                  <Activity className="h-4 w-4" />
+                  Activity
+                </TabsTrigger>
+                {showFindings && (
+                  <TabsTrigger
+                    value="findings"
+                    className="flex items-center gap-2"
+                  >
+                    Findings
+                  </TabsTrigger>
+                )}
+              </TabsList>
+
+              {/* Checklist tab */}
+              <TabsContent
+                value="checklist"
+                className="flex-1 overflow-auto p-4"
               >
-                <Plus className="h-4 w-4 mr-2" />
-                Apply Template
-              </Button>
+                {checklistProgress ? (
+                  <ChecklistPanel
+                    progress={checklistProgress}
+                    onCompleteItem={handleCompleteItem}
+                    onSkipItem={handleSkipItem}
+                    onUncompleteItem={handleUncompleteItem}
+                    onAddCustomItem={handleAddCustomItem}
+                    onSwapTemplate={handleSwapTemplate}
+                    onRemoveChecklist={handleRemoveChecklist}
+                    loading={checklistLoading}
+                  />
+                ) : (
+                  <div className="text-center py-12 border rounded-lg bg-gray-50">
+                    <FileText className="h-12 w-12 mx-auto text-gray-400" />
+                    <h3 className="mt-4 text-lg font-medium text-gray-900">
+                      No checklist applied
+                    </h3>
+                    <p className="mt-1 text-sm text-gray-500">
+                      Apply a template to guide your investigation with a
+                      structured checklist.
+                    </p>
+                    <Button
+                      className="mt-4"
+                      onClick={() => setShowTemplateSelector(true)}
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Apply Template
+                    </Button>
+                  </div>
+                )}
+              </TabsContent>
+
+              {/* Notes tab */}
+              <TabsContent value="notes" className="flex-1 overflow-auto p-4">
+                <InvestigationNotes investigationId={investigation.id} />
+              </TabsContent>
+
+              {/* Interviews tab - placeholder */}
+              <TabsContent
+                value="interviews"
+                className="flex-1 overflow-auto p-4"
+              >
+                <div className="text-center py-12 border rounded-lg bg-gray-50">
+                  <Users className="h-12 w-12 mx-auto text-gray-400" />
+                  <h3 className="mt-4 text-lg font-medium text-gray-900">
+                    Interviews
+                  </h3>
+                  <p className="mt-1 text-sm text-gray-500">
+                    Interview management coming soon.
+                  </p>
+                </div>
+              </TabsContent>
+
+              {/* Files tab - placeholder */}
+              <TabsContent value="files" className="flex-1 overflow-auto p-4">
+                <div className="text-center py-12 border rounded-lg bg-gray-50">
+                  <Paperclip className="h-12 w-12 mx-auto text-gray-400" />
+                  <h3 className="mt-4 text-lg font-medium text-gray-900">
+                    Files
+                  </h3>
+                  <p className="mt-1 text-sm text-gray-500">
+                    File management coming soon.
+                  </p>
+                </div>
+              </TabsContent>
+
+              {/* Activity tab - placeholder */}
+              <TabsContent
+                value="activity"
+                className="flex-1 overflow-auto p-4"
+              >
+                <div className="text-center py-12 border rounded-lg bg-gray-50">
+                  <Activity className="h-12 w-12 mx-auto text-gray-400" />
+                  <h3 className="mt-4 text-lg font-medium text-gray-900">
+                    Activity
+                  </h3>
+                  <p className="mt-1 text-sm text-gray-500">
+                    Activity timeline coming soon.
+                  </p>
+                </div>
+              </TabsContent>
+
+              {/* Findings tab */}
+              {showFindings && (
+                <TabsContent
+                  value="findings"
+                  className="flex-1 overflow-auto p-4"
+                >
+                  <InvestigationFindings investigation={investigation} />
+                </TabsContent>
+              )}
+            </Tabs>
+          </div>
+
+          {/* Right Column - Associations (Plan 06) */}
+          <div className="space-y-4 hidden lg:block">
+            {/* Placeholder for association cards */}
+            <div className="text-sm text-gray-500 p-4 border rounded-lg bg-white">
+              Association cards will be added in Plan 06
             </div>
-          )}
-        </TabsContent>
-
-        {/* Notes tab */}
-        <TabsContent value="notes" className="mt-6">
-          <InvestigationNotes investigationId={investigation.id} />
-        </TabsContent>
-
-        {/* Interviews tab - placeholder */}
-        <TabsContent value="interviews" className="mt-6">
-          <div className="text-center py-12 border rounded-lg bg-gray-50">
-            <Users className="h-12 w-12 mx-auto text-gray-400" />
-            <h3 className="mt-4 text-lg font-medium text-gray-900">
-              Interviews
-            </h3>
-            <p className="mt-1 text-sm text-gray-500">
-              Interview management coming soon.
-            </p>
           </div>
-        </TabsContent>
-
-        {/* Files tab - placeholder */}
-        <TabsContent value="files" className="mt-6">
-          <div className="text-center py-12 border rounded-lg bg-gray-50">
-            <Paperclip className="h-12 w-12 mx-auto text-gray-400" />
-            <h3 className="mt-4 text-lg font-medium text-gray-900">Files</h3>
-            <p className="mt-1 text-sm text-gray-500">
-              File management coming soon.
-            </p>
-          </div>
-        </TabsContent>
-
-        {/* Activity tab - placeholder */}
-        <TabsContent value="activity" className="mt-6">
-          <div className="text-center py-12 border rounded-lg bg-gray-50">
-            <Activity className="h-12 w-12 mx-auto text-gray-400" />
-            <h3 className="mt-4 text-lg font-medium text-gray-900">Activity</h3>
-            <p className="mt-1 text-sm text-gray-500">
-              Activity timeline coming soon.
-            </p>
-          </div>
-        </TabsContent>
-
-        {/* Findings tab */}
-        {showFindings && (
-          <TabsContent value="findings" className="mt-6">
-            <InvestigationFindings investigation={investigation} />
-          </TabsContent>
-        )}
-      </Tabs>
+        </div>
+      </div>
 
       {/* Template selector dialog */}
       <TemplateSelectorDialog
@@ -416,6 +497,110 @@ export default function InvestigationDetailPage() {
         onApply={handleApplyTemplate}
         loading={applyingTemplate}
       />
+    </div>
+  );
+}
+
+/**
+ * Skeleton loader for the entire page - three-column layout
+ */
+function InvestigationDetailPageSkeleton() {
+  return (
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      {/* Header skeleton */}
+      <div className="bg-white border-b px-6 py-4">
+        <div className="max-w-[1800px] mx-auto">
+          <div className="flex items-center gap-2 mb-3">
+            <Skeleton className="h-4 w-12" />
+            <span className="text-gray-300">/</span>
+            <Skeleton className="h-4 w-24" />
+            <span className="text-gray-300">/</span>
+            <Skeleton className="h-4 w-32" />
+          </div>
+          <div className="flex items-start justify-between">
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center gap-3">
+                <Skeleton className="h-8 w-48" />
+                <Skeleton className="h-6 w-20 rounded-full" />
+                <Skeleton className="h-6 w-16 rounded-full" />
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <Skeleton className="h-9 w-20" />
+              <Skeleton className="h-9 w-24" />
+            </div>
+          </div>
+          {/* Pipeline skeleton */}
+          <div className="flex items-center gap-1 mt-4 pt-4 border-t">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <Skeleton key={i} className="h-2 w-24 rounded-full" />
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Three-column layout skeleton */}
+      <div className="flex-1 max-w-[1800px] mx-auto w-full px-6 py-6">
+        <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr_300px] gap-6">
+          {/* Left column skeleton */}
+          <div className="hidden lg:block space-y-4">
+            {/* Summary card skeleton */}
+            <div className="rounded-lg border bg-white p-4 space-y-3">
+              <Skeleton className="h-5 w-32" />
+              <div className="flex gap-2">
+                <Skeleton className="h-5 w-16 rounded-full" />
+                <Skeleton className="h-5 w-14 rounded-full" />
+              </div>
+              <div className="space-y-2 pt-2 border-t">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <div key={i} className="flex items-center gap-2">
+                    <Skeleton className="h-4 w-4 rounded" />
+                    <Skeleton className="h-4 w-32" />
+                  </div>
+                ))}
+              </div>
+            </div>
+            {/* Actions skeleton */}
+            <div className="rounded-lg border bg-white p-4">
+              <Skeleton className="h-3 w-24 mb-3" />
+              <div className="grid grid-cols-3 gap-2">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <Skeleton key={i} className="h-16" />
+                ))}
+              </div>
+            </div>
+            {/* Properties skeleton */}
+            <div className="rounded-lg border bg-white p-4 space-y-4">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="space-y-2">
+                  <Skeleton className="h-4 w-28" />
+                  <Skeleton className="h-10 w-full" />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Center column skeleton */}
+          <div className="bg-white border rounded-lg p-6">
+            <div className="flex gap-4 mb-6">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <Skeleton key={i} className="h-8 w-24" />
+              ))}
+            </div>
+            <div className="space-y-4">
+              <Skeleton className="h-24 w-full rounded-lg" />
+              <Skeleton className="h-32 w-full rounded-lg" />
+            </div>
+          </div>
+
+          {/* Right column skeleton */}
+          <div className="hidden lg:block">
+            <div className="rounded-lg border bg-white p-4">
+              <Skeleton className="h-4 w-full" />
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
