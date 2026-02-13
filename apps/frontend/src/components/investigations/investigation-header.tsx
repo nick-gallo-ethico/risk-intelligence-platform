@@ -1,152 +1,284 @@
-'use client';
+"use client";
 
-import { Badge } from '@/components/ui/badge';
-import { Calendar, AlertCircle, Clock } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import type { Investigation, InvestigationStatus, SlaStatus } from '@/types/investigation';
+import Link from "next/link";
+import {
+  ChevronRight,
+  MoreHorizontal,
+  Clock,
+  AlertTriangle,
+} from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { cn } from "@/lib/utils";
+import type {
+  Investigation,
+  InvestigationStatus,
+  InvestigationType,
+  SlaStatus,
+} from "@/types/investigation";
 
 interface InvestigationHeaderProps {
   investigation: Investigation;
+  onAssign?: () => void;
+  onStatusChange?: () => void;
 }
 
-/**
- * Status badge color mapping
- */
-const STATUS_COLORS: Record<InvestigationStatus, { bg: string; text: string }> = {
-  NEW: { bg: 'bg-gray-100', text: 'text-gray-700' },
-  ASSIGNED: { bg: 'bg-blue-100', text: 'text-blue-700' },
-  INVESTIGATING: { bg: 'bg-yellow-100', text: 'text-yellow-700' },
-  PENDING_REVIEW: { bg: 'bg-orange-100', text: 'text-orange-700' },
-  CLOSED: { bg: 'bg-green-100', text: 'text-green-700' },
-  ON_HOLD: { bg: 'bg-red-100', text: 'text-red-700' },
+// Pipeline stages for investigations
+const PIPELINE_STAGES = [
+  "New",
+  "Assigned",
+  "Investigating",
+  "Review",
+  "Closed",
+];
+
+// Status badge colors
+const STATUS_COLORS: Record<InvestigationStatus, string> = {
+  NEW: "bg-blue-100 text-blue-800",
+  ASSIGNED: "bg-indigo-100 text-indigo-800",
+  INVESTIGATING: "bg-yellow-100 text-yellow-800",
+  PENDING_REVIEW: "bg-orange-100 text-orange-800",
+  CLOSED: "bg-gray-100 text-gray-800",
+  ON_HOLD: "bg-slate-100 text-slate-800",
+};
+
+// Type badge colors
+const TYPE_COLORS: Record<InvestigationType, string> = {
+  FULL: "bg-purple-100 text-purple-800",
+  LIMITED: "bg-blue-100 text-blue-800",
+  INQUIRY: "bg-gray-100 text-gray-800",
+};
+
+// SLA status colors
+const SLA_COLORS: Record<SlaStatus, string> = {
+  ON_TRACK: "bg-green-50 text-green-700 border-green-200",
+  WARNING: "bg-yellow-50 text-yellow-700 border-yellow-200",
+  OVERDUE: "bg-red-50 text-red-700 border-red-200",
 };
 
 /**
- * SLA status styling
+ * Investigation header with breadcrumbs, badges, pipeline progress, and meta info.
+ *
+ * Matches the case detail header pattern for consistent UX across record pages.
  */
-const SLA_STYLES: Record<SlaStatus, { bg: string; text: string; icon: string }> = {
-  ON_TRACK: { bg: 'bg-green-50', text: 'text-green-700', icon: 'text-green-500' },
-  WARNING: { bg: 'bg-yellow-50', text: 'text-yellow-700', icon: 'text-yellow-500' },
-  OVERDUE: { bg: 'bg-red-50', text: 'text-red-700', icon: 'text-red-500' },
-};
+export function InvestigationHeader({
+  investigation,
+  onAssign,
+  onStatusChange,
+}: InvestigationHeaderProps) {
+  // Determine current pipeline stage index
+  const currentStageIndex = (() => {
+    switch (investigation.status) {
+      case "NEW":
+        return 0;
+      case "ASSIGNED":
+        return 1;
+      case "INVESTIGATING":
+        return 2;
+      case "PENDING_REVIEW":
+        return 3;
+      case "CLOSED":
+        return 4;
+      case "ON_HOLD":
+        return 2; // Show at investigating stage when on hold
+      default:
+        return 0;
+    }
+  })();
 
-/**
- * Format date for display
- */
-function formatDate(dateString: string | null): string {
-  if (!dateString) return 'Not set';
-  const date = new Date(dateString);
-  return date.toLocaleDateString('en-US', {
-    weekday: 'short',
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  });
-}
+  // Calculate days since creation
+  const daysOpen = Math.floor(
+    (Date.now() - new Date(investigation.createdAt).getTime()) /
+      (1000 * 60 * 60 * 24),
+  );
 
-/**
- * Format date relative to today
- */
-function formatDueDate(dateString: string | null): { text: string; isOverdue: boolean } {
-  if (!dateString) return { text: 'No due date', isOverdue: false };
+  // Get SLA status
+  const slaStatus = investigation.slaStatus || "ON_TRACK";
 
-  const dueDate = new Date(dateString);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  dueDate.setHours(0, 0, 0, 0);
+  // Get investigation type (prefer type alias, fallback to investigationType)
+  const investigationType =
+    investigation.type || investigation.investigationType;
 
-  const diffTime = dueDate.getTime() - today.getTime();
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-  if (diffDays < 0) {
-    return { text: `${Math.abs(diffDays)} day${Math.abs(diffDays) !== 1 ? 's' : ''} overdue`, isOverdue: true };
-  } else if (diffDays === 0) {
-    return { text: 'Due today', isOverdue: false };
-  } else if (diffDays === 1) {
-    return { text: 'Due tomorrow', isOverdue: false };
-  } else if (diffDays <= 7) {
-    return { text: `Due in ${diffDays} days`, isOverdue: false };
-  }
-
-  return { text: formatDate(dateString), isOverdue: false };
-}
-
-/**
- * Header component for investigation detail panel
- */
-export function InvestigationHeader({ investigation }: InvestigationHeaderProps) {
-  const statusColors = STATUS_COLORS[investigation.status];
-  const slaStyles = SLA_STYLES[investigation.slaStatus];
-  const dueInfo = formatDueDate(investigation.dueDate);
+  // Get assigned investigators from array or construct from primary
+  const assignedInvestigators =
+    investigation.assignedInvestigators ||
+    (investigation.primaryInvestigator
+      ? [investigation.primaryInvestigator]
+      : []);
 
   return (
-    <div className="space-y-4 pb-4 border-b">
-      {/* Investigation number and status */}
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">
-            Investigation #{investigation.investigationNumber}
-          </h2>
-          <p className="text-sm text-muted-foreground mt-1">
-            Created {formatDate(investigation.createdAt)}
-          </p>
+    <div className="space-y-4">
+      {/* Breadcrumb */}
+      <nav className="flex items-center text-sm text-gray-500">
+        <Link href="/cases" className="hover:text-gray-700">
+          Cases
+        </Link>
+        <ChevronRight className="h-4 w-4 mx-1" />
+        <Link
+          href={`/cases/${investigation.caseId}`}
+          className="hover:text-gray-700"
+        >
+          {investigation.case?.referenceNumber || "Case"}
+        </Link>
+        <ChevronRight className="h-4 w-4 mx-1" />
+        <span className="text-gray-900 font-medium">
+          Investigation #{investigation.investigationNumber}
+        </span>
+      </nav>
+
+      {/* Title row */}
+      <div className="flex items-start justify-between">
+        <div className="space-y-2">
+          {/* Title + Badges */}
+          <div className="flex items-center gap-3 flex-wrap">
+            <h1 className="text-2xl font-bold text-gray-900">
+              Investigation #{investigation.investigationNumber}
+            </h1>
+            <Badge
+              className={cn("border-0", STATUS_COLORS[investigation.status])}
+            >
+              {investigation.status?.replace("_", " ")}
+            </Badge>
+            {investigationType && (
+              <Badge className={cn("border-0", TYPE_COLORS[investigationType])}>
+                {investigationType}
+              </Badge>
+            )}
+            <Badge
+              variant="outline"
+              className={cn("border", SLA_COLORS[slaStatus])}
+            >
+              {slaStatus === "ON_TRACK" && "On Track"}
+              {slaStatus === "WARNING" && (
+                <>
+                  <AlertTriangle className="h-3 w-3 mr-1" />
+                  Warning
+                </>
+              )}
+              {slaStatus === "OVERDUE" && (
+                <>
+                  <AlertTriangle className="h-3 w-3 mr-1" />
+                  Overdue
+                </>
+              )}
+            </Badge>
+          </div>
+
+          {/* Category */}
+          {investigation.category && (
+            <p className="text-sm text-gray-600">
+              {investigation.category.name}
+            </p>
+          )}
         </div>
 
-        {/* Status badge */}
-        <Badge
-          className={cn(
-            'text-sm font-medium border-0 px-3 py-1',
-            statusColors.bg,
-            statusColors.text
-          )}
-        >
-          {investigation.status.replace('_', ' ')}
-        </Badge>
+        {/* Actions */}
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={onAssign}>
+            Assign
+          </Button>
+          <Button variant="outline" size="sm" onClick={onStatusChange}>
+            Status
+          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem>Export</DropdownMenuItem>
+              <DropdownMenuItem>Print</DropdownMenuItem>
+              <DropdownMenuItem className="text-red-600">
+                Archive
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
 
-      {/* Type, Department, and SLA row */}
-      <div className="flex flex-wrap items-center gap-3">
-        {/* Investigation type */}
-        <Badge variant="outline" className="font-normal">
-          {investigation.investigationType}
-        </Badge>
+      {/* Info row - Pipeline + Meta */}
+      <div className="flex items-center justify-between pt-4 border-t flex-wrap gap-4">
+        {/* Pipeline progress */}
+        <div className="flex items-center gap-1">
+          {PIPELINE_STAGES.map((stage, idx) => (
+            <div key={stage} className="flex items-center">
+              <div
+                className={cn(
+                  "w-24 h-2 rounded-full",
+                  idx < currentStageIndex
+                    ? "bg-green-500"
+                    : idx === currentStageIndex
+                      ? investigation.status === "ON_HOLD"
+                        ? "bg-slate-400"
+                        : "bg-blue-500"
+                      : "bg-gray-200",
+                )}
+              />
+              {idx < PIPELINE_STAGES.length - 1 && <div className="w-1" />}
+            </div>
+          ))}
+          <span className="text-xs text-gray-500 ml-2">
+            {investigation.status === "ON_HOLD"
+              ? "On Hold"
+              : PIPELINE_STAGES[currentStageIndex]}
+          </span>
+        </div>
 
-        {/* Department */}
-        {investigation.department && (
-          <Badge variant="outline" className="font-normal">
-            {investigation.department}
-          </Badge>
-        )}
+        {/* Meta info */}
+        <div className="flex items-center gap-6 text-sm text-gray-500">
+          {/* Created date */}
+          <div className="flex items-center gap-1">
+            <Clock className="h-4 w-4" />
+            <span>
+              {new Date(investigation.createdAt).toLocaleDateString()} ·{" "}
+              {daysOpen}d
+            </span>
+          </div>
 
-        {/* SLA indicator */}
-        <div
-          className={cn(
-            'flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium',
-            slaStyles.bg,
-            slaStyles.text
+          {/* Assigned investigators */}
+          {assignedInvestigators.length > 0 && (
+            <div className="flex items-center gap-1">
+              <div className="flex -space-x-2">
+                {assignedInvestigators.slice(0, 3).map((inv) => (
+                  <Avatar
+                    key={inv.id}
+                    className="h-6 w-6 border-2 border-white"
+                  >
+                    <AvatarFallback className="text-xs bg-gray-200">
+                      {inv.firstName?.[0]}
+                      {inv.lastName?.[0]}
+                    </AvatarFallback>
+                  </Avatar>
+                ))}
+                {assignedInvestigators.length > 3 && (
+                  <Avatar className="h-6 w-6 border-2 border-white">
+                    <AvatarFallback className="text-xs bg-gray-200">
+                      +{assignedInvestigators.length - 3}
+                    </AvatarFallback>
+                  </Avatar>
+                )}
+              </div>
+            </div>
           )}
-        >
-          {investigation.slaStatus === 'OVERDUE' ? (
-            <AlertCircle className={cn('h-3.5 w-3.5', slaStyles.icon)} />
-          ) : (
-            <Clock className={cn('h-3.5 w-3.5', slaStyles.icon)} />
+
+          {/* SLA Due */}
+          {investigation.dueDate && (
+            <div className="flex items-center gap-1">
+              <span>
+                Due: {new Date(investigation.dueDate).toLocaleDateString()}
+              </span>
+            </div>
           )}
-          <span>{investigation.slaStatus.replace('_', ' ')}</span>
         </div>
       </div>
-
-      {/* Due date */}
-      {investigation.dueDate && (
-        <div
-          className={cn(
-            'flex items-center gap-2 text-sm',
-            dueInfo.isOverdue ? 'text-red-600' : 'text-muted-foreground'
-          )}
-        >
-          <Calendar className="h-4 w-4" />
-          <span>{dueInfo.text}</span>
-        </div>
-      )}
     </div>
   );
 }
