@@ -26,6 +26,7 @@ import { InvestigationFindings } from "@/components/investigations/investigation
 import { ChecklistPanel } from "@/components/investigations/checklist-panel";
 import { InvestigationActivityTimeline } from "@/components/investigations/investigation-activity-timeline";
 import { InvestigationInterviewsTab } from "@/components/investigations/investigation-interviews-tab";
+import { InvestigationFilesTab } from "@/components/investigations/investigation-files-tab";
 import { TemplateSelectorDialog } from "@/components/investigations/template-selector";
 import { useTrackRecentItem } from "@/contexts/shortcuts-context";
 import {
@@ -432,17 +433,12 @@ export default function InvestigationDetailPage() {
                 />
               </TabsContent>
 
-              {/* Files tab - placeholder */}
-              <TabsContent value="files" className="flex-1 overflow-auto p-4">
-                <div className="text-center py-12 border rounded-lg bg-gray-50">
-                  <Paperclip className="h-12 w-12 mx-auto text-gray-400" />
-                  <h3 className="mt-4 text-lg font-medium text-gray-900">
-                    Files
-                  </h3>
-                  <p className="mt-1 text-sm text-gray-500">
-                    File management coming soon.
-                  </p>
-                </div>
+              {/* Files tab */}
+              <TabsContent value="files" className="flex-1 overflow-auto">
+                <InvestigationFilesTab
+                  investigationId={investigation.id}
+                  onUploadFile={() => setEvidenceModalOpen(true)}
+                />
               </TabsContent>
 
               {/* Activity tab */}
