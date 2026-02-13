@@ -9,12 +9,28 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 
 ## Current Position
 
-Phase: 23 of 24+ (Help & Support System) — COMPLETE
-Plan: 05 of 05 in current phase
-Status: Phase complete — verified 6/6 success criteria, all fixes committed
-Last activity: 2026-02-13 - UAT verification passed, route prefix fix committed
+Phase: 25 of 25+ (Case & Investigation Page Redesign) — IN PROGRESS
+Plan: 02 of ?? in current phase
+Status: Executing 25-02, quick actions grid and properties panel complete
+Last activity: 2026-02-13 - Completed 25-02 (QuickActionGrid, LogCallModal, PropertySection)
 
 Progress: [===================================================================+] ~100% (Phase 21 adds new plans beyond original 24)
+
+### Phase 25 Case & Investigation Page Redesign IN PROGRESS (2026-02-13)
+
+- 25-01: Tab Reordering & Activity Timeline Fix (COMPLETE - ec291b9)
+  - Reordered case detail tabs: Overview, Activities, Investigations, Messages, Files, Remediation
+  - Activities tab now default (removed Summary tab per HubSpot pattern)
+  - Fixed timeline entry alignment by adding max-width constraint
+  - Updated tab counts to exclude removed Summary tab
+
+- 25-02: Quick Actions Grid & Properties Panel (COMPLETE - ef03540, dd95da5, c691f11)
+  - Created shared QuickActionGrid component (horizontal icon+label grid)
+  - Created LogCallModal for logging phone calls with metadata
+  - Refactored ActionButtonRow to use QuickActionGrid (6 actions: Note, Email, Call, Interview, Document, Task)
+  - Added ChevronRight with 90deg rotation to PropertySection
+  - Added Settings2 gear icon to each property section header
+  - showSettings and onSettingsClick props for future customization
 
 ### Phase 21 Project Management IN PROGRESS (2026-02-12)
 
