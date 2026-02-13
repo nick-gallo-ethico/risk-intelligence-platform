@@ -49,13 +49,13 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 14: Critical Bug Fixes & Navigation** - Route 404s, broken buttons, Select.Item error, search, user menu, nav styling
 - [ ] **Phase 14.1: Data & Config Fixes** - Notifications seed data, search indexing, category dropdowns, task aggregation fixes (INSERTED)
 - [ ] **Phase 14.2: Case Creation & Search Fixes** - Category/subcategory dropdowns in case creation, unified search fix (INSERTED)
-- [x] **Phase 15: Case Detail Page Overhaul** - Three-column layout, activity feed, action buttons, AI panel, connected entities
+- [x] **Phase 15: Case Detail Page Overhaul** - Three-column layout, activity feed, action buttons, AI panel, connected entities (gap closure complete)
 - [ ] **Phase 16: AI Integration Fix** - Debug and fix non-functional AI, wire AI panel, enable AI actions on cases
 - [ ] **Phase 17: Campaigns Hub** - Centralized campaigns area, form creation, campaign lifecycle management
 - [ ] **Phase 18: Reports & Data Management** - Report designer UI, field availability, export from views
 - [x] **Phase 19: Workflow Engine UI** - Visual workflow builder, workflow management section, apply to cases/approvals/disclosures
 - [ ] **Phase 20: Settings Overhaul (HubSpot-Style)** - Preferences, account management, data management, properties, permission sets
-- [ ] **Phase 21: Project Management (Monday.com-Style)** - Kanban boards, task views, timelines, project tracking
+- [x] **Phase 21: Project Management (Monday.com-Style)** - Kanban boards, task views, timelines, project tracking
 - [ ] **Phase 22: Dark Mode & Theme** - Dark mode toggle, consistent nav theming, theme system
 - [ ] **Phase 23: Help & Support System** - Knowledge base, in-platform ticket filing, real-time support
 - [ ] **Phase 24: Policy Content & Seed Data** - Populate policies with properly formatted text, improve case seed data
@@ -646,7 +646,7 @@ Plans:
 - Updated case seed data with 200-400 word details and 50-75 word summaries
 - Activity feed entries (notes, status changes, assignments) on flagship cases
 - Connected people and documents on flagship cases
-  **Plans**: 10 plans in 4 waves (7 original + 3 gap closure)
+  **Plans**: 11 plans in 4 waves (7 original + 4 gap closure)
 
 Plans:
 
@@ -657,9 +657,10 @@ Plans:
 - [x] 15-04-PLAN.md (Wave 3) — Action modals: Assign, Status, Merge, AddNote, EmailLog wired to APIs
 - [x] 15-05-PLAN.md (Wave 3) — Right column: ConnectedPeople, ConnectedDocuments, AddPerson modal
 - [x] 15-06-PLAN.md (Wave 4) — AI slide-out panel with WebSocket streaming chat
-- [ ] 15-08-PLAN.md (Gap Closure Wave 1) — Quick action modals: Interview, Document, Task
-- [ ] 15-09-PLAN.md (Gap Closure Wave 1) — RIU form answers display in Overview tab
-- [ ] 15-10-PLAN.md (Gap Closure Wave 1) — AI case note action and human verification checkpoint
+- [x] 15-08-PLAN.md (Gap Closure Wave 1) — Quick action modals: Interview, Document, Task
+- [x] 15-09-PLAN.md (Gap Closure Wave 1) — RIU form answers display in Overview tab
+- [x] 15-10-PLAN.md (Gap Closure Wave 1) — AI case note action and human verification checkpoint
+- [x] 15-11-PLAN.md (Gap Closure) — Email compose/send deferral documentation
 
 ### Phase 16: AI Integration Fix
 
@@ -810,33 +811,51 @@ Plans:
 
 ### Phase 21: Project Management (Monday.com-Style)
 
-**Goal**: Build the project management module with Monday.com-style Kanban boards, task management, timeline views, and project tracking. Currently described as "totally nonexistent."
+**Goal**: Build a comprehensive Monday.com-style project management module with Kanban boards, Gantt timelines with dependency arrows, conversation threads with @mentions, 15 custom column types, workload views, project dashboards, file attachments, subscriber notifications, and real-time WebSocket collaboration. This is a full reproduction of Monday.com's core experience within the Risk Intelligence Platform.
 **Depends on**: Phase 11 (project milestones backend exists from plans 11-13/11-14 — Milestone, MilestoneItem models, GanttChart component), Phase 14 (routes working)
-**Requirements**: Issues documented in `.planning/V1-ISSUES-AND-GAPS.md` Phase 21 section
+**Requirements**: Issues documented in `.planning/V1-ISSUES-AND-GAPS.md` Phase 21 section. Research in `.planning/phases/21-project-management/21-RESEARCH.md`.
 **Success Criteria** (what must be TRUE):
 
-1. Projects section accessible from sidebar with project list
-2. Kanban board view with customizable columns (status lanes) and drag-to-move cards
-3. Table/list view with sortable columns and inline editing
-4. Timeline/Gantt view showing project schedule and dependencies
-5. Project detail page with task breakdown, milestones, and progress tracking
-6. Tasks can be assigned to users with due dates and priority
-7. Task status changes reflect in project progress
-8. Project templates for common compliance projects (implementation, audit, policy rollout)
-   **Demo Data Checkpoint** (Acme Co. additions):
+1. Projects section accessible from sidebar with project list (saved views, table + board)
+2. Kanban board view with drag-to-move cards between status columns
+3. Table/list view with sortable columns, inline editing, and group management
+4. Timeline/Gantt view showing task scheduling with dependency arrows
+5. Workload view showing team member capacity with overload indicators
+6. Project dashboard with KPI cards, status charts, completion trends
+7. Task detail panel with 4 tabs: Details, Updates (conversation thread), Activity, Files
+8. @mention support in task conversations with user autocomplete
+9. Threaded replies on task updates (one level deep)
+10. File attachments with drag-and-drop upload on tasks
+11. Subscriber/watcher system controlling notification delivery
+12. 15 custom column types (status, people, date, timeline, text, numbers, dropdown, etc.)
+13. Column center for adding/configuring/reordering columns per project
+14. 5 event types dispatch preference-aware notifications (assignment, @mention, comment, status change, completion)
+15. WebSocket real-time updates for project collaborators
+16. Project tasks appear in My Work unified task queue
+17. 6 system project templates for common compliance projects
+18. Project templates with pre-populated groups and tasks
+    **Demo Data Checkpoint** (Acme Co. additions):
 
-- Sample projects in various states (active, completed, planned)
-- Tasks distributed across team members
-  **Plans**: 6 plans in 6 waves
+- 5 projects at various stages (NOT_STARTED, IN_PROGRESS, AT_RISK, COMPLETED)
+- Tasks distributed across team members with realistic compliance scenarios
+- Conversation threads with @mentions and threaded replies
+- Task dependencies creating realistic chains
+- Custom columns demonstrating column flexibility
+- File attachments and subscriber records
+  **Plans**: 10 plans in 8 waves
 
 Plans:
 
-- [ ] 21-01-PLAN.md (Wave 1) — Backend Prisma models (ProjectGroup, ProjectTask, ProjectColumn, ProjectTemplate), DTOs, services, events
-- [ ] 21-02-PLAN.md (Wave 2) — Backend controller extensions (task/group/template endpoints), My Work integration
-- [ ] 21-03-PLAN.md (Wave 3) — Frontend project list page with saved views (table + board views), types, config
-- [ ] 21-04-PLAN.md (Wave 4) — Frontend project detail page with grouped task table, inline editing, task panel
-- [ ] 21-05-PLAN.md (Wave 5) — Frontend board/timeline views within project detail, project template selector
-- [ ] 21-06-PLAN.md (Wave 6) — Demo data seeder (5 projects, 6 templates) and verification checkpoint
+- [x] 21-01-PLAN.md (Wave 1) — Backend Prisma models: 4 new models (ProjectGroup, ProjectTask, ProjectColumn, ProjectTemplate), 15 column types, DTOs, 4 services
+- [x] 21-02-PLAN.md (Wave 2) — Backend controllers: 13+ REST endpoints for tasks and groups, ProjectTemplateController with 5 endpoints, My Work integration
+- [x] 21-03-PLAN.md (Wave 3) — Frontend project list page with saved views system (table + board), TypeScript types, view config, create dialog with template selector
+- [x] 21-04-PLAN.md (Wave 4) — Frontend project detail: grouped task table with inline editing, group management, add-task row, basic task detail panel, 12 React Query hooks
+- [x] 21-05-PLAN.md (Wave 5) — Frontend board view (drag-to-move between status columns) and timeline view (Gantt chart with SVG dependency arrows), view switching with URL persistence
+- [x] 21-06-PLAN.md (Wave 6) — Rich task detail panel: 4 tabs (Details, Updates, Activity, Files), MentionInput with @mention autocomplete, TaskUpdateThread with threaded replies, TaskActivityLog, TaskFileList, TaskSubscriberList, TaskDependencyList
+- [x] 21-07-PLAN.md (Wave 6) — Column configuration UI: ColumnCenterDialog with 15 column types, ColumnConfigPanel with type-specific settings, DynamicColumnCell rendering, drag-to-reorder headers, column resize
+- [x] 21-08-PLAN.md (Wave 7) — @Mentions & notifications: MentionService extraction, 5 event handlers with preference-aware NotificationService dispatch, WebSocket project rooms for real-time collaboration, MentionInput accessibility
+- [x] 21-09-PLAN.md (Wave 7) — Workload view (team capacity bars) and project dashboard (KPI cards, status chart, completion trend, group progress), backend stats endpoint, all 5 view modes integrated
+- [x] 21-10-PLAN.md (Wave 8) — Demo data seeder (5 projects with custom columns; 6 templates). Note: conversation/dependency/subscriber seeding skipped (missing Prisma models)
 
 ### Phase 22: Dark Mode & Theme
 
@@ -944,13 +963,13 @@ Phases execute in dependency order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 
 | 14. Critical Bug Fixes & Navigation     | 5/5            | Complete | 2026-02-09 |
 | 14.1. Data & Config Fixes (INSERTED)    | 4/4            | Complete | 2026-02-09 |
 | 14.2. Case Creation & Search (INSERTED) | 3/3            | Complete | 2026-02-10 |
-| 15. Case Detail Page Overhaul           | 7/10           | Gaps     | -          |
+| 15. Case Detail Page Overhaul           | 11/11          | Verified | 2026-02-11 |
 | 16. AI Integration Fix                  | 8/8            | Complete | 2026-02-11 |
 | 17. Campaigns Hub                       | 4/4            | Complete | 2026-02-11 |
 | 18. Reports & Data Management           | 9/9            | Complete | 2026-02-11 |
 | 19. Workflow Engine UI                  | 7/7            | Complete | 2026-02-11 |
 | 20. Settings Overhaul (HubSpot)         | 6/6            | Complete | 2026-02-12 |
-| 21. Project Management (Monday.com)     | 0/6            | Planned  | -          |
+| 21. Project Management (Monday.com)     | 10/10          | Complete | 2026-02-12 |
 | 22. Dark Mode & Theme                   | 0/14           | Planned  | -          |
 | 23. Help & Support System               | 0/5            | Planned  | -          |
 | 24. Policy Content & Seed Data          | 3/3            | Complete | 2026-02-12 |

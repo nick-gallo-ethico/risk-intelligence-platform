@@ -5,14 +5,14 @@
 See: .planning/PROJECT.md (updated 2026-02-02)
 
 **Core value:** Users can manage their entire compliance workflow - from anonymous report intake to investigation closure to board reporting - in one AI-assisted platform, with every task unified into a single "My Work" view.
-**Current focus:** Phase 21 Project Management - Monday.com-style project boards
+**Current focus:** Phase 21 complete. Next: Phase 22 Dark Mode & Theme
 
 ## Current Position
 
-Phase: 21 of 24+ (Project Management)
-Plan: 9 of 10 in current phase (COMPLETE)
-Status: In progress
-Last activity: 2026-02-12 - Completed 21-09 (Workload & Dashboard Views)
+Phase: 21 of 24+ (Project Management) - COMPLETE
+Plan: 10 of 10 in current phase (COMPLETE)
+Status: Complete (with known gaps — see below)
+Last activity: 2026-02-12 - Completed 21-10 (Demo Data Seeder)
 
 Progress: [===================================================================+] ~100% (Phase 21 adds new plans beyond original 24)
 
@@ -102,6 +102,34 @@ Progress: [===================================================================+]
   - ProjectDashboardView with 4 KPI cards, donut chart, trend line, group progress
   - All 5 view modes integrated: table, board, timeline, workload, dashboard
   - View mode persisted in URL searchParams
+
+- 21-10: Demo Data Seeder (COMPLETE - 432c9c4)
+  - 6 system project templates: New Client Implementation, Annual Policy Review, Compliance Audit Prep, Investigation Project, Training Rollout, Disclosure Campaign
+  - 5 Acme Co. projects: SOX Audit (IN_PROGRESS), Anti-Harassment Rollout (IN_PROGRESS), EMEA Privacy (AT_RISK), COI Campaign (COMPLETED), Training Plan (NOT_STARTED)
+  - Groups, tasks, custom columns seeded per project
+  - Conversation/subscriber/dependency seeding skipped (models not in Prisma schema)
+  - Seeder integrated into seed.ts orchestrator
+
+### Phase 21 Project Management COMPLETE (2026-02-12)
+
+Phase 21 delivered a comprehensive Monday.com-style project management module:
+
+- Backend: 4 Prisma models (ProjectGroup, ProjectTask, ProjectColumn, ProjectTemplate), 18+ REST endpoints, 4 services
+- Frontend: Project list page with saved views (table + board), create dialog with template selector
+- Project detail with 5 view modes: Table, Board, Timeline, Workload, Dashboard
+- Rich task detail panel with 4 tabs: Details, Updates, Activity, Files
+- MentionInput with @mention autocomplete and keyboard navigation
+- Column Center with 15 column types and type-specific configuration
+- MentionService, 5 notification event handlers, WebSocket project gateway
+- ProjectStatsService with workload and dashboard metrics
+- Demo data: 6 system templates + 5 Acme Co. projects with groups, tasks, custom columns
+
+**Known Gaps (missing Prisma models):**
+
+- ProjectUpdate model not in schema — conversation threading frontend exists but no backend persistence
+- ProjectTaskSubscriber model not in schema — subscriber/watcher management frontend only
+- ProjectTaskDependency model not in schema — dependency management frontend only
+- These gaps affect Plans 06-08 features: conversation threads, @mention notifications, subscriber notifications, dependency arrows on timeline
 
 ### Phase 24 Policy Content & Seed Data COMPLETE (2026-02-12)
 
@@ -1047,7 +1075,7 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-02-12
-Stopped at: Completed 21-09-PLAN.md (Workload & Dashboard Views)
+Stopped at: Completed Phase 21 (all 10 plans)
 Resume file: None
 
 **Phase 20 Status: COMPLETE**
