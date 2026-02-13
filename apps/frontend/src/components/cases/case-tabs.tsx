@@ -13,7 +13,6 @@ import { CaseInvestigationsPanel } from "./case-investigations-panel";
 import { MessagesTab } from "./messages-tab";
 import { FilesTab } from "./files-tab";
 import { RemediationTab } from "./remediation-tab";
-import { SummaryTab } from "./summary-tab";
 import type { Case } from "@/types/case";
 
 /**
