@@ -5,12 +5,14 @@ import { useParams, useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/auth-context";
 import { useTrackRecentItem } from "@/contexts/shortcuts-context";
 import { useGlobalShortcuts } from "@/hooks/use-keyboard-shortcuts";
+import { usePipeline } from "@/hooks/usePipeline";
 import { casesApi } from "@/lib/cases-api";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { RecordDetailLayout } from "@/components/record-detail/RecordDetailLayout";
 import { RecordHeader } from "@/components/record-detail/RecordHeader";
 import { ActionsDropdown } from "@/components/record-detail/ActionsDropdown";
+import { PipelineStageBar } from "@/components/record-detail/PipelineStageBar";
 import { CASES_DETAIL_CONFIG } from "@/config/casesDetailConfig";
 import { CaseDetailHeader } from "@/components/cases/case-detail-header";
 import { CasePropertiesPanel } from "@/components/cases/case-properties-panel";
@@ -84,6 +86,20 @@ function CaseDetailPageContent() {
   const [activeTab, setActiveTab] = useState<string>("overview");
 
   const caseId = params?.id as string;
+
+  // Pipeline stage management via usePipeline hook
+  const {
+    stages: pipelineStages,
+    currentStage,
+    daysInCurrentStage,
+    canTransitionTo,
+    requestTransition,
+    isTransitioning,
+  } = usePipeline({
+    caseId: caseId || "",
+    currentStage: caseData?.pipelineStage || "new",
+    stageEnteredAt: caseData?.updatedAt, // Using updatedAt as proxy for stage entry
+  });
 
   // Register go back shortcut
   useGlobalShortcuts({
@@ -352,18 +368,37 @@ function CaseDetailPageContent() {
     </>
   );
 
-  // Center column content
+  // Center column content with PipelineStageBar above tabs
   const centerColumnContent = (
-    <CaseTabs
-      caseData={caseData}
-      isLoading={loading}
-      counts={{
-        investigations: 0, // TODO: Get from API
-        messages: 0,
-        unreadMessages: 0,
-        files: 0,
-      }}
-    />
+    <div className="flex flex-col h-full">
+      {/* Pipeline Stage Bar - sticky above tabs */}
+      {caseData && (
+        <PipelineStageBar
+          stages={pipelineStages}
+          currentStageId={caseData.pipelineStage || "new"}
+          stageEnteredAt={caseData.updatedAt}
+          onStageTransition={requestTransition}
+          canTransitionTo={canTransitionTo}
+          isTransitioning={isTransitioning}
+          daysInCurrentStage={daysInCurrentStage}
+        />
+      )}
+      {/* Tabs */}
+      <div className="flex-1 min-h-0">
+        <CaseTabs
+          caseData={caseData}
+          isLoading={loading}
+          counts={{
+            investigations: 0, // TODO: Get from API
+            messages: 0,
+            unreadMessages: 0,
+            files: 0,
+          }}
+          onRefresh={fetchCase}
+          onCreateTask={() => setTaskModalOpen(true)}
+        />
+      </div>
+    </div>
   );
 
   // Right sidebar content - 9 cards in spec order (Section 17.1)

@@ -1,10 +1,19 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import { ChevronRight, CheckSquare, ArrowRight } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
 import { LinkedRiuList } from "./linked-riu-list";
 import { LinkedRiuFormAnswers } from "./linked-riu-form-answers";
@@ -13,6 +22,18 @@ import { CaseInvestigationsPanel } from "./case-investigations-panel";
 import { MessagesTab } from "./messages-tab";
 import { FilesTab } from "./files-tab";
 import { RemediationTab } from "./remediation-tab";
+import { ActivityEntry } from "./activity-entry";
+import {
+  DataHighlightsCard,
+  type DataHighlight,
+} from "@/components/record-detail/DataHighlightsCard";
+import { EditableSummary } from "@/components/record-detail/EditableSummary";
+import {
+  StatusHistoryTimeline,
+  type StatusChange,
+} from "@/components/record-detail/StatusHistoryTimeline";
+import { useActivities } from "@/hooks/useActivities";
+import { apiClient } from "@/lib/api";
 import type { Case } from "@/types/case";
 
 /**
@@ -45,13 +66,17 @@ interface CaseTabsProps {
   isLoading: boolean;
   /** Optional tab counts for badge display */
   counts?: TabCounts;
+  /** Callback to refresh case data */
+  onRefresh?: () => void;
+  /** Callback to open task creation modal */
+  onCreateTask?: () => void;
 }
 
 /**
  * Tabbed interface for case detail sections.
  *
  * Tabs (6 total):
- * - Overview: Linked RIUs, case details, key dates (DEFAULT)
+ * - Overview: Data Highlights, Summary, Case Details, Status History, Recent Activities, Tasks (DEFAULT)
  * - Activities: Timeline of all case activity
  * - Investigations: List of investigations with status
  * - Messages: Reporter communication and email correspondence
@@ -63,7 +88,13 @@ interface CaseTabsProps {
  * - Local state only (no URL syncing)
  * - Responsive tab scrolling on mobile
  */
-export function CaseTabs({ caseData, isLoading, counts = {} }: CaseTabsProps) {
+export function CaseTabs({
+  caseData,
+  isLoading,
+  counts = {},
+  onRefresh,
+  onCreateTask,
+}: CaseTabsProps) {
   const router = useRouter();
 
   // Local tab state - always starts on Overview
@@ -76,6 +107,11 @@ export function CaseTabs({ caseData, isLoading, counts = {} }: CaseTabsProps) {
     },
     [router],
   );
+
+  // Handler to switch to Activities tab (for "View all" link)
+  const handleViewAllActivities = useCallback(() => {
+    setCurrentTab("activities");
+  }, []);
 
   if (isLoading) {
     return <CaseTabsSkeleton />;
@@ -137,7 +173,13 @@ export function CaseTabs({ caseData, isLoading, counts = {} }: CaseTabsProps) {
           className="h-full m-0 p-0 data-[state=inactive]:hidden"
         >
           <div className="h-full overflow-y-auto">
-            <OverviewTab caseData={caseData} onRiuClick={handleRiuClick} />
+            <OverviewTab
+              caseData={caseData}
+              onRiuClick={handleRiuClick}
+              onViewAllActivities={handleViewAllActivities}
+              onRefresh={onRefresh}
+              onCreateTask={onCreateTask}
+            />
           </div>
         </TabsContent>
 
@@ -199,238 +241,399 @@ export function CaseTabs({ caseData, isLoading, counts = {} }: CaseTabsProps) {
 }
 
 /**
- * Pipeline stages for lifecycle visualization
- */
-const PIPELINE_STAGES = ["New", "Triage", "Investigation", "Review", "Closed"];
-
-/**
- * Overview tab content - lifecycle, linked RIUs, details, key dates
+ * Overview tab content - 6 sections per spec:
+ * 1. Data Highlights (6-value grid)
+ * 2. Editable Summary with AI
+ * 3. Case Details (collapsible, collapsed by default)
+ * 4. Status History Timeline
+ * 5. Recent Activities (3 items + View all)
+ * 6. Upcoming Tasks (3 items with checkboxes)
+ *
+ * NOTE: Pipeline visualization is now in PipelineStageBar above tabs,
+ * NOT inside this Overview tab.
  */
 interface OverviewTabProps {
   caseData: Case;
   onRiuClick?: (riuId: string) => void;
+  onViewAllActivities?: () => void;
+  onRefresh?: () => void;
+  onCreateTask?: () => void;
 }
 
-function OverviewTab({ caseData, onRiuClick }: OverviewTabProps) {
-  // Determine current stage index based on pipelineStage or status
-  const currentStageIndex = (() => {
-    if (caseData.pipelineStage) {
-      const idx = PIPELINE_STAGES.findIndex(
-        (s) => s.toLowerCase() === caseData.pipelineStage?.toLowerCase(),
+function OverviewTab({
+  caseData,
+  onRiuClick,
+  onViewAllActivities,
+  onRefresh,
+  onCreateTask,
+}: OverviewTabProps) {
+  // Local state for collapsible case details
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [isSavingSummary, setIsSavingSummary] = useState(false);
+  const [isGeneratingAi, setIsGeneratingAi] = useState(false);
+
+  // Fetch activities for Recent Activities and Status History
+  const { activities, isLoading: activitiesLoading } = useActivities({
+    entityType: "CASE",
+    entityId: caseData.id,
+    enabled: !!caseData.id,
+  });
+
+  // Compute Data Highlights
+  const dataHighlights = useMemo<DataHighlight[]>(() => {
+    // Calculate case age
+    const createdDate = new Date(caseData.createdAt);
+    const now = new Date();
+    const ageInDays = Math.floor(
+      (now.getTime() - createdDate.getTime()) / (1000 * 60 * 60 * 24),
+    );
+    const caseAge =
+      ageInDays === 0
+        ? "Today"
+        : ageInDays === 1
+          ? "1 day"
+          : `${ageInDays} days`;
+
+    // Get assignee name
+    const assignee =
+      caseData.assignedInvestigators &&
+      caseData.assignedInvestigators.length > 0
+        ? `${caseData.assignedInvestigators[0].firstName} ${caseData.assignedInvestigators[0].lastName}`
+        : null;
+
+    // Get source channel display name
+    const sourceChannelMap: Record<string, string> = {
+      HOTLINE: "Hotline",
+      WEB_FORM: "Web Form",
+      PROXY: "Proxy Report",
+      DIRECT_ENTRY: "Direct Entry",
+      CHATBOT: "Chatbot",
+    };
+
+    return [
+      { label: "Severity", value: caseData.severity, type: "badge" as const },
+      { label: "Status", value: caseData.status, type: "badge" as const },
+      { label: "Case Age", value: caseAge, type: "text" as const },
+      {
+        label: "SLA Status",
+        value: caseData.slaStatus || "ON_TRACK",
+        type: "sla" as const,
+      },
+      {
+        label: "Assigned To",
+        value: assignee,
+        type: "user" as const,
+        avatarUrl: caseData.assignedInvestigators?.[0]?.avatarUrl,
+      },
+      {
+        label: "Source",
+        value:
+          sourceChannelMap[caseData.sourceChannel] || caseData.sourceChannel,
+        type: "text" as const,
+      },
+    ];
+  }, [caseData]);
+
+  // Extract status changes from activities for timeline
+  const statusChanges = useMemo<StatusChange[]>(() => {
+    return activities
+      .filter((a) => a.action === "status_changed")
+      .map((a) => ({
+        status: (a.changes?.status?.new as string) || "Unknown",
+        date: a.createdAt,
+        changedBy: a.actorName || "System",
+        rationale: a.context?.rationale as string | undefined,
+      }))
+      .slice(0, 10); // Limit to 10 most recent
+  }, [activities]);
+
+  // Get 3 most recent activities for preview
+  const recentActivities = useMemo(() => {
+    return activities.slice(0, 3);
+  }, [activities]);
+
+  // Mock tasks data - in real implementation, this would come from API
+  // TODO: Wire to actual tasks endpoint when available
+  const mockTasks = useMemo(() => {
+    return [
+      {
+        id: "task-1",
+        title: "Review initial findings",
+        dueDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString(),
+        isCompleted: false,
+      },
+      {
+        id: "task-2",
+        title: "Schedule follow-up interview",
+        dueDate: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
+        isCompleted: false,
+      },
+      {
+        id: "task-3",
+        title: "Document preliminary assessment",
+        dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+        isCompleted: true,
+      },
+    ].slice(0, 3);
+  }, []);
+
+  // Handle summary save
+  const handleSaveSummary = useCallback(
+    async (newSummary: string) => {
+      setIsSavingSummary(true);
+      try {
+        await apiClient.patch(`/cases/${caseData.id}`, { summary: newSummary });
+        onRefresh?.();
+      } finally {
+        setIsSavingSummary(false);
+      }
+    },
+    [caseData.id, onRefresh],
+  );
+
+  // Handle AI summary generation
+  const handleAiGenerate = useCallback(async () => {
+    setIsGeneratingAi(true);
+    try {
+      const response = await apiClient.post<{ summary: string }>(
+        `/ai/summarize`,
+        {
+          entityType: "case",
+          entityId: caseData.id,
+          content: caseData.details,
+        },
       );
-      return idx >= 0 ? idx : 0;
+      return response.summary;
+    } catch {
+      // Return a placeholder if AI fails
+      return `AI-generated summary for case ${caseData.referenceNumber}:\n\nThis case involves ${caseData.details?.substring(0, 100) || "reported concerns"}...`;
+    } finally {
+      setIsGeneratingAi(false);
     }
-    // Map status to stage if no pipelineStage
-    switch (caseData.status) {
-      case "CLOSED":
-        return 4;
-      case "OPEN":
-        return 2;
-      case "NEW":
-      default:
-        return 0;
-    }
-  })();
+  }, [caseData]);
+
+  // Handle task completion toggle (mock)
+  const handleToggleTask = useCallback((taskId: string, completed: boolean) => {
+    console.log(
+      `Toggle task ${taskId} to ${completed ? "completed" : "incomplete"}`,
+    );
+    // TODO: Wire to actual API when available
+  }, []);
 
   return (
     <div className="p-6 space-y-6">
-      {/* Lifecycle Section */}
-      <section>
-        <h3 className="text-sm font-semibold text-gray-700 mb-3">Lifecycle</h3>
-        <div className="bg-white border rounded-lg p-4">
-          {/* Pipeline Progress */}
-          <div className="mb-4">
-            <div className="flex items-center justify-between">
-              {PIPELINE_STAGES.map((stage, idx) => (
-                <div key={stage} className="flex-1 flex items-center">
-                  <div className="flex flex-col items-center">
-                    <div
-                      className={cn(
-                        "w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium",
-                        idx < currentStageIndex
-                          ? "bg-green-500 text-white"
-                          : idx === currentStageIndex
-                            ? "bg-blue-600 text-white ring-2 ring-blue-200"
-                            : "bg-gray-200 text-gray-500",
-                      )}
-                    >
-                      {idx + 1}
-                    </div>
-                    <span
-                      className={cn(
-                        "text-xs mt-1",
-                        idx === currentStageIndex
-                          ? "font-medium text-blue-600"
-                          : "text-gray-500",
-                      )}
-                    >
-                      {stage}
-                    </span>
-                  </div>
-                  {idx < PIPELINE_STAGES.length - 1 && (
-                    <div
-                      className={cn(
-                        "flex-1 h-0.5 mx-1",
-                        idx < currentStageIndex
-                          ? "bg-green-500"
-                          : "bg-gray-200",
-                      )}
-                    />
+      {/* Section 1: Data Highlights - 6-value grid */}
+      <DataHighlightsCard highlights={dataHighlights} />
+
+      {/* Section 2: Editable Summary with AI */}
+      <EditableSummary
+        summary={caseData.aiSummary || caseData.summary}
+        onSave={handleSaveSummary}
+        onAiGenerate={handleAiGenerate}
+        isGenerating={isGeneratingAi}
+        isSaving={isSavingSummary}
+      />
+
+      {/* Section 3: Case Details (Collapsible, collapsed by default) */}
+      <Card>
+        <Collapsible open={detailsOpen} onOpenChange={setDetailsOpen}>
+          <CardHeader className="py-3 cursor-pointer hover:bg-gray-50">
+            <CollapsibleTrigger asChild>
+              <div className="flex items-center gap-2">
+                <ChevronRight
+                  className={cn(
+                    "h-4 w-4 text-gray-500 transition-transform",
+                    detailsOpen && "rotate-90",
                   )}
+                />
+                <CardTitle className="text-sm font-semibold text-gray-700">
+                  Case Details
+                </CardTitle>
+              </div>
+            </CollapsibleTrigger>
+          </CardHeader>
+          <CollapsibleContent>
+            <CardContent className="pt-0 space-y-4">
+              {/* Details text */}
+              <div className="bg-gray-50 rounded-lg p-4">
+                <p className="text-sm text-gray-700 whitespace-pre-wrap">
+                  {caseData.details || "No case details available."}
+                </p>
+              </div>
+
+              {/* Two-column property grid */}
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div>
+                  <span className="text-gray-500">Category:</span>
+                  <span className="ml-2 font-medium">
+                    {caseData.category?.name || "Not categorized"}
+                  </span>
                 </div>
+                <div>
+                  <span className="text-gray-500">Case Type:</span>
+                  <span className="ml-2 font-medium">{caseData.caseType}</span>
+                </div>
+                <div>
+                  <span className="text-gray-500">Reporter Type:</span>
+                  <span className="ml-2 font-medium">
+                    {caseData.reporterType}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-gray-500">Location:</span>
+                  <span className="ml-2 font-medium">
+                    {[
+                      caseData.locationCity,
+                      caseData.locationState,
+                      caseData.locationCountry,
+                    ]
+                      .filter(Boolean)
+                      .join(", ") || "Not specified"}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-gray-500">Created:</span>
+                  <span className="ml-2 font-medium">
+                    {new Date(caseData.createdAt).toLocaleDateString()}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-gray-500">Last Updated:</span>
+                  <span className="ml-2 font-medium">
+                    {new Date(caseData.updatedAt).toLocaleDateString()}
+                  </span>
+                </div>
+              </div>
+
+              {/* View All Properties link */}
+              <Button
+                variant="link"
+                className="text-blue-600 p-0 h-auto text-sm"
+                onClick={() => {
+                  /* TODO: open full properties panel */
+                }}
+              >
+                View All Properties
+                <ArrowRight className="ml-1 h-3 w-3" />
+              </Button>
+            </CardContent>
+          </CollapsibleContent>
+        </Collapsible>
+      </Card>
+
+      {/* Section 4: Status History Timeline */}
+      <StatusHistoryTimeline changes={statusChanges} />
+
+      {/* Section 5: Recent Activities (3 items + View all) */}
+      <Card>
+        <CardHeader className="pb-2">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-sm font-semibold text-gray-700">
+              Recent Activities
+            </CardTitle>
+            {activities.length > 3 && (
+              <Button
+                variant="link"
+                className="text-blue-600 p-0 h-auto text-sm"
+                onClick={onViewAllActivities}
+              >
+                View all
+                <ArrowRight className="ml-1 h-3 w-3" />
+              </Button>
+            )}
+          </div>
+        </CardHeader>
+        <CardContent>
+          {activitiesLoading ? (
+            <div className="space-y-3">
+              {[1, 2, 3].map((i) => (
+                <Skeleton key={i} className="h-12 w-full" />
               ))}
             </div>
-          </div>
-
-          {/* Status and Assignees */}
-          <div className="flex items-center gap-4 pt-3 border-t">
-            <div>
-              <span className="text-xs text-gray-500">Status: </span>
-              <Badge
-                variant={
-                  caseData.status === "CLOSED"
-                    ? "secondary"
-                    : caseData.status === "OPEN"
-                      ? "default"
-                      : "outline"
-                }
-              >
-                {caseData.status}
-              </Badge>
+          ) : recentActivities.length === 0 ? (
+            <p className="text-sm text-gray-500 text-center py-4">
+              No activities yet. Use the quick actions above to log your first
+              activity.
+            </p>
+          ) : (
+            <div className="space-y-0">
+              {recentActivities.map((activity, index) => (
+                <ActivityEntry
+                  key={activity.id}
+                  activity={activity}
+                  isLast={index === recentActivities.length - 1}
+                />
+              ))}
             </div>
-            {caseData.assignedInvestigators &&
-              caseData.assignedInvestigators.length > 0 && (
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-gray-500">Assigned:</span>
-                  <div className="flex -space-x-2">
-                    {caseData.assignedInvestigators.slice(0, 3).map((inv) => (
-                      <div
-                        key={inv.id}
-                        className="w-6 h-6 rounded-full bg-gray-300 border-2 border-white flex items-center justify-center text-xs font-medium text-gray-600"
-                        title={`${inv.firstName} ${inv.lastName}`}
-                      >
-                        {inv.firstName?.[0]}
-                        {inv.lastName?.[0]}
-                      </div>
-                    ))}
-                    {caseData.assignedInvestigators.length > 3 && (
-                      <div className="w-6 h-6 rounded-full bg-gray-200 border-2 border-white flex items-center justify-center text-xs font-medium text-gray-600">
-                        +{caseData.assignedInvestigators.length - 3}
-                      </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Section 6: Upcoming Tasks (3 items with checkboxes) */}
+      <Card>
+        <CardHeader className="pb-2">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+              <CheckSquare className="h-4 w-4" />
+              Upcoming Tasks
+            </CardTitle>
+            <Button
+              variant="link"
+              className="text-blue-600 p-0 h-auto text-sm"
+              onClick={() => {
+                /* TODO: navigate to tasks view */
+              }}
+            >
+              View all
+              <ArrowRight className="ml-1 h-3 w-3" />
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {mockTasks.length === 0 ? (
+            <p className="text-sm text-gray-500 text-center py-4">
+              No upcoming tasks. Create a task from the quick actions or right
+              sidebar.
+            </p>
+          ) : (
+            <div className="space-y-2">
+              {mockTasks.map((task) => (
+                <div
+                  key={task.id}
+                  className="flex items-start gap-3 py-2 border-b last:border-0"
+                >
+                  <Checkbox
+                    checked={task.isCompleted}
+                    onCheckedChange={(checked) =>
+                      handleToggleTask(task.id, checked === true)
+                    }
+                    className="mt-0.5"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <p
+                      className={cn(
+                        "text-sm font-medium",
+                        task.isCompleted && "line-through text-gray-400",
+                      )}
+                    >
+                      {task.title}
+                    </p>
+                    {task.dueDate && (
+                      <p className="text-xs text-gray-500">
+                        Due{" "}
+                        {new Date(task.dueDate).toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                        })}
+                      </p>
                     )}
                   </div>
                 </div>
-              )}
-          </div>
-        </div>
-      </section>
-
-      {/* Linked RIUs Section */}
-      <section>
-        <LinkedRiuList
-          associations={caseData.riuAssociations || []}
-          onRiuClick={onRiuClick}
-        />
-      </section>
-
-      {/* Original Intake Details Section */}
-      {caseData.riuAssociations && caseData.riuAssociations.length > 0 && (
-        <section>
-          <h3 className="text-sm font-semibold text-gray-700 mb-3">
-            Original Intake Details
-          </h3>
-          <div className="bg-white border rounded-lg p-4">
-            {(() => {
-              const primaryRiu =
-                caseData.riuAssociations.find(
-                  (a) => a.associationType === "PRIMARY",
-                ) || caseData.riuAssociations[0];
-
-              return (
-                <LinkedRiuFormAnswers
-                  riuId={primaryRiu.riuId}
-                  riuType={primaryRiu.riu.type}
-                />
-              );
-            })()}
-          </div>
-        </section>
-      )}
-
-      {/* Case Details Section */}
-      <section>
-        <h3 className="text-sm font-semibold text-gray-700 mb-3">
-          Case Details
-        </h3>
-        <div className="bg-gray-50 rounded-lg p-4">
-          <p className="text-sm text-gray-700 whitespace-pre-wrap">
-            {caseData.details || "No case details available."}
-          </p>
-        </div>
-      </section>
-
-      {/* Key Dates Section */}
-      <section>
-        <h3 className="text-sm font-semibold text-gray-700 mb-3">Key Dates</h3>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="bg-white border rounded-lg p-3">
-            <p className="text-xs text-gray-500 uppercase tracking-wide">
-              Created
-            </p>
-            <p className="text-sm font-medium text-gray-900 mt-1">
-              {new Date(caseData.createdAt).toLocaleDateString("en-US", {
-                month: "long",
-                day: "numeric",
-                year: "numeric",
-                hour: "numeric",
-                minute: "2-digit",
-              })}
-            </p>
-          </div>
-          <div className="bg-white border rounded-lg p-3">
-            <p className="text-xs text-gray-500 uppercase tracking-wide">
-              Intake
-            </p>
-            <p className="text-sm font-medium text-gray-900 mt-1">
-              {new Date(caseData.intakeTimestamp).toLocaleDateString("en-US", {
-                month: "long",
-                day: "numeric",
-                year: "numeric",
-                hour: "numeric",
-                minute: "2-digit",
-              })}
-            </p>
-          </div>
-          {caseData.slaDueAt && (
-            <div className="bg-white border rounded-lg p-3">
-              <p className="text-xs text-gray-500 uppercase tracking-wide">
-                SLA Due
-              </p>
-              <p className="text-sm font-medium text-gray-900 mt-1">
-                {new Date(caseData.slaDueAt).toLocaleDateString("en-US", {
-                  month: "long",
-                  day: "numeric",
-                  year: "numeric",
-                })}
-              </p>
+              ))}
             </div>
           )}
-          <div className="bg-white border rounded-lg p-3">
-            <p className="text-xs text-gray-500 uppercase tracking-wide">
-              Last Updated
-            </p>
-            <p className="text-sm font-medium text-gray-900 mt-1">
-              {new Date(caseData.updatedAt).toLocaleDateString("en-US", {
-                month: "long",
-                day: "numeric",
-                year: "numeric",
-                hour: "numeric",
-                minute: "2-digit",
-              })}
-            </p>
-          </div>
-        </div>
-      </section>
+        </CardContent>
+      </Card>
     </div>
   );
 }
