@@ -223,14 +223,16 @@ export class InvestigationsService {
     query: InvestigationQueryDto,
     organizationId: string,
   ): Promise<{
-    data: Investigation[];
+    data: Record<string, unknown>[];
     total: number;
     limit: number;
     page: number;
+    pageSize: number;
   }> {
     const {
       limit = 25,
       page = 1,
+      offset,
       status,
       assignedToId,
       department,
@@ -238,7 +240,19 @@ export class InvestigationsService {
       sortOrder = "desc",
     } = query;
 
-    const skip = (page - 1) * limit;
+    // Support both offset-based and page-based pagination
+    const skip = offset !== undefined ? offset : (page - 1) * limit;
+
+    // Map frontend sort field names to Prisma field names
+    const sortFieldMap: Record<string, string> = {
+      stage: "status",
+      type: "investigationType",
+      startedAt: "assignedAt",
+      targetEndDate: "dueDate",
+      completedAt: "closedAt",
+      leadInvestigator: "primaryInvestigatorId",
+    };
+    const prismaSort = sortFieldMap[sortBy] || sortBy;
 
     // Build where clause - ALWAYS includes organizationId
     const where: Prisma.InvestigationWhereInput = {
@@ -262,7 +276,7 @@ export class InvestigationsService {
         where,
         skip,
         take: limit,
-        orderBy: { [sortBy]: sortOrder },
+        orderBy: { [prismaSort]: sortOrder },
         include: {
           case: {
             select: {
@@ -285,7 +299,76 @@ export class InvestigationsService {
       this.prisma.investigation.count({ where }),
     ]);
 
-    return { data, total, limit, page };
+    // Map Prisma model to frontend-expected shape
+    const mapped = data.map((inv) => this.mapToViewResponse(inv));
+
+    return { data: mapped, total, limit, page, pageSize: limit };
+  }
+
+  /**
+   * Maps a Prisma Investigation to the frontend view-compatible shape.
+   * Translates field names: status→stage, investigationType→type, etc.
+   */
+  private mapToViewResponse(
+    inv: Investigation & {
+      case?: {
+        id: string;
+        referenceNumber: string;
+        summary: string | null;
+        status: string;
+      } | null;
+      primaryInvestigator?: {
+        id: string;
+        firstName: string;
+        lastName: string;
+        email: string;
+      } | null;
+    },
+  ): Record<string, unknown> {
+    return {
+      id: inv.id,
+      investigationNumber: `INV-${inv.investigationNumber}`,
+      title:
+        inv.findingsSummary ||
+        inv.statusRationale ||
+        `Investigation #${inv.investigationNumber}`,
+      stage: inv.status?.toLowerCase(),
+      type: inv.investigationType?.toLowerCase(),
+      outcome: inv.outcome?.toLowerCase() || null,
+      leadInvestigator: inv.primaryInvestigator
+        ? {
+            id: inv.primaryInvestigator.id,
+            name: `${inv.primaryInvestigator.firstName} ${inv.primaryInvestigator.lastName}`,
+            avatar: null,
+          }
+        : null,
+      team: inv.department
+        ? { id: inv.department.toLowerCase(), name: inv.department }
+        : null,
+      case: inv.case
+        ? {
+            id: inv.case.id,
+            caseNumber: inv.case.referenceNumber,
+          }
+        : null,
+      startedAt: inv.assignedAt?.toISOString() || inv.createdAt.toISOString(),
+      targetEndDate: inv.dueDate?.toISOString() || null,
+      completedAt: inv.closedAt?.toISOString() || null,
+      createdAt: inv.createdAt.toISOString(),
+      updatedAt: inv.updatedAt.toISOString(),
+      interviewCount: 0,
+      checklistProgress: inv.status === "CLOSED" ? 100 : 0,
+      documentCount: 0,
+      subjectCount: 0,
+      // Include raw fields for detail page
+      status: inv.status,
+      slaStatus: inv.slaStatus,
+      department: inv.department,
+      findingsSummary: inv.findingsSummary,
+      findingsDetail: inv.findingsDetail,
+      rootCause: inv.rootCause,
+      lessonsLearned: inv.lessonsLearned,
+    };
   }
 
   // -------------------------------------------------------------------------

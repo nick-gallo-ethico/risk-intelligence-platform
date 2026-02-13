@@ -30,7 +30,7 @@ export class InvestigationQueryDto {
   limit?: number = 20;
 
   @ApiPropertyOptional({
-    description: "Page number",
+    description: "Page number (used if offset not provided)",
     example: 1,
     default: 1,
     minimum: 1,
@@ -40,6 +40,18 @@ export class InvestigationQueryDto {
   @IsOptional()
   @Transform(({ value }) => parseInt(value, 10))
   page?: number = 1;
+
+  @ApiPropertyOptional({
+    description: "Number of items to skip (takes priority over page)",
+    example: 0,
+    default: 0,
+    minimum: 0,
+  })
+  @IsInt()
+  @Min(0)
+  @IsOptional()
+  @Transform(({ value }) => parseInt(value, 10))
+  offset?: number;
 
   @ApiPropertyOptional({
     description: "Filter by investigation status",

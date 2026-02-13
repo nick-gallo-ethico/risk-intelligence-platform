@@ -70,7 +70,5 @@ export function ActionButtonRow({
     },
   ];
 
-  return (
-    <QuickActionGrid actions={actions} columns={4} className={className} />
-  );
+  return <QuickActionGrid actions={actions} className={className} />;
 }

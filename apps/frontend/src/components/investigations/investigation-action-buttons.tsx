@@ -73,7 +73,5 @@ export function InvestigationActionButtons({
     },
   ];
 
-  return (
-    <QuickActionGrid actions={actions} columns={3} className={className} />
-  );
+  return <QuickActionGrid actions={actions} className={className} />;
 }

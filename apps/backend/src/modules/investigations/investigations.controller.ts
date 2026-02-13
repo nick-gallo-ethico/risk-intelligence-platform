@@ -153,10 +153,11 @@ export class InvestigationsController {
     @Query() query: InvestigationQueryDto,
     @TenantId() organizationId: string,
   ): Promise<{
-    data: Investigation[];
+    data: Record<string, unknown>[];
     total: number;
     limit: number;
     page: number;
+    pageSize: number;
   }> {
     return this.investigationsService.findAll(query, organizationId);
   }
@@ -391,7 +392,12 @@ export class InvestigationsController {
       { key: "status", label: "Status", type: "string", width: 12 },
       { key: "investigationType", label: "Type", type: "string", width: 15 },
       { key: "outcome", label: "Outcome", type: "string", width: 15 },
-      { key: "investigator", label: "Primary Investigator", type: "string", width: 20 },
+      {
+        key: "investigator",
+        label: "Primary Investigator",
+        type: "string",
+        width: 20,
+      },
       { key: "createdAt", label: "Created Date", type: "date", width: 12 },
       { key: "closedAt", label: "Closed Date", type: "date", width: 12 },
     ];

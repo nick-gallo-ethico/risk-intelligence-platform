@@ -8,29 +8,29 @@ import { FileText, AlertCircle } from "lucide-react";
 import type { ModuleViewConfig } from "@/types/view-config";
 import type { BoardColumnConfig } from "@/lib/views/types";
 
-// Investigation stage options with colors
+// Investigation stage options with colors (matches InvestigationStatus enum)
 const INVESTIGATION_STAGES: BoardColumnConfig[] = [
-  { id: "planning", label: "Planning", color: "#6366F1" },
-  { id: "evidence_gathering", label: "Evidence Gathering", color: "#3B82F6" },
-  { id: "interviews", label: "Interviews", color: "#8B5CF6" },
-  { id: "analysis", label: "Analysis", color: "#F59E0B" },
-  { id: "findings", label: "Findings", color: "#EC4899" },
-  { id: "remediation", label: "Remediation", color: "#10B981" },
+  { id: "new", label: "New", color: "#6366F1" },
+  { id: "assigned", label: "Assigned", color: "#3B82F6" },
+  { id: "investigating", label: "Investigating", color: "#8B5CF6" },
+  { id: "pending_review", label: "Pending Review", color: "#F59E0B" },
+  { id: "on_hold", label: "On Hold", color: "#EF4444" },
   { id: "closed", label: "Closed", color: "#6B7280" },
 ];
 
 const INVESTIGATION_TYPE_OPTIONS = [
-  { value: "internal", label: "Internal Investigation" },
-  { value: "external", label: "External Investigation" },
-  { value: "regulatory", label: "Regulatory Investigation" },
-  { value: "audit", label: "Audit Follow-up" },
+  { value: "full", label: "Full Investigation" },
+  { value: "limited", label: "Limited Investigation" },
+  { value: "inquiry", label: "Inquiry" },
 ];
 
 const INVESTIGATION_OUTCOME_OPTIONS = [
   { value: "substantiated", label: "Substantiated" },
   { value: "unsubstantiated", label: "Unsubstantiated" },
   { value: "inconclusive", label: "Inconclusive" },
-  { value: "pending", label: "Pending" },
+  { value: "policy_violation", label: "Policy Violation" },
+  { value: "no_violation", label: "No Violation" },
+  { value: "insufficient_evidence", label: "Insufficient Evidence" },
 ];
 
 /**

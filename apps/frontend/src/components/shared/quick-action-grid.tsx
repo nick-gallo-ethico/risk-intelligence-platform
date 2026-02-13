@@ -21,8 +21,8 @@ export interface QuickAction {
 
 interface QuickActionGridProps {
   actions: QuickAction[];
-  /** Number of columns in the grid (default 4) */
-  columns?: 3 | 4;
+  /** Max visible actions before overflow into "More" menu (default: show all) */
+  maxVisible?: number;
   className?: string;
 }
 
@@ -34,32 +34,32 @@ interface QuickActionGridProps {
  */
 export function QuickActionGrid({
   actions,
-  columns = 4,
+  maxVisible,
   className,
 }: QuickActionGridProps) {
-  const mainActions = actions.filter((a) => !a.overflow);
-  const overflowActions = actions.filter((a) => a.overflow);
+  // Split into visible vs overflow: explicitly marked overflow first, then excess past maxVisible
+  const nonOverflow = actions.filter((a) => !a.overflow);
+  const explicitOverflow = actions.filter((a) => a.overflow);
+
+  const limit = maxVisible ?? nonOverflow.length;
+  const mainActions = nonOverflow.slice(0, limit);
+  const overflowActions = [...nonOverflow.slice(limit), ...explicitOverflow];
 
   return (
     <div className={cn("p-4", className)}>
       <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">
         Quick Actions
       </h3>
-      <div
-        className={cn(
-          "grid gap-2",
-          columns === 3 ? "grid-cols-3" : "grid-cols-4",
-        )}
-      >
+      <div className="flex gap-2">
         {mainActions.map((action) => (
           <Button
             key={action.id}
             variant="outline"
-            className="flex flex-col items-center justify-center h-16 p-2 gap-1 hover:bg-gray-50"
+            className="flex-1 min-w-0 flex flex-col items-center justify-center h-16 p-2 gap-1 hover:bg-gray-50"
             onClick={action.onClick}
           >
             <action.icon className="h-5 w-5 text-gray-600" />
-            <span className="text-xs text-gray-700 font-medium">
+            <span className="text-xs text-gray-700 font-medium truncate">
               {action.label}
             </span>
           </Button>
@@ -71,7 +71,7 @@ export function QuickActionGrid({
             <DropdownMenuTrigger asChild>
               <Button
                 variant="outline"
-                className="flex flex-col items-center justify-center h-16 p-2 gap-1 hover:bg-gray-50"
+                className="flex-1 min-w-0 flex flex-col items-center justify-center h-16 p-2 gap-1 hover:bg-gray-50"
               >
                 <MoreHorizontal className="h-5 w-5 text-gray-600" />
                 <span className="text-xs text-gray-700 font-medium">More</span>
