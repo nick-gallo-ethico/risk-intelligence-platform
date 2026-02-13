@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import {
   Paperclip,
   Upload,
@@ -11,10 +11,16 @@ import {
   File,
   Download,
   Trash2,
+  Eye,
+  Search,
+  ArrowUpDown,
+  ChevronDown,
+  Tag,
   X,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   Dialog,
@@ -24,17 +30,31 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { toast } from '@/components/ui/toaster';
 import { cn } from '@/lib/utils';
 import { EmptyState } from '@/components/common/empty-state';
 import { FileUpload } from '@/components/files/file-upload';
 import { useCaseFiles, useDeleteCaseFile, useInvalidateCaseFiles } from '@/hooks/use-case-files';
-import { attachmentsApi } from '@/lib/attachments-api';
 import type { Attachment } from '@/types/attachment';
 
 interface FilesTabProps {
   caseId: string;
 }
+
+type SortOption = 'newest' | 'oldest' | 'name' | 'size';
+
+const SORT_OPTIONS: { value: SortOption; label: string }[] = [
+  { value: 'newest', label: 'Newest first' },
+  { value: 'oldest', label: 'Oldest first' },
+  { value: 'name', label: 'Name (A-Z)' },
+  { value: 'size', label: 'Size (largest)' },
+];
 
 /**
  * Format file size for display
@@ -77,18 +97,35 @@ function isImageFile(mimeType: string): boolean {
 }
 
 /**
- * Single file card component
+ * Check if file type supports inline preview
+ */
+function isPreviewable(mimeType: string): boolean {
+  return (
+    isImageFile(mimeType) ||
+    mimeType === 'application/pdf' ||
+    mimeType.startsWith('video/') ||
+    mimeType.startsWith('audio/')
+  );
+}
+
+/**
+ * Single file card component with download/preview/delete actions
  */
 interface FileCardProps {
   attachment: Attachment;
   onDelete: (id: string) => void;
   onDownload: (attachment: Attachment) => void;
+  onPreview: (attachment: Attachment) => void;
 }
 
-function FileCard({ attachment, onDelete, onDownload }: FileCardProps) {
+function FileCard({ attachment, onDelete, onDownload, onPreview }: FileCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   const Icon = getFileIcon(attachment.mimeType);
   const showThumbnail = isImageFile(attachment.mimeType);
+  const canPreview = isPreviewable(attachment.mimeType);
+
+  // Mock tags (will be replaced with actual attachment tags when API supports)
+  const tags = attachment.isEvidence ? ['Evidence'] : [];
 
   return (
     <div
@@ -120,6 +157,17 @@ function FileCard({ attachment, onDelete, onDownload }: FileCardProps) {
         {/* Hover overlay with actions */}
         {isHovered && (
           <div className="absolute inset-0 bg-black/40 flex items-center justify-center gap-2">
+            {canPreview && (
+              <Button
+                variant="secondary"
+                size="icon"
+                onClick={() => onPreview(attachment)}
+                className="h-8 w-8"
+                title="Preview"
+              >
+                <Eye className="h-4 w-4" />
+              </Button>
+            )}
             <Button
               variant="secondary"
               size="icon"
@@ -162,7 +210,53 @@ function FileCard({ attachment, onDelete, onDownload }: FileCardProps) {
           <span>-</span>
           <span>{formatDate(attachment.createdAt)}</span>
         </div>
+
+        {/* Tag chips */}
+        {tags.length > 0 && (
+          <div className="flex flex-wrap gap-1 mt-2">
+            {tags.map((tag) => (
+              <Badge
+                key={tag}
+                variant="outline"
+                className="text-xs px-1.5 py-0 h-5 bg-gray-50"
+              >
+                <Tag className="h-3 w-3 mr-1" />
+                {tag}
+              </Badge>
+            ))}
+          </div>
+        )}
       </div>
+    </div>
+  );
+}
+
+/**
+ * Drag and drop upload zone
+ */
+interface DropZoneProps {
+  onDrop: () => void;
+  isDragging: boolean;
+}
+
+function DropZone({ onDrop, isDragging }: DropZoneProps) {
+  return (
+    <div
+      className={cn(
+        'border-2 border-dashed rounded-lg p-8 text-center transition-colors',
+        isDragging
+          ? 'border-blue-500 bg-blue-50'
+          : 'border-gray-300 hover:border-gray-400'
+      )}
+      onClick={onDrop}
+    >
+      <Upload className="h-10 w-10 mx-auto text-gray-400 mb-3" />
+      <p className="text-sm font-medium text-gray-700">
+        Drop files here or click to upload
+      </p>
+      <p className="text-xs text-gray-500 mt-1">
+        Supports images, documents, videos, and audio files
+      </p>
     </div>
   );
 }
@@ -190,15 +284,21 @@ function FilesGridSkeleton() {
  * Files tab component for case detail page.
  *
  * Features:
- * - Grid view of attachments
- * - Thumbnail preview for images
- * - Upload button with file upload dialog
- * - Download and delete actions on hover
- * - Loading and empty states
+ * - Upload button + drag-drop zone
+ * - Search bar for filtering files
+ * - Sort dropdown (newest, oldest, name, size)
+ * - Grid view of attachments with thumbnails
+ * - File cards with download/preview/delete actions
+ * - Tag chips for categorization
+ * - Empty state
  */
 export function FilesTab({ caseId }: FilesTabProps) {
   const [showUploadDialog, setShowUploadDialog] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [previewFile, setPreviewFile] = useState<Attachment | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortOption, setSortOption] = useState<SortOption>('newest');
+  const [isDragging, setIsDragging] = useState(false);
 
   const { data, isLoading, error } = useCaseFiles(caseId);
   const deleteMutation = useDeleteCaseFile(caseId);
@@ -227,12 +327,71 @@ export function FilesTab({ caseId }: FilesTabProps) {
 
   const handleUploadComplete = useCallback(() => {
     invalidateCaseFiles(caseId);
+    setShowUploadDialog(false);
+    toast.success('File uploaded successfully');
   }, [caseId, invalidateCaseFiles]);
+
+  const handlePreview = useCallback((attachment: Attachment) => {
+    setPreviewFile(attachment);
+  }, []);
+
+  // Filter and sort files
+  const filteredAndSortedFiles = useMemo(() => {
+    const files = data?.items || [];
+
+    // Filter by search query
+    let filtered = files;
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = files.filter(
+        (f) =>
+          f.fileName.toLowerCase().includes(query) ||
+          f.mimeType.toLowerCase().includes(query)
+      );
+    }
+
+    // Sort files
+    const sorted = [...filtered].sort((a, b) => {
+      switch (sortOption) {
+        case 'newest':
+          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        case 'oldest':
+          return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+        case 'name':
+          return a.fileName.localeCompare(b.fileName);
+        case 'size':
+          return b.fileSize - a.fileSize;
+        default:
+          return 0;
+      }
+    });
+
+    return sorted;
+  }, [data?.items, searchQuery, sortOption]);
+
+  // Drag and drop handlers
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    // Open upload dialog - FileUpload component will handle the files
+    setShowUploadDialog(true);
+  }, []);
 
   if (isLoading) {
     return (
       <div className="p-6">
-        <div className="flex justify-end mb-4">
+        <div className="flex items-center justify-between mb-4">
+          <Skeleton className="h-9 w-64" />
           <Skeleton className="h-9 w-28" />
         </div>
         <FilesGridSkeleton />
@@ -252,43 +411,113 @@ export function FilesTab({ caseId }: FilesTabProps) {
     );
   }
 
-  const files = data?.items || [];
+  const totalFiles = data?.items?.length || 0;
 
   return (
-    <div className="p-6">
-      {/* Header with upload button */}
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-sm font-semibold text-gray-700">
-          Attachments
-          {files.length > 0 && (
-            <span className="ml-2 text-xs font-normal text-gray-500">
-              ({files.length})
-            </span>
-          )}
-        </h3>
-        <Button variant="outline" size="sm" onClick={() => setShowUploadDialog(true)}>
-          <Upload className="h-4 w-4 mr-2" />
-          Upload File
-        </Button>
+    <div
+      className="p-6"
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
+      {/* Header with search, sort, and upload */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
+        <div className="flex items-center gap-4 flex-1 w-full sm:w-auto">
+          <h3 className="text-sm font-semibold text-gray-700 whitespace-nowrap">
+            Files
+            {totalFiles > 0 && (
+              <Badge variant="secondary" className="ml-2 h-5 px-1.5 text-xs">
+                {totalFiles}
+              </Badge>
+            )}
+          </h3>
+
+          {/* Search bar */}
+          <div className="relative flex-1 max-w-xs">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search files..."
+              className="pl-9 h-9"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          {/* Sort dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="h-9">
+                <ArrowUpDown className="h-4 w-4 mr-2" />
+                {SORT_OPTIONS.find((o) => o.value === sortOption)?.label}
+                <ChevronDown className="h-4 w-4 ml-2" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {SORT_OPTIONS.map((option) => (
+                <DropdownMenuItem
+                  key={option.value}
+                  onClick={() => setSortOption(option.value)}
+                  className={cn(sortOption === option.value && 'bg-gray-100')}
+                >
+                  {option.label}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {/* Upload button */}
+          <Button variant="default" size="sm" onClick={() => setShowUploadDialog(true)}>
+            <Upload className="h-4 w-4 mr-2" />
+            Upload
+          </Button>
+        </div>
       </div>
 
+      {/* Drag and drop indicator */}
+      {isDragging && (
+        <div className="absolute inset-0 bg-blue-50/80 flex items-center justify-center z-50 rounded-lg border-2 border-dashed border-blue-500">
+          <div className="text-center">
+            <Upload className="h-12 w-12 mx-auto text-blue-500 mb-2" />
+            <p className="text-lg font-medium text-blue-700">Drop files to upload</p>
+          </div>
+        </div>
+      )}
+
       {/* File grid or empty state */}
-      {files.length === 0 ? (
-        <EmptyState
-          icon={Paperclip}
-          title="No files attached"
-          description="Upload documents, images, and evidence related to this case."
-          actionLabel="Upload File"
-          onAction={() => setShowUploadDialog(true)}
-        />
+      {filteredAndSortedFiles.length === 0 ? (
+        searchQuery ? (
+          <EmptyState
+            icon={Search}
+            title="No files found"
+            description={`No files match "${searchQuery}". Try a different search term.`}
+            actionLabel="Clear search"
+            onAction={() => setSearchQuery('')}
+          />
+        ) : (
+          <DropZone
+            onDrop={() => setShowUploadDialog(true)}
+            isDragging={isDragging}
+          />
+        )
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {files.map((attachment) => (
+          {filteredAndSortedFiles.map((attachment) => (
             <FileCard
               key={attachment.id}
               attachment={attachment}
               onDelete={handleDeleteClick}
               onDownload={handleDownload}
+              onPreview={handlePreview}
             />
           ))}
         </div>
@@ -339,6 +568,50 @@ export function FilesTab({ caseId }: FilesTabProps) {
               disabled={deleteMutation.isPending}
             >
               {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Preview Dialog */}
+      <Dialog open={!!previewFile} onOpenChange={(open) => !open && setPreviewFile(null)}>
+        <DialogContent className="sm:max-w-4xl max-h-[90vh]">
+          <DialogHeader>
+            <DialogTitle>{previewFile?.fileName}</DialogTitle>
+          </DialogHeader>
+          <div className="flex items-center justify-center p-4 bg-gray-100 rounded-lg min-h-[400px]">
+            {previewFile && isImageFile(previewFile.mimeType) && (
+              <img
+                src={previewFile.downloadUrl}
+                alt={previewFile.fileName}
+                className="max-w-full max-h-[60vh] object-contain"
+              />
+            )}
+            {previewFile && previewFile.mimeType === 'application/pdf' && (
+              <iframe
+                src={previewFile.downloadUrl}
+                title={previewFile.fileName}
+                className="w-full h-[60vh]"
+              />
+            )}
+            {previewFile && previewFile.mimeType.startsWith('video/') && (
+              <video
+                src={previewFile.downloadUrl}
+                controls
+                className="max-w-full max-h-[60vh]"
+              />
+            )}
+            {previewFile && previewFile.mimeType.startsWith('audio/') && (
+              <audio src={previewFile.downloadUrl} controls className="w-full" />
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setPreviewFile(null)}>
+              Close
+            </Button>
+            <Button onClick={() => previewFile && handleDownload(previewFile)}>
+              <Download className="h-4 w-4 mr-2" />
+              Download
             </Button>
           </DialogFooter>
         </DialogContent>

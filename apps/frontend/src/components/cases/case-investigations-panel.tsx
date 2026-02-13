@@ -1,10 +1,39 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { Plus, Search } from 'lucide-react';
+import {
+  Plus,
+  Search,
+  Link2,
+  ChevronDown,
+  ChevronUp,
+  ExternalLink,
+  User,
+  Calendar,
+  FileText,
+  CheckCircle,
+  Clock,
+  AlertCircle,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { toast } from '@/components/ui/toaster';
+import { cn } from '@/lib/utils';
+import { EmptyState } from '@/components/common/empty-state';
 import { InvestigationCard } from './investigation-card';
 import { CreateInvestigationDialog } from './create-investigation-dialog';
 import { InvestigationDetailPanel } from '@/components/investigations';
@@ -17,11 +46,237 @@ interface CaseInvestigationsPanelProps {
   isLoading: boolean;
 }
 
+/**
+ * Get status icon based on investigation status
+ */
+function getStatusIcon(status: string) {
+  switch (status.toLowerCase()) {
+    case 'completed':
+    case 'closed':
+      return CheckCircle;
+    case 'in_progress':
+    case 'active':
+      return Clock;
+    case 'pending':
+    case 'new':
+      return AlertCircle;
+    default:
+      return FileText;
+  }
+}
+
+/**
+ * Get status color based on investigation status
+ */
+function getStatusColor(status: string) {
+  switch (status.toLowerCase()) {
+    case 'completed':
+    case 'closed':
+      return 'bg-green-100 text-green-700 border-green-200';
+    case 'in_progress':
+    case 'active':
+      return 'bg-blue-100 text-blue-700 border-blue-200';
+    case 'pending':
+    case 'new':
+      return 'bg-amber-100 text-amber-700 border-amber-200';
+    default:
+      return 'bg-gray-100 text-gray-700 border-gray-200';
+  }
+}
+
+/**
+ * Format date for display
+ */
+function formatDate(dateString: string): string {
+  return new Date(dateString).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  });
+}
+
+/**
+ * Expandable investigation card component
+ */
+interface ExpandableInvestigationCardProps {
+  investigation: Investigation;
+  onOpenFull: (investigation: Investigation) => void;
+  onViewDetails: (investigation: Investigation) => void;
+}
+
+function ExpandableInvestigationCard({
+  investigation,
+  onOpenFull,
+  onViewDetails,
+}: ExpandableInvestigationCardProps) {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const StatusIcon = getStatusIcon(investigation.status);
+
+  return (
+    <Card className={cn('transition-shadow', isExpanded && 'ring-1 ring-blue-200')}>
+      <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
+        <CollapsibleTrigger asChild>
+          <CardHeader className="pb-2 cursor-pointer hover:bg-gray-50 rounded-t-lg">
+            <div className="flex items-start justify-between gap-2">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <Badge
+                    variant="outline"
+                    className={cn('text-xs shrink-0', getStatusColor(investigation.status))}
+                  >
+                    <StatusIcon className="h-3 w-3 mr-1" />
+                    {investigation.status.replace('_', ' ')}
+                  </Badge>
+                  {investigation.priority && (
+                    <Badge
+                      variant="outline"
+                      className={cn(
+                        'text-xs shrink-0',
+                        investigation.priority === 'high'
+                          ? 'bg-red-50 text-red-700 border-red-200'
+                          : investigation.priority === 'medium'
+                          ? 'bg-amber-50 text-amber-700 border-amber-200'
+                          : 'bg-gray-50 text-gray-700 border-gray-200'
+                      )}
+                    >
+                      {investigation.priority}
+                    </Badge>
+                  )}
+                </div>
+                <p className="text-sm font-medium text-gray-900 mt-1 truncate">
+                  {investigation.title || `Investigation #${investigation.referenceNumber || investigation.id.slice(0, 8)}`}
+                </p>
+                {investigation.type && (
+                  <p className="text-xs text-muted-foreground truncate">
+                    {investigation.type}
+                  </p>
+                )}
+              </div>
+              <div className="shrink-0">
+                {isExpanded ? (
+                  <ChevronUp className="h-4 w-4 text-gray-400" />
+                ) : (
+                  <ChevronDown className="h-4 w-4 text-gray-400" />
+                )}
+              </div>
+            </div>
+          </CardHeader>
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <CardContent className="pt-0">
+            <div className="border-t pt-3 mt-1 space-y-3">
+              {/* Investigation details */}
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                {investigation.assignedTo && (
+                  <div className="flex items-center gap-2">
+                    <User className="h-4 w-4 text-gray-400" />
+                    <div>
+                      <p className="text-xs text-muted-foreground">Assigned to</p>
+                      <p className="font-medium">
+                        {investigation.assignedTo.firstName} {investigation.assignedTo.lastName}
+                      </p>
+                    </div>
+                  </div>
+                )}
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-gray-400" />
+                  <div>
+                    <p className="text-xs text-muted-foreground">Created</p>
+                    <p className="font-medium">{formatDate(investigation.createdAt)}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Summary if available */}
+              {investigation.summary && (
+                <div>
+                  <p className="text-xs text-muted-foreground mb-1">Summary</p>
+                  <p className="text-sm text-gray-700 line-clamp-2">
+                    {investigation.summary}
+                  </p>
+                </div>
+              )}
+
+              {/* Action buttons */}
+              <div className="flex gap-2 pt-2">
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={() => onOpenFull(investigation)}
+                >
+                  <ExternalLink className="h-3 w-3 mr-1" />
+                  Open Full Investigation
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onViewDetails(investigation)}
+                >
+                  Quick View
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </CollapsibleContent>
+      </Collapsible>
+    </Card>
+  );
+}
+
+/**
+ * Link Existing Investigation Dialog (placeholder)
+ */
+interface LinkExistingDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  caseId: string;
+  onSuccess: () => void;
+}
+
+function LinkExistingDialog({ open, onOpenChange, caseId, onSuccess }: LinkExistingDialogProps) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Link Existing Investigation</DialogTitle>
+          <DialogDescription>
+            Search for an existing investigation to link to this case.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="py-6">
+          <EmptyState
+            icon={Link2}
+            title="Coming soon"
+            description="The ability to link existing investigations will be available soon."
+          />
+        </div>
+        <div className="flex justify-end">
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Close
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+/**
+ * Investigations tab component for case detail page.
+ *
+ * Features:
+ * - Count badge showing number of investigations
+ * - Create Investigation button
+ * - Link Existing Investigation button
+ * - Expandable investigation cards with details
+ * - Open Full Investigation link to navigate to investigation page
+ * - Empty state
+ */
 export function CaseInvestigationsPanel({ caseData, isLoading }: CaseInvestigationsPanelProps) {
   const [investigations, setInvestigations] = useState<Investigation[]>([]);
   const [investigationsLoading, setInvestigationsLoading] = useState(false);
   const [investigationsError, setInvestigationsError] = useState<string | null>(null);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [linkDialogOpen, setLinkDialogOpen] = useState(false);
   const [selectedInvestigationId, setSelectedInvestigationId] = useState<string | null>(null);
 
   // Fetch investigations when case data is available
@@ -54,13 +309,24 @@ export function CaseInvestigationsPanel({ caseData, isLoading }: CaseInvestigati
     setInvestigations((prev) => [...prev, investigation]);
   }, []);
 
-  const handleInvestigationClick = useCallback((investigation: Investigation) => {
+  const handleOpenFullInvestigation = useCallback((investigation: Investigation) => {
+    // Navigate to the investigation detail page
+    window.open(`/investigations/${investigation.id}`, '_blank');
+  }, []);
+
+  const handleViewDetails = useCallback((investigation: Investigation) => {
     setSelectedInvestigationId(investigation.id);
   }, []);
 
   const handleDetailPanelClose = useCallback(() => {
     setSelectedInvestigationId(null);
   }, []);
+
+  const handleLinkSuccess = useCallback(() => {
+    fetchInvestigations();
+    setLinkDialogOpen(false);
+    toast.success('Investigation linked');
+  }, [fetchInvestigations]);
 
   if (isLoading) {
     return <CaseInvestigationsPanelSkeleton />;
@@ -73,39 +339,50 @@ export function CaseInvestigationsPanel({ caseData, isLoading }: CaseInvestigati
   const hasInvestigations = investigations.length > 0;
 
   return (
-    <div className="space-y-4 p-4">
-      {/* Investigations Section */}
-      <Card>
-        <CardHeader className="pb-2">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-sm font-semibold text-gray-700">
-              Investigations
-              {hasInvestigations && (
-                <span className="ml-2 text-xs font-normal text-gray-500">
-                  ({investigations.length})
-                </span>
-              )}
-            </CardTitle>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setCreateDialogOpen(true)}
-              data-testid="create-investigation-button"
-            >
-              <Plus className="w-4 h-4 mr-1" />
-              Create
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {investigationsLoading ? (
-            <div className="space-y-3">
-              {[1, 2].map((i) => (
-                <Skeleton key={i} className="h-24 w-full rounded-lg" />
-              ))}
-            </div>
-          ) : investigationsError ? (
-            <div className="text-center py-6 text-red-500 border border-dashed border-red-200 rounded-md">
+    <div className="p-4 space-y-4">
+      {/* Header with count and action buttons */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <h3 className="text-sm font-semibold text-gray-700">Investigations</h3>
+          {investigations.length > 0 && (
+            <Badge variant="secondary" className="h-5 px-1.5 text-xs">
+              {investigations.length}
+            </Badge>
+          )}
+        </div>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setLinkDialogOpen(true)}
+            data-testid="link-investigation-button"
+          >
+            <Link2 className="w-4 h-4 mr-1" />
+            Link Existing
+          </Button>
+          <Button
+            variant="default"
+            size="sm"
+            onClick={() => setCreateDialogOpen(true)}
+            data-testid="create-investigation-button"
+          >
+            <Plus className="w-4 h-4 mr-1" />
+            Create Investigation
+          </Button>
+        </div>
+      </div>
+
+      {/* Investigations list */}
+      {investigationsLoading ? (
+        <div className="space-y-3">
+          {[1, 2].map((i) => (
+            <Skeleton key={i} className="h-24 w-full rounded-lg" />
+          ))}
+        </div>
+      ) : investigationsError ? (
+        <Card>
+          <CardContent className="py-6">
+            <div className="text-center text-red-500">
               <p className="text-sm">{investigationsError}</p>
               <Button
                 variant="ghost"
@@ -116,38 +393,30 @@ export function CaseInvestigationsPanel({ caseData, isLoading }: CaseInvestigati
                 Retry
               </Button>
             </div>
-          ) : hasInvestigations ? (
-            <div className="space-y-3" data-testid="investigations-list">
-              {investigations.map((investigation) => (
-                <InvestigationCard
-                  key={investigation.id}
-                  investigation={investigation}
-                  onClick={handleInvestigationClick}
-                />
-              ))}
-            </div>
-          ) : (
-            <div
-              className="text-center py-6 text-gray-400 border border-dashed rounded-md"
-              data-testid="empty-state"
-            >
-              <Search className="w-8 h-8 mx-auto mb-2 text-gray-300" />
-              <p className="text-sm">No investigations yet</p>
-              <p className="text-xs mt-1">Create an investigation to begin</p>
-              <Button
-                variant="outline"
-                size="sm"
-                className="mt-3"
-                onClick={() => setCreateDialogOpen(true)}
-                data-testid="empty-state-create-button"
-              >
-                <Plus className="w-4 h-4 mr-1" />
-                Create Investigation
-              </Button>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      ) : hasInvestigations ? (
+        <div className="space-y-3" data-testid="investigations-list">
+          {investigations.map((investigation) => (
+            <ExpandableInvestigationCard
+              key={investigation.id}
+              investigation={investigation}
+              onOpenFull={handleOpenFullInvestigation}
+              onViewDetails={handleViewDetails}
+            />
+          ))}
+        </div>
+      ) : (
+        <Card>
+          <CardContent className="py-8">
+            <EmptyState
+              icon={Search}
+              title="No investigations yet"
+              description="Create a new investigation or link an existing one to this case."
+            />
+          </CardContent>
+        </Card>
+      )}
 
       {/* Create Investigation Dialog */}
       <CreateInvestigationDialog
@@ -157,74 +426,13 @@ export function CaseInvestigationsPanel({ caseData, isLoading }: CaseInvestigati
         onSuccess={handleInvestigationCreated}
       />
 
-      {/* AI Summary Section */}
-      <Card>
-        <CardHeader className="pb-2">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-sm font-semibold text-gray-700">
-              AI Summary
-            </CardTitle>
-            <Button variant="ghost" size="sm">
-              Generate
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {caseData.aiSummary ? (
-            <div>
-              <p className="text-sm text-gray-700">{caseData.aiSummary}</p>
-              {caseData.aiSummaryGeneratedAt && (
-                <p className="text-xs text-gray-400 mt-2">
-                  Generated{' '}
-                  {new Date(caseData.aiSummaryGeneratedAt).toLocaleDateString()}
-                </p>
-              )}
-            </div>
-          ) : (
-            <div className="text-center py-6 text-gray-400 border border-dashed rounded-md">
-              <p className="text-sm">No AI summary generated</p>
-              <p className="text-xs mt-1">
-                Click Generate to create an AI summary
-              </p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Related Cases Section - Placeholder */}
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-semibold text-gray-700">
-            Related Cases
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-6 text-gray-400 border border-dashed rounded-md">
-            <p className="text-sm">No related cases</p>
-            <p className="text-xs mt-1">AI will suggest related cases</p>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Subjects Section - Placeholder */}
-      <Card>
-        <CardHeader className="pb-2">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-sm font-semibold text-gray-700">
-              Subjects
-            </CardTitle>
-            <Button variant="outline" size="sm">
-              Add
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-6 text-gray-400 border border-dashed rounded-md">
-            <p className="text-sm">No subjects linked</p>
-            <p className="text-xs mt-1">Add people named in this case</p>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Link Existing Dialog */}
+      <LinkExistingDialog
+        open={linkDialogOpen}
+        onOpenChange={setLinkDialogOpen}
+        caseId={caseData.id}
+        onSuccess={handleLinkSuccess}
+      />
 
       {/* Investigation Detail Panel */}
       <InvestigationDetailPanel
@@ -237,20 +445,25 @@ export function CaseInvestigationsPanel({ caseData, isLoading }: CaseInvestigati
 
 export function CaseInvestigationsPanelSkeleton() {
   return (
-    <div className="space-y-4 p-4">
-      {[1, 2, 3, 4].map((section) => (
-        <Card key={section}>
-          <CardHeader className="pb-2">
-            <div className="flex items-center justify-between">
-              <Skeleton className="h-4 w-24" />
-              <Skeleton className="h-8 w-16" />
-            </div>
-          </CardHeader>
-          <CardContent>
-            <Skeleton className="h-20 w-full rounded-md" />
-          </CardContent>
-        </Card>
-      ))}
+    <div className="p-4 space-y-4">
+      {/* Header skeleton */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Skeleton className="h-4 w-24" />
+          <Skeleton className="h-5 w-6" />
+        </div>
+        <div className="flex gap-2">
+          <Skeleton className="h-8 w-28" />
+          <Skeleton className="h-8 w-36" />
+        </div>
+      </div>
+
+      {/* Cards skeleton */}
+      <div className="space-y-3">
+        {[1, 2, 3].map((i) => (
+          <Skeleton key={i} className="h-24 w-full rounded-lg" />
+        ))}
+      </div>
     </div>
   );
 }
