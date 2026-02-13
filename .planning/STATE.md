@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 23 of 24+ (Help & Support System)
-Plan: 03 of 05 in current phase
+Plan: 04 of 05 in current phase
 Status: In progress
-Last activity: 2026-02-12 - Completed 23-03 (Knowledge Base Frontend)
+Last activity: 2026-02-13 - Completed 23-04 (Support Ticket Frontend)
 
 Progress: [===================================================================+] ~100% (Phase 21 adds new plans beyond original 24)
 
@@ -159,6 +159,16 @@ Phase 21 delivered a comprehensive Monday.com-style project management module:
   - Article detail page at /help/articles/[slug] with breadcrumbs, prose content, tags
   - Support ticket navigation links: Submit Ticket, View My Tickets
   - URL-based category filtering (/help?category=xxx) for shareability
+
+- 23-04: Support Ticket Frontend (COMPLETE - 5971b21, e828b92)
+  - TicketForm component with react-hook-form + zod validation
+  - Subject (min 5 chars), description (min 20 chars), priority, category fields
+  - File attachment support with drag-and-drop (max 5 files, 10MB each)
+  - Files uploaded to storage API with entityType=SUPPORT_TICKET after ticket creation
+  - TicketList component with status/priority badges and filter tabs
+  - /help/tickets/new page for ticket submission with breadcrumb navigation
+  - /help/tickets page showing user's tickets with filtering (All, Open, In Progress, Resolved, Closed)
+  - MJML ticket-confirmation.mjml.hbs email template for notifications
 
 ### Phase 24 Policy Content & Seed Data COMPLETE (2026-02-12)
 
