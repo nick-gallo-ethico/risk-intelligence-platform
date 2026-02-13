@@ -5,14 +5,14 @@
 See: .planning/PROJECT.md (updated 2026-02-02)
 
 **Core value:** Users can manage their entire compliance workflow - from anonymous report intake to investigation closure to board reporting - in one AI-assisted platform, with every task unified into a single "My Work" view.
-**Current focus:** Phase 25 Case & Investigation Page Redesign - Wave 2 complete.
+**Current focus:** Phase 25 Case & Investigation Page Redesign - Wave 3 in progress.
 
 ## Current Position
 
 Phase: 25 of 25+ (Case & Investigation Page Redesign) — IN PROGRESS
-Plan: 03 of ?? in current phase (just completed)
-Status: Completed 25-01, 25-02, 25-03, ready for 25-04
-Last activity: 2026-02-13 - Completed 25-03 (right sidebar association cards)
+Plan: 04 of ?? in current phase (just completed)
+Status: Completed 25-01, 25-02, 25-03, 25-04, ready for 25-05
+Last activity: 2026-02-13 - Completed 25-04 (investigation three-column layout)
 
 Progress: [===================================================================+] ~100% (Phase 21 adds new plans beyond original 24)
 
@@ -45,6 +45,15 @@ Progress: [===================================================================+]
   - Refactored ConnectedPeopleCard: added search filtering, email with copy icon
   - Refactored ConnectedDocumentsCard: now uses AssociationCard wrapper
   - Case detail page wired with 5 cards in HubSpot order: People, RIUs, Cases, Policies, Documents
+
+- 25-04: Investigation Three-Column Layout (COMPLETE - 91b6344, a0df8f0, 169bcd8)
+  - Converted investigation page to three-column grid layout matching case detail
+  - Enhanced header with breadcrumbs (Cases > {caseRef} > Investigation #N)
+  - Header shows status/type/SLA badges and 5-stage pipeline progress
+  - Created InvestigationInfoSummary with milestone checklist (5 items)
+  - Created InvestigationActionButtons using shared QuickActionGrid (5 actions, 3 cols)
+  - Created InvestigationPropertiesPanel with 5 collapsible sections
+  - Extended Investigation type with category, case, investigators, template fields
 
 ### Phase 21 Project Management IN PROGRESS (2026-02-12)
 
