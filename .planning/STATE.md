@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 25.1 of 25+ (Case Detail Page Vision Revision) — IN PROGRESS
-Plan: 02 of ?? in current phase
-Status: Completed 25.1-01, 25.1-02
-Last activity: 2026-02-13 - Completed 25.1-02 (pipeline stage bar component)
+Plan: 10 of ?? in current phase
+Status: Completed 25.1-01, 25.1-02, 25.1-10
+Last activity: 2026-02-13 - Completed 25.1-10 (pipeline configuration API)
 
 Progress: [===================================================================+] ~100% (Phase 21 adds new plans beyond original 24)
 
@@ -34,6 +34,15 @@ Progress: [===================================================================+]
   - "In stage for N days" Badge chip below current stage
   - Toast notifications via sonner for transition feedback
   - Rule 3 fix: Added pinActivity/getStatusHistory to ActivityService
+
+- 25.1-10: Pipeline Configuration API (COMPLETE - db7005c, fbb6516)
+  - Created PipelineController with GET/PUT endpoints at /pipelines
+  - Created PipelineService with DEFAULT_CASE_STAGES (7 stages)
+  - Added pinActivity endpoint: PUT /cases/:id/activities/:activityId/pin
+  - Added status history endpoint: GET /cases/:id/status-history
+  - Created frontend pipeline.ts API client with React Query integration
+  - Enhanced usePipeline hook to fetch from API with fallback to defaults
+  - Pattern: API-first-fallback for tenant pipeline configuration
 
 ### Phase 25 Case & Investigation Page Redesign IN PROGRESS (2026-02-13)
 
