@@ -776,11 +776,18 @@ export function TaskDetailPanel({
                 {/* Metadata */}
                 <div className="space-y-2 text-xs text-muted-foreground">
                   <div>
-                    Created: {format(new Date(task.createdAt), "PPP 'at' p")}
+                    Created:{" "}
+                    {task.createdAt &&
+                    !isNaN(new Date(task.createdAt).getTime())
+                      ? format(new Date(task.createdAt), "PPP 'at' p")
+                      : "Unknown"}
                   </div>
                   <div>
                     Last updated:{" "}
-                    {format(new Date(task.updatedAt), "PPP 'at' p")}
+                    {task.updatedAt &&
+                    !isNaN(new Date(task.updatedAt).getTime())
+                      ? format(new Date(task.updatedAt), "PPP 'at' p")
+                      : "Unknown"}
                   </div>
                   {task.completedAt && (
                     <div>

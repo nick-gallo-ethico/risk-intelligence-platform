@@ -43,10 +43,10 @@ export interface Project extends Record<string, unknown> {
 }
 
 interface ProjectsResponse {
-  data: Project[];
+  items: Project[];
   total: number;
-  page?: number;
-  pageSize?: number;
+  offset?: number;
+  limit?: number;
 }
 
 interface BulkActionPayload {
@@ -292,7 +292,7 @@ export function useProjectsView() {
 
   return {
     config: PROJECTS_VIEW_CONFIG,
-    projects: projectsData?.data || [],
+    projects: projectsData?.items || [],
     totalRecords: projectsData?.total || 0,
     isLoading,
     error,
