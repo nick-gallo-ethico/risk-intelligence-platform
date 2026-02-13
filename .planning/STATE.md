@@ -5,14 +5,14 @@
 See: .planning/PROJECT.md (updated 2026-02-02)
 
 **Core value:** Users can manage their entire compliance workflow - from anonymous report intake to investigation closure to board reporting - in one AI-assisted platform, with every task unified into a single "My Work" view.
-**Current focus:** Phase 21 complete. Next: Phase 22 Dark Mode & Theme
+**Current focus:** Phase 23 Help & Support System in progress.
 
 ## Current Position
 
-Phase: 21 of 24+ (Project Management) - COMPLETE
-Plan: 10 of 10 in current phase (COMPLETE)
-Status: Complete (with known gaps — see below)
-Last activity: 2026-02-12 - Completed 21-10 (Demo Data Seeder)
+Phase: 23 of 24+ (Help & Support System)
+Plan: 01 of 05 in current phase
+Status: In progress
+Last activity: 2026-02-12 - Completed 23-01 (Backend Models & Module)
 
 Progress: [===================================================================+] ~100% (Phase 21 adds new plans beyond original 24)
 
@@ -130,6 +130,19 @@ Phase 21 delivered a comprehensive Monday.com-style project management module:
 - ProjectTaskSubscriber model not in schema — subscriber/watcher management frontend only
 - ProjectTaskDependency model not in schema — dependency management frontend only
 - These gaps affect Plans 06-08 features: conversation threads, @mention notifications, subscriber notifications, dependency arrows on timeline
+
+### Phase 23 Help & Support System IN PROGRESS (2026-02-12)
+
+- 23-01: Backend Models & Module (COMPLETE - 263ac31, cabd5e2)
+  - Added TicketStatus enum (OPEN, IN_PROGRESS, WAITING_ON_CUSTOMER, RESOLVED, CLOSED)
+  - Added TicketPriority enum (LOW, MEDIUM, HIGH, URGENT)
+  - Added KnowledgeBaseArticle model with nullable organizationId for global articles
+  - Added SupportTicket model with TICKET-XXXX auto-numbering
+  - Added SUPPORT_TICKET to AttachmentEntityType enum
+  - Created HelpModule with 2 controllers, 2 services, 1 event listener
+  - 6 REST endpoints: articles (search, get, categories), tickets (create, list, get)
+  - Multi-tenant article visibility: global (orgId=null) + tenant-specific
+  - Event-driven ticket notifications via support.ticket.created
 
 ### Phase 24 Policy Content & Seed Data COMPLETE (2026-02-12)
 
@@ -1075,8 +1088,11 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-02-12
-Stopped at: Completed Phase 21 (all 10 plans)
-Resume file: None
+Stopped at: Completed 23-01-PLAN.md (Help & Support Backend)
+Resume file: .planning/phases/23-help-support-system/23-02-plan.md
+
+**Phase 23 Status: IN PROGRESS**
+Plan 01 of 05 complete. Next: 23-02 (Help Center Page)
 
 **Phase 20 Status: COMPLETE**
 All 6 plans completed:
