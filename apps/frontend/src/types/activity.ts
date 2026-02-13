@@ -3,36 +3,39 @@
  */
 
 export type ActivityAction =
-  | 'created'
-  | 'updated'
-  | 'status_changed'
-  | 'assigned'
-  | 'unassigned'
-  | 'commented'
-  | 'file_uploaded'
-  | 'viewed'
-  | 'exported'
-  | 'approved'
-  | 'rejected'
-  | 'ai_generated'
-  | 'synced';
+  | "created"
+  | "updated"
+  | "status_changed"
+  | "assigned"
+  | "unassigned"
+  | "commented"
+  | "file_uploaded"
+  | "viewed"
+  | "exported"
+  | "approved"
+  | "rejected"
+  | "ai_generated"
+  | "synced"
+  // Task-related actions for upcoming items
+  | "task_created"
+  | "task_assigned"
+  | "task_completed"
+  // SLA-related actions
+  | "sla_warning"
+  | "sla_updated"
+  | "sla_breached";
 
 export type ActivityEntityType =
-  | 'CASE'
-  | 'INVESTIGATION'
-  | 'DISCLOSURE'
-  | 'POLICY'
-  | 'ATTESTATION'
-  | 'WORKFLOW'
-  | 'USER'
-  | 'EMPLOYEE';
+  | "CASE"
+  | "INVESTIGATION"
+  | "DISCLOSURE"
+  | "POLICY"
+  | "ATTESTATION"
+  | "WORKFLOW"
+  | "USER"
+  | "EMPLOYEE";
 
-export type ActorType =
-  | 'USER'
-  | 'SYSTEM'
-  | 'AI'
-  | 'INTEGRATION'
-  | 'ANONYMOUS';
+export type ActorType = "USER" | "SYSTEM" | "AI" | "INTEGRATION" | "ANONYMOUS";
 
 export interface ActivityChanges {
   [field: string]: {
@@ -61,4 +64,4 @@ export interface ActivityListResponse {
   offset: number;
 }
 
-export type ActivityFilterType = 'all' | 'notes' | 'status' | 'files';
+export type ActivityFilterType = "all" | "notes" | "status" | "files";

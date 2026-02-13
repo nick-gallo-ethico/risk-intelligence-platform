@@ -1,16 +1,32 @@
 "use client";
 
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { Plus, Phone, Mail, MessageSquare, RefreshCw } from "lucide-react";
+import {
+  Plus,
+  Phone,
+  Mail,
+  MessageSquare,
+  RefreshCw,
+  Search,
+  Clock,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Input } from "@/components/ui/input";
 import { ActivityFilters } from "./activity-filters";
 import { ActivityEntry } from "./activity-entry";
 import { groupByDate } from "@/lib/date-utils";
 import { apiClient } from "@/lib/api";
 import type { Case } from "@/types/case";
 import type { Activity, ActivityFilterType } from "@/types/activity";
+
+/**
+ * Extended Activity type with context for upcoming items
+ */
+interface ActivityWithContext extends Activity {
+  context?: Record<string, unknown> | null;
+}
 
 /**
  * Backend TimelineResponseDto shape from ActivityTimelineController
@@ -49,10 +65,11 @@ export function CaseActivityTimeline({
   caseData,
   isLoading,
 }: CaseActivityTimelineProps) {
-  const [activities, setActivities] = useState<Activity[]>([]);
+  const [activities, setActivities] = useState<ActivityWithContext[]>([]);
   const [activitiesLoading, setActivitiesLoading] = useState(false);
   const [activitiesError, setActivitiesError] = useState<string | null>(null);
   const [activeFilter, setActiveFilter] = useState<ActivityFilterType>("all");
+  const [searchQuery, setSearchQuery] = useState("");
   const [addNoteModalOpen, setAddNoteModalOpen] = useState(false);
 
   // Fetch activities from backend
@@ -71,8 +88,8 @@ export function CaseActivityTimeline({
         `/activity/CASE/${caseData.id}?includeRelated=true&limit=50`,
       );
 
-      // Transform TimelineResponse.entries to Activity[] format
-      const transformedActivities: Activity[] = response.entries.map(
+      // Transform TimelineResponse.entries to ActivityWithContext[] format
+      const transformedActivities: ActivityWithContext[] = response.entries.map(
         (entry) => ({
           id: entry.id,
           entityType: entry.entityType as Activity["entityType"],
@@ -87,6 +104,7 @@ export function CaseActivityTimeline({
             typeof entry.createdAt === "string"
               ? entry.createdAt
               : new Date(entry.createdAt).toISOString(),
+          context: entry.context || null,
         }),
       );
 
@@ -120,25 +138,71 @@ export function CaseActivityTimeline({
     fetchActivities();
   }, [fetchActivities]);
 
-  // Filter activities based on active filter
+  // Compute upcoming items (tasks due, SLA deadlines in the future)
+  const upcomingItems = useMemo(() => {
+    const now = new Date();
+    return activities
+      .filter((a) => {
+        // Check if activity has a due date in the future
+        // Task activities or SLA-related activities
+        if (a.action === "task_created" || a.action === "task_assigned") {
+          const dueDate =
+            (a.changes?.dueDate?.new as string) ||
+            (a.context?.dueDate as string);
+          if (dueDate && new Date(dueDate) > now) return true;
+        }
+        if (a.action === "sla_warning" || a.action === "sla_updated") {
+          const slaDate = a.context?.slaDueAt as string;
+          if (slaDate && new Date(slaDate) > now) return true;
+        }
+        return false;
+      })
+      .sort((a, b) => {
+        // Sort by due date ascending (soonest first)
+        const dateA =
+          (a.context?.dueDate as string) ||
+          (a.context?.slaDueAt as string) ||
+          a.createdAt;
+        const dateB =
+          (b.context?.dueDate as string) ||
+          (b.context?.slaDueAt as string) ||
+          b.createdAt;
+        return new Date(dateA).getTime() - new Date(dateB).getTime();
+      });
+  }, [activities]);
+
+  // Filter activities based on active filter and search query
   const filteredActivities = useMemo(() => {
-    if (activeFilter === "all") {
-      return activities;
+    let filtered = activities;
+
+    // Filter by type
+    if (activeFilter !== "all") {
+      filtered = filtered.filter((activity) => {
+        switch (activeFilter) {
+          case "notes":
+            return activity.action === "commented";
+          case "status":
+            return activity.action === "status_changed";
+          case "files":
+            return activity.action === "file_uploaded";
+          default:
+            return true;
+        }
+      });
     }
 
-    return activities.filter((activity) => {
-      switch (activeFilter) {
-        case "notes":
-          return activity.action === "commented";
-        case "status":
-          return activity.action === "status_changed";
-        case "files":
-          return activity.action === "file_uploaded";
-        default:
-          return true;
-      }
-    });
-  }, [activities, activeFilter]);
+    // Filter by search query
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(
+        (a) =>
+          a.actionDescription?.toLowerCase().includes(query) ||
+          a.actorName?.toLowerCase().includes(query),
+      );
+    }
+
+    return filtered;
+  }, [activities, activeFilter, searchQuery]);
 
   // Count activities by type for filter badges
   const filterCounts = useMemo(() => {
@@ -210,6 +274,19 @@ export function CaseActivityTimeline({
 
       {/* Activity Timeline */}
       <div className="flex-1 flex flex-col overflow-hidden">
+        {/* Search bar */}
+        <div className="p-4 border-b">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Input
+              placeholder="Search activities..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9"
+            />
+          </div>
+        </div>
+
         {/* Filter tabs */}
         <div className="px-6 pt-4">
           <h3 className="text-sm font-semibold text-gray-700 mb-3">Activity</h3>
@@ -246,6 +323,27 @@ export function CaseActivityTimeline({
             <EmptyState filter={activeFilter} />
           ) : (
             <div className="space-y-6">
+              {/* Upcoming section */}
+              {upcomingItems.length > 0 && (
+                <div className="border-b pb-4 mb-4">
+                  <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3 flex items-center gap-2">
+                    <Clock className="h-4 w-4" />
+                    Upcoming
+                  </h3>
+                  <div className="space-y-2">
+                    {upcomingItems.map((item, index) => (
+                      <ActivityEntry
+                        key={`upcoming-${item.id}`}
+                        activity={item}
+                        isLast={index === upcomingItems.length - 1}
+                        isUpcoming
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Date-grouped activities */}
               {groupedActivities.map((group) => (
                 <div key={group.label}>
                   <h4 className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">
