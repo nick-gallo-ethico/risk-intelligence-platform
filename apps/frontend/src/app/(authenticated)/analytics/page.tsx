@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 /**
  * Analytics Page
@@ -7,13 +7,13 @@
  * Provides access to pre-built dashboards and report templates.
  */
 
-import { useEffect, useState, useCallback } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { Plus } from 'lucide-react';
-import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useAuth } from '@/contexts/auth-context';
+import { useEffect, useState, useCallback } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Plus } from "lucide-react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useAuth } from "@/contexts/auth-context";
 import {
   useDashboards,
   useDashboardTemplates,
@@ -22,15 +22,16 @@ import {
   useDeleteDashboard,
   useReports,
   useToggleReportFavorite,
-} from '@/hooks/use-dashboards';
+} from "@/hooks/use-dashboards";
 import {
   DashboardsList,
   ReportsList,
   DashboardTemplatePicker,
-} from '@/components/analytics';
-import type { DashboardTemplate } from '@/types/analytics';
+} from "@/components/analytics";
+import type { DashboardTemplate } from "@/types/analytics";
+import { ContextualHelpLink } from "@/components/help/contextual-help-link";
 
-type TabValue = 'dashboards' | 'reports';
+type TabValue = "dashboards" | "reports";
 
 export default function AnalyticsPage() {
   const router = useRouter();
@@ -38,7 +39,7 @@ export default function AnalyticsPage() {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
 
   // Get initial tab from URL or default to dashboards
-  const initialTab = (searchParams?.get('tab') as TabValue) || 'dashboards';
+  const initialTab = (searchParams?.get("tab") as TabValue) || "dashboards";
   const [activeTab, setActiveTab] = useState<TabValue>(initialTab);
   const [templatePickerOpen, setTemplatePickerOpen] = useState(false);
 
@@ -46,7 +47,8 @@ export default function AnalyticsPage() {
   const { data: dashboardsData, isLoading: dashboardsLoading } = useDashboards({
     includeSystem: true,
   });
-  const { data: templates = [], isLoading: templatesLoading } = useDashboardTemplates();
+  const { data: templates = [], isLoading: templatesLoading } =
+    useDashboardTemplates();
   const { data: reportsData, isLoading: reportsLoading } = useReports();
 
   // Mutation hooks
@@ -58,14 +60,14 @@ export default function AnalyticsPage() {
   // Redirect if not authenticated
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
-      router.push('/login');
+      router.push("/login");
     }
   }, [authLoading, isAuthenticated, router]);
 
   // Sync tab with URL
   useEffect(() => {
-    const tabParam = searchParams?.get('tab') as TabValue | undefined;
-    if (tabParam && ['dashboards', 'reports'].includes(tabParam)) {
+    const tabParam = searchParams?.get("tab") as TabValue | undefined;
+    if (tabParam && ["dashboards", "reports"].includes(tabParam)) {
       setActiveTab(tabParam);
     }
   }, [searchParams]);
@@ -76,10 +78,10 @@ export default function AnalyticsPage() {
       const newTab = value as TabValue;
       setActiveTab(newTab);
       const newUrl = new URL(window.location.href);
-      newUrl.searchParams.set('tab', newTab);
+      newUrl.searchParams.set("tab", newTab);
       router.replace(newUrl.pathname + newUrl.search, { scroll: false });
     },
-    [router]
+    [router],
   );
 
   // Dashboard handlers
@@ -87,34 +89,34 @@ export default function AnalyticsPage() {
     (id: string) => {
       toggleDashboardFavorite.mutate(id, {
         onError: () => {
-          toast.error('Failed to update favorite status');
+          toast.error("Failed to update favorite status");
         },
       });
     },
-    [toggleDashboardFavorite]
+    [toggleDashboardFavorite],
   );
 
   const handleSelectDashboard = useCallback(
     (id: string) => {
       router.push(`/analytics/dashboards/${id}`);
     },
-    [router]
+    [router],
   );
 
   const handleDeleteDashboard = useCallback(
     (id: string) => {
-      if (window.confirm('Are you sure you want to delete this dashboard?')) {
+      if (window.confirm("Are you sure you want to delete this dashboard?")) {
         deleteDashboard.mutate(id, {
           onSuccess: () => {
-            toast.success('Dashboard deleted');
+            toast.success("Dashboard deleted");
           },
           onError: () => {
-            toast.error('Failed to delete dashboard');
+            toast.error("Failed to delete dashboard");
           },
         });
       }
     },
-    [deleteDashboard]
+    [deleteDashboard],
   );
 
   const handleTemplateSelect = useCallback(
@@ -128,16 +130,16 @@ export default function AnalyticsPage() {
         },
         {
           onSuccess: (dashboard) => {
-            toast.success('Dashboard created');
+            toast.success("Dashboard created");
             router.push(`/analytics/dashboards/${dashboard.id}`);
           },
           onError: () => {
-            toast.error('Failed to create dashboard');
+            toast.error("Failed to create dashboard");
           },
-        }
+        },
       );
     },
-    [createDashboard, router]
+    [createDashboard, router],
   );
 
   // Report handlers
@@ -145,29 +147,29 @@ export default function AnalyticsPage() {
     (id: string) => {
       toggleReportFavorite.mutate(id, {
         onError: () => {
-          toast.error('Failed to update favorite status');
+          toast.error("Failed to update favorite status");
         },
       });
     },
-    [toggleReportFavorite]
+    [toggleReportFavorite],
   );
 
   const handleSelectReport = useCallback(
     (id: string) => {
       router.push(`/analytics/reports/${id}`);
     },
-    [router]
+    [router],
   );
 
   const handleRunReport = useCallback(
     (id: string) => {
       router.push(`/analytics/reports/${id}/run`);
     },
-    [router]
+    [router],
   );
 
   const handleCreateReport = useCallback(() => {
-    toast.info('Report builder is under development');
+    toast.info("Report builder is under development");
   }, []);
 
   // Loading state
@@ -196,18 +198,21 @@ export default function AnalyticsPage() {
             View dashboards and reports
           </p>
         </div>
-        {activeTab === 'dashboards' && (
-          <Button onClick={() => setTemplatePickerOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            Create Dashboard
-          </Button>
-        )}
-        {activeTab === 'reports' && (
-          <Button onClick={handleCreateReport}>
-            <Plus className="mr-2 h-4 w-4" />
-            Create Report
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          <ContextualHelpLink />
+          {activeTab === "dashboards" && (
+            <Button onClick={() => setTemplatePickerOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Create Dashboard
+            </Button>
+          )}
+          {activeTab === "reports" && (
+            <Button onClick={handleCreateReport}>
+              <Plus className="mr-2 h-4 w-4" />
+              Create Report
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Tabs */}

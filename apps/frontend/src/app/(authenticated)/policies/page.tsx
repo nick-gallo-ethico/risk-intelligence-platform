@@ -25,6 +25,7 @@ import { useSavedViewContext } from "@/hooks/views/useSavedViewContext";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import Link from "next/link";
+import { ContextualHelpLink } from "@/components/help/contextual-help-link";
 
 /**
  * PoliciesPageContent component that uses the view context
@@ -97,7 +98,9 @@ function PoliciesPageContent() {
   const getRowId = useCallback((row: Policy) => row.id, []);
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full relative">
+      <ContextualHelpLink className="absolute top-4 right-4 z-10" />
+
       {/* Zone 1: View Tabs */}
       <ViewTabsBar />
 

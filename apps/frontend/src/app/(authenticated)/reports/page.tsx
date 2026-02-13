@@ -75,6 +75,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { reportsApi } from "@/lib/reports-api";
 import type { SavedReport, ReportVisibility } from "@/types/reports";
+import { ContextualHelpLink } from "@/components/help/contextual-help-link";
 
 // =========================================================================
 // Constants
@@ -746,6 +747,7 @@ function ReportsContent() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <ContextualHelpLink />
           <Button variant="outline" onClick={() => setAiDialogOpen(true)}>
             <Sparkles className="mr-2 h-4 w-4" />
             Ask AI

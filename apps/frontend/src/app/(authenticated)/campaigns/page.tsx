@@ -14,6 +14,7 @@ import {
 import { Pagination } from "@/components/cases/pagination";
 import { useCampaigns, useCampaignStats } from "@/hooks/use-campaigns";
 import type { CampaignQueryParams, CampaignStatus } from "@/types/campaign";
+import { ContextualHelpLink } from "@/components/help/contextual-help-link";
 
 const PAGE_SIZE = 20;
 
@@ -183,6 +184,7 @@ function CampaignsContent() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          <ContextualHelpLink />
           <Button variant="outline" onClick={() => router.push("/forms")}>
             <FileInput className="mr-2 h-4 w-4" />
             Manage Forms

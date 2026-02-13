@@ -24,6 +24,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { ContextualHelpLink } from "@/components/help/contextual-help-link";
 
 /**
  * Settings Index Page
@@ -149,7 +150,8 @@ export default function SettingsPage() {
 
   return (
     <div className="container mx-auto py-6 max-w-4xl">
-      <div className="mb-8">
+      <div className="mb-8 relative">
+        <ContextualHelpLink className="absolute top-0 right-0" />
         <h1 className="text-3xl font-bold flex items-center gap-2">
           <Settings className="h-8 w-8" />
           Settings
