@@ -59,6 +59,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 22: Dark Mode & Theme** - Dark mode toggle, consistent nav theming, theme system
 - [x] **Phase 23: Help & Support System** - Knowledge base, in-platform ticket filing, real-time support
 - [ ] **Phase 24: Policy Content & Seed Data** - Populate policies with properly formatted text, improve case seed data
+- [ ] **Phase 25: Case & Investigation Page Redesign** - HubSpot three-column record pattern for case and investigation detail pages
 
 ## Phase Details
 
@@ -934,12 +935,40 @@ Plans:
 - [x] 24-02-PLAN.md — Expand flagship case narratives to 200-400 words, fix AI summary generation to 50-75 words, enhance narrative templates
 - [x] 24-03-PLAN.md — Enable policy seeder in orchestrator, add Phase 24 verification checks for content quality and lengths
 
+### Phase 25: Case & Investigation Page Redesign
+
+**Goal**: Restructure the Case Detail and Investigation Detail pages to follow HubSpot's three-column record pattern — answering "What is this?" (left), "What happened?" (center), and "Who/what is connected?" (right). The case page needs activity-first defaults, enhanced timeline, and new association cards. The investigation page needs a complete three-column conversion from its current single-column layout.
+**Depends on**: Phase 15 (case detail page exists), Phase 6 (investigation detail page exists)
+**Requirements**: Full specification in `docs/CASE-INVESTIGATION-PAGE-REDESIGN.md`
+**Success Criteria** (what must be TRUE):
+
+1. Case detail Activities tab is the default tab (not Overview)
+2. Activity timeline has search bar, upcoming section (tasks/SLA pinned), date-grouped history (Today/Yesterday/This Week/etc.), and user/team filters
+3. Quick action buttons use horizontal icon+label grid layout (not vertical ghost stack)
+4. Right sidebar has association cards with count badges, gear icons, and "View all" links: Connected People, Linked RIUs, Related Cases, Related Policies, Connected Documents
+5. Investigation page uses three-column layout matching case detail
+6. Investigation has left sidebar with summary card, quick actions, and editable properties panel
+7. Investigation has right sidebar with Connected People, Parent Case, Evidence cards
+8. Investigation Activity tab is default, with real activity timeline (not placeholder)
+9. Investigation Interviews and Files tabs are implemented (not placeholders)
+10. Reusable shared components extracted: AssociationCard, ActivityTimeline, QuickActionGrid
+    **Plans**: 6 plans in 5 waves
+
+Plans:
+
+- [ ] 25-01-PLAN.md (Wave 1) — Case tabs/activity timeline enhancement: reorder tabs, Activities default, search bar, upcoming section, date grouping, user/team filters
+- [ ] 25-02-PLAN.md (Wave 1) — Quick actions grid and properties polish: QuickActionGrid shared component, LogCallModal, gear icons and chevron toggles
+- [ ] 25-03-PLAN.md (Wave 2) — Right sidebar association cards: AssociationCard wrapper, RelatedCasesCard, RelatedPoliciesCard, LinkedRiusCard, refactor ConnectedPeopleCard/ConnectedDocumentsCard
+- [ ] 25-04-PLAN.md (Wave 3) — Investigation three-column layout conversion: grid layout, header with breadcrumbs/badges, InvestigationInfoSummary, InvestigationActionButtons, InvestigationPropertiesPanel
+- [ ] 25-05-PLAN.md (Wave 4) — Investigation activity timeline and tabs: InvestigationActivityTimeline, Activities default tab, InvestigationInterviewsTab, InvestigationFilesTab
+- [ ] 25-06-PLAN.md (Wave 5) — Investigation right sidebar with human verification: ParentCaseCard, InvestigationEvidenceCard, ConnectedPeopleCard adaptation, AI Assistant button
+
 ---
 
 ## Progress
 
 **Execution Order:**
-Phases execute in dependency order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11 → 11.1 → 12 → 13 → 13.1 → 14 → 14.1 → 14.2 → 15 → 16 → 17 → 18 → 19 → 20 → 21 → 22 → 23 → 24
+Phases execute in dependency order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11 → 11.1 → 12 → 13 → 13.1 → 14 → 14.1 → 14.2 → 15 → 16 → 17 → 18 → 19 → 20 → 21 → 22 → 23 → 24 → 25
 
 > **Note on order**: Phase 13.1 fixes UAT gaps from Phase 13. Phase 14.1 fixes data seeding gaps from Phase 14. Phase 15 gap closure plans address verification failures.
 
@@ -973,13 +1002,14 @@ Phases execute in dependency order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 
 | 22. Dark Mode & Theme                   | 0/14           | Planned  | -          |
 | 23. Help & Support System               | 0/5            | Planned  | -          |
 | 24. Policy Content & Seed Data          | 3/3            | Complete | 2026-02-12 |
+| 25. Case & Investigation Redesign       | 0/6            | Planned  | -          |
 
 ---
 
 _Roadmap created: 2026-02-02_
-_Updated: 2026-02-12 (Phase 24 complete — Policy Content & Seed Data)_
+_Updated: 2026-02-13 (Phase 25 planned — 6 plans in 5 waves)_
 _Depth: Comprehensive_
-_Total phases: 24 (+ 11.1 and decimal insertions)_
-_Total plans: 242+ completed, ~19-28 estimated remaining_
+_Total phases: 25 (+ 11.1 and decimal insertions)_
+_Total plans: 242+ completed, ~25-35 estimated remaining_
 _Total v1 requirements: 149 + QA punch list items_
 _Issues reference: .planning/V1-ISSUES-AND-GAPS.md_
