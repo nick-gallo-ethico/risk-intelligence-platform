@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 25 of 25+ (Case & Investigation Page Redesign) — IN PROGRESS
-Plan: 04 of ?? in current phase (just completed)
-Status: Completed 25-01, 25-02, 25-03, 25-04, ready for 25-05
-Last activity: 2026-02-13 - Completed 25-04 (investigation three-column layout)
+Plan: 05 of ?? in current phase (just completed)
+Status: Completed 25-01, 25-02, 25-03, 25-04, 25-05, ready for 25-06
+Last activity: 2026-02-13 - Completed 25-05 (investigation activity timeline and tabs)
 
 Progress: [===================================================================+] ~100% (Phase 21 adds new plans beyond original 24)
 
@@ -54,6 +54,14 @@ Progress: [===================================================================+]
   - Created InvestigationActionButtons using shared QuickActionGrid (5 actions, 3 cols)
   - Created InvestigationPropertiesPanel with 5 collapsible sections
   - Extended Investigation type with category, case, investigators, template fields
+
+- 25-05: Investigation Activity Timeline and Tabs (COMPLETE - 1444634, 66b87ab, b4ab7d2)
+  - Created InvestigationActivityTimeline with search, filter tabs, user dropdown, upcoming section
+  - Activities is now the default tab when opening an investigation (was Checklist)
+  - Tab order updated: Activity, Checklist, Notes, Interviews, Files, Findings
+  - Created InvestigationInterviewsTab with real interview list from API
+  - Created InvestigationFilesTab with grid/list toggle and file type badges
+  - All API calls use graceful fallback to empty state if endpoint not implemented
 
 ### Phase 21 Project Management IN PROGRESS (2026-02-12)
 
