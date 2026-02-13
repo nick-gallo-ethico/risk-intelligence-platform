@@ -1,13 +1,12 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { apiClient } from "@/lib/api";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Plus, Users } from "lucide-react";
+import { Users, Mail, Copy, Check } from "lucide-react";
+import { AssociationCard } from "@/components/ui/association-card";
 import { AddPersonModal } from "./add-person-modal";
 
 /**
@@ -168,12 +167,14 @@ function getFullName(person: Person): string {
 /**
  * ConnectedPeopleCard displays all persons connected to a case,
  * grouped by their evidentiary label or role.
+ * Uses AssociationCard wrapper for HubSpot-style association cards.
  */
 export function ConnectedPeopleCard({ caseId }: ConnectedPeopleCardProps) {
   const [associations, setAssociations] = useState<PersonCaseAssociation[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [addPersonOpen, setAddPersonOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const fetchPeople = useCallback(async () => {
     if (!caseId) return;
@@ -203,10 +204,21 @@ export function ConnectedPeopleCard({ caseId }: ConnectedPeopleCardProps) {
     setAddPersonOpen(false);
   };
 
-  // Group associations by label
+  // Filter associations by search query
+  const filteredAssociations = useMemo(() => {
+    if (!searchQuery.trim()) return associations;
+    const query = searchQuery.toLowerCase();
+    return associations.filter((assoc) => {
+      const name = getFullName(assoc.person).toLowerCase();
+      const email = assoc.person.email?.toLowerCase() || "";
+      return name.includes(query) || email.includes(query);
+    });
+  }, [associations, searchQuery]);
+
+  // Group filtered associations by label
   const groupedAssociations = [...EVIDENTIARY_ORDER, ...ROLE_ORDER].reduce(
     (acc, label) => {
-      const people = associations.filter((a) => a.label === label);
+      const people = filteredAssociations.filter((a) => a.label === label);
       if (people.length > 0) {
         acc[label] = people;
       }
@@ -220,14 +232,13 @@ export function ConnectedPeopleCard({ caseId }: ConnectedPeopleCardProps) {
 
   if (loading) {
     return (
-      <Card>
-        <CardHeader className="pb-2 px-4 pt-4">
-          <div className="flex items-center justify-between">
-            <Skeleton className="h-5 w-32" />
-            <Skeleton className="h-5 w-6 rounded-full" />
-          </div>
-        </CardHeader>
-        <CardContent className="px-4 pb-4 space-y-3">
+      <AssociationCard
+        title="Connected People"
+        count={0}
+        icon={Users}
+        collapsible={false}
+      >
+        <div className="space-y-3">
           {[1, 2, 3].map((i) => (
             <div key={i} className="flex items-center gap-3">
               <Skeleton className="h-8 w-8 rounded-full" />
@@ -237,103 +248,78 @@ export function ConnectedPeopleCard({ caseId }: ConnectedPeopleCardProps) {
               </div>
             </div>
           ))}
-        </CardContent>
-      </Card>
+        </div>
+      </AssociationCard>
     );
   }
 
   if (error) {
     return (
-      <Card>
-        <CardHeader className="pb-2 px-4 pt-4">
-          <CardTitle className="text-sm font-medium flex items-center gap-2">
-            <Users className="h-4 w-4" />
-            Connected People
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="px-4 pb-4">
-          <p className="text-sm text-red-600">{error}</p>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={fetchPeople}
-            className="mt-2"
-          >
-            Retry
-          </Button>
-        </CardContent>
-      </Card>
+      <AssociationCard
+        title="Connected People"
+        count={0}
+        icon={Users}
+        onAdd={() => setAddPersonOpen(true)}
+        onSettings={() => {}}
+      >
+        <p className="text-sm text-red-600">{error}</p>
+        <button
+          onClick={fetchPeople}
+          className="mt-2 text-sm text-blue-600 hover:underline"
+        >
+          Retry
+        </button>
+      </AssociationCard>
     );
   }
 
   return (
     <>
-      <Card>
-        <CardHeader className="pb-2 px-4 pt-4">
-          <CardTitle className="text-sm font-medium flex items-center justify-between">
-            <span className="flex items-center gap-2">
-              <Users className="h-4 w-4" />
-              Connected People
-            </span>
-            {totalCount > 0 && (
-              <Badge variant="secondary" className="text-xs">
-                {totalCount}
-              </Badge>
-            )}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="px-4 pb-4">
-          {!hasGroups ? (
-            <div className="text-center py-4">
-              <p className="text-sm text-muted-foreground mb-3">
-                No connected people
-              </p>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setAddPersonOpen(true)}
-                className="gap-1"
-              >
-                <Plus className="h-3 w-3" />
-                Add Person
-              </Button>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {[...EVIDENTIARY_ORDER, ...ROLE_ORDER].map((label) => {
-                const people = groupedAssociations[label];
-                if (!people) return null;
+      <AssociationCard
+        title="Connected People"
+        count={totalCount}
+        icon={Users}
+        onAdd={() => setAddPersonOpen(true)}
+        onSettings={() => {}}
+        viewAllHref={`/cases/${caseId}/people`}
+        viewAllLabel="View all associated People"
+        searchThreshold={5}
+        searchPlaceholder="Search people..."
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+      >
+        {!hasGroups ? (
+          <div className="text-center py-4">
+            <p className="text-sm text-muted-foreground">
+              {searchQuery ? "No matching people" : "No connected people"}
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {[...EVIDENTIARY_ORDER, ...ROLE_ORDER].map((label) => {
+              const people = groupedAssociations[label];
+              if (!people) return null;
 
-                return (
-                  <div key={label}>
-                    <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
-                      {GROUP_HEADERS[label]}
-                    </h4>
-                    <div className="space-y-2">
-                      {people.map((assoc) => (
-                        <PersonRow
-                          key={assoc.id}
-                          association={assoc}
-                          labelConfig={LABEL_CONFIG[assoc.label]}
-                        />
-                      ))}
-                    </div>
+              return (
+                <div key={label}>
+                  <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
+                    {GROUP_HEADERS[label]}
+                  </h4>
+                  <div className="space-y-2">
+                    {people.map((assoc) => (
+                      <PersonRow
+                        key={assoc.id}
+                        association={assoc}
+                        labelConfig={LABEL_CONFIG[assoc.label]}
+                      />
+                    ))}
                   </div>
-                );
-              })}
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setAddPersonOpen(true)}
-                className="w-full gap-1 mt-2"
-              >
-                <Plus className="h-3 w-3" />
-                Add Person
-              </Button>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </AssociationCard>
 
       <AddPersonModal
         caseId={caseId}
@@ -360,6 +346,20 @@ function PersonRow({
   };
 }) {
   const { person } = association;
+  const [copied, setCopied] = useState(false);
+
+  const handleCopyEmail = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!person.email) return;
+
+    try {
+      await navigator.clipboard.writeText(person.email);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error("Failed to copy email:", err);
+    }
+  };
 
   return (
     <div className="flex items-center gap-3 py-1">
@@ -384,6 +384,25 @@ function PersonRow({
           <p className="text-xs text-muted-foreground truncate">
             {[person.jobTitle, person.department].filter(Boolean).join(" - ")}
           </p>
+        )}
+        {person.email && (
+          <div className="flex items-center gap-1 mt-0.5 group">
+            <Mail className="h-3 w-3 text-gray-400" />
+            <span className="text-xs text-gray-500 truncate">
+              {person.email}
+            </span>
+            <button
+              onClick={handleCopyEmail}
+              className="opacity-0 group-hover:opacity-100 transition-opacity p-0.5 hover:bg-gray-100 rounded"
+              title="Copy email"
+            >
+              {copied ? (
+                <Check className="h-3 w-3 text-green-500" />
+              ) : (
+                <Copy className="h-3 w-3 text-gray-400" />
+              )}
+            </button>
+          </div>
         )}
       </div>
     </div>

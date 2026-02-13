@@ -2,9 +2,8 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { apiClient } from "@/lib/api";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   FileText,
@@ -13,11 +12,10 @@ import {
   FileVideo,
   FileAudio,
   File,
-  Plus,
   FolderOpen,
   Download,
-  ExternalLink,
 } from "lucide-react";
+import { AssociationCard } from "@/components/ui/association-card";
 
 /**
  * Attachment entity from GET /attachments?entityType=CASE&entityId=xxx
@@ -117,6 +115,7 @@ function truncateFilename(filename: string, maxLength = 24): string {
 
 /**
  * ConnectedDocumentsCard displays files attached to a case.
+ * Uses AssociationCard wrapper for HubSpot-style association cards.
  */
 export function ConnectedDocumentsCard({
   caseId,
@@ -173,14 +172,13 @@ export function ConnectedDocumentsCard({
 
   if (loading) {
     return (
-      <Card>
-        <CardHeader className="pb-2 px-4 pt-4">
-          <div className="flex items-center justify-between">
-            <Skeleton className="h-5 w-36" />
-            <Skeleton className="h-5 w-6 rounded-full" />
-          </div>
-        </CardHeader>
-        <CardContent className="px-4 pb-4 space-y-2">
+      <AssociationCard
+        title="Connected Documents"
+        count={0}
+        icon={FolderOpen}
+        collapsible={false}
+      >
+        <div className="space-y-2">
           {[1, 2, 3].map((i) => (
             <div key={i} className="flex items-center gap-3 py-1">
               <Skeleton className="h-8 w-8 rounded" />
@@ -190,88 +188,57 @@ export function ConnectedDocumentsCard({
               </div>
             </div>
           ))}
-        </CardContent>
-      </Card>
+        </div>
+      </AssociationCard>
     );
   }
 
   if (error) {
     return (
-      <Card>
-        <CardHeader className="pb-2 px-4 pt-4">
-          <CardTitle className="text-sm font-medium flex items-center gap-2">
-            <FolderOpen className="h-4 w-4" />
-            Connected Documents
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="px-4 pb-4">
-          <p className="text-sm text-red-600">{error}</p>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={fetchDocuments}
-            className="mt-2"
-          >
-            Retry
-          </Button>
-        </CardContent>
-      </Card>
+      <AssociationCard
+        title="Connected Documents"
+        count={0}
+        icon={FolderOpen}
+        onAdd={handleAddDocument}
+        onSettings={() => {}}
+      >
+        <p className="text-sm text-red-600">{error}</p>
+        <button
+          onClick={fetchDocuments}
+          className="mt-2 text-sm text-blue-600 hover:underline"
+        >
+          Retry
+        </button>
+      </AssociationCard>
     );
   }
 
   return (
-    <Card>
-      <CardHeader className="pb-2 px-4 pt-4">
-        <CardTitle className="text-sm font-medium flex items-center justify-between">
-          <span className="flex items-center gap-2">
-            <FolderOpen className="h-4 w-4" />
-            Connected Documents
-          </span>
-          {totalCount > 0 && (
-            <Badge variant="secondary" className="text-xs">
-              {totalCount}
-            </Badge>
-          )}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="px-4 pb-4">
-        {attachments.length === 0 ? (
-          <div className="text-center py-4">
-            <p className="text-sm text-muted-foreground mb-3">
-              No documents attached
-            </p>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleAddDocument}
-              className="gap-1"
-            >
-              <Plus className="h-3 w-3" />
-              Attach Document
-            </Button>
-          </div>
-        ) : (
-          <div className="space-y-1">
-            {attachments.map((attachment) => (
-              <DocumentRow
-                key={attachment.id}
-                attachment={attachment}
-                onDownload={() => handleDownload(attachment)}
-              />
-            ))}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleAddDocument}
-              className="w-full gap-1 mt-2"
-            >
-              <Plus className="h-3 w-3" />
-              Attach Document
-            </Button>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+    <AssociationCard
+      title="Connected Documents"
+      count={totalCount}
+      icon={FolderOpen}
+      onAdd={handleAddDocument}
+      onSettings={() => {}}
+      viewAllHref={`/cases/${caseId}?tab=files`}
+      viewAllLabel="View all associated Documents"
+    >
+      {attachments.length === 0 ? (
+        <div className="text-center py-4">
+          <p className="text-sm text-muted-foreground">No documents attached</p>
+        </div>
+      ) : (
+        <div className="space-y-1">
+          {attachments.map((attachment) => (
+            <DocumentRow
+              key={attachment.id}
+              attachment={attachment}
+              onDownload={() => handleDownload(attachment)}
+            />
+          ))}
+        </div>
+      )}
+    </AssociationCard>
   );
 }
 

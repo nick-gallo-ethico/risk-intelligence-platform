@@ -18,6 +18,9 @@ import {
 import { CaseTabs } from "@/components/cases/case-tabs";
 import { ConnectedPeopleCard } from "@/components/cases/connected-people-card";
 import { ConnectedDocumentsCard } from "@/components/cases/connected-documents-card";
+import { LinkedRiusCard } from "@/components/cases/linked-rius-card";
+import { RelatedCasesCard } from "@/components/cases/related-cases-card";
+import { RelatedPoliciesCard } from "@/components/cases/related-policies-card";
 import { CaseWorkflowPanel } from "@/components/cases/case-workflow-panel";
 import { AiChatPanel } from "@/components/cases/ai-chat-panel";
 import { AssignModal } from "@/components/cases/assign-modal";
@@ -249,8 +252,15 @@ function CaseDetailPageContent() {
             {caseData && (
               <>
                 <CaseWorkflowPanel caseId={caseData.id} />
+                {/* Association cards in HubSpot-recommended order */}
                 <ConnectedPeopleCard caseId={caseData.id} />
+                <LinkedRiusCard
+                  riuAssociations={caseData?.riuAssociations || []}
+                />
+                <RelatedCasesCard caseId={caseData.id} />
+                <RelatedPoliciesCard caseId={caseData.id} />
                 <ConnectedDocumentsCard caseId={caseData.id} />
+                {/* AI Assistant button at bottom */}
                 <div className="pt-2">
                   <Button
                     variant="outline"
