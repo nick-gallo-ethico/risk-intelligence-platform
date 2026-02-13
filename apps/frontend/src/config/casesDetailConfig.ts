@@ -87,12 +87,14 @@ export const CASES_DETAIL_CONFIG: RecordDetailConfig = {
     defaultStages: DEFAULT_CASE_PIPELINE,
   },
 
+  // 6 tabs total: Overview (default), Activities, Investigations, Messages, Files, Remediation
+  // No URL state syncing - tab state is local only
   tabs: [
     {
       id: "overview",
       label: "Overview",
       component: () => null,
-      isDefault: true,
+      isDefault: true, // Overview is default - provides context before diving in
     },
     { id: "activities", label: "Activities", component: () => null },
     { id: "investigations", label: "Investigations", component: () => null },

@@ -1,19 +1,9 @@
 "use client";
 
-import { useCallback } from "react";
-import { useSearchParams, useRouter, usePathname } from "next/navigation";
-import {
-  FileText,
-  Search,
-  MessageSquare,
-  Paperclip,
-  Activity,
-  ClipboardCheck,
-  ScrollText,
-} from "lucide-react";
+import { useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { LinkedRiuList } from "./linked-riu-list";
@@ -24,21 +14,20 @@ import { MessagesTab } from "./messages-tab";
 import { FilesTab } from "./files-tab";
 import { RemediationTab } from "./remediation-tab";
 import { SummaryTab } from "./summary-tab";
-import type { Case, RiuAssociation } from "@/types/case";
+import type { Case } from "@/types/case";
 
 /**
- * Tab configuration with icons and counts
- * Order: Activities, Overview, Summary, Investigations, Messages, Files, Remediation
- * (Activities is default as investigators check recent activity first)
+ * Tab configuration - text only, no icons
+ * Order: Overview, Activities, Investigations, Messages, Files, Remediation
+ * Overview is default - provides context before diving into specific areas
  */
 const TABS = [
-  { id: "activity", label: "Activities", icon: Activity },
-  { id: "overview", label: "Overview", icon: FileText },
-  { id: "summary", label: "Summary", icon: ScrollText },
-  { id: "investigations", label: "Investigations", icon: Search },
-  { id: "messages", label: "Messages", icon: MessageSquare },
-  { id: "files", label: "Files", icon: Paperclip },
-  { id: "remediation", label: "Remediation", icon: ClipboardCheck },
+  { id: "overview", label: "Overview" },
+  { id: "activities", label: "Activities" },
+  { id: "investigations", label: "Investigations" },
+  { id: "messages", label: "Messages" },
+  { id: "files", label: "Files" },
+  { id: "remediation", label: "Remediation" },
 ] as const;
 
 type TabId = (typeof TABS)[number]["id"];
@@ -48,8 +37,7 @@ interface TabCounts {
   messages?: number;
   unreadMessages?: number;
   files?: number;
-  activity?: number;
-  summary?: number;
+  activities?: number;
   remediation?: number;
 }
 
@@ -58,48 +46,29 @@ interface CaseTabsProps {
   isLoading: boolean;
   /** Optional tab counts for badge display */
   counts?: TabCounts;
-  /** Optional initial tab to display */
-  defaultTab?: TabId;
 }
 
 /**
  * Tabbed interface for case detail sections.
  *
- * Tabs:
- * - Overview: Linked RIUs, case summary, key dates
+ * Tabs (6 total):
+ * - Overview: Linked RIUs, case details, key dates (DEFAULT)
+ * - Activities: Timeline of all case activity
  * - Investigations: List of investigations with status
- * - Messages: Anonymous communication thread with reporter
- * - Files: Attachments grid
- * - Activity: Timeline of all case activity
+ * - Messages: Reporter communication and email correspondence
+ * - Files: Attachments with upload, search, sort
  * - Remediation: Linked remediation plans
  *
  * Features:
  * - Badge indicators showing counts
- * - URL-synced tab navigation
+ * - Local state only (no URL syncing)
  * - Responsive tab scrolling on mobile
  */
-export function CaseTabs({
-  caseData,
-  isLoading,
-  counts = {},
-  defaultTab = "activity",
-}: CaseTabsProps) {
+export function CaseTabs({ caseData, isLoading, counts = {} }: CaseTabsProps) {
   const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
 
-  // Get current tab from URL or use default
-  const currentTab = (searchParams?.get("tab") as TabId) || defaultTab;
-
-  // Handle tab change - update URL
-  const handleTabChange = useCallback(
-    (tab: string) => {
-      const params = new URLSearchParams(searchParams?.toString() ?? "");
-      params.set("tab", tab);
-      router.push(`${pathname}?${params.toString()}`, { scroll: false });
-    },
-    [router, pathname, searchParams],
-  );
+  // Local tab state - always starts on Overview
+  const [currentTab, setCurrentTab] = useState<TabId>("overview");
 
   // Handle RIU click - navigate to RIU detail
   const handleRiuClick = useCallback(
@@ -120,14 +89,13 @@ export function CaseTabs({
   return (
     <Tabs
       value={currentTab}
-      onValueChange={handleTabChange}
+      onValueChange={(value) => setCurrentTab(value as TabId)}
       className="h-full flex flex-col"
     >
       {/* Tab List with horizontal scroll on mobile */}
       <div className="border-b bg-white sticky top-0 z-10">
         <TabsList className="h-12 w-full justify-start rounded-none border-0 bg-transparent p-0 overflow-x-auto">
           {TABS.map((tab) => {
-            const Icon = tab.icon;
             const count = counts[tab.id as keyof TabCounts];
             const hasUnread = tab.id === "messages" && counts.unreadMessages;
 
@@ -143,8 +111,7 @@ export function CaseTabs({
                 )}
               >
                 <div className="flex items-center gap-2">
-                  <Icon className="w-4 h-4" />
-                  <span className="hidden sm:inline">{tab.label}</span>
+                  <span>{tab.label}</span>
                   {count !== undefined && count > 0 && (
                     <Badge
                       variant={hasUnread ? "default" : "secondary"}
@@ -165,13 +132,23 @@ export function CaseTabs({
 
       {/* Tab Content */}
       <div className="flex-1 overflow-hidden">
-        {/* Overview Tab */}
+        {/* Overview Tab (default) */}
         <TabsContent
           value="overview"
           className="h-full m-0 p-0 data-[state=inactive]:hidden"
         >
           <div className="h-full overflow-y-auto">
             <OverviewTab caseData={caseData} onRiuClick={handleRiuClick} />
+          </div>
+        </TabsContent>
+
+        {/* Activities Tab */}
+        <TabsContent
+          value="activities"
+          className="h-full m-0 p-0 data-[state=inactive]:hidden"
+        >
+          <div className="h-full overflow-hidden">
+            <CaseActivityTimeline caseData={caseData} isLoading={false} />
           </div>
         </TabsContent>
 
@@ -205,26 +182,6 @@ export function CaseTabs({
         >
           <div className="h-full overflow-y-auto">
             <FilesTab caseId={caseData.id} />
-          </div>
-        </TabsContent>
-
-        {/* Activity Tab */}
-        <TabsContent
-          value="activity"
-          className="h-full m-0 p-0 data-[state=inactive]:hidden"
-        >
-          <div className="h-full overflow-hidden">
-            <CaseActivityTimeline caseData={caseData} isLoading={false} />
-          </div>
-        </TabsContent>
-
-        {/* Summary Tab */}
-        <TabsContent
-          value="summary"
-          className="h-full m-0 p-0 data-[state=inactive]:hidden"
-        >
-          <div className="h-full overflow-y-auto">
-            <SummaryTab caseData={caseData} />
           </div>
         </TabsContent>
 
@@ -485,10 +442,10 @@ function OverviewTab({ caseData, onRiuClick }: OverviewTabProps) {
 export function CaseTabsSkeleton() {
   return (
     <div className="h-full flex flex-col">
-      {/* Tab List Skeleton */}
+      {/* Tab List Skeleton - 6 tabs */}
       <div className="border-b bg-white">
         <div className="flex items-center gap-4 p-2">
-          {[1, 2, 3, 4, 5, 6, 7].map((i) => (
+          {[1, 2, 3, 4, 5, 6].map((i) => (
             <Skeleton key={i} className="h-8 w-24" />
           ))}
         </div>

@@ -19,6 +19,12 @@ import {
   ListTodo,
   Clock,
   AlertTriangle,
+  FileText,
+  Mail,
+  Phone,
+  Mic,
+  FileUp,
+  Settings,
   type LucideIcon,
 } from "lucide-react";
 import type { ActivityAction } from "@/types/activity";
@@ -126,6 +132,47 @@ const iconConfigs: Record<ActivityAction, ActivityIconConfig> = {
     icon: AlertTriangle,
     color: "text-red-600",
     bgColor: "bg-red-100",
+  },
+  // Additional activity types for HubSpot-style filtering
+  note: {
+    icon: FileText,
+    color: "text-teal-600",
+    bgColor: "bg-teal-100",
+  },
+  email_sent: {
+    icon: Mail,
+    color: "text-blue-600",
+    bgColor: "bg-blue-100",
+  },
+  email_received: {
+    icon: Mail,
+    color: "text-green-600",
+    bgColor: "bg-green-100",
+  },
+  call_logged: {
+    icon: Phone,
+    color: "text-emerald-600",
+    bgColor: "bg-emerald-100",
+  },
+  interview_logged: {
+    icon: Mic,
+    color: "text-rose-600",
+    bgColor: "bg-rose-100",
+  },
+  document_uploaded: {
+    icon: FileUp,
+    color: "text-amber-600",
+    bgColor: "bg-amber-100",
+  },
+  assignment_change: {
+    icon: UserPlus,
+    color: "text-indigo-600",
+    bgColor: "bg-indigo-100",
+  },
+  system_event: {
+    icon: Settings,
+    color: "text-gray-600",
+    bgColor: "bg-gray-100",
   },
 };
 
