@@ -25,7 +25,7 @@ import {
 } from "../dto/support-ticket.dto";
 import { TicketDetail, TicketListItem } from "../entities/help.types";
 
-@Controller("api/v1/help/tickets")
+@Controller("help/tickets")
 @UseGuards(JwtAuthGuard, TenantGuard)
 export class SupportTicketsController {
   constructor(private readonly supportTicketsService: SupportTicketsService) {}

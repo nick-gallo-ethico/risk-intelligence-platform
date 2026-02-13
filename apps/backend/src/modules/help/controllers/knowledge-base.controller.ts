@@ -17,7 +17,7 @@ import {
   CategoryWithCount,
 } from "../entities/help.types";
 
-@Controller("api/v1/help")
+@Controller("help")
 @UseGuards(JwtAuthGuard, TenantGuard)
 export class KnowledgeBaseController {
   constructor(private readonly knowledgeBaseService: KnowledgeBaseService) {}
