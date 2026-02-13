@@ -5,14 +5,14 @@
 See: .planning/PROJECT.md (updated 2026-02-02)
 
 **Core value:** Users can manage their entire compliance workflow - from anonymous report intake to investigation closure to board reporting - in one AI-assisted platform, with every task unified into a single "My Work" view.
-**Current focus:** Phase 25 Case & Investigation Page Redesign - Wave 3 in progress.
+**Current focus:** Phase 25 Case & Investigation Page Redesign - Wave 5 checkpoint verification.
 
 ## Current Position
 
 Phase: 25 of 25+ (Case & Investigation Page Redesign) — IN PROGRESS
-Plan: 05 of ?? in current phase (just completed)
-Status: Completed 25-01, 25-02, 25-03, 25-04, 25-05, ready for 25-06
-Last activity: 2026-02-13 - Completed 25-05 (investigation activity timeline and tabs)
+Plan: 06 of ?? in current phase (automated tasks complete, awaiting checkpoint)
+Status: Completed 25-01, 25-02, 25-03, 25-04, 25-05, 25-06 (pending verification)
+Last activity: 2026-02-13 - Completed 25-06 automated tasks (investigation right sidebar)
 
 Progress: [===================================================================+] ~100% (Phase 21 adds new plans beyond original 24)
 
@@ -62,6 +62,14 @@ Progress: [===================================================================+]
   - Created InvestigationInterviewsTab with real interview list from API
   - Created InvestigationFilesTab with grid/list toggle and file type badges
   - All API calls use graceful fallback to empty state if endpoint not implemented
+
+- 25-06: Investigation Right Sidebar (PENDING VERIFICATION - 770a99c, ea2d9b3, 45310f8)
+  - Created ParentCaseCard showing parent case with reference, status, severity, clickable link
+  - Created InvestigationEvidenceCard with file type badges and count
+  - Adapted ConnectedPeopleCard to accept investigationId prop
+  - Wired right sidebar: Connected People, Parent Case, Evidence, AI button
+  - Integrated AiChatPanel Sheet for investigation-scoped AI assistance
+  - Human verification checkpoint pending
 
 ### Phase 21 Project Management IN PROGRESS (2026-02-12)
 
