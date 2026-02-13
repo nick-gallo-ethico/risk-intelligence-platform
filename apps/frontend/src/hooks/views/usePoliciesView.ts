@@ -120,12 +120,10 @@ export function usePoliciesView() {
 
   // Build query params from view state
   const queryParams = useMemo(() => {
-    // Backend expects limit/offset, not page/pageSize
-    const limit = pageSize;
-    const offset = (page - 1) * pageSize;
+    // Backend expects page/limit (not offset)
     const params: Record<string, unknown> = {
-      limit,
-      offset,
+      limit: pageSize,
+      page,
     };
 
     // Search

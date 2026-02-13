@@ -2,6 +2,8 @@
  * Forms API Client
  *
  * API client for interacting with form definition endpoints.
+ * Maps between backend field names (formType, isPublished) and
+ * frontend field names (type, status).
  */
 
 import { apiClient } from "./api";
@@ -23,7 +25,7 @@ export type FormType =
 export type FormStatus = "DRAFT" | "PUBLISHED" | "ARCHIVED";
 
 /**
- * Form definition entity.
+ * Form definition entity (frontend shape).
  */
 export interface FormDefinition {
   id: string;
@@ -38,6 +40,47 @@ export interface FormDefinition {
   updatedAt: string;
   publishedAt?: string;
   createdById?: string;
+}
+
+/**
+ * Raw form definition from the backend (uses formType/isPublished).
+ */
+interface BackendFormDefinition {
+  id: string;
+  organizationId: string;
+  name: string;
+  description?: string;
+  formType: FormType;
+  type?: FormType;
+  isPublished?: boolean;
+  isActive?: boolean;
+  status?: FormStatus;
+  version: number;
+  schema?: Record<string, unknown>;
+  createdAt: string;
+  updatedAt: string;
+  publishedAt?: string;
+  createdById?: string;
+}
+
+/**
+ * Map a backend form definition to the frontend FormDefinition shape.
+ */
+function mapFormDefinition(raw: BackendFormDefinition): FormDefinition {
+  return {
+    id: raw.id,
+    organizationId: raw.organizationId,
+    name: raw.name,
+    description: raw.description,
+    type: raw.formType || raw.type || ("CUSTOM" as FormType),
+    status: raw.status || (raw.isPublished ? "PUBLISHED" : "DRAFT"),
+    version: raw.version,
+    schema: raw.schema,
+    createdAt: raw.createdAt,
+    updatedAt: raw.updatedAt,
+    publishedAt: raw.publishedAt,
+    createdById: raw.createdById,
+  };
 }
 
 /**
@@ -102,19 +145,19 @@ export const formsApi = {
       : "/forms/definitions";
 
     const response = await apiClient.get<
-      FormDefinition[] | { data: FormDefinition[]; total: number }
+      BackendFormDefinition[] | { data: BackendFormDefinition[]; total: number }
     >(url);
 
     // Handle both array and paginated response formats from backend
     if (Array.isArray(response)) {
       return {
-        data: response,
+        data: response.map(mapFormDefinition),
         total: response.length,
       };
     }
 
     return {
-      data: response.data,
+      data: (response.data || []).map(mapFormDefinition),
       total: response.total,
     };
   },
@@ -123,34 +166,57 @@ export const formsApi = {
    * Get a single form definition by ID.
    */
   getById: async (id: string): Promise<FormDefinition> => {
-    return apiClient.get<FormDefinition>(`/forms/definitions/${id}`);
+    const raw = await apiClient.get<BackendFormDefinition>(
+      `/forms/definitions/${id}`,
+    );
+    return mapFormDefinition(raw);
   },
 
   /**
    * Create a new form definition.
+   * Maps frontend `type` to backend `formType`.
    */
   create: async (dto: CreateFormDto): Promise<FormDefinition> => {
-    return apiClient.post<FormDefinition>("/forms/definitions", dto);
+    const raw = await apiClient.post<BackendFormDefinition>(
+      "/forms/definitions",
+      {
+        name: dto.name,
+        description: dto.description,
+        formType: dto.type,
+        schema: dto.schema || { sections: [] },
+      },
+    );
+    return mapFormDefinition(raw);
   },
 
   /**
    * Update an existing form definition.
    */
   update: async (id: string, dto: UpdateFormDto): Promise<FormDefinition> => {
-    return apiClient.patch<FormDefinition>(`/forms/definitions/${id}`, dto);
+    const raw = await apiClient.patch<BackendFormDefinition>(
+      `/forms/definitions/${id}`,
+      dto,
+    );
+    return mapFormDefinition(raw);
   },
 
   /**
    * Publish a form definition (changes status from DRAFT to PUBLISHED).
    */
   publish: async (id: string): Promise<FormDefinition> => {
-    return apiClient.post<FormDefinition>(`/forms/definitions/${id}/publish`);
+    const raw = await apiClient.post<BackendFormDefinition>(
+      `/forms/definitions/${id}/publish`,
+    );
+    return mapFormDefinition(raw);
   },
 
   /**
    * Clone a form definition (creates new DRAFT copy).
    */
   clone: async (id: string): Promise<FormDefinition> => {
-    return apiClient.post<FormDefinition>(`/forms/definitions/${id}/clone`);
+    const raw = await apiClient.post<BackendFormDefinition>(
+      `/forms/definitions/${id}/clone`,
+    );
+    return mapFormDefinition(raw);
   },
 };

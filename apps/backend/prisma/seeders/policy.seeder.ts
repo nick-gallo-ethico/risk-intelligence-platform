@@ -3236,6 +3236,130 @@ const GENERATED_POLICIES: PolicyDefinition[] = [
 ];
 
 // ===========================================
+// Content Expansion - Makes all policies realistic length (800-1200+ words)
+// ===========================================
+
+/**
+ * Appends standard compliance boilerplate sections to every policy,
+ * making them realistic enterprise-length documents (800-1200+ words).
+ * Each section is relevant to any compliance policy and adds depth.
+ */
+function expandPolicyContent(
+  content: string,
+  title: string,
+  category: string,
+): string {
+  const sections = `
+
+<h2>Applicability and Scope</h2>
+<p>This policy applies to all employees, contractors, temporary workers, interns, volunteers, and any third-party personnel who have access to ${title.includes("Policy") ? title.replace(" Policy", "").toLowerCase() : title.toLowerCase()}-related resources or information belonging to Acme Corporation. This includes all subsidiaries, divisions, and business units operating under the Acme Corporation umbrella, regardless of geographic location or employment arrangement.</p>
+<p>This policy extends to all company-owned, leased, or personally-owned devices used for company business, including but not limited to desktop computers, laptops, tablets, mobile phones, and any other electronic devices. Remote workers and employees working from home are equally subject to this policy.</p>
+<p>Third-party vendors and service providers with access to company systems or data must comply with the relevant provisions of this policy as stipulated in their service agreements and contracts.</p>
+
+<h2>Roles and Responsibilities</h2>
+<h3>Executive Leadership</h3>
+<p>Executive leadership is responsible for championing this policy, allocating sufficient resources for implementation, and ensuring alignment with the organization's strategic objectives and risk appetite. The Chief Compliance Officer (CCO) has ultimate accountability for policy oversight and enforcement across the enterprise.</p>
+<h3>Department Managers</h3>
+<p>Department managers are responsible for communicating this policy to their teams, ensuring compliance within their departments, identifying and escalating potential violations, and participating in periodic policy reviews. Managers must ensure that new team members receive appropriate training within 30 days of their start date.</p>
+<h3>All Employees</h3>
+<p>Every employee is responsible for reading and understanding this policy, completing required training, adhering to all provisions, and promptly reporting any suspected violations or concerns. Employees must acknowledge receipt and understanding of this policy annually through the company's policy management system.</p>
+<h3>Compliance Department</h3>
+<p>The Compliance department is responsible for maintaining this policy, conducting periodic reviews and updates, monitoring compliance, investigating reported violations, and providing guidance on policy interpretation. The department will produce quarterly compliance reports for executive review and will coordinate with Legal on any regulatory changes that may affect this policy.</p>
+
+<h2>Training and Awareness</h2>
+<p>All personnel subject to this policy must complete the following training requirements:</p>
+<ul>
+<li><strong>Initial Training:</strong> Within 30 days of hire or role change, all employees must complete the ${category} compliance training module covering this policy's key provisions and practical applications</li>
+<li><strong>Annual Refresher:</strong> All employees must complete an annual refresher course that includes updates to this policy, lessons learned from incidents, and emerging best practices in ${category.toLowerCase()} compliance</li>
+<li><strong>Role-Specific Training:</strong> Employees in positions with elevated responsibilities under this policy must complete additional specialized training as determined by the Compliance department</li>
+<li><strong>Awareness Campaigns:</strong> The Compliance department will conduct periodic awareness campaigns including newsletters, town halls, and targeted communications to reinforce key policy concepts</li>
+</ul>
+<p>Training completion is tracked through the Learning Management System (LMS). Managers will receive notifications when team members are overdue for required training. Failure to complete mandatory training within the specified timeframe may result in restricted system access or other appropriate measures.</p>
+
+<h2>Compliance Monitoring and Auditing</h2>
+<p>The organization employs a multi-layered approach to monitoring compliance with this policy:</p>
+<ul>
+<li><strong>Continuous Monitoring:</strong> Automated tools and processes continuously monitor key compliance indicators, generating alerts for potential violations or anomalies that require investigation</li>
+<li><strong>Periodic Assessments:</strong> The Compliance department conducts quarterly assessments of policy adherence across all departments, using both quantitative metrics and qualitative reviews</li>
+<li><strong>Internal Audits:</strong> The Internal Audit team performs annual comprehensive audits of this policy's implementation and effectiveness, reporting findings to the Audit Committee</li>
+<li><strong>External Audits:</strong> Independent third-party auditors may be engaged periodically to provide an objective assessment of the organization's compliance posture</li>
+</ul>
+<p>Audit findings are documented, tracked to resolution, and reported to appropriate stakeholders. Systemic issues identified through auditing may trigger policy revisions or additional training requirements.</p>
+
+<h2>Enforcement and Disciplinary Action</h2>
+<p>Violations of this policy will be addressed through a progressive disciplinary process commensurate with the severity and nature of the violation:</p>
+<table>
+<tr><th>Violation Level</th><th>Description</th><th>Potential Consequences</th></tr>
+<tr><td>Minor / First Offense</td><td>Unintentional or low-impact violation with no harm caused</td><td>Verbal warning, additional training, documented coaching session</td></tr>
+<tr><td>Moderate / Repeated</td><td>Repeated minor violations or moderate-impact breach</td><td>Written warning, mandatory retraining, performance improvement plan, temporary access restrictions</td></tr>
+<tr><td>Serious</td><td>Significant violation causing harm or regulatory exposure</td><td>Final written warning, suspension without pay, demotion, restricted duties</td></tr>
+<tr><td>Severe / Egregious</td><td>Willful violation, fraud, or actions causing substantial harm</td><td>Immediate termination, referral for legal action, regulatory notification as required</td></tr>
+</table>
+<p>The severity determination considers factors including intent, impact, history of prior violations, cooperation during investigation, and whether the violation was self-reported. All disciplinary actions are documented in the employee's file and coordinated with Human Resources.</p>
+<p>Nothing in this disciplinary framework limits the organization's right to terminate employment at will in accordance with applicable law.</p>
+
+<h2>Reporting Violations and Whistleblower Protection</h2>
+<p>Employees who observe or suspect violations of this policy are required to report them through one of the following channels:</p>
+<ul>
+<li><strong>Direct Manager:</strong> Report to your immediate supervisor unless they are involved in the violation</li>
+<li><strong>Compliance Department:</strong> Contact the Compliance team directly via email at compliance@acmecorp.com or through the internal portal</li>
+<li><strong>Ethics Hotline:</strong> Anonymous reports can be made 24/7 via the confidential Ethics Hotline at 1-800-ACME-ETH or through the online reporting portal</li>
+<li><strong>Legal Department:</strong> For matters involving potential legal liability or regulatory violations</li>
+</ul>
+<p>Acme Corporation strictly prohibits retaliation against any individual who reports a concern in good faith, participates in an investigation, or exercises their rights under applicable whistleblower protection laws. Retaliation itself constitutes a serious policy violation subject to disciplinary action up to and including termination.</p>
+
+<h2>Exceptions and Waivers</h2>
+<p>Exceptions to this policy may be granted in limited circumstances where strict compliance is impractical or where an alternative approach achieves equivalent compliance objectives. All exception requests must:</p>
+<ul>
+<li>Be submitted in writing to the Compliance department using the Policy Exception Request form</li>
+<li>Include a business justification explaining why the exception is necessary</li>
+<li>Describe compensating controls that will be implemented to mitigate any increased risk</li>
+<li>Specify a defined duration (exceptions are not granted indefinitely)</li>
+<li>Be approved by the department head, Compliance Officer, and when applicable, the Chief Risk Officer</li>
+</ul>
+<p>Approved exceptions are documented in the policy exception register, reviewed quarterly, and subject to revocation if circumstances change or compensating controls prove inadequate.</p>
+
+<h2>Record Retention</h2>
+<p>Records related to this policy, including training completions, compliance assessments, investigation reports, exception requests, and disciplinary actions, shall be retained in accordance with the company's Record Retention Schedule. At minimum, compliance-related records are retained for seven (7) years or as required by applicable law, whichever is longer. Records must be stored securely with appropriate access controls and be readily retrievable for audit or legal purposes.</p>
+
+<h2>Policy Review and Updates</h2>
+<p>This policy is reviewed at least annually by the Compliance department in coordination with relevant stakeholders. Reviews may also be triggered by significant regulatory changes, organizational restructuring, audit findings, or material incidents. The review process includes:</p>
+<ul>
+<li>Assessment of regulatory and legal developments affecting this policy area</li>
+<li>Analysis of compliance metrics and incident trends</li>
+<li>Stakeholder feedback and improvement suggestions</li>
+<li>Benchmarking against industry best practices and peer organizations</li>
+<li>Gap analysis against current organizational practices</li>
+</ul>
+<p>Material changes require approval from the Policy Governance Committee before publication. All employees will be notified of significant updates and may be required to re-acknowledge the updated policy.</p>
+
+<h2>Related Policies and References</h2>
+<ul>
+<li>Code of Conduct</li>
+<li>Information Security Policy</li>
+<li>Data Privacy and Protection Policy</li>
+<li>Employee Handbook</li>
+<li>Record Retention Schedule</li>
+<li>Incident Response Plan</li>
+<li>Third-Party Risk Management Policy</li>
+<li>Whistleblower Protection Policy</li>
+</ul>
+
+<h2>Contact Information</h2>
+<p>For questions regarding the interpretation or application of this policy, contact:</p>
+<ul>
+<li><strong>Compliance Department:</strong> compliance@acmecorp.com | Ext. 4200</li>
+<li><strong>Ethics Hotline:</strong> 1-800-ACME-ETH (24/7, anonymous reporting available)</li>
+<li><strong>Legal Department:</strong> legal@acmecorp.com | Ext. 4300</li>
+<li><strong>Human Resources:</strong> hr@acmecorp.com | Ext. 4100</li>
+</ul>`;
+
+  // Insert the expansion sections before the closing of the content
+  // Find the last closing tag and insert before it
+  return content + sections;
+}
+
+// ===========================================
 // Seeder Function
 // ===========================================
 
@@ -3304,6 +3428,13 @@ export async function seedPolicies(
   for (let i = 0; i < allPolicies.length; i++) {
     const policyDef = allPolicies[i];
 
+    // Expand policy content with standard compliance sections
+    const expandedContent = expandPolicyContent(
+      policyDef.content,
+      policyDef.title,
+      policyDef.category,
+    );
+
     // Determine status for this policy
     let status: PolicyStatus = "PUBLISHED";
     if (draftSlugs.has(policyDef.slug)) {
@@ -3348,8 +3479,8 @@ export async function seedPolicies(
         const latestVersion = existing.versions[0];
         const updatedContent =
           status === "DRAFT"
-            ? policyDef.content
-            : policyDef.content.replace(
+            ? expandedContent
+            : expandedContent.replace(
                 "</h1>",
                 "</h1>\n<p><em>Updated for 2026 compliance requirements.</em></p>",
               );
@@ -3381,6 +3512,47 @@ export async function seedPolicies(
         });
 
         updatedCount++;
+
+        // Re-create translations for the latest version if missing
+        if (status === "PUBLISHED" && policyDef.translations.length > 0) {
+          const existingTranslations =
+            await prisma.policyVersionTranslation.count({
+              where: { policyVersionId: latestVersion.id },
+            });
+
+          if (existingTranslations === 0) {
+            for (const trans of policyDef.translations) {
+              const translatedContent = generateTranslatedContent(
+                expandedContent,
+                trans.languageCode,
+              );
+
+              await prisma.policyVersionTranslation.create({
+                data: {
+                  organizationId,
+                  policyVersionId: latestVersion.id,
+                  languageCode: trans.languageCode,
+                  languageName: trans.languageName,
+                  title: trans.title,
+                  content: translatedContent,
+                  plainText: translatedContent
+                    .replace(/<[^>]*>/g, " ")
+                    .replace(/\s+/g, " ")
+                    .trim(),
+                  translatedBy: "AI",
+                  aiModel: "claude-3-opus",
+                  reviewStatus:
+                    trans.languageCode === "es" ? "APPROVED" : "PENDING_REVIEW",
+                  reviewedAt: trans.languageCode === "es" ? new Date() : null,
+                  reviewedById: trans.languageCode === "es" ? ownerId : null,
+                  isStale: false,
+                },
+              });
+
+              translationCount++;
+            }
+          }
+        }
       }
       continue;
     }
@@ -3395,7 +3567,7 @@ export async function seedPolicies(
         category: policyDef.category,
         status,
         currentVersion: maxVersion,
-        draftContent: status === "DRAFT" ? policyDef.content : null,
+        draftContent: status === "DRAFT" ? expandedContent : null,
         ownerId,
         effectiveDate: status === "DRAFT" ? null : effectiveDate,
         reviewDate: status === "DRAFT" ? null : reviewDate,
@@ -3413,8 +3585,8 @@ export async function seedPolicies(
         policyId: policy.id,
         version: 1,
         versionLabel: "v1.0",
-        content: policyDef.content,
-        plainText: policyDef.content
+        content: expandedContent,
+        plainText: expandedContent
           .replace(/<[^>]*>/g, " ")
           .replace(/\s+/g, " ")
           .trim(),
@@ -3436,7 +3608,7 @@ export async function seedPolicies(
       const v2Date = new Date(
         effectiveDate.getTime() + 180 * 24 * 60 * 60 * 1000,
       ); // 6 months later
-      const updatedContentV2 = policyDef.content.replace(
+      const updatedContentV2 = expandedContent.replace(
         "</h1>",
         "</h1>\n<p><em>Updated for 2025 compliance requirements.</em></p>",
       );
@@ -3470,7 +3642,7 @@ export async function seedPolicies(
     // Create version 3 if applicable (core policies only)
     if (maxVersion >= 3) {
       const v3Date = new Date("2026-01-15");
-      const updatedContentV3 = policyDef.content.replace(
+      const updatedContentV3 = expandedContent.replace(
         "</h1>",
         "</h1>\n<p><em>Updated for 2026 compliance requirements.</em></p>",
       );
@@ -3509,7 +3681,7 @@ export async function seedPolicies(
     ) {
       for (const trans of policyDef.translations) {
         const translatedContent = generateTranslatedContent(
-          policyDef.content,
+          expandedContent,
           trans.languageCode,
         );
 
@@ -3546,25 +3718,770 @@ export async function seedPolicies(
   return { policyCount, translationCount, updatedCount };
 }
 
-// Helper function to generate mock translations
+// ===========================================
+// Translation Content Library
+// ===========================================
+
+/**
+ * Full translated content for the standard boilerplate sections.
+ * Each language has the complete HTML for sections added by expandPolicyContent().
+ * The policy-specific content at the top gets heading translations applied.
+ */
+const TRANSLATED_BOILERPLATE: Record<string, string> = {
+  es: `
+<h2>Aplicabilidad y Alcance</h2>
+<p>Esta política se aplica a todos los empleados, contratistas, trabajadores temporales, pasantes, voluntarios y cualquier personal de terceros que tenga acceso a recursos o información relacionados de Acme Corporation. Esto incluye todas las subsidiarias, divisiones y unidades de negocio que operan bajo el paraguas de Acme Corporation, independientemente de la ubicación geográfica o el tipo de contrato laboral.</p>
+<p>Esta política se extiende a todos los dispositivos propiedad de la empresa, arrendados o de propiedad personal utilizados para negocios de la empresa, incluyendo pero no limitado a computadoras de escritorio, portátiles, tabletas, teléfonos móviles y cualquier otro dispositivo electrónico. Los trabajadores remotos y los empleados que trabajan desde casa están igualmente sujetos a esta política.</p>
+<p>Los proveedores y prestadores de servicios de terceros con acceso a los sistemas o datos de la empresa deben cumplir con las disposiciones pertinentes de esta política según lo estipulado en sus acuerdos de servicio y contratos.</p>
+
+<h2>Roles y Responsabilidades</h2>
+<h3>Liderazgo Ejecutivo</h3>
+<p>El liderazgo ejecutivo es responsable de promover esta política, asignar recursos suficientes para su implementación y garantizar la alineación con los objetivos estratégicos y el apetito de riesgo de la organización. El Director de Cumplimiento (CCO) tiene la responsabilidad última de la supervisión y aplicación de la política en toda la empresa.</p>
+<h3>Gerentes de Departamento</h3>
+<p>Los gerentes de departamento son responsables de comunicar esta política a sus equipos, asegurar el cumplimiento dentro de sus departamentos, identificar y escalar posibles violaciones, y participar en las revisiones periódicas de la política. Los gerentes deben asegurar que los nuevos miembros del equipo reciban la capacitación apropiada dentro de los 30 días posteriores a su fecha de inicio.</p>
+<h3>Todos los Empleados</h3>
+<p>Cada empleado es responsable de leer y comprender esta política, completar la capacitación requerida, cumplir con todas las disposiciones e informar de inmediato cualquier sospecha de violación o inquietud. Los empleados deben acusar recibo y comprensión de esta política anualmente a través del sistema de gestión de políticas de la empresa.</p>
+<h3>Departamento de Cumplimiento</h3>
+<p>El Departamento de Cumplimiento es responsable de mantener esta política, realizar revisiones y actualizaciones periódicas, monitorear el cumplimiento, investigar las violaciones reportadas y brindar orientación sobre la interpretación de la política. El departamento producirá informes trimestrales de cumplimiento para la revisión ejecutiva y coordinará con el departamento Legal sobre cualquier cambio regulatorio que pueda afectar esta política.</p>
+
+<h2>Capacitación y Concientización</h2>
+<p>Todo el personal sujeto a esta política debe completar los siguientes requisitos de capacitación:</p>
+<ul>
+<li><strong>Capacitación Inicial:</strong> Dentro de los 30 días posteriores a la contratación o cambio de puesto, todos los empleados deben completar el módulo de capacitación de cumplimiento que cubre las disposiciones clave de esta política y sus aplicaciones prácticas</li>
+<li><strong>Actualización Anual:</strong> Todos los empleados deben completar un curso de actualización anual que incluya actualizaciones de esta política, lecciones aprendidas de incidentes y mejores prácticas emergentes en cumplimiento</li>
+<li><strong>Capacitación Específica por Rol:</strong> Los empleados en posiciones con responsabilidades elevadas bajo esta política deben completar capacitación especializada adicional según lo determine el Departamento de Cumplimiento</li>
+<li><strong>Campañas de Concientización:</strong> El Departamento de Cumplimiento realizará campañas periódicas de concientización que incluyen boletines informativos, reuniones generales y comunicaciones dirigidas para reforzar los conceptos clave de la política</li>
+</ul>
+<p>La finalización de la capacitación se registra a través del Sistema de Gestión de Aprendizaje (LMS). Los gerentes recibirán notificaciones cuando los miembros de su equipo tengan capacitación obligatoria vencida. El incumplimiento de la capacitación obligatoria dentro del plazo especificado puede resultar en acceso restringido al sistema u otras medidas apropiadas.</p>
+
+<h2>Monitoreo de Cumplimiento y Auditoría</h2>
+<p>La organización emplea un enfoque de múltiples capas para monitorear el cumplimiento de esta política:</p>
+<ul>
+<li><strong>Monitoreo Continuo:</strong> Herramientas y procesos automatizados monitorean continuamente los indicadores clave de cumplimiento, generando alertas por posibles violaciones o anomalías que requieren investigación</li>
+<li><strong>Evaluaciones Periódicas:</strong> El Departamento de Cumplimiento realiza evaluaciones trimestrales de la adherencia a la política en todos los departamentos, utilizando métricas cuantitativas y revisiones cualitativas</li>
+<li><strong>Auditorías Internas:</strong> El equipo de Auditoría Interna realiza auditorías anuales integrales de la implementación y efectividad de esta política, reportando los hallazgos al Comité de Auditoría</li>
+<li><strong>Auditorías Externas:</strong> Se pueden contratar auditores externos independientes periódicamente para proporcionar una evaluación objetiva de la postura de cumplimiento de la organización</li>
+</ul>
+<p>Los hallazgos de auditoría se documentan, se rastrean hasta su resolución y se informan a las partes interesadas correspondientes. Los problemas sistémicos identificados a través de la auditoría pueden desencadenar revisiones de políticas o requisitos de capacitación adicionales.</p>
+
+<h2>Aplicación y Acción Disciplinaria</h2>
+<p>Las violaciones de esta política se abordarán a través de un proceso disciplinario progresivo proporcional a la gravedad y naturaleza de la violación:</p>
+<table>
+<tr><th>Nivel de Violación</th><th>Descripción</th><th>Consecuencias Potenciales</th></tr>
+<tr><td>Menor / Primera Ofensa</td><td>Violación no intencional o de bajo impacto sin daño causado</td><td>Advertencia verbal, capacitación adicional, sesión de coaching documentada</td></tr>
+<tr><td>Moderada / Repetida</td><td>Violaciones menores repetidas o incumplimiento de impacto moderado</td><td>Advertencia escrita, recapacitación obligatoria, plan de mejora del desempeño, restricciones temporales de acceso</td></tr>
+<tr><td>Grave</td><td>Violación significativa que causa daño o exposición regulatoria</td><td>Advertencia escrita final, suspensión sin goce de sueldo, descenso de categoría, funciones restringidas</td></tr>
+<tr><td>Severa / Flagrante</td><td>Violación deliberada, fraude o acciones que causan daño sustancial</td><td>Terminación inmediata, referencia para acción legal, notificación regulatoria según sea necesario</td></tr>
+</table>
+<p>La determinación de la gravedad considera factores que incluyen la intención, el impacto, el historial de violaciones previas, la cooperación durante la investigación y si la violación fue autorreportada. Todas las acciones disciplinarias se documentan en el expediente del empleado y se coordinan con Recursos Humanos.</p>
+<p>Nada en este marco disciplinario limita el derecho de la organización a terminar el empleo a voluntad de acuerdo con la ley aplicable.</p>
+
+<h2>Reporte de Violaciones y Protección al Denunciante</h2>
+<p>Los empleados que observen o sospechen violaciones de esta política deben reportarlas a través de uno de los siguientes canales:</p>
+<ul>
+<li><strong>Gerente Directo:</strong> Reporte a su supervisor inmediato a menos que esté involucrado en la violación</li>
+<li><strong>Departamento de Cumplimiento:</strong> Contacte al equipo de Cumplimiento directamente por correo electrónico a compliance@acmecorp.com o a través del portal interno</li>
+<li><strong>Línea Ética:</strong> Se pueden hacer reportes anónimos las 24 horas del día, los 7 días de la semana a través de la Línea Ética confidencial al 1-800-ACME-ETH o a través del portal de reportes en línea</li>
+<li><strong>Departamento Legal:</strong> Para asuntos que involucren posible responsabilidad legal o violaciones regulatorias</li>
+</ul>
+<p>Acme Corporation prohíbe estrictamente las represalias contra cualquier persona que reporte una inquietud de buena fe, participe en una investigación o ejerza sus derechos bajo las leyes aplicables de protección al denunciante. Las represalias en sí constituyen una violación grave de la política sujeta a acción disciplinaria hasta e incluyendo la terminación.</p>
+
+<h2>Excepciones y Exenciones</h2>
+<p>Se pueden otorgar excepciones a esta política en circunstancias limitadas donde el cumplimiento estricto sea impráctico o donde un enfoque alternativo logre objetivos de cumplimiento equivalentes. Todas las solicitudes de excepción deben:</p>
+<ul>
+<li>Ser presentadas por escrito al Departamento de Cumplimiento utilizando el formulario de Solicitud de Excepción de Política</li>
+<li>Incluir una justificación comercial que explique por qué la excepción es necesaria</li>
+<li>Describir los controles compensatorios que se implementarán para mitigar cualquier riesgo incrementado</li>
+<li>Especificar una duración definida (las excepciones no se otorgan indefinidamente)</li>
+<li>Ser aprobadas por el jefe de departamento, el Oficial de Cumplimiento y, cuando corresponda, el Director de Riesgos</li>
+</ul>
+<p>Las excepciones aprobadas se documentan en el registro de excepciones de política, se revisan trimestralmente y están sujetas a revocación si las circunstancias cambian o los controles compensatorios resultan inadecuados.</p>
+
+<h2>Retención de Registros</h2>
+<p>Los registros relacionados con esta política, incluyendo finalizaciones de capacitación, evaluaciones de cumplimiento, informes de investigación, solicitudes de excepción y acciones disciplinarias, se conservarán de acuerdo con el Programa de Retención de Registros de la empresa. Como mínimo, los registros relacionados con el cumplimiento se conservan durante siete (7) años o según lo requiera la ley aplicable, lo que sea mayor. Los registros deben almacenarse de forma segura con controles de acceso apropiados y estar fácilmente recuperables para fines de auditoría o legales.</p>
+
+<h2>Revisión y Actualizaciones de la Política</h2>
+<p>Esta política se revisa al menos anualmente por el Departamento de Cumplimiento en coordinación con las partes interesadas pertinentes. Las revisiones también pueden ser desencadenadas por cambios regulatorios significativos, reestructuración organizacional, hallazgos de auditoría o incidentes materiales. El proceso de revisión incluye:</p>
+<ul>
+<li>Evaluación de desarrollos regulatorios y legales que afecten esta área de política</li>
+<li>Análisis de métricas de cumplimiento y tendencias de incidentes</li>
+<li>Comentarios de las partes interesadas y sugerencias de mejora</li>
+<li>Comparación con las mejores prácticas de la industria y organizaciones pares</li>
+<li>Análisis de brechas con respecto a las prácticas organizacionales actuales</li>
+</ul>
+<p>Los cambios materiales requieren la aprobación del Comité de Gobernanza de Políticas antes de su publicación. Todos los empleados serán notificados de actualizaciones significativas y pueden ser requeridos a re-reconocer la política actualizada.</p>
+
+<h2>Políticas Relacionadas y Referencias</h2>
+<ul>
+<li>Código de Conducta</li>
+<li>Política de Seguridad de la Información</li>
+<li>Política de Privacidad y Protección de Datos</li>
+<li>Manual del Empleado</li>
+<li>Programa de Retención de Registros</li>
+<li>Plan de Respuesta a Incidentes</li>
+<li>Política de Gestión de Riesgos de Terceros</li>
+<li>Política de Protección al Denunciante</li>
+</ul>
+
+<h2>Información de Contacto</h2>
+<p>Para preguntas sobre la interpretación o aplicación de esta política, contacte:</p>
+<ul>
+<li><strong>Departamento de Cumplimiento:</strong> compliance@acmecorp.com | Ext. 4200</li>
+<li><strong>Línea Ética:</strong> 1-800-ACME-ETH (24/7, reportes anónimos disponibles)</li>
+<li><strong>Departamento Legal:</strong> legal@acmecorp.com | Ext. 4300</li>
+<li><strong>Recursos Humanos:</strong> hr@acmecorp.com | Ext. 4100</li>
+</ul>`,
+
+  fr: `
+<h2>Applicabilité et Portée</h2>
+<p>Cette politique s'applique à tous les employés, sous-traitants, travailleurs temporaires, stagiaires, bénévoles et tout personnel tiers ayant accès aux ressources ou informations connexes d'Acme Corporation. Cela inclut toutes les filiales, divisions et unités commerciales opérant sous l'égide d'Acme Corporation, quelle que soit la localisation géographique ou le type de contrat de travail.</p>
+<p>Cette politique s'étend à tous les appareils appartenant à l'entreprise, loués ou personnels utilisés pour les affaires de l'entreprise, y compris mais sans s'y limiter les ordinateurs de bureau, ordinateurs portables, tablettes, téléphones mobiles et tout autre appareil électronique. Les travailleurs à distance et les employés travaillant à domicile sont également soumis à cette politique.</p>
+<p>Les fournisseurs tiers et les prestataires de services ayant accès aux systèmes ou aux données de l'entreprise doivent se conformer aux dispositions pertinentes de cette politique telles que stipulées dans leurs accords de service et contrats.</p>
+
+<h2>Rôles et Responsabilités</h2>
+<h3>Direction Exécutive</h3>
+<p>La direction exécutive est responsable de promouvoir cette politique, d'allouer des ressources suffisantes pour sa mise en œuvre et d'assurer l'alignement avec les objectifs stratégiques et l'appétit pour le risque de l'organisation. Le Directeur de la Conformité (CCO) a la responsabilité ultime de la supervision et de l'application de la politique dans toute l'entreprise.</p>
+<h3>Responsables de Département</h3>
+<p>Les responsables de département sont chargés de communiquer cette politique à leurs équipes, d'assurer la conformité au sein de leurs départements, d'identifier et d'escalader les violations potentielles, et de participer aux revues périodiques de la politique. Les responsables doivent s'assurer que les nouveaux membres de l'équipe reçoivent la formation appropriée dans les 30 jours suivant leur date d'entrée en fonction.</p>
+<h3>Tous les Employés</h3>
+<p>Chaque employé est responsable de lire et comprendre cette politique, de compléter la formation requise, de respecter toutes les dispositions et de signaler rapidement tout soupçon de violation ou préoccupation. Les employés doivent accuser réception et compréhension de cette politique annuellement via le système de gestion des politiques de l'entreprise.</p>
+<h3>Département de Conformité</h3>
+<p>Le Département de Conformité est responsable du maintien de cette politique, de la conduite de revues et mises à jour périodiques, du suivi de la conformité, de l'enquête sur les violations signalées et de la fourniture de conseils sur l'interprétation de la politique. Le département produira des rapports trimestriels de conformité pour la revue exécutive et coordinera avec le département juridique sur tout changement réglementaire pouvant affecter cette politique.</p>
+
+<h2>Formation et Sensibilisation</h2>
+<p>Tout le personnel soumis à cette politique doit satisfaire aux exigences de formation suivantes :</p>
+<ul>
+<li><strong>Formation Initiale :</strong> Dans les 30 jours suivant l'embauche ou le changement de poste, tous les employés doivent compléter le module de formation à la conformité couvrant les dispositions clés de cette politique et ses applications pratiques</li>
+<li><strong>Mise à Jour Annuelle :</strong> Tous les employés doivent compléter un cours de mise à jour annuel incluant les modifications de cette politique, les leçons tirées des incidents et les meilleures pratiques émergentes en matière de conformité</li>
+<li><strong>Formation Spécifique au Rôle :</strong> Les employés occupant des postes à responsabilités élevées en vertu de cette politique doivent suivre une formation spécialisée supplémentaire déterminée par le Département de Conformité</li>
+<li><strong>Campagnes de Sensibilisation :</strong> Le Département de Conformité mènera des campagnes de sensibilisation périodiques comprenant des bulletins d'information, des assemblées générales et des communications ciblées pour renforcer les concepts clés de la politique</li>
+</ul>
+<p>L'achèvement de la formation est suivi via le Système de Gestion de l'Apprentissage (LMS). Les responsables recevront des notifications lorsque les membres de leur équipe auront dépassé les délais de formation obligatoire. Le non-respect de la formation obligatoire dans le délai spécifié peut entraîner un accès restreint au système ou d'autres mesures appropriées.</p>
+
+<h2>Surveillance de la Conformité et Audit</h2>
+<p>L'organisation emploie une approche multicouche pour surveiller la conformité à cette politique :</p>
+<ul>
+<li><strong>Surveillance Continue :</strong> Des outils et processus automatisés surveillent en permanence les indicateurs clés de conformité, générant des alertes pour les violations potentielles ou anomalies nécessitant une enquête</li>
+<li><strong>Évaluations Périodiques :</strong> Le Département de Conformité effectue des évaluations trimestrielles de l'adhésion à la politique dans tous les départements, utilisant des métriques quantitatives et des revues qualitatives</li>
+<li><strong>Audits Internes :</strong> L'équipe d'Audit Interne réalise des audits annuels complets de la mise en œuvre et de l'efficacité de cette politique, rapportant les conclusions au Comité d'Audit</li>
+<li><strong>Audits Externes :</strong> Des auditeurs tiers indépendants peuvent être engagés périodiquement pour fournir une évaluation objective de la posture de conformité de l'organisation</li>
+</ul>
+<p>Les conclusions d'audit sont documentées, suivies jusqu'à leur résolution et rapportées aux parties prenantes concernées. Les problèmes systémiques identifiés par l'audit peuvent déclencher des révisions de politiques ou des exigences de formation supplémentaires.</p>
+
+<h2>Application et Mesures Disciplinaires</h2>
+<p>Les violations de cette politique seront traitées par un processus disciplinaire progressif proportionné à la gravité et à la nature de la violation :</p>
+<table>
+<tr><th>Niveau de Violation</th><th>Description</th><th>Conséquences Potentielles</th></tr>
+<tr><td>Mineure / Première Infraction</td><td>Violation non intentionnelle ou à faible impact sans dommage causé</td><td>Avertissement verbal, formation supplémentaire, session de coaching documentée</td></tr>
+<tr><td>Modérée / Répétée</td><td>Violations mineures répétées ou manquement d'impact modéré</td><td>Avertissement écrit, reformation obligatoire, plan d'amélioration de la performance, restrictions d'accès temporaires</td></tr>
+<tr><td>Grave</td><td>Violation significative causant un préjudice ou une exposition réglementaire</td><td>Avertissement écrit final, suspension sans salaire, rétrogradation, fonctions restreintes</td></tr>
+<tr><td>Sévère / Flagrante</td><td>Violation délibérée, fraude ou actions causant un préjudice substantiel</td><td>Licenciement immédiat, renvoi pour action en justice, notification réglementaire si nécessaire</td></tr>
+</table>
+<p>La détermination de la gravité prend en compte des facteurs incluant l'intention, l'impact, l'historique des violations antérieures, la coopération pendant l'enquête et si la violation a été auto-déclarée. Toutes les mesures disciplinaires sont documentées dans le dossier de l'employé et coordonnées avec les Ressources Humaines.</p>
+<p>Rien dans ce cadre disciplinaire ne limite le droit de l'organisation de mettre fin à l'emploi à volonté conformément à la loi applicable.</p>
+
+<h2>Signalement des Violations et Protection des Lanceurs d'Alerte</h2>
+<p>Les employés qui observent ou soupçonnent des violations de cette politique doivent les signaler par l'un des canaux suivants :</p>
+<ul>
+<li><strong>Responsable Direct :</strong> Signalez à votre superviseur immédiat à moins qu'il ne soit impliqué dans la violation</li>
+<li><strong>Département de Conformité :</strong> Contactez directement l'équipe de Conformité par e-mail à compliance@acmecorp.com ou via le portail interne</li>
+<li><strong>Ligne Éthique :</strong> Des signalements anonymes peuvent être faits 24h/24, 7j/7 via la Ligne Éthique confidentielle au 1-800-ACME-ETH ou via le portail de signalement en ligne</li>
+<li><strong>Département Juridique :</strong> Pour les questions impliquant une responsabilité juridique potentielle ou des violations réglementaires</li>
+</ul>
+<p>Acme Corporation interdit strictement toute représaille contre toute personne qui signale une préoccupation de bonne foi, participe à une enquête ou exerce ses droits en vertu des lois applicables de protection des lanceurs d'alerte. Les représailles constituent elles-mêmes une violation grave de la politique passible de mesures disciplinaires pouvant aller jusqu'au licenciement.</p>
+
+<h2>Exceptions et Dérogations</h2>
+<p>Des exceptions à cette politique peuvent être accordées dans des circonstances limitées où la conformité stricte est impraticable ou lorsqu'une approche alternative atteint des objectifs de conformité équivalents. Toutes les demandes d'exception doivent :</p>
+<ul>
+<li>Être soumises par écrit au Département de Conformité en utilisant le formulaire de Demande d'Exception de Politique</li>
+<li>Inclure une justification commerciale expliquant pourquoi l'exception est nécessaire</li>
+<li>Décrire les contrôles compensatoires qui seront mis en place pour atténuer tout risque accru</li>
+<li>Spécifier une durée définie (les exceptions ne sont pas accordées indéfiniment)</li>
+<li>Être approuvées par le chef de département, le Responsable de la Conformité et, le cas échéant, le Directeur des Risques</li>
+</ul>
+<p>Les exceptions approuvées sont documentées dans le registre des exceptions de politique, revues trimestriellement et susceptibles de révocation si les circonstances changent ou si les contrôles compensatoires s'avèrent inadéquats.</p>
+
+<h2>Conservation des Documents</h2>
+<p>Les documents relatifs à cette politique, y compris les achèvements de formation, les évaluations de conformité, les rapports d'enquête, les demandes d'exception et les mesures disciplinaires, doivent être conservés conformément au Calendrier de Conservation des Documents de l'entreprise. Au minimum, les documents liés à la conformité sont conservés pendant sept (7) ans ou selon les exigences de la loi applicable, la durée la plus longue prévalant. Les documents doivent être stockés de manière sécurisée avec des contrôles d'accès appropriés et être facilement récupérables à des fins d'audit ou juridiques.</p>
+
+<h2>Révision et Mises à Jour de la Politique</h2>
+<p>Cette politique est révisée au moins annuellement par le Département de Conformité en coordination avec les parties prenantes concernées. Les révisions peuvent également être déclenchées par des changements réglementaires significatifs, une restructuration organisationnelle, des conclusions d'audit ou des incidents matériels. Le processus de révision comprend :</p>
+<ul>
+<li>Évaluation des développements réglementaires et juridiques affectant ce domaine de politique</li>
+<li>Analyse des métriques de conformité et des tendances des incidents</li>
+<li>Commentaires des parties prenantes et suggestions d'amélioration</li>
+<li>Comparaison avec les meilleures pratiques de l'industrie et les organisations pairs</li>
+<li>Analyse des écarts par rapport aux pratiques organisationnelles actuelles</li>
+</ul>
+<p>Les modifications matérielles nécessitent l'approbation du Comité de Gouvernance des Politiques avant publication. Tous les employés seront informés des mises à jour significatives et peuvent être tenus de re-confirmer la politique mise à jour.</p>
+
+<h2>Politiques Connexes et Références</h2>
+<ul>
+<li>Code de Conduite</li>
+<li>Politique de Sécurité de l'Information</li>
+<li>Politique de Confidentialité et de Protection des Données</li>
+<li>Manuel de l'Employé</li>
+<li>Calendrier de Conservation des Documents</li>
+<li>Plan de Réponse aux Incidents</li>
+<li>Politique de Gestion des Risques Tiers</li>
+<li>Politique de Protection des Lanceurs d'Alerte</li>
+</ul>
+
+<h2>Coordonnées</h2>
+<p>Pour toute question concernant l'interprétation ou l'application de cette politique, contactez :</p>
+<ul>
+<li><strong>Département de Conformité :</strong> compliance@acmecorp.com | Poste 4200</li>
+<li><strong>Ligne Éthique :</strong> 1-800-ACME-ETH (24h/24, signalement anonyme disponible)</li>
+<li><strong>Département Juridique :</strong> legal@acmecorp.com | Poste 4300</li>
+<li><strong>Ressources Humaines :</strong> hr@acmecorp.com | Poste 4100</li>
+</ul>`,
+
+  de: `
+<h2>Anwendbarkeit und Geltungsbereich</h2>
+<p>Diese Richtlinie gilt für alle Mitarbeiter, Auftragnehmer, Zeitarbeitnehmer, Praktikanten, Freiwillige und jegliches Drittanbieter-Personal, das Zugang zu relevanten Ressourcen oder Informationen der Acme Corporation hat. Dies umfasst alle Tochtergesellschaften, Abteilungen und Geschäftseinheiten, die unter dem Dach der Acme Corporation operieren, unabhängig von geografischem Standort oder Beschäftigungsverhältnis.</p>
+<p>Diese Richtlinie erstreckt sich auf alle unternehmenseigenen, geleasten oder persönlich genutzten Geräte, die für Unternehmensgeschäfte verwendet werden, einschließlich, aber nicht beschränkt auf Desktop-Computer, Laptops, Tablets, Mobiltelefone und alle anderen elektronischen Geräte. Fernarbeiter und Mitarbeiter im Homeoffice unterliegen dieser Richtlinie gleichermaßen.</p>
+<p>Drittanbieter und Dienstleister mit Zugang zu Unternehmenssystemen oder -daten müssen die einschlägigen Bestimmungen dieser Richtlinie gemäß ihren Dienstleistungsvereinbarungen und Verträgen einhalten.</p>
+
+<h2>Rollen und Verantwortlichkeiten</h2>
+<h3>Geschäftsführung</h3>
+<p>Die Geschäftsführung ist verantwortlich für die Förderung dieser Richtlinie, die Bereitstellung ausreichender Ressourcen für die Umsetzung und die Sicherstellung der Ausrichtung an den strategischen Zielen und der Risikobereitschaft der Organisation. Der Chief Compliance Officer (CCO) trägt die letztendliche Verantwortung für die Aufsicht und Durchsetzung der Richtlinie im gesamten Unternehmen.</p>
+<h3>Abteilungsleiter</h3>
+<p>Abteilungsleiter sind verantwortlich für die Kommunikation dieser Richtlinie an ihre Teams, die Sicherstellung der Einhaltung innerhalb ihrer Abteilungen, die Identifizierung und Eskalation potenzieller Verstöße sowie die Teilnahme an periodischen Richtlinienüberprüfungen. Manager müssen sicherstellen, dass neue Teammitglieder innerhalb von 30 Tagen nach ihrem Eintrittsdatum eine angemessene Schulung erhalten.</p>
+<h3>Alle Mitarbeiter</h3>
+<p>Jeder Mitarbeiter ist verantwortlich dafür, diese Richtlinie zu lesen und zu verstehen, die erforderliche Schulung zu absolvieren, alle Bestimmungen einzuhalten und unverzüglich jeden Verdacht auf Verstöße oder Bedenken zu melden. Mitarbeiter müssen den Erhalt und das Verständnis dieser Richtlinie jährlich über das Richtlinienmanagementsystem des Unternehmens bestätigen.</p>
+<h3>Compliance-Abteilung</h3>
+<p>Die Compliance-Abteilung ist verantwortlich für die Pflege dieser Richtlinie, die Durchführung periodischer Überprüfungen und Aktualisierungen, die Überwachung der Einhaltung, die Untersuchung gemeldeter Verstöße und die Bereitstellung von Leitlinien zur Richtlinienauslegung. Die Abteilung wird vierteljährliche Compliance-Berichte für die Geschäftsführungsprüfung erstellen und mit der Rechtsabteilung über regulatorische Änderungen koordinieren, die diese Richtlinie betreffen können.</p>
+
+<h2>Schulung und Sensibilisierung</h2>
+<p>Alle dieser Richtlinie unterliegenden Mitarbeiter müssen die folgenden Schulungsanforderungen erfüllen:</p>
+<ul>
+<li><strong>Erstschulung:</strong> Innerhalb von 30 Tagen nach Einstellung oder Positionswechsel müssen alle Mitarbeiter das Compliance-Schulungsmodul absolvieren, das die wichtigsten Bestimmungen dieser Richtlinie und ihre praktischen Anwendungen abdeckt</li>
+<li><strong>Jährliche Auffrischung:</strong> Alle Mitarbeiter müssen einen jährlichen Auffrischungskurs absolvieren, der Aktualisierungen dieser Richtlinie, aus Vorfällen gewonnene Erkenntnisse und aufkommende Best Practices im Compliance-Bereich umfasst</li>
+<li><strong>Rollenspezifische Schulung:</strong> Mitarbeiter in Positionen mit erhöhten Verantwortlichkeiten im Rahmen dieser Richtlinie müssen zusätzliche Fachschulungen absolvieren, wie von der Compliance-Abteilung festgelegt</li>
+<li><strong>Sensibilisierungskampagnen:</strong> Die Compliance-Abteilung führt periodische Sensibilisierungskampagnen durch, einschließlich Newsletters, Betriebsversammlungen und gezielter Kommunikation zur Verstärkung der wichtigsten Richtlinienkonzepte</li>
+</ul>
+<p>Der Schulungsabschluss wird über das Lernmanagementsystem (LMS) verfolgt. Manager erhalten Benachrichtigungen, wenn Teammitglieder mit Pflichtschulungen im Rückstand sind. Die Nichteinhaltung der Pflichtschulung innerhalb des festgelegten Zeitrahmens kann zu eingeschränktem Systemzugang oder anderen angemessenen Maßnahmen führen.</p>
+
+<h2>Compliance-Überwachung und Audit</h2>
+<p>Die Organisation verwendet einen mehrschichtigen Ansatz zur Überwachung der Einhaltung dieser Richtlinie:</p>
+<ul>
+<li><strong>Kontinuierliche Überwachung:</strong> Automatisierte Tools und Prozesse überwachen kontinuierlich wichtige Compliance-Indikatoren und generieren Warnmeldungen bei potenziellen Verstößen oder Anomalien, die eine Untersuchung erfordern</li>
+<li><strong>Periodische Bewertungen:</strong> Die Compliance-Abteilung führt vierteljährliche Bewertungen der Richtlinieneinhaltung in allen Abteilungen durch, unter Verwendung quantitativer Kennzahlen und qualitativer Überprüfungen</li>
+<li><strong>Interne Audits:</strong> Das interne Audit-Team führt jährliche umfassende Audits der Umsetzung und Wirksamkeit dieser Richtlinie durch und berichtet die Ergebnisse an den Prüfungsausschuss</li>
+<li><strong>Externe Audits:</strong> Unabhängige externe Prüfer können periodisch beauftragt werden, um eine objektive Bewertung der Compliance-Position der Organisation zu liefern</li>
+</ul>
+<p>Audit-Ergebnisse werden dokumentiert, bis zur Lösung verfolgt und an die zuständigen Stakeholder berichtet. Systematische Probleme, die durch Audits identifiziert werden, können Richtlinienrevisionen oder zusätzliche Schulungsanforderungen auslösen.</p>
+
+<h2>Durchsetzung und Disziplinarmaßnahmen</h2>
+<p>Verstöße gegen diese Richtlinie werden durch ein progressives Disziplinarverfahren behandelt, das der Schwere und Art des Verstoßes angemessen ist:</p>
+<table>
+<tr><th>Verstoßstufe</th><th>Beschreibung</th><th>Mögliche Konsequenzen</th></tr>
+<tr><td>Geringfügig / Erstverstoß</td><td>Unbeabsichtigter oder geringfügiger Verstoß ohne verursachten Schaden</td><td>Mündliche Verwarnung, zusätzliche Schulung, dokumentiertes Coaching-Gespräch</td></tr>
+<tr><td>Mittelschwer / Wiederholt</td><td>Wiederholte geringfügige Verstöße oder mittelschwerer Verstoß</td><td>Schriftliche Verwarnung, Pflichtumschulung, Leistungsverbesserungsplan, vorübergehende Zugangsbeschränkungen</td></tr>
+<tr><td>Schwerwiegend</td><td>Erheblicher Verstoß, der Schaden oder regulatorische Exposition verursacht</td><td>Letzte schriftliche Verwarnung, Suspendierung ohne Bezahlung, Degradierung, eingeschränkte Aufgaben</td></tr>
+<tr><td>Schwer / Eklatant</td><td>Vorsätzlicher Verstoß, Betrug oder Handlungen, die erheblichen Schaden verursachen</td><td>Sofortige Kündigung, Verweisung an die Strafverfolgung, regulatorische Benachrichtigung nach Bedarf</td></tr>
+</table>
+<p>Die Schweregradbestimmung berücksichtigt Faktoren einschließlich Absicht, Auswirkung, Vorgeschichte früherer Verstöße, Kooperation während der Untersuchung und ob der Verstoß selbst gemeldet wurde. Alle Disziplinarmaßnahmen werden in der Personalakte des Mitarbeiters dokumentiert und mit der Personalabteilung koordiniert.</p>
+<p>Nichts in diesem Disziplinarrahmen beschränkt das Recht der Organisation, das Beschäftigungsverhältnis nach eigenem Ermessen gemäß geltendem Recht zu beenden.</p>
+
+<h2>Meldung von Verstößen und Hinweisgeberschutz</h2>
+<p>Mitarbeiter, die Verstöße gegen diese Richtlinie beobachten oder vermuten, sind verpflichtet, diese über einen der folgenden Kanäle zu melden:</p>
+<ul>
+<li><strong>Direkter Vorgesetzter:</strong> Melden Sie es Ihrem unmittelbaren Vorgesetzten, es sei denn, dieser ist an dem Verstoß beteiligt</li>
+<li><strong>Compliance-Abteilung:</strong> Kontaktieren Sie das Compliance-Team direkt per E-Mail an compliance@acmecorp.com oder über das interne Portal</li>
+<li><strong>Ethik-Hotline:</strong> Anonyme Meldungen können rund um die Uhr über die vertrauliche Ethik-Hotline unter 1-800-ACME-ETH oder über das Online-Meldeportal gemacht werden</li>
+<li><strong>Rechtsabteilung:</strong> Für Angelegenheiten, die potenzielle rechtliche Haftung oder regulatorische Verstöße betreffen</li>
+</ul>
+<p>Acme Corporation verbietet strikt Vergeltungsmaßnahmen gegen jede Person, die in gutem Glauben ein Anliegen meldet, an einer Untersuchung teilnimmt oder ihre Rechte nach geltenden Hinweisgeberschutzgesetzen ausübt. Vergeltung selbst stellt einen schwerwiegenden Richtlinienverstoß dar, der disziplinarischen Maßnahmen bis hin zur Kündigung unterliegt.</p>
+
+<h2>Ausnahmen und Befreiungen</h2>
+<p>Ausnahmen von dieser Richtlinie können unter begrenzten Umständen gewährt werden, in denen eine strikte Einhaltung unpraktisch ist oder ein alternativer Ansatz gleichwertige Compliance-Ziele erreicht. Alle Ausnahmeanträge müssen:</p>
+<ul>
+<li>Schriftlich bei der Compliance-Abteilung unter Verwendung des Formulars für Richtlinienausnahmen eingereicht werden</li>
+<li>Eine geschäftliche Begründung enthalten, die erklärt, warum die Ausnahme notwendig ist</li>
+<li>Kompensierende Kontrollen beschreiben, die implementiert werden, um erhöhte Risiken zu mindern</li>
+<li>Eine definierte Dauer angeben (Ausnahmen werden nicht unbefristet gewährt)</li>
+<li>Vom Abteilungsleiter, dem Compliance-Beauftragten und gegebenenfalls dem Chief Risk Officer genehmigt werden</li>
+</ul>
+<p>Genehmigte Ausnahmen werden im Richtlinienausnahmeregister dokumentiert, vierteljährlich überprüft und können widerrufen werden, wenn sich die Umstände ändern oder kompensierende Kontrollen sich als unzureichend erweisen.</p>
+
+<h2>Aufbewahrung von Unterlagen</h2>
+<p>Unterlagen zu dieser Richtlinie, einschließlich Schulungsabschlüsse, Compliance-Bewertungen, Untersuchungsberichte, Ausnahmeanträge und Disziplinarmaßnahmen, werden gemäß dem Aufbewahrungsplan des Unternehmens aufbewahrt. Compliance-bezogene Unterlagen werden mindestens sieben (7) Jahre oder gemäß geltendem Recht aufbewahrt, je nachdem, welcher Zeitraum länger ist. Unterlagen müssen sicher mit angemessenen Zugriffskontrollen gespeichert und für Audit- oder Rechtszwecke leicht abrufbar sein.</p>
+
+<h2>Richtlinienüberprüfung und Aktualisierungen</h2>
+<p>Diese Richtlinie wird mindestens jährlich von der Compliance-Abteilung in Abstimmung mit relevanten Stakeholdern überprüft. Überprüfungen können auch durch wesentliche regulatorische Änderungen, organisatorische Umstrukturierungen, Audit-Ergebnisse oder wesentliche Vorfälle ausgelöst werden. Der Überprüfungsprozess umfasst:</p>
+<ul>
+<li>Bewertung regulatorischer und rechtlicher Entwicklungen, die diesen Richtlinienbereich betreffen</li>
+<li>Analyse von Compliance-Kennzahlen und Vorfalltrends</li>
+<li>Stakeholder-Feedback und Verbesserungsvorschläge</li>
+<li>Benchmarking mit Branchen-Best-Practices und vergleichbaren Organisationen</li>
+<li>Gap-Analyse gegenüber aktuellen organisatorischen Praktiken</li>
+</ul>
+<p>Wesentliche Änderungen erfordern die Genehmigung des Richtlinien-Governance-Ausschusses vor der Veröffentlichung. Alle Mitarbeiter werden über wesentliche Aktualisierungen informiert und können aufgefordert werden, die aktualisierte Richtlinie erneut zu bestätigen.</p>
+
+<h2>Verwandte Richtlinien und Referenzen</h2>
+<ul>
+<li>Verhaltenskodex</li>
+<li>Informationssicherheitsrichtlinie</li>
+<li>Datenschutz- und Datensicherheitsrichtlinie</li>
+<li>Mitarbeiterhandbuch</li>
+<li>Aufbewahrungsplan für Unterlagen</li>
+<li>Vorfallreaktionsplan</li>
+<li>Drittanbieter-Risikomanagementrichtlinie</li>
+<li>Hinweisgeberschutzrichtlinie</li>
+</ul>
+
+<h2>Kontaktinformationen</h2>
+<p>Bei Fragen zur Auslegung oder Anwendung dieser Richtlinie wenden Sie sich an:</p>
+<ul>
+<li><strong>Compliance-Abteilung:</strong> compliance@acmecorp.com | Durchwahl 4200</li>
+<li><strong>Ethik-Hotline:</strong> 1-800-ACME-ETH (24/7, anonyme Meldung möglich)</li>
+<li><strong>Rechtsabteilung:</strong> legal@acmecorp.com | Durchwahl 4300</li>
+<li><strong>Personalabteilung:</strong> hr@acmecorp.com | Durchwahl 4100</li>
+</ul>`,
+
+  pt: `
+<h2>Aplicabilidade e Escopo</h2>
+<p>Esta política se aplica a todos os funcionários, contratados, trabalhadores temporários, estagiários, voluntários e qualquer pessoal terceirizado que tenha acesso a recursos ou informações relacionados da Acme Corporation. Isso inclui todas as subsidiárias, divisões e unidades de negócios operando sob a marca Acme Corporation, independentemente da localização geográfica ou tipo de contrato de trabalho.</p>
+<p>Esta política se estende a todos os dispositivos de propriedade da empresa, alugados ou pessoais utilizados para negócios da empresa, incluindo, mas não se limitando a computadores desktop, laptops, tablets, telefones celulares e quaisquer outros dispositivos eletrônicos. Trabalhadores remotos e funcionários em home office estão igualmente sujeitos a esta política.</p>
+<p>Fornecedores terceirizados e prestadores de serviços com acesso aos sistemas ou dados da empresa devem cumprir as disposições relevantes desta política conforme estipulado em seus contratos de serviço.</p>
+
+<h2>Papéis e Responsabilidades</h2>
+<h3>Liderança Executiva</h3>
+<p>A liderança executiva é responsável por promover esta política, alocar recursos suficientes para implementação e garantir alinhamento com os objetivos estratégicos e apetite de risco da organização. O Diretor de Conformidade (CCO) tem a responsabilidade final pela supervisão e aplicação da política em toda a empresa.</p>
+<h3>Gerentes de Departamento</h3>
+<p>Os gerentes de departamento são responsáveis por comunicar esta política às suas equipes, garantir conformidade dentro de seus departamentos, identificar e escalar potenciais violações e participar de revisões periódicas da política. Os gerentes devem garantir que novos membros da equipe recebam treinamento adequado dentro de 30 dias da data de início.</p>
+<h3>Todos os Funcionários</h3>
+<p>Cada funcionário é responsável por ler e entender esta política, completar o treinamento exigido, aderir a todas as disposições e reportar prontamente qualquer suspeita de violação ou preocupação. Os funcionários devem confirmar o recebimento e entendimento desta política anualmente através do sistema de gerenciamento de políticas da empresa.</p>
+<h3>Departamento de Conformidade</h3>
+<p>O Departamento de Conformidade é responsável por manter esta política, realizar revisões e atualizações periódicas, monitorar conformidade, investigar violações reportadas e fornecer orientação sobre a interpretação da política. O departamento produzirá relatórios trimestrais de conformidade para revisão executiva e coordenará com o departamento Jurídico sobre quaisquer mudanças regulatórias que possam afetar esta política.</p>
+
+<h2>Treinamento e Conscientização</h2>
+<p>Todo o pessoal sujeito a esta política deve cumprir os seguintes requisitos de treinamento:</p>
+<ul>
+<li><strong>Treinamento Inicial:</strong> Dentro de 30 dias da contratação ou mudança de cargo, todos os funcionários devem completar o módulo de treinamento de conformidade cobrindo as disposições-chave desta política e suas aplicações práticas</li>
+<li><strong>Atualização Anual:</strong> Todos os funcionários devem completar um curso de atualização anual que inclui atualizações desta política, lições aprendidas com incidentes e melhores práticas emergentes em conformidade</li>
+<li><strong>Treinamento Específico por Função:</strong> Funcionários em posições com responsabilidades elevadas sob esta política devem completar treinamento especializado adicional conforme determinado pelo Departamento de Conformidade</li>
+<li><strong>Campanhas de Conscientização:</strong> O Departamento de Conformidade conduzirá campanhas periódicas de conscientização incluindo newsletters, assembleias e comunicações direcionadas para reforçar os conceitos-chave da política</li>
+</ul>
+<p>A conclusão do treinamento é rastreada através do Sistema de Gerenciamento de Aprendizagem (LMS). Os gerentes receberão notificações quando membros da equipe estiverem com treinamento obrigatório atrasado. A falha em completar o treinamento obrigatório dentro do prazo especificado pode resultar em acesso restrito ao sistema ou outras medidas apropriadas.</p>
+
+<h2>Monitoramento de Conformidade e Auditoria</h2>
+<p>A organização emprega uma abordagem multicamadas para monitorar a conformidade com esta política:</p>
+<ul>
+<li><strong>Monitoramento Contínuo:</strong> Ferramentas e processos automatizados monitoram continuamente indicadores-chave de conformidade, gerando alertas para potenciais violações ou anomalias que requerem investigação</li>
+<li><strong>Avaliações Periódicas:</strong> O Departamento de Conformidade realiza avaliações trimestrais da aderência à política em todos os departamentos, utilizando métricas quantitativas e revisões qualitativas</li>
+<li><strong>Auditorias Internas:</strong> A equipe de Auditoria Interna realiza auditorias anuais abrangentes da implementação e eficácia desta política, reportando os achados ao Comitê de Auditoria</li>
+<li><strong>Auditorias Externas:</strong> Auditores terceirizados independentes podem ser contratados periodicamente para fornecer uma avaliação objetiva da postura de conformidade da organização</li>
+</ul>
+<p>Os achados de auditoria são documentados, rastreados até a resolução e reportados aos stakeholders apropriados. Problemas sistêmicos identificados através da auditoria podem desencadear revisões de políticas ou requisitos adicionais de treinamento.</p>
+
+<h2>Aplicação e Ação Disciplinar</h2>
+<p>As violações desta política serão tratadas através de um processo disciplinar progressivo proporcional à gravidade e natureza da violação:</p>
+<table>
+<tr><th>Nível de Violação</th><th>Descrição</th><th>Consequências Potenciais</th></tr>
+<tr><td>Menor / Primeira Ofensa</td><td>Violação não intencional ou de baixo impacto sem dano causado</td><td>Advertência verbal, treinamento adicional, sessão de coaching documentada</td></tr>
+<tr><td>Moderada / Repetida</td><td>Violações menores repetidas ou violação de impacto moderado</td><td>Advertência escrita, retreinamento obrigatório, plano de melhoria de desempenho, restrições temporárias de acesso</td></tr>
+<tr><td>Grave</td><td>Violação significativa causando dano ou exposição regulatória</td><td>Advertência escrita final, suspensão sem remuneração, rebaixamento, funções restritas</td></tr>
+<tr><td>Severa / Flagrante</td><td>Violação deliberada, fraude ou ações causando dano substancial</td><td>Rescisão imediata, encaminhamento para ação legal, notificação regulatória conforme necessário</td></tr>
+</table>
+<p>A determinação da gravidade considera fatores incluindo intenção, impacto, histórico de violações anteriores, cooperação durante a investigação e se a violação foi auto-reportada. Todas as ações disciplinares são documentadas no arquivo do funcionário e coordenadas com Recursos Humanos.</p>
+<p>Nada neste quadro disciplinar limita o direito da organização de rescindir o emprego por vontade própria de acordo com a lei aplicável.</p>
+
+<h2>Denúncia de Violações e Proteção ao Denunciante</h2>
+<p>Os funcionários que observarem ou suspeitarem de violações desta política devem denunciá-las através de um dos seguintes canais:</p>
+<ul>
+<li><strong>Gerente Direto:</strong> Reporte ao seu supervisor imediato, a menos que ele esteja envolvido na violação</li>
+<li><strong>Departamento de Conformidade:</strong> Entre em contato com a equipe de Conformidade diretamente por e-mail em compliance@acmecorp.com ou através do portal interno</li>
+<li><strong>Linha Ética:</strong> Denúncias anônimas podem ser feitas 24 horas por dia, 7 dias por semana, através da Linha Ética confidencial no 1-800-ACME-ETH ou através do portal de denúncias online</li>
+<li><strong>Departamento Jurídico:</strong> Para assuntos envolvendo potencial responsabilidade legal ou violações regulatórias</li>
+</ul>
+<p>A Acme Corporation proíbe estritamente retaliação contra qualquer indivíduo que denuncie uma preocupação de boa-fé, participe de uma investigação ou exerça seus direitos sob as leis aplicáveis de proteção ao denunciante. A retaliação em si constitui uma violação grave da política sujeita a ação disciplinar até e incluindo rescisão.</p>
+
+<h2>Exceções e Isenções</h2>
+<p>Exceções a esta política podem ser concedidas em circunstâncias limitadas onde a conformidade estrita é impraticável ou onde uma abordagem alternativa alcança objetivos de conformidade equivalentes. Todas as solicitações de exceção devem:</p>
+<ul>
+<li>Ser submetidas por escrito ao Departamento de Conformidade usando o formulário de Solicitação de Exceção de Política</li>
+<li>Incluir uma justificativa comercial explicando por que a exceção é necessária</li>
+<li>Descrever controles compensatórios que serão implementados para mitigar qualquer risco aumentado</li>
+<li>Especificar uma duração definida (exceções não são concedidas indefinidamente)</li>
+<li>Ser aprovadas pelo chefe de departamento, Diretor de Conformidade e, quando aplicável, pelo Diretor de Riscos</li>
+</ul>
+<p>As exceções aprovadas são documentadas no registro de exceções de política, revisadas trimestralmente e sujeitas a revogação se as circunstâncias mudarem ou os controles compensatórios se mostrarem inadequados.</p>
+
+<h2>Retenção de Registros</h2>
+<p>Os registros relacionados a esta política, incluindo conclusões de treinamento, avaliações de conformidade, relatórios de investigação, solicitações de exceção e ações disciplinares, devem ser retidos de acordo com o Cronograma de Retenção de Registros da empresa. No mínimo, registros relacionados à conformidade são retidos por sete (7) anos ou conforme exigido pela lei aplicável, o que for maior. Os registros devem ser armazenados com segurança com controles de acesso apropriados e estar prontamente recuperáveis para fins de auditoria ou legais.</p>
+
+<h2>Revisão e Atualizações da Política</h2>
+<p>Esta política é revisada pelo menos anualmente pelo Departamento de Conformidade em coordenação com as partes interessadas relevantes. As revisões também podem ser desencadeadas por mudanças regulatórias significativas, reestruturação organizacional, achados de auditoria ou incidentes materiais. O processo de revisão inclui:</p>
+<ul>
+<li>Avaliação de desenvolvimentos regulatórios e legais que afetam esta área de política</li>
+<li>Análise de métricas de conformidade e tendências de incidentes</li>
+<li>Feedback das partes interessadas e sugestões de melhoria</li>
+<li>Benchmarking com melhores práticas da indústria e organizações pares</li>
+<li>Análise de lacunas em relação às práticas organizacionais atuais</li>
+</ul>
+<p>Mudanças materiais requerem aprovação do Comitê de Governança de Políticas antes da publicação. Todos os funcionários serão notificados sobre atualizações significativas e podem ser obrigados a re-confirmar a política atualizada.</p>
+
+<h2>Políticas Relacionadas e Referências</h2>
+<ul>
+<li>Código de Conduta</li>
+<li>Política de Segurança da Informação</li>
+<li>Política de Privacidade e Proteção de Dados</li>
+<li>Manual do Funcionário</li>
+<li>Cronograma de Retenção de Registros</li>
+<li>Plano de Resposta a Incidentes</li>
+<li>Política de Gestão de Riscos de Terceiros</li>
+<li>Política de Proteção ao Denunciante</li>
+</ul>
+
+<h2>Informações de Contato</h2>
+<p>Para perguntas sobre a interpretação ou aplicação desta política, entre em contato com:</p>
+<ul>
+<li><strong>Departamento de Conformidade:</strong> compliance@acmecorp.com | Ramal 4200</li>
+<li><strong>Linha Ética:</strong> 1-800-ACME-ETH (24/7, denúncia anônima disponível)</li>
+<li><strong>Departamento Jurídico:</strong> legal@acmecorp.com | Ramal 4300</li>
+<li><strong>Recursos Humanos:</strong> hr@acmecorp.com | Ramal 4100</li>
+</ul>`,
+
+  zh: `
+<h2>适用范围</h2>
+<p>本政策适用于所有员工、承包商、临时工、实习生、志愿者及任何能够访问Acme Corporation相关资源或信息的第三方人员。这包括在Acme Corporation旗下运营的所有子公司、部门和业务单元，不论其地理位置或雇佣安排。</p>
+<p>本政策延伸至所有用于公司业务的公司自有、租赁或个人所有的设备，包括但不限于台式电脑、笔记本电脑、平板电脑、手机及任何其他电子设备。远程工作者和在家办公的员工同样受本政策约束。</p>
+<p>能够访问公司系统或数据的第三方供应商和服务提供商必须按照其服务协议和合同中的规定遵守本政策的相关条款。</p>
+
+<h2>角色与职责</h2>
+<h3>高管领导层</h3>
+<p>高管领导层负责推动本政策的实施，分配充足的资源用于执行，并确保与组织的战略目标和风险偏好保持一致。首席合规官（CCO）对整个企业的政策监督和执行承担最终责任。</p>
+<h3>部门经理</h3>
+<p>部门经理负责将本政策传达给其团队，确保部门内部合规，识别和上报潜在违规行为，并参与定期的政策审查。经理必须确保新团队成员在入职后30天内接受适当的培训。</p>
+<h3>全体员工</h3>
+<p>每位员工有责任阅读和理解本政策，完成所需培训，遵守所有规定，并及时报告任何疑似违规或关注事项。员工必须每年通过公司的政策管理系统确认收到并理解本政策。</p>
+<h3>合规部门</h3>
+<p>合规部门负责维护本政策，进行定期审查和更新，监控合规情况，调查报告的违规行为，并就政策解释提供指导。该部门将编制季度合规报告供高管审查，并就可能影响本政策的任何监管变化与法务部门进行协调。</p>
+
+<h2>培训与意识提升</h2>
+<p>受本政策约束的所有人员必须满足以下培训要求：</p>
+<ul>
+<li><strong>初始培训：</strong>在入职或岗位变动后30天内，所有员工必须完成合规培训模块，涵盖本政策的关键条款及其实际应用</li>
+<li><strong>年度复训：</strong>所有员工必须完成年度复训课程，包括本政策的更新、从事件中吸取的教训以及合规领域的新兴最佳实践</li>
+<li><strong>特定岗位培训：</strong>在本政策下承担更高职责的岗位员工必须完成由合规部门确定的额外专业培训</li>
+<li><strong>意识提升活动：</strong>合规部门将定期开展意识提升活动，包括简报、全员大会和定向沟通，以强化关键的政策概念</li>
+</ul>
+<p>培训完成情况通过学习管理系统（LMS）进行跟踪。当团队成员的必修培训逾期时，经理将收到通知。未能在规定时间内完成必修培训可能导致系统访问受限或其他适当措施。</p>
+
+<h2>合规监控与审计</h2>
+<p>组织采用多层方法来监控本政策的合规情况：</p>
+<ul>
+<li><strong>持续监控：</strong>自动化工具和流程持续监控关键合规指标，对需要调查的潜在违规或异常情况生成警报</li>
+<li><strong>定期评估：</strong>合规部门对所有部门进行季度性的政策遵守评估，使用定量指标和定性审查</li>
+<li><strong>内部审计：</strong>内部审计团队对本政策的实施和有效性进行年度综合审计，向审计委员会报告发现结果</li>
+<li><strong>外部审计：</strong>可能定期聘请独立第三方审计师，对组织的合规状况进行客观评估</li>
+</ul>
+<p>审计发现被记录、跟踪直至解决，并向相关利益方报告。通过审计发现的系统性问题可能触发政策修订或额外培训要求。</p>
+
+<h2>执行与纪律处分</h2>
+<p>违反本政策的行为将通过与违规的严重性和性质相称的渐进式纪律程序进行处理：</p>
+<table>
+<tr><th>违规级别</th><th>描述</th><th>可能的后果</th></tr>
+<tr><td>轻微/初次违规</td><td>无意或低影响的违规，未造成损害</td><td>口头警告、额外培训、记录在案的辅导会议</td></tr>
+<tr><td>中等/重复违规</td><td>重复的轻微违规或中等影响的违规</td><td>书面警告、强制再培训、绩效改进计划、临时访问限制</td></tr>
+<tr><td>严重</td><td>造成损害或监管风险的重大违规</td><td>最终书面警告、无薪停职、降职、限制职责</td></tr>
+<tr><td>极其严重</td><td>故意违规、欺诈或造成重大损害的行为</td><td>立即解雇、移交法律诉讼、按要求进行监管通知</td></tr>
+</table>
+<p>严重程度的确定考虑的因素包括意图、影响、以往违规记录、调查期间的配合程度以及违规是否为自我报告。所有纪律处分记录在员工档案中并与人力资源部门协调。</p>
+<p>本纪律框架中的任何内容均不限制组织根据适用法律自行终止雇佣关系的权利。</p>
+
+<h2>违规举报与举报人保护</h2>
+<p>观察到或怀疑存在违反本政策行为的员工应通过以下渠道之一进行举报：</p>
+<ul>
+<li><strong>直属经理：</strong>向您的直接上级报告，除非其参与了违规行为</li>
+<li><strong>合规部门：</strong>通过电子邮件compliance@acmecorp.com或内部门户直接联系合规团队</li>
+<li><strong>道德热线：</strong>可通过保密的道德热线1-800-ACME-ETH或在线举报门户全天候进行匿名举报</li>
+<li><strong>法务部门：</strong>涉及潜在法律责任或监管违规的事项</li>
+</ul>
+<p>Acme Corporation严格禁止对善意举报关注事项、参与调查或行使适用举报人保护法律规定权利的任何个人进行报复。报复行为本身构成严重的政策违规，将受到包括解雇在内的纪律处分。</p>
+
+<h2>例外与豁免</h2>
+<p>在严格遵守不切实际或替代方法能够实现同等合规目标的有限情况下，可以授予本政策的例外。所有例外申请必须：</p>
+<ul>
+<li>使用政策例外申请表以书面形式提交给合规部门</li>
+<li>包含解释为何需要例外的业务理由</li>
+<li>描述将实施的补偿性控制措施以减轻任何增加的风险</li>
+<li>指定明确的期限（例外不会无限期授予）</li>
+<li>获得部门主管、合规官及适用时首席风险官的批准</li>
+</ul>
+<p>已批准的例外记录在政策例外登记册中，每季度审查一次，如果情况变化或补偿性控制措施被证明不充分，则可予以撤销。</p>
+
+<h2>记录保留</h2>
+<p>与本政策相关的记录，包括培训完成记录、合规评估、调查报告、例外申请和纪律处分，应按照公司的记录保留计划进行保留。合规相关记录至少保留七（7）年或按适用法律要求保留，以较长者为准。记录必须以适当的访问控制安全存储，并可随时用于审计或法律目的。</p>
+
+<h2>政策审查与更新</h2>
+<p>本政策由合规部门至少每年审查一次，并与相关利益方协调。审查也可能由重大监管变化、组织重组、审计发现或重大事件触发。审查过程包括：</p>
+<ul>
+<li>评估影响本政策领域的监管和法律发展</li>
+<li>分析合规指标和事件趋势</li>
+<li>利益相关方反馈和改进建议</li>
+<li>与行业最佳实践和同行组织进行基准比较</li>
+<li>与当前组织实践的差距分析</li>
+</ul>
+<p>重大变更在发布前需获得政策治理委员会的批准。所有员工将收到重大更新的通知，并可能需要重新确认更新后的政策。</p>
+
+<h2>相关政策与参考文件</h2>
+<ul>
+<li>行为准则</li>
+<li>信息安全政策</li>
+<li>数据隐私和保护政策</li>
+<li>员工手册</li>
+<li>记录保留计划</li>
+<li>事件响应计划</li>
+<li>第三方风险管理政策</li>
+<li>举报人保护政策</li>
+</ul>
+
+<h2>联系信息</h2>
+<p>如对本政策的解释或应用有疑问，请联系：</p>
+<ul>
+<li><strong>合规部门：</strong>compliance@acmecorp.com | 分机 4200</li>
+<li><strong>道德热线：</strong>1-800-ACME-ETH（全天候，可匿名举报）</li>
+<li><strong>法务部门：</strong>legal@acmecorp.com | 分机 4300</li>
+<li><strong>人力资源部：</strong>hr@acmecorp.com | 分机 4100</li>
+</ul>`,
+};
+
+/**
+ * Common heading translations for policy-specific content.
+ * Maps English headings to their translations in each language.
+ */
+const HEADING_TRANSLATIONS: Record<string, Record<string, string>> = {
+  es: {
+    Purpose: "Propósito",
+    Introduction: "Introducción",
+    Scope: "Alcance",
+    "Policy Statement": "Declaración de Política",
+    Definitions: "Definiciones",
+    Procedures: "Procedimientos",
+    Compliance: "Cumplimiento",
+    Overview: "Descripción General",
+    Requirements: "Requisitos",
+    Guidelines: "Directrices",
+    Responsibilities: "Responsabilidades",
+    Implementation: "Implementación",
+    Monitoring: "Monitoreo",
+    Reporting: "Informes",
+    Enforcement: "Aplicación",
+    References: "Referencias",
+    "Approved Cloud Providers": "Proveedores de Nube Aprobados",
+    "Data Classification in Cloud": "Clasificación de Datos en la Nube",
+    "Identity and Access Management": "Gestión de Identidad y Acceso",
+    "Configuration Security": "Seguridad de Configuración",
+    "Data Protection": "Protección de Datos",
+    "Monitoring and Logging": "Monitoreo y Registro",
+    "Shared Responsibility": "Responsabilidad Compartida",
+    "General Principles": "Principios Generales",
+    "Key Provisions": "Disposiciones Clave",
+    "Prohibited Activities": "Actividades Prohibidas",
+    "Acceptable Use": "Uso Aceptable",
+    "Risk Assessment": "Evaluación de Riesgos",
+    "Incident Response": "Respuesta a Incidentes",
+    "Business Continuity": "Continuidad del Negocio",
+    Privacy: "Privacidad",
+    Confidentiality: "Confidencialidad",
+    Background: "Antecedentes",
+    Objectives: "Objetivos",
+  },
+  fr: {
+    Purpose: "Objectif",
+    Introduction: "Introduction",
+    Scope: "Portée",
+    "Policy Statement": "Énoncé de Politique",
+    Definitions: "Définitions",
+    Procedures: "Procédures",
+    Compliance: "Conformité",
+    Overview: "Aperçu",
+    Requirements: "Exigences",
+    Guidelines: "Directives",
+    Responsibilities: "Responsabilités",
+    Implementation: "Mise en Œuvre",
+    Monitoring: "Surveillance",
+    Reporting: "Rapports",
+    Enforcement: "Application",
+    References: "Références",
+    "Approved Cloud Providers": "Fournisseurs Cloud Approuvés",
+    "Data Classification in Cloud": "Classification des Données dans le Cloud",
+    "Identity and Access Management": "Gestion des Identités et des Accès",
+    "Configuration Security": "Sécurité de la Configuration",
+    "Data Protection": "Protection des Données",
+    "Monitoring and Logging": "Surveillance et Journalisation",
+    "Shared Responsibility": "Responsabilité Partagée",
+    "General Principles": "Principes Généraux",
+    "Key Provisions": "Dispositions Clés",
+    "Prohibited Activities": "Activités Interdites",
+    "Acceptable Use": "Utilisation Acceptable",
+    "Risk Assessment": "Évaluation des Risques",
+    "Incident Response": "Réponse aux Incidents",
+    "Business Continuity": "Continuité des Activités",
+    Privacy: "Confidentialité",
+    Confidentiality: "Confidentialité",
+    Background: "Contexte",
+    Objectives: "Objectifs",
+  },
+  de: {
+    Purpose: "Zweck",
+    Introduction: "Einführung",
+    Scope: "Geltungsbereich",
+    "Policy Statement": "Grundsatzerklärung",
+    Definitions: "Definitionen",
+    Procedures: "Verfahren",
+    Compliance: "Compliance",
+    Overview: "Überblick",
+    Requirements: "Anforderungen",
+    Guidelines: "Richtlinien",
+    Responsibilities: "Verantwortlichkeiten",
+    Implementation: "Umsetzung",
+    Monitoring: "Überwachung",
+    Reporting: "Berichterstattung",
+    Enforcement: "Durchsetzung",
+    References: "Referenzen",
+    "Approved Cloud Providers": "Zugelassene Cloud-Anbieter",
+    "Data Classification in Cloud": "Datenklassifizierung in der Cloud",
+    "Identity and Access Management": "Identitäts- und Zugriffsmanagement",
+    "Configuration Security": "Konfigurationssicherheit",
+    "Data Protection": "Datenschutz",
+    "Monitoring and Logging": "Überwachung und Protokollierung",
+    "Shared Responsibility": "Geteilte Verantwortung",
+    "General Principles": "Allgemeine Grundsätze",
+    "Key Provisions": "Wesentliche Bestimmungen",
+    "Prohibited Activities": "Verbotene Aktivitäten",
+    "Acceptable Use": "Zulässige Nutzung",
+    "Risk Assessment": "Risikobewertung",
+    "Incident Response": "Vorfallreaktion",
+    "Business Continuity": "Geschäftskontinuität",
+    Privacy: "Datenschutz",
+    Confidentiality: "Vertraulichkeit",
+    Background: "Hintergrund",
+    Objectives: "Ziele",
+  },
+  pt: {
+    Purpose: "Objetivo",
+    Introduction: "Introdução",
+    Scope: "Escopo",
+    "Policy Statement": "Declaração de Política",
+    Definitions: "Definições",
+    Procedures: "Procedimentos",
+    Compliance: "Conformidade",
+    Overview: "Visão Geral",
+    Requirements: "Requisitos",
+    Guidelines: "Diretrizes",
+    Responsibilities: "Responsabilidades",
+    Implementation: "Implementação",
+    Monitoring: "Monitoramento",
+    Reporting: "Relatórios",
+    Enforcement: "Aplicação",
+    References: "Referências",
+    "Approved Cloud Providers": "Provedores de Nuvem Aprovados",
+    "Data Classification in Cloud": "Classificação de Dados na Nuvem",
+    "Identity and Access Management": "Gestão de Identidade e Acesso",
+    "Configuration Security": "Segurança de Configuração",
+    "Data Protection": "Proteção de Dados",
+    "Monitoring and Logging": "Monitoramento e Registro",
+    "Shared Responsibility": "Responsabilidade Compartilhada",
+    "General Principles": "Princípios Gerais",
+    "Key Provisions": "Disposições Principais",
+    "Prohibited Activities": "Atividades Proibidas",
+    "Acceptable Use": "Uso Aceitável",
+    "Risk Assessment": "Avaliação de Riscos",
+    "Incident Response": "Resposta a Incidentes",
+    "Business Continuity": "Continuidade dos Negócios",
+    Privacy: "Privacidade",
+    Confidentiality: "Confidencialidade",
+    Background: "Contexto",
+    Objectives: "Objetivos",
+  },
+  zh: {
+    Purpose: "目的",
+    Introduction: "简介",
+    Scope: "范围",
+    "Policy Statement": "政策声明",
+    Definitions: "定义",
+    Procedures: "程序",
+    Compliance: "合规",
+    Overview: "概述",
+    Requirements: "要求",
+    Guidelines: "指导方针",
+    Responsibilities: "职责",
+    Implementation: "实施",
+    Monitoring: "监控",
+    Reporting: "报告",
+    Enforcement: "执行",
+    References: "参考文献",
+    "Approved Cloud Providers": "批准的云服务提供商",
+    "Data Classification in Cloud": "云中的数据分类",
+    "Identity and Access Management": "身份和访问管理",
+    "Configuration Security": "配置安全",
+    "Data Protection": "数据保护",
+    "Monitoring and Logging": "监控与日志",
+    "Shared Responsibility": "共同责任",
+    "General Principles": "一般原则",
+    "Key Provisions": "关键条款",
+    "Prohibited Activities": "禁止行为",
+    "Acceptable Use": "可接受使用",
+    "Risk Assessment": "风险评估",
+    "Incident Response": "事件响应",
+    "Business Continuity": "业务连续性",
+    Privacy: "隐私",
+    Confidentiality: "保密性",
+    Background: "背景",
+    Objectives: "目标",
+  },
+};
+
+/**
+ * Generates properly translated policy content.
+ *
+ * Strategy:
+ * 1. Extract the policy-specific content (before boilerplate sections)
+ * 2. Translate headings in the policy-specific content
+ * 3. Append the fully translated boilerplate sections
+ */
 function generateTranslatedContent(
   content: string,
   languageCode: string,
 ): string {
-  // In production, this would use AI translation
-  // For demo purposes, we add language markers
-  const languageMarkers: Record<string, string> = {
-    es: "[ES] ",
-    fr: "[FR] ",
-    de: "[DE] ",
-    pt: "[PT] ",
-    zh: "[ZH] ",
-  };
+  const boilerplate = TRANSLATED_BOILERPLATE[languageCode];
+  if (!boilerplate) {
+    // Fallback: return original content for unsupported languages
+    return content;
+  }
 
-  const marker = languageMarkers[languageCode] || "";
+  // Split content at the "Applicability and Scope" heading (start of boilerplate)
+  const boilerplateSplitMarker = "<h2>Applicability and Scope</h2>";
+  const splitIndex = content.indexOf(boilerplateSplitMarker);
 
-  // Add language marker to headings
-  return content.replace(/<h([1-6])>/g, `<h$1>${marker}`);
+  let policySpecificContent: string;
+  if (splitIndex !== -1) {
+    policySpecificContent = content.substring(0, splitIndex);
+  } else {
+    // If no boilerplate sections found, use entire content
+    policySpecificContent = content;
+  }
+
+  // Translate headings in the policy-specific content
+  const headingMap = HEADING_TRANSLATIONS[languageCode] || {};
+  let translatedSpecific = policySpecificContent;
+
+  for (const [eng, translated] of Object.entries(headingMap)) {
+    // Match h1-h6 headings exactly
+    const regex = new RegExp(`(<h[1-6]>)${escapeRegex(eng)}(</h[1-6]>)`, "g");
+    translatedSpecific = translatedSpecific.replace(regex, `$1${translated}$2`);
+  }
+
+  return translatedSpecific + boilerplate;
+}
+
+/** Escape special regex characters in a string */
+function escapeRegex(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 // ===========================================

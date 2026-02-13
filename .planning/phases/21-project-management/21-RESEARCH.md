@@ -1,9 +1,9 @@
 # Phase 21 Research: Project Management (Monday.com-Style)
 
-> Researched: 2026-02-08
-> Sources: 4 parallel research agents (backend infrastructure, frontend patterns, module conventions, Monday.com features)
+> Researched: 2026-02-08 (initial), 2026-02-12 (expanded with deep Monday.com analysis)
+> Sources: 4 parallel research agents (initial) + 3 web research agents + infrastructure audit (expanded)
 
-## RESEARCH COMPLETE
+## RESEARCH COMPLETE — EXPANDED
 
 ---
 
@@ -94,99 +94,147 @@
 5. **No Kanban/Board view for projects** yet
 6. **No standalone Task model** - Only MilestoneItems with TASK/CUSTOM types
 
+### 1.5 Reusable Platform Infrastructure (NEW — from Feb 12 audit)
+
+| Component                | Status    | Key File                                                   | Reuse Strategy                                                                                |
+| ------------------------ | --------- | ---------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| **Notification Service** | Complete  | `modules/notifications/services/notification.service.ts`   | Use `notify()` for dual-channel (in-app + email). NotificationType.MENTION already exists.    |
+| **WebSocket Gateway**    | Complete  | `modules/notifications/gateways/notification.gateway.ts`   | JWT auth, tenant rooms, real-time push. Add project room support.                             |
+| **File Attachments**     | Complete  | `modules/attachments/attachments.service.ts`               | Extend `AttachmentEntityType` to add PROJECT_TASK. Same upload/download/signed-URL pattern.   |
+| **Activity/Audit Log**   | Complete  | `common/services/activity.service.ts`                      | Non-blocking logger. AuditEntityType already has MILESTONE. Add PROJECT_TASK, PROJECT_UPDATE. |
+| **Email Templates**      | Complete  | `modules/notifications/services/email-template.service.ts` | Add templates for task assignment, @mention, status change.                                   |
+| **Comments System**      | NOT BUILT | N/A                                                        | Build from scratch as ProjectUpdate model with threaded replies.                              |
+| **@Mention Detection**   | Partial   | NotificationType.MENTION exists                            | Build mention extraction logic (parse content for `@user` patterns).                          |
+
 ---
 
-## 2. Monday.com Features Analysis
+## 2. Monday.com Deep Analysis (Expanded Feb 12)
 
-### 2.1 Essential Features to Replicate
+### 2.1 Core Data Model
 
-**Board Structure** (Monday.com's core concept):
+Monday.com's architecture:
 
-- A "board" = a project workspace
-- "Groups" = sections within a board (e.g., "To Do", "In Progress", "Done" or by sprint/phase)
-- "Items" = tasks/work items within groups
-- "Subitems" = subtasks under items
-- "Columns" = customizable fields per item (status, person, date, priority, text, number, timeline)
+| Monday.com Concept | Our Equivalent             | Notes                                             |
+| ------------------ | -------------------------- | ------------------------------------------------- |
+| **Workspace**      | Organization               | Tenant-level container                            |
+| **Board**          | Project (Milestone)        | Single project workspace                          |
+| **Group**          | ProjectGroup               | Collapsible sections within a board               |
+| **Item**           | ProjectTask                | Tasks/work items within groups                    |
+| **Subitem**        | ProjectTask (parentTaskId) | Subtasks (supports multiple levels in Monday.com) |
+| **Column**         | ProjectColumn              | Customizable fields per board                     |
+| **Update**         | ProjectUpdate              | Conversation thread per item                      |
+| **Subscriber**     | ProjectTaskSubscriber      | Watch/follow items and boards                     |
 
-**Views** (multiple views of the same data):
+### 2.2 Monday.com Column Types (36+ types)
 
-1. **Table View** (default) - Spreadsheet-like with inline editing, column reordering, grouping
-2. **Kanban View** - Cards grouped by status column with drag-to-move
-3. **Timeline/Gantt View** - Bar chart of item start/end dates with dependencies
-4. **Calendar View** - Items plotted on calendar by date fields
+From [Monday.com API Reference](https://developer.monday.com/api-reference/reference/column-types-reference):
 
-**Status Column** (Monday.com's signature feature):
+**Essential (our V1 scope):**
 
-- Color-coded labels (green=done, orange=working, red=stuck, gray=not started)
-- Customizable label names per status
-- Status changes trigger automations and progress updates
+- `status` → STATUS (color-coded labels, customizable)
+- `people` → PERSON (assign one or multiple users)
+- `date` → DATE (single date)
+- `timeline` → TIMELINE (date range: start + end)
+- `text` → TEXT (short text)
+- `long_text` → TEXT (long text / rich text)
+- `numbers` → NUMBER
+- `dropdown` → DROPDOWN (custom options)
+- `checkbox` → CHECKBOX
+- `link` → LINK (URL)
+- `tags` → TAGS (cross-board labels)
+- `file` → FILES (attachments)
+- `dependency` → DEPENDENCY (task-to-task links)
+- `board_relation` → CONNECTED_ENTITY (link to other entities)
+- `mirror` → (deferred — reflects data from connected items)
 
-**Core Interactions**:
+**Calculated (read-only):**
 
-- Inline editing (click any cell to edit)
-- Drag-and-drop items between groups
-- Drag-and-drop groups to reorder
-- Column add/remove/reorder
-- Item detail modal (click item opens side panel with all fields, activity, updates)
-- @mentions in item updates
-- File attachments on items
+- `auto_number` — auto-incrementing ID
+- `progress` — progress tracking
+- `creation_log` — created date
+- `last_updated` — last modified date
 
-### 2.2 Features to Skip for V1
+**Deferred to V2:**
 
-- **Automations engine** (too complex - use manual workflows)
-- **Integrations marketplace** (not needed)
-- **Formulas/calculated columns** (defer)
-- **Charts/dashboards within boards** (use existing analytics module)
-- **Workdocs** (use existing policy/document tools)
-- **Calendar view** (defer - Gantt covers timeline needs)
-- **Dependencies arrows on Gantt** (complex - defer to V2)
-- **Time tracking** (not needed for compliance)
+- `formula` — calculated columns
+- `rating`, `vote` — team voting/rating
+- `color_picker`, `country`, `location`, `world_clock` — specialized types
+- `hour`, `week` — time-specific types
+- `phone`, `email` — contact types
+- `doc` — Monday.com Docs
+- `button` — action triggers
+- `time_tracking` — time logging
 
-### 2.3 Compliance-Specific Project Templates
+### 2.3 Monday.com Views
 
-1. **New Client Implementation** - Phases: kickoff, configuration, data migration, testing, training, go-live
-2. **Annual Policy Review** - Steps: identify policies, assign reviewers, collect feedback, update, approve, distribute
-3. **Compliance Audit Preparation** - Phases: scope, evidence collection, internal review, remediation, auditor submission
-4. **Investigation Project** - Steps: intake, assign, investigate, document, remediation, close
-5. **Training Rollout** - Phases: content development, audience targeting, launch, tracking, completion report
-6. **Disclosure Campaign** - Steps: form design, audience selection, launch, monitoring, follow-up, reporting
+From [Monday.com Board Views](https://support.monday.com/hc/en-us/articles/360001267945-The-board-views):
 
-### 2.4 Recommended Data Model
+| View                    | Our Plan                       | Priority       |
+| ----------------------- | ------------------------------ | -------------- |
+| **Table** (default)     | Plan 21-04                     | V1 - Core      |
+| **Kanban**              | Plan 21-05                     | V1 - Core      |
+| **Gantt/Timeline**      | Plan 21-05                     | V1 - Core      |
+| **Workload**            | Plan 21-09                     | V1 - Important |
+| **Dashboard** (widgets) | Plan 21-09                     | V1 - Important |
+| Calendar                | Deferred                       | V2             |
+| Files Gallery           | Deferred                       | V2             |
+| Cards/Gallery           | Deferred                       | V2             |
+| Chart                   | Deferred (use Reports module)  | V2             |
+| Map                     | Deferred                       | V2             |
+| Form                    | Deferred (use Campaigns/Forms) | V2             |
 
-**Project** (extends/replaces current Milestone):
+### 2.4 Monday.com Item Detail (Updates Section)
 
-- All existing Milestone fields
-- New: `templateId`, `color`, `viewSettings` (JSON), `defaultGroupBy`
+From [Monday.com Updates Section](https://support.monday.com/hc/en-us/articles/115005900249-The-Updates-Section):
 
-**ProjectGroup** (new - sections within a project):
+The item detail view is Monday.com's #1 collaboration differentiator. Key features:
 
-- `id`, `organizationId`, `projectId`, `name`, `color`, `sortOrder`, `isCollapsed`
+- **Conversation thread**: Social media-style updates per item
+- **@mentions**: Tag any person, team, or "@everyone" subscribed to the item
+- **Rich text**: Bold, italic, bulleted lists, links, inline images
+- **File attachments**: Upload directly in updates
+- **Checklists**: Add to-do checklists within updates
+- **Reactions**: Thumbs up / emoji reactions
+- **Threaded replies**: Reply to specific updates
+- **Activity Log**: Every field change tracked with who/when ([Activity Log](https://support.monday.com/hc/en-us/articles/115005310745-The-Activity-Log))
+- **Pinned updates**: Pin important updates to top
 
-**ProjectTask** (new - replaces MilestoneItem with richer model):
+### 2.5 Monday.com Collaboration System
 
-- `id`, `organizationId`, `projectId`, `groupId`, `title`, `description`
-- `status` (customizable per project), `priority`, `assigneeId`, `dueDate`, `startDate`
-- `sortOrder`, `parentTaskId` (for subtasks), `customFields` (JSON for extensibility)
-- `completedAt`, `createdById`
+From [Monday.com Notifications](https://support.monday.com/hc/en-us/articles/360001292545-Notifications-explained):
 
-**ProjectColumn** (new - customizable columns per project):
+- **Board subscribers**: Follow a board for all updates
+- **Item subscribers**: Follow specific items
+- **Auto-subscription**: Assigned users auto-subscribed
+- **@mention notifications**: Triggers bell notification + email
+- **Notification preferences**: Per-board mute, personal notification settings, quiet hours
+- **Update Feed (Inbox)**: Centralized notification center
 
-- `id`, `organizationId`, `projectId`, `name`, `type` (STATUS, PERSON, DATE, TEXT, NUMBER, TIMELINE, PRIORITY, LABEL)
-- `settings` (JSON - options for status/label columns), `sortOrder`, `width`, `isRequired`
+### 2.6 Monday.com Automations
 
-**ProjectTemplate** (new):
+From [Monday.com Automations](https://support.monday.com/hc/en-us/articles/360001222900-Get-started-with-monday-automations):
 
-- `id`, `organizationId`, `name`, `description`, `category`
-- `templateData` (JSON - groups, columns, sample tasks)
-- `isSystem` (built-in vs custom)
+- Trigger → Condition → Action recipes
+- Pre-built: "When status changes to Done, notify channel"
+- Custom: user-built recipes
+- **Our approach**: Defer automations engine. Leverage Phase 19 workflow engine for automation-like behavior. Basic status-change notifications handled by event listener.
 
-### 2.5 Recommended NPM Packages
+### 2.7 Monday.com Dependencies
 
-- **@dnd-kit** (already installed) - Drag-and-drop for Kanban and reordering
-- **@tanstack/react-table** (already installed) - Table view with inline editing
-- **GanttChart** - Already custom-built, extend it
-- **date-fns** (already installed) - Date calculations
-- **No new packages needed** - Existing libraries cover all requirements
+From [Monday.com Dependencies](https://support.monday.com/hc/en-us/articles/360007402599-Dependencies-on-monday-com):
+
+- Dependency column links tasks with finish-to-start relationships
+- Dependencies show as arrows on Gantt chart
+- Batch dependencies for quick sequential setup
+- Dependency types: Finish-to-Start, Start-to-Start, Finish-to-Finish, Start-to-Finish
+
+### 2.8 Monday.com Connected Boards
+
+From [Monday.com Connect Boards](https://support.monday.com/hc/en-us/articles/360000635139-The-Connect-Boards-Column):
+
+- Link items across boards (in our case: link project tasks to Cases, Investigations, Policies)
+- Mirror Column reflects data from connected items
+- **Our approach**: CONNECTED_ENTITY column type links to platform entities. Mirror deferred to V2.
 
 ---
 
@@ -219,35 +267,14 @@ Every list page follows:
 </SavedViewProvider>
 ```
 
-To add project list page:
-
-1. Config: `src/lib/views/configs/projects.config.ts`
-2. Hook: `src/hooks/views/useProjectsView.ts`
-3. Page: `src/app/(authenticated)/projects/page.tsx` (rewrite existing)
-
 ### 3.3 Board/Kanban Already Built
 
-`BoardView<T>` component exists with:
+`BoardView<T>` component exists with @dnd-kit DndContext, GroupBy field, DragOverlay, and configurable card fields.
 
-- @dnd-kit DndContext with closestCorners collision
-- GroupBy configurable field
-- DragOverlay for drag feedback
-- BoardColumn with useDroppable, BoardCard with useDraggable
-- Configurable card fields via BoardCardConfig
+### 3.4 View Modes
 
-### 3.4 View Modes Available
-
-Current: "table" | "board"
-Need to add: "timeline" (Gantt) and potentially "calendar" later
-
-### 3.5 Project Detail Page Pattern
-
-Should follow case detail page pattern:
-
-- Three-column or two-column layout
-- Left: project info, settings
-- Center: task table/board with group headers
-- Right: milestones, connected entities, activity
+V1 scope: "table" | "board" | "timeline" | "workload" | "dashboard"
+V2: "calendar" | "files" | "cards"
 
 ---
 
@@ -257,21 +284,28 @@ Should follow case detail page pattern:
 
 ```
 modules/projects/
-  projects.module.ts        # Extend existing
-  projects.controller.ts    # Extend existing
-  milestone.service.ts      # Keep for backward compat
-  project.service.ts        # New - project CRUD
-  project-task.service.ts   # New - task CRUD
-  project-group.service.ts  # New - group CRUD
-  project-template.service.ts # New - templates
+  projects.module.ts             # Extend existing
+  projects.controller.ts         # Extend existing (tasks, groups, columns, files, subscribers, deps)
+  project-template.controller.ts # New - template CRUD + apply
+  project-update.controller.ts   # New - task conversation endpoints
+  milestone.service.ts           # Keep for backward compat
+  services/
+    project.service.ts           # New - project CRUD + stats
+    project-task.service.ts      # New - task CRUD + bulk + reorder
+    project-group.service.ts     # New - group CRUD
+    project-template.service.ts  # New - templates
+    project-update.service.ts    # New - conversation + @mentions
+  listeners/
+    project-event.listener.ts    # New - notification dispatch
   dto/
-    project.dto.ts          # New DTOs
     project-task.dto.ts
     project-group.dto.ts
+    project-column.dto.ts
     project-template.dto.ts
-    milestone.dto.ts        # Keep existing
+    project-update.dto.ts
+    milestone.dto.ts             # Keep existing
   events/
-    project.events.ts       # New events
+    project.events.ts            # New events
 ```
 
 ### 4.2 Key Conventions
@@ -279,21 +313,25 @@ modules/projects/
 - Guards: `@UseGuards(JwtAuthGuard, TenantGuard)` class-level, `@Roles()` + `@UseGuards(RolesGuard)` method-level
 - Decorators: `@CurrentUser()`, `@TenantId()` (NOT hardcoded IDs)
 - All queries include `organizationId`
-- Audit via `AuditService.log()` with `AuditEntityType`
-- Events extend `BaseEvent` with `organizationId` required
+- Audit via `ActivityService.log()` — non-blocking, never throws
+- Events via `EventEmitter2` with `@OnEvent()` listeners
+- Notifications via `NotificationService.notify()` — dual-channel, preference-aware
+- File uploads via `AttachmentsService` — storage adapter pattern
 - Paginated: `Promise.all([findMany, count])`
 - DTOs: class-validator + Swagger decorators
 
 ### 4.3 Integration Points
 
-| System                  | Integration Needed                               |
-| ----------------------- | ------------------------------------------------ |
-| ViewEntityType enum     | Add `PROJECTS` value                             |
-| WorkflowEntityType enum | Add `PROJECT` value (optional for V1)            |
-| TaskAggregatorService   | Add project tasks to "My Work" queue             |
-| AuditEntityType enum    | Already has `MILESTONE`, may need `PROJECT_TASK` |
-| Navigation              | Already present, update to use new page          |
-| Saved Views             | Use existing system with projects config         |
+| System                | Integration                                   | Plan         |
+| --------------------- | --------------------------------------------- | ------------ |
+| ViewEntityType enum   | Add `PROJECTS` value                          | 21-03        |
+| TaskAggregatorService | Add project tasks to "My Work" queue          | 21-02        |
+| AuditEntityType enum  | Add `PROJECT_TASK`, `PROJECT_UPDATE`          | 21-01        |
+| AttachmentEntityType  | Add `PROJECT_TASK`                            | 21-01        |
+| NotificationService   | Dispatch for assignments, @mentions, comments | 21-02, 21-08 |
+| WebSocket Gateway     | Real-time project room for live collaboration | 21-08        |
+| Navigation            | Already present, update to use new page       | 21-03        |
+| Saved Views           | Use existing system with projects config      | 21-03        |
 
 ---
 
@@ -301,27 +339,44 @@ modules/projects/
 
 ### 5.1 Build vs Extend Decision
 
-**Recommendation: Extend existing Milestone model + add new models**
+**Recommendation: Extend existing Milestone model + add 7 new models**
 
-The existing Milestone/MilestoneItem models cover ~30% of needs. Rather than replacing them:
+1. Keep Milestone as the "project" entity (rename in UI only)
+2. Add: ProjectGroup, ProjectTask, ProjectColumn, ProjectTemplate, ProjectUpdate, ProjectTaskSubscriber, ProjectTaskDependency
+3. Keep MilestoneItem for backward compat with existing entity-linked milestones
+4. Leverage existing: NotificationService, AttachmentsService, ActivityService, WebSocket Gateway
 
-1. Add new `ProjectGroup`, `ProjectTask`, `ProjectColumn`, `ProjectTemplate` models
-2. Keep Milestone as the "project" entity (rename in UI only, keep model name for backward compat)
-3. ProjectTask replaces MilestoneItem for rich task management
-4. Keep MilestoneItem for backward compat with existing entity-linked milestones
+### 5.2 Wave Structure (10 plans, 8 waves)
 
-### 5.2 Suggested Wave Structure
-
-- **Wave 1**: Backend - Prisma models, DTOs, services, controller endpoints
-- **Wave 2**: Frontend - Project list page (table + board views) with saved views integration
-- **Wave 3**: Frontend - Project detail page with task table, group management, inline editing
-- **Wave 4**: Frontend - Gantt/timeline view integration, project templates
-- **Wave 5**: Integration - My Work queue, demo data, verification
+| Wave | Plans        | Focus                                                        |
+| ---- | ------------ | ------------------------------------------------------------ |
+| 1    | 21-01        | Backend Prisma models, DTOs, services (7 new models)         |
+| 2    | 21-02        | Backend controllers (~30 endpoints), event listener, My Work |
+| 3    | 21-03        | Frontend project list with saved views                       |
+| 4    | 21-04        | Frontend project detail: grouped table, inline editing       |
+| 5    | 21-05        | Board view, timeline view with dependency arrows             |
+| 6    | 21-06, 21-07 | Rich task detail panel + Column configuration UI (parallel)  |
+| 7    | 21-08, 21-09 | @Mention notifications + Workload/Dashboard views (parallel) |
+| 8    | 21-10        | Demo data seeder + human verification checkpoint             |
 
 ### 5.3 Risk Areas
 
-1. **Scope creep** - Monday.com is enormous. Must strictly limit to table/board/Gantt views
-2. **Custom columns** - JSON customFields is simpler than full column infrastructure for V1
-3. **Inline editing** - Complex to build well. Consider click-to-edit cells vs modal editing
-4. **Gantt dependencies** - Skip for V1, too complex
-5. **Frontend type mismatches** - Must fix existing enum mismatches before building on top
+1. **Scope**: Monday.com is enormous. V1 covers 5 views, 15 column types, conversations, @mentions, dependencies. Automations, formulas, calendar, mirror columns deferred to V2.
+2. **@Mention parsing**: Extracting mentions from rich text requires careful HTML parsing. Use data attributes on mention spans.
+3. **Column flexibility**: Dynamic columns mean task table must render cells based on column type — more complex than hardcoded columns.
+4. **Gantt dependencies**: SVG arrow rendering on the Gantt chart requires coordinate calculations for connected task bars.
+5. **Real-time**: WebSocket project rooms need proper join/leave lifecycle management.
+
+### 5.4 Features Explicitly Deferred to V2
+
+- Calendar view
+- Files Gallery view
+- Cards/Gallery view
+- Formula columns
+- Mirror columns (reflect connected entity data)
+- Automation recipes engine
+- Multiple subitem levels (V1 supports 1 level)
+- Time tracking
+- Rating/Vote columns
+- Board-level subscribers (V1 has item-level only)
+- Chart view within projects (use Reports module)
