@@ -94,7 +94,7 @@ export async function searchArticles(
 ): Promise<ArticleListItem[]> {
   const params = new URLSearchParams();
 
-  if (query) params.set("query", query);
+  if (query) params.set("q", query);
   if (category) params.set("category", category);
 
   const queryString = params.toString();
