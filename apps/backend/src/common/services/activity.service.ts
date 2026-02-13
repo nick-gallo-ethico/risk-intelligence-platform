@@ -524,6 +524,148 @@ export class ActivityService {
     return AuditActionCategory.UPDATE;
   }
 
+  // -------------------------------------------------------------------------
+  // PIN ACTIVITY - Mark an activity as pinned/unpinned
+  // -------------------------------------------------------------------------
+
+  /**
+   * Pins or unpins an activity entry.
+   *
+   * @param activityId - The activity UUID
+   * @param isPinned - Whether to pin or unpin
+   * @param organizationId - Organization ID (REQUIRED for tenant isolation)
+   * @returns The updated activity record, or null if not found
+   */
+  async pinActivity(
+    activityId: string,
+    isPinned: boolean,
+    organizationId: string,
+  ): Promise<ActivityResponseDto | null> {
+    try {
+      // First verify the activity exists and belongs to this org
+      const existing = await this.prisma.auditLog.findFirst({
+        where: {
+          id: activityId,
+          organizationId,
+        },
+      });
+
+      if (!existing) {
+        return null;
+      }
+
+      // Update the context field with isPinned flag
+      const currentContext =
+        (existing.context as Record<string, unknown>) || {};
+      const updatedContext = {
+        ...currentContext,
+        isPinned,
+      };
+
+      const updated = await this.prisma.auditLog.update({
+        where: { id: activityId },
+        data: {
+          context: updatedContext,
+        },
+        include: {
+          actorUser: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+            },
+          },
+        },
+      });
+
+      return this.mapToResponseDto(updated);
+    } catch (error) {
+      this.logger.error(
+        `Failed to pin activity: ${error instanceof Error ? error.message : "Unknown error"}`,
+        error instanceof Error ? error.stack : undefined,
+      );
+      return null;
+    }
+  }
+
+  // -------------------------------------------------------------------------
+  // GET STATUS HISTORY - Status changes for an entity
+  // -------------------------------------------------------------------------
+
+  /**
+   * Retrieves status change history for an entity.
+   *
+   * @param entityType - The type of entity
+   * @param entityId - The entity's UUID
+   * @param organizationId - Organization ID (REQUIRED for tenant isolation)
+   * @returns Array of status change records
+   */
+  async getStatusHistory(
+    entityType: AuditEntityType,
+    entityId: string,
+    organizationId: string,
+  ): Promise<
+    Array<{
+      id: string;
+      status: string;
+      date: Date;
+      changedBy: { id: string; name: string } | null;
+      rationale: string | null;
+    }>
+  > {
+    try {
+      const activities = await this.prisma.auditLog.findMany({
+        where: {
+          organizationId,
+          entityType,
+          entityId,
+          action: "status_changed",
+        },
+        orderBy: { createdAt: "desc" },
+        include: {
+          actorUser: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+            },
+          },
+        },
+      });
+
+      return activities.map((activity) => {
+        const changes = activity.changes as {
+          newValue?: { status?: string };
+          rationale?: string;
+        } | null;
+
+        return {
+          id: activity.id,
+          status: changes?.newValue?.status || "Unknown",
+          date: activity.createdAt,
+          changedBy: activity.actorUser
+            ? {
+                id: activity.actorUser.id,
+                name: `${activity.actorUser.firstName} ${activity.actorUser.lastName}`.trim(),
+              }
+            : null,
+          rationale: changes?.rationale || null,
+        };
+      });
+    } catch (error) {
+      this.logger.error(
+        `Failed to get status history: ${error instanceof Error ? error.message : "Unknown error"}`,
+        error instanceof Error ? error.stack : undefined,
+      );
+      return [];
+    }
+  }
+
+  // -------------------------------------------------------------------------
+  // HELPER METHODS (continued)
+  // -------------------------------------------------------------------------
+
   /**
    * Maps a Prisma AuditLog record to ActivityResponseDto.
    */

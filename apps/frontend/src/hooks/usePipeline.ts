@@ -1,9 +1,80 @@
 "use client";
 
 import { useCallback, useMemo } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiClient } from "@/lib/api";
-import type { PipelineStage } from "@/types/record-detail";
+import { fetchPipelines } from "@/services/pipeline";
+import type { PipelineStage, PipelineConfig } from "@/types/record-detail";
+
+/**
+ * Default pipeline stages for case management.
+ * Used as fallback when API is unavailable.
+ */
+export const DEFAULT_CASE_PIPELINE: PipelineStage[] = [
+  {
+    id: "new",
+    name: "New",
+    order: 0,
+    color: "#6B7280",
+    isClosed: false,
+    allowedTransitions: ["assigned"],
+    description: "Newly created cases awaiting assignment",
+  },
+  {
+    id: "assigned",
+    name: "Assigned",
+    order: 1,
+    color: "#3B82F6",
+    isClosed: false,
+    allowedTransitions: ["active", "new"],
+    description: "Cases assigned to an investigator",
+  },
+  {
+    id: "active",
+    name: "Active",
+    order: 2,
+    color: "#8B5CF6",
+    isClosed: false,
+    allowedTransitions: ["review", "assigned"],
+    description: "Cases under active investigation",
+  },
+  {
+    id: "review",
+    name: "Review",
+    order: 3,
+    color: "#F59E0B",
+    isClosed: false,
+    allowedTransitions: ["active", "closed"],
+    description: "Cases pending review before closure",
+  },
+  {
+    id: "closed",
+    name: "Closed",
+    order: 4,
+    color: "#10B981",
+    isClosed: true,
+    allowedTransitions: ["remediation", "active"],
+    description: "Cases that have been closed",
+  },
+  {
+    id: "remediation",
+    name: "Remediation",
+    order: 5,
+    color: "#EF4444",
+    isClosed: false,
+    allowedTransitions: ["archived", "closed"],
+    description: "Cases requiring remediation actions",
+  },
+  {
+    id: "archived",
+    name: "Archived",
+    order: 6,
+    color: "#9CA3AF",
+    isClosed: true,
+    allowedTransitions: [],
+    description: "Archived cases (final state)",
+  },
+];
 
 /**
  * Options for configuring the usePipeline hook.
@@ -13,8 +84,8 @@ interface UsePipelineOptions {
   caseId: string;
   /** The current stage ID of the case */
   currentStage: string;
-  /** Array of all pipeline stages in order */
-  stages: PipelineStage[];
+  /** Optional array of pipeline stages (overrides API fetch) */
+  stages?: PipelineStage[];
   /** ISO date string when the current stage was entered */
   stageEnteredAt?: string;
   /** Callback fired when stage successfully changes */
@@ -39,6 +110,8 @@ interface UsePipelineReturn {
   requestTransition: (stageId: string, rationale?: string) => Promise<void>;
   /** Whether a transition is currently in progress */
   isTransitioning: boolean;
+  /** Whether pipeline config is loading from API */
+  isPipelineLoading: boolean;
 }
 
 /**
@@ -49,13 +122,13 @@ interface UsePipelineReturn {
  * - Days in current stage calculation
  * - Transition validation via allowedTransitions
  * - API mutation for stage changes with cache invalidation
+ * - Automatic pipeline config fetching from API with fallback
  *
  * @example
  * ```tsx
  * const { currentStage, daysInCurrentStage, canTransitionTo, requestTransition } = usePipeline({
  *   caseId: 'case-123',
  *   currentStage: 'active',
- *   stages: DEFAULT_CASE_PIPELINE,
  *   stageEnteredAt: '2026-02-01T00:00:00Z',
  * });
  *
@@ -67,11 +140,36 @@ interface UsePipelineReturn {
 export function usePipeline({
   caseId,
   currentStage,
-  stages,
+  stages: providedStages,
   stageEnteredAt,
   onStageChange,
 }: UsePipelineOptions): UsePipelineReturn {
   const queryClient = useQueryClient();
+
+  // Fetch pipeline configuration from API
+  const { data: pipelinesData, isLoading: isPipelineLoading } = useQuery<
+    PipelineConfig[]
+  >({
+    queryKey: ["pipelines"],
+    queryFn: fetchPipelines,
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    retry: 1, // Only retry once if API fails
+    refetchOnWindowFocus: false,
+  });
+
+  // Use provided stages, or API stages, or fall back to defaults
+  const stages = useMemo(() => {
+    if (providedStages && providedStages.length > 0) {
+      return providedStages;
+    }
+    // Find the case pipeline from API response
+    const casePipeline = pipelinesData?.find((p) => p.moduleType === "cases");
+    if (casePipeline && casePipeline.stages.length > 0) {
+      return casePipeline.stages;
+    }
+    // Fall back to hardcoded defaults
+    return DEFAULT_CASE_PIPELINE;
+  }, [providedStages, pipelinesData]);
 
   // Find the current stage object from stages array
   const currentStageObj = useMemo(
@@ -144,5 +242,6 @@ export function usePipeline({
     canTransitionTo,
     requestTransition,
     isTransitioning: transitionMutation.isPending,
+    isPipelineLoading,
   };
 }

@@ -9,12 +9,22 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 
 ## Current Position
 
-Phase: 25 of 25+ (Case & Investigation Page Redesign) — IN PROGRESS
-Plan: 06 of ?? in current phase (automated tasks complete, awaiting checkpoint)
-Status: Completed 25-01, 25-02, 25-03, 25-04, 25-05, 25-06 (pending verification)
-Last activity: 2026-02-13 - Completed 25-06 automated tasks (investigation right sidebar)
+Phase: 25.1 of 25+ (Case Detail Page Vision Revision) — IN PROGRESS
+Plan: 01 of ?? in current phase
+Status: Completed 25.1-01
+Last activity: 2026-02-13 - Completed 25.1-01 (config-driven architecture foundation)
 
 Progress: [===================================================================+] ~100% (Phase 21 adds new plans beyond original 24)
+
+### Phase 25.1 Case Detail Page Vision Revision IN PROGRESS (2026-02-13)
+
+- 25.1-01: Config Foundation (COMPLETE - f1a9028, 2e5fce3)
+  - Created RecordDetailConfig, PipelineStage, PipelineConfig, TabConfig, SidebarCardConfig types
+  - Created CASES_DETAIL_CONFIG with 7 pipeline stages, 6 tabs, 3 left sidebar cards, 9 right sidebar cards
+  - Created RecordDetailLayout component wrapper for three-column grid
+  - Restructured page.tsx to use RecordDetailLayout
+  - Deleted dead case-detail-layout.tsx (239 lines) and its test file
+  - Pattern: Config-driven record detail pages with generic layout wrapper
 
 ### Phase 25 Case & Investigation Page Redesign IN PROGRESS (2026-02-13)
 

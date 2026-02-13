@@ -442,6 +442,100 @@ export class CasesController {
   }
 
   /**
+   * PUT /api/v1/cases/:id/activities/:activityId/pin
+   * Toggles the pinned status of an activity.
+   */
+  @Put(":id/activities/:activityId/pin")
+  @ApiOperation({
+    summary: "Pin/unpin case activity",
+    description:
+      "Toggles the pinned status of an activity. Pinned activities appear highlighted in the timeline.",
+  })
+  @ApiParam({ name: "id", description: "Case UUID" })
+  @ApiParam({ name: "activityId", description: "Activity UUID to pin/unpin" })
+  @ApiResponse({
+    status: 200,
+    description: "Activity pin status updated",
+  })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  @ApiResponse({ status: 404, description: "Activity not found" })
+  async pinActivity(
+    @Param("id", ParseUUIDPipe) id: string,
+    @Param("activityId", ParseUUIDPipe) activityId: string,
+    @Body() body: { isPinned: boolean },
+    @TenantId() organizationId: string,
+  ): Promise<{ success: boolean; isPinned: boolean }> {
+    // Verify the case exists and user has access
+    await this.casesService.findOne(id, organizationId);
+
+    const result = await this.activityService.pinActivity(
+      activityId,
+      body.isPinned,
+      organizationId,
+    );
+
+    if (!result) {
+      return { success: false, isPinned: false };
+    }
+
+    return {
+      success: true,
+      isPinned: (result.context as { isPinned?: boolean })?.isPinned ?? false,
+    };
+  }
+
+  /**
+   * GET /api/v1/cases/:id/status-history
+   * Returns status change history for the case.
+   */
+  @Get(":id/status-history")
+  @ApiOperation({
+    summary: "Get case status history",
+    description:
+      "Returns all status changes for a case, including who made the change and any rationale provided.",
+  })
+  @ApiParam({ name: "id", description: "Case UUID" })
+  @ApiResponse({
+    status: 200,
+    description: "Status history",
+    schema: {
+      type: "array",
+      items: {
+        type: "object",
+        properties: {
+          id: { type: "string" },
+          status: { type: "string" },
+          date: { type: "string", format: "date-time" },
+          changedBy: {
+            type: "object",
+            nullable: true,
+            properties: {
+              id: { type: "string" },
+              name: { type: "string" },
+            },
+          },
+          rationale: { type: "string", nullable: true },
+        },
+      },
+    },
+  })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  @ApiResponse({ status: 404, description: "Case not found" })
+  async getStatusHistory(
+    @Param("id", ParseUUIDPipe) id: string,
+    @TenantId() organizationId: string,
+  ) {
+    // Verify the case exists and user has access
+    await this.casesService.findOne(id, organizationId);
+
+    return this.activityService.getStatusHistory(
+      AuditEntityType.CASE,
+      id,
+      organizationId,
+    );
+  }
+
+  /**
    * POST /api/v1/cases/export
    * Exports filtered cases to Excel format.
    */
