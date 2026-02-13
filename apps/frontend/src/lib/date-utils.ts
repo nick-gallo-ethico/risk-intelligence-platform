@@ -11,22 +11,22 @@ export function formatRelativeTime(dateString: string): string {
   const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
 
   if (diffInSeconds < 60) {
-    return 'Just now';
+    return "Just now";
   }
 
   const diffInMinutes = Math.floor(diffInSeconds / 60);
   if (diffInMinutes < 60) {
-    return `${diffInMinutes} minute${diffInMinutes === 1 ? '' : 's'} ago`;
+    return `${diffInMinutes} minute${diffInMinutes === 1 ? "" : "s"} ago`;
   }
 
   const diffInHours = Math.floor(diffInMinutes / 60);
   if (diffInHours < 24) {
-    return `${diffInHours} hour${diffInHours === 1 ? '' : 's'} ago`;
+    return `${diffInHours} hour${diffInHours === 1 ? "" : "s"} ago`;
   }
 
   const diffInDays = Math.floor(diffInHours / 24);
   if (diffInDays === 1) {
-    return 'Yesterday';
+    return "Yesterday";
   }
 
   if (diffInDays < 7) {
@@ -35,57 +35,67 @@ export function formatRelativeTime(dateString: string): string {
 
   const diffInWeeks = Math.floor(diffInDays / 7);
   if (diffInWeeks < 4) {
-    return `${diffInWeeks} week${diffInWeeks === 1 ? '' : 's'} ago`;
+    return `${diffInWeeks} week${diffInWeeks === 1 ? "" : "s"} ago`;
   }
 
   const diffInMonths = Math.floor(diffInDays / 30);
   if (diffInMonths < 12) {
-    return `${diffInMonths} month${diffInMonths === 1 ? '' : 's'} ago`;
+    return `${diffInMonths} month${diffInMonths === 1 ? "" : "s"} ago`;
   }
 
   const diffInYears = Math.floor(diffInDays / 365);
-  return `${diffInYears} year${diffInYears === 1 ? '' : 's'} ago`;
+  return `${diffInYears} year${diffInYears === 1 ? "" : "s"} ago`;
 }
 
 /**
  * Returns a date group label for timeline grouping
+ * Uses descriptive labels: Today, Yesterday, This Week, Last Week, month/year
  */
 export function getDateGroupLabel(dateString: string): string {
   const date = new Date(dateString);
   const now = new Date();
 
   // Reset time components for date comparison
-  const dateOnly = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-  const todayOnly = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
 
-  const diffInDays = Math.floor((todayOnly.getTime() - dateOnly.getTime()) / (1000 * 60 * 60 * 24));
+  // Calculate start of this week (Sunday)
+  const thisWeekStart = new Date(today);
+  thisWeekStart.setDate(thisWeekStart.getDate() - today.getDay());
 
-  if (diffInDays === 0) {
-    return 'Today';
+  // Calculate start of last week
+  const lastWeekStart = new Date(thisWeekStart);
+  lastWeekStart.setDate(lastWeekStart.getDate() - 7);
+
+  const targetDate = new Date(
+    date.getFullYear(),
+    date.getMonth(),
+    date.getDate(),
+  );
+
+  // Today
+  if (targetDate.getTime() === today.getTime()) {
+    return "Today";
   }
 
-  if (diffInDays === 1) {
-    return 'Yesterday';
+  // Yesterday
+  if (targetDate.getTime() === yesterday.getTime()) {
+    return "Yesterday";
   }
 
-  if (diffInDays < 7) {
-    return 'Earlier this week';
+  // This Week (but not today or yesterday)
+  if (targetDate >= thisWeekStart && targetDate < today) {
+    return "This Week";
   }
 
-  if (diffInDays < 14) {
-    return 'Last week';
+  // Last Week
+  if (targetDate >= lastWeekStart && targetDate < thisWeekStart) {
+    return "Last Week";
   }
 
-  if (diffInDays < 30) {
-    return 'Earlier this month';
-  }
-
-  if (diffInDays < 60) {
-    return 'Last month';
-  }
-
-  // Return month and year for older entries
-  return date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  // Otherwise return month/year
+  return date.toLocaleDateString("en-US", { month: "long", year: "numeric" });
 }
 
 /**
@@ -93,12 +103,12 @@ export function getDateGroupLabel(dateString: string): string {
  */
 export function formatDateTime(dateString: string): string {
   const date = new Date(dateString);
-  return date.toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
+  return date.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
   });
 }
 
@@ -107,9 +117,9 @@ export function formatDateTime(dateString: string): string {
  */
 export function formatTime(dateString: string): string {
   const date = new Date(dateString);
-  return date.toLocaleTimeString('en-US', {
-    hour: '2-digit',
-    minute: '2-digit',
+  return date.toLocaleTimeString("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
   });
 }
 
@@ -123,7 +133,7 @@ export interface DateGroup<T> {
  */
 export function groupByDate<T>(
   items: T[],
-  getDate: (item: T) => string
+  getDate: (item: T) => string,
 ): DateGroup<T>[] {
   const groups = new Map<string, T[]>();
 

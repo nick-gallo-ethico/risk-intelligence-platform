@@ -14,6 +14,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { ActivityFilters } from "./activity-filters";
 import { ActivityEntry } from "./activity-entry";
 import { groupByDate } from "@/lib/date-utils";
@@ -70,6 +77,7 @@ export function CaseActivityTimeline({
   const [activitiesError, setActivitiesError] = useState<string | null>(null);
   const [activeFilter, setActiveFilter] = useState<ActivityFilterType>("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [userFilter, setUserFilter] = useState<string>("all");
   const [addNoteModalOpen, setAddNoteModalOpen] = useState(false);
 
   // Fetch activities from backend
@@ -171,7 +179,18 @@ export function CaseActivityTimeline({
       });
   }, [activities]);
 
-  // Filter activities based on active filter and search query
+  // Extract unique users from activities for filter dropdown
+  const uniqueUsers = useMemo(() => {
+    const users = new Map<string, string>();
+    activities.forEach((a) => {
+      if (a.actorUserId && a.actorName) {
+        users.set(a.actorUserId, a.actorName);
+      }
+    });
+    return Array.from(users.entries()).map(([id, name]) => ({ id, name }));
+  }, [activities]);
+
+  // Filter activities based on active filter, search query, and user filter
   const filteredActivities = useMemo(() => {
     let filtered = activities;
 
@@ -201,8 +220,13 @@ export function CaseActivityTimeline({
       );
     }
 
+    // Filter by user
+    if (userFilter !== "all") {
+      filtered = filtered.filter((a) => a.actorUserId === userFilter);
+    }
+
     return filtered;
-  }, [activities, activeFilter, searchQuery]);
+  }, [activities, activeFilter, searchQuery, userFilter]);
 
   // Count activities by type for filter badges
   const filterCounts = useMemo(() => {
@@ -287,14 +311,34 @@ export function CaseActivityTimeline({
           </div>
         </div>
 
-        {/* Filter tabs */}
+        {/* Filter tabs and user dropdown */}
         <div className="px-6 pt-4">
           <h3 className="text-sm font-semibold text-gray-700 mb-3">Activity</h3>
-          <ActivityFilters
-            activeFilter={activeFilter}
-            onFilterChange={setActiveFilter}
-            counts={filterCounts}
-          />
+          <div className="flex items-center gap-2 flex-wrap">
+            <ActivityFilters
+              activeFilter={activeFilter}
+              onFilterChange={setActiveFilter}
+              counts={filterCounts}
+            />
+            <Select value={userFilter} onValueChange={setUserFilter}>
+              <SelectTrigger className="w-[160px]">
+                <SelectValue placeholder="All users" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All users</SelectItem>
+                {uniqueUsers.map((user) => (
+                  <SelectItem key={user.id} value={user.id}>
+                    {user.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          {/* Filter count indicator */}
+          <div className="text-xs text-gray-500 mt-2">
+            Showing {filteredActivities.length} of {activities.length}{" "}
+            activities
+          </div>
         </div>
 
         {/* Activities list */}
