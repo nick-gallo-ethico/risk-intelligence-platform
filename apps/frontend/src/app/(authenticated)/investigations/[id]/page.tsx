@@ -25,6 +25,7 @@ import { InvestigationNotes } from "@/components/investigations/investigation-no
 import { InvestigationFindings } from "@/components/investigations/investigation-findings";
 import { ChecklistPanel } from "@/components/investigations/checklist-panel";
 import { InvestigationActivityTimeline } from "@/components/investigations/investigation-activity-timeline";
+import { InvestigationInterviewsTab } from "@/components/investigations/investigation-interviews-tab";
 import { TemplateSelectorDialog } from "@/components/investigations/template-selector";
 import { useTrackRecentItem } from "@/contexts/shortcuts-context";
 import {
@@ -423,20 +424,12 @@ export default function InvestigationDetailPage() {
                 <InvestigationNotes investigationId={investigation.id} />
               </TabsContent>
 
-              {/* Interviews tab - placeholder */}
-              <TabsContent
-                value="interviews"
-                className="flex-1 overflow-auto p-4"
-              >
-                <div className="text-center py-12 border rounded-lg bg-gray-50">
-                  <Users className="h-12 w-12 mx-auto text-gray-400" />
-                  <h3 className="mt-4 text-lg font-medium text-gray-900">
-                    Interviews
-                  </h3>
-                  <p className="mt-1 text-sm text-gray-500">
-                    Interview management coming soon.
-                  </p>
-                </div>
+              {/* Interviews tab */}
+              <TabsContent value="interviews" className="flex-1 overflow-auto">
+                <InvestigationInterviewsTab
+                  investigationId={investigation.id}
+                  onScheduleInterview={() => setInterviewModalOpen(true)}
+                />
               </TabsContent>
 
               {/* Files tab - placeholder */}
