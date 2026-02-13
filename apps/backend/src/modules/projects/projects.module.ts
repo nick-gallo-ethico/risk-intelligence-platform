@@ -9,6 +9,9 @@ import { ProjectTaskService } from "./project-task.service";
 import { ProjectGroupService } from "./project-group.service";
 import { ProjectTemplateService } from "./project-template.service";
 import { ProjectStatsService } from "./services/project-stats.service";
+import { ProjectUpdateService } from "./services/project-update.service";
+import { ProjectTaskSubscriberService } from "./services/project-task-subscriber.service";
+import { ProjectTaskDependencyService } from "./services/project-task-dependency.service";
 import { MentionService } from "./services/mention.service";
 import { ProjectEventListener } from "./listeners/project-event.listener";
 import { ProjectGateway } from "./gateways/project.gateway";
@@ -45,6 +48,9 @@ import { ProjectTemplateController } from "./project-template.controller";
     ProjectGroupService,
     ProjectTemplateService,
     ProjectStatsService,
+    ProjectUpdateService,
+    ProjectTaskSubscriberService,
+    ProjectTaskDependencyService,
     MentionService,
     ProjectEventListener,
     ProjectGateway,
@@ -56,6 +62,9 @@ import { ProjectTemplateController } from "./project-template.controller";
     ProjectGroupService,
     ProjectTemplateService,
     ProjectStatsService,
+    ProjectUpdateService,
+    ProjectTaskSubscriberService,
+    ProjectTaskDependencyService,
     MentionService,
     ProjectGateway,
   ],

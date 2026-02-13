@@ -75,6 +75,10 @@ model Organization {
   projectGroups              ProjectGroup[]
   projectTasks               ProjectTask[]
   projectTemplates           ProjectTemplate[]
+  projectUpdates             ProjectUpdate[]
+  projectUpdateReactions     ProjectUpdateReaction[]
+  projectTaskSubscribers     ProjectTaskSubscriber[]
+  projectTaskDependencies    ProjectTaskDependency[]
   notificationPreferences    NotificationPreference[]
   notifications              Notification[]
   orgBlackoutDates           OrgBlackoutDate[]
@@ -188,6 +192,10 @@ model User {
   projectTasksAssigned              ProjectTask[]              @relation("ProjectTaskAssignee")
   projectTasksCreated               ProjectTask[]              @relation("ProjectTaskCreatedBy")
   projectTemplatesCreated           ProjectTemplate[]          @relation("ProjectTemplateCreatedBy")
+  projectUpdatesAuthored            ProjectUpdate[]            @relation("ProjectUpdateAuthor")
+  projectUpdateReactions            ProjectUpdateReaction[]    @relation("ProjectUpdateReactionUser")
+  projectTaskSubscriptions          ProjectTaskSubscriber[]    @relation("ProjectTaskSubscriberUser")
+  projectTaskDependenciesCreated    ProjectTaskDependency[]    @relation("ProjectTaskDependencyCreatedBy")
   riusCreated                       RiskIntelligenceUnit[]     @relation("RiuCreatedBy")
   riuCaseAssociationsCreated        RiuCaseAssociation[]       @relation("RiuCaseAssociationCreatedBy")
   savedReportsCreated               SavedReport[]              @relation("SavedReportCreatedBy")
@@ -3254,6 +3262,10 @@ model ProjectTask {
   organization   Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   parentTask     ProjectTask?        @relation("ProjectTaskSubtasks", fields: [parentTaskId], references: [id], onDelete: Cascade)
   subtasks       ProjectTask[]       @relation("ProjectTaskSubtasks")
+  updates        ProjectUpdate[]
+  subscribers    ProjectTaskSubscriber[]
+  dependencies   ProjectTaskDependency[] @relation("TaskDependencies")
+  dependents     ProjectTaskDependency[] @relation("TaskDependents")
 
   @@index([milestoneId])
   @@index([groupId])
@@ -3305,6 +3317,95 @@ model ProjectTemplate {
   @@index([organizationId])
   @@index([category])
   @@map("project_templates")
+}
+
+/// ProjectUpdate represents task conversation thread entries with @mentions and threaded replies.
+model ProjectUpdate {
+  id               String                  @id @default(uuid())
+  organizationId   String                  @map("organization_id")
+  taskId           String                  @map("task_id")
+  content          String
+  mentionedUserIds String[]                @default([]) @map("mentioned_user_ids")
+  parentUpdateId   String?                 @map("parent_update_id")
+  isPinned         Boolean                 @default(false) @map("is_pinned")
+  authorId         String                  @map("author_id")
+  createdAt        DateTime                @default(now()) @map("created_at")
+  updatedAt        DateTime                @updatedAt @map("updated_at")
+
+  organization     Organization            @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  task             ProjectTask             @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  author           User                    @relation("ProjectUpdateAuthor", fields: [authorId], references: [id])
+  parentUpdate     ProjectUpdate?          @relation("ProjectUpdateReplies", fields: [parentUpdateId], references: [id], onDelete: Cascade)
+  replies          ProjectUpdate[]         @relation("ProjectUpdateReplies")
+  reactions        ProjectUpdateReaction[]
+
+  @@index([organizationId])
+  @@index([taskId])
+  @@index([taskId, createdAt])
+  @@index([parentUpdateId])
+  @@index([authorId])
+  @@map("project_updates")
+}
+
+/// ProjectUpdateReaction tracks emoji reactions on task updates.
+model ProjectUpdateReaction {
+  id             String        @id @default(uuid())
+  organizationId String        @map("organization_id")
+  updateId       String        @map("update_id")
+  emoji          String
+  userId         String        @map("user_id")
+  createdAt      DateTime      @default(now()) @map("created_at")
+
+  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  update         ProjectUpdate @relation(fields: [updateId], references: [id], onDelete: Cascade)
+  user           User          @relation("ProjectUpdateReactionUser", fields: [userId], references: [id])
+
+  @@unique([updateId, userId, emoji])
+  @@index([organizationId])
+  @@index([updateId])
+  @@map("project_update_reactions")
+}
+
+/// ProjectTaskSubscriber tracks watchers for task notification delivery.
+model ProjectTaskSubscriber {
+  id               String       @id @default(uuid())
+  organizationId   String       @map("organization_id")
+  taskId           String       @map("task_id")
+  userId           String       @map("user_id")
+  isAutoSubscribed Boolean      @default(false) @map("is_auto_subscribed")
+  subscribedAt     DateTime     @default(now()) @map("subscribed_at")
+
+  organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  task             ProjectTask  @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user             User         @relation("ProjectTaskSubscriberUser", fields: [userId], references: [id])
+
+  @@unique([taskId, userId])
+  @@index([organizationId])
+  @@index([taskId])
+  @@index([userId])
+  @@map("project_task_subscribers")
+}
+
+/// ProjectTaskDependency links tasks with dependency relationships for Gantt charts.
+model ProjectTaskDependency {
+  id              String             @id @default(uuid())
+  organizationId  String             @map("organization_id")
+  taskId          String             @map("task_id")
+  dependsOnTaskId String             @map("depends_on_task_id")
+  type            TaskDependencyType @default(FINISH_TO_START)
+  createdAt       DateTime           @default(now()) @map("created_at")
+  createdById     String             @map("created_by_id")
+
+  organization    Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  task            ProjectTask        @relation("TaskDependencies", fields: [taskId], references: [id], onDelete: Cascade)
+  dependsOnTask   ProjectTask        @relation("TaskDependents", fields: [dependsOnTaskId], references: [id], onDelete: Cascade)
+  createdBy       User               @relation("ProjectTaskDependencyCreatedBy", fields: [createdById], references: [id])
+
+  @@unique([taskId, dependsOnTaskId])
+  @@index([organizationId])
+  @@index([taskId])
+  @@index([dependsOnTaskId])
+  @@map("project_task_dependencies")
 }
 
 /// ImplementationProject tracks client onboarding from discovery to go-live.
@@ -5079,8 +5180,28 @@ enum ProjectColumnType {
   NUMBER
   PRIORITY
   LABEL
+  TIMELINE
+  LONG_TEXT
+  DROPDOWN
+  CHECKBOX
+  LINK
+  TAGS
+  FILES
+  DEPENDENCY
+  CONNECTED_ENTITY
+  PROGRESS
 
   @@map("project_column_type")
+}
+
+/// TaskDependencyType defines the relationship between dependent tasks.
+enum TaskDependencyType {
+  FINISH_TO_START
+  START_TO_START
+  FINISH_TO_FINISH
+  START_TO_FINISH
+
+  @@map("task_dependency_type")
 }
 
 /// Implementation type determines which checklist template to use

@@ -21,6 +21,7 @@ import {
   useCreateGroup,
   type ProjectDetailResponse,
 } from "@/hooks/use-project-detail";
+import { useProjectWebSocket } from "@/hooks/use-project-websocket";
 import { apiClient } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -629,6 +630,9 @@ function ProjectDetailPageContent() {
     error,
     refetch,
   } = useProjectDetail(projectId);
+
+  // WebSocket connection for real-time collaboration
+  const { isConnected: _wsConnected } = useProjectWebSocket(projectId);
 
   // Register go back shortcut
   useGlobalShortcuts({

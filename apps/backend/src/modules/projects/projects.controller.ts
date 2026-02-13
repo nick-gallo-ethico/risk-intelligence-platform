@@ -28,6 +28,9 @@ import {
   ProjectStatsService,
   ProjectStatsResponse,
 } from "./services/project-stats.service";
+import { ProjectUpdateService } from "./services/project-update.service";
+import { ProjectTaskSubscriberService } from "./services/project-task-subscriber.service";
+import { ProjectTaskDependencyService } from "./services/project-task-dependency.service";
 import {
   CreateMilestoneDto,
   UpdateMilestoneDto,
@@ -56,6 +59,13 @@ import {
   UpdateProjectGroupDto,
   ReorderGroupsDto,
 } from "./dto/project-group.dto";
+import {
+  CreateTaskUpdateDto,
+  UpdateTaskUpdateDto,
+  AddReactionDto,
+  SubscribeToTaskDto,
+  CreateTaskDependencyDto,
+} from "./dto/project-update.dto";
 import { JwtAuthGuard, TenantGuard, RolesGuard } from "../../common/guards";
 import {
   CurrentUser,
@@ -90,6 +100,9 @@ export class ProjectsController {
     private readonly projectTaskService: ProjectTaskService,
     private readonly projectGroupService: ProjectGroupService,
     private readonly projectStatsService: ProjectStatsService,
+    private readonly projectUpdateService: ProjectUpdateService,
+    private readonly projectTaskSubscriberService: ProjectTaskSubscriberService,
+    private readonly projectTaskDependencyService: ProjectTaskDependencyService,
   ) {}
 
   // =========================================================================
@@ -673,5 +686,200 @@ export class ProjectsController {
     @TenantId() organizationId: string,
   ): Promise<void> {
     await this.projectGroupService.reorder(organizationId, id, dto.orderedIds);
+  }
+
+  // =========================================================================
+  // Task Updates (Conversation Thread)
+  // =========================================================================
+
+  @Get(":id/tasks/:taskId/updates")
+  @ApiOperation({ summary: "Get task updates" })
+  async getTaskUpdates(
+    @Param("id", ParseUUIDPipe) _projectId: string,
+    @Param("taskId", ParseUUIDPipe) taskId: string,
+    @TenantId() organizationId: string,
+  ) {
+    return this.projectUpdateService.getTaskUpdates(organizationId, taskId);
+  }
+
+  @Post(":id/tasks/:taskId/updates")
+  @Roles(UserRole.COMPLIANCE_OFFICER, UserRole.MANAGER, UserRole.SYSTEM_ADMIN)
+  @UseGuards(RolesGuard)
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: "Create task update" })
+  async createTaskUpdate(
+    @Param("id", ParseUUIDPipe) _projectId: string,
+    @Param("taskId", ParseUUIDPipe) taskId: string,
+    @Body() dto: CreateTaskUpdateDto,
+    @CurrentUser() user: RequestUser,
+    @TenantId() organizationId: string,
+  ) {
+    return this.projectUpdateService.createUpdate(
+      organizationId,
+      taskId,
+      user.id,
+      dto,
+    );
+  }
+
+  @Put(":id/tasks/:taskId/updates/:updateId")
+  @Roles(UserRole.COMPLIANCE_OFFICER, UserRole.MANAGER, UserRole.SYSTEM_ADMIN)
+  @UseGuards(RolesGuard)
+  @ApiOperation({ summary: "Edit task update" })
+  async editTaskUpdate(
+    @Param("id", ParseUUIDPipe) _projectId: string,
+    @Param("taskId", ParseUUIDPipe) _taskId: string,
+    @Param("updateId", ParseUUIDPipe) updateId: string,
+    @Body() dto: UpdateTaskUpdateDto,
+    @CurrentUser() user: RequestUser,
+    @TenantId() organizationId: string,
+  ) {
+    return this.projectUpdateService.editUpdate(
+      organizationId,
+      updateId,
+      user.id,
+      dto,
+    );
+  }
+
+  @Delete(":id/tasks/:taskId/updates/:updateId")
+  @Roles(UserRole.COMPLIANCE_OFFICER, UserRole.MANAGER, UserRole.SYSTEM_ADMIN)
+  @UseGuards(RolesGuard)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: "Delete task update" })
+  async deleteTaskUpdate(
+    @Param("id", ParseUUIDPipe) _projectId: string,
+    @Param("taskId", ParseUUIDPipe) _taskId: string,
+    @Param("updateId", ParseUUIDPipe) updateId: string,
+    @CurrentUser() user: RequestUser,
+    @TenantId() organizationId: string,
+  ) {
+    await this.projectUpdateService.deleteUpdate(
+      organizationId,
+      updateId,
+      user.id,
+    );
+  }
+
+  @Post(":id/tasks/:taskId/updates/:updateId/reactions")
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: "Add reaction to update" })
+  async addUpdateReaction(
+    @Param("id", ParseUUIDPipe) _projectId: string,
+    @Param("taskId", ParseUUIDPipe) _taskId: string,
+    @Param("updateId", ParseUUIDPipe) updateId: string,
+    @Body() dto: AddReactionDto,
+    @CurrentUser() user: RequestUser,
+    @TenantId() organizationId: string,
+  ) {
+    await this.projectUpdateService.addReaction(
+      organizationId,
+      updateId,
+      user.id,
+      dto.emoji,
+    );
+  }
+
+  // =========================================================================
+  // Task Subscribers (Watcher System)
+  // =========================================================================
+
+  @Get(":id/tasks/:taskId/subscribers")
+  @ApiOperation({ summary: "Get task subscribers" })
+  async getTaskSubscribers(
+    @Param("id", ParseUUIDPipe) _projectId: string,
+    @Param("taskId", ParseUUIDPipe) taskId: string,
+    @TenantId() organizationId: string,
+  ) {
+    return this.projectTaskSubscriberService.getTaskSubscribers(
+      organizationId,
+      taskId,
+    );
+  }
+
+  @Post(":id/tasks/:taskId/subscribers")
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: "Subscribe user to task" })
+  async subscribeToTask(
+    @Param("id", ParseUUIDPipe) _projectId: string,
+    @Param("taskId", ParseUUIDPipe) taskId: string,
+    @Body() dto: SubscribeToTaskDto,
+    @TenantId() organizationId: string,
+  ) {
+    return this.projectTaskSubscriberService.subscribe(
+      organizationId,
+      taskId,
+      dto.userId,
+    );
+  }
+
+  @Delete(":id/tasks/:taskId/subscribers/:subscriberId")
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: "Unsubscribe from task" })
+  async unsubscribeFromTask(
+    @Param("id", ParseUUIDPipe) _projectId: string,
+    @Param("taskId", ParseUUIDPipe) _taskId: string,
+    @Param("subscriberId", ParseUUIDPipe) subscriberId: string,
+    @TenantId() organizationId: string,
+  ) {
+    await this.projectTaskSubscriberService.unsubscribe(
+      organizationId,
+      subscriberId,
+    );
+  }
+
+  // =========================================================================
+  // Task Dependencies
+  // =========================================================================
+
+  @Get(":id/tasks/:taskId/dependencies")
+  @ApiOperation({ summary: "Get task dependencies" })
+  async getTaskDependencies(
+    @Param("id", ParseUUIDPipe) _projectId: string,
+    @Param("taskId", ParseUUIDPipe) taskId: string,
+    @TenantId() organizationId: string,
+  ) {
+    return this.projectTaskDependencyService.getTaskDependencies(
+      organizationId,
+      taskId,
+    );
+  }
+
+  @Post(":id/tasks/:taskId/dependencies")
+  @Roles(UserRole.COMPLIANCE_OFFICER, UserRole.MANAGER, UserRole.SYSTEM_ADMIN)
+  @UseGuards(RolesGuard)
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: "Create task dependency" })
+  async createTaskDependency(
+    @Param("id", ParseUUIDPipe) _projectId: string,
+    @Param("taskId", ParseUUIDPipe) taskId: string,
+    @Body() dto: CreateTaskDependencyDto,
+    @CurrentUser() user: RequestUser,
+    @TenantId() organizationId: string,
+  ) {
+    return this.projectTaskDependencyService.createDependency(
+      organizationId,
+      taskId,
+      dto.dependsOnTaskId,
+      dto.type || "FINISH_TO_START",
+      user.id,
+    );
+  }
+
+  @Delete(":id/tasks/:taskId/dependencies/:dependencyId")
+  @Roles(UserRole.COMPLIANCE_OFFICER, UserRole.MANAGER, UserRole.SYSTEM_ADMIN)
+  @UseGuards(RolesGuard)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: "Delete task dependency" })
+  async deleteTaskDependency(
+    @Param("id", ParseUUIDPipe) _projectId: string,
+    @Param("taskId", ParseUUIDPipe) _taskId: string,
+    @Param("dependencyId", ParseUUIDPipe) dependencyId: string,
+    @TenantId() organizationId: string,
+  ) {
+    await this.projectTaskDependencyService.deleteDependency(
+      organizationId,
+      dependencyId,
+    );
   }
 }
