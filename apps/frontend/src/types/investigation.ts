@@ -45,6 +45,11 @@ export interface InvestigationCategory {
 export interface InvestigationCase {
   id: string;
   referenceNumber: string;
+  status?: string;
+  severity?: string;
+  summary?: string | null;
+  categoryName?: string | null;
+  createdAt?: string;
 }
 
 export interface Investigation {

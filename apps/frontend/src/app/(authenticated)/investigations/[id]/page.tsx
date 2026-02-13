@@ -9,6 +9,7 @@ import {
   Paperclip,
   Activity,
   Plus,
+  Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -28,6 +29,16 @@ import { InvestigationActivityTimeline } from "@/components/investigations/inves
 import { InvestigationInterviewsTab } from "@/components/investigations/investigation-interviews-tab";
 import { InvestigationFilesTab } from "@/components/investigations/investigation-files-tab";
 import { TemplateSelectorDialog } from "@/components/investigations/template-selector";
+import { ParentCaseCard } from "@/components/investigations/parent-case-card";
+import { InvestigationEvidenceCard } from "@/components/investigations/investigation-evidence-card";
+import { ConnectedPeopleCard } from "@/components/cases/connected-people-card";
+import { AiChatPanel } from "@/components/cases/ai-chat-panel";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 import { useTrackRecentItem } from "@/contexts/shortcuts-context";
 import {
   useGlobalShortcuts,
@@ -72,6 +83,7 @@ export default function InvestigationDetailPage() {
   const [interviewModalOpen, setInterviewModalOpen] = useState(false);
   const [evidenceModalOpen, setEvidenceModalOpen] = useState(false);
   const [taskModalOpen, setTaskModalOpen] = useState(false);
+  const [aiPanelOpen, setAiPanelOpen] = useState(false);
 
   // Tab mapping for keyboard navigation (1-6) - Activity first
   const TABS = [
@@ -460,12 +472,44 @@ export default function InvestigationDetailPage() {
             </Tabs>
           </div>
 
-          {/* Right Column - Associations (Plan 06) */}
+          {/* Right Column - Associations */}
           <div className="space-y-4 hidden lg:block">
-            {/* Placeholder for association cards */}
-            <div className="text-sm text-gray-500 p-4 border rounded-lg bg-white">
-              Association cards will be added in Plan 06
-            </div>
+            {/* Connected People */}
+            <ConnectedPeopleCard investigationId={investigation.id} />
+
+            {/* Parent Case */}
+            <ParentCaseCard
+              caseData={
+                investigation.case
+                  ? {
+                      id: investigation.case.id,
+                      referenceNumber: investigation.case.referenceNumber,
+                      status: investigation.case.status || "OPEN",
+                      severity: investigation.case.severity || "MEDIUM",
+                      summary: investigation.case.summary || null,
+                      categoryName: investigation.case.categoryName || null,
+                      createdAt:
+                        investigation.case.createdAt || investigation.createdAt,
+                    }
+                  : null
+              }
+            />
+
+            {/* Evidence Files */}
+            <InvestigationEvidenceCard
+              investigationId={investigation.id}
+              onAddEvidence={() => setEvidenceModalOpen(true)}
+            />
+
+            {/* AI Assistant Button */}
+            <Button
+              variant="outline"
+              className="w-full justify-start gap-2 bg-gradient-to-r from-purple-50 to-blue-50 hover:from-purple-100 hover:to-blue-100 border-purple-200"
+              onClick={() => setAiPanelOpen(true)}
+            >
+              <Sparkles className="h-4 w-4 text-purple-600" />
+              <span>Ask AI Assistant</span>
+            </Button>
           </div>
         </div>
       </div>
@@ -478,6 +522,23 @@ export default function InvestigationDetailPage() {
         onApply={handleApplyTemplate}
         loading={applyingTemplate}
       />
+
+      {/* AI Assistant Panel */}
+      <Sheet open={aiPanelOpen} onOpenChange={setAiPanelOpen}>
+        <SheetContent side="right" className="w-[400px] sm:w-[480px] p-0">
+          <SheetHeader className="sr-only">
+            <SheetTitle>AI Assistant</SheetTitle>
+          </SheetHeader>
+          <AiChatPanel
+            entityType="investigation"
+            entityId={investigation.id}
+            onActionComplete={() => {
+              // Refresh investigation data when AI makes changes
+              fetchInvestigation();
+            }}
+          />
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }

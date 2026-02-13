@@ -57,7 +57,8 @@ interface PersonCaseAssociation {
 }
 
 interface ConnectedPeopleCardProps {
-  caseId: string;
+  caseId?: string;
+  investigationId?: string;
   organizationId?: string;
 }
 
@@ -169,31 +170,60 @@ function getFullName(person: Person): string {
  * grouped by their evidentiary label or role.
  * Uses AssociationCard wrapper for HubSpot-style association cards.
  */
-export function ConnectedPeopleCard({ caseId }: ConnectedPeopleCardProps) {
+export function ConnectedPeopleCard({
+  caseId,
+  investigationId,
+}: ConnectedPeopleCardProps) {
   const [associations, setAssociations] = useState<PersonCaseAssociation[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [addPersonOpen, setAddPersonOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
+  // Determine entity ID for API calls and links
+  const entityId = caseId || investigationId;
+  const entityType = caseId ? "case" : "investigation";
+
   const fetchPeople = useCallback(async () => {
-    if (!caseId) return;
+    if (!entityId) return;
 
     setLoading(true);
     setError(null);
 
     try {
-      const data = await apiClient.get<PersonCaseAssociation[]>(
-        `/cases/${caseId}/persons`,
-      );
-      setAssociations(data);
+      let data: PersonCaseAssociation[];
+
+      if (caseId) {
+        // Fetch from case persons endpoint
+        data = await apiClient.get<PersonCaseAssociation[]>(
+          `/cases/${caseId}/persons`,
+        );
+      } else if (investigationId) {
+        // Fetch from investigation persons endpoint
+        // Falls back to empty array if endpoint doesn't exist yet
+        try {
+          data = await apiClient.get<PersonCaseAssociation[]>(
+            `/investigations/${investigationId}/persons`,
+          );
+        } catch {
+          // Endpoint might not exist - gracefully handle
+          console.debug(
+            "Investigation persons endpoint not available, using empty array",
+          );
+          data = [];
+        }
+      } else {
+        data = [];
+      }
+
+      setAssociations(data || []);
     } catch (err) {
       console.error("Failed to fetch connected people:", err);
       setError("Failed to load connected people");
     } finally {
       setLoading(false);
     }
-  }, [caseId]);
+  }, [caseId, investigationId, entityId]);
 
   useEffect(() => {
     fetchPeople();
@@ -281,7 +311,7 @@ export function ConnectedPeopleCard({ caseId }: ConnectedPeopleCardProps) {
         icon={Users}
         onAdd={() => setAddPersonOpen(true)}
         onSettings={() => {}}
-        viewAllHref={`/cases/${caseId}/people`}
+        viewAllHref={caseId ? `/cases/${caseId}/people` : undefined}
         viewAllLabel="View all associated People"
         searchThreshold={5}
         searchPlaceholder="Search people..."
@@ -321,12 +351,14 @@ export function ConnectedPeopleCard({ caseId }: ConnectedPeopleCardProps) {
         )}
       </AssociationCard>
 
-      <AddPersonModal
-        caseId={caseId}
-        open={addPersonOpen}
-        onOpenChange={setAddPersonOpen}
-        onPersonAdded={handlePersonAdded}
-      />
+      {caseId && (
+        <AddPersonModal
+          caseId={caseId}
+          open={addPersonOpen}
+          onOpenChange={setAddPersonOpen}
+          onPersonAdded={handlePersonAdded}
+        />
+      )}
     </>
   );
 }
