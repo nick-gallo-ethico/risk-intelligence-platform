@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 25.1 of 25+ (Case Detail Page Vision Revision) — IN PROGRESS
-Plan: 07 of ?? in current phase
-Status: Completed 25.1-01, 25.1-02, 25.1-07, 25.1-10
-Last activity: 2026-02-13 - Completed 25.1-07 (tab cleanup and enhancement)
+Plan: 08 of ?? in current phase
+Status: Completed 25.1-01, 25.1-02, 25.1-07, 25.1-08, 25.1-10
+Last activity: 2026-02-13 - Completed 25.1-08 (right sidebar tasks and remediation cards)
 
 Progress: [===================================================================+] ~100% (Phase 21 adds new plans beyond original 24)
 
@@ -43,6 +43,14 @@ Progress: [===================================================================+]
   - Enhanced Files tab with search bar, sort dropdown, drag-drop zone, file preview dialog
   - Enhanced Investigations tab with count badge, Link Existing button, expandable cards
   - Pattern: Section sub-tabs within main tab, local state for tab navigation
+
+- 25.1-08: Right Sidebar Tasks and Remediation Cards (COMPLETE - 501702f, 8b4dc37)
+  - Created TasksCard component with inline checkboxes and open-first sorting
+  - Created RemediationStatusCard component with progress bar and next-action display
+  - Wired all 9 cards in right sidebar in correct spec order per Section 17.1
+  - Fixed React hooks ordering bug from parallel Wave 2 plan
+  - Cards ready to wire when task/remediation API endpoints exist
+  - Pattern: Props-based sidebar cards without API, empty states with guidance
 
 - 25.1-10: Pipeline Configuration API (COMPLETE - db7005c, fbb6516)
   - Created PipelineController with GET/PUT endpoints at /pipelines
