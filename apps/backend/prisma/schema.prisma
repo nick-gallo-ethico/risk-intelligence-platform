@@ -119,6 +119,8 @@ model Organization {
   users                      User[]
   workflowInstances          WorkflowInstance[]
   workflowTemplates          WorkflowTemplate[]
+  knowledgeBaseArticles      KnowledgeBaseArticle[]
+  supportTickets             SupportTicket[]
 
   @@index([slug])
   @@index([isActive])
@@ -205,6 +207,7 @@ model User {
   thresholdRulesCreated             ThresholdRule[]
   userDashboardConfigs              UserDashboardConfig[]
   userDataTablesCreated             UserDataTable[]            @relation("UserDataTableCreatedBy")
+  supportTickets                    SupportTicket[]            @relation("SupportTicketUser")
   organization                      Organization               @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@unique([organizationId, email])
@@ -4138,6 +4141,7 @@ enum AttachmentEntityType {
   CASE
   INVESTIGATION
   INVESTIGATION_NOTE
+  SUPPORT_TICKET
 
   @@map("attachment_entity_type")
 }
@@ -5393,4 +5397,74 @@ enum AlertLevel {
   PROACTIVE
 
   @@map("alert_level")
+}
+
+/// TicketStatus represents the lifecycle stages of a support ticket.
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  WAITING_ON_CUSTOMER
+  RESOLVED
+  CLOSED
+
+  @@map("ticket_status")
+}
+
+/// TicketPriority represents the urgency level of a support ticket.
+enum TicketPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+
+  @@map("ticket_priority")
+}
+
+/// KnowledgeBaseArticle contains help content visible to users.
+/// Articles can be global (organizationId=null) visible to all tenants,
+/// or tenant-specific for custom documentation.
+model KnowledgeBaseArticle {
+  id             String        @id @default(uuid())
+  organizationId String?       @map("organization_id")
+  slug           String        @unique
+  title          String
+  content        String        @db.Text
+  excerpt        String?
+  category       String
+  sortOrder      Int           @default(0) @map("sort_order")
+  isPublished    Boolean       @default(true) @map("is_published")
+  tags           String[]      @default([])
+  createdAt      DateTime      @default(now()) @map("created_at")
+  updatedAt      DateTime      @updatedAt @map("updated_at")
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([category])
+  @@index([isPublished])
+  @@map("knowledge_base_articles")
+}
+
+/// SupportTicket represents a user-submitted support request.
+/// Tickets are scoped to an organization and linked to the submitting user.
+model SupportTicket {
+  id             String         @id @default(uuid())
+  organizationId String         @map("organization_id")
+  userId         String         @map("user_id")
+  ticketNumber   String         @unique @map("ticket_number")
+  subject        String
+  description    String         @db.Text
+  priority       TicketPriority @default(MEDIUM)
+  status         TicketStatus   @default(OPEN)
+  category       String?
+  createdAt      DateTime       @default(now()) @map("created_at")
+  updatedAt      DateTime       @updatedAt @map("updated_at")
+  resolvedAt     DateTime?      @map("resolved_at")
+  closedAt       DateTime?      @map("closed_at")
+  organization   Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User           @relation("SupportTicketUser", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([organizationId, userId])
+  @@index([organizationId, status])
+  @@map("support_tickets")
 }
