@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from "react";
 import {
   Plus,
   Search,
@@ -14,32 +14,32 @@ import {
   CheckCircle,
   Clock,
   AlertCircle,
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from '@/components/ui/collapsible';
+} from "@/components/ui/collapsible";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { toast } from '@/components/ui/toaster';
-import { cn } from '@/lib/utils';
-import { EmptyState } from '@/components/common/empty-state';
-import { InvestigationCard } from './investigation-card';
-import { CreateInvestigationDialog } from './create-investigation-dialog';
-import { InvestigationDetailPanel } from '@/components/investigations';
-import { getInvestigationsForCase } from '@/lib/investigation-api';
-import type { Case } from '@/types/case';
-import type { Investigation } from '@/types/investigation';
+} from "@/components/ui/dialog";
+import { toast } from "@/components/ui/toaster";
+import { cn } from "@/lib/utils";
+import { EmptyState } from "@/components/common/empty-state";
+import { InvestigationCard } from "./investigation-card";
+import { CreateInvestigationDialog } from "./create-investigation-dialog";
+import { InvestigationDetailPanel } from "@/components/investigations";
+import { getInvestigationsForCase } from "@/lib/investigation-api";
+import type { Case } from "@/types/case";
+import type { Investigation } from "@/types/investigation";
 
 interface CaseInvestigationsPanelProps {
   caseData: Case | null;
@@ -51,14 +51,14 @@ interface CaseInvestigationsPanelProps {
  */
 function getStatusIcon(status: string) {
   switch (status.toLowerCase()) {
-    case 'completed':
-    case 'closed':
+    case "completed":
+    case "closed":
       return CheckCircle;
-    case 'in_progress':
-    case 'active':
+    case "in_progress":
+    case "active":
       return Clock;
-    case 'pending':
-    case 'new':
+    case "pending":
+    case "new":
       return AlertCircle;
     default:
       return FileText;
@@ -70,17 +70,17 @@ function getStatusIcon(status: string) {
  */
 function getStatusColor(status: string) {
   switch (status.toLowerCase()) {
-    case 'completed':
-    case 'closed':
-      return 'bg-green-100 text-green-700 border-green-200';
-    case 'in_progress':
-    case 'active':
-      return 'bg-blue-100 text-blue-700 border-blue-200';
-    case 'pending':
-    case 'new':
-      return 'bg-amber-100 text-amber-700 border-amber-200';
+    case "completed":
+    case "closed":
+      return "bg-green-100 text-green-700 border-green-200";
+    case "in_progress":
+    case "active":
+      return "bg-blue-100 text-blue-700 border-blue-200";
+    case "pending":
+    case "new":
+      return "bg-amber-100 text-amber-700 border-amber-200";
     default:
-      return 'bg-gray-100 text-gray-700 border-gray-200';
+      return "bg-gray-100 text-gray-700 border-gray-200";
   }
 }
 
@@ -88,10 +88,10 @@ function getStatusColor(status: string) {
  * Format date for display
  */
 function formatDate(dateString: string): string {
-  return new Date(dateString).toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
+  return new Date(dateString).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
   });
 }
 
@@ -113,7 +113,9 @@ function ExpandableInvestigationCard({
   const StatusIcon = getStatusIcon(investigation.status);
 
   return (
-    <Card className={cn('transition-shadow', isExpanded && 'ring-1 ring-blue-200')}>
+    <Card
+      className={cn("transition-shadow", isExpanded && "ring-1 ring-blue-200")}
+    >
       <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
         <CollapsibleTrigger asChild>
           <CardHeader className="pb-2 cursor-pointer hover:bg-gray-50 rounded-t-lg">
@@ -122,29 +124,32 @@ function ExpandableInvestigationCard({
                 <div className="flex items-center gap-2">
                   <Badge
                     variant="outline"
-                    className={cn('text-xs shrink-0', getStatusColor(investigation.status))}
+                    className={cn(
+                      "text-xs shrink-0",
+                      getStatusColor(investigation.status),
+                    )}
                   >
                     <StatusIcon className="h-3 w-3 mr-1" />
-                    {investigation.status.replace('_', ' ')}
+                    {investigation.status.replace("_", " ")}
                   </Badge>
-                  {investigation.priority && (
+                  {investigation.slaStatus && (
                     <Badge
                       variant="outline"
                       className={cn(
-                        'text-xs shrink-0',
-                        investigation.priority === 'high'
-                          ? 'bg-red-50 text-red-700 border-red-200'
-                          : investigation.priority === 'medium'
-                          ? 'bg-amber-50 text-amber-700 border-amber-200'
-                          : 'bg-gray-50 text-gray-700 border-gray-200'
+                        "text-xs shrink-0",
+                        investigation.slaStatus === "OVERDUE"
+                          ? "bg-red-50 text-red-700 border-red-200"
+                          : investigation.slaStatus === "WARNING"
+                            ? "bg-amber-50 text-amber-700 border-amber-200"
+                            : "bg-gray-50 text-gray-700 border-gray-200",
                       )}
                     >
-                      {investigation.priority}
+                      {investigation.slaStatus.replace("_", " ")}
                     </Badge>
                   )}
                 </div>
                 <p className="text-sm font-medium text-gray-900 mt-1 truncate">
-                  {investigation.title || `Investigation #${investigation.referenceNumber || investigation.id.slice(0, 8)}`}
+                  {`Investigation #${investigation.investigationNumber}`}
                 </p>
                 {investigation.type && (
                   <p className="text-xs text-muted-foreground truncate">
@@ -167,13 +172,16 @@ function ExpandableInvestigationCard({
             <div className="border-t pt-3 mt-1 space-y-3">
               {/* Investigation details */}
               <div className="grid grid-cols-2 gap-3 text-sm">
-                {investigation.assignedTo && (
+                {investigation.primaryInvestigator && (
                   <div className="flex items-center gap-2">
                     <User className="h-4 w-4 text-gray-400" />
                     <div>
-                      <p className="text-xs text-muted-foreground">Assigned to</p>
+                      <p className="text-xs text-muted-foreground">
+                        Assigned to
+                      </p>
                       <p className="font-medium">
-                        {investigation.assignedTo.firstName} {investigation.assignedTo.lastName}
+                        {investigation.primaryInvestigator.firstName}{" "}
+                        {investigation.primaryInvestigator.lastName}
                       </p>
                     </div>
                   </div>
@@ -182,17 +190,21 @@ function ExpandableInvestigationCard({
                   <Calendar className="h-4 w-4 text-gray-400" />
                   <div>
                     <p className="text-xs text-muted-foreground">Created</p>
-                    <p className="font-medium">{formatDate(investigation.createdAt)}</p>
+                    <p className="font-medium">
+                      {formatDate(investigation.createdAt)}
+                    </p>
                   </div>
                 </div>
               </div>
 
-              {/* Summary if available */}
-              {investigation.summary && (
+              {/* Findings summary if available */}
+              {investigation.findingsSummary && (
                 <div>
-                  <p className="text-xs text-muted-foreground mb-1">Summary</p>
+                  <p className="text-xs text-muted-foreground mb-1">
+                    Findings Summary
+                  </p>
                   <p className="text-sm text-gray-700 line-clamp-2">
-                    {investigation.summary}
+                    {investigation.findingsSummary}
                   </p>
                 </div>
               )}
@@ -233,7 +245,12 @@ interface LinkExistingDialogProps {
   onSuccess: () => void;
 }
 
-function LinkExistingDialog({ open, onOpenChange, caseId, onSuccess }: LinkExistingDialogProps) {
+function LinkExistingDialog({
+  open,
+  onOpenChange,
+  caseId,
+  onSuccess,
+}: LinkExistingDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
@@ -271,13 +288,20 @@ function LinkExistingDialog({ open, onOpenChange, caseId, onSuccess }: LinkExist
  * - Open Full Investigation link to navigate to investigation page
  * - Empty state
  */
-export function CaseInvestigationsPanel({ caseData, isLoading }: CaseInvestigationsPanelProps) {
+export function CaseInvestigationsPanel({
+  caseData,
+  isLoading,
+}: CaseInvestigationsPanelProps) {
   const [investigations, setInvestigations] = useState<Investigation[]>([]);
   const [investigationsLoading, setInvestigationsLoading] = useState(false);
-  const [investigationsError, setInvestigationsError] = useState<string | null>(null);
+  const [investigationsError, setInvestigationsError] = useState<string | null>(
+    null,
+  );
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [linkDialogOpen, setLinkDialogOpen] = useState(false);
-  const [selectedInvestigationId, setSelectedInvestigationId] = useState<string | null>(null);
+  const [selectedInvestigationId, setSelectedInvestigationId] = useState<
+    string | null
+  >(null);
 
   // Fetch investigations when case data is available
   const fetchInvestigations = useCallback(async () => {
@@ -293,8 +317,8 @@ export function CaseInvestigationsPanel({ caseData, isLoading }: CaseInvestigati
       const response = await getInvestigationsForCase(caseData.id);
       setInvestigations(response.data);
     } catch (error) {
-      console.error('Failed to fetch investigations:', error);
-      setInvestigationsError('Failed to load investigations');
+      console.error("Failed to fetch investigations:", error);
+      setInvestigationsError("Failed to load investigations");
       setInvestigations([]);
     } finally {
       setInvestigationsLoading(false);
@@ -305,14 +329,20 @@ export function CaseInvestigationsPanel({ caseData, isLoading }: CaseInvestigati
     fetchInvestigations();
   }, [fetchInvestigations]);
 
-  const handleInvestigationCreated = useCallback((investigation: Investigation) => {
-    setInvestigations((prev) => [...prev, investigation]);
-  }, []);
+  const handleInvestigationCreated = useCallback(
+    (investigation: Investigation) => {
+      setInvestigations((prev) => [...prev, investigation]);
+    },
+    [],
+  );
 
-  const handleOpenFullInvestigation = useCallback((investigation: Investigation) => {
-    // Navigate to the investigation detail page
-    window.open(`/investigations/${investigation.id}`, '_blank');
-  }, []);
+  const handleOpenFullInvestigation = useCallback(
+    (investigation: Investigation) => {
+      // Navigate to the investigation detail page
+      window.open(`/investigations/${investigation.id}`, "_blank");
+    },
+    [],
+  );
 
   const handleViewDetails = useCallback((investigation: Investigation) => {
     setSelectedInvestigationId(investigation.id);
@@ -325,7 +355,7 @@ export function CaseInvestigationsPanel({ caseData, isLoading }: CaseInvestigati
   const handleLinkSuccess = useCallback(() => {
     fetchInvestigations();
     setLinkDialogOpen(false);
-    toast.success('Investigation linked');
+    toast.success("Investigation linked");
   }, [fetchInvestigations]);
 
   if (isLoading) {
@@ -343,7 +373,9 @@ export function CaseInvestigationsPanel({ caseData, isLoading }: CaseInvestigati
       {/* Header with count and action buttons */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <h3 className="text-sm font-semibold text-gray-700">Investigations</h3>
+          <h3 className="text-sm font-semibold text-gray-700">
+            Investigations
+          </h3>
           {investigations.length > 0 && (
             <Badge variant="secondary" className="h-5 px-1.5 text-xs">
               {investigations.length}
