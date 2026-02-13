@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 25.1 of 25+ (Case Detail Page Vision Revision) — IN PROGRESS
-Plan: 01 of ?? in current phase
-Status: Completed 25.1-01
-Last activity: 2026-02-13 - Completed 25.1-01 (config-driven architecture foundation)
+Plan: 02 of ?? in current phase
+Status: Completed 25.1-01, 25.1-02
+Last activity: 2026-02-13 - Completed 25.1-02 (pipeline stage bar component)
 
 Progress: [===================================================================+] ~100% (Phase 21 adds new plans beyond original 24)
 
@@ -25,6 +25,15 @@ Progress: [===================================================================+]
   - Restructured page.tsx to use RecordDetailLayout
   - Deleted dead case-detail-layout.tsx (239 lines) and its test file
   - Pattern: Config-driven record detail pages with generic layout wrapper
+
+- 25.1-02: Pipeline Stage Bar (COMPLETE - fbb6516)
+  - Created PipelineStageBar component with sticky positioning
+  - Visual states: completed (green checkmark), current (colored pulse), future (outlined)
+  - Click-to-advance with AlertDialog confirmation and optional rationale field
+  - Hover tooltips show stage description, entry date, time in stage
+  - "In stage for N days" Badge chip below current stage
+  - Toast notifications via sonner for transition feedback
+  - Rule 3 fix: Added pinActivity/getStatusHistory to ActivityService
 
 ### Phase 25 Case & Investigation Page Redesign IN PROGRESS (2026-02-13)
 
