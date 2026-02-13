@@ -8,6 +8,8 @@ import { useGlobalShortcuts } from "@/hooks/use-keyboard-shortcuts";
 import { casesApi } from "@/lib/cases-api";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { RecordDetailLayout } from "@/components/record-detail/RecordDetailLayout";
+import { CASES_DETAIL_CONFIG } from "@/config/casesDetailConfig";
 import { CaseDetailHeader } from "@/components/cases/case-detail-header";
 import { CasePropertiesPanel } from "@/components/cases/case-properties-panel";
 import { CaseInfoSummary } from "@/components/cases/case-info-summary";
@@ -39,10 +41,10 @@ import type { Case } from "@/types/case";
 /**
  * Case Detail Page
  *
- * Three-column layout:
+ * Config-driven three-column layout using RecordDetailLayout:
  * - Left column: Case info summary, quick actions, properties panel
- * - Center column: Tabbed interface (Overview, Investigations, Messages, Files, Activity, Remediation)
- * - Right column: Connected entities (placeholder for Plan 05)
+ * - Center column: Tabbed interface (Overview, Activities, Investigations, Messages, Files, Remediation)
+ * - Right column: Workflow, connected entities, AI assistant
  *
  * Route: /cases/[id]
  */
@@ -207,75 +209,79 @@ function CaseDetailPageContent() {
     );
   }
 
+  // Left sidebar content
+  const leftSidebarContent = (
+    <>
+      <CaseInfoSummary caseData={caseData} isLoading={loading} />
+      <ActionButtonRow caseId={caseData?.id ?? ""} onAction={handleAction} />
+      <div className="border-t">
+        <CasePropertiesPanel caseData={caseData} isLoading={loading} />
+      </div>
+    </>
+  );
+
+  // Center column content
+  const centerColumnContent = (
+    <CaseTabs
+      caseData={caseData}
+      isLoading={loading}
+      counts={{
+        investigations: 0, // TODO: Get from API
+        messages: 0,
+        unreadMessages: 0,
+        files: 0,
+      }}
+    />
+  );
+
+  // Right sidebar content
+  const rightSidebarContent = (
+    <div className="p-4 space-y-4">
+      {caseData && (
+        <>
+          <CaseWorkflowPanel caseId={caseData.id} />
+          {/* Association cards in HubSpot-recommended order */}
+          <ConnectedPeopleCard caseId={caseData.id} />
+          <LinkedRiusCard riuAssociations={caseData?.riuAssociations || []} />
+          <RelatedCasesCard caseId={caseData.id} />
+          <RelatedPoliciesCard caseId={caseData.id} />
+          <ConnectedDocumentsCard caseId={caseData.id} />
+          {/* AI Assistant button at bottom */}
+          <div className="pt-2">
+            <Button
+              variant="outline"
+              className="w-full justify-start gap-2"
+              onClick={() => setAiPanelOpen(true)}
+            >
+              <Sparkles className="w-4 h-4" />
+              Ask AI Assistant
+            </Button>
+          </div>
+        </>
+      )}
+    </div>
+  );
+
+  // Breadcrumb/header content
+  const headerContent = (
+    <CaseDetailHeader
+      caseData={caseData}
+      isLoading={loading}
+      onAssign={handleAssign}
+      onChangeStatus={handleChangeStatus}
+      onMerge={handleMerge}
+    />
+  );
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      {/* Header */}
-      <CaseDetailHeader
-        caseData={caseData}
-        isLoading={loading}
-        onAssign={handleAssign}
-        onChangeStatus={handleChangeStatus}
-        onMerge={handleMerge}
+      <RecordDetailLayout
+        config={CASES_DETAIL_CONFIG}
+        leftSidebar={leftSidebarContent}
+        centerColumn={centerColumnContent}
+        rightSidebar={rightSidebarContent}
+        breadcrumb={headerContent}
       />
-
-      {/* Three-column grid layout */}
-      <div className="flex-1 grid grid-cols-1 lg:grid-cols-[300px_1fr_300px] overflow-hidden">
-        {/* LEFT COLUMN - Case info, actions, properties */}
-        <aside className="border-r overflow-y-auto bg-white hidden lg:block">
-          <CaseInfoSummary caseData={caseData} isLoading={loading} />
-          <ActionButtonRow
-            caseId={caseData?.id ?? ""}
-            onAction={handleAction}
-          />
-          <div className="border-t">
-            <CasePropertiesPanel caseData={caseData} isLoading={loading} />
-          </div>
-        </aside>
-
-        {/* CENTER COLUMN - Tabs */}
-        <main className="overflow-hidden bg-white">
-          <CaseTabs
-            caseData={caseData}
-            isLoading={loading}
-            counts={{
-              investigations: 0, // TODO: Get from API
-              messages: 0,
-              unreadMessages: 0,
-              files: 0,
-            }}
-          />
-        </main>
-
-        {/* RIGHT COLUMN - Connected entities */}
-        <aside className="border-l overflow-y-auto bg-gray-50/50 hidden lg:block">
-          <div className="p-4 space-y-4">
-            {caseData && (
-              <>
-                <CaseWorkflowPanel caseId={caseData.id} />
-                {/* Association cards in HubSpot-recommended order */}
-                <ConnectedPeopleCard caseId={caseData.id} />
-                <LinkedRiusCard
-                  riuAssociations={caseData?.riuAssociations || []}
-                />
-                <RelatedCasesCard caseId={caseData.id} />
-                <RelatedPoliciesCard caseId={caseData.id} />
-                <ConnectedDocumentsCard caseId={caseData.id} />
-                {/* AI Assistant button at bottom */}
-                <div className="pt-2">
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start gap-2"
-                    onClick={() => setAiPanelOpen(true)}
-                  >
-                    <Sparkles className="w-4 h-4" />
-                    Ask AI Assistant
-                  </Button>
-                </div>
-              </>
-            )}
-          </div>
-        </aside>
-      </div>
 
       {/* Modals - only render when caseData is available */}
       {caseData && (
