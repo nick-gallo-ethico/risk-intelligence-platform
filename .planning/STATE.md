@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 23 of 24+ (Help & Support System)
-Plan: 01 of 05 in current phase
+Plan: 03 of 05 in current phase
 Status: In progress
-Last activity: 2026-02-12 - Completed 23-01 (Backend Models & Module)
+Last activity: 2026-02-12 - Completed 23-03 (Knowledge Base Frontend)
 
 Progress: [===================================================================+] ~100% (Phase 21 adds new plans beyond original 24)
 
@@ -143,6 +143,13 @@ Phase 21 delivered a comprehensive Monday.com-style project management module:
   - 6 REST endpoints: articles (search, get, categories), tickets (create, list, get)
   - Multi-tenant article visibility: global (orgId=null) + tenant-specific
   - Event-driven ticket notifications via support.ticket.created
+
+- 23-02: Frontend API Service & Navigation (COMPLETE - 5df6984, 2d64318)
+  - Created help.service.ts with 5 typed API functions (searchArticles, getArticle, getCategories, createTicket, getMyTickets)
+  - Added Help & Support link in sidebar footer with HelpCircle icon
+  - Converted top nav HelpCircle button to dropdown menu
+  - Dropdown links: Knowledge Base (/help), Submit a Ticket (/help/tickets/new), My Tickets (/help/tickets)
+  - All navigation uses Next.js Link for client-side routing
 
 ### Phase 24 Policy Content & Seed Data COMPLETE (2026-02-12)
 
