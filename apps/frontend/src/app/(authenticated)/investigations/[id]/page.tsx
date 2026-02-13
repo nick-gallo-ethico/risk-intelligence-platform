@@ -24,6 +24,7 @@ import { InvestigationPropertiesPanel } from "@/components/investigations/invest
 import { InvestigationNotes } from "@/components/investigations/investigation-notes";
 import { InvestigationFindings } from "@/components/investigations/investigation-findings";
 import { ChecklistPanel } from "@/components/investigations/checklist-panel";
+import { InvestigationActivityTimeline } from "@/components/investigations/investigation-activity-timeline";
 import { TemplateSelectorDialog } from "@/components/investigations/template-selector";
 import { useTrackRecentItem } from "@/contexts/shortcuts-context";
 import {
@@ -60,7 +61,7 @@ export default function InvestigationDetailPage() {
   const [loading, setLoading] = useState(true);
   const [checklistLoading, setChecklistLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState("checklist");
+  const [activeTab, setActiveTab] = useState("activity");
   const [showTemplateSelector, setShowTemplateSelector] = useState(false);
   const [applyingTemplate, setApplyingTemplate] = useState(false);
 
@@ -70,13 +71,13 @@ export default function InvestigationDetailPage() {
   const [evidenceModalOpen, setEvidenceModalOpen] = useState(false);
   const [taskModalOpen, setTaskModalOpen] = useState(false);
 
-  // Tab mapping for keyboard navigation (1-6)
+  // Tab mapping for keyboard navigation (1-6) - Activity first
   const TABS = [
+    "activity",
     "checklist",
     "notes",
     "interviews",
     "files",
-    "activity",
     "findings",
   ];
 
@@ -331,6 +332,13 @@ export default function InvestigationDetailPage() {
             >
               <TabsList className="border-b px-4 pt-2">
                 <TabsTrigger
+                  value="activity"
+                  className="flex items-center gap-2"
+                >
+                  <Activity className="h-4 w-4" />
+                  Activity
+                </TabsTrigger>
+                <TabsTrigger
                   value="checklist"
                   className="flex items-center gap-2"
                 >
@@ -362,13 +370,6 @@ export default function InvestigationDetailPage() {
                 <TabsTrigger value="files" className="flex items-center gap-2">
                   <Paperclip className="h-4 w-4" />
                   Files
-                </TabsTrigger>
-                <TabsTrigger
-                  value="activity"
-                  className="flex items-center gap-2"
-                >
-                  <Activity className="h-4 w-4" />
-                  Activity
                 </TabsTrigger>
                 {showFindings && (
                   <TabsTrigger
@@ -451,20 +452,11 @@ export default function InvestigationDetailPage() {
                 </div>
               </TabsContent>
 
-              {/* Activity tab - placeholder */}
-              <TabsContent
-                value="activity"
-                className="flex-1 overflow-auto p-4"
-              >
-                <div className="text-center py-12 border rounded-lg bg-gray-50">
-                  <Activity className="h-12 w-12 mx-auto text-gray-400" />
-                  <h3 className="mt-4 text-lg font-medium text-gray-900">
-                    Activity
-                  </h3>
-                  <p className="mt-1 text-sm text-gray-500">
-                    Activity timeline coming soon.
-                  </p>
-                </div>
+              {/* Activity tab */}
+              <TabsContent value="activity" className="flex-1 overflow-hidden">
+                <InvestigationActivityTimeline
+                  investigationId={investigation.id}
+                />
               </TabsContent>
 
               {/* Findings tab */}
