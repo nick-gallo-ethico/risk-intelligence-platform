@@ -29,6 +29,7 @@ import { EmailLogModal } from "@/components/cases/email-log-modal";
 import { LogInterviewModal } from "@/components/cases/log-interview-modal";
 import { AttachDocumentModal } from "@/components/cases/attach-document-modal";
 import { CreateTaskModal } from "@/components/cases/create-task-modal";
+import { LogCallModal } from "@/components/cases/log-call-modal";
 import { Sparkles } from "lucide-react";
 import type { Case } from "@/types/case";
 
@@ -68,6 +69,7 @@ function CaseDetailPageContent() {
   const [interviewModalOpen, setInterviewModalOpen] = useState(false);
   const [documentModalOpen, setDocumentModalOpen] = useState(false);
   const [taskModalOpen, setTaskModalOpen] = useState(false);
+  const [callModalOpen, setCallModalOpen] = useState(false);
   const [aiPanelOpen, setAiPanelOpen] = useState(false);
 
   const caseId = params?.id as string;
@@ -161,6 +163,9 @@ function CaseDetailPageContent() {
         break;
       case "email":
         setEmailModalOpen(true);
+        break;
+      case "call":
+        setCallModalOpen(true);
         break;
       case "interview":
         setInterviewModalOpen(true);
@@ -317,6 +322,12 @@ function CaseDetailPageContent() {
             open={taskModalOpen}
             onOpenChange={setTaskModalOpen}
             onTaskCreated={fetchCase}
+          />
+          <LogCallModal
+            caseId={caseData.id}
+            open={callModalOpen}
+            onOpenChange={setCallModalOpen}
+            onSuccess={fetchCase}
           />
 
           {/* AI Chat Panel - slides out from right */}
