@@ -14,6 +14,14 @@ export type CaseType = "REPORT" | "RFI";
 export type ReporterType = "ANONYMOUS" | "IDENTIFIED" | "PROXY";
 // Severity matches backend Prisma enum
 export type Severity = "LOW" | "MEDIUM" | "HIGH";
+export type RiskLevel = "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+export type RegulatoryFramework =
+  | "HIPAA"
+  | "SOX"
+  | "GDPR"
+  | "OSHA"
+  | "STATE_PRIVACY_LAW"
+  | "OTHER";
 export type SlaStatus = "ON_TRACK" | "WARNING" | "BREACHED" | "CRITICAL";
 export type RiuAssociationType = "PRIMARY" | "RELATED" | "MERGED_FROM";
 export type RiuType =
@@ -105,9 +113,13 @@ export interface Case {
   slaStatus?: SlaStatus;
   slaDueAt?: string;
 
-  // Category
+  // Category & Classification
   categoryId?: string;
   category?: CaseCategory;
+  secondaryCategoryId?: string;
+  secondaryCategory?: CaseCategory;
+  riskLevel?: RiskLevel;
+  regulatoryFrameworks?: RegulatoryFramework[];
 
   // Assignments
   assignedInvestigators?: CaseUser[];
@@ -161,6 +173,8 @@ export interface CreateCaseInput {
   tags?: string[];
   primaryCategoryId?: string;
   secondaryCategoryId?: string;
+  riskLevel?: RiskLevel;
+  regulatoryFrameworks?: RegulatoryFramework[];
 }
 
 export interface UpdateCaseInput extends Partial<CreateCaseInput> {

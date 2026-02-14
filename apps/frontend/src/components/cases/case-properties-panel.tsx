@@ -5,15 +5,19 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { SeverityBadge } from "@/components/ui/severity-badge";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "@/components/ui/toaster";
 import {
   CollapsiblePropertyCard,
   type PropertyField,
 } from "@/components/record-detail/CollapsiblePropertyCard";
+import { CategorySelector } from "@/components/record-detail/CategorySelector";
 import { apiClient } from "@/lib/api";
 import type {
   Case,
   CaseStatus,
+  RiskLevel,
+  RegulatoryFramework,
   Severity,
   SourceChannel,
   UpdateCaseInput,
@@ -50,6 +54,33 @@ const SOURCE_CHANNEL_OPTIONS = [
   { value: "PROXY", label: "Proxy" },
   { value: "DIRECT_ENTRY", label: "Direct Entry" },
   { value: "CHATBOT", label: "Chatbot" },
+];
+
+const RISK_LEVEL_OPTIONS = [
+  { value: "LOW", label: "Low" },
+  { value: "MEDIUM", label: "Medium" },
+  { value: "HIGH", label: "High" },
+  { value: "CRITICAL", label: "Critical" },
+];
+
+const RISK_LEVEL_COLORS: Record<string, string> = {
+  LOW: "bg-green-100 text-green-800",
+  MEDIUM: "bg-yellow-100 text-yellow-800",
+  HIGH: "bg-orange-100 text-orange-800",
+  CRITICAL: "bg-red-100 text-red-800",
+};
+
+/** Predefined regulatory framework options per spec Section 14.6 */
+const REGULATORY_FRAMEWORK_OPTIONS: Array<{
+  value: RegulatoryFramework;
+  label: string;
+}> = [
+  { value: "HIPAA", label: "HIPAA" },
+  { value: "SOX", label: "SOX" },
+  { value: "GDPR", label: "GDPR" },
+  { value: "OSHA", label: "OSHA" },
+  { value: "STATE_PRIVACY_LAW", label: "State Privacy Law" },
+  { value: "OTHER", label: "Other" },
 ];
 
 function formatDate(dateString: string | null | undefined): string {
@@ -116,6 +147,50 @@ export function CasePropertiesPanel({
           error instanceof Error ? error.message : "Failed to update case";
         toast.error(message);
         throw error;
+      }
+    },
+    [caseData, onUpdate],
+  );
+
+  // Handlers for category changes - must be before early returns (React hooks rule)
+  const handlePrimaryCategoryChange = useCallback(
+    async (categoryId: string | null) => {
+      if (!caseData) return;
+      try {
+        const updatedCase = await apiClient.patch<Case>(
+          `/cases/${caseData.id}`,
+          {
+            primaryCategoryId: categoryId,
+            secondaryCategoryId: null,
+          },
+        );
+        toast.success("Category updated");
+        onUpdate?.(updatedCase);
+      } catch (error) {
+        const message =
+          error instanceof Error ? error.message : "Failed to update category";
+        toast.error(message);
+      }
+    },
+    [caseData, onUpdate],
+  );
+
+  const handleSecondaryCategoryChange = useCallback(
+    async (categoryId: string | null) => {
+      if (!caseData) return;
+      try {
+        const updatedCase = await apiClient.patch<Case>(
+          `/cases/${caseData.id}`,
+          { secondaryCategoryId: categoryId },
+        );
+        toast.success("Subcategory updated");
+        onUpdate?.(updatedCase);
+      } catch (error) {
+        const message =
+          error instanceof Error
+            ? error.message
+            : "Failed to update subcategory";
+        toast.error(message);
       }
     },
     [caseData, onUpdate],
@@ -318,8 +393,7 @@ export function CasePropertiesPanel({
   ];
 
   // Classification fields (per spec Section 14.6)
-  // Tags field - the primary classification mechanism
-  // Category selector is a placeholder for Plan 04
+  // Uses CategorySelector for primary/subcategory, plus Tags, Risk Level, Regulatory Framework
   const classificationFields: PropertyField[] = [
     {
       key: "tags",
@@ -329,6 +403,40 @@ export function CasePropertiesPanel({
       editable: true,
       onChange: (value) => updateCase("tags", value as string[]),
       placeholder: "No tags",
+    },
+    {
+      key: "riskLevel",
+      label: "Risk Level",
+      value: caseData.riskLevel ?? null,
+      type: "select",
+      options: RISK_LEVEL_OPTIONS,
+      onChange: (value) => updateCase("riskLevel", value as RiskLevel),
+      renderValue: (val) => {
+        if (!val || typeof val !== "string") return null;
+        const colorClass =
+          RISK_LEVEL_COLORS[val] ?? "bg-gray-100 text-gray-800";
+        const label =
+          RISK_LEVEL_OPTIONS.find((o) => o.value === val)?.label ?? val;
+        return (
+          <Badge
+            variant="outline"
+            className={`${colorClass} border-0 text-xs font-medium`}
+          >
+            {label}
+          </Badge>
+        );
+      },
+      placeholder: "Not assessed",
+    },
+    {
+      key: "regulatoryFrameworks",
+      label: "Regulatory",
+      value: caseData.regulatoryFrameworks ?? [],
+      type: "tags",
+      editable: true,
+      onChange: (value) =>
+        updateCase("regulatoryFrameworks", value as RegulatoryFramework[]),
+      placeholder: "None selected",
     },
   ];
 
@@ -350,13 +458,23 @@ export function CasePropertiesPanel({
         showSettingsGear={false}
       />
 
-      {/* Classification (expanded by default) */}
+      {/* Classification (expanded by default) - per spec Section 14.6 */}
       <CollapsiblePropertyCard
         title="Classification"
         fields={classificationFields}
         defaultCollapsed={false}
         showSettingsGear={false}
-      />
+      >
+        {/* CategorySelector rendered as custom children above the standard fields */}
+        <div className="pb-2 border-b border-gray-100">
+          <CategorySelector
+            primaryCategoryId={caseData.categoryId}
+            secondaryCategoryId={caseData.secondaryCategoryId}
+            onPrimaryCategoryChange={handlePrimaryCategoryChange}
+            onSecondaryCategoryChange={handleSecondaryCategoryChange}
+          />
+        </div>
+      </CollapsiblePropertyCard>
     </div>
   );
 }

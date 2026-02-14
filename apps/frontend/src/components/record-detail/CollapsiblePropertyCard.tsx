@@ -48,6 +48,8 @@ interface CollapsiblePropertyCardProps {
   onSettingsClick?: () => void;
   /** Additional CSS class names */
   className?: string;
+  /** Optional custom content rendered after fields */
+  children?: ReactNode;
 }
 
 /**
@@ -74,6 +76,7 @@ export function CollapsiblePropertyCard({
   showSettingsGear = false,
   onSettingsClick,
   className,
+  children,
 }: CollapsiblePropertyCardProps) {
   const [isOpen, setIsOpen] = useState(!defaultCollapsed);
 
@@ -113,14 +116,19 @@ export function CollapsiblePropertyCard({
         </CardHeader>
         <CollapsibleContent>
           <CardContent className="pt-2 px-4 pb-3">
-            {fields.length === 0 ? (
+            {fields.length === 0 && !children ? (
               <p className="text-sm text-gray-400 py-2">No fields configured</p>
             ) : (
-              <div className="space-y-0">
-                {fields.map((field) => (
-                  <PropertyFieldRow key={field.key} field={field} />
-                ))}
-              </div>
+              <>
+                {children}
+                {fields.length > 0 && (
+                  <div className="space-y-0">
+                    {fields.map((field) => (
+                      <PropertyFieldRow key={field.key} field={field} />
+                    ))}
+                  </div>
+                )}
+              </>
             )}
           </CardContent>
         </CollapsibleContent>
