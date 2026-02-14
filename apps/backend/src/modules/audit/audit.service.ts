@@ -1,4 +1,5 @@
 import { Injectable, Logger } from "@nestjs/common";
+import { EventEmitter2 } from "@nestjs/event-emitter";
 import { PrismaService } from "../prisma/prisma.service";
 import {
   AuditEntityType,
@@ -40,8 +41,13 @@ export interface CreateAuditLogDto {
 @Injectable()
 export class AuditService {
   private readonly logger = new Logger(AuditService.name);
+  private consecutiveFailures = 0;
+  private readonly FAILURE_THRESHOLD = 5;
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly eventEmitter: EventEmitter2,
+  ) {}
 
   /**
    * Logs an audit entry.
@@ -70,15 +76,35 @@ export class AuditService {
         },
       });
 
+      // Reset consecutive failures on success
+      this.consecutiveFailures = 0;
+
       this.logger.debug(
         `Audit log created: ${dto.entityType}/${dto.entityId} - ${dto.action}`,
       );
     } catch (error) {
+      // Track consecutive failures
+      this.consecutiveFailures++;
+
       // Log error but don't throw - audit failures shouldn't break operations
       this.logger.error(
         `Failed to create audit log: ${error instanceof Error ? error.message : "Unknown error"}`,
         error instanceof Error ? error.stack : undefined,
       );
+
+      // Emit alert after threshold consecutive failures
+      if (this.consecutiveFailures >= this.FAILURE_THRESHOLD) {
+        this.eventEmitter.emit("monitoring.alert", {
+          type: "AUDIT_TRAIL_GAP",
+          message: "5 consecutive audit log failures",
+          severity: "CRITICAL",
+          context: {
+            lastError: error instanceof Error ? error.message : "Unknown",
+          },
+        });
+        // Reset counter after alerting to avoid flooding
+        this.consecutiveFailures = 0;
+      }
     }
   }
 
