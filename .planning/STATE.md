@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-02-13)
 
 ## Current Position
 
-Phase: 30 of 31 (Test Coverage Foundation) — Complete
-Plan: 5 of 5 complete (30-01, 30-02, 30-03, 30-04, 30-05)
-Status: Phase 30 complete — ready for Phase 31
-Last activity: 2026-02-14 — Completed 30-05-PLAN.md
+Phase: 31 of 31 (Code Quality & Performance) — In Progress
+Plan: 1 of ? complete (31-02)
+Status: Phase 31 in progress
+Last activity: 2026-02-14 — Completed 31-02-PLAN.md
 
-Progress: [█████████░] 88% (v1.1 remediation - 21 of 24 plans)
+Progress: [█████████░] 92% (v1.1 remediation - 22 of 24 plans estimated)
 
 ## Milestone v1.1: Code Review Remediation
 
@@ -29,7 +29,7 @@ Progress: [█████████░] 88% (v1.1 remediation - 21 of 24 plan
 | 28    | Production Readiness         | PROD-01 to PROD-07        | Complete |
 | 29    | Error Handling & Reliability | ERR-01 to ERR-09          | Complete |
 | 30    | Test Coverage Foundation     | TEST-01 to TEST-04        | Complete |
-| 31    | Code Quality & Performance   | QUAL-01 to QUAL-08        | Pending  |
+| 31    | Code Quality & Performance   | QUAL-01 to QUAL-08        | In Progress |
 
 ## Milestone Targets
 
@@ -220,9 +220,21 @@ Key outcomes:
 - ErrorBoundary uses class component pattern as required by React error boundary API
 - ApiErrorBoundary uses render props pattern for react-query integration
 
+### Key Decisions (31-02)
+
+- Named alias for config import: Used `envConfig` in useEthicsPortalConfig.ts to avoid collision with local `config` state variable
+- Development environment display conditional on `config.isDevelopment`
+- Default port standardized to localhost:3001 (matching backend .env)
+
 ### Blockers
 
 None currently.
+
+## Phase 31 Plans
+
+| Plan  | Wave | Objective                                              | Autonomous | Status   |
+| ----- | ---- | ------------------------------------------------------ | ---------- | -------- |
+| 31-02 | 1    | QUAL-02: Frontend environment URL centralization       | Yes        | Complete |
 
 ## Phase 30 Plans
 
@@ -236,7 +248,7 @@ None currently.
 
 ## Session Continuity
 
-Last session: 2026-02-14 — Completed 30-05-PLAN.md (frontend test infrastructure)
-Stopped at: Phase 30 complete — MSW v2, 3 error boundary components, dashboard tests (36 tests)
+Last session: 2026-02-14 — Completed 31-02-PLAN.md (frontend environment centralization)
+Stopped at: Phase 31 in progress — centralized env.ts config, 8 files updated
 Resume file: None
-Next action: /gsd:plan-phase 31 (or /gsd:execute-phase 31 if plans exist)
+Next action: Continue with remaining Phase 31 plans
