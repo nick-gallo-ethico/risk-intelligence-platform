@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-02-13)
 
 ## Current Position
 
-Phase: 27 of 31 (Security Hardening) — In Progress
-Plan: 3 of 4 complete
-Status: 27-03 complete (SEC-04 CSRF + SEC-05 body limits)
-Last activity: 2026-02-14 — Completed 27-03-PLAN.md (body size limits + CSRF documentation)
+Phase: 27 of 31 (Security Hardening) — Complete
+Plan: 4 of 4 complete
+Status: Phase 27 complete (SEC-01 to SEC-06 all addressed)
+Last activity: 2026-02-14 — Completed 27-04-PLAN.md (system-wide entity documentation)
 
-Progress: [████░░░░░░] 25% (v1.1 remediation - 5 of 20+ plans)
+Progress: [██████░░░░] 30% (v1.1 remediation - 6 of 20+ plans)
 
 ## Milestone v1.1: Code Review Remediation
 
@@ -22,14 +22,14 @@ Progress: [████░░░░░░] 25% (v1.1 remediation - 5 of 20+ plan
 **Findings:** 36 (8 Critical, 12 High, 13 Medium, 3 Low)
 **Overall Grade:** C- → Target: B+ after remediation
 
-| Phase | Name                         | Requirements              | Status      |
-| ----- | ---------------------------- | ------------------------- | ----------- |
-| 26    | Emergency Fixes              | EMER-01, EMER-02, EMER-03 | Complete    |
-| 27    | Security Hardening           | SEC-01 to SEC-06          | In Progress |
-| 28    | Production Readiness         | PROD-01 to PROD-07        | Pending     |
-| 29    | Error Handling & Reliability | ERR-01 to ERR-09          | Pending     |
-| 30    | Test Coverage Foundation     | TEST-01 to TEST-04        | Pending     |
-| 31    | Code Quality & Performance   | QUAL-01 to QUAL-08        | Pending     |
+| Phase | Name                         | Requirements              | Status   |
+| ----- | ---------------------------- | ------------------------- | -------- |
+| 26    | Emergency Fixes              | EMER-01, EMER-02, EMER-03 | Complete |
+| 27    | Security Hardening           | SEC-01 to SEC-06          | Complete |
+| 28    | Production Readiness         | PROD-01 to PROD-07        | Pending  |
+| 29    | Error Handling & Reliability | ERR-01 to ERR-09          | Pending  |
+| 30    | Test Coverage Foundation     | TEST-01 to TEST-04        | Pending  |
+| 31    | Code Quality & Performance   | QUAL-01 to QUAL-08        | Pending  |
 
 ## Milestone Targets
 
@@ -43,12 +43,12 @@ Progress: [████░░░░░░] 25% (v1.1 remediation - 5 of 20+ plan
 
 ## Phase 27 Plans
 
-| Plan  | Wave | Objective                                            | Autonomous | Status   |
-| ----- | ---- | ---------------------------------------------------- | ---------- | -------- |
-| 27-01 | 1    | SEC-01: Security guard and middleware tests          | Yes        | Complete |
-| 27-02 | 1    | SEC-02: CORS wildcard removal in WebSocket gateways  | Yes        | Complete |
-| 27-03 | 2    | SEC-04 CSRF + SEC-05 body size limits                | Yes        | Complete |
-| 27-04 | 1    | SEC-05 to SEC-06: Secret detection and rate limiting | Yes        | Pending  |
+| Plan  | Wave | Objective                                           | Autonomous | Status   |
+| ----- | ---- | --------------------------------------------------- | ---------- | -------- |
+| 27-01 | 1    | SEC-01: Security guard and middleware tests         | Yes        | Complete |
+| 27-02 | 1    | SEC-02: CORS wildcard removal in WebSocket gateways | Yes        | Complete |
+| 27-03 | 2    | SEC-04 CSRF + SEC-05 body size limits               | Yes        | Complete |
+| 27-04 | 2    | SEC-03: System-wide entity documentation            | Yes        | Complete |
 
 ## Phase 26 Plans
 
@@ -101,12 +101,18 @@ Key outcomes:
 - 10MB body limit for JSON/form data; Multer handles file uploads separately
 - body-parser types via @types/express; no additional package needed
 
+### Key Decisions (27-04)
+
+- Three access control patterns for nullable organizationId: isSystem flag, userId scope, NULL = public
+- AiContextFile uses hierarchical pattern (platform/org/user)
+- Comprehensive documentation (428 lines) explaining RLS interaction
+
 ### Blockers
 
 None currently.
 
 ## Session Continuity
 
-Last session: 2026-02-14 13:28 EST
-Stopped at: Completed 27-03-PLAN.md (body size limits + CSRF documentation)
-Resume file: .planning/phases/27-security-hardening/27-04-PLAN.md
+Last session: 2026-02-14 13:31 EST
+Stopped at: Completed 27-04-PLAN.md (system-wide entity documentation) - Phase 27 complete
+Resume file: .planning/phases/28-production-readiness/28-01-PLAN.md
