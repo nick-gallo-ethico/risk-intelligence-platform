@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-02-13)
 
 ## Current Position
 
-Phase: 29 of 31 (Error Handling & Reliability) — Complete
-Plan: 5 of 5 complete (29-01, 29-02, 29-03, 29-04, 29-05)
-Status: Phase 29 complete — Ready for Phase 30
-Last activity: 2026-02-14 — Completed 29-05-PLAN.md
+Phase: 30 of 31 (Test Coverage Foundation) — In Progress
+Plan: 4 of 5 complete (30-01, 30-02, 30-03, 30-04)
+Status: Plan 30-04 complete — ready for 30-05
+Last activity: 2026-02-14 — Completed 30-04-PLAN.md
 
-Progress: [█████████░] 80% (v1.1 remediation - 16 of 20+ plans)
+Progress: [█████████░] 85% (v1.1 remediation - 20 of 24 plans)
 
 ## Milestone v1.1: Code Review Remediation
 
@@ -28,7 +28,7 @@ Progress: [█████████░] 80% (v1.1 remediation - 16 of 20+ pla
 | 27    | Security Hardening           | SEC-01 to SEC-06          | Complete |
 | 28    | Production Readiness         | PROD-01 to PROD-07        | Complete |
 | 29    | Error Handling & Reliability | ERR-01 to ERR-09          | Complete |
-| 30    | Test Coverage Foundation     | TEST-01 to TEST-04        | Pending  |
+| 30    | Test Coverage Foundation     | TEST-01 to TEST-04        | In Progress |
 | 31    | Code Quality & Performance   | QUAL-01 to QUAL-08        | Pending  |
 
 ## Milestone Targets
@@ -187,13 +187,29 @@ Key outcomes:
 - Event class constructors retain bare throws: Internal validation, not HTTP requests - covered by handler try-catch
 - Implementation done during 29-04: Code changes attributed to 29-04 docs commit, summary documents completed work
 
+### Key Decisions (30-04)
+
+- AuditService used for CampaignsService (not ActivityService) - matches actual service implementation
+- Transaction mocking via callback execution for version-on-publish tests
+- Tenant isolation verified via organizationId filtering in all CRUD operations
+
 ### Blockers
 
 None currently.
 
+## Phase 30 Plans
+
+| Plan  | Wave | Objective                                | Autonomous | Status      |
+| ----- | ---- | ---------------------------------------- | ---------- | ----------- |
+| 30-01 | 1    | TEST-01: Test infrastructure setup       | Yes        | Complete    |
+| 30-02 | 1    | TEST-02: Auth service tests              | Yes        | Complete    |
+| 30-03 | 1    | TEST-02: Cases service tests             | Yes        | Complete    |
+| 30-04 | 1    | TEST-02: Campaigns/Policies tests        | Yes        | Complete    |
+| 30-05 | 2    | TEST-03/04: Frontend tests               | Yes        | Pending     |
+
 ## Session Continuity
 
-Last session: 2026-02-14 — Phase 29 verified and committed
-Stopped at: Phase 29 complete — verified 9/9 requirements, ready for Phase 30
-Resume file: .planning/phases/30-test-coverage/
-Next action: /gsd:plan-phase 30 (or /gsd:execute-phase 30 if plans exist)
+Last session: 2026-02-14 — Completed 30-04-PLAN.md (campaigns/policies tests)
+Stopped at: Plan 30-04 complete — 91 tests for CampaignsService and PoliciesService
+Resume file: .planning/phases/30-test-coverage-foundation/30-05-PLAN.md
+Next action: /gsd:execute-phase 30 (plan 05)
