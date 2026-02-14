@@ -38,20 +38,32 @@ import {
   OnGatewayDisconnect,
   ConnectedSocket,
   MessageBody,
-} from '@nestjs/websockets';
-import { Server, Socket } from 'socket.io';
-import { Logger } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import { OnEvent } from '@nestjs/event-emitter';
-import { NotificationService } from '../services/notification.service';
-import { InAppNotification, NotificationChannel } from '../entities/notification.types';
+} from "@nestjs/websockets";
+import { Server, Socket } from "socket.io";
+import { Logger } from "@nestjs/common";
+import { JwtService } from "@nestjs/jwt";
+import { OnEvent } from "@nestjs/event-emitter";
+import { NotificationService } from "../services/notification.service";
+import {
+  InAppNotification,
+  NotificationChannel,
+} from "../entities/notification.types";
 import {
   MarkReadPayload,
   GetRecentPayload,
   SocketContext,
   NotificationNewEvent,
   UnreadCountEvent,
-} from '../dto/websocket.dto';
+} from "../dto/websocket.dto";
+
+// CORS_ORIGIN validation - must be set for WebSocket gateways
+// SEC-02: No wildcard CORS fallback with credentials
+const corsOriginNotifications = process.env.CORS_ORIGIN;
+if (!corsOriginNotifications) {
+  throw new Error(
+    "CORS_ORIGIN environment variable is required for WebSocket gateway",
+  );
+}
 
 /**
  * Event payload emitted by NotificationService when in-app notification is created.
@@ -72,9 +84,9 @@ interface UnreadCountUpdatedEvent {
 }
 
 @WebSocketGateway({
-  namespace: '/notifications',
+  namespace: "/notifications",
   cors: {
-    origin: process.env.CORS_ORIGIN || '*',
+    origin: corsOriginNotifications,
     credentials: true,
   },
 })
@@ -109,7 +121,7 @@ export class NotificationGateway
         this.logger.warn(
           `Connection rejected: missing or invalid auth context (socket: ${client.id})`,
         );
-        client.emit('error', { message: 'Authentication required' });
+        client.emit("error", { message: "Authentication required" });
         client.disconnect(true);
         return;
       }
@@ -143,7 +155,7 @@ export class NotificationGateway
         `Connection error: ${(error as Error).message}`,
         (error as Error).stack,
       );
-      client.emit('error', { message: 'Connection failed' });
+      client.emit("error", { message: "Connection failed" });
       client.disconnect(true);
     }
   }
@@ -181,22 +193,26 @@ export class NotificationGateway
    * Handle mark_read message from client.
    * Marks specified notifications as read and sends updated unread count.
    */
-  @SubscribeMessage('mark_read')
+  @SubscribeMessage("mark_read")
   async handleMarkRead(
     @ConnectedSocket() client: Socket,
     @MessageBody() payload: MarkReadPayload,
   ): Promise<void> {
     const context: SocketContext | undefined = client.data.context;
     if (!context) {
-      client.emit('error', { message: 'Not authenticated' });
+      client.emit("error", { message: "Not authenticated" });
       return;
     }
 
     try {
       const { notificationIds } = payload;
 
-      if (!notificationIds || !Array.isArray(notificationIds) || notificationIds.length === 0) {
-        client.emit('error', { message: 'notificationIds array required' });
+      if (
+        !notificationIds ||
+        !Array.isArray(notificationIds) ||
+        notificationIds.length === 0
+      ) {
+        client.emit("error", { message: "notificationIds array required" });
         return;
       }
 
@@ -208,7 +224,7 @@ export class NotificationGateway
       );
 
       // Emit confirmation
-      client.emit('notification:marked_read', {
+      client.emit("notification:marked_read", {
         notificationIds,
         readAt: new Date().toISOString(),
       });
@@ -221,7 +237,7 @@ export class NotificationGateway
         `Mark read error: ${(error as Error).message}`,
         (error as Error).stack,
       );
-      client.emit('error', { message: 'Failed to mark notifications as read' });
+      client.emit("error", { message: "Failed to mark notifications as read" });
     }
   }
 
@@ -229,11 +245,11 @@ export class NotificationGateway
    * Handle get_unread_count message from client.
    * Returns current unread count.
    */
-  @SubscribeMessage('get_unread_count')
+  @SubscribeMessage("get_unread_count")
   async handleGetUnreadCount(@ConnectedSocket() client: Socket): Promise<void> {
     const context: SocketContext | undefined = client.data.context;
     if (!context) {
-      client.emit('error', { message: 'Not authenticated' });
+      client.emit("error", { message: "Not authenticated" });
       return;
     }
 
@@ -246,14 +262,14 @@ export class NotificationGateway
    *
    * Per CONTEXT.md: Clients in background tabs poll every 60 seconds.
    */
-  @SubscribeMessage('get_recent')
+  @SubscribeMessage("get_recent")
   async handleGetRecent(
     @ConnectedSocket() client: Socket,
     @MessageBody() payload: GetRecentPayload,
   ): Promise<void> {
     const context: SocketContext | undefined = client.data.context;
     if (!context) {
-      client.emit('error', { message: 'Not authenticated' });
+      client.emit("error", { message: "Not authenticated" });
       return;
     }
 
@@ -280,7 +296,7 @@ export class NotificationGateway
         );
       }
 
-      client.emit('notification:recent', {
+      client.emit("notification:recent", {
         notifications,
         unreadCount: result.unreadCount,
         timestamp: new Date().toISOString(),
@@ -294,7 +310,7 @@ export class NotificationGateway
         `Get recent error: ${(error as Error).message}`,
         (error as Error).stack,
       );
-      client.emit('error', { message: 'Failed to get recent notifications' });
+      client.emit("error", { message: "Failed to get recent notifications" });
     }
   }
 
@@ -302,13 +318,13 @@ export class NotificationGateway
    * Listen for in-app notification creation events from NotificationService.
    * Delivers notification to connected user via WebSocket.
    */
-  @OnEvent('notification.in_app.created', { async: true })
+  @OnEvent("notification.in_app.created", { async: true })
   async handleInAppCreated(event: InAppCreatedEvent): Promise<void> {
     const { organizationId, userId, notification } = event;
     const roomKey = this.getUserRoomKey(organizationId, userId);
 
     // Emit to user's room
-    this.server.to(roomKey).emit('notification:new', {
+    this.server.to(roomKey).emit("notification:new", {
       notification,
       timestamp: new Date().toISOString(),
     } as NotificationNewEvent);
@@ -324,7 +340,7 @@ export class NotificationGateway
         userId,
       );
 
-      this.server.to(roomKey).emit('notification:unread_count', {
+      this.server.to(roomKey).emit("notification:unread_count", {
         unreadCount,
         timestamp: new Date().toISOString(),
       } as UnreadCountEvent);
@@ -339,12 +355,14 @@ export class NotificationGateway
    * Listen for unread count update events.
    * Delivers updated count to connected user.
    */
-  @OnEvent('notification.unread_count.updated', { async: true })
-  async handleUnreadCountUpdated(event: UnreadCountUpdatedEvent): Promise<void> {
+  @OnEvent("notification.unread_count.updated", { async: true })
+  async handleUnreadCountUpdated(
+    event: UnreadCountUpdatedEvent,
+  ): Promise<void> {
     const { organizationId, userId, unreadCount } = event;
     const roomKey = this.getUserRoomKey(organizationId, userId);
 
-    this.server.to(roomKey).emit('notification:unread_count', {
+    this.server.to(roomKey).emit("notification:unread_count", {
       unreadCount,
       timestamp: new Date().toISOString(),
     } as UnreadCountEvent);
@@ -369,7 +387,7 @@ export class NotificationGateway
   ): void {
     const roomKey = this.getUserRoomKey(organizationId, userId);
 
-    this.server.to(roomKey).emit('notification:new', {
+    this.server.to(roomKey).emit("notification:new", {
       notification,
       timestamp: new Date().toISOString(),
     } as NotificationNewEvent);
@@ -403,7 +421,7 @@ export class NotificationGateway
         context.userId,
       );
 
-      client.emit('notification:unread_count', {
+      client.emit("notification:unread_count", {
         unreadCount,
         timestamp: new Date().toISOString(),
       } as UnreadCountEvent);
@@ -430,7 +448,7 @@ export class NotificationGateway
     const token = auth?.token;
 
     if (!token) {
-      this.logger.warn('No token provided in handshake auth');
+      this.logger.warn("No token provided in handshake auth");
       return null;
     }
 
@@ -441,13 +459,14 @@ export class NotificationGateway
       });
 
       // Extract required fields
-      const organizationId = payload.organizationId || payload.org_id || payload.orgId;
+      const organizationId =
+        payload.organizationId || payload.org_id || payload.orgId;
       const userId = payload.userId || payload.user_id || payload.sub;
-      const userRole = payload.role || payload.userRole || 'EMPLOYEE';
+      const userRole = payload.role || payload.userRole || "EMPLOYEE";
       const permissions = payload.permissions || [];
 
       if (!organizationId || !userId) {
-        this.logger.warn('Token missing organizationId or userId');
+        this.logger.warn("Token missing organizationId or userId");
         return null;
       }
 
@@ -458,7 +477,9 @@ export class NotificationGateway
         permissions,
       };
     } catch (error) {
-      this.logger.warn(`Token verification failed: ${(error as Error).message}`);
+      this.logger.warn(
+        `Token verification failed: ${(error as Error).message}`,
+      );
       return null;
     }
   }
