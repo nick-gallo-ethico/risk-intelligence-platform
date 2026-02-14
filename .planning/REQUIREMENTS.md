@@ -25,13 +25,13 @@ Requirements for production readiness. Organized by severity and remediation pha
 
 ### Production Readiness
 
-- [ ] **PROD-01**: Multi-stage Dockerfile created with Node.js 20 Alpine, non-root user, health check (C7)
-- [ ] **PROD-02**: Deep health check with DB, Redis, and Elasticsearch probes via @nestjs/terminus (H4)
-- [ ] **PROD-03**: Storage providers fail fast on initialization — throw on broken state (C6)
-- [ ] **PROD-04**: Azure Key Vault integration for production secrets with env var fallback for dev (C8)
-- [ ] **PROD-05**: Environment validation schema (Joi or Zod) for required config (C8 partial)
-- [ ] **PROD-06**: PrismaService connection retry with exponential backoff (M13)
-- [ ] **PROD-07**: Graceful shutdown hooks enabled — app.enableShutdownHooks() with SIGTERM handler (H3)
+- [x] **PROD-01**: Multi-stage Dockerfile created with Node.js 20 Alpine, non-root user, health check (C7)
+- [x] **PROD-02**: Deep health check with DB, Redis, and Elasticsearch probes via @nestjs/terminus (H4)
+- [x] **PROD-03**: Storage providers fail fast on initialization — throw on broken state (C6)
+- [x] **PROD-04**: Azure Key Vault integration for production secrets with env var fallback for dev (C8)
+- [x] **PROD-05**: Environment validation schema (Joi or Zod) for required config (C8 partial)
+- [x] **PROD-06**: PrismaService connection retry with exponential backoff (M13)
+- [x] **PROD-07**: Graceful shutdown hooks enabled — app.enableShutdownHooks() with SIGTERM handler (H3)
 
 ### Error Handling & Reliability
 
@@ -90,13 +90,13 @@ Which phases cover which requirements. Maps to ROADMAP.md phases.
 | SEC-04      | Phase 27 | Complete |
 | SEC-05      | Phase 27 | Complete |
 | SEC-06      | Phase 27 | Complete |
-| PROD-01     | Phase 28 | Pending  |
-| PROD-02     | Phase 28 | Pending  |
-| PROD-03     | Phase 28 | Pending  |
-| PROD-04     | Phase 28 | Pending  |
-| PROD-05     | Phase 28 | Pending  |
-| PROD-06     | Phase 28 | Pending  |
-| PROD-07     | Phase 28 | Pending  |
+| PROD-01     | Phase 28 | Complete |
+| PROD-02     | Phase 28 | Complete |
+| PROD-03     | Phase 28 | Complete |
+| PROD-04     | Phase 28 | Complete |
+| PROD-05     | Phase 28 | Complete |
+| PROD-06     | Phase 28 | Complete |
+| PROD-07     | Phase 28 | Complete |
 | ERR-01      | Phase 29 | Pending  |
 | ERR-02      | Phase 29 | Pending  |
 | ERR-03      | Phase 29 | Pending  |
