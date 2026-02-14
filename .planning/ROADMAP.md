@@ -1088,7 +1088,7 @@ Plans:
 5. Error boundary components exist for all top-level route segments (not just `/cases/[id]`)
 6. Auth logout logs server-side session invalidation failures to console.warn
 
-**Plans**: 4 plans in 1 wave
+**Plans**: 5 plans in 1 wave
 
 Plans:
 
@@ -1096,6 +1096,7 @@ Plans:
 - [ ] 29-02-PLAN.md (Wave 1) — Async event handler error boundaries with try-catch and context logging
 - [ ] 29-03-PLAN.md (Wave 1) — Frontend error boundaries for all route segments (22+ error.tsx files)
 - [ ] 29-04-PLAN.md (Wave 1) — Frontend error surfacing: offline draft decryption flag, auth logout logging, storage corruption handling
+- [ ] 29-05-PLAN.md (Wave 1) — Replace bare throw new Error() with NestJS HTTP exceptions in service/controller files (31 instances across 11 files)
 
 ### Phase 30: Test Coverage Foundation
 
@@ -1192,7 +1193,7 @@ Plans:
 | 26. Emergency Fixes              | 0/?            | Planned | -         |
 | 27. Security Hardening           | 0/4            | Planned | -         |
 | 28. Production Readiness         | 0/?            | Planned | -         |
-| 29. Error Handling & Reliability | 0/4            | Planned | -         |
+| 29. Error Handling & Reliability | 0/5            | Planned | -         |
 | 30. Test Coverage Foundation     | 0/5            | Planned | -         |
 | 31. Code Quality & Performance   | 0/8            | Planned | -         |
 
