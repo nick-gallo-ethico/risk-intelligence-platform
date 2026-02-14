@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-02-13)
 
 ## Current Position
 
-Phase: 28 of 31 (Production Readiness) — In Progress
-Plan: 3 of 5 complete (28-01, 28-02, 28-03)
-Status: Completed 28-03-PLAN.md (Azure Key Vault integration)
-Last activity: 2026-02-14 — Completed 28-03-PLAN.md
+Phase: 28 of 31 (Production Readiness) — Complete
+Plan: 5 of 5 complete (28-01, 28-02, 28-03, 28-04, 28-05)
+Status: Phase 28 complete - Deploy ready milestone achieved
+Last activity: 2026-02-14 — Completed 28-05-PLAN.md
 
-Progress: [████████░░] 42% (v1.1 remediation - 9 of 20+ plans)
+Progress: [████████░░] 52% (v1.1 remediation - 11 of 20+ plans)
 
 ## Milestone v1.1: Code Review Remediation
 
@@ -22,14 +22,14 @@ Progress: [████████░░] 42% (v1.1 remediation - 9 of 20+ plan
 **Findings:** 36 (8 Critical, 12 High, 13 Medium, 3 Low)
 **Overall Grade:** C- → Target: B+ after remediation
 
-| Phase | Name                         | Requirements              | Status      |
-| ----- | ---------------------------- | ------------------------- | ----------- |
-| 26    | Emergency Fixes              | EMER-01, EMER-02, EMER-03 | Complete    |
-| 27    | Security Hardening           | SEC-01 to SEC-06          | Complete    |
-| 28    | Production Readiness         | PROD-01 to PROD-07        | In Progress |
-| 29    | Error Handling & Reliability | ERR-01 to ERR-09          | Pending     |
-| 30    | Test Coverage Foundation     | TEST-01 to TEST-04        | Pending     |
-| 31    | Code Quality & Performance   | QUAL-01 to QUAL-08        | Pending     |
+| Phase | Name                         | Requirements              | Status   |
+| ----- | ---------------------------- | ------------------------- | -------- |
+| 26    | Emergency Fixes              | EMER-01, EMER-02, EMER-03 | Complete |
+| 27    | Security Hardening           | SEC-01 to SEC-06          | Complete |
+| 28    | Production Readiness         | PROD-01 to PROD-05        | Complete |
+| 29    | Error Handling & Reliability | ERR-01 to ERR-09          | Pending  |
+| 30    | Test Coverage Foundation     | TEST-01 to TEST-04        | Pending  |
+| 31    | Code Quality & Performance   | QUAL-01 to QUAL-08        | Pending  |
 
 ## Milestone Targets
 
@@ -48,8 +48,8 @@ Progress: [████████░░] 42% (v1.1 remediation - 9 of 20+ plan
 | 28-01 | 1    | PROD-01: Env validation, Prisma retry, shutdown    | Yes        | Complete |
 | 28-02 | 1    | PROD-02: Storage provider fail-fast initialization | Yes        | Complete |
 | 28-03 | 1    | PROD-03: Azure Key Vault integration               | Yes        | Complete |
-| 28-04 | 2    | PROD-04: Health checks and readiness probes        | Yes        | Pending  |
-| 28-05 | 3    | PROD-05 to PROD-07: Logging and monitoring         | Yes        | Pending  |
+| 28-04 | 2    | PROD-04: Health checks and readiness probes        | Yes        | Complete |
+| 28-05 | 2    | PROD-05: Docker containerization                   | Yes        | Complete |
 
 ## Phase 27 Plans
 
@@ -137,12 +137,24 @@ Key outcomes:
 - Fail fast in production if Key Vault configured but unavailable
 - Kebab-case secret naming (database-url) maps to env vars (DATABASE_URL)
 
+### Key Decisions (28-04)
+
+- Use @nestjs/terminus for health indicators (database, redis, elasticsearch)
+- Separate /health (liveness) and /health/ready (readiness) endpoints
+- Health checks timeout after 5 seconds to prevent hanging
+
+### Key Decisions (28-05)
+
+- Node.js fetch() for HEALTHCHECK (built-in, no curl dependency needed)
+- Three-stage Dockerfile: deps, build, production for minimal image size
+- dumb-init as ENTRYPOINT for proper SIGTERM forwarding to Node.js
+
 ### Blockers
 
 None currently.
 
 ## Session Continuity
 
-Last session: 2026-02-14 13:58 EST
-Stopped at: Completed 28-03-PLAN.md (Azure Key Vault integration)
-Resume file: .planning/phases/28-production-readiness/28-04-PLAN.md
+Last session: 2026-02-14 14:06 EST
+Stopped at: Completed 28-05-PLAN.md (Docker containerization)
+Resume file: .planning/phases/29-error-handling/29-01-PLAN.md
