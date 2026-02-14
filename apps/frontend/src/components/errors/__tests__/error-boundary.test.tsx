@@ -1,10 +1,16 @@
 import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { ReactNode } from "react";
 import { ErrorBoundary } from "../error-boundary";
 
-// Component that throws an error
-function ThrowingComponent({ message = "Test error" }: { message?: string }) {
+// Component that throws an error - return type is JSX.Element to satisfy TypeScript
+// even though this will always throw
+function ThrowingComponent({
+  message = "Test error",
+}: {
+  message?: string;
+}): ReactNode {
   throw new Error(message);
 }
 
@@ -13,7 +19,7 @@ function ConditionallyThrowingComponent({
   shouldThrow,
 }: {
   shouldThrow: boolean;
-}) {
+}): ReactNode {
   if (shouldThrow) {
     throw new Error("Conditional error");
   }
@@ -80,7 +86,7 @@ describe("ErrorBoundary", () => {
 
     it("displays default message when error has no message", () => {
       // Create a component that throws an error without a message
-      function ThrowEmptyError() {
+      function ThrowEmptyError(): ReactNode {
         const error = new Error();
         error.message = "";
         throw error;
@@ -157,7 +163,7 @@ describe("ErrorBoundary", () => {
 
       // Use a counter to track render attempts
       let renderCount = 0;
-      function CountingThrowingComponent() {
+      function CountingThrowingComponent(): ReactNode {
         renderCount++;
         throw new Error("Test error");
       }
