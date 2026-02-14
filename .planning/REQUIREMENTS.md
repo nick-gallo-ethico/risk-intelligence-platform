@@ -47,10 +47,10 @@ Requirements for production readiness. Organized by severity and remediation pha
 
 ### Test Coverage Foundation
 
-- [ ] **TEST-01**: Unit tests for auth module — 8 services covering login, registration, token refresh, SSO, MFA (C4)
-- [ ] **TEST-02**: Unit tests for core services — cases, rius, investigations (C4)
-- [ ] **TEST-03**: Unit tests for campaigns and policies services (C4)
-- [ ] **TEST-04**: Frontend error boundaries, MSW mocking setup, component tests for critical paths (C4, M8)
+- [x] **TEST-01**: Unit tests for auth module — 8 services covering login, registration, token refresh, SSO, MFA (C4)
+- [x] **TEST-02**: Unit tests for core services — cases, rius, investigations (C4)
+- [x] **TEST-03**: Unit tests for campaigns and policies services (C4)
+- [x] **TEST-04**: Frontend error boundaries, MSW mocking setup, component tests for critical paths (C4, M8)
 
 ### Code Quality & Performance
 
@@ -106,10 +106,10 @@ Which phases cover which requirements. Maps to ROADMAP.md phases.
 | ERR-07      | Phase 29 | Complete |
 | ERR-08      | Phase 29 | Complete |
 | ERR-09      | Phase 29 | Complete |
-| TEST-01     | Phase 30 | Pending  |
-| TEST-02     | Phase 30 | Pending  |
-| TEST-03     | Phase 30 | Pending  |
-| TEST-04     | Phase 30 | Pending  |
+| TEST-01     | Phase 30 | Complete |
+| TEST-02     | Phase 30 | Complete |
+| TEST-03     | Phase 30 | Complete |
+| TEST-04     | Phase 30 | Complete |
 | QUAL-01     | Phase 31 | Pending  |
 | QUAL-02     | Phase 31 | Pending  |
 | QUAL-03     | Phase 31 | Pending  |
