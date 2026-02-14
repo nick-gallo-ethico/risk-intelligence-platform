@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 /**
  * SavedViewSelector Component
@@ -12,7 +12,7 @@
  * - Delete views (with confirmation)
  * - Apply saved view on selection
  */
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   Bookmark,
   BookmarkCheck,
@@ -21,18 +21,18 @@ import {
   Trash2,
   Users,
   ChevronDown,
-} from 'lucide-react';
-import { handleApiError, showSuccess } from '@/lib/api-error-handler';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Badge } from '@/components/ui/badge';
+} from "lucide-react";
+import { handleApiError, showSuccess } from "@/lib/api-error-handler";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from '@/components/ui/popover';
+} from "@/components/ui/popover";
 import {
   Dialog,
   DialogContent,
@@ -40,9 +40,9 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { cn } from '@/lib/utils';
-import type { SavedView } from '@/services/savedViews.service';
+} from "@/components/ui/dialog";
+import { cn } from "@/lib/utils";
+import type { SavedView } from "@/services/savedViews.service";
 
 export interface SavedViewSelectorProps {
   /** All available views */
@@ -52,7 +52,11 @@ export interface SavedViewSelectorProps {
   /** Called when user selects a view */
   onApplyView: (viewId: string) => void;
   /** Called when user saves current filters as new view */
-  onSaveView: (name: string, isShared: boolean, isPinned: boolean) => Promise<void>;
+  onSaveView: (
+    name: string,
+    isShared: boolean,
+    isPinned: boolean,
+  ) => Promise<void>;
   /** Called when user deletes a view */
   onDeleteView: (viewId: string) => void;
   /** Called when user clears the active view */
@@ -78,7 +82,7 @@ export function SavedViewSelector({
 }: SavedViewSelectorProps) {
   const [open, setOpen] = useState(false);
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
-  const [newViewName, setNewViewName] = useState('');
+  const [newViewName, setNewViewName] = useState("");
   const [isShared, setIsShared] = useState(false);
   const [isPinned, setIsPinned] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -93,13 +97,13 @@ export function SavedViewSelector({
     setSaving(true);
     try {
       await onSaveView(newViewName.trim(), isShared, isPinned);
-      showSuccess('View saved successfully');
+      showSuccess("View saved successfully");
       setSaveDialogOpen(false);
-      setNewViewName('');
+      setNewViewName("");
       setIsShared(false);
       setIsPinned(false);
     } catch (error) {
-      handleApiError(error, 'Failed to save view');
+      handleApiError(error, "Failed to save view");
     } finally {
       setSaving(false);
     }
@@ -122,7 +126,7 @@ export function SavedViewSelector({
           <Button
             variant="outline"
             size="sm"
-            className={cn('gap-2', className)}
+            className={cn("gap-2", className)}
             disabled={loading}
           >
             {activeView ? (
@@ -131,7 +135,7 @@ export function SavedViewSelector({
               <Bookmark className="h-4 w-4" />
             )}
             <span className="max-w-[150px] truncate">
-              {activeView ? activeView.name : 'Saved Views'}
+              {activeView ? activeView.name : "Saved Views"}
             </span>
             <ChevronDown className="h-4 w-4 opacity-50" />
           </Button>
@@ -184,7 +188,9 @@ export function SavedViewSelector({
                     onDelete={(e) => handleDelete(e, view.id)}
                   />
                 ))}
-                {otherViews.length > 0 && <div className="my-2 h-px bg-border" />}
+                {otherViews.length > 0 && (
+                  <div className="my-2 h-px bg-border" />
+                )}
               </>
             )}
 
@@ -268,7 +274,7 @@ export function SavedViewSelector({
               onClick={handleSave}
               disabled={!newViewName.trim() || saving}
             >
-              {saving ? 'Saving...' : 'Save View'}
+              {saving ? "Saving..." : "Save View"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -295,13 +301,15 @@ function ViewItem({
   return (
     <div
       className={cn(
-        'group flex items-center justify-between rounded-md px-2 py-2 text-sm cursor-pointer hover:bg-accent',
-        isActive && 'bg-accent'
+        "group flex items-center justify-between rounded-md px-2 py-2 text-sm cursor-pointer hover:bg-accent",
+        isActive && "bg-accent",
       )}
       onClick={onSelect}
     >
       <div className="flex items-center gap-2 min-w-0">
-        {showStar && <Star className="h-4 w-4 text-yellow-500 fill-yellow-500 flex-shrink-0" />}
+        {showStar && (
+          <Star className="h-4 w-4 text-yellow-500 fill-yellow-500 flex-shrink-0" />
+        )}
         <span className="truncate">{view.name}</span>
         {view.isShared && (
           <Badge variant="outline" className="ml-1 h-5 text-xs flex-shrink-0">

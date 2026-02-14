@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 /**
  * Hook for managing saved views state and API interactions.
@@ -10,13 +10,13 @@
  * - Deleting views
  * - Auto-loading default view on mount
  */
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from "react";
 import {
   savedViewsService,
   SavedView,
   CreateSavedViewInput,
-} from '@/services/savedViews.service';
-import { handleApiError, showSuccess } from '@/lib/api-error-handler';
+} from "@/services/savedViews.service";
+import { handleApiError, showSuccess } from "@/lib/api-error-handler";
 
 export interface UseSavedViewsOptions {
   /** Whether to auto-apply the default view on mount */
@@ -43,7 +43,7 @@ export interface UseSavedViewsReturn {
   saveCurrentView: (
     name: string,
     filters: Record<string, unknown>,
-    options?: Partial<CreateSavedViewInput>
+    options?: Partial<CreateSavedViewInput>,
   ) => Promise<SavedView>;
   /** Delete a view by ID */
   deleteView: (viewId: string) => Promise<void>;
@@ -57,7 +57,7 @@ export interface UseSavedViewsReturn {
 
 export function useSavedViews(
   entityType: string,
-  options: UseSavedViewsOptions = {}
+  options: UseSavedViewsOptions = {},
 ): UseSavedViewsReturn {
   const { autoApplyDefault = true } = options;
 
@@ -81,8 +81,8 @@ export function useSavedViews(
         }
       }
     } catch (err) {
-      handleApiError(err, 'Failed to load saved views');
-      setError('Failed to load saved views');
+      handleApiError(err, "Failed to load saved views");
+      setError("Failed to load saved views");
     } finally {
       setLoading(false);
     }
@@ -103,21 +103,21 @@ export function useSavedViews(
       // Log any invalid filters for debugging
       if (result.invalidFilters.length > 0) {
         console.warn(
-          'Some filters in the saved view are no longer valid:',
-          result.invalidFilters
+          "Some filters in the saved view are no longer valid:",
+          result.invalidFilters,
         );
       }
 
       return result;
     },
-    [views]
+    [views],
   );
 
   const saveCurrentView = useCallback(
     async (
       name: string,
       filters: Record<string, unknown>,
-      options?: Partial<CreateSavedViewInput>
+      options?: Partial<CreateSavedViewInput>,
     ) => {
       const newView = await savedViewsService.create({
         name,
@@ -129,7 +129,7 @@ export function useSavedViews(
       setActiveView(newView);
       return newView;
     },
-    [entityType]
+    [entityType],
   );
 
   const deleteView = useCallback(
@@ -140,7 +140,7 @@ export function useSavedViews(
         setActiveView(null);
       }
     },
-    [activeView]
+    [activeView],
   );
 
   const clearActiveView = useCallback(() => {

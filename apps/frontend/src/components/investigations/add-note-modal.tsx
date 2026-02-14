@@ -1,26 +1,30 @@
-'use client';
+"use client";
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback } from "react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { RichTextEditor } from '@/components/rich-text';
-import { investigationNotesApi } from '@/lib/investigation-notes-api';
-import { handleApiError, showSuccess } from '@/lib/api-error-handler';
-import type { NoteType, NoteVisibility, InvestigationNote } from '@/lib/investigation-notes-api';
+} from "@/components/ui/select";
+import { RichTextEditor } from "@/components/rich-text";
+import { investigationNotesApi } from "@/lib/investigation-notes-api";
+import { handleApiError, showSuccess } from "@/lib/api-error-handler";
+import type {
+  NoteType,
+  NoteVisibility,
+  InvestigationNote,
+} from "@/lib/investigation-notes-api";
 
 interface AddNoteModalProps {
   investigationId: string;
@@ -33,20 +37,44 @@ interface AddNoteModalProps {
  * Note type options for the dropdown
  */
 const NOTE_TYPES: { value: NoteType; label: string; description: string }[] = [
-  { value: 'GENERAL', label: 'General', description: 'General notes and observations' },
-  { value: 'INTERVIEW', label: 'Interview', description: 'Notes from interviews or meetings' },
-  { value: 'EVIDENCE', label: 'Evidence', description: 'Documentation of evidence' },
-  { value: 'FINDING', label: 'Finding', description: 'Investigation findings' },
-  { value: 'RECOMMENDATION', label: 'Recommendation', description: 'Recommended actions' },
+  {
+    value: "GENERAL",
+    label: "General",
+    description: "General notes and observations",
+  },
+  {
+    value: "INTERVIEW",
+    label: "Interview",
+    description: "Notes from interviews or meetings",
+  },
+  {
+    value: "EVIDENCE",
+    label: "Evidence",
+    description: "Documentation of evidence",
+  },
+  { value: "FINDING", label: "Finding", description: "Investigation findings" },
+  {
+    value: "RECOMMENDATION",
+    label: "Recommendation",
+    description: "Recommended actions",
+  },
 ];
 
 /**
  * Visibility options for the dropdown
  */
-const VISIBILITY_OPTIONS: { value: NoteVisibility; label: string; description: string }[] = [
-  { value: 'TEAM', label: 'Team', description: 'Visible to assigned investigators' },
-  { value: 'ALL', label: 'All', description: 'Visible to all team members' },
-  { value: 'PRIVATE', label: 'Private', description: 'Only visible to you' },
+const VISIBILITY_OPTIONS: {
+  value: NoteVisibility;
+  label: string;
+  description: string;
+}[] = [
+  {
+    value: "TEAM",
+    label: "Team",
+    description: "Visible to assigned investigators",
+  },
+  { value: "ALL", label: "All", description: "Visible to all team members" },
+  { value: "PRIVATE", label: "Private", description: "Only visible to you" },
 ];
 
 /**
@@ -58,9 +86,9 @@ export function AddNoteModal({
   onOpenChange,
   onSuccess,
 }: AddNoteModalProps) {
-  const [content, setContent] = useState('');
-  const [noteType, setNoteType] = useState<NoteType>('GENERAL');
-  const [visibility, setVisibility] = useState<NoteVisibility>('TEAM');
+  const [content, setContent] = useState("");
+  const [noteType, setNoteType] = useState<NoteType>("GENERAL");
+  const [visibility, setVisibility] = useState<NoteVisibility>("TEAM");
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -68,14 +96,14 @@ export function AddNoteModal({
   const handleOpenChange = useCallback(
     (newOpen: boolean) => {
       if (!newOpen) {
-        setContent('');
-        setNoteType('GENERAL');
-        setVisibility('TEAM');
+        setContent("");
+        setNoteType("GENERAL");
+        setVisibility("TEAM");
         setError(null);
       }
       onOpenChange(newOpen);
     },
-    [onOpenChange]
+    [onOpenChange],
   );
 
   // Handle content change from editor
@@ -87,9 +115,9 @@ export function AddNoteModal({
   // Handle save
   const handleSave = useCallback(async () => {
     // Validate content
-    const plainText = content.replace(/<[^>]*>/g, '').trim();
+    const plainText = content.replace(/<[^>]*>/g, "").trim();
     if (!plainText) {
-      setError('Please enter some content for your note');
+      setError("Please enter some content for your note");
       return;
     }
 
@@ -103,16 +131,23 @@ export function AddNoteModal({
         visibility,
       });
 
-      showSuccess('Note saved successfully');
+      showSuccess("Note saved successfully");
       onSuccess?.(note);
       handleOpenChange(false);
     } catch (err) {
-      handleApiError(err, 'Failed to create note');
-      setError('Failed to save note. Please try again.');
+      handleApiError(err, "Failed to create note");
+      setError("Failed to save note. Please try again.");
     } finally {
       setIsSaving(false);
     }
-  }, [investigationId, content, noteType, visibility, onSuccess, handleOpenChange]);
+  }, [
+    investigationId,
+    content,
+    noteType,
+    visibility,
+    onSuccess,
+    handleOpenChange,
+  ]);
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -154,7 +189,9 @@ export function AddNoteModal({
               <Label htmlFor="visibility">Visibility</Label>
               <Select
                 value={visibility}
-                onValueChange={(value) => setVisibility(value as NoteVisibility)}
+                onValueChange={(value) =>
+                  setVisibility(value as NoteVisibility)
+                }
               >
                 <SelectTrigger id="visibility">
                   <SelectValue placeholder="Select visibility" />
@@ -204,7 +241,7 @@ export function AddNoteModal({
             Cancel
           </Button>
           <Button onClick={handleSave} disabled={isSaving}>
-            {isSaving ? 'Saving...' : 'Save Note'}
+            {isSaving ? "Saving..." : "Save Note"}
           </Button>
         </DialogFooter>
       </DialogContent>

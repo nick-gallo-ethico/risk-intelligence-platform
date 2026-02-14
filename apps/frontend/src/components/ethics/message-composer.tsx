@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import * as React from 'react';
-import { useState, useCallback, useRef } from 'react';
-import { Send, Paperclip, Loader2, AlertCircle, X } from 'lucide-react';
-import { handleApiError } from '@/lib/api-error-handler';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { cn } from '@/lib/utils';
+import * as React from "react";
+import { useState, useCallback, useRef } from "react";
+import { Send, Paperclip, Loader2, AlertCircle, X } from "lucide-react";
+import { handleApiError } from "@/lib/api-error-handler";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
 
 export interface MessageComposerProps {
   /** Callback when message is sent */
@@ -35,11 +35,11 @@ export interface MessageComposerProps {
 export function MessageComposer({
   onSend,
   disabled = false,
-  placeholder = 'Type your message...',
+  placeholder = "Type your message...",
   maxLength = 5000,
   className,
 }: MessageComposerProps) {
-  const [content, setContent] = useState('');
+  const [content, setContent] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [attachments, setAttachments] = useState<File[]>([]);
@@ -61,15 +61,15 @@ export function MessageComposer({
       const success = await onSend(content.trim());
 
       if (success) {
-        setContent('');
+        setContent("");
         setAttachments([]);
         textareaRef.current?.focus();
       } else {
-        setError('Failed to send message. Please try again.');
+        setError("Failed to send message. Please try again.");
       }
     } catch (err) {
-      handleApiError(err, 'Failed to send message');
-      setError('Failed to send message. Please try again.');
+      handleApiError(err, "Failed to send message");
+      setError("Failed to send message. Please try again.");
     } finally {
       setIsSending(false);
     }
@@ -78,25 +78,28 @@ export function MessageComposer({
   // Handle Enter to send (Shift+Enter for newline)
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-      if (e.key === 'Enter' && !e.shiftKey) {
+      if (e.key === "Enter" && !e.shiftKey) {
         e.preventDefault();
         handleSend();
       }
     },
-    [handleSend]
+    [handleSend],
   );
 
   // Handle file selection (placeholder)
-  const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (files) {
-      setAttachments((prev) => [...prev, ...Array.from(files)]);
-    }
-    // Reset input
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  }, []);
+  const handleFileSelect = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const files = e.target.files;
+      if (files) {
+        setAttachments((prev) => [...prev, ...Array.from(files)]);
+      }
+      // Reset input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    },
+    [],
+  );
 
   // Remove attachment
   const removeAttachment = useCallback((index: number) => {
@@ -111,11 +114,12 @@ export function MessageComposer({
 
   const charCount = content.length;
   const isOverLimit = maxLength && charCount > maxLength;
-  const canSend = content.trim().length > 0 && !isOverLimit && !isSending && !disabled;
+  const canSend =
+    content.trim().length > 0 && !isOverLimit && !isSending && !disabled;
 
   if (disabled) {
     return (
-      <div className={cn('p-4 bg-muted rounded-lg text-center', className)}>
+      <div className={cn("p-4 bg-muted rounded-lg text-center", className)}>
         <p className="text-muted-foreground text-sm">
           This report has been closed. Messaging is no longer available.
         </p>
@@ -124,7 +128,7 @@ export function MessageComposer({
   }
 
   return (
-    <div className={cn('space-y-2', className)}>
+    <div className={cn("space-y-2", className)}>
       {/* Error message */}
       {error && (
         <div className="flex items-center justify-between gap-2 p-3 bg-destructive/10 text-destructive rounded-lg text-sm">
@@ -193,8 +197,8 @@ export function MessageComposer({
           placeholder={placeholder}
           disabled={isSending}
           className={cn(
-            'flex-1 min-h-[40px] max-h-[200px] resize-none border-0 focus-visible:ring-0 focus-visible:ring-offset-0 p-0',
-            isOverLimit && 'text-destructive'
+            "flex-1 min-h-[40px] max-h-[200px] resize-none border-0 focus-visible:ring-0 focus-visible:ring-offset-0 p-0",
+            isOverLimit && "text-destructive",
           )}
           rows={1}
           aria-label="Message content"
@@ -208,7 +212,7 @@ export function MessageComposer({
           className="h-8 w-8 flex-shrink-0"
           onClick={handleSend}
           disabled={!canSend}
-          aria-label={isSending ? 'Sending...' : 'Send message'}
+          aria-label={isSending ? "Sending..." : "Send message"}
         >
           {isSending ? (
             <Loader2 className="h-4 w-4 animate-spin" />
@@ -222,7 +226,7 @@ export function MessageComposer({
       {maxLength && (
         <div className="flex justify-between items-center text-xs text-muted-foreground px-1">
           <span>Press Enter to send, Shift+Enter for new line</span>
-          <span className={isOverLimit ? 'text-destructive font-medium' : ''}>
+          <span className={isOverLimit ? "text-destructive font-medium" : ""}>
             {charCount} / {maxLength}
           </span>
         </div>
