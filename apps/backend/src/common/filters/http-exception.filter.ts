@@ -76,9 +76,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
       // These were previously silently dropped - now we capture them
       this.logger.error(
         `Unhandled non-Error exception: ${typeof exception}`,
-        typeof exception === "object"
-          ? JSON.stringify(exception)
-          : String(exception),
+        this.safeStringify(exception),
       );
     }
 
@@ -98,5 +96,20 @@ export class HttpExceptionFilter implements ExceptionFilter {
     }
 
     response.status(status).json(errorResponse);
+  }
+
+  /**
+   * Safely stringify a value, handling circular references.
+   */
+  private safeStringify(value: unknown): string {
+    if (typeof value !== "object" || value === null) {
+      return String(value);
+    }
+    try {
+      return JSON.stringify(value);
+    } catch {
+      // Handle circular references or other stringify failures
+      return "[Object with circular reference or non-serializable value]";
+    }
   }
 }
