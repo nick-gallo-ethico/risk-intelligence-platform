@@ -2,6 +2,7 @@ import { NestFactory } from "@nestjs/core";
 import { ValidationPipe } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
+import * as bodyParser from "body-parser";
 import helmet from "helmet";
 import pino from "pino";
 import { AppModule } from "./app.module";
@@ -12,6 +13,12 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     bufferLogs: true,
   });
+
+  // Configure body size limits for security (SEC-05)
+  // 10MB limit for JSON and URL-encoded bodies
+  // File uploads are handled separately by Multer with their own limits
+  app.use(bodyParser.json({ limit: "10mb" }));
+  app.use(bodyParser.urlencoded({ limit: "10mb", extended: true }));
 
   const configService = app.get(ConfigService);
   const port = configService.get<number>("PORT", 3000);
