@@ -1009,7 +1009,7 @@ Plans:
 Phases 26-31 address all findings from the unified code review and silent failure audit. Ordered by severity: emergency fixes first, then security, production readiness, error handling, test coverage, and code quality.
 
 - [x] **Phase 26: Emergency Fixes** — RLS bypass safety, API key rotation, global exception filter registration
-- [ ] **Phase 27: Security Hardening** — Guard/middleware tests, CORS fixes, nullable orgId, CSRF, body limits
+- [x] **Phase 27: Security Hardening** — Guard/middleware tests, CORS fixes, nullable orgId, CSRF, body limits
 - [ ] **Phase 28: Production Readiness** — Dockerfile, health checks, fail-fast storage, Key Vault, env validation, graceful shutdown
 - [ ] **Phase 29: Error Handling & Reliability** — NestJS exceptions, audit alerting, orphan prevention, error boundaries, auth fixes
 - [ ] **Phase 30: Test Coverage Foundation** — Auth module tests, core service tests, campaign/policy tests, frontend test infrastructure

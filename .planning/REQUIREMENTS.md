@@ -16,12 +16,12 @@ Requirements for production readiness. Organized by severity and remediation pha
 
 ### Security Hardening
 
-- [ ] **SEC-01**: Unit tests for tenant.guard, tenant.middleware, jwt-auth.guard, roles.guard (C5)
-- [ ] **SEC-02**: WebSocket CORS wildcard fallback replaced with explicit config in 3 gateways (H1)
-- [ ] **SEC-03**: All 7 nullable organizationId fields made required or documented as system-wide (H2)
-- [ ] **SEC-04**: CSRF protection middleware added (M1)
-- [ ] **SEC-05**: Request body size limits configured in main.ts (M4)
-- [ ] **SEC-06**: Non-Error exception logging added to HttpExceptionFilter else branch (C3 partial)
+- [x] **SEC-01**: Unit tests for tenant.guard, tenant.middleware, jwt-auth.guard, roles.guard (C5)
+- [x] **SEC-02**: WebSocket CORS wildcard fallback replaced with explicit config in 3 gateways (H1)
+- [x] **SEC-03**: All 7 nullable organizationId fields made required or documented as system-wide (H2)
+- [x] **SEC-04**: CSRF protection mitigated by architecture (JWT in Authorization header) and documented (M1)
+- [x] **SEC-05**: Request body size limits configured in main.ts (M4)
+- [x] **SEC-06**: Non-Error exception logging added to HttpExceptionFilter else branch (C3 partial)
 
 ### Production Readiness
 
@@ -84,12 +84,12 @@ Which phases cover which requirements. Maps to ROADMAP.md phases.
 | EMER-01     | Phase 26 | Complete |
 | EMER-02     | Phase 26 | Complete |
 | EMER-03     | Phase 26 | Complete |
-| SEC-01      | Phase 27 | Pending  |
-| SEC-02      | Phase 27 | Pending  |
-| SEC-03      | Phase 27 | Pending  |
-| SEC-04      | Phase 27 | Pending  |
-| SEC-05      | Phase 27 | Pending  |
-| SEC-06      | Phase 27 | Pending  |
+| SEC-01      | Phase 27 | Complete |
+| SEC-02      | Phase 27 | Complete |
+| SEC-03      | Phase 27 | Complete |
+| SEC-04      | Phase 27 | Complete |
+| SEC-05      | Phase 27 | Complete |
+| SEC-06      | Phase 27 | Complete |
 | PROD-01     | Phase 28 | Pending  |
 | PROD-02     | Phase 28 | Pending  |
 | PROD-03     | Phase 28 | Pending  |
