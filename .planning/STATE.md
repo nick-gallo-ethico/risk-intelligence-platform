@@ -187,6 +187,12 @@ Key outcomes:
 - Event class constructors retain bare throws: Internal validation, not HTTP requests - covered by handler try-catch
 - Implementation done during 29-04: Code changes attributed to 29-04 docs commit, summary documents completed work
 
+### Key Decisions (30-02)
+
+- Mock DNS module with jest.mock('dns') for DomainVerificationService tests
+- Use UnauthorizedException with full message in assertions (not string substring)
+- SSO tests verify security guardrails: block SYSTEM_ADMIN and COMPLIANCE_OFFICER from JIT provisioning
+
 ### Key Decisions (30-03)
 
 - Use CaseType.REPORT and CaseType.RFI (not COMPLAINT/FRAUD) per actual Prisma enum values
