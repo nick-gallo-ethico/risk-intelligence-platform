@@ -3,6 +3,7 @@ import { ValidationPipe, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import * as bodyParser from "body-parser";
+import compression from "compression";
 import helmet from "helmet";
 import pino from "pino";
 import { AppModule } from "./app.module";
@@ -69,6 +70,15 @@ async function bootstrap() {
 
   // Security headers (HSTS, CSP, X-Frame-Options, etc.)
   app.use(helmet());
+
+  // Response compression (gzip/deflate) for payloads > 1KB
+  // Improves API performance by reducing payload sizes
+  app.use(
+    compression({
+      threshold: 1024, // Only compress responses > 1KB
+      level: 6, // Balanced compression level (1-9, default 6)
+    }),
+  );
 
   // Global exception filters
   // HttpExceptionFilter handles response formatting for all exceptions

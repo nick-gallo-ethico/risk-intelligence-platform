@@ -64,8 +64,14 @@ export default () => ({
 
   elasticsearch: {
     node: process.env.ELASTICSEARCH_NODE || "http://localhost:9200",
-    maxRetries: 3,
-    requestTimeout: 30000,
+    maxRetries: 2,
+    timeout: 5000, // Reduced from 30s to 5s for faster failure detection
+    circuitBreaker: {
+      timeout: 5000, // Circuit breaker timeout matches ES timeout
+      errorThresholdPercentage: 50, // Open circuit after 50% failures
+      resetTimeout: 30000, // Attempt to close circuit after 30s
+      volumeThreshold: 5, // Minimum requests before circuit can open
+    },
   },
 
   ai: {
