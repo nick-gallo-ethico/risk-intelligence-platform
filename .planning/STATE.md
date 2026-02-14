@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 25.1 of 25+ (Case Detail Page Vision Revision) — IN PROGRESS
-Plan: 08 of ?? in current phase
-Status: Completed 25.1-01, 25.1-02, 25.1-07, 25.1-08, 25.1-10
-Last activity: 2026-02-13 - Completed 25.1-08 (right sidebar tasks and remediation cards)
+Plan: 05 of ?? in current phase
+Status: Completed 25.1-01, 25.1-02, 25.1-05, 25.1-07, 25.1-08, 25.1-10
+Last activity: 2026-02-13 - Completed 25.1-05 (Overview tab rebuild with 6 sections)
 
 Progress: [===================================================================+] ~100% (Phase 21 adds new plans beyond original 24)
 
@@ -34,6 +34,17 @@ Progress: [===================================================================+]
   - "In stage for N days" Badge chip below current stage
   - Toast notifications via sonner for transition feedback
   - Rule 3 fix: Added pinActivity/getStatusHistory to ActivityService
+
+- 25.1-05: Overview Tab Rebuild (COMPLETE - a152a41)
+  - Created DataHighlightsCard with 6-value grid (severity, status, age, SLA, assignee, source)
+  - Created EditableSummary with inline edit mode and AI generate button
+  - Created StatusHistoryTimeline with colored dots, dates, users, rationale
+  - Rebuilt Overview tab as default with 6 sections
+  - Wired PipelineStageBar above tab bar in center column
+  - Case Details section is collapsible, collapsed by default
+  - Recent Activities shows 3 most recent with "View all" link
+  - Upcoming Tasks shows 3 items with checkboxes
+  - Pattern: 6-section Overview layout with DataHighlight type variants
 
 - 25.1-07: Tab Cleanup and Enhancement (COMPLETE - 6300049, b2f6a25)
   - Enforced 6-tab configuration: Overview, Activities, Investigations, Messages, Files, Remediation
