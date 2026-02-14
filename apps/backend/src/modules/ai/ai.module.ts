@@ -11,6 +11,7 @@ import { ContextLoaderService } from "./services/context-loader.service";
 import { ProviderRegistryService } from "./services/provider-registry.service";
 import { PromptService } from "./services/prompt.service";
 import { AiRateLimiterService } from "./services/rate-limiter.service";
+import { AiOrchestrationService } from "./services/ai-orchestration.service";
 import { SchemaIntrospectionService } from "./schema-introspection.service";
 
 // Providers
@@ -68,6 +69,7 @@ import { AiController } from "./ai.controller";
     ContextLoaderService,
     PromptService,
     AiRateLimiterService,
+    AiOrchestrationService,
     SchemaIntrospectionService,
 
     // Registries
@@ -89,6 +91,7 @@ import { AiController } from "./ai.controller";
     ProviderRegistryService,
     PromptService,
     AiRateLimiterService,
+    AiOrchestrationService,
     SchemaIntrospectionService,
     ClaudeProvider,
     SkillRegistry,

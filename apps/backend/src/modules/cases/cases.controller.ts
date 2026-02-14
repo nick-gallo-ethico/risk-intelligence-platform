@@ -1,3 +1,15 @@
+/**
+ * CasesController - REST API for case management
+ *
+ * Thin controller layer that delegates business logic to services:
+ * - CasesService: Core case CRUD operations
+ * - CaseMergeService: Case merge operations
+ * - CaseExportService: Export to Excel
+ * - ActivityService: Activity timeline
+ *
+ * All endpoints require authentication and are scoped to user's organization.
+ */
+
 import {
   Controller,
   Get,
@@ -27,6 +39,7 @@ import { Response } from "express";
 import { Case, AuditEntityType } from "@prisma/client";
 import { CasesService } from "./cases.service";
 import { CaseMergeService } from "./case-merge.service";
+import { CaseExportService } from "./services/case-export.service";
 import {
   CreateCaseDto,
   UpdateCaseDto,
@@ -45,13 +58,7 @@ import {
 import { RequestUser } from "../auth/interfaces/jwt-payload.interface";
 import { ActivityService } from "../../common/services/activity.service";
 import { ActivityListResponseDto } from "../../common/dto";
-import { ExcelExportService } from "../analytics/exports/excel-export.service";
-import { ColumnDefinition } from "../analytics/exports/entities/export.entity";
 
-/**
- * REST API controller for case management.
- * All endpoints require authentication and are scoped to user's organization.
- */
 @ApiTags("Cases")
 @ApiBearerAuth("JWT")
 @Controller("cases")
@@ -60,14 +67,10 @@ export class CasesController {
   constructor(
     private readonly casesService: CasesService,
     private readonly caseMergeService: CaseMergeService,
+    private readonly caseExportService: CaseExportService,
     private readonly activityService: ActivityService,
-    private readonly excelExportService: ExcelExportService,
   ) {}
 
-  /**
-   * POST /api/v1/cases
-   * Creates a new case.
-   */
   @Post()
   @Roles(
     UserRole.COMPLIANCE_OFFICER,
@@ -76,17 +79,8 @@ export class CasesController {
   )
   @UseGuards(RolesGuard)
   @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({
-    summary: "Create a new case",
-    description: "Creates a new compliance case with intake information",
-  })
+  @ApiOperation({ summary: "Create a new case" })
   @ApiResponse({ status: 201, description: "Case created successfully" })
-  @ApiResponse({ status: 400, description: "Validation error" })
-  @ApiResponse({ status: 401, description: "Unauthorized" })
-  @ApiResponse({
-    status: 403,
-    description: "Forbidden - insufficient permissions",
-  })
   async create(
     @Body() dto: CreateCaseDto,
     @CurrentUser() user: RequestUser,
@@ -95,20 +89,9 @@ export class CasesController {
     return this.casesService.create(dto, user.id, organizationId);
   }
 
-  /**
-   * GET /api/v1/cases
-   * Returns paginated list of cases with optional filtering.
-   */
   @Get()
-  @ApiOperation({
-    summary: "List cases",
-    description: "Returns paginated list of cases with optional filtering",
-  })
-  @ApiResponse({
-    status: 200,
-    description: "List of cases with pagination",
-  })
-  @ApiResponse({ status: 401, description: "Unauthorized" })
+  @ApiOperation({ summary: "List cases" })
+  @ApiResponse({ status: 200, description: "List of cases with pagination" })
   async findAll(
     @Query() query: CaseQueryDto,
     @TenantId() organizationId: string,
@@ -116,37 +99,18 @@ export class CasesController {
     return this.casesService.findAll(query, organizationId);
   }
 
-  // -------------------------------------------------------------------------
-  // MERGE ENDPOINTS - Must be before generic :id route
-  // -------------------------------------------------------------------------
+  // Merge endpoints - must be before generic :id route
 
-  /**
-   * POST /api/v1/cases/:id/merge
-   * Merges source case into target case.
-   * The source case becomes a tombstone pointing to the target (primary) case.
-   */
   @Post(":id/merge")
   @Roles(UserRole.COMPLIANCE_OFFICER, UserRole.SYSTEM_ADMIN)
   @UseGuards(RolesGuard)
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({
-    summary: "Merge cases",
-    description:
-      "Merges source case into target case. Source case becomes a tombstone with all data moved to target.",
-  })
+  @ApiOperation({ summary: "Merge cases" })
   @ApiParam({
     name: "id",
     description: "Target case UUID (case to merge INTO)",
   })
-  @ApiResponse({
-    status: 200,
-    description: "Cases merged successfully",
-    type: MergeResultDto,
-  })
-  @ApiResponse({ status: 400, description: "Validation error or cannot merge" })
-  @ApiResponse({ status: 401, description: "Unauthorized" })
-  @ApiResponse({ status: 403, description: "Forbidden" })
-  @ApiResponse({ status: 404, description: "Case not found" })
+  @ApiResponse({ status: 200, type: MergeResultDto })
   async mergeCases(
     @Param("id", ParseUUIDPipe) id: string,
     @Body() body: { sourceCaseId: string; reason: string },
@@ -164,24 +128,10 @@ export class CasesController {
     );
   }
 
-  /**
-   * GET /api/v1/cases/:id/merge-history
-   * Returns all cases that were merged into this case.
-   */
   @Get(":id/merge-history")
-  @ApiOperation({
-    summary: "Get merge history",
-    description:
-      "Returns all cases that were merged into this case, with merge details",
-  })
+  @ApiOperation({ summary: "Get merge history" })
   @ApiParam({ name: "id", description: "Case UUID" })
-  @ApiResponse({
-    status: 200,
-    description: "Merge history",
-    type: [MergeHistoryDto],
-  })
-  @ApiResponse({ status: 401, description: "Unauthorized" })
-  @ApiResponse({ status: 404, description: "Case not found" })
+  @ApiResponse({ status: 200, type: [MergeHistoryDto] })
   async getMergeHistory(
     @Param("id", ParseUUIDPipe) id: string,
     @TenantId() organizationId: string,
@@ -189,36 +139,11 @@ export class CasesController {
     return this.caseMergeService.getMergeHistory(id, organizationId);
   }
 
-  /**
-   * GET /api/v1/cases/:id/can-merge/:targetId
-   * Checks if two cases can be merged.
-   */
   @Get(":id/can-merge/:targetId")
-  @ApiOperation({
-    summary: "Check merge feasibility",
-    description:
-      "Checks if source case can be merged into target case. Returns canMerge boolean and reason if not.",
-  })
-  @ApiParam({
-    name: "id",
-    description: "Source case UUID (case to merge FROM)",
-  })
-  @ApiParam({
-    name: "targetId",
-    description: "Target case UUID (case to merge INTO)",
-  })
-  @ApiResponse({
-    status: 200,
-    description: "Merge feasibility check result",
-    schema: {
-      type: "object",
-      properties: {
-        canMerge: { type: "boolean" },
-        reason: { type: "string", nullable: true },
-      },
-    },
-  })
-  @ApiResponse({ status: 401, description: "Unauthorized" })
+  @ApiOperation({ summary: "Check merge feasibility" })
+  @ApiParam({ name: "id", description: "Source case UUID" })
+  @ApiParam({ name: "targetId", description: "Target case UUID" })
+  @ApiResponse({ status: 200 })
   async canMerge(
     @Param("id", ParseUUIDPipe) id: string,
     @Param("targetId", ParseUUIDPipe) targetId: string,
@@ -227,19 +152,10 @@ export class CasesController {
     return this.caseMergeService.canMerge(id, targetId, organizationId);
   }
 
-  /**
-   * GET /api/v1/cases/:id
-   * Returns a single case by ID.
-   */
   @Get(":id")
-  @ApiOperation({
-    summary: "Get case by ID",
-    description: "Returns a single case by its UUID",
-  })
+  @ApiOperation({ summary: "Get case by ID" })
   @ApiParam({ name: "id", description: "Case UUID" })
-  @ApiResponse({ status: 200, description: "Case found" })
-  @ApiResponse({ status: 401, description: "Unauthorized" })
-  @ApiResponse({ status: 404, description: "Case not found" })
+  @ApiResponse({ status: 200 })
   async findOne(
     @Param("id", ParseUUIDPipe) id: string,
     @TenantId() organizationId: string,
@@ -247,24 +163,14 @@ export class CasesController {
     return this.casesService.findOne(id, organizationId);
   }
 
-  /**
-   * GET /api/v1/cases/reference/:referenceNumber
-   * Returns a case by reference number (e.g., ETH-2026-00001).
-   */
   @Get("reference/:referenceNumber")
-  @ApiOperation({
-    summary: "Get case by reference number",
-    description:
-      "Returns a case by its human-readable reference number (e.g., ETH-2026-00001)",
-  })
+  @ApiOperation({ summary: "Get case by reference number" })
   @ApiParam({
     name: "referenceNumber",
     description: "Case reference number",
     example: "ETH-2026-00001",
   })
-  @ApiResponse({ status: 200, description: "Case found" })
-  @ApiResponse({ status: 401, description: "Unauthorized" })
-  @ApiResponse({ status: 404, description: "Case not found" })
+  @ApiResponse({ status: 200 })
   async findByReference(
     @Param("referenceNumber") referenceNumber: string,
     @TenantId() organizationId: string,
@@ -275,10 +181,6 @@ export class CasesController {
     );
   }
 
-  /**
-   * PUT /api/v1/cases/:id
-   * Updates a case (full update).
-   */
   @Put(":id")
   @Roles(
     UserRole.COMPLIANCE_OFFICER,
@@ -286,16 +188,9 @@ export class CasesController {
     UserRole.SYSTEM_ADMIN,
   )
   @UseGuards(RolesGuard)
-  @ApiOperation({
-    summary: "Update case",
-    description: "Updates a case with full replacement of provided fields",
-  })
+  @ApiOperation({ summary: "Update case" })
   @ApiParam({ name: "id", description: "Case UUID" })
-  @ApiResponse({ status: 200, description: "Case updated successfully" })
-  @ApiResponse({ status: 400, description: "Validation error" })
-  @ApiResponse({ status: 401, description: "Unauthorized" })
-  @ApiResponse({ status: 403, description: "Forbidden" })
-  @ApiResponse({ status: 404, description: "Case not found" })
+  @ApiResponse({ status: 200 })
   async update(
     @Param("id", ParseUUIDPipe) id: string,
     @Body() dto: UpdateCaseDto,
@@ -305,10 +200,6 @@ export class CasesController {
     return this.casesService.update(id, dto, user.id, organizationId);
   }
 
-  /**
-   * PATCH /api/v1/cases/:id
-   * Partially updates a case.
-   */
   @Patch(":id")
   @Roles(
     UserRole.COMPLIANCE_OFFICER,
@@ -316,16 +207,9 @@ export class CasesController {
     UserRole.SYSTEM_ADMIN,
   )
   @UseGuards(RolesGuard)
-  @ApiOperation({
-    summary: "Partial update case",
-    description: "Partially updates a case - only provided fields are modified",
-  })
+  @ApiOperation({ summary: "Partial update case" })
   @ApiParam({ name: "id", description: "Case UUID" })
-  @ApiResponse({ status: 200, description: "Case updated successfully" })
-  @ApiResponse({ status: 400, description: "Validation error" })
-  @ApiResponse({ status: 401, description: "Unauthorized" })
-  @ApiResponse({ status: 403, description: "Forbidden" })
-  @ApiResponse({ status: 404, description: "Case not found" })
+  @ApiResponse({ status: 200 })
   async partialUpdate(
     @Param("id", ParseUUIDPipe) id: string,
     @Body() dto: UpdateCaseDto,
@@ -335,24 +219,12 @@ export class CasesController {
     return this.casesService.update(id, dto, user.id, organizationId);
   }
 
-  /**
-   * PATCH /api/v1/cases/:id/status
-   * Updates case status with rationale.
-   */
   @Patch(":id/status")
   @Roles(UserRole.COMPLIANCE_OFFICER, UserRole.SYSTEM_ADMIN)
   @UseGuards(RolesGuard)
-  @ApiOperation({
-    summary: "Change case status",
-    description:
-      "Updates case status with a required rationale for audit trail",
-  })
+  @ApiOperation({ summary: "Change case status" })
   @ApiParam({ name: "id", description: "Case UUID" })
-  @ApiResponse({ status: 200, description: "Status updated successfully" })
-  @ApiResponse({ status: 400, description: "Validation error" })
-  @ApiResponse({ status: 401, description: "Unauthorized" })
-  @ApiResponse({ status: 403, description: "Forbidden" })
-  @ApiResponse({ status: 404, description: "Case not found" })
+  @ApiResponse({ status: 200 })
   async updateStatus(
     @Param("id", ParseUUIDPipe) id: string,
     @Body() dto: ChangeCaseStatusDto,
@@ -368,24 +240,13 @@ export class CasesController {
     );
   }
 
-  /**
-   * POST /api/v1/cases/:id/close
-   * Closes a case with rationale.
-   */
   @Post(":id/close")
   @Roles(UserRole.COMPLIANCE_OFFICER, UserRole.SYSTEM_ADMIN)
   @UseGuards(RolesGuard)
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({
-    summary: "Close case",
-    description: "Closes a case with a required rationale",
-  })
+  @ApiOperation({ summary: "Close case" })
   @ApiParam({ name: "id", description: "Case UUID" })
-  @ApiResponse({ status: 200, description: "Case closed successfully" })
-  @ApiResponse({ status: 400, description: "Validation error" })
-  @ApiResponse({ status: 401, description: "Unauthorized" })
-  @ApiResponse({ status: 403, description: "Forbidden" })
-  @ApiResponse({ status: 404, description: "Case not found" })
+  @ApiResponse({ status: 200 })
   async close(
     @Param("id", ParseUUIDPipe) id: string,
     @Body() body: { rationale: string },
@@ -395,44 +256,19 @@ export class CasesController {
     return this.casesService.close(id, body.rationale, user.id, organizationId);
   }
 
-  /**
-   * GET /api/v1/cases/:id/activity
-   * Returns activity timeline for a specific case.
-   */
   @Get(":id/activity")
-  @ApiOperation({
-    summary: "Get case activity timeline",
-    description: "Returns paginated activity/audit log for a specific case",
-  })
+  @ApiOperation({ summary: "Get case activity timeline" })
   @ApiParam({ name: "id", description: "Case UUID" })
-  @ApiQuery({
-    name: "page",
-    required: false,
-    description: "Page number",
-    example: 1,
-  })
-  @ApiQuery({
-    name: "limit",
-    required: false,
-    description: "Items per page",
-    example: 20,
-  })
-  @ApiResponse({
-    status: 200,
-    description: "Activity timeline",
-    type: ActivityListResponseDto,
-  })
-  @ApiResponse({ status: 401, description: "Unauthorized" })
-  @ApiResponse({ status: 404, description: "Case not found" })
+  @ApiQuery({ name: "page", required: false, example: 1 })
+  @ApiQuery({ name: "limit", required: false, example: 20 })
+  @ApiResponse({ status: 200, type: ActivityListResponseDto })
   async getActivity(
     @Param("id", ParseUUIDPipe) id: string,
     @Query("page", new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query("limit", new DefaultValuePipe(20), ParseIntPipe) limit: number,
     @TenantId() organizationId: string,
   ): Promise<ActivityListResponseDto> {
-    // First verify the case exists and user has access
     await this.casesService.findOne(id, organizationId);
-
     return this.activityService.getEntityTimeline(
       AuditEntityType.CASE,
       id,
@@ -441,93 +277,39 @@ export class CasesController {
     );
   }
 
-  /**
-   * PUT /api/v1/cases/:id/activities/:activityId/pin
-   * Toggles the pinned status of an activity.
-   */
   @Put(":id/activities/:activityId/pin")
-  @ApiOperation({
-    summary: "Pin/unpin case activity",
-    description:
-      "Toggles the pinned status of an activity. Pinned activities appear highlighted in the timeline.",
-  })
+  @ApiOperation({ summary: "Pin/unpin case activity" })
   @ApiParam({ name: "id", description: "Case UUID" })
-  @ApiParam({ name: "activityId", description: "Activity UUID to pin/unpin" })
-  @ApiResponse({
-    status: 200,
-    description: "Activity pin status updated",
-  })
-  @ApiResponse({ status: 401, description: "Unauthorized" })
-  @ApiResponse({ status: 404, description: "Activity not found" })
+  @ApiParam({ name: "activityId", description: "Activity UUID" })
+  @ApiResponse({ status: 200 })
   async pinActivity(
     @Param("id", ParseUUIDPipe) id: string,
     @Param("activityId", ParseUUIDPipe) activityId: string,
     @Body() body: { isPinned: boolean },
     @TenantId() organizationId: string,
   ): Promise<{ success: boolean; isPinned: boolean }> {
-    // Verify the case exists and user has access
     await this.casesService.findOne(id, organizationId);
-
     const result = await this.activityService.pinActivity(
       activityId,
       body.isPinned,
       organizationId,
     );
-
-    if (!result) {
-      return { success: false, isPinned: false };
-    }
-
+    if (!result) return { success: false, isPinned: false };
     return {
       success: true,
       isPinned: (result.context as { isPinned?: boolean })?.isPinned ?? false,
     };
   }
 
-  /**
-   * GET /api/v1/cases/:id/status-history
-   * Returns status change history for the case.
-   */
   @Get(":id/status-history")
-  @ApiOperation({
-    summary: "Get case status history",
-    description:
-      "Returns all status changes for a case, including who made the change and any rationale provided.",
-  })
+  @ApiOperation({ summary: "Get case status history" })
   @ApiParam({ name: "id", description: "Case UUID" })
-  @ApiResponse({
-    status: 200,
-    description: "Status history",
-    schema: {
-      type: "array",
-      items: {
-        type: "object",
-        properties: {
-          id: { type: "string" },
-          status: { type: "string" },
-          date: { type: "string", format: "date-time" },
-          changedBy: {
-            type: "object",
-            nullable: true,
-            properties: {
-              id: { type: "string" },
-              name: { type: "string" },
-            },
-          },
-          rationale: { type: "string", nullable: true },
-        },
-      },
-    },
-  })
-  @ApiResponse({ status: 401, description: "Unauthorized" })
-  @ApiResponse({ status: 404, description: "Case not found" })
+  @ApiResponse({ status: 200 })
   async getStatusHistory(
     @Param("id", ParseUUIDPipe) id: string,
     @TenantId() organizationId: string,
   ) {
-    // Verify the case exists and user has access
     await this.casesService.findOne(id, organizationId);
-
     return this.activityService.getStatusHistory(
       AuditEntityType.CASE,
       id,
@@ -535,80 +317,26 @@ export class CasesController {
     );
   }
 
-  /**
-   * POST /api/v1/cases/export
-   * Exports filtered cases to Excel format.
-   */
   @Post("export")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({
-    summary: "Export cases",
-    description: "Exports filtered cases to Excel format",
-  })
-  @ApiResponse({
-    status: 200,
-    description: "Excel file generated successfully",
-  })
-  @ApiResponse({ status: 400, description: "Validation error" })
-  @ApiResponse({ status: 401, description: "Unauthorized" })
+  @ApiOperation({ summary: "Export cases" })
+  @ApiResponse({ status: 200, description: "Excel file generated" })
   async exportCases(
-    @Body()
-    body: {
-      format?: "excel" | "csv";
-      columns?: string[];
-    },
+    @Body() body: { format?: "excel" | "csv"; columns?: string[] },
     @Query() query: CaseQueryDto,
     @TenantId() organizationId: string,
     @Res() res: Response,
   ): Promise<void> {
-    // Get filtered cases (reuse existing findAll logic)
-    const { data } = await this.casesService.findAll(query, organizationId);
-
-    // Define export columns
-    const columnDefs: ColumnDefinition[] = [
-      { key: "referenceNumber", label: "Case #", type: "string", width: 15 },
-      { key: "summary", label: "Summary", type: "string", width: 40 },
-      { key: "status", label: "Status", type: "string", width: 12 },
-      { key: "severity", label: "Severity", type: "string", width: 10 },
-      { key: "category", label: "Category", type: "string", width: 20 },
-      { key: "createdAt", label: "Created Date", type: "date", width: 12 },
-      { key: "assignee", label: "Assignee", type: "string", width: 20 },
-      { key: "daysOpen", label: "Days Open", type: "number", width: 10 },
-    ];
-
-    // Map case data to rows
-    const rows = data.map((c) => ({
-      referenceNumber: c.referenceNumber,
-      summary: c.summary || c.details?.substring(0, 100) || "",
-      status: c.status,
-      severity: c.severity,
-      category: (c as Record<string, unknown>).primaryCategory
-        ? ((c as Record<string, unknown>).primaryCategory as { name: string })
-            ?.name
-        : "",
-      createdAt: c.createdAt,
-      assignee: (c as Record<string, unknown>).assignee
-        ? `${((c as Record<string, unknown>).assignee as { firstName?: string; lastName?: string })?.firstName || ""} ${((c as Record<string, unknown>).assignee as { firstName?: string; lastName?: string })?.lastName || ""}`.trim()
-        : "Unassigned",
-      daysOpen: Math.floor(
-        (Date.now() - new Date(c.createdAt).getTime()) / (1000 * 60 * 60 * 24),
-      ),
-    }));
-
-    // Generate Excel buffer
-    const buffer = await this.excelExportService.generateBuffer(
-      rows,
-      columnDefs,
-      { sheetName: "Cases Export" },
+    const buffer = await this.caseExportService.exportCases(
+      query,
+      organizationId,
+      body,
     );
-
-    // Send file response
-    const filename = `cases-export-${new Date().toISOString().split("T")[0]}.xlsx`;
+    res.setHeader("Content-Type", this.caseExportService.getContentType());
     res.setHeader(
-      "Content-Type",
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "Content-Disposition",
+      `attachment; filename="${this.caseExportService.getFilename()}"`,
     );
-    res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
     res.send(buffer);
   }
 }
