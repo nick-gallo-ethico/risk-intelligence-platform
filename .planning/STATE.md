@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-02-13)
 
 ## Current Position
 
-Phase: 30 of 31 (Test Coverage Foundation) — In Progress
-Plan: 4 of 5 complete (30-01, 30-02, 30-03, 30-04)
-Status: Plan 30-04 complete — ready for 30-05
-Last activity: 2026-02-14 — Completed 30-04-PLAN.md
+Phase: 30 of 31 (Test Coverage Foundation) — Complete
+Plan: 5 of 5 complete (30-01, 30-02, 30-03, 30-04, 30-05)
+Status: Phase 30 complete — ready for Phase 31
+Last activity: 2026-02-14 — Completed 30-05-PLAN.md
 
-Progress: [█████████░] 85% (v1.1 remediation - 20 of 24 plans)
+Progress: [█████████░] 88% (v1.1 remediation - 21 of 24 plans)
 
 ## Milestone v1.1: Code Review Remediation
 
@@ -28,7 +28,7 @@ Progress: [█████████░] 85% (v1.1 remediation - 20 of 24 plan
 | 27    | Security Hardening           | SEC-01 to SEC-06          | Complete |
 | 28    | Production Readiness         | PROD-01 to PROD-07        | Complete |
 | 29    | Error Handling & Reliability | ERR-01 to ERR-09          | Complete |
-| 30    | Test Coverage Foundation     | TEST-01 to TEST-04        | In Progress |
+| 30    | Test Coverage Foundation     | TEST-01 to TEST-04        | Complete |
 | 31    | Code Quality & Performance   | QUAL-01 to QUAL-08        | Pending  |
 
 ## Milestone Targets
@@ -213,23 +213,30 @@ Key outcomes:
 - Transaction mocking via callback execution for version-on-publish tests
 - Tenant isolation verified via organizationId filtering in all CRUD operations
 
+### Key Decisions (30-05)
+
+- Use wildcard URL patterns (\*/api/v1/...) in MSW handlers to match axios full URLs
+- Add localStorage mock to test setup for auth-storage compatibility
+- ErrorBoundary uses class component pattern as required by React error boundary API
+- ApiErrorBoundary uses render props pattern for react-query integration
+
 ### Blockers
 
 None currently.
 
 ## Phase 30 Plans
 
-| Plan  | Wave | Objective                                | Autonomous | Status      |
-| ----- | ---- | ---------------------------------------- | ---------- | ----------- |
-| 30-01 | 1    | Auth services unit tests (AuthService, MfaService, TokenRefreshService, RecoveryCodesService) | Yes | Complete |
-| 30-02 | 1    | Domain services unit tests (DomainService, DomainVerificationService) | Yes | Complete |
-| 30-03 | 1    | Cases service tests (RIUs, Cases)        | Yes        | Complete    |
-| 30-04 | 1    | Campaigns/Policies service tests         | Yes        | Complete    |
-| 30-05 | 2    | Frontend tests (React Testing Library + MSW) | Yes     | Pending     |
+| Plan  | Wave | Objective                                                                                     | Autonomous | Status   |
+| ----- | ---- | --------------------------------------------------------------------------------------------- | ---------- | -------- |
+| 30-01 | 1    | Auth services unit tests (AuthService, MfaService, TokenRefreshService, RecoveryCodesService) | Yes        | Complete |
+| 30-02 | 1    | Domain services unit tests (DomainService, DomainVerificationService)                         | Yes        | Complete |
+| 30-03 | 1    | Cases service tests (RIUs, Cases)                                                             | Yes        | Complete |
+| 30-04 | 1    | Campaigns/Policies service tests                                                              | Yes        | Complete |
+| 30-05 | 2    | Frontend tests (React Testing Library + MSW)                                                  | Yes        | Complete |
 
 ## Session Continuity
 
-Last session: 2026-02-14 — Completed 30-01-PLAN.md (auth services unit tests)
-Stopped at: Plan 30-01 complete — 92 tests for AuthService, MfaService, TokenRefreshService, RecoveryCodesService
-Resume file: .planning/phases/30-test-coverage-foundation/30-05-PLAN.md
-Next action: /gsd:execute-phase 30 (plan 05)
+Last session: 2026-02-14 — Completed 30-05-PLAN.md (frontend test infrastructure)
+Stopped at: Phase 30 complete — MSW v2, 3 error boundary components, dashboard tests (36 tests)
+Resume file: None
+Next action: /gsd:plan-phase 31 (or /gsd:execute-phase 31 if plans exist)
