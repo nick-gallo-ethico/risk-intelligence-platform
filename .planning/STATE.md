@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-13)
 ## Current Position
 
 Phase: 31 of 31 (Code Quality & Performance) — In Progress
-Plan: 2 of 8 complete (31-01, 31-02)
+Plan: 3 of 8 complete (31-01, 31-02, 31-03)
 Status: Phase 31 in progress
-Last activity: 2026-02-14 — Completed 31-01-PLAN.md
+Last activity: 2026-02-14 — Completed 31-03-PLAN.md
 
-Progress: [█████████░] 92% (v1.1 remediation - 23 of 24 plans estimated)
+Progress: [█████████░] 93% (v1.1 remediation - 24 of 26 plans)
 
 ## Milestone v1.1: Code Review Remediation
 
@@ -22,13 +22,13 @@ Progress: [█████████░] 92% (v1.1 remediation - 23 of 24 plan
 **Findings:** 36 (8 Critical, 12 High, 13 Medium, 3 Low)
 **Overall Grade:** C- → Target: B+ after remediation
 
-| Phase | Name                         | Requirements              | Status   |
-| ----- | ---------------------------- | ------------------------- | -------- |
-| 26    | Emergency Fixes              | EMER-01, EMER-02, EMER-03 | Complete |
-| 27    | Security Hardening           | SEC-01 to SEC-06          | Complete |
-| 28    | Production Readiness         | PROD-01 to PROD-07        | Complete |
-| 29    | Error Handling & Reliability | ERR-01 to ERR-09          | Complete |
-| 30    | Test Coverage Foundation     | TEST-01 to TEST-04        | Complete |
+| Phase | Name                         | Requirements              | Status      |
+| ----- | ---------------------------- | ------------------------- | ----------- |
+| 26    | Emergency Fixes              | EMER-01, EMER-02, EMER-03 | Complete    |
+| 27    | Security Hardening           | SEC-01 to SEC-06          | Complete    |
+| 28    | Production Readiness         | PROD-01 to PROD-07        | Complete    |
+| 29    | Error Handling & Reliability | ERR-01 to ERR-09          | Complete    |
+| 30    | Test Coverage Foundation     | TEST-01 to TEST-04        | Complete    |
 | 31    | Code Quality & Performance   | QUAL-01 to QUAL-08        | In Progress |
 
 ## Milestone Targets
@@ -232,16 +232,24 @@ Key outcomes:
 - Development environment display conditional on `config.isDevelopment`
 - Default port standardized to localhost:3001 (matching backend .env)
 
+### Key Decisions (31-03)
+
+- Type aliases `EsSearchParams` and `EsSearchResponse` for cleaner opossum generic inference
+- Fail-fast for suggest: Check `opened` state before attempting call to reduce noise
+- Timeout alignment: ES timeout and circuit breaker timeout both 5s
+- Circuit opens after 50% error rate with 5+ requests (volumeThreshold)
+
 ### Blockers
 
 None currently.
 
 ## Phase 31 Plans
 
-| Plan  | Wave | Objective                                              | Autonomous | Status   |
-| ----- | ---- | ------------------------------------------------------ | ---------- | -------- |
-| 31-01 | 1    | QUAL-01: Response compression and DB pool size         | Yes        | Complete |
-| 31-02 | 1    | QUAL-02: Frontend environment URL centralization       | Yes        | Complete |
+| Plan  | Wave | Objective                                        | Autonomous | Status   |
+| ----- | ---- | ------------------------------------------------ | ---------- | -------- |
+| 31-01 | 1    | QUAL-01: Response compression and DB pool size   | Yes        | Complete |
+| 31-02 | 1    | QUAL-02: Frontend environment URL centralization | Yes        | Complete |
+| 31-03 | 1    | QUAL-03: Elasticsearch circuit breaker           | Yes        | Complete |
 
 ## Phase 30 Plans
 
@@ -255,7 +263,7 @@ None currently.
 
 ## Session Continuity
 
-Last session: 2026-02-14 — Completed 31-01-PLAN.md (response compression and DB pool)
-Stopped at: Phase 31 in progress — 2 of 8 plans complete (31-01, 31-02)
+Last session: 2026-02-14 — Completed 31-03-PLAN.md (Elasticsearch circuit breaker)
+Stopped at: Phase 31 in progress — 3 of 8 plans complete (31-01, 31-02, 31-03)
 Resume file: None
-Next action: Continue with remaining Phase 31 plans (31-03 to 31-08)
+Next action: Continue with remaining Phase 31 plans (31-04 to 31-08)
