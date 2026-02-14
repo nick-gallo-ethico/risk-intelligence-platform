@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-13)
 ## Current Position
 
 Phase: 28 of 31 (Production Readiness) — In Progress
-Plan: 2 of 5 complete
-Status: Completed 28-02-PLAN.md (storage provider fail-fast)
-Last activity: 2026-02-14 — Completed 28-02-PLAN.md
+Plan: 2 of 5 complete (28-01, 28-02)
+Status: Completed 28-01-PLAN.md (env validation, Prisma retry, graceful shutdown)
+Last activity: 2026-02-14 — Completed 28-01-PLAN.md
 
-Progress: [██████░░░░] 35% (v1.1 remediation - 8 of 20+ plans)
+Progress: [███████░░░] 38% (v1.1 remediation - 8 of 20+ plans)
 
 ## Milestone v1.1: Code Review Remediation
 
@@ -45,7 +45,7 @@ Progress: [██████░░░░] 35% (v1.1 remediation - 8 of 20+ plan
 
 | Plan  | Wave | Objective                                          | Autonomous | Status   |
 | ----- | ---- | -------------------------------------------------- | ---------- | -------- |
-| 28-01 | 1    | PROD-01: Containerization with multi-stage Docker  | Yes        | Pending  |
+| 28-01 | 1    | PROD-01: Env validation, Prisma retry, shutdown    | Yes        | Complete |
 | 28-02 | 1    | PROD-02: Storage provider fail-fast initialization | Yes        | Complete |
 | 28-03 | 2    | PROD-03: Health checks and readiness probes        | Yes        | Pending  |
 | 28-04 | 2    | PROD-04: Azure Key Vault integration               | Yes        | Pending  |
@@ -117,6 +117,12 @@ Key outcomes:
 - AiContextFile uses hierarchical pattern (platform/org/user)
 - Comprehensive documentation (428 lines) explaining RLS interaction
 
+### Key Decisions (28-01)
+
+- Use Zod for env validation over class-validator (simpler, type-safe inference)
+- 3 retries with 1s/2s/4s delays balances startup speed vs resilience
+- enableShutdownHooks() ensures OnApplicationShutdown hooks fire on SIGTERM
+
 ### Key Decisions (28-02)
 
 - Check storage.provider config first; skip initialization if not active provider
@@ -130,6 +136,6 @@ None currently.
 
 ## Session Continuity
 
-Last session: 2026-02-14 13:52 EST
-Stopped at: Completed 28-02-PLAN.md (storage provider fail-fast)
+Last session: 2026-02-14 13:57 EST
+Stopped at: Completed 28-01-PLAN.md (env validation, Prisma retry, graceful shutdown)
 Resume file: .planning/phases/28-production-readiness/28-03-PLAN.md
