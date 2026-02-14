@@ -23,10 +23,22 @@ import type {
   UpdateCaseInput,
 } from "@/types/case";
 
+/** Collapsible state for each property card section */
+interface CollapsibleStates {
+  aboutOpen: boolean;
+  setAboutOpen: (open: boolean) => void;
+  intakeOpen: boolean;
+  setIntakeOpen: (open: boolean) => void;
+  classificationOpen: boolean;
+  setClassificationOpen: (open: boolean) => void;
+}
+
 interface CasePropertiesPanelProps {
   caseData: Case | null;
   isLoading: boolean;
   onUpdate?: (updatedCase: Case) => void;
+  /** Optional externally-controlled collapsible state (for localStorage persistence) */
+  collapsibleStates?: CollapsibleStates;
 }
 
 const STATUS_OPTIONS = [
@@ -130,6 +142,7 @@ export function CasePropertiesPanel({
   caseData,
   isLoading,
   onUpdate,
+  collapsibleStates,
 }: CasePropertiesPanelProps) {
   const updateCase = useCallback(
     async (field: keyof UpdateCaseInput, value: string | string[]) => {
@@ -447,6 +460,8 @@ export function CasePropertiesPanel({
         title="About This Case"
         fields={aboutThisCaseFields}
         defaultCollapsed={false}
+        isOpen={collapsibleStates?.aboutOpen}
+        onOpenChange={collapsibleStates?.setAboutOpen}
         showSettingsGear={false}
       />
 
@@ -455,6 +470,8 @@ export function CasePropertiesPanel({
         title="Intake Information"
         fields={intakeFields}
         defaultCollapsed={true}
+        isOpen={collapsibleStates?.intakeOpen}
+        onOpenChange={collapsibleStates?.setIntakeOpen}
         showSettingsGear={false}
       />
 
@@ -463,6 +480,8 @@ export function CasePropertiesPanel({
         title="Classification"
         fields={classificationFields}
         defaultCollapsed={false}
+        isOpen={collapsibleStates?.classificationOpen}
+        onOpenChange={collapsibleStates?.setClassificationOpen}
         showSettingsGear={false}
       >
         {/* CategorySelector rendered as custom children above the standard fields */}

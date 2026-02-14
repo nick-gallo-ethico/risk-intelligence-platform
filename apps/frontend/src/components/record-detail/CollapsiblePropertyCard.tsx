@@ -40,8 +40,12 @@ interface CollapsiblePropertyCardProps {
   title: string;
   /** Array of property fields to display */
   fields: PropertyField[];
-  /** Whether the card starts collapsed */
+  /** Whether the card starts collapsed (used for uncontrolled mode) */
   defaultCollapsed?: boolean;
+  /** Controlled open state - when provided, overrides internal state */
+  isOpen?: boolean;
+  /** Callback when open state changes - used with isOpen for controlled mode */
+  onOpenChange?: (open: boolean) => void;
   /** Show the settings gear icon (admin only) */
   showSettingsGear?: boolean;
   /** Callback when settings gear is clicked */
@@ -73,12 +77,20 @@ export function CollapsiblePropertyCard({
   title,
   fields,
   defaultCollapsed = false,
+  isOpen: controlledIsOpen,
+  onOpenChange,
   showSettingsGear = false,
   onSettingsClick,
   className,
   children,
 }: CollapsiblePropertyCardProps) {
-  const [isOpen, setIsOpen] = useState(!defaultCollapsed);
+  // Support both controlled and uncontrolled modes
+  const [internalIsOpen, setInternalIsOpen] = useState(!defaultCollapsed);
+  const isControlled = controlledIsOpen !== undefined;
+  const isOpen = isControlled ? controlledIsOpen : internalIsOpen;
+  const setIsOpen = isControlled
+    ? (open: boolean) => onOpenChange?.(open)
+    : setInternalIsOpen;
 
   return (
     <Card className={cn("overflow-hidden", className)}>

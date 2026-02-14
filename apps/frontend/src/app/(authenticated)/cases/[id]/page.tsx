@@ -6,6 +6,7 @@ import { useAuth } from "@/contexts/auth-context";
 import { useTrackRecentItem } from "@/contexts/shortcuts-context";
 import { useGlobalShortcuts } from "@/hooks/use-keyboard-shortcuts";
 import { usePipeline } from "@/hooks/usePipeline";
+import { useCollapsibleState } from "@/hooks/useCollapsibleState";
 import { casesApi } from "@/lib/cases-api";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -86,6 +87,20 @@ function CaseDetailPageContent() {
   const [activeTab, setActiveTab] = useState<string>("overview");
 
   const caseId = params?.id as string;
+
+  // Collapsible state persistence for left sidebar property cards
+  const [aboutOpen, setAboutOpen] = useCollapsibleState(
+    `collapsible-${caseId}-about`,
+    true,
+  );
+  const [intakeOpen, setIntakeOpen] = useCollapsibleState(
+    `collapsible-${caseId}-intake`,
+    false,
+  );
+  const [classificationOpen, setClassificationOpen] = useCollapsibleState(
+    `collapsible-${caseId}-classification`,
+    true,
+  );
 
   // Pipeline stage management via usePipeline hook
   const {
@@ -363,6 +378,14 @@ function CaseDetailPageContent() {
           caseData={caseData}
           isLoading={loading}
           onUpdate={(updatedCase) => setCaseData(updatedCase)}
+          collapsibleStates={{
+            aboutOpen,
+            setAboutOpen,
+            intakeOpen,
+            setIntakeOpen,
+            classificationOpen,
+            setClassificationOpen,
+          }}
         />
       </div>
     </>
