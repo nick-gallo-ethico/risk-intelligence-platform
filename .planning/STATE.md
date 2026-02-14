@@ -139,9 +139,11 @@ Key outcomes:
 
 ### Key Decisions (28-04)
 
-- Use @nestjs/terminus for health indicators (database, redis, elasticsearch)
-- Separate /health (liveness) and /health/ready (readiness) endpoints
-- Health checks timeout after 5 seconds to prevent hanging
+- Use @nestjs/terminus for standardized health check infrastructure
+- Optional dependencies (Redis, ES) return 'not_configured' status for graceful degradation
+- Separate liveness (heartbeat) from readiness (database) probes per Kubernetes best practices
+- ElasticsearchHealthIndicator treats 'yellow' as healthy (normal for single-node)
+- PrismaHealthIndicator uses SELECT 1 for minimal database check
 
 ### Key Decisions (28-05)
 
