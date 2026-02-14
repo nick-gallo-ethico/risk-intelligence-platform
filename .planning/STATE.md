@@ -161,6 +161,13 @@ Key outcomes:
 - Three-stage Dockerfile: deps, build, production for minimal image size
 - dumb-init as ENTRYPOINT for proper SIGTERM forwarding to Node.js
 
+### Key Decisions (29-01)
+
+- 5 consecutive failures threshold for audit alerting (balances sensitivity vs noise)
+- Abort DB deletion on storage failure to prevent orphaned attachment records
+- Capture provider name before try block for error context in AI provider logging
+- EventEmitter2 pattern for monitoring.alert events (decoupled from monitoring infra)
+
 ### Key Decisions (29-02)
 
 - Error type guard pattern: error instanceof Error for safe message/stack access
