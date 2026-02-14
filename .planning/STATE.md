@@ -11,8 +11,8 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 
 Phase: 25.1 of 25+ (Case Detail Page Vision Revision) — IN PROGRESS
 Plan: 06 of ?? in current phase
-Status: Completed 25.1-01, 25.1-02, 25.1-03, 25.1-05, 25.1-06, 25.1-07, 25.1-08, 25.1-10
-Last activity: 2026-02-13 - Completed 25.1-06 (Activities tab HubSpot rebuild)
+Status: Completed 25.1-01, 25.1-02, 25.1-03, 25.1-04, 25.1-05, 25.1-06, 25.1-07, 25.1-08, 25.1-10
+Last activity: 2026-02-13 - Completed 25.1-04 (Classification card with CategorySelector)
 
 Progress: [===================================================================+] ~100% (Phase 21 adds new plans beyond original 24)
 
@@ -43,6 +43,14 @@ Progress: [===================================================================+]
   - Simplified CaseDetailHeader to breadcrumb-only
   - Rule 3 fixes: Missing SummaryTab import, Investigation type field mismatches
   - Pattern: Config-driven property cards, reusable record header/actions components
+
+- 25.1-04: Classification Card (COMPLETE - 78e3ecd, 5d5bf20)
+  - Created CategorySelector with dependent primary/subcategory dropdowns
+  - Uses useAuthenticatedCategories hook for tenant-configured category tree
+  - Wired Classification card with 5 fields: Category, Subcategory, Tags, Risk Level, Regulatory Framework
+  - Added RiskLevel and RegulatoryFramework types to Case type system
+  - Extended CollapsiblePropertyCard with children prop for custom content
+  - All fields wired to PATCH /cases/:id via onChange handlers
 
 - 25.1-05: Overview Tab Rebuild (COMPLETE - a152a41)
   - Created DataHighlightsCard with 6-value grid (severity, status, age, SLA, assignee, source)
@@ -1266,8 +1274,8 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-02-13
-Stopped at: Phase 23 COMPLETE — all plans executed, verified 6/6, all fixes committed
-Resume file: N/A (phase complete)
+Stopped at: Completed 25.1-04-PLAN.md (Classification card with CategorySelector)
+Resume file: None
 
 **Phase 23 Status: COMPLETE**
 All 5 plans executed, verification passed (6/6), 3 post-verification fixes committed.
