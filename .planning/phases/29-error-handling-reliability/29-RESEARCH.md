@@ -9,6 +9,7 @@
 This phase addresses nine specific error handling deficiencies identified in the UNIFIED-AUDIT-REPORT.md, spanning backend exception handling, audit trail reliability, frontend error boundaries, and async event handler safety. The codebase already has well-structured exception filters (`HttpExceptionFilter`, `SentryExceptionFilter`) and one error boundary pattern (`apps/frontend/src/app/(authenticated)/cases/[id]/error.tsx`) that can be extended.
 
 The primary issues are:
+
 1. **Backend:** 133 bare `throw new Error()` statements bypass NestJS exception filters; global filters are not registered in `main.ts`
 2. **Audit reliability:** AuditService swallows all errors with no escalation; attachment deletion creates orphaned files
 3. **Frontend:** Only 1 error boundary exists for 545+ components; auth/storage errors are silently swallowed
@@ -20,26 +21,26 @@ The primary issues are:
 
 ### Core (Already in Use)
 
-| Library | Version | Purpose | Why Standard |
-|---------|---------|---------|--------------|
-| `@nestjs/common` | 10.x | Built-in HTTP exceptions | NestJS-native, filter-aware, structured responses |
-| `@nestjs/event-emitter` | 2.x | Async event handling | NestJS-native, decorator-based, supports async |
-| Next.js App Router | 14.x | `error.tsx` file convention | Built-in error boundary support per route segment |
-| `@sentry/node` | 7.x | Error tracking | Already integrated via `SentryExceptionFilter` |
+| Library                 | Version | Purpose                     | Why Standard                                      |
+| ----------------------- | ------- | --------------------------- | ------------------------------------------------- |
+| `@nestjs/common`        | 10.x    | Built-in HTTP exceptions    | NestJS-native, filter-aware, structured responses |
+| `@nestjs/event-emitter` | 2.x     | Async event handling        | NestJS-native, decorator-based, supports async    |
+| Next.js App Router      | 14.x    | `error.tsx` file convention | Built-in error boundary support per route segment |
+| `@sentry/node`          | 7.x     | Error tracking              | Already integrated via `SentryExceptionFilter`    |
 
 ### Supporting
 
-| Library | Version | Purpose | When to Use |
-|---------|---------|---------|-------------|
-| `sonner` or `react-hot-toast` | latest | User-facing error toasts | Frontend error notifications (already have toast in shadcn/ui) |
+| Library                       | Version | Purpose                  | When to Use                                                    |
+| ----------------------------- | ------- | ------------------------ | -------------------------------------------------------------- |
+| `sonner` or `react-hot-toast` | latest  | User-facing error toasts | Frontend error notifications (already have toast in shadcn/ui) |
 
 ### Not Needed (Don't Add)
 
-| Instead of | Don't Use | Why |
-|------------|-----------|-----|
-| Custom error classes | Generic Error subclasses | NestJS built-in exceptions cover all HTTP use cases |
-| External monitoring lib | Additional APM | Sentry already integrated, just needs proper wiring |
-| Custom retry libraries | Hand-rolled retry | Use simple counter + threshold pattern for AuditService |
+| Instead of              | Don't Use                | Why                                                     |
+| ----------------------- | ------------------------ | ------------------------------------------------------- |
+| Custom error classes    | Generic Error subclasses | NestJS built-in exceptions cover all HTTP use cases     |
+| External monitoring lib | Additional APM           | Sentry already integrated, just needs proper wiring     |
+| Custom retry libraries  | Hand-rolled retry        | Use simple counter + threshold pattern for AuditService |
 
 **Installation:** No new packages required. All patterns use existing dependencies.
 
@@ -53,18 +54,19 @@ The primary issues are:
 
 **NestJS Built-in Exceptions (use these):**
 
-| Exception | HTTP Status | Use Case |
-|-----------|-------------|----------|
-| `BadRequestException` | 400 | Invalid input, validation failures |
-| `UnauthorizedException` | 401 | Missing or invalid authentication |
-| `ForbiddenException` | 403 | Insufficient permissions |
-| `NotFoundException` | 404 | Resource not found |
-| `ConflictException` | 409 | Duplicate resource, concurrent modification |
-| `UnprocessableEntityException` | 422 | Semantic validation errors |
-| `InternalServerErrorException` | 500 | Unexpected server errors (use sparingly) |
-| `ServiceUnavailableException` | 503 | External service failures |
+| Exception                      | HTTP Status | Use Case                                    |
+| ------------------------------ | ----------- | ------------------------------------------- |
+| `BadRequestException`          | 400         | Invalid input, validation failures          |
+| `UnauthorizedException`        | 401         | Missing or invalid authentication           |
+| `ForbiddenException`           | 403         | Insufficient permissions                    |
+| `NotFoundException`            | 404         | Resource not found                          |
+| `ConflictException`            | 409         | Duplicate resource, concurrent modification |
+| `UnprocessableEntityException` | 422         | Semantic validation errors                  |
+| `InternalServerErrorException` | 500         | Unexpected server errors (use sparingly)    |
+| `ServiceUnavailableException`  | 503         | External service failures                   |
 
 **Example - Event Class Validation:**
+
 ```typescript
 // Source: apps/backend/src/modules/projects/events/project.events.ts
 // BEFORE: Bare throw
@@ -93,10 +95,11 @@ if (!dto.taskId) {
 **Current state:** Filters exist but are not registered.
 
 **Required change in `main.ts`:**
+
 ```typescript
 // Source: NestJS official docs - https://docs.nestjs.com/exception-filters
-import { HttpExceptionFilter } from './common/filters/http-exception.filter';
-import { SentryExceptionFilter } from './common/filters/sentry-exception.filter';
+import { HttpExceptionFilter } from "./common/filters/http-exception.filter";
+import { SentryExceptionFilter } from "./common/filters/sentry-exception.filter";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -118,6 +121,7 @@ async function bootstrap() {
 **What:** Track consecutive audit failures and emit an alert event after threshold.
 
 **Example implementation:**
+
 ```typescript
 // apps/backend/src/modules/audit/audit.service.ts
 @Injectable()
@@ -133,22 +137,28 @@ export class AuditService {
 
   async log(dto: CreateAuditLogDto): Promise<void> {
     try {
-      await this.prisma.auditLog.create({ data: { /* ... */ } });
-      this.consecutiveFailures = 0;  // Reset on success
+      await this.prisma.auditLog.create({
+        data: {
+          /* ... */
+        },
+      });
+      this.consecutiveFailures = 0; // Reset on success
       this.logger.debug(`Audit log created: ${dto.entityType}/${dto.entityId}`);
     } catch (error) {
       this.consecutiveFailures++;
       this.logger.error(
-        `Audit log failure (${this.consecutiveFailures}/${this.FAILURE_THRESHOLD}): ${error instanceof Error ? error.message : 'Unknown'}`,
+        `Audit log failure (${this.consecutiveFailures}/${this.FAILURE_THRESHOLD}): ${error instanceof Error ? error.message : "Unknown"}`,
         error instanceof Error ? error.stack : undefined,
       );
 
       if (this.consecutiveFailures >= this.FAILURE_THRESHOLD) {
-        this.eventEmitter.emit('monitoring.alert', {
-          type: 'AUDIT_TRAIL_GAP',
+        this.eventEmitter.emit("monitoring.alert", {
+          type: "AUDIT_TRAIL_GAP",
           message: `${this.FAILURE_THRESHOLD} consecutive audit log failures`,
-          severity: 'CRITICAL',
-          context: { lastError: error instanceof Error ? error.message : 'Unknown' },
+          severity: "CRITICAL",
+          context: {
+            lastError: error instanceof Error ? error.message : "Unknown",
+          },
         });
         // Reset to avoid alert flooding
         this.consecutiveFailures = 0;
@@ -163,6 +173,7 @@ export class AuditService {
 **What:** Only delete DB record if storage deletion succeeds or file is already gone.
 
 **Example implementation:**
+
 ```typescript
 // apps/backend/src/modules/attachments/attachments.service.ts
 async delete(id: string, organizationId: string, userId: string): Promise<void> {
@@ -207,6 +218,7 @@ async delete(id: string, organizationId: string, userId: string): Promise<void> 
 **What:** Create `error.tsx` files in each top-level route segment under `(authenticated)`.
 
 **Required locations (16 route segments):**
+
 ```
 apps/frontend/src/app/
 ├── (authenticated)/
@@ -238,6 +250,7 @@ apps/frontend/src/app/
 ```
 
 **Reusable error component template:**
+
 ```typescript
 // Source: Next.js docs - https://nextjs.org/docs/app/api-reference/file-conventions/error
 'use client';
@@ -289,6 +302,7 @@ export default function RouteError({ error, reset }: RouteErrorProps) {
 **What:** Return a `_decryptionFailed` flag when decryption fails so UI can display error.
 
 **Example implementation:**
+
 ```typescript
 // apps/frontend/src/lib/ethics-offline-db.ts
 interface DecryptedDraft extends ReportDraft {
@@ -324,13 +338,14 @@ decryptDraft(draft: ReportDraft): DecryptedDraft {
 ```
 
 **UI handling:**
+
 ```typescript
 // In component using useAutoSaveDraft
 const draft = await loadDraft();
 if (draft?._decryptionFailed) {
   toast.error(
-    'Unable to recover your saved draft. The encryption key may have changed.',
-    { duration: 10000 }
+    "Unable to recover your saved draft. The encryption key may have changed.",
+    { duration: 10000 },
   );
 }
 ```
@@ -340,21 +355,24 @@ if (draft?._decryptionFailed) {
 **What:** Log server-side logout failures to console.warn (not swallow completely).
 
 **Example implementation:**
+
 ```typescript
 // apps/frontend/src/contexts/auth-context.tsx
 const logout = useCallback(async () => {
   try {
-    await apiClient.post('/auth/logout');
+    await apiClient.post("/auth/logout");
   } catch (error) {
     // Log failure - tokens may remain valid server-side
     console.warn(
-      'Server-side session invalidation failed. Session may remain active.',
+      "Server-side session invalidation failed. Session may remain active.",
       error instanceof Error ? error.message : error,
     );
   } finally {
     // Always clear local state
     authStorage.clearAll();
-    setState({ /* ... */ });
+    setState({
+      /* ... */
+    });
   }
 }, []);
 ```
@@ -364,6 +382,7 @@ const logout = useCallback(async () => {
 **What:** Log and clear corrupted localStorage entries.
 
 **Example implementation:**
+
 ```typescript
 // apps/frontend/src/lib/auth-storage.ts
 getUser<T>(): T | null {
@@ -392,6 +411,7 @@ getUser<T>(): T | null {
 **What:** Log errors with provider name before returning null.
 
 **Example implementation:**
+
 ```typescript
 // apps/backend/src/modules/ai/services/provider-registry.service.ts
 tryGetProvider(name?: string): AIProvider | null {
@@ -414,6 +434,7 @@ tryGetProvider(name?: string): AIProvider | null {
 **What:** Wrap async event handlers in try-catch to log errors.
 
 **Example implementation:**
+
 ```typescript
 // apps/backend/src/modules/audit/handlers/case-audit.handler.ts
 @OnEvent('case.created', { async: true })
@@ -442,12 +463,12 @@ async handleCaseCreated(event: CaseCreatedEvent): Promise<void> {
 
 ## Don't Hand-Roll
 
-| Problem | Don't Build | Use Instead | Why |
-|---------|-------------|-------------|-----|
-| HTTP error responses | Custom error classes | NestJS built-in exceptions | Filter-aware, consistent format |
-| Error tracking | Custom logging aggregation | Sentry (already integrated) | Production-ready, alerting built-in |
-| React error boundaries | Class-based ErrorBoundary | Next.js `error.tsx` convention | Framework-native, better DX |
-| Retry logic | Custom retry library | Simple counter pattern | Audit only needs threshold alerting |
+| Problem                | Don't Build                | Use Instead                    | Why                                 |
+| ---------------------- | -------------------------- | ------------------------------ | ----------------------------------- |
+| HTTP error responses   | Custom error classes       | NestJS built-in exceptions     | Filter-aware, consistent format     |
+| Error tracking         | Custom logging aggregation | Sentry (already integrated)    | Production-ready, alerting built-in |
+| React error boundaries | Class-based ErrorBoundary  | Next.js `error.tsx` convention | Framework-native, better DX         |
+| Retry logic            | Custom retry library       | Simple counter pattern         | Audit only needs threshold alerting |
 
 **Key insight:** The codebase already has the correct infrastructure (filters, Sentry, one error boundary). The work is wiring them properly and extending patterns consistently.
 
@@ -494,20 +515,20 @@ async handleCaseCreated(event: CaseCreatedEvent): Promise<void> {
 
 ```typescript
 // apps/backend/src/main.ts
-import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import helmet from 'helmet';
-import pino from 'pino';
-import { AppModule } from './app.module';
-import { HttpExceptionFilter } from './common/filters/http-exception.filter';
-import { SentryExceptionFilter } from './common/filters/sentry-exception.filter';
+import { NestFactory } from "@nestjs/core";
+import { ValidationPipe } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
+import helmet from "helmet";
+import pino from "pino";
+import { AppModule } from "./app.module";
+import { HttpExceptionFilter } from "./common/filters/http-exception.filter";
+import { SentryExceptionFilter } from "./common/filters/sentry-exception.filter";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { bufferLogs: true });
   const configService = app.get(ConfigService);
-  const nodeEnv = configService.get<string>('NODE_ENV', 'development');
+  const nodeEnv = configService.get<string>("NODE_ENV", "development");
 
   // Security
   app.use(helmet());
@@ -520,11 +541,13 @@ async function bootstrap() {
   );
 
   // Validation
-  app.useGlobalPipes(new ValidationPipe({
-    whitelist: true,
-    forbidNonWhitelisted: true,
-    transform: true,
-  }));
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    }),
+  );
 
   // ... rest of bootstrap
 }
@@ -565,7 +588,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
 if (this.documentProcessing.isExtractable(params.contentType)) {
   // Wrap async event emission to catch handler rejections
   this.eventEmitter
-    .emitAsync('file.uploaded', {
+    .emitAsync("file.uploaded", {
       organizationId: params.organizationId,
       attachmentId: attachment.id,
       fileKey: fileKey,
@@ -575,7 +598,7 @@ if (this.documentProcessing.isExtractable(params.contentType)) {
     .catch((error) => {
       // Log but don't fail the upload
       this.logger.warn(
-        `Async handler failed for file.uploaded event (attachment: ${attachment.id}): ${error instanceof Error ? error.message : 'Unknown'}`,
+        `Async handler failed for file.uploaded event (attachment: ${attachment.id}): ${error instanceof Error ? error.message : "Unknown"}`,
         error instanceof Error ? error.stack : undefined,
       );
     });
@@ -584,13 +607,14 @@ if (this.documentProcessing.isExtractable(params.contentType)) {
 
 ## State of the Art
 
-| Old Approach | Current Approach | When Changed | Impact |
-|--------------|------------------|--------------|--------|
-| Class-based Error Boundaries | Next.js `error.tsx` convention | Next.js 13 (2022) | Simpler, file-based, automatic wrapping |
-| Manual Sentry capture | `@Catch()` filter integration | Sentry 7.x | Automatic capture with context |
-| `throw new Error()` | NestJS typed exceptions | NestJS best practice | Filter-aware, structured responses |
+| Old Approach                 | Current Approach               | When Changed         | Impact                                  |
+| ---------------------------- | ------------------------------ | -------------------- | --------------------------------------- |
+| Class-based Error Boundaries | Next.js `error.tsx` convention | Next.js 13 (2022)    | Simpler, file-based, automatic wrapping |
+| Manual Sentry capture        | `@Catch()` filter integration  | Sentry 7.x           | Automatic capture with context          |
+| `throw new Error()`          | NestJS typed exceptions        | NestJS best practice | Filter-aware, structured responses      |
 
 **Deprecated/outdated:**
+
 - Manual `try-catch` around every controller method: Use global filters instead
 - Custom exception class hierarchies: Use NestJS built-in exceptions
 
@@ -609,20 +633,24 @@ if (this.documentProcessing.isExtractable(params.contentType)) {
 ## Sources
 
 ### Primary (HIGH confidence)
+
 - **Codebase inspection** - Direct review of existing filters, error boundaries, and error handling patterns
 - **Next.js Official Docs** - https://nextjs.org/docs/app/api-reference/file-conventions/error (v16.1.6, 2026-02-11)
 - **UNIFIED-AUDIT-REPORT.md** - Specific findings C3, H7, H8, H9, H10, H11, H12, M6, M11, M12
 
 ### Secondary (MEDIUM confidence)
+
 - **NestJS Exception Filters** - https://docs.nestjs.com/exception-filters (WebSearch results confirmed patterns)
 - **Better Stack Community** - https://betterstack.com/community/guides/scaling-nodejs/error-handling-nestjs/
 
 ### Tertiary (LOW confidence)
+
 - None - all patterns verified against existing codebase or official documentation
 
 ## Metadata
 
 **Confidence breakdown:**
+
 - Standard stack: HIGH - Using existing NestJS/Next.js built-ins already in codebase
 - Architecture patterns: HIGH - Extending existing patterns (filters, error.tsx)
 - Pitfalls: HIGH - Based on actual audit findings from codebase review
@@ -634,19 +662,20 @@ if (this.documentProcessing.isExtractable(params.contentType)) {
 
 ## Appendix: Files to Modify by Requirement
 
-| Requirement | Files to Modify | Pattern |
-|-------------|-----------------|---------|
-| ERR-01 | Top 10 `throw new Error()` files | Pattern 1 |
-| ERR-02 | `audit.service.ts` | Pattern 3 |
-| ERR-03 | `attachments.service.ts` | Pattern 4 |
-| ERR-04 | `ethics-offline-db.ts`, consuming hooks | Pattern 6 |
-| ERR-05 | 16 route segments + `global-error.tsx` | Pattern 5 |
-| ERR-06 | `auth-context.tsx` | Pattern 7 |
-| ERR-07 | `auth-storage.ts` | Pattern 8 |
-| ERR-08 | `provider-registry.service.ts` | Pattern 9 |
-| ERR-09 | `case-audit.handler.ts` + other async handlers | Pattern 10 |
+| Requirement | Files to Modify                                | Pattern    |
+| ----------- | ---------------------------------------------- | ---------- |
+| ERR-01      | Top 10 `throw new Error()` files               | Pattern 1  |
+| ERR-02      | `audit.service.ts`                             | Pattern 3  |
+| ERR-03      | `attachments.service.ts`                       | Pattern 4  |
+| ERR-04      | `ethics-offline-db.ts`, consuming hooks        | Pattern 6  |
+| ERR-05      | 16 route segments + `global-error.tsx`         | Pattern 5  |
+| ERR-06      | `auth-context.tsx`                             | Pattern 7  |
+| ERR-07      | `auth-storage.ts`                              | Pattern 8  |
+| ERR-08      | `provider-registry.service.ts`                 | Pattern 9  |
+| ERR-09      | `case-audit.handler.ts` + other async handlers | Pattern 10 |
 
 **Top 10 files with bare `throw new Error()` (from audit):**
+
 1. `project.events.ts` - 18 instances
 2. `sla.events.ts` - 15 instances
 3. `policy.events.ts` - 12 instances

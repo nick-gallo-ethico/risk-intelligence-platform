@@ -16,30 +16,31 @@ The current codebase has clear patterns already established (NestJS service/cont
 
 ### Core (Already in Codebase)
 
-| Library | Version | Purpose | Why Standard |
-|---------|---------|---------|--------------|
-| @nestjs/core | 10.x | Application framework | Already used throughout |
-| @nestjs/jwt | Latest | JWT authentication | Already configured, supports RS256 |
-| Prisma | 5.x/6.x | Database ORM | Already used, connection_limit configurable |
-| compression | Latest | Response compression | Official NestJS recommendation |
-| Sonner | Latest | Toast notifications | Official shadcn/ui component |
+| Library      | Version | Purpose               | Why Standard                                |
+| ------------ | ------- | --------------------- | ------------------------------------------- |
+| @nestjs/core | 10.x    | Application framework | Already used throughout                     |
+| @nestjs/jwt  | Latest  | JWT authentication    | Already configured, supports RS256          |
+| Prisma       | 5.x/6.x | Database ORM          | Already used, connection_limit configurable |
+| compression  | Latest  | Response compression  | Official NestJS recommendation              |
+| Sonner       | Latest  | Toast notifications   | Official shadcn/ui component                |
 
 ### Supporting (To Add)
 
-| Library | Version | Purpose | When to Use |
-|---------|---------|---------|-------------|
-| opossum | 8.x | Circuit breaker | Elasticsearch timeout/fallback |
-| @nestjs-modules/mailer | -- | Already installed | -- |
+| Library                | Version | Purpose           | When to Use                    |
+| ---------------------- | ------- | ----------------- | ------------------------------ |
+| opossum                | 8.x     | Circuit breaker   | Elasticsearch timeout/fallback |
+| @nestjs-modules/mailer | --      | Already installed | --                             |
 
 ### Alternatives Considered
 
-| Instead of | Could Use | Tradeoff |
-|------------|-----------|----------|
-| opossum | nestjs-circuit-breaker | opossum has 70K downloads/week, better documented |
-| Sonner | react-hot-toast | Sonner is official shadcn/ui recommendation |
-| RS256 | HS256 with rotation | RS256 allows public key distribution for microservices |
+| Instead of | Could Use              | Tradeoff                                               |
+| ---------- | ---------------------- | ------------------------------------------------------ |
+| opossum    | nestjs-circuit-breaker | opossum has 70K downloads/week, better documented      |
+| Sonner     | react-hot-toast        | Sonner is official shadcn/ui recommendation            |
+| RS256      | HS256 with rotation    | RS256 allows public key distribution for microservices |
 
 **Installation:**
+
 ```bash
 # Backend (add to apps/backend)
 npm install opossum @types/opossum compression @types/compression
@@ -70,17 +71,14 @@ src/modules/analytics/reports/
 **What:** Extract common CRUD, audit, and event logic into a generic base class
 **When to use:** 4 association services share 70%+ identical code
 **Example:**
+
 ```typescript
 // Source: Current codebase analysis + TypeScript generics best practices
 
-export interface AssociationConfig<
-  TCreate,
-  TEntity,
-  TLabel extends string
-> {
-  entityName: string;        // 'PersonCase', 'CaseCase', etc.
-  entityType: string;        // 'CASE', 'RIU', 'PERSON'
-  eventPrefix: string;       // 'association.person-case'
+export interface AssociationConfig<TCreate, TEntity, TLabel extends string> {
+  entityName: string; // 'PersonCase', 'CaseCase', etc.
+  entityType: string; // 'CASE', 'RIU', 'PERSON'
+  eventPrefix: string; // 'association.person-case'
   labelEnum: Record<string, TLabel>;
 }
 
@@ -88,7 +86,7 @@ export interface AssociationConfig<
 export abstract class BaseAssociationService<
   TCreate,
   TEntity,
-  TLabel extends string
+  TLabel extends string,
 > {
   protected abstract config: AssociationConfig<TCreate, TEntity, TLabel>;
   protected abstract prismaModel: any;
@@ -127,6 +125,7 @@ export abstract class BaseAssociationService<
 **What:** Move business logic from controllers to services, keep controllers thin
 **When to use:** Controllers > 200 LOC or containing branching/database logic
 **Example:**
+
 ```typescript
 // BEFORE: Business logic in controller (BAD)
 @Post()
@@ -150,9 +149,10 @@ async createReport(@Body() dto, @CurrentUser() user) {
 **What:** Wrap ES calls in opossum circuit breaker with 5s timeout
 **When to use:** Any external service call that can timeout or fail
 **Example:**
+
 ```typescript
 // Source: opossum documentation + NestJS integration patterns
-import CircuitBreaker from 'opossum';
+import CircuitBreaker from "opossum";
 
 @Injectable()
 export class SearchService implements OnModuleInit {
@@ -162,18 +162,18 @@ export class SearchService implements OnModuleInit {
     this.searchBreaker = new CircuitBreaker(
       (query: SearchQuery) => this.executeSearch(query),
       {
-        timeout: 5000,              // 5 second timeout (was 30s)
+        timeout: 5000, // 5 second timeout (was 30s)
         errorThresholdPercentage: 50,
-        resetTimeout: 30000,        // Try again after 30s
-        volumeThreshold: 5,         // Min requests before tripping
-      }
+        resetTimeout: 30000, // Try again after 30s
+        volumeThreshold: 5, // Min requests before tripping
+      },
     );
 
     this.searchBreaker.fallback(() => ({
       hits: [],
       total: 0,
       fallback: true,
-      message: 'Search temporarily unavailable'
+      message: "Search temporarily unavailable",
     }));
   }
 
@@ -188,16 +188,17 @@ export class SearchService implements OnModuleInit {
 **What:** Migrate from HS256 to RS256 with key rotation support
 **When to use:** Production JWT systems requiring key rotation
 **Example:**
+
 ```typescript
 // Source: @nestjs/jwt documentation + key rotation best practices
-import { createPrivateKey, createPublicKey, KeyObject } from 'crypto';
+import { createPrivateKey, createPublicKey, KeyObject } from "crypto";
 
 interface JwtKeyPair {
-  kid: string;          // Key ID for rotation
+  kid: string; // Key ID for rotation
   privateKey: KeyObject;
   publicKey: KeyObject;
   createdAt: Date;
-  expiresAt: Date;      // Keys valid until this date
+  expiresAt: Date; // Keys valid until this date
 }
 
 @Injectable()
@@ -234,10 +235,10 @@ JwtModule.registerAsync({
       const kid = extractKidFromToken(tokenOrPayload);
       return keyService.getKeyById(kid)?.publicKey;
     },
-    signOptions: { algorithm: 'RS256' },
+    signOptions: { algorithm: "RS256" },
   }),
   inject: [JwtKeyService],
-})
+});
 ```
 
 ### Anti-Patterns to Avoid
@@ -249,13 +250,13 @@ JwtModule.registerAsync({
 
 ## Don't Hand-Roll
 
-| Problem | Don't Build | Use Instead | Why |
-|---------|-------------|-------------|-----|
-| Circuit breaker | Custom retry/timeout wrapper | opossum | State machine complexity, metrics, fallback handling |
-| Response compression | Manual gzip in middleware | compression package | Handles content negotiation, streaming |
-| Toast notifications | Custom notification system | Sonner | Animation, queue management, accessibility |
-| Connection pooling | Custom pool manager | Prisma connection_limit + PgBouncer | Edge cases, leak detection |
-| Key rotation scheduling | cron-based manual rotation | Automated rotation service | Security timing, overlap management |
+| Problem                 | Don't Build                  | Use Instead                         | Why                                                  |
+| ----------------------- | ---------------------------- | ----------------------------------- | ---------------------------------------------------- |
+| Circuit breaker         | Custom retry/timeout wrapper | opossum                             | State machine complexity, metrics, fallback handling |
+| Response compression    | Manual gzip in middleware    | compression package                 | Handles content negotiation, streaming               |
+| Toast notifications     | Custom notification system   | Sonner                              | Animation, queue management, accessibility           |
+| Connection pooling      | Custom pool manager          | Prisma connection_limit + PgBouncer | Edge cases, leak detection                           |
+| Key rotation scheduling | cron-based manual rotation   | Automated rotation service          | Security timing, overlap management                  |
 
 **Key insight:** Each of these "simple" problems has edge cases (circuit half-open state, compression content-type detection, toast queue overflow, connection leak recovery) that libraries handle correctly.
 
@@ -285,7 +286,7 @@ JwtModule.registerAsync({
 ### Pitfall 4: Console.error Grep Misses Dynamic Strings
 
 **What goes wrong:** Searching for `console.error` misses template literals or aliased calls
-**Why it happens:** `console.error(\`Error: ${msg}\`)` or `const log = console.error`
+**Why it happens:** `console.error(\`Error: ${msg}\`)`or`const log = console.error`
 **How to avoid:** Use AST-based search or review manually; add ESLint rule to prevent future additions
 **Warning signs:** Missing error notifications after "complete" migration
 
@@ -304,16 +305,18 @@ JwtModule.registerAsync({
 // Source: NestJS official documentation + compression package docs
 // File: apps/backend/src/main.ts
 
-import compression from 'compression';
+import compression from "compression";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   // Add compression middleware
-  app.use(compression({
-    threshold: 1024,  // Only compress responses > 1KB
-    level: 6,         // Balanced compression level
-  }));
+  app.use(
+    compression({
+      threshold: 1024, // Only compress responses > 1KB
+      level: 6, // Balanced compression level
+    }),
+  );
 
   // ... rest of bootstrap
 }
@@ -326,10 +329,11 @@ async function bootstrap() {
 // File: apps/backend/prisma/schema.prisma or env variable
 
 // Option A: In connection URL
-DATABASE_URL="postgresql://user:pass@host:5432/db?connection_limit=50"
+DATABASE_URL = "postgresql://user:pass@host:5432/db?connection_limit=50";
 
 // Option B: With PgBouncer (recommended for production)
-DATABASE_URL="postgresql://user:pass@pgbouncer:6432/db?connection_limit=50&pgbouncer=true"
+DATABASE_URL =
+  "postgresql://user:pass@pgbouncer:6432/db?connection_limit=50&pgbouncer=true";
 ```
 
 ### Example 3: Toast Notification Wrapper for API Errors
@@ -338,15 +342,15 @@ DATABASE_URL="postgresql://user:pass@pgbouncer:6432/db?connection_limit=50&pgbou
 // Source: Sonner documentation + shadcn/ui patterns
 // File: apps/frontend/src/lib/api-with-toast.ts
 
-import { toast } from 'sonner';
-import { apiClient } from './api';
+import { toast } from "sonner";
+import { apiClient } from "./api";
 
 export const apiWithToast = {
   async post<T>(url: string, data?: unknown): Promise<T | null> {
     try {
       return await apiClient.post<T>(url, data);
     } catch (error) {
-      const message = error?.response?.data?.message || 'An error occurred';
+      const message = error?.response?.data?.message || "An error occurred";
       toast.error(message);
       return null;
     }
@@ -356,16 +360,13 @@ export const apiWithToast = {
   async mutate<T>(
     url: string,
     data: unknown,
-    options: { loading?: string; success?: string; error?: string }
+    options: { loading?: string; success?: string; error?: string },
   ): Promise<T> {
-    return toast.promise(
-      apiClient.post<T>(url, data),
-      {
-        loading: options.loading || 'Saving...',
-        success: options.success || 'Saved successfully',
-        error: (err) => options.error || err?.response?.data?.message || 'Failed',
-      }
-    );
+    return toast.promise(apiClient.post<T>(url, data), {
+      loading: options.loading || "Saving...",
+      success: options.success || "Saved successfully",
+      error: (err) => options.error || err?.response?.data?.message || "Failed",
+    });
   },
 };
 ```
@@ -383,7 +384,7 @@ export const config = {
 
 // Validate at build time
 if (!config.apiUrl) {
-  throw new Error('NEXT_PUBLIC_API_URL is required');
+  throw new Error("NEXT_PUBLIC_API_URL is required");
 }
 
 // Usage in components - NEVER hardcode localhost
@@ -392,15 +393,16 @@ const socket = io(config.wsUrl);
 
 ## State of the Art
 
-| Old Approach | Current Approach | When Changed | Impact |
-|--------------|------------------|--------------|--------|
-| HS256 static secret | RS256 with key rotation | Security best practice 2024+ | Enables key rotation without invalidation |
-| Monolithic services | Vertical slice + sub-services | DDD maturity 2023+ | Better testability, maintainability |
-| Manual retry logic | Circuit breaker pattern | Resilience engineering | Prevents cascade failures |
-| `connection_limit=10` | 50-100 with PgBouncer | Scale requirements | Handles 10K+ concurrent users |
-| `console.error` only | Toast + structured logging | UX maturity | Users see actionable errors |
+| Old Approach          | Current Approach              | When Changed                 | Impact                                    |
+| --------------------- | ----------------------------- | ---------------------------- | ----------------------------------------- |
+| HS256 static secret   | RS256 with key rotation       | Security best practice 2024+ | Enables key rotation without invalidation |
+| Monolithic services   | Vertical slice + sub-services | DDD maturity 2023+           | Better testability, maintainability       |
+| Manual retry logic    | Circuit breaker pattern       | Resilience engineering       | Prevents cascade failures                 |
+| `connection_limit=10` | 50-100 with PgBouncer         | Scale requirements           | Handles 10K+ concurrent users             |
+| `console.error` only  | Toast + structured logging    | UX maturity                  | Users see actionable errors               |
 
 **Deprecated/outdated:**
+
 - `@nestjs/jwt` with raw secret strings: Use `KeyObject` instances for performance
 - shadcn toast component: Deprecated in favor of Sonner
 - Fixed 30s Elasticsearch timeout: Too generous, causes slow page loads
@@ -425,6 +427,7 @@ const socket = io(config.wsUrl);
 ## Sources
 
 ### Primary (HIGH confidence)
+
 - NestJS JWT documentation - RS256 configuration, secretOrKeyProvider pattern
 - Prisma documentation - Connection pool configuration, connection_limit
 - shadcn/ui Sonner documentation - Toast API, installation
@@ -432,16 +435,19 @@ const socket = io(config.wsUrl);
 - Current codebase analysis - Existing patterns, service structure
 
 ### Secondary (MEDIUM confidence)
+
 - [NestJS compression documentation](https://docs.nestjs.com/techniques/compression) - Package setup
 - [Circuit Breaker Pattern in NestJS](https://medium.com/@Abdelrahman_Rezk/circuit-breaker-pattern-a-comprehensive-guide-with-nest-js-application-41300462d579) - Implementation patterns
 - [TypeScript Generic Base Service patterns](https://medium.com/@kalebteshale72/build-a-generic-crud-service-in-nestjs-typeorm-postgres-dbeebf912fb6) - Generic class structure
 
 ### Tertiary (LOW confidence)
+
 - Web search results for specific version recommendations - Should validate versions against package.json
 
 ## Metadata
 
 **Confidence breakdown:**
+
 - Standard stack: HIGH - All libraries already in codebase or official recommendations
 - Architecture patterns: HIGH - Based on existing codebase analysis and established patterns
 - Pitfalls: MEDIUM - Based on common patterns, some may not apply to this specific codebase
@@ -456,35 +462,36 @@ const socket = io(config.wsUrl);
 
 ### Services Requiring Decomposition (QUAL-01)
 
-| Service | LOC | Location |
-|---------|-----|----------|
-| report-field-registry.service.ts | 1838 | modules/analytics/reports/ |
-| rius.service.ts | 1410 | modules/rius/ |
-| conflict-detection.service.ts | 1402 | modules/disclosures/ |
-| disclosure-submission.service.ts | 1328 | modules/disclosures/ |
-| cases.service.ts | ~1000+ | modules/cases/ |
+| Service                          | LOC    | Location                   |
+| -------------------------------- | ------ | -------------------------- |
+| report-field-registry.service.ts | 1838   | modules/analytics/reports/ |
+| rius.service.ts                  | 1410   | modules/rius/              |
+| conflict-detection.service.ts    | 1402   | modules/disclosures/       |
+| disclosure-submission.service.ts | 1328   | modules/disclosures/       |
+| cases.service.ts                 | ~1000+ | modules/cases/             |
 
 ### Controllers Requiring Logic Extraction (QUAL-03)
 
-| Controller | LOC | Location |
-|------------|-----|----------|
-| report.controller.ts | 1085 | modules/analytics/reports/ |
-| projects.controller.ts | 885 | modules/projects/ |
-| cases.controller.ts | 614 | modules/cases/ |
-| ai.controller.ts | 580 | modules/ai/ |
+| Controller             | LOC  | Location                   |
+| ---------------------- | ---- | -------------------------- |
+| report.controller.ts   | 1085 | modules/analytics/reports/ |
+| projects.controller.ts | 885  | modules/projects/          |
+| cases.controller.ts    | 614  | modules/cases/             |
+| ai.controller.ts       | 580  | modules/ai/                |
 
 ### Association Services for Base Class (QUAL-02)
 
-| Service | LOC | Common Methods |
-|---------|-----|----------------|
-| person-case-association.service.ts | 421 | create, findBy*, remove, audit |
-| case-case-association.service.ts | 346 | create, findBy*, delete, audit |
-| person-person-association.service.ts | 425 | create, findBy*, delete, audit |
-| person-riu-association.service.ts | 202 | create, findBy*, delete, audit |
+| Service                              | LOC | Common Methods                  |
+| ------------------------------------ | --- | ------------------------------- |
+| person-case-association.service.ts   | 421 | create, findBy\*, remove, audit |
+| case-case-association.service.ts     | 346 | create, findBy\*, delete, audit |
+| person-person-association.service.ts | 425 | create, findBy\*, delete, audit |
+| person-riu-association.service.ts    | 202 | create, findBy\*, delete, audit |
 
 ### Frontend Files with Hardcoded localhost (QUAL-04)
 
 8 files identified via grep:
+
 - components/cases/ai-chat-panel.tsx
 - lib/attachments-api.ts
 - lib/api.ts (uses env fallback)
