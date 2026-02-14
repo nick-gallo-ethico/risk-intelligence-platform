@@ -3,21 +3,67 @@ import {
   Logger,
   OnModuleInit,
   OnModuleDestroy,
+  OnApplicationShutdown,
 } from "@nestjs/common";
 import { PrismaClient } from "@prisma/client";
 
 @Injectable()
 export class PrismaService
   extends PrismaClient
-  implements OnModuleInit, OnModuleDestroy
+  implements OnModuleInit, OnModuleDestroy, OnApplicationShutdown
 {
   private readonly logger = new Logger(PrismaService.name);
+  private readonly maxRetries = 3;
+  private readonly baseDelay = 1000; // 1 second
 
   async onModuleInit() {
-    await this.$connect();
+    await this.connectWithRetry();
+  }
+
+  /**
+   * Attempts database connection with exponential backoff.
+   * Retries 3 times with delays: 1s, 2s, 4s
+   */
+  private async connectWithRetry(attempt = 1): Promise<void> {
+    try {
+      this.logger.log(
+        `Attempting database connection (attempt ${attempt}/${this.maxRetries})...`,
+      );
+      await this.$connect();
+      this.logger.log("Database connection established successfully");
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
+
+      if (attempt >= this.maxRetries) {
+        this.logger.error(
+          `Failed to connect to database after ${this.maxRetries} attempts: ${errorMessage}`,
+        );
+        throw new Error(
+          `Database connection failed after ${this.maxRetries} attempts. ` +
+            `Last error: ${errorMessage}`,
+        );
+      }
+
+      const delay = this.baseDelay * Math.pow(2, attempt - 1); // 1s, 2s, 4s
+      this.logger.warn(
+        `Database connection attempt ${attempt} failed: ${errorMessage}. ` +
+          `Retrying in ${delay}ms...`,
+      );
+
+      await new Promise((resolve) => setTimeout(resolve, delay));
+      return this.connectWithRetry(attempt + 1);
+    }
   }
 
   async onModuleDestroy() {
+    this.logger.log("Closing database connection...");
+    await this.$disconnect();
+    this.logger.log("Database connection closed");
+  }
+
+  async onApplicationShutdown(signal?: string) {
+    this.logger.log(`Received shutdown signal: ${signal}`);
     await this.$disconnect();
   }
 
