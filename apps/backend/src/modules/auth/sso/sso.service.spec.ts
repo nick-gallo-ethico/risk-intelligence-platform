@@ -202,10 +202,9 @@ describe("SsoService", () => {
 
       // Act & Assert
       await expect(service.findOrCreateSsoUser(mockSsoProfile)).rejects.toThrow(
-        UnauthorizedException,
-      );
-      await expect(service.findOrCreateSsoUser(mockSsoProfile)).rejects.toThrow(
-        "Account already linked to google",
+        new UnauthorizedException(
+          "Account already linked to google. Please sign in using that provider.",
+        ),
       );
     });
 
@@ -262,10 +261,9 @@ describe("SsoService", () => {
 
       // Act & Assert
       await expect(service.findOrCreateSsoUser(mockSsoProfile)).rejects.toThrow(
-        UnauthorizedException,
-      );
-      await expect(service.findOrCreateSsoUser(mockSsoProfile)).rejects.toThrow(
-        "Your organization is not registered",
+        new UnauthorizedException(
+          "Your organization is not registered. Please contact your administrator.",
+        ),
       );
     });
 
@@ -284,10 +282,9 @@ describe("SsoService", () => {
 
       // Act & Assert
       await expect(service.findOrCreateSsoUser(mockSsoProfile)).rejects.toThrow(
-        UnauthorizedException,
-      );
-      await expect(service.findOrCreateSsoUser(mockSsoProfile)).rejects.toThrow(
-        "Just-in-time provisioning is disabled",
+        new UnauthorizedException(
+          "Just-in-time provisioning is disabled for your organization. Please contact your administrator.",
+        ),
       );
     });
 
@@ -306,10 +303,9 @@ describe("SsoService", () => {
 
       // Act & Assert
       await expect(service.findOrCreateSsoUser(mockSsoProfile)).rejects.toThrow(
-        UnauthorizedException,
-      );
-      await expect(service.findOrCreateSsoUser(mockSsoProfile)).rejects.toThrow(
-        "SSO is not enabled for your organization",
+        new UnauthorizedException(
+          "SSO is not enabled for your organization. Please contact your administrator.",
+        ),
       );
     });
 

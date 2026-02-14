@@ -1,13 +1,17 @@
 import { Test, TestingModule } from "@nestjs/testing";
-import {
-  NotFoundException,
-  BadRequestException,
-} from "@nestjs/common";
+import { NotFoundException, BadRequestException } from "@nestjs/common";
 import { EventEmitter2 } from "@nestjs/event-emitter";
 import { CasesService } from "./cases.service";
 import { PrismaService } from "../prisma/prisma.service";
 import { ActivityService } from "../../common/services/activity.service";
-import { CaseStatus, SourceChannel, CaseType, Severity, ReporterType, AuditEntityType } from "@prisma/client";
+import {
+  CaseStatus,
+  SourceChannel,
+  CaseType,
+  Severity,
+  ReporterType,
+  AuditEntityType,
+} from "@prisma/client";
 import {
   CaseCreatedEvent,
   CaseUpdatedEvent,
@@ -258,9 +262,9 @@ describe("CasesService", () => {
       mockPrismaService.case.findFirst.mockResolvedValue(null);
 
       // Act & Assert
-      await expect(
-        service.findOne(mockCaseId, mockOtherOrgId),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.findOne(mockCaseId, mockOtherOrgId)).rejects.toThrow(
+        NotFoundException,
+      );
 
       // Verify query included the different org filter
       expect(prisma.case.findFirst).toHaveBeenCalledWith(
@@ -431,7 +435,10 @@ describe("CasesService", () => {
       mockPrismaService.case.count.mockResolvedValue(0);
 
       // Act
-      await service.findAll({ sourceChannel: SourceChannel.HOTLINE }, mockOrgId);
+      await service.findAll(
+        { sourceChannel: SourceChannel.HOTLINE },
+        mockOrgId,
+      );
 
       // Assert
       expect(prisma.case.findMany).toHaveBeenCalledWith(
@@ -709,12 +716,7 @@ describe("CasesService", () => {
       mockPrismaService.case.update.mockResolvedValue(closedCase);
 
       // Act
-      await service.close(
-        mockCaseId,
-        "Issue resolved",
-        mockUserId,
-        mockOrgId,
-      );
+      await service.close(mockCaseId, "Issue resolved", mockUserId, mockOrgId);
 
       // Assert
       expect(eventEmitter.emit).toHaveBeenCalledWith(
@@ -745,12 +747,7 @@ describe("CasesService", () => {
       mockPrismaService.case.update.mockResolvedValue(closedCase);
 
       // Act
-      await service.close(
-        mockCaseId,
-        "Issue resolved",
-        mockUserId,
-        mockOrgId,
-      );
+      await service.close(mockCaseId, "Issue resolved", mockUserId, mockOrgId);
 
       // Assert
       expect(activityService.log).toHaveBeenCalledWith(
