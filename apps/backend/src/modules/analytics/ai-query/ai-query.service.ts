@@ -202,7 +202,7 @@ Return a JSON object with the following structure:
 
       // Validate entity type
       if (!Object.values(QueryEntityType).includes(parsed.entityType)) {
-        throw new Error(`Invalid entity type: ${parsed.entityType}`);
+        throw new BadRequestException(`Invalid entity type: ${parsed.entityType}`);
       }
 
       return parsed;

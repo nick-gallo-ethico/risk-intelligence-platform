@@ -15,7 +15,7 @@
  * @see EmailTemplateService for template rendering
  */
 
-import { Injectable, Logger } from "@nestjs/common";
+import { Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { InjectQueue } from "@nestjs/bullmq";
 import { Queue } from "bullmq";
 import { EventEmitter2 } from "@nestjs/event-emitter";
@@ -789,7 +789,7 @@ export class NotificationService {
     });
 
     if (!notification) {
-      throw new Error("Notification not found");
+      throw new NotFoundException("Notification not found");
     }
 
     await this.prisma.notification.update({

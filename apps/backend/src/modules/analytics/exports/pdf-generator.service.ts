@@ -4,6 +4,7 @@ import {
   OnModuleInit,
   OnModuleDestroy,
   Logger,
+  ServiceUnavailableException,
 } from "@nestjs/common";
 
 /**
@@ -135,7 +136,7 @@ export class PdfGeneratorService implements OnModuleInit, OnModuleDestroy {
     options?: PdfGenerationOptions,
   ): Promise<Buffer> {
     if (!this.browser) {
-      throw new Error(
+      throw new ServiceUnavailableException(
         "PDF generation not available: Puppeteer not initialized",
       );
     }

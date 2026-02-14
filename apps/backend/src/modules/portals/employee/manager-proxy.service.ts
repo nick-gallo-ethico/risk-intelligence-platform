@@ -17,6 +17,7 @@ import {
   ForbiddenException,
   NotFoundException,
   BadRequestException,
+  InternalServerErrorException,
   Logger,
 } from "@nestjs/common";
 import { EventEmitter2 } from "@nestjs/event-emitter";
@@ -422,7 +423,7 @@ export class ManagerProxyService {
     } while (attempts < maxAttempts);
 
     if (attempts >= maxAttempts) {
-      throw new Error(
+      throw new InternalServerErrorException(
         "Failed to generate unique access code after maximum attempts",
       );
     }

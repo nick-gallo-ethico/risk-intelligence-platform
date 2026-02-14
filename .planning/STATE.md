@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-13)
 ## Current Position
 
 Phase: 29 of 31 (Error Handling & Reliability)
-Plan: 2 of 5 complete (29-01, 29-02)
-Status: In progress — Event handler error boundaries done
-Last activity: 2026-02-14 — Completed 29-02-PLAN.md
+Plan: 4 of 5 complete (29-01, 29-02, 29-03, 29-04)
+Status: In progress — Frontend error surfacing done
+Last activity: 2026-02-14 — Completed 29-04-PLAN.md
 
-Progress: [████████░░] 60% (v1.1 remediation - 13 of 20+ plans)
+Progress: [█████████░] 75% (v1.1 remediation - 15 of 20+ plans)
 
 ## Milestone v1.1: Code Review Remediation
 
@@ -27,7 +27,7 @@ Progress: [████████░░] 60% (v1.1 remediation - 13 of 20+ pla
 | 26    | Emergency Fixes              | EMER-01, EMER-02, EMER-03 | Complete          |
 | 27    | Security Hardening           | SEC-01 to SEC-06          | Complete          |
 | 28    | Production Readiness         | PROD-01 to PROD-07        | Complete          |
-| 29    | Error Handling & Reliability | ERR-01 to ERR-09          | In Progress (2/5) |
+| 29    | Error Handling & Reliability | ERR-01 to ERR-09          | In Progress (4/5) |
 | 30    | Test Coverage Foundation     | TEST-01 to TEST-04        | Pending           |
 | 31    | Code Quality & Performance   | QUAL-01 to QUAL-08        | Pending           |
 
@@ -47,8 +47,8 @@ Progress: [████████░░] 60% (v1.1 remediation - 13 of 20+ pla
 | ----- | ---- | ---------------------------------------------- | ---------- | -------- |
 | 29-01 | 1    | ERR-03/04/08: Critical services error handling | Yes        | Complete |
 | 29-02 | 1    | ERR-09: Event handler error boundaries         | Yes        | Complete |
-| 29-03 | 1    | ERR-06/07: Frontend error boundaries           | Yes        | Pending  |
-| 29-04 | 2    | ERR-05: Dead letter queue for failed events    | Yes        | Pending  |
+| 29-03 | 1    | ERR-06/07: Frontend error boundaries           | Yes        | Complete |
+| 29-04 | 2    | ERR-04/06/07: Frontend error surfacing         | Yes        | Complete |
 | 29-05 | 2    | ERR-01/02: Event validation improvements       | Yes        | Pending  |
 
 ## Phase 28 Plans
@@ -175,12 +175,18 @@ Key outcomes:
 - Error messages include full event name and entity ID for debugging
 - Fire-and-forget preserved: errors logged but not rethrown
 
+### Key Decisions (29-04)
+
+- \_decryptionFailed flag vs exception: Return object with flag for UI partial rendering
+- console.warn for logout failures: Local logout succeeds, only server-side invalidation fails
+- Clear corrupted localStorage entries on detection to prevent repeated parse errors
+
 ### Blockers
 
 None currently.
 
 ## Session Continuity
 
-Last session: 2026-02-14 15:06 EST
-Stopped at: Completed 29-02-PLAN.md
-Resume file: .planning/phases/29-error-handling-reliability/29-03-PLAN.md
+Last session: 2026-02-14 15:15 EST
+Stopped at: Completed 29-04-PLAN.md
+Resume file: .planning/phases/29-error-handling-reliability/29-05-PLAN.md

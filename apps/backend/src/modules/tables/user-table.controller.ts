@@ -12,6 +12,7 @@ import {
   HttpStatus,
   ParseUUIDPipe,
   StreamableFile,
+  InternalServerErrorException,
 } from "@nestjs/common";
 import { Response } from "express";
 import { JwtAuthGuard } from "../../common/guards/jwt-auth.guard";
@@ -258,7 +259,9 @@ export class UserTableController {
       return { content: result.content, filename: result.filename };
     }
 
-    throw new Error("Export failed - no content generated");
+    throw new InternalServerErrorException(
+      "Export failed - no content generated",
+    );
   }
 
   /**

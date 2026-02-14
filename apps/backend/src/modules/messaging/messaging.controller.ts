@@ -8,8 +8,14 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
+  BadRequestException,
 } from "@nestjs/common";
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from "@nestjs/swagger";
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from "@nestjs/swagger";
 import { Throttle } from "@nestjs/throttler";
 import { JwtAuthGuard } from "../../common/guards/jwt-auth.guard";
 import { CurrentUser } from "../../common/decorators/current-user.decorator";
@@ -51,7 +57,10 @@ export class MessagingController {
       "PII detection warns before sending potentially identifying information.",
   })
   @ApiResponse({ status: 201, description: "Message sent successfully" })
-  @ApiResponse({ status: 400, description: "PII detected - requires acknowledgment" })
+  @ApiResponse({
+    status: 400,
+    description: "PII detected - requires acknowledgment",
+  })
   @ApiResponse({ status: 404, description: "Case not found" })
   async sendMessage(
     @Param("caseId") caseId: string,
@@ -176,7 +185,7 @@ export class PublicMessagingController {
   ): Promise<MessagesListDto> {
     // Validate access code format
     if (!accessCode || !/^[A-Z0-9]{12,20}$/.test(accessCode)) {
-      throw new Error("Invalid access code format");
+      throw new BadRequestException("Invalid access code format");
     }
 
     const messages = await this.relayService.getMessagesForReporter(accessCode);
@@ -209,7 +218,7 @@ export class PublicMessagingController {
   ): Promise<{ success: boolean; messageId: string }> {
     // Validate access code format
     if (!accessCode || !/^[A-Z0-9]{12,20}$/.test(accessCode)) {
-      throw new Error("Invalid access code format");
+      throw new BadRequestException("Invalid access code format");
     }
 
     const message = await this.relayService.receiveFromReporter({

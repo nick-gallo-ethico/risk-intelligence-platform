@@ -3,6 +3,7 @@ import {
   Logger,
   NotFoundException,
   BadRequestException,
+  InternalServerErrorException,
 } from "@nestjs/common";
 import { EventEmitter2 } from "@nestjs/event-emitter";
 import { PrismaService } from "../prisma/prisma.service";
@@ -66,7 +67,7 @@ export class RiuAccessService {
       this.logger.error(
         "Failed to generate unique access code after max attempts",
       );
-      throw new Error("Failed to generate unique access code");
+      throw new InternalServerErrorException("Failed to generate unique access code");
     }
 
     return code;
