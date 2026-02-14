@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-13)
 ## Current Position
 
 Phase: 31 of 31 (Code Quality & Performance) — In Progress
-Plan: 5 of 8 complete (31-01, 31-02, 31-03, 31-04, 31-05)
+Plan: 6 of 8 complete (31-01, 31-02, 31-03, 31-04, 31-05, 31-06)
 Status: Phase 31 in progress
-Last activity: 2026-02-14 — Completed 31-05-PLAN.md
+Last activity: 2026-02-14 — Completed 31-06-PLAN.md
 
-Progress: [█████████░] 96% (v1.1 remediation - 26 of 31 plans)
+Progress: [█████████░] 97% (v1.1 remediation - 27 of 31 plans)
 
 ## Milestone v1.1: Code Review Remediation
 
@@ -253,6 +253,13 @@ Key outcomes:
 - Error message extraction handles Axios responses, Error objects, and unknown types
 - Toaster mounted in root layout.tsx for app-wide availability
 
+### Key Decisions (31-06)
+
+- projects.controller.ts already thin (885 LOC but methods delegate to services) - no extraction needed
+- Separate ActionContextStrict interface for action endpoints requiring entityType/entityId
+- buildAgentContext vs buildActionContext methods for optional vs required entity fields
+- <200 LOC target difficult with Swagger decorators, but business logic IS extracted to services
+
 ### Blockers
 
 None currently.
@@ -266,6 +273,7 @@ None currently.
 | 31-03 | 1    | QUAL-03: Elasticsearch circuit breaker           | Yes        | Complete |
 | 31-04 | 2    | QUAL-04: BaseAssociationService extraction       | Yes        | Complete |
 | 31-05 | 2    | QUAL-05: Frontend toast notifications            | Yes        | Complete |
+| 31-06 | 3    | QUAL-06: Controller logic extraction             | Yes        | Complete |
 
 ## Phase 30 Plans
 
@@ -279,7 +287,7 @@ None currently.
 
 ## Session Continuity
 
-Last session: 2026-02-14 — Completed 31-05-PLAN.md (Frontend toast notifications)
-Stopped at: Phase 31 in progress — 5 of 8 plans complete (31-01 through 31-05)
+Last session: 2026-02-14 — Completed 31-06-PLAN.md (Controller logic extraction)
+Stopped at: Phase 31 in progress — 6 of 8 plans complete (31-01 through 31-06)
 Resume file: None
-Next action: Continue with remaining Phase 31 plans (31-06 to 31-08)
+Next action: Continue with remaining Phase 31 plans (31-07 to 31-08)
