@@ -47,10 +47,10 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 13: HubSpot-Style Saved Views** - Reusable view tabs, column selection, advanced filters, board views across all modules
 - [x] **Phase 13.1: Saved Views Fixes** - Board view, investigations endpoint, search vector, export endpoints (INSERTED)
 - [x] **Phase 14: Critical Bug Fixes & Navigation** - Route 404s, broken buttons, Select.Item error, search, user menu, nav styling
-- [ ] **Phase 14.1: Data & Config Fixes** - Notifications seed data, search indexing, category dropdowns, task aggregation fixes (INSERTED)
-- [ ] **Phase 14.2: Case Creation & Search Fixes** - Category/subcategory dropdowns in case creation, unified search fix (INSERTED)
+- [x] **Phase 14.1: Data & Config Fixes** - Notifications seed data, search indexing, category dropdowns, task aggregation fixes (INSERTED)
+- [x] **Phase 14.2: Case Creation & Search Fixes** - Category/subcategory dropdowns in case creation, unified search fix (INSERTED)
 - [x] **Phase 15: Case Detail Page Overhaul** - Three-column layout, activity feed, action buttons, AI panel, connected entities (gap closure complete)
-- [ ] **Phase 16: AI Integration Fix** - Debug and fix non-functional AI, wire AI panel, enable AI actions on cases
+- [x] **Phase 16: AI Integration Fix** - Debug and fix non-functional AI, wire AI panel, enable AI actions on cases
 - [ ] **Phase 17: Campaigns Hub** - Centralized campaigns area, form creation, campaign lifecycle management
 - [ ] **Phase 18: Reports & Data Management** - Report designer UI, field availability, export from views
 - [x] **Phase 19: Workflow Engine UI** - Visual workflow builder, workflow management section, apply to cases/approvals/disclosures
@@ -687,14 +687,14 @@ Plans:
 
 Plans:
 
-- [ ] 16-01-PLAN.md (Wave 1) — Backend REST chat endpoint, auth guard, context-loader fallback
-- [ ] 16-02-PLAN.md (Wave 2) — **SKIP** - Phase 15 built ai-chat-panel.tsx
-- [ ] 16-03-PLAN.md (Wave 2) — **SKIP** - Phase 15 installed socket.io-client and WebSocket
-- [ ] 16-04-PLAN.md (Wave 3) — AI skill components (summarize, category-suggest, risk-score)
-- [ ] 16-05-PLAN.md (Wave 3) — AI action preview components (Tasks 1-2 only)
-- [ ] 16-06-PLAN.md (Wave 4) — AI health check endpoint (Task 1 only)
-- [ ] 16-07-PLAN.md (Wave 1) — Execution notes documenting Phase 15 overlap
-- [ ] 16-08-PLAN.md (Wave 5) — End-to-end verification checkpoint
+- [x] 16-01-PLAN.md (Wave 1) — Backend REST chat endpoint, auth guard, context-loader fallback
+- [x] 16-02-PLAN.md (Wave 2) — **SKIP** - Phase 15 built ai-chat-panel.tsx
+- [x] 16-03-PLAN.md (Wave 2) — **SKIP** - Phase 15 installed socket.io-client and WebSocket
+- [x] 16-04-PLAN.md (Wave 3) — AI skill components (summarize, category-suggest, risk-score)
+- [x] 16-05-PLAN.md (Wave 3) — AI action preview components (Tasks 1-2 only)
+- [x] 16-06-PLAN.md (Wave 4) — AI health check endpoint (Task 1 only)
+- [x] 16-07-PLAN.md (Wave 1) — Execution notes documenting Phase 15 overlap
+- [x] 16-08-PLAN.md (Wave 5) — End-to-end verification checkpoint
 
 ### Phase 17: Campaigns Hub
 
@@ -1035,13 +1035,21 @@ Phases 26-31 address all findings from the unified code review and silent failur
 **Goal**: Harden the security layer with comprehensive tests for auth guards/middleware, fix CORS misconfigurations, close RLS gaps from nullable organizationId, and add CSRF/body-size protections.
 **Depends on**: Phase 26 (exception filters must work before testing guards)
 **Requirements**: SEC-01, SEC-02, SEC-03, SEC-04, SEC-05, SEC-06
+**Plans**: 4 plans in 2 waves
 **Success Criteria** (what must be TRUE):
 
 1. Unit tests exist for `tenant.guard`, `tenant.middleware`, `jwt-auth.guard`, `roles.guard` — covering valid/invalid/expired tokens, wrong-tenant rejection, role enforcement, RLS session variable verification
 2. All 3 WebSocket gateways throw on missing `CORS_ORIGIN` config (no wildcard fallback with credentials)
 3. All 7 models with nullable `organizationId` either have it required or are documented as system-wide with application-level access control
-4. CSRF protection middleware is active for state-changing requests
-5. Request body size limits configured (e.g., 10MB JSON, 50MB file upload)
+4. CSRF protection mitigated by architecture (JWT in Authorization header) and documented
+5. Request body size limits configured (10MB JSON/URL-encoded)
+
+Plans:
+
+- [ ] 27-01-PLAN.md (Wave 1) — Guard/middleware unit tests: tenant.guard, jwt-auth.guard, roles.guard, tenant.middleware
+- [ ] 27-02-PLAN.md (Wave 1) — WebSocket CORS fixes + HttpExceptionFilter non-Error logging
+- [ ] 27-03-PLAN.md (Wave 2) — Body size limits + CSRF mitigation documentation
+- [ ] 27-04-PLAN.md (Wave 2) — Nullable organizationId documentation for system-wide entities
 
 ### Phase 28: Production Readiness
 
@@ -1150,7 +1158,7 @@ Phases execute in dependency order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 
 | Phase                            | Plans Complete | Status  | Completed |
 | -------------------------------- | -------------- | ------- | --------- |
 | 26. Emergency Fixes              | 0/?            | Planned | -         |
-| 27. Security Hardening           | 0/?            | Planned | -         |
+| 27. Security Hardening           | 0/4            | Planned | -         |
 | 28. Production Readiness         | 0/?            | Planned | -         |
 | 29. Error Handling & Reliability | 0/?            | Planned | -         |
 | 30. Test Coverage Foundation     | 0/?            | Planned | -         |
