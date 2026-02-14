@@ -1,224 +1,190 @@
 # Architecture
 
-**Analysis Date:** 2026-02-02
+**Analysis Date:** 2026-02-13
 
 ## Pattern Overview
 
-**Overall:** Layered monolith with modular NestJS backend and Next.js frontend, enforcing multi-tenancy at the database layer through PostgreSQL Row-Level Security (RLS).
+**Overall:** Modular Monolith with Multi-Tenant SaaS Architecture
 
 **Key Characteristics:**
-- **Multi-tenant isolation:** Shared database with RLS policies enforcing per-organization data segregation
-- **Modular backend:** Feature modules (auth, cases, investigations, users) with shared infrastructure
-- **Middleware-driven tenant context:** All requests scoped to organization via middleware before route handlers
-- **Activity-driven audit logging:** All mutations logged with natural language descriptions for compliance
-- **Service-oriented data access:** Prisma ORM with transaction support for complex operations
+
+- NestJS backend with feature-based module organization (40+ domain modules)
+- Next.js 14+ frontend with App Router and server-side rendering
+- PostgreSQL with Row-Level Security (RLS) for tenant isolation
+- Event-driven architecture using EventEmitter2 for cross-module communication
+- AI-first design with Claude API integration throughout
 
 ## Layers
 
-**Request/Presentation Layer:**
-- Purpose: Handle HTTP requests, validate inputs, enforce authentication/authorization
-- Location: `apps/backend/src/modules/*/controllers/`, `apps/frontend/src/app/`, `apps/frontend/src/components/`
-- Contains: NestJS controllers, Next.js pages/layouts, React components, UI logic
-- Depends on: Services (business logic), DTOs (validation), guards/decorators (auth)
-- Used by: Client applications (browser, mobile)
+**Presentation Layer (Frontend):**
 
-**Business Logic Layer (Services):**
-- Purpose: Implement core business operations, coordinate across data and infrastructure
-- Location: `apps/backend/src/modules/*/services/`, `apps/backend/src/common/services/`
-- Contains: CasesService, InvestigationsService, AuthService, ActivityService, StorageService
-- Depends on: PrismaService (data access), configuration, external APIs
-- Used by: Controllers, other services
+- Purpose: User interface and client-side state management
+- Location: `apps/frontend/src/`
+- Contains: Next.js pages, React components, API clients, hooks
+- Depends on: Backend REST API via axios client with JWT auth
+- Used by: End users (CCOs, investigators, employees, operators)
 
-**Data Access Layer (Prisma + RLS):**
-- Purpose: Abstract database queries, enforce multi-tenant isolation at database level
-- Location: `apps/backend/src/modules/prisma/`, `apps/backend/prisma/schema.prisma`
-- Contains: PrismaService (connection + RLS control), schema definitions, migrations
-- Depends on: PostgreSQL configuration, environment variables
-- Used by: All services
+**API Gateway Layer:**
 
-**Infrastructure/Cross-Cutting Layer:**
-- Purpose: Provide shared utilities, security, logging, authentication
+- Purpose: HTTP request handling, routing, validation, authentication
+- Location: `apps/backend/src/modules/*/controllers/`
+- Contains: NestJS controllers with OpenAPI/Swagger decorators
+- Depends on: Service layer, Guards (JwtAuthGuard, TenantGuard, RolesGuard)
+- Used by: Frontend via REST endpoints at `/api/v1/*`
+
+**Application Service Layer:**
+
+- Purpose: Business logic orchestration, domain operations
+- Location: `apps/backend/src/modules/*/services/`
+- Contains: NestJS services with transaction management, event emission
+- Depends on: Data access layer (PrismaService), ActivityService, EventEmitter2
+- Used by: Controllers, other services (via dependency injection)
+
+**Cross-Cutting Infrastructure Layer:**
+
+- Purpose: Shared capabilities across all modules
 - Location: `apps/backend/src/common/`
-- Contains: Guards (auth/tenant/roles), middleware, decorators, filters, Activity service
-- Depends on: Prisma, configuration
-- Used by: All modules
+- Contains: Guards, decorators, middleware, interceptors, filters, base services
+- Depends on: Prisma, ConfigService, JWT library
+- Used by: All modules via NestJS dependency injection
 
-**Storage Layer:**
-- Purpose: Abstract file storage operations (local or Azure Blob)
-- Location: `apps/backend/src/common/services/storage.service.ts`
-- Contains: StorageService, adapters (LocalStorageAdapter, AzureStorageAdapter)
-- Depends on: Configuration, file system or Azure SDK
-- Used by: AttachmentsService, attachment endpoints
+**Data Access Layer:**
+
+- Purpose: Database operations with multi-tenancy enforcement
+- Location: `apps/backend/src/modules/prisma/`
+- Contains: PrismaService (singleton), generated Prisma Client
+- Depends on: PostgreSQL database with RLS policies
+- Used by: All service classes
+
+**External Integration Layer:**
+
+- Purpose: Third-party service integrations
+- Location: `apps/backend/src/modules/ai/`, `apps/backend/src/modules/hris/`, `apps/backend/src/modules/storage/`
+- Contains: Provider abstractions, API clients (Anthropic Claude, Azure Blob, Elasticsearch)
+- Depends on: External APIs, SDK packages
+- Used by: Service layer for AI operations, file storage, employee sync
 
 ## Data Flow
 
-**Request Inbound - Case Creation:**
+**Authenticated Request Flow:**
 
-1. Client sends POST `/api/v1/cases` with Bearer token
-2. **TenantMiddleware** (runs BEFORE guards):
-   - Extracts `organizationId` from JWT payload
-   - Sets PostgreSQL session var: `SET LOCAL app.current_organization = {organizationId}`
-   - Stores in `req.organizationId` and `req.userId`
-3. **JwtAuthGuard** validates token is valid/not expired
-4. **TenantGuard** verifies request has valid organization context
-5. **RolesGuard** checks user has COMPLIANCE_OFFICER or INVESTIGATOR role
-6. **Controller handler** receives validated request
-7. **CasesService.create()** called with organizationId from request
-   - Generates unique reference number
-   - Creates Case record via Prisma
-   - All Prisma queries automatically filtered by organization via RLS
-8. **ActivityService.log()** called to record action with natural language description
-9. **Response** returned as JSON with 201 Created
+1. **Frontend initiates request** - User action triggers API call via `apps/frontend/src/lib/api.ts` with JWT in Authorization header
+2. **TenantMiddleware extracts context** - `apps/backend/src/common/middleware/tenant.middleware.ts` decodes JWT, sets PostgreSQL session variable `app.current_organization`
+3. **Guards validate authorization** - JwtAuthGuard validates token, TenantGuard ensures organizationId present, RolesGuard checks RBAC permissions
+4. **Controller receives typed DTO** - NestJS ValidationPipe transforms and validates request body against class-validator decorated DTOs
+5. **Service executes business logic** - Service methods perform CRUD operations via Prisma (auto-filtered by RLS), emit domain events
+6. **ActivityService logs action** - All mutations logged to AUDIT_LOG with natural language description
+7. **Domain events processed** - EventEmitter2 broadcasts events to subscribers (e.g., notifications, search indexing)
+8. **Response returned** - Controller serializes response (Prisma entities or DTOs) back to frontend
 
-**Database Query (RLS Enforcement):**
+**State Management:**
 
-```
-SELECT * FROM cases
-WHERE organization_id = current_setting('app.current_organization')
-  AND is_active = true;
-```
-
-Every query automatically includes the RLS filter at the database level - even if app code forgets to filter by organization_id, the database enforces isolation.
-
-**State Management (Frontend):**
-
-1. AuthContext stores tokens in localStorage + state
-2. API client (axios instance) auto-injects Bearer token in Authorization header
-3. Response interceptor handles 401 with token refresh
-4. Hooks (useCaseFilters, useCaseFormDraft) manage component state
-5. Components render with fetched data scoped to current organization
+- Frontend: React Query (@tanstack/react-query) for server state caching, React hooks for local UI state
+- Backend: Stateless services, session context stored in JWT, transient state in Redis (rate limiting, job queues)
 
 ## Key Abstractions
 
-**RiskIntelligenceUnit (RIU):**
-- Purpose: Immutable intake record - a report filed, form submitted, disclosure made
-- Examples: `apps/backend/src/modules/cases/` (RIU created from cases), schema definitions in prisma/schema.prisma
-- Pattern: Created once, never updated; content is immutable; Case tracks corrections
+**RIU (Risk Intelligence Unit):**
+
+- Purpose: Immutable intake record representing "something happened" (hotline report, disclosure, web form)
+- Examples: `apps/backend/src/modules/rius/rius.service.ts`, `apps/backend/prisma/schema.prisma` (RiskIntelligenceUnit model)
+- Pattern: Created once, never updated (except system fields like aiSummary). Corrections go on associated Case.
 
 **Case:**
-- Purpose: Mutable work container for investigation and tracking
-- Examples: `apps/backend/src/modules/cases/cases.service.ts`, `apps/backend/src/modules/cases/cases.controller.ts`
-- Pattern: Can be updated, status tracked, linked to investigations
 
-**Investigation:**
-- Purpose: Structured investigation tied to a Case
-- Examples: `apps/backend/src/modules/investigations/investigations.service.ts`
-- Pattern: Contains notes, findings, status, primary investigator assignment
+- Purpose: Mutable work container for investigation workflow, status tracking, assignment
+- Examples: `apps/backend/src/modules/cases/cases.service.ts`, `apps/backend/src/modules/investigations/investigations.service.ts`
+- Pattern: HubSpot Deal model - has pipeline stages, assignees, activities. Links to one or more RIUs via `riu_case_associations`.
 
-**Activity/AuditLog:**
-- Purpose: Immutable ledger of all entity mutations for compliance
-- Examples: `apps/backend/src/common/services/activity.service.ts`
-- Pattern: Automatically logged on all creates/updates, includes actor ID, timestamp, natural language description, changes
+**Activity Timeline:**
 
-**TenantContext:**
-- Purpose: Organization isolation enforced at request boundary
-- Examples: `apps/backend/src/common/middleware/tenant.middleware.ts`, `apps/backend/src/common/guards/tenant.guard.ts`
-- Pattern: Extracted from JWT, set as PostgreSQL session variable, enforces RLS for all queries
+- Purpose: Natural language audit trail for all entity changes
+- Examples: `apps/backend/src/common/services/activity.service.ts`, `apps/backend/src/modules/audit/audit.service.ts`
+- Pattern: Every service mutation calls `activityService.log()` with actionDescription like "John assigned case ETH-2026-00123 to Sarah"
+
+**Workflow Engine:**
+
+- Purpose: Configurable state machines for case lifecycle, approval flows
+- Examples: `apps/backend/src/modules/workflow/workflow.service.ts`, `apps/backend/src/modules/workflow/workflow-engine.service.ts`
+- Pattern: JSON-configured workflows with step conditions, SLA tracking, auto-transitions
+
+**Multi-Tenant Isolation:**
+
+- Purpose: Complete data separation between organizations in shared database
+- Examples: `apps/backend/src/common/middleware/tenant.middleware.ts`, PostgreSQL RLS policies
+- Pattern: Every table has `organization_id`, RLS policies filter all queries, middleware sets session variable from JWT
+
+**AI Provider Abstraction:**
+
+- Purpose: Pluggable AI backends (Claude, Azure OpenAI, self-hosted)
+- Examples: `apps/backend/src/modules/ai/providers/claude.provider.ts`, `apps/backend/src/modules/ai/ai.service.ts`
+- Pattern: Interface-based dependency injection, streaming responses, prompt templates in `apps/backend/src/modules/ai/prompts/`
 
 ## Entry Points
 
-**Backend:**
+**Backend API Server:**
+
 - Location: `apps/backend/src/main.ts`
-- Triggers: Application startup (npm run start:dev)
-- Responsibilities: Bootstrap NestJS app, configure middleware, setup Swagger docs, listen on port
+- Triggers: `npm run start:dev` (development) or `npm run start:prod` (production)
+- Responsibilities: Bootstrap NestJS app, configure middleware (Helmet, CORS, ValidationPipe), mount Swagger docs at `/api/docs`, listen on port 3000
 
-**Frontend:**
-- Location: `apps/frontend/src/app/layout.tsx`, `apps/frontend/src/app/page.tsx`
-- Triggers: Page navigation, initial load
-- Responsibilities: Layout wrapper, page content, provider setup
+**Frontend Web Server:**
 
-**API Endpoints:**
-- `POST /api/v1/auth/login` - User authentication (no tenant context required)
-- `POST /api/v1/cases` - Create case (requires auth + organization context)
-- `GET /api/v1/cases` - List cases (paginated, filtered by organization)
-- `GET /api/v1/cases/{id}` - Get single case
-- `PUT /api/v1/cases/{id}` - Update case
-- `POST /api/v1/investigations` - Create investigation
-- `GET /api/v1/investigations/{id}` - Get investigation details
-- `POST /api/v1/investigations/{id}/notes` - Add investigation note
-- `GET /api/v1/activity` - List audit log entries (filtered by organization)
-- `GET /health` - Health check (public endpoint)
+- Location: `apps/frontend/src/app/layout.tsx` (root), `apps/frontend/src/app/(authenticated)/layout.tsx` (authenticated shell)
+- Triggers: `npm run dev` (development) or `npm run start` (production)
+- Responsibilities: Next.js App Router, SSR/SSG rendering, React Query provider setup, auth token management
+
+**Database Migrations:**
+
+- Location: `apps/backend/prisma/migrations/`
+- Triggers: `npm run db:migrate` (development) or `npm run db:migrate:prod` (production)
+- Responsibilities: Apply schema changes, create RLS policies, seed lookup data
+
+**Background Job Processor:**
+
+- Location: `apps/backend/src/modules/jobs/jobs.service.ts` (BullMQ consumers)
+- Triggers: Auto-started when backend initializes (event-driven)
+- Responsibilities: Process async jobs (email delivery, report generation, data migration, AI summarization)
+
+**Scheduled Tasks:**
+
+- Location: `apps/backend/src/modules/notifications/digest.service.ts`, workflow SLA checks
+- Triggers: Cron schedules via @nestjs/schedule
+- Responsibilities: Send daily digests, mark overdue cases, trigger reminder emails
 
 ## Error Handling
 
-**Strategy:** Global exception filter with standardized error responses, non-blocking activity logging
+**Strategy:** Centralized exception filters with typed error responses
 
 **Patterns:**
 
-**HTTP Exceptions (NestJS):**
-```typescript
-// In controllers or services
-throw new NotFoundException(`Case ${id} not found`);
-throw new BadRequestException('Invalid case status transition');
-throw new ForbiddenException('User lacks required role');
-```
-
-Response format standardized by `HttpExceptionFilter`:
-```json
-{
-  "statusCode": 400,
-  "message": "Validation failed",
-  "error": "Bad Request",
-  "timestamp": "2024-01-15T10:30:00.000Z",
-  "path": "/api/v1/cases"
-}
-```
-
-**Activity Logging (Non-Blocking):**
-- Errors caught and logged but never thrown to caller
-- Ensures failed activity logging doesn't fail the user's operation
-- Log failures only logged to application logger, not exposed to client
-
-**Tenant Isolation Errors:**
-- TenantGuard verifies organization context exists
-- Returns 403 Forbidden if missing
-- TenantMiddleware gracefully skips public paths
-- RLS enforces at database level - queries fail silently if filtering would return 0 rows
+- **Service Layer**: Throw NestJS exceptions (NotFoundException, BadRequestException, UnauthorizedException) with descriptive messages
+- **Global Exception Filter**: `apps/backend/src/common/filters/http-exception.filter.ts` catches all exceptions, formats as `{ statusCode, message, error, timestamp, path }`
+- **Frontend Error Boundary**: React error boundaries catch rendering errors, API client interceptor handles 401 (auto token refresh), 403 (permission denied), 500 (server error)
+- **Validation Errors**: class-validator errors formatted as `{ statusCode: 400, message: ['field1 must be X', 'field2 must be Y'], error: 'Bad Request' }`
 
 ## Cross-Cutting Concerns
 
-**Logging:**
+**Logging:** Pino logger with structured JSON output (pretty-print in dev), log level configurable via LOG_LEVEL env var. All services use `private readonly logger = new Logger(ServiceName.name);`
 
-Framework: Pino logger configured in `main.ts`
-- Development: Pretty-printed output with colors
-- Production: JSON format
-- All modules use NestJS Logger service which integrates with Pino
+**Validation:** class-validator decorators on DTOs, global ValidationPipe with `whitelist: true` (strip unknown properties), `transform: true` (auto type coercion)
 
-**Validation:**
+**Authentication:** JWT-based with access tokens (15min TTL) and refresh tokens (7 day TTL). Passport JWT strategy validates tokens, extracts user context. SSO via Azure AD and Google OAuth supported.
 
-Framework: class-validator + ValidationPipe
-- Configured globally in `main.ts` with whitelist mode (reject unknown fields)
-- DTOs in each module's `dto/` directory use decorators (@IsString, @IsUUID, @IsEnum, etc.)
-- Errors automatically formatted as validation error array
+**Authorization:** RBAC via RolesGuard checking UserRole enum (SYSTEM_ADMIN, COMPLIANCE_OFFICER, INVESTIGATOR, etc.). Custom visibility scoping via business unit, region, sensitivity level.
 
-**Authentication:**
+**Rate Limiting:** Global throttle via ThrottlerGuard, Redis-backed for distributed rate limiting (100 req/min default per organization)
 
-Framework: JWT via @nestjs/jwt + custom JwtAuthGuard
-- Token verified in guard before route handler
-- Payload extracted and passed to controller via @CurrentUser decorator
-- Refresh token rotation implemented in auth service
-- Session tracking for token revocation support
+**Caching:** Redis cache for frequently accessed data (categories, templates, user profiles). Cache keys prefixed with `org:{organizationId}:` for tenant isolation.
 
-**Authorization:**
+**File Storage:** Azure Blob Storage with per-tenant containers (`tenant-{organizationId}`). Attachment metadata tracked in database, binary content in blob storage.
 
-Framework: Role-Based Access Control (RBAC) via RolesGuard
-- Roles defined in Prisma enum: `UserRole` (SYSTEM_ADMIN, COMPLIANCE_OFFICER, INVESTIGATOR, etc.)
-- Applied via @Roles decorator on controller methods
-- RolesGuard checks user.role against required roles
+**Search:** Elasticsearch with per-tenant indices (`org_{organizationId}_cases`, `org_{organizationId}_rius`). Full-text search with permission filtering.
 
-**Multi-Tenancy:**
+**Real-time:** Socket.IO WebSockets for live notifications, collaborative editing. Rooms scoped by organization and entity (`case-{caseId}`, `org-{organizationId}-notifications`).
 
-Framework: PostgreSQL RLS + session variables
-- Tenant context set per-request via middleware
-- All queries filtered at database level
-- No application-level filtering required (database enforces)
-- Cache keys prefixed with organization_id (future implementation)
+**Background Jobs:** BullMQ with Redis for async job processing (email, exports, AI tasks). Job queues: `email-queue`, `export-queue`, `ai-queue`, `migration-queue`.
 
-**Activity Audit:**
+---
 
-Framework: Custom ActivityService with audit log table
-- All mutations trigger activity log entry
-- Includes entity type, entity ID, action, actor, timestamp, changes
-- Supports filtering by organization, entity type, date range
-- Query endpoint at GET /api/v1/activity
-
+_Architecture analysis: 2026-02-13_

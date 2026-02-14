@@ -1,306 +1,376 @@
 # Coding Conventions
 
-**Analysis Date:** 2026-02-02
+**Analysis Date:** 2026-02-13
 
 ## Naming Patterns
 
 **Files:**
-- Services: PascalCase + `.service.ts` (e.g., `activity.service.ts`)
-- Controllers: PascalCase + `.controller.ts` (e.g., `activity.controller.ts`)
-- Guards: PascalCase + `.guard.ts` (e.g., `jwt-auth.guard.ts`)
-- Decorators: kebab-case + `.decorator.ts` (e.g., `current-user.decorator.ts`)
-- DTOs: PascalCase + `.dto.ts` (e.g., `create-activity.dto.ts`)
-- Tests: filename + `.spec.ts` (unit) or `.e2e-spec.ts` (e2e)
-- Frontend components: PascalCase (e.g., `CaseCreationForm.tsx`, `case-creation-form.tsx`)
-- Frontend hooks: `use` prefix in camelCase (e.g., `useCaseFormDraft.ts`)
-- Frontend pages: kebab-case in directories with `page.tsx` (e.g., `/cases/[id]/page.tsx`)
+
+- Services: `kebab-case.service.ts` (e.g., `investigation-notes.service.ts`, `activity.service.ts`)
+- Controllers: `kebab-case.controller.ts` (e.g., `investigations.controller.ts`)
+- DTOs: `kebab-case.dto.ts` (e.g., `chat-message.dto.ts`, `timeline-query.dto.ts`)
+- Interfaces: `kebab-case.interface.ts` (e.g., `jwt-payload.interface.ts`)
+- Guards: `kebab-case.guard.ts` (e.g., `jwt-auth.guard.ts`, `tenant.guard.ts`)
+- Decorators: `kebab-case.decorator.ts` (e.g., `current-user.decorator.ts`)
+- Middleware: `kebab-case.middleware.ts` (e.g., `tenant.middleware.ts`)
+- Test files: `*.spec.ts` for unit tests, `*.e2e-spec.ts` for E2E tests
 
 **Functions:**
+
 - camelCase for all functions and methods
-- PascalCase for React functional components
-- Prefix private methods with underscore: `_generateUpdatedDescription()`
-- Prefix test functions with descriptive words: `generateSummaryFor()` for factory functions
+- Descriptive action verbs: `create()`, `findOne()`, `update()`, `assign()`, `transition()`
+- Query methods: `findAll()`, `findOne()`, `findAllForCase()`
+- Validation helpers: `isValidTransition()`, `getNextInvestigationNumber()`
 
 **Variables:**
-- camelCase for all variables and constants
-- UPPER_SNAKE_CASE for true constants (rarely used; prefer `const` declarations)
-- Use descriptive names: `mockOrganizationId` instead of `orgId` in tests
-- Test data objects: `mock*` prefix (e.g., `mockUser`, `mockAuditLog`, `mockCase`)
 
-**Types and Interfaces:**
-- PascalCase for all TypeScript types and interfaces
-- Prefix DTOs with scope: `CreateActivityDto`, `ActivityQueryDto`, `ActivityListResponseDto`
-- Prefix interfaces with "I" only for abstract contracts (not for data types)
-- Entity types match Prisma schema: `User`, `Case`, `AuditLog`, `Organization`
+- camelCase for all variables
+- Descriptive names: `existing`, `updated`, `newStatus`, `changedFields`
+- Mock prefixes in tests: `mockOrgId`, `mockUserId`, `mockEntity`
+- Constants in SCREAMING_SNAKE_CASE (rare, usually enums)
 
-**Enums:**
-- PascalCase with UPPER_SNAKE_CASE values
-- Stored in Prisma schema (`@prisma/client` exports)
-- Example: `AuditEntityType.CASE`, `AuditActionCategory.UPDATE`, `ActorType.USER`
+**Types:**
+
+- PascalCase for classes, interfaces, enums, types
+- DTOs: `CreateExampleDto`, `UpdateExampleDto`, `ExampleQueryDto`
+- Services: `InvestigationsService`, `ActivityService`, `PrismaService`
+- Interfaces: `LogActivityInput`, `AssignmentHistoryEntry`, `RequestUser`
+- Enums: `ExampleStatus`, `MessageRole`, `UserRole`
+
+**Class Members:**
+
+- Private fields: `private readonly logger`, `private readonly prisma`
+- Access modifiers explicit: `private`, `public` (implied for controller methods)
 
 ## Code Style
 
 **Formatting:**
-- Prettier 3.2.2 for auto-formatting
-- Max line length: default (80 chars enforced by lint-staged)
-- Indentation: 2 spaces
-- Quotes: single quotes in TypeScript, JSX attributes can use double quotes
-- Semicolons: required at end of statements
+
+- Tool: Prettier 3.2.2
+- No explicit .prettierrc file - uses Prettier defaults
+- Integrated with ESLint via `eslint-plugin-prettier`
+- Auto-formatting via `npm run format` (formats `src/**/*.ts` and `test/**/*.ts`)
 
 **Linting:**
-- Backend: ESLint with `@typescript-eslint` plugin
-- Frontend: Next.js ESLint config
-- Applied via lint-staged on git commit for staged files
-- Run manually: `npm run lint` (applies `--fix`)
 
-**ESLint Rules (Backend):**
-- `@typescript-eslint/no-explicit-any`: warn (allowed with explicit reasoning)
-- `@typescript-eslint/no-unused-vars`: warn with `argsIgnorePattern: '^_'` (allow unused args with `_` prefix)
-- `@typescript-eslint/no-namespace`: off (allowed for Express augmentation)
-- `@typescript-eslint/explicit-function-return-type`: off (inferred from context)
-- Interface name prefix requirement: off (no `I` prefix required)
+- Tool: ESLint with `@typescript-eslint/eslint-plugin`
+- Config: `apps/backend/.eslintrc.js`
+- Key rules:
+  - `@typescript-eslint/no-explicit-any`: `warn` (allowed but discouraged)
+  - `@typescript-eslint/no-unused-vars`: `warn` with `argsIgnorePattern: '^_'` (underscore-prefixed args allowed)
+  - `@typescript-eslint/explicit-function-return-type`: `off` (type inference allowed)
+  - `@typescript-eslint/explicit-module-boundary-types`: `off`
+  - `@typescript-eslint/no-namespace`: `off` (allows Express augmentation)
+- Command: `npm run lint` (auto-fixes with `--fix`)
 
-**Type Checking:**
-- Run: `npm run typecheck`
-- Backend: TypeScript 5.3.3 with strict mode enabled
-- Frontend: TypeScript 5.3.3 with strict mode, `noEmit` flag
-- All decorators required: `"experimentalDecorators": true`, `"emitDecoratorMetadata": true`
+**TypeScript Strictness:**
+
+- Compiler: TypeScript 5.3.3
+- Strict flags enabled:
+  - `strictNullChecks: true`
+  - `noImplicitAny: true`
+  - `strictBindCallApply: true`
+  - `forceConsistentCasingInFileNames: true`
+  - `noFallthroughCasesInSwitch: true`
+- Target: ES2021
+- Decorators: `experimentalDecorators: true`, `emitDecoratorMetadata: true`
 
 ## Import Organization
 
 **Order:**
-1. External packages (`@nestjs/*`, `react`, third-party libraries)
-2. Absolute path imports (using path aliases like `@/*`)
-3. Relative imports (`../`, `./`)
-4. Blank line between groups
+
+1. External dependencies (NestJS, Prisma, etc.)
+2. Internal common modules (`@common/*`)
+3. Internal modules (`@modules/*`)
+4. Internal config (`@config/*`)
+5. Relative imports (`./*`, `../*`)
+
+**Example:**
+
+```typescript
+import { Injectable, NotFoundException, Logger } from "@nestjs/common";
+import { Prisma, Investigation } from "@prisma/client";
+import { PrismaService } from "../prisma/prisma.service";
+import { ActivityService } from "../../common/services/activity.service";
+import { CreateInvestigationDto } from "./dto";
+```
 
 **Path Aliases:**
 
-Backend (`@` prefix):
-```typescript
-import { PrismaService } from '@modules/prisma/prisma.service';
-import { JwtAuthGuard } from '@common/guards/jwt-auth.guard';
-import { CreateActivityDto } from '@common/dto';
-import configuration from '@config/configuration';
-```
+- `@/*` → `src/*`
+- `@common/*` → `src/common/*`
+- `@modules/*` → `src/modules/*`
+- `@config/*` → `src/config/*`
 
-Frontend (`@` prefix):
-```typescript
-import { Button } from '@/components/ui/button';
-import { caseCreationSchema } from '@/lib/validations/case-schema';
-import { casesApi } from '@/lib/cases-api';
-import type { CreateCaseInput } from '@/types/case';
-```
+**Import Style:**
 
-**Barrel Exports:**
-- Use `index.ts` files to re-export public APIs
-- Example: `@common/dto/index.ts` exports `CreateActivityDto`, `ActivityQueryDto`, etc.
-- Keep barrel files minimal; only export what's needed by consumers
+- Named imports preferred
+- Destructure multiple exports: `import { A, B, C } from 'module'`
+- Group related imports on same line
+- Never use `import *`
 
 ## Error Handling
 
 **Patterns:**
 
-Activity logging uses **non-blocking error handling** - errors logged but never thrown to caller:
+- Use NestJS exceptions: `NotFoundException`, `BadRequestException`, `ForbiddenException`
+- Return 404 (not 403) for tenant isolation violations to prevent enumeration
+- Non-blocking logging: activity logging failures should not crash requests
+- Validation errors handled by class-validator automatically
+
+**Examples:**
+
 ```typescript
-// In ActivityService.log()
+// Tenant isolation - return 404 if not found OR wrong org
+if (!investigation) {
+  throw new NotFoundException(`Investigation with ID ${id} not found`);
+}
+
+// Business rule validation
+if (!this.isValidTransition(existing.status, dto.status)) {
+  throw new BadRequestException(
+    `Cannot transition from ${existing.status} to ${dto.status}`
+  );
+}
+
+// Non-blocking activity log
 try {
-  await this.prisma.auditLog.create({ data: {...} });
+  await this.activityService.log(...);
 } catch (error) {
-  this.logger.error(`Failed to log activity: ${error.message}`, error.stack);
-  // Do not throw - let operation complete
+  this.logger.error('Failed to log activity', error);
+  // Continue - don't fail request
 }
 ```
-
-HTTP exceptions follow standardized format via `HttpExceptionFilter`:
-```typescript
-// Controller throws specific error
-throw new BadRequestException('Validation failed');
-
-// Filter catches and formats response
-{
-  "statusCode": 400,
-  "timestamp": "2026-01-15T10:30:00.000Z",
-  "path": "/api/v1/cases",
-  "method": "POST",
-  "message": "Validation failed",
-  "error": "Bad Request"
-}
-```
-
-Guard errors throw `UnauthorizedException`:
-```typescript
-// In JwtAuthGuard.handleRequest()
-if (err || !user) {
-  throw new UnauthorizedException('Invalid or expired token');
-}
-```
-
-Custom exceptions use NestJS built-ins: `BadRequestException`, `UnauthorizedException`, `ForbiddenException`, `NotFoundException`.
 
 ## Logging
 
-**Framework:** Pino 8.17.2 for backend, `console` for frontend
+**Framework:** Pino (via `pino` and `pino-http`)
 
-**Backend Patterns:**
-```typescript
-private readonly logger = new Logger(ActivityController.name);
+**Patterns:**
 
-// Debug: non-critical diagnostic info
-this.logger.debug(`Fetching organization activity for org ${organizationId}`);
-
-// Error: caught exceptions or degraded functionality
-this.logger.error(`Unhandled exception: ${error.message}`, error.stack);
-```
-
-**Frontend Patterns:**
-```typescript
-// Warn: fallback behavior, draft save failures
-console.warn('Failed to save draft:', error);
-
-// Info: user-facing toasts via `sonner` library
-toast.info('Draft found', { description: 'Would you like to restore?' });
-```
+- Logger instance per service: `private readonly logger = new Logger(ServiceName.name)`
+- Log levels: `debug`, `log`, `warn`, `error`
+- Use structured logging where possible
+- Debug logs for entry/exit: `this.logger.debug('Creating investigation for case...')`
+- Error logs include context: `this.logger.error('Failed to log activity', error)`
 
 **When to Log:**
-- Do NOT log on every function entry/exit
-- DO log before/after external service calls (API, database, storage)
-- DO log errors with full stack traces
-- DO log state changes that affect user experience
-- DO NOT log sensitive data (passwords, tokens, PII)
+
+- Service method entry (debug level)
+- Business logic errors (error level)
+- Validation failures (warn level)
+- Activity logging failures (error level)
 
 ## Comments
 
 **When to Comment:**
-- JSDoc for all public methods and classes
-- Inline comments for non-obvious logic only (avoid stating the obvious)
-- Use `// ` for single-line comments, `/* */` for block comments
-- Never use old-style `/***/` comments
 
-**JSDoc/TSDoc Style:**
+- Complex business logic requiring explanation
+- State machine transitions (status validations)
+- Security-critical code (tenant isolation checks)
+- Non-obvious patterns (assignment history JSON structure)
+- Reference to external specs or docs
 
-Backend:
-```typescript
-/**
- * Generates a natural language description for an activity.
- *
- * @param context - The context containing all values for description generation
- * @returns A human-readable description string
- *
- * @example
- * ```typescript
- * generator.generate({ action: 'created', entityType: 'Case', actorName: 'John Doe' });
- * // => "John Doe created Case"
- * ```
- */
-generate(context: DescriptionContext): string {
-  // Implementation
-}
-```
+**JSDoc/TSDoc:**
 
-Frontend:
-```typescript
-/**
- * Hook for persisting case creation form drafts to localStorage.
- *
- * Features:
- * - Auto-save every 30 seconds when data changes
- * - Restore draft on page load
- * - Clear draft on successful submit
- *
- * @param getFormData - Function to get current form values
- * @param enabled - Whether auto-save is enabled (default: true)
- */
-export function useCaseFormDraft(...): UseCaseFormDraftReturn {
-  // Implementation
-}
-```
+- Used on service methods: purpose, params, return, throws
+- Multi-line format:
+  ```typescript
+  /**
+   * Creates a new investigation for a case.
+   * Auto-generates investigation number and sets initial status to NEW.
+   */
+  ```
+- Single-line format rare
 
-Controllers and routes:
-```typescript
-/**
- * Get organization-wide activity (paginated).
- *
- * @route GET /api/v1/activity
- * @access Requires COMPLIANCE_OFFICER or SYSTEM_ADMIN role
- */
-@Get()
-@Roles(UserRole.COMPLIANCE_OFFICER, UserRole.SYSTEM_ADMIN)
-async getOrganizationActivity(...): Promise<ActivityListResponseDto> {
-  // Implementation
-}
-```
+**Inline Comments:**
+
+- Mark critical tenant isolation: `// CRITICAL: Tenant isolation`
+- Explain non-obvious behavior: `// Return 404 not 403 to prevent enumeration`
+- TODO comments tracked: `// TODO: Add guards when auth module is integrated`
 
 ## Function Design
 
-**Size:** Aim for 20-40 lines per function (hard limit: 100 lines)
+**Size:**
+
+- Services: 20-80 lines per method typical
+- Controllers: 10-30 lines per endpoint (mostly delegation)
+- Keep business logic in services, not controllers
 
 **Parameters:**
-- Max 3 positional parameters; use object destructuring for more:
-  ```typescript
-  // Good
-  async log(input: LogActivityInput): Promise<void>
 
-  // Avoid
-  async log(entityType, entityId, action, description, organizationId, ...): Promise<void>
-  ```
+- Services always receive: `dto`, `userId`, `organizationId` (in that order)
+- Use DTOs for validation, not primitive obsession
+- Destructure query params from DTOs
+
+**Example:**
+
+```typescript
+async create(
+  dto: CreateInvestigationDto,
+  caseId: string,
+  userId: string,
+  organizationId: string,
+): Promise<Investigation>
+```
 
 **Return Values:**
-- Explicit return types on all public functions
-- Use `Promise<T>` for async functions
-- Return `void` for side-effect-only functions
-- Throw exceptions rather than returning `null` or error objects
 
-**Composition:**
-- Prefer small, focused functions over god functions
-- Extract multi-step logic into named helper methods
-- Example: `_generateUpdatedDescription()` extracted from main `generate()` method
+- Return Prisma entities directly from services
+- Use response DTOs only when needed for mapping
+- Paginated responses: `{ data, total, limit, page }`
+- Always return promises (async/await pattern)
 
 ## Module Design
 
 **Exports:**
-- Use barrel files (`index.ts`) for module public API
-- Example: `@common/index.ts` re-exports guards, decorators, services
-- Only export types that consumers need
 
-**NestJS Modules:**
-- Follow feature-based structure: each feature gets own module
-- Module name matches feature: `CasesModule` in `cases/` directory
-- Each module has: `*.module.ts`, `*.service.ts`, `*.controller.ts`
-- Share common functionality via `CommonModule` (activity, storage, auth)
+- Barrel exports in `index.ts` files:
+  ```typescript
+  export * from "./guards";
+  export * from "./decorators";
+  export * from "./services";
+  ```
+- DTOs exported from `dto/index.ts`
+- Services exported directly from service files
 
-**Frontend Modules:**
-- Components live in `src/components/{feature}/`
-- Hooks in `src/hooks/`
-- Utilities in `src/lib/`
-- Types in `src/types/`
+**Barrel Files:**
 
-## Organization-Specific Patterns
+- Used in `common/` for cross-cutting concerns
+- Used in module DTOs: `src/modules/*/dto/index.ts`
+- Controllers import from module root
 
-**Tenant Isolation:**
-- Every table must have `organizationId` field
-- All database queries filter by `organizationId`
-- Cache keys prefixed: `org:{organizationId}:...`
-- Elasticsearch indices: `org_{organizationId}_{type}`
-- JWT token contains `organizationId` extracted by `TenantMiddleware`
+**Module Structure:**
 
-**Activity/Audit Logging:**
-- Every mutation must call `ActivityService.log()` with natural language `actionDescription`
-- Activity logging never blocks main operation (non-blocking error handling)
-- Actor names denormalized for efficiency
-- Use standard action types: `created`, `updated`, `deleted`, `status_changed`, `assigned`, etc.
+```
+module/
+├── dto/
+│   ├── create.dto.ts
+│   ├── update.dto.ts
+│   ├── query.dto.ts
+│   └── index.ts
+├── module.controller.ts
+├── module.service.ts
+├── module.service.spec.ts
+└── module.module.ts
+```
 
-**Data Validation:**
-- Backend: NestJS `class-validator` with DTOs
-- Frontend: Zod schemas for form validation
-- Always whitelist fields: `whitelist: true` in ValidationPipe
-- Schema enums match Prisma schema enums
+## NestJS Conventions
 
-**Immutability Patterns:**
-- RIUs (Risk Intelligence Units) are immutable after creation
-- Corrections go on linked Case entity, not the RIU
-- Use Prisma `@createdAt` for audit trail, no `updatedAt` on immutable entities
+**Decorators:**
+
+- Controllers: `@Controller()`, `@ApiTags()`, `@ApiBearerAuth()`, `@UseGuards()`
+- Endpoints: `@Get()`, `@Post()`, `@Patch()`, `@Delete()`, `@HttpCode()`
+- Parameters: `@Param()`, `@Body()`, `@Query()`, `@CurrentUser()`, `@TenantId()`
+- Authorization: `@Roles()`, `@UseGuards(RolesGuard)`
+- Swagger: `@ApiOperation()`, `@ApiResponse()`, `@ApiParam()`
+
+**Dependency Injection:**
+
+- Constructor injection: `constructor(private readonly service: Service)`
+- Use `private readonly` for all injected dependencies
+- Inject interfaces where possible (e.g., `ActivityService` not concrete)
+
+**Guards:**
+
+- Always apply: `@UseGuards(JwtAuthGuard, TenantGuard)`
+- Role-based: Add `@UseGuards(RolesGuard)` after `@Roles()` decorator
+- Order matters: Auth → Tenant → Roles
+
+## DTO Conventions
+
+**Validation:**
+
+- All fields MUST have class-validator decorators
+- Required: `@IsString()`, `@IsNotEmpty()`, `@MaxLength()`
+- Optional: `@IsOptional()` first
+- Transform: `@Transform()` for sanitization
+- Type coercion: `@Type(() => Number)` for query params
+
+**Structure:**
+
+- `CreateDto`: all required fields
+- `UpdateDto`: extends `PartialType(CreateDto)` (all optional)
+- `QueryDto`: pagination + filters
+- Response DTOs: typing only, no validation
+
+**Security:**
+
+- NEVER include `organizationId` in DTOs (comes from JWT)
+- NEVER include `createdAt`, `updatedAt`, `createdById` (service sets these)
+- NEVER accept UUIDs user shouldn't control
+
+**Example:**
+
+```typescript
+export class CreateInvestigationDto {
+  @ApiProperty({ description: "Category UUID" })
+  @IsUUID()
+  categoryId: string;
+
+  @ApiPropertyOptional({ description: "Due date" })
+  @IsOptional()
+  @Type(() => Date)
+  @IsDate()
+  dueDate?: Date;
+}
+```
+
+## Activity Logging Pattern
+
+**Every mutation must log activity with natural language description:**
+
+```typescript
+await this.activityService.log({
+  entityType: AuditEntityType.INVESTIGATION,
+  entityId: investigation.id,
+  action: "created",
+  actionDescription: `Created investigation #${investigationNumber} for case ${caseNumber}`,
+  actorUserId: userId,
+  organizationId,
+  context: { caseId, investigationNumber },
+});
+```
+
+**Structure:**
+
+- `entityType`: Enum (CASE, INVESTIGATION, RIU, etc.)
+- `entityId`: UUID of affected entity
+- `action`: verb (created, updated, deleted, assigned, status_changed)
+- `actionDescription`: Natural language sentence
+- `actorUserId`: Who did it
+- `organizationId`: Tenant isolation
+- `changes`: `{ oldValue, newValue }` for updates
+- `context`: Additional metadata (optional)
+
+## Tenant Isolation (CRITICAL)
+
+**Every query MUST filter by organizationId:**
+
+```typescript
+const investigation = await this.prisma.investigation.findFirst({
+  where: {
+    id,
+    organizationId, // CRITICAL: Tenant isolation
+  },
+});
+```
+
+**Services always receive organizationId as parameter:**
+
+- Extract from JWT in controller: `@TenantId() organizationId: string`
+- Pass to service: `this.service.create(dto, userId, organizationId)`
+- Use in all Prisma queries
+
+**Return 404, not 403, for cross-tenant access:**
+
+```typescript
+if (!entity) {
+  throw new NotFoundException(`Entity with ID ${id} not found`);
+  // Not ForbiddenException - prevents enumeration
+}
+```
 
 ---
 
-*Convention analysis: 2026-02-02*
+_Convention analysis: 2026-02-13_

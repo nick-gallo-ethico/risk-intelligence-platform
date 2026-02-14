@@ -1,247 +1,264 @@
 # External Integrations
 
-**Analysis Date:** 2026-02-02
+**Analysis Date:** 2026-02-13
 
 ## APIs & External Services
 
-**Anthropic Claude API (Planned):**
-- Service: AI content generation and summarization
-- What it's used for: Policy generation, note cleanup, case summarization (planned in scope)
-- SDK/Client: Not yet integrated (referenced in `.env.example` as optional)
-- Auth: Environment variable `ANTHROPIC_API_KEY`
-- Status: Planned for AI module implementation
+**AI Services:**
+
+- **Anthropic Claude API** - Primary AI provider for all AI features
+  - SDK/Client: `@anthropic-ai/sdk` 0.72.1
+  - Auth: `ANTHROPIC_API_KEY` (env var)
+  - Models: claude-opus-4-6, claude-sonnet-4-5 (default: claude-sonnet-4-5-20250929), claude-3-5-haiku-latest
+  - Features: Streaming, tool calling, vision, prompt caching
+  - Implementation: `apps/backend/src/modules/ai/providers/claude.provider.ts`
+  - Abstraction: `AIProvider` interface allows swapping to Azure OpenAI or self-hosted LLMs
+  - Rate limiting: Configurable per organization (RPM, TPM, daily limits)
+  - Default limits: 60 RPM, 100k TPM, 10k daily requests, 5M daily tokens
 
 ## Data Storage
 
 **Databases:**
-- PostgreSQL 15+
-  - Connection: `DATABASE_URL` environment variable
-  - Client: Prisma ORM (`@prisma/client 5.8.0`)
-  - Multi-tenancy: Row-Level Security with `organization_id` isolation
-  - Location: Local Docker container or Azure Database for PostgreSQL
 
-**File Storage:**
-- Local filesystem (development)
-  - Type: `STORAGE_TYPE=local`
-  - Path: `STORAGE_PATH` (default: `./uploads`)
-  - Max file size: `MAX_FILE_SIZE` (default: 10 MB)
-  - Allowed MIME types: Configurable via `ALLOWED_MIME_TYPES`
-
-- Azure Blob Storage (production, planned)
-  - Type: `STORAGE_TYPE=azure`
-  - Connection: `AZURE_STORAGE_CONNECTION_STRING`
-  - Container: `AZURE_STORAGE_CONTAINER` (default: `uploads`)
-  - Per-tenant isolation: Container per organization (planned pattern)
-
-**Caching:**
-- Redis 7
-  - Connection: `REDIS_URL` environment variable (default: `redis://localhost:6379`)
-  - Purpose: Session caching, request deduplication, real-time collaboration state
-  - Local Docker container or managed Redis instance
+- **PostgreSQL 15+**
+  - Connection: `DATABASE_URL` env var
+  - Client: Prisma ORM 5.8.0
+  - Schema: `apps/backend/prisma/schema.prisma`
+  - Features: Row-Level Security (RLS) for multi-tenancy, pgvector extension (planned for AI embeddings)
+  - Migrations: `npm run db:migrate` (Prisma Migrate)
+  - Studio: `npm run db:studio` (Prisma Studio GUI)
+  - Development: Docker container `ethico-postgres` on port 5432
 
 **Search:**
-- Elasticsearch 8.11.0
-  - Endpoint: `ELASTICSEARCH_URL` environment variable (default: `http://localhost:9200`)
-  - Purpose: Full-text search over cases, RIUs, investigations
-  - Per-tenant indices: `org_{organizationId}_{type}` pattern (planned)
-  - Development: Single-node with security disabled
+
+- **Elasticsearch 8.11.0**
+  - Connection: `ELASTICSEARCH_NODE` env var
+  - Client: `@elastic/elasticsearch` 9.2.1 + `@nestjs/elasticsearch` 11.1.0
+  - Indices: Per-tenant naming pattern `org_{organizationId}_{type}`
+  - Implementation: `apps/backend/src/modules/search/indexing/indexing.service.ts`
+  - Development: Docker container `ethico-elasticsearch` on ports 9200/9300
+  - Production alternative: Azure Cognitive Search
+
+**Caching:**
+
+- **Redis 7**
+  - Connection: `REDIS_URL`, `REDIS_HOST`, `REDIS_PORT`, `REDIS_PASSWORD` env vars
+  - Client: ioredis 5.9.2
+  - Uses: Session cache, job queue (BullMQ), rate limiting, general caching
+  - Key naming: Tenant-prefixed `org:{organizationId}:...`
+  - Implementation: `cache-manager` 5.7.6 + `@nestjs/cache-manager` 2.3.0
+  - Job queue: BullMQ 5.67.2 + `@nestjs/bullmq` 11.0.4
+  - Queue dashboard: Bull Board (`@bull-board/nestjs` 6.16.4)
+  - Development: Docker container `ethico-redis` on port 6379
+
+**File Storage:**
+
+- **Provider abstraction:** `STORAGE_PROVIDER` env var
+  - Development: `local` filesystem (`LOCAL_STORAGE_PATH=./uploads`)
+  - Production: Azure Blob Storage
+- **Azure Blob Storage** (production)
+  - SDK: `@azure/storage-blob` 12.30.0 + `@azure/identity` 4.13.0
+  - Auth: `AZURE_STORAGE_CONNECTION_STRING`, `AZURE_STORAGE_ACCOUNT_NAME`, `AZURE_STORAGE_ACCOUNT_KEY`
+  - Container naming: Per-tenant `tenant-{organizationId}` or prefix `AZURE_STORAGE_CONTAINER_PREFIX`
+  - Max file size: `MAX_FILE_SIZE` env var (default: 52428800 bytes = 50MB)
 
 ## Authentication & Identity
 
 **Auth Provider:**
-- Custom JWT-based authentication (self-hosted)
-  - Implementation: NestJS + Passport + JWT strategy
-  - Location: `apps/backend/src/modules/auth/`
 
-**JWT Configuration:**
-- Secret: `JWT_SECRET` environment variable (required in production)
-- Access token expiry: `JWT_ACCESS_TOKEN_EXPIRY` (default: `15m`)
-- Refresh token expiry: `JWT_REFRESH_TOKEN_EXPIRY` (default: `7d`)
-- Token rotation: Implemented on refresh (old session revoked)
+- Custom JWT-based authentication + Multi-provider SSO
+  - Implementation: `apps/backend/src/modules/auth/`
+  - JWT Library: `@nestjs/jwt` 10.2.0 + `passport-jwt` 4.0.1
+  - Token expiry: `JWT_ACCESS_TOKEN_EXPIRY=15m`, `JWT_REFRESH_TOKEN_EXPIRY=7d`
+  - Secret: `JWT_SECRET` env var
 
-**Password Security:**
-- Hashing: bcrypt 5.1.1 with salting
-- Verification: `bcrypt.compare()` on login
+**SSO Providers:**
 
-**Session Management:**
-- Session storage: PostgreSQL `Session` table
-- Session tracking: User agent, IP address, revocation support
-- Multi-device support: Multiple concurrent sessions per user
-- Logout modes: Single device (revoke session) or all devices (revoke all sessions)
+- **Google OAuth 2.0**
+  - Strategy: `apps/backend/src/modules/auth/strategies/google.strategy.ts`
+  - SDK: `passport-google-oauth20` 2.0.0
+  - Config: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `API_URL` env vars
+  - Callback: `{API_URL}/api/v1/auth/google/callback`
+  - Scopes: email, profile, openid
+  - Domain routing: Verified domains route to organization
 
-**Authentication Flows Implemented:**
-- Email/password login with RLS bypass during authentication
-- Token refresh with session rotation
-- Session revocation (single or all devices)
+- **Azure AD / Microsoft Entra ID**
+  - Strategy: `apps/backend/src/modules/auth/strategies/azure-ad.strategy.ts`
+  - SDK: `passport-azure-ad` 4.3.5
+  - Implementation: `apps/backend/src/modules/auth/sso/sso.service.ts`
 
-**Future Auth Methods (Planned, not yet integrated):**
-- Azure AD/SSO (referenced in CLAUDE.md)
-- Google OAuth (referenced in CLAUDE.md)
-- SAML (referenced in CLAUDE.md)
+- **SAML 2.0**
+  - Strategy: `apps/backend/src/modules/auth/strategies/saml.strategy.ts`
+  - SDK: `@node-saml/passport-saml` 5.1.0
+  - Per-tenant configuration via `apps/backend/src/modules/auth/sso/sso-config.service.ts`
+
+**Multi-Factor Authentication:**
+
+- TOTP (Time-based One-Time Password)
+  - Library: `otplib` 13.2.1
+  - QR code generation: `qrcode` 1.5.4
+  - Implementation: `apps/backend/src/modules/auth/mfa/mfa.service.ts`
 
 ## Monitoring & Observability
 
 **Error Tracking:**
-- Not yet integrated (no Sentry, DataDog, or similar)
-- Application logs via Pino structured logging
+
+- Not yet integrated (configured for future integration)
 
 **Logs:**
-- Backend: Pino 8.17.2 (structured JSON logs)
-- Frontend: Browser console (development), would need monitoring service in production
-- HTTP requests: pino-http middleware on all requests
-- Log level: Configurable via `LOG_LEVEL` environment variable
 
-**API Documentation:**
-- Swagger/OpenAPI 2.0 via @nestjs/swagger 7.4.2
-- Endpoint: `/api/docs` (auto-generated from NestJS decorators)
-- JWT bearer auth documented in Swagger
+- Structured JSON logging via Pino
+  - Library: `pino` 8.17.2 + `pino-http` 9.0.0
+  - Development: Pretty output via `pino-pretty` 10.3.1
+  - Level: `LOG_LEVEL` env var (default: debug in dev)
+  - Audit logging: All mutations logged to `AuditLog` table with natural language descriptions
 
-## Email
+**Security:**
 
-**Provider:** SMTP (local Mailhog for development, production TBD)
-
-**Configuration:**
-- Host: `SMTP_HOST` (default: `localhost`)
-- Port: `SMTP_PORT` (default: `1025` for Mailhog)
-- Username: `SMTP_USER` (empty for local)
-- Password: `SMTP_PASS` (empty for local)
-- From address: `EMAIL_FROM` (default: `noreply@ethico.local`)
-
-**Development:**
-- Mailhog container (Docker) - local SMTP server
-- Web UI: `http://localhost:8025` for viewing test emails
-- No actual email sending during development
-
-**Production:**
-- TBD - requires SMTP_HOST, SMTP_USER, SMTP_PASS configuration
-- Planned: Transactional email service (SendGrid, AWS SES, Azure Communication Services)
+- **Helmet** 8.1.0 - Security headers middleware
+- **Rate limiting** - `@nestjs/throttler` 6.5.0 with Redis storage
+- **Sanitization** - `sanitize-html` 2.17.0 for user input
+- **Password hashing** - bcrypt 5.1.1 (10 rounds)
 
 ## CI/CD & Deployment
 
 **Hosting:**
-- Planned: Azure App Service (per CLAUDE.md)
-- Not yet deployed (codebase in specification/scaffolding phase)
+
+- Azure App Service (planned per documentation)
+- Frontend: Next.js static export or SSR on App Service
+- Backend: NestJS on App Service
+- Ops Console: Separate Next.js deployment
 
 **CI Pipeline:**
-- Not yet configured
-- Planned: GitHub Actions or Azure DevOps (per INFRASTRUCTURE-SPEC.md)
 
-**Build Artifacts:**
-- Backend: `npm run build` produces `dist/` directory
-- Frontend: `npm run build` produces Next.js `.next/` directory
+- Git hooks: Husky 9.0.0 + lint-staged 15.2.0
+- Pre-commit: ESLint, Prettier, TypeScript type check
+- Verification command: `npm run verify` (lint + typecheck + test)
+- Security audit: `npm audit --audit-level=high`
+- Not yet configured: GitHub Actions, Azure DevOps, or other CI provider
+
+**Infrastructure as Code:**
+
+- Terraform (planned per documentation)
 
 ## Environment Configuration
 
-**Required env vars (Development):**
-```
-NODE_ENV=development
-DATABASE_URL=postgresql://ethico:ethico_dev@localhost:5432/ethico_dev?schema=public
-REDIS_URL=redis://localhost:6379
-ELASTICSEARCH_URL=http://localhost:9200
-JWT_SECRET=your-super-secret-jwt-key-change-in-production
-```
+**Required env vars (Backend):**
 
-**Required env vars (Production):**
-```
-NODE_ENV=production
-DATABASE_URL=<Azure PostgreSQL connection string>
-REDIS_URL=<Managed Redis endpoint>
-ELASTICSEARCH_URL=<Elasticsearch endpoint>
-JWT_SECRET=<secure-random-string>
-AZURE_STORAGE_CONNECTION_STRING=<Azure Blob Storage>
-AZURE_STORAGE_CONTAINER=<tenant-specific>
-CORS_ORIGIN=https://your-domain.com
-```
+- `DATABASE_URL` - PostgreSQL connection string
+- `REDIS_URL` - Redis connection string
+- `ELASTICSEARCH_NODE` - Elasticsearch endpoint
+- `JWT_SECRET` - Secret for JWT signing
+- `ANTHROPIC_API_KEY` - Claude API key
+- `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS` - Email delivery
+- `EMAIL_FROM` - Default sender address
+- `CORS_ORIGIN` - Allowed frontend origins
 
-**Optional env vars:**
-```
-ANTHROPIC_API_KEY=<API key for Claude API>
-STORAGE_TYPE=azure (default: local)
-STORAGE_PATH=./uploads (local only)
-MAX_FILE_SIZE=10485760 (in bytes, default 10MB)
-ALLOWED_MIME_TYPES=image/*,application/pdf,...
-LOG_LEVEL=debug (default)
-PORT=3000 (backend)
-HOST=0.0.0.0 (backend)
-NEXT_PUBLIC_API_URL=http://localhost:3000 (frontend)
-```
+**Required env vars (Frontend):**
+
+- `NEXT_PUBLIC_API_URL` - Backend API endpoint (default: http://localhost:3001)
+
+**Optional/Production env vars:**
+
+- `AZURE_STORAGE_CONNECTION_STRING` - Azure Blob Storage
+- `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` - Google OAuth
+- `NODE_ENV` - Environment (development/production)
+- `PORT`, `HOST` - Server binding
+- `AI_DEFAULT_MODEL`, `AI_MAX_TOKENS` - AI configuration overrides
 
 **Secrets location:**
-- Development: `.env` file (git-ignored)
-- Production: Managed secrets (Azure Key Vault planned, environment variables on App Service)
+
+- Development: `.env` files (gitignored)
+- Production: Azure Key Vault (planned), Azure App Service configuration
 
 ## Webhooks & Callbacks
 
 **Incoming:**
-- Not yet implemented
-- Planned: Case status change webhooks for external systems
+
+- **SSO callbacks**
+  - Google: `/api/v1/auth/google/callback`
+  - Azure AD: `/api/v1/auth/azure/callback`
+  - SAML: `/api/v1/auth/saml/callback`
+- **Webhook endpoint** (planned)
+  - Controller: `apps/backend/src/modules/notifications/controllers/webhook.controller.ts`
+  - Purpose: External system notifications, HRIS sync, email delivery status
 
 **Outgoing:**
-- Not yet implemented
-- Planned: HRIS integration for employee sync (Workday, BambooHR, etc. per CLAUDE.md)
 
-## Frontend HTTP Client
+- None currently implemented
+- Planned: HRIS integration webhooks, third-party case management integrations
 
-**Library:** Axios 1.6.5
+## Real-Time Communication
 
-**Configuration:**
-- Base URL: `NEXT_PUBLIC_API_URL` environment variable (default: `http://localhost:3000`)
-- API prefix: `/api/v1`
-- Timeout: 30 seconds
-- CORS: Credentials enabled
+**WebSocket Server:**
 
-**Features:**
-- Request interceptor: Automatically adds Bearer token to all requests
-- Response interceptor: Handles 401 errors with token refresh
-- Token refresh queue: Prevents multiple concurrent refresh requests
-- Automatic redirect to login on refresh failure
-- Type-safe API helpers: `apiClient.get()`, `post()`, `put()`, `patch()`, `delete()`
+- **Socket.io** 4.8.3 (server) + socket.io-client 4.8.3 (client)
+- Namespaces:
+  - `/notifications` - Real-time notification delivery
+  - Project updates gateway exists (`apps/backend/src/modules/projects/gateways/project.gateway.ts`)
+  - AI streaming gateway (`apps/backend/src/modules/ai/ai.gateway.ts`)
+- Authentication: JWT auth on WebSocket handshake via `apps/backend/src/modules/auth/guards/jwt-ws.guard.ts`
+- Room naming: Tenant-isolated `org:{organizationId}:user:{userId}`
+- CORS: Configured via `CORS_ORIGIN` env var
+- Implementation: `apps/backend/src/modules/notifications/gateways/notification.gateway.ts`
 
-**Client Location:**
-- `apps/frontend/src/lib/api.ts` - Core Axios instance with interceptors
-- `apps/frontend/src/lib/*-api.ts` - Domain-specific API clients (cases-api, investigations-api, etc.)
-- `apps/frontend/src/lib/auth-storage.ts` - Token persistence in localStorage
+**Client features:**
 
-**Token Storage:**
-- Medium: Browser localStorage
-- Keys: `accessToken`, `refreshToken`, `user` (JSON)
+- Event listeners: notification:new, notification:unread_count, notification:marked_read, error
+- Event emitters: mark_read, get_unread_count, get_recent (poll fallback)
+- Background sync: PWA background sync for offline form submissions
+- Service Worker: `@ducanh2912/next-pwa` for offline support
 
-**Error Handling:**
-- Typed `ApiError` interface with statusCode, message, error, timestamp, path
-- HTTP interceptors handle 401 with automatic refresh
-- Failed requests queued during refresh to prevent data loss
+## Email Delivery
 
-## Cross-Origin (CORS)
+**SMTP Transport:**
 
-**Frontend to Backend:**
-- Origin: `CORS_ORIGIN` environment variable (default: `http://localhost:5173`)
-- Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS
-- Headers: Content-Type, Authorization, X-Requested-With
-- Credentials: Enabled
+- Library: `@nestjs-modules/mailer` 2.0.2 + `nodemailer` 7.0.13
+- Config: `apps/backend/src/modules/notifications/mailer.config.ts`
+- Development: Mailhog (localhost:1025) - Docker container on ports 1025 (SMTP) / 8025 (Web UI)
+- Production: SendGrid, SES, or SMTP relay
+- Connection pool: Max 5 connections, 100 messages per connection
+- Timeouts: 10s connection, 60s socket
 
-## Multi-Tenancy Data Isolation
+**Email Templates:**
 
-**Strategy:** PostgreSQL Row-Level Security (RLS) with shared database
+- Template engine: Handlebars 4.7.8
+- Markup: MJML 4.18.0 (responsive email markup)
+- Service: `apps/backend/src/modules/notifications/services/email-template.service.ts`
+- Storage: Database-stored templates in `EmailTemplate` table
+- Templates location: `apps/backend/src/modules/notifications/templates/`
 
-**Tenant Context Flow:**
-1. JWT token contains `organizationId`
-2. Backend TenantMiddleware extracts organizationId from token
-3. Middleware calls `PrismaService.setTenantContext(organizationId)`
-4. Prisma sets Postgres session variable: `SET app.current_organization = $1`
-5. RLS policies on all tables filter by `organization_id`
-6. Database enforces isolation - no cross-tenant data leakage possible
+**Delivery Tracking:**
 
-**Implementation:**
-- Location: `apps/backend/src/common/middleware/tenant.middleware.ts`
-- Applied to: All routes except `/health` and `/auth/*`
-- Prisma integration: `apps/backend/src/modules/prisma/prisma.service.ts`
+- Service: `apps/backend/src/modules/notifications/services/delivery-tracker.service.ts`
+- Table: `NotificationDelivery` (tracks delivery status, retries, failures)
 
-**Cache Isolation:**
-- Key pattern: `org:{organizationId}:*` (must be enforced in code)
+## Job Queue & Background Processing
 
-**Search Isolation:**
-- Index pattern: `org_{organizationId}_{type}` (Elasticsearch)
+**Queue System:**
+
+- BullMQ 5.67.2 (Redis-based job queue)
+- NestJS integration: `@nestjs/bullmq` 11.0.4
+- Dashboard: Bull Board UI (`@bull-board/express` + `@bull-board/api`)
+- Queues detected:
+  - Campaign scheduling: `apps/backend/src/modules/campaigns/campaign-scheduling.processor.ts`
+  - Export jobs: `apps/backend/src/modules/reporting/export.service.ts`
+  - Digest processing: `apps/backend/src/modules/notifications/services/digest.service.ts`
+  - Email delivery: `apps/backend/src/modules/notifications/services/notification.service.ts`
+  - Migration jobs: `apps/backend/src/modules/analytics/migration/migration.module.ts`
+  - Search indexing: `apps/backend/src/modules/search/indexing/indexing.service.ts`
+
+## Development Services (Docker Compose)
+
+**Local services:** `docker-compose.yml` at project root
+
+- **PostgreSQL 15** - `ethico-postgres` on port 5432
+- **Redis 7** - `ethico-redis` on port 6379
+- **Elasticsearch 8.11.0** - `ethico-elasticsearch` on ports 9200/9300
+- **Mailhog** - `ethico-mailhog` on ports 1025 (SMTP) / 8025 (Web UI)
+
+All services configured with health checks, auto-restart, and persistent volumes.
 
 ---
 
-*Integration audit: 2026-02-02*
+_Integration audit: 2026-02-13_

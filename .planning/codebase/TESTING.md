@@ -1,558 +1,620 @@
 # Testing Patterns
 
-**Analysis Date:** 2026-02-02
+**Analysis Date:** 2026-02-13
 
 ## Test Framework
 
-**Backend:**
-- Runner: Jest 29.7.0
-- Config: `apps/backend/package.json` (inlined) + `test/jest-e2e.json` (E2E)
-- Assertion library: Jest built-in + `@nestjs/testing`
-- Supertest 6.3.4 for HTTP assertions in E2E tests
+**Runner:**
 
-**Frontend:**
-- Runner: Vitest 1.2.1
-- Config: `apps/frontend/vitest.config.mts`
-- Assertion library: Vitest built-in
-- React Testing Library 14.1.2 for component assertions
-- User Event 14.6.1 for user interaction simulation
+- Jest 29.7.0
+- Config: `apps/backend/package.json` (unit), `apps/backend/test/jest-e2e.json` (E2E)
+
+**Assertion Library:**
+
+- Jest built-in matchers
+- NestJS Testing utilities (`@nestjs/testing`)
 
 **Run Commands:**
 
-Backend:
 ```bash
-npm run test                    # Run unit tests (spec files)
-npm run test:watch             # Watch mode for unit tests
-npm run test:cov               # Generate coverage report
-npm run test:e2e               # Run E2E tests with jest-e2e.json config
-npm run test:tenant-isolation  # Run tenant isolation security tests
-npm run test:security          # Run security-focused tests
+npm test                          # Run all unit tests
+npm run test:watch                # Watch mode
+npm run test:cov                  # Generate coverage report
+npm run test:debug                # Debug mode
+npm run test:e2e                  # Run E2E tests
+npm run test:tenant-isolation     # Run tenant isolation security tests
+npm run test:security             # Run security-specific tests
 ```
 
-Frontend:
-```bash
-npm run test                    # Run Vitest suite
-npm run test:watch             # Watch mode
-npm run test:coverage          # Generate coverage report
-```
+**Single Test File:**
 
-Root:
 ```bash
-npm run test                    # Run all tests (backend + frontend)
+npm test -- --testPathPattern="activity.service.spec"
 ```
 
 ## Test File Organization
 
 **Location:**
-- Backend: Co-located in same directory as source
-  - Unit tests: `feature.service.spec.ts` next to `feature.service.ts`
-  - E2E tests: `test/{feature}/feature.e2e-spec.ts`
-- Frontend: Co-located or `__tests__` subdirectory
-  - Unit/component tests: `components/{feature}/__tests__/{component}.test.tsx`
+
+- Unit tests: Co-located with source files (e.g., `activity.service.spec.ts` next to `activity.service.ts`)
+- E2E tests: `apps/backend/test/` directory
+- Test helpers: `apps/backend/test/helpers/`
 
 **Naming:**
-- Unit tests: `*.spec.ts` (matched by Jest regex `.*\.spec\.ts$`)
-- E2E tests: `*.e2e-spec.ts` (matched by E2E regex `.e2e-spec.ts$`)
-- Frontend tests: `*.test.tsx` or `*.spec.tsx`
+
+- Unit: `*.spec.ts` (e.g., `investigation.service.spec.ts`)
+- E2E: `*.e2e-spec.ts` (e.g., `tenant-isolation.e2e-spec.ts`)
+- Pattern files: `apps/backend/examples/test-pattern.spec.ts`, `apps/backend/examples/e2e-test-pattern.spec.ts`
 
 **Structure:**
+
 ```
 apps/backend/
 ├── src/
-│   ├── common/
-│   │   └── services/
-│   │       ├── activity-description.service.ts
-│   │       └── activity-description.service.spec.ts
 │   └── modules/
 │       └── investigations/
-│           └── investigations.service.spec.ts
+│           ├── investigations.service.ts
+│           └── investigations.service.spec.ts  # Unit test
 └── test/
+    ├── investigations/
+    │   └── investigations.e2e-spec.ts         # E2E test
+    ├── tenant-isolation.e2e-spec.ts           # Security test
     ├── helpers/
-    │   ├── test-setup.ts           # Shared test utilities
     │   ├── global-setup.ts
     │   └── global-teardown.ts
-    ├── activity/
-    │   ├── activity.e2e-spec.ts
-    │   └── activity-tenant-isolation.e2e-spec.ts
-    └── investigations/
-        └── investigations.e2e-spec.ts
-
-apps/frontend/
-├── src/
-│   ├── components/cases/
-│   │   ├── case-header.tsx
-│   │   └── __tests__/
-│   │       └── case-header.test.tsx
-│   └── hooks/
-│       ├── use-case-form-draft.ts
-│       └── __tests__/
-│           └── use-case-form-draft.test.ts
-└── src/test/
-    └── setup.ts                    # Global test setup
+    └── jest-e2e.json
 ```
 
 ## Test Structure
 
-**Backend Unit Test Pattern:**
+**Suite Organization (Unit Tests):**
 
 ```typescript
-describe("ActivityDescriptionGenerator", () => {
-  let generator: ActivityDescriptionGenerator;
+describe('ServiceName', () => {
+  let service: ServiceName;
+  let prisma: jest.Mocked<PrismaService>;
+  let activityService: jest.Mocked<ActivityService>;
 
-  beforeEach(() => {
-    generator = new ActivityDescriptionGenerator();
+  // Test data fixtures
+  const mockOrgId = 'org-test-123';
+  const mockUserId = 'user-test-123';
+
+  // Mock setup
+  const mockPrismaService = {
+    entity: {
+      create: jest.fn(),
+      findMany: jest.fn(),
+      findFirst: jest.fn(),
+      update: jest.fn(),
+    },
+  };
+
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        ServiceName,
+        { provide: PrismaService, useValue: mockPrismaService },
+        { provide: ActivityService, useValue: mockActivityService },
+      ],
+    }).compile();
+
+    service = module.get<ServiceName>(ServiceName);
+    prisma = module.get(PrismaService);
+    activityService = module.get(ActivityService);
+
+    jest.clearAllMocks();
   });
 
-  // Group related tests with nested describe blocks
-  describe("create action", () => {
-    it("should generate description for create action", () => {
-      const context: DescriptionContext = {
-        action: "created",
-        entityType: "Case",
-        actorName: "John Doe",
-        actorType: "USER",
-      };
+  describe('methodName', () => {
+    it('should do the expected behavior', async () => {
+      // Arrange
+      mockPrismaService.entity.create.mockResolvedValue(mockEntity);
 
-      const result = generator.generate(context);
+      // Act
+      const result = await service.create(dto, userId, orgId);
 
-      expect(result).toBe("John Doe created Case");
+      // Assert
+      expect(result).toEqual(mockEntity);
+      expect(prisma.entity.create).toHaveBeenCalledWith(...);
     });
   });
 });
 ```
 
-**Key patterns:**
-- One `describe` per class/service
-- Nested `describe` for grouping related tests by method/feature
-- Each test has clear name: `should {expected behavior} when {condition}`
-- Arrange-Act-Assert (AAA) structure implicit (setup in describe, action/assertion in it)
-- Use `beforeEach` for setup shared across multiple tests
+**Patterns:**
 
-**Backend E2E Test Pattern:**
-
-```typescript
-describe("Activity E2E", () => {
-  let ctx: TestContext;
-
-  beforeAll(async () => {
-    ctx = await createTestContext();  // Creates 2 test orgs
-  });
-
-  afterAll(async () => {
-    await destroyTestContext(ctx);
-  });
-
-  describe("GET /api/v1/activity", () => {
-    it("should return organization activity for authorized user", async () => {
-      const response = await request(ctx.app.getHttpServer())
-        .get("/api/v1/activity")
-        .set(authHeader(ctx.orgA.users[0]))
-        .expect(200);
-
-      expect(response.body).toHaveProperty("items");
-      expect(response.body).toHaveProperty("total");
-    });
-
-    it("should prevent cross-org access (tenant isolation)", async () => {
-      // Create activity in orgA
-      const activity = await ctx.prisma.auditLog.create({
-        data: { organizationId: ctx.orgA.id, ... }
-      });
-
-      // User from orgB should NOT see it
-      const response = await request(ctx.app.getHttpServer())
-        .get("/api/v1/activity")
-        .set(authHeader(ctx.orgB.users[0]))
-        .expect(200);
-
-      const ids = response.body.items.map(a => a.id);
-      expect(ids).not.toContain(activity.id);
-    });
-  });
-});
-```
-
-**Frontend Component Test Pattern:**
-
-```typescript
-describe("CaseHeader", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-  });
-
-  it("renders case reference number in heading", () => {
-    render(<CaseHeader caseData={mockCase} isLoading={false} />);
-
-    const heading = screen.getByRole("heading", { level: 1 });
-    expect(heading).toHaveTextContent("ETH-2026-00001");
-  });
-
-  it("renders status badge with correct color", () => {
-    render(<CaseHeader caseData={mockCase} isLoading={false} />);
-
-    const statusBadge = screen.getByText("NEW");
-    expect(statusBadge).toBeInTheDocument();
-    expect(statusBadge).toHaveClass("bg-blue-100", "text-blue-800");
-  });
-});
-```
+- Arrange-Act-Assert structure
+- Group related tests with nested `describe()` blocks
+- One assertion concept per test
+- Clear test names: `'should create entity with correct organization and user'`
 
 ## Mocking
 
-**Framework:** Jest's built-in mocking system
+**Framework:** Jest built-in mocking
 
-**Backend Mocking Pattern:**
+**Patterns:**
 
-Mock services via `Test.createTestingModule`:
-```typescript
-const module: TestingModule = await Test.createTestingModule({
-  providers: [
-    ActivityService,
-    {
-      provide: PrismaService,
-      useValue: {
-        auditLog: {
-          create: jest.fn(),
-          findMany: jest.fn(),
-          count: jest.fn(),
-        },
-        user: {
-          findFirst: jest.fn(),
-        },
-      },
-    },
-    {
-      provide: ActivityDescriptionGenerator,
-      useValue: {
-        generate: jest.fn(),
-      },
-    },
-  ],
-}).compile();
+**Service Mocking:**
 
-service = module.get<ActivityService>(ActivityService);
-prismaService = module.get(PrismaService);
-```
-
-Mock setup example:
 ```typescript
 const mockPrismaService = {
-  auditLog: {
-    create: jest.fn().mockResolvedValue(mockAuditLog),
-    findMany: jest.fn().mockResolvedValue([mockAuditLog]),
-    count: jest.fn().mockResolvedValue(1),
+  investigation: {
+    create: jest.fn(),
+    findMany: jest.fn(),
+    findFirst: jest.fn(),
+    update: jest.fn(),
+    delete: jest.fn(),
+    count: jest.fn(),
   },
+  case: {
+    findFirst: jest.fn(),
+  },
+};
+
+const mockActivityService = {
+  log: jest.fn(),
 };
 ```
 
-Mock assertions:
+**Mock Return Values:**
+
 ```typescript
-expect(prismaService.auditLog.create).toHaveBeenCalledWith({
-  data: expect.objectContaining({
-    organizationId: mockOrganizationId,
-    entityType: AuditEntityType.CASE,
-  }),
-});
+mockPrismaService.investigation.findFirst.mockResolvedValue(mockEntity);
+mockPrismaService.investigation.findFirst.mockResolvedValue(null); // Not found
+mockPrismaService.investigation.create.mockRejectedValue(new Error("DB error"));
 ```
 
-**Frontend Mocking Pattern (Vitest):**
+**What to Mock:**
 
-Mock modules with `vi.mock()`:
+- All dependencies (PrismaService, ActivityService, etc.)
+- External services (AI providers, email, storage)
+- Time-dependent functions (use `jest.useFakeTimers()`)
+
+**What NOT to Mock:**
+
+- The service under test
+- DTOs (use real objects)
+- Simple utility functions
+- Types and interfaces
+
+**Clearing Mocks:**
+
 ```typescript
-const mockPush = vi.fn();
-vi.mock("next/navigation", () => ({
-  useRouter: () => ({
-    push: mockPush,
-    replace: vi.fn(),
-    back: vi.fn(),
-  }),
-}));
-```
-
-Mock external APIs with `vi.fn()`:
-```typescript
-vi.mock("@/lib/cases-api", () => ({
-  casesApi: {
-    create: vi.fn().mockResolvedValue({ id: "case-123" }),
-    getById: vi.fn().mockResolvedValue(mockCase),
-  },
-}));
-```
-
-## What to Mock
-
-**Mock:**
-- External API calls (use `.mockResolvedValue()` for success, `.mockRejectedValue()` for errors)
-- Database calls (PrismaService methods)
-- Authentication/authorization (JWT validation, Guards)
-- Third-party services (storage, email, etc.)
-- Next.js router and navigation functions
-- Browser APIs (localStorage, sessionStorage)
-
-**Do NOT Mock:**
-- Business logic (validate that calculations are correct)
-- Validation logic (test actual validator behavior)
-- Date/time functions (use `jest.useFakeTimers()` if needed, not mocks)
-- React hooks behavior (test actual behavior)
-- Component rendering (test actual output)
-
-**Partial Mocks (Real Implementations):**
-For E2E tests, use real implementations:
-```typescript
-// Real Prisma queries against test database
-const activity = await ctx.prisma.auditLog.create({
-  data: { organizationId, ... }
+beforeEach(() => {
+  jest.clearAllMocks(); // Reset call counts and return values
 });
 
-// Real app instance with all middleware/guards
-ctx.app = moduleFixture.createNestApplication();
+afterEach(() => {
+  jest.clearAllMocks(); // Alternative placement
+});
 ```
 
 ## Fixtures and Factories
 
-**Test Data Pattern:**
+**Test Data:**
 
-Create reusable mock objects at describe-level:
 ```typescript
-const mockOrganizationId = "org-uuid-123";
-const mockUserId = "user-uuid-456";
-const mockEntityId = "entity-uuid-789";
+// Test data fixtures at top of describe block
+const mockOrgId = "org-test-123";
+const mockUserId = "user-test-123";
+const mockEntityId = "entity-test-123";
 
-const mockUser = {
-  id: mockUserId,
-  firstName: "John",
-  lastName: "Doe",
-  email: "john.doe@example.com",
+const mockEntity = {
+  id: mockEntityId,
+  name: "Test Entity",
+  status: InvestigationStatus.NEW,
+  organizationId: mockOrgId,
+  createdById: mockUserId,
+  createdAt: new Date(),
+  updatedAt: new Date(),
 };
 
-const mockAuditLog = {
-  id: "audit-uuid-001",
-  organizationId: mockOrganizationId,
-  entityType: AuditEntityType.CASE,
-  entityId: mockEntityId,
-  action: "status_changed",
-  actionDescription: "John Doe changed status from OPEN to CLOSED",
-  // ... more fields
-};
-```
-
-**Unique IDs for Parallel Tests:**
-```typescript
-// Use randomUUID() for test org creation to avoid collisions
-const uniqueId = randomUUID().substring(0, 8);
-const orgSlug = `test-org-alpha-${uniqueId}`;
-```
-
-**Frontend Fixtures:**
-```typescript
-const mockCase: Case = {
-  id: "123e4567-e89b-12d3-a456-426614174000",
-  referenceNumber: "ETH-2026-00001",
-  organizationId: "org-123",
-  status: "NEW",
-  // ... other required fields
+const mockCreateDto = {
+  categoryId: "category-123",
+  investigationType: "FORMAL",
+  department: "HR",
 };
 ```
 
 **Location:**
-- Backend: Define in same test file or `test/helpers/test-setup.ts`
-- Frontend: Define at top of test file or extract to `__tests__/fixtures.ts`
+
+- Defined at top of `describe()` block
+- Shared across tests in that suite
+- Use `mockResolvedValue()` to set per-test variations
+
+**Factory Pattern (when needed):**
+
+```typescript
+function createMockInvestigation(overrides = {}) {
+  return {
+    id: "inv-123",
+    investigationNumber: 1,
+    status: InvestigationStatus.NEW,
+    organizationId: mockOrgId,
+    ...overrides,
+  };
+}
+```
 
 ## Coverage
 
 **Requirements:**
-- Line coverage: 80% minimum (target: 85%)
-- Branch coverage: 75% minimum (target: 80%)
-- Function coverage: 80% minimum
+
+- Target: 85% line coverage (80% minimum)
+- Target: 80% branch coverage (75% minimum)
+- Enforced via: `npm run test:cov`
 
 **View Coverage:**
+
 ```bash
-npm run test:cov                # Generates coverage/
-cd apps/backend && open coverage/lcov-report/index.html
-cd apps/frontend && open coverage/index.html
+npm run test:cov
+# Opens coverage/lcov-report/index.html
 ```
 
-**Coverage Map:**
-- Red: 0-40%
-- Yellow: 40-80%
-- Green: >80%
+**Coverage Config:**
 
-**What Must Be Tested:**
-- All public methods (100% line coverage)
-- All error paths (catch blocks, exceptions)
-- All conditional branches (if/else, switch cases)
-- All public API endpoints (E2E)
-- Tenant isolation (cross-org access blocked)
+```json
+{
+  "collectCoverageFrom": ["**/*.(t|j)s"],
+  "coverageDirectory": "../coverage"
+}
+```
 
-**What Can Be Lower Coverage:**
-- Very simple getters/setters (coverage >50% acceptable)
-- Error handling that's hard to trigger in tests (aim for >70%)
-- Boilerplate configuration (not tested directly)
+**Exclusions:**
+
+- `dist/` directory (compiled)
+- `node_modules/`
+- `.eslintrc.js`
+- Test files themselves
 
 ## Test Types
 
 **Unit Tests:**
-- Scope: Single function or method in isolation
-- Mocks: Dependencies mocked (PrismaService, external APIs)
-- Location: `src/**/*.spec.ts`
-- Example: `ActivityDescriptionGenerator.generate()` with mocked data
-- Speed: <1 second per test
+
+- Scope: Single service/class in isolation
+- All dependencies mocked
+- Fast execution (<100ms per test)
+- Test business logic, validation, transformations
+- Location: Co-located with source (`*.spec.ts`)
+
+**Example:**
+
+```typescript
+describe("InvestigationsService", () => {
+  describe("create", () => {
+    it("should create investigation with correct organization", async () => {
+      mockPrismaService.case.findFirst.mockResolvedValue(mockCase);
+      mockPrismaService.investigation.create.mockResolvedValue(
+        mockInvestigation,
+      );
+
+      const result = await service.create(dto, caseId, userId, orgId);
+
+      expect(prisma.investigation.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          organizationId: orgId, // CRITICAL
+        }),
+      });
+    });
+  });
+});
+```
 
 **Integration Tests:**
-- Scope: Service + mocked persistence (database calls)
-- Mocks: External APIs, but NOT Prisma
-- Location: `src/**/*.spec.ts` (same as unit, just fewer mocks)
-- Example: `ActivityService.log()` with real Prisma but mocked generator
-- Speed: 1-5 seconds per test
+
+- Not currently used (E2E tests serve this role)
+- Would test service + database without full app
+- Planned but not implemented
 
 **E2E Tests:**
-- Scope: Full request → response pipeline
-- Mocks: None (except external APIs like payment processors)
-- Location: `test/**/*.e2e-spec.ts`
-- Real components: App, Controllers, Services, Prisma, Database
-- Example: POST `/api/v1/activity` endpoint with full auth, validation, logging
-- Speed: 5-30 seconds per test
-- Tenant isolation verified: Always include cross-org access test
 
-**Security Tests:**
-- Scope: Authorization, authentication, tenant isolation
-- Location: `test/**/*-tenant-isolation.e2e-spec.ts` or `test/**/*-security.e2e-spec.ts`
-- Must test: Cross-org access blocked, role-based access, guard validation
-- Example: `activity-tenant-isolation.e2e-spec.ts` verifies orgB user cannot see orgA activity
+- Scope: Full request/response cycle through HTTP
+- Real database (test database)
+- Authentication and authorization
+- Tenant isolation verification (CRITICAL)
+- Location: `apps/backend/test/*.e2e-spec.ts`
+
+**Example:**
+
+```typescript
+describe("InvestigationsController (e2e)", () => {
+  let app: INestApplication;
+  let prisma: PrismaService;
+  let tokenA: string;
+  let tokenB: string;
+
+  beforeAll(async () => {
+    const moduleFixture = await Test.createTestingModule({
+      imports: [AppModule],
+    }).compile();
+
+    app = moduleFixture.createNestApplication();
+    app.useGlobalPipes(
+      new ValidationPipe({
+        whitelist: true,
+        forbidNonWhitelisted: true,
+        transform: true,
+      }),
+    );
+    await app.init();
+
+    prisma = app.get(PrismaService);
+    // Create test orgs, users, generate JWT tokens
+  });
+
+  afterAll(async () => {
+    // Clean up test data
+    await app.close();
+  });
+
+  describe("Tenant Isolation", () => {
+    it("Org B cannot access Org A entity", async () => {
+      await request(app.getHttpServer())
+        .get(`/api/v1/investigations/${orgAEntityId}`)
+        .set("Authorization", `Bearer ${tokenB}`)
+        .expect(404); // Not 403 - prevents enumeration
+    });
+  });
+});
+```
 
 ## Common Patterns
 
 **Async Testing:**
 
-Jest patterns:
 ```typescript
-// Using async/await (recommended)
-it("should create activity", async () => {
-  const result = await service.log(input);
-  expect(result).toBeDefined();
-});
-
-// Using promises
-it("should create activity", () => {
-  return service.log(input).then((result) => {
-    expect(result).toBeDefined();
-  });
-});
-
-// E2E with Supertest
-it("should return activity", () => {
-  return request(app.getHttpServer())
-    .get("/api/v1/activity")
-    .expect(200);
+it("should handle async operation", async () => {
+  mockService.create.mockResolvedValue(result);
+  const output = await service.create(input);
+  expect(output).toEqual(result);
 });
 ```
 
 **Error Testing:**
 
 ```typescript
-it("should throw BadRequestException on invalid input", async () => {
-  await expect(service.create(invalidInput)).rejects.toThrow(
-    BadRequestException
+it("should throw NotFoundException when entity not found", async () => {
+  mockPrismaService.investigation.findFirst.mockResolvedValue(null);
+
+  await expect(service.findOne("non-existent-id", orgId)).rejects.toThrow(
+    NotFoundException,
+  );
+});
+```
+
+**Parameterized Tests:**
+
+```typescript
+it.each([
+  ['created', AuditActionCategory.CREATE],
+  ['updated', AuditActionCategory.UPDATE],
+  ['deleted', AuditActionCategory.DELETE],
+])('should infer %s as %s', async (action, expectedCategory) => {
+  const input = { action, ... };
+  await service.log(input);
+  expect(prismaService.auditLog.create).toHaveBeenCalledWith(
+    expect.objectContaining({
+      data: expect.objectContaining({ actionCategory: expectedCategory }),
+    })
+  );
+});
+```
+
+**State Machine Testing:**
+
+```typescript
+describe("status transitions", () => {
+  it("should allow valid transition DRAFT -> ACTIVE", async () => {
+    mockPrismaService.entity.findFirst.mockResolvedValue({ status: "DRAFT" });
+    await service.changeStatus(id, "ACTIVE", rationale, userId, orgId);
+    expect(prisma.entity.update).toHaveBeenCalled();
+  });
+
+  it("should reject invalid transition DRAFT -> ARCHIVED", async () => {
+    mockPrismaService.entity.findFirst.mockResolvedValue({ status: "DRAFT" });
+    await expect(
+      service.changeStatus(id, "ARCHIVED", rationale, userId, orgId),
+    ).rejects.toThrow(ForbiddenException);
+  });
+});
+```
+
+**Pagination Testing:**
+
+```typescript
+it("should return paginated results", async () => {
+  mockPrismaService.entity.findMany.mockResolvedValue([mockEntity]);
+  mockPrismaService.entity.count.mockResolvedValue(50);
+
+  const result = await service.findAll(orgId, { page: 2, limit: 25 });
+
+  expect(prisma.entity.findMany).toHaveBeenCalledWith(
+    expect.objectContaining({
+      skip: 25, // (page 2 - 1) * limit 25
+      take: 25,
+    }),
+  );
+  expect(result.pagination).toEqual({
+    page: 2,
+    limit: 25,
+    total: 50,
+    totalPages: 2,
+  });
+});
+```
+
+**Activity Logging Testing:**
+
+```typescript
+it("should log activity on create", async () => {
+  mockPrismaService.entity.create.mockResolvedValue(mockEntity);
+
+  await service.create(dto, userId, orgId);
+
+  expect(activityService.log).toHaveBeenCalledWith({
+    entityType: AuditEntityType.ENTITY,
+    entityId: mockEntity.id,
+    action: "created",
+    actionDescription: expect.stringContaining("Created"),
+    actorUserId: userId,
+    organizationId: orgId,
+  });
+});
+```
+
+**Tenant Isolation Testing (CRITICAL):**
+
+```typescript
+it("should throw NotFoundException when entity belongs to different org", async () => {
+  mockPrismaService.entity.findFirst.mockResolvedValue(null);
+
+  await expect(service.findOne(entityId, "different-org-id")).rejects.toThrow(
+    NotFoundException,
+  );
+
+  expect(prisma.entity.findFirst).toHaveBeenCalledWith(
+    expect.objectContaining({
+      where: expect.objectContaining({
+        id: entityId,
+        organizationId: "different-org-id", // Query included org filter
+      }),
+    }),
   );
 });
 
-// For specific error message
-it("should include validation errors", async () => {
-  try {
-    await service.create(invalidInput);
-    fail("Should have thrown");
-  } catch (error) {
-    expect(error).toBeInstanceOf(BadRequestException);
-    expect(error.message).toContain("validation failed");
-  }
+it("should always filter by organizationId", async () => {
+  await service.findAll(orgId);
+
+  expect(prisma.entity.findMany).toHaveBeenCalledWith(
+    expect.objectContaining({
+      where: expect.objectContaining({
+        organizationId: orgId, // CRITICAL
+      }),
+    }),
+  );
 });
 ```
 
-**Component Testing:**
+## E2E Test Patterns
 
-Mock user interactions:
+**Authentication:**
+
 ```typescript
-it("should update draft on form change", async () => {
-  const user = userEvent.setup();
+it("should reject requests without token", async () => {
+  await request(app.getHttpServer()).get("/api/v1/investigations").expect(401);
+});
 
-  render(<CaseCreationForm />);
-
-  const detailsInput = screen.getByPlaceholderText("Enter case details");
-  await user.type(detailsInput, "Test details");
-
-  await waitFor(() => {
-    expect(localStorage.getItem("draft:case-creation")).toBeTruthy();
-  });
+it("should accept requests with valid token", async () => {
+  await request(app.getHttpServer())
+    .get("/api/v1/investigations")
+    .set("Authorization", `Bearer ${validToken}`)
+    .expect(200);
 });
 ```
 
-**Mocking async operations:**
+**Validation:**
+
 ```typescript
-it("should show loading state during submission", async () => {
-  const mockSubmit = jest
-    .fn()
-    .mockImplementation(
-      () =>
-        new Promise((resolve) => setTimeout(() => resolve({}), 100))
-    );
+it("should reject invalid input", async () => {
+  await request(app.getHttpServer())
+    .post("/api/v1/investigations")
+    .set("Authorization", `Bearer ${token}`)
+    .send({
+      /* missing required fields */
+    })
+    .expect(400);
+});
 
-  render(<CaseCreationForm onSubmit={mockSubmit} />);
-
-  // Assert loading state
-  expect(screen.getByText("Saving...")).toBeInTheDocument();
+it("should reject unknown fields (whitelist)", async () => {
+  await request(app.getHttpServer())
+    .post("/api/v1/investigations")
+    .set("Authorization", `Bearer ${token}`)
+    .send({
+      name: "Valid",
+      organizationId: "hacker-org", // Should be rejected
+    })
+    .expect(400);
 });
 ```
 
-**Clearing mocks between tests:**
+**Tenant Isolation (E2E):**
+
 ```typescript
-beforeEach(() => {
-  vi.clearAllMocks();  // Clears call history
-  jest.clearAllMocks(); // Jest equivalent
-});
-```
-
-## Test Environment Setup
-
-**Backend:**
-- `test/helpers/global-setup.ts`: Runs before all tests (database setup)
-- `test/helpers/global-teardown.ts`: Runs after all tests (cleanup)
-- `test/helpers/test-setup.ts`: Shared utilities (`createTestContext`, `destroyTestContext`)
-- E2E max workers: 1 (sequential to avoid database conflicts)
-- E2E timeout: 30 seconds per test
-
-**Frontend:**
-- Setup file: `src/test/setup.ts`
-- Vitest environment: jsdom
-- Global configuration in `vitest.config.mts`
-
-**Critical: Tenant Isolation Testing**
-
-Every E2E test involving data access MUST verify tenant isolation:
-```typescript
-describe("Activity Tenant Isolation", () => {
-  it("should prevent orgB user from seeing orgA activity", async () => {
-    // Create activity in orgA
-    const activity = await ctx.prisma.auditLog.create({
-      data: {
-        organizationId: ctx.orgA.id,
-        entityType: AuditEntityType.CASE,
-        // ... other fields
-      }
-    });
-
-    // OrgB user tries to list activity
-    const response = await request(ctx.app.getHttpServer())
-      .get("/api/v1/activity")
-      .set(authHeader(ctx.orgB.users[0]))
+describe("Tenant Isolation", () => {
+  it("Org B cannot list Org A entities", async () => {
+    const response = await request(app.getHttpServer())
+      .get("/api/v1/investigations")
+      .set("Authorization", `Bearer ${tokenB}`)
       .expect(200);
 
-    // Should not contain orgA activity
-    const itemIds = response.body.items.map(item => item.id);
-    expect(itemIds).not.toContain(activity.id);
+    const orgAEntities = response.body.items.filter(
+      (e) => e.organizationId === orgA.id,
+    );
+    expect(orgAEntities).toHaveLength(0);
+  });
+
+  it("Org B cannot update Org A entity", async () => {
+    await request(app.getHttpServer())
+      .put(`/api/v1/investigations/${orgAEntityId}`)
+      .set("Authorization", `Bearer ${tokenB}`)
+      .send({ name: "Hacked" })
+      .expect(404);
+
+    // Verify entity was NOT modified
+    const entity = await prisma.investigation.findUnique({
+      where: { id: orgAEntityId },
+    });
+    expect(entity?.name).toBe("Original Name");
   });
 });
 ```
+
+## E2E Test Configuration
+
+**Config File:** `apps/backend/test/jest-e2e.json`
+
+```json
+{
+  "moduleFileExtensions": ["js", "json", "ts"],
+  "rootDir": ".",
+  "testEnvironment": "node",
+  "testRegex": ".e2e-spec.ts$",
+  "transform": { "^.+\\.(t|j)s$": "ts-jest" },
+  "moduleNameMapper": {
+    "^@/(.*)$": "<rootDir>/../src/$1",
+    "^@common/(.*)$": "<rootDir>/../src/common/$1",
+    "^@modules/(.*)$": "<rootDir>/../src/modules/$1",
+    "^@config/(.*)$": "<rootDir>/../src/config/$1"
+  },
+  "maxWorkers": 1,
+  "globalSetup": "<rootDir>/helpers/global-setup.ts",
+  "globalTeardown": "<rootDir>/helpers/global-teardown.ts",
+  "testTimeout": 30000
+}
+```
+
+**Key Settings:**
+
+- `maxWorkers: 1` - Run tests serially to avoid database conflicts
+- `testTimeout: 30000` - 30 second timeout for slow E2E tests
+- `globalSetup`/`globalTeardown` - Database setup/cleanup
+- Path aliases match main `tsconfig.json`
+
+## Test Coverage Gaps
+
+**Untested Areas:**
+
+- Some E2E tests reference examples but actual test files are limited
+- Frontend tests not analyzed (backend focus)
+- Performance/load testing not present
+- Security audits automated via `npm audit` but not comprehensive penetration testing
+
+**Priority Additions:**
+
+- More E2E coverage for all CRUD operations
+- Integration tests for external services (AI, email, storage)
+- Contract tests for API compatibility
 
 ---
 
-*Testing analysis: 2026-02-02*
+_Testing analysis: 2026-02-13_
