@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 25.1 of 25+ (Case Detail Page Vision Revision) — IN PROGRESS
-Plan: 03 of ?? in current phase
-Status: Completed 25.1-01, 25.1-02, 25.1-03, 25.1-05, 25.1-07, 25.1-08, 25.1-10
-Last activity: 2026-02-13 - Completed 25.1-03 (Left sidebar restructure)
+Plan: 06 of ?? in current phase
+Status: Completed 25.1-01, 25.1-02, 25.1-03, 25.1-05, 25.1-06, 25.1-07, 25.1-08, 25.1-10
+Last activity: 2026-02-13 - Completed 25.1-06 (Activities tab HubSpot rebuild)
 
 Progress: [===================================================================+] ~100% (Phase 21 adds new plans beyond original 24)
 
@@ -54,6 +54,16 @@ Progress: [===================================================================+]
   - Recent Activities shows 3 most recent with "View all" link
   - Upcoming Tasks shows 3 items with checkboxes
   - Pattern: 6-section Overview layout with DataHighlight type variants
+
+- 25.1-06: Activities Tab HubSpot Rebuild (COMPLETE - 384d246, a152a41)
+  - Created useActivities hook with filtering, pinning, CRUD operations
+  - Created ActivityTypeCheckboxes component for 8-type checkbox filtering
+  - Rebuilt case-activity-timeline.tsx with filter bar (count, user/team dropdowns, search, checkboxes)
+  - Enhanced activity-entry.tsx with hover-reveal actions (pin, comment, edit, copy link, delete)
+  - Added content expand/collapse for entries > 200 characters
+  - Pinned activities section above chronological timeline
+  - localStorage-backed pinning (pinned-activities-{entityId})
+  - Pattern: useActivities hook reusable for any entity type
 
 - 25.1-07: Tab Cleanup and Enhancement (COMPLETE - 6300049, b2f6a25)
   - Enforced 6-tab configuration: Overview, Activities, Investigations, Messages, Files, Remediation
