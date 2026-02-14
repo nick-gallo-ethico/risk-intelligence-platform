@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 25.1 of 25+ (Case Detail Page Vision Revision) — IN PROGRESS
-Plan: 05 of ?? in current phase
-Status: Completed 25.1-01, 25.1-02, 25.1-05, 25.1-07, 25.1-08, 25.1-10
-Last activity: 2026-02-13 - Completed 25.1-05 (Overview tab rebuild with 6 sections)
+Plan: 03 of ?? in current phase
+Status: Completed 25.1-01, 25.1-02, 25.1-03, 25.1-05, 25.1-07, 25.1-08, 25.1-10
+Last activity: 2026-02-13 - Completed 25.1-03 (Left sidebar restructure)
 
 Progress: [===================================================================+] ~100% (Phase 21 adds new plans beyond original 24)
 
@@ -34,6 +34,15 @@ Progress: [===================================================================+]
   - "In stage for N days" Badge chip below current stage
   - Toast notifications via sonner for transition feedback
   - Rule 3 fix: Added pinActivity/getStatusHistory to ActivityService
+
+- 25.1-03: Left Sidebar Restructure (COMPLETE - 384d246, a55ebf1)
+  - Created RecordHeader component: ref#, status/severity badges, category, date, age, avatars
+  - Created ActionsDropdown with 8 actions: Assign, Status, Merge, Follow, Properties, History, Export, Delete
+  - Created CollapsiblePropertyCard: reusable collapsible card with inline-editable fields
+  - Refactored CasePropertiesPanel into 3 cards: About This Case, Intake Information, Classification
+  - Simplified CaseDetailHeader to breadcrumb-only
+  - Rule 3 fixes: Missing SummaryTab import, Investigation type field mismatches
+  - Pattern: Config-driven property cards, reusable record header/actions components
 
 - 25.1-05: Overview Tab Rebuild (COMPLETE - a152a41)
   - Created DataHighlightsCard with 6-value grid (severity, status, age, SLA, assignee, source)
