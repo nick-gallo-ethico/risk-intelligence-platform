@@ -36,9 +36,7 @@ import { JobsModule } from "../jobs/jobs.module";
       useFactory: (configService: ConfigService) => ({
         node: configService.get<string>("elasticsearch.node"),
         maxRetries: configService.get<number>("elasticsearch.maxRetries"),
-        requestTimeout: configService.get<number>(
-          "elasticsearch.requestTimeout",
-        ),
+        requestTimeout: configService.get<number>("elasticsearch.timeout"),
       }),
       inject: [ConfigService],
     }),

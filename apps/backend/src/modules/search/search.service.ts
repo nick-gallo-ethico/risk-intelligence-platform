@@ -1,4 +1,5 @@
-import { Injectable, Logger } from "@nestjs/common";
+import { Injectable, Logger, OnModuleInit } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { ElasticsearchService } from "@nestjs/elasticsearch";
 import type {
   SearchResponse,
@@ -6,6 +7,7 @@ import type {
   QueryDslQueryContainer,
   SortCombinations,
 } from "@elastic/elasticsearch/lib/api/types";
+import CircuitBreaker from "opossum";
 import { IndexingService } from "./indexing/indexing.service";
 import {
   PermissionFilterService,
@@ -13,6 +15,18 @@ import {
 } from "./query/permission-filter.service";
 import { SearchQueryDto } from "./dto/search-query.dto";
 import { SearchResultDto, SearchHitDto } from "./dto/search-result.dto";
+
+/**
+ * Circuit breaker fallback response when Elasticsearch is unavailable.
+ */
+interface CircuitBreakerFallbackResult {
+  hits: [];
+  total: 0;
+  aggregations: Record<string, never>;
+  took: number;
+  circuitBreakerOpen: true;
+  message: string;
+}
 
 /**
  * SearchService provides unified search across the platform.
@@ -29,15 +43,97 @@ import { SearchResultDto, SearchHitDto } from "./dto/search-result.dto";
  * - Permission filters injected at query time
  * - Fuzzy matching and compliance synonyms supported
  */
+// Type alias for ES search params to improve readability
+type EsSearchParams = Record<string, unknown>;
+type EsSearchResponse = SearchResponse<Record<string, unknown>>;
+
 @Injectable()
-export class SearchService {
+export class SearchService implements OnModuleInit {
   private readonly logger = new Logger(SearchService.name);
+  private searchCircuitBreaker!: CircuitBreaker<
+    [EsSearchParams],
+    EsSearchResponse
+  >;
 
   constructor(
     private esService: ElasticsearchService,
     private indexingService: IndexingService,
     private permissionService: PermissionFilterService,
+    private configService: ConfigService,
   ) {}
+
+  /**
+   * Initialize circuit breaker on module startup.
+   * Circuit breaker wraps Elasticsearch calls to prevent cascade failures.
+   */
+  onModuleInit(): void {
+    const cbConfig = this.configService.get("elasticsearch.circuitBreaker");
+    const options: CircuitBreaker.Options = {
+      timeout: cbConfig?.timeout ?? 5000,
+      errorThresholdPercentage: cbConfig?.errorThresholdPercentage ?? 50,
+      resetTimeout: cbConfig?.resetTimeout ?? 30000,
+      volumeThreshold: cbConfig?.volumeThreshold ?? 5,
+    };
+
+    // Create circuit breaker wrapping the ES search call
+    // Type assertion needed due to opossum's complex generic inference
+    this.searchCircuitBreaker = new CircuitBreaker<
+      [EsSearchParams],
+      EsSearchResponse
+    >(
+      (params: EsSearchParams) =>
+        this.esService.search(params) as Promise<EsSearchResponse>,
+      options,
+    );
+
+    // Log circuit state changes for monitoring
+    this.searchCircuitBreaker.on("open", () => {
+      this.logger.warn(
+        "Search circuit breaker OPENED - Elasticsearch appears unhealthy",
+      );
+    });
+
+    this.searchCircuitBreaker.on("halfOpen", () => {
+      this.logger.log(
+        "Search circuit breaker HALF-OPEN - Testing Elasticsearch health",
+      );
+    });
+
+    this.searchCircuitBreaker.on("close", () => {
+      this.logger.log(
+        "Search circuit breaker CLOSED - Elasticsearch recovered",
+      );
+    });
+
+    this.searchCircuitBreaker.on("timeout", () => {
+      this.logger.warn("Search request timed out");
+    });
+
+    this.searchCircuitBreaker.on("reject", () => {
+      this.logger.debug("Search request rejected - circuit is open");
+    });
+
+    this.logger.log(
+      `Search circuit breaker initialized (timeout=${options.timeout}ms, errorThreshold=${options.errorThresholdPercentage}%, resetTimeout=${options.resetTimeout}ms)`,
+    );
+  }
+
+  /**
+   * Create fallback response when circuit breaker is open.
+   */
+  private createFallbackResponse(
+    startTime: number,
+  ): CircuitBreakerFallbackResult {
+    return {
+      hits: [],
+      total: 0,
+      aggregations: {},
+      took: Date.now() - startTime,
+      circuitBreakerOpen: true,
+      message:
+        "Search temporarily unavailable. Please try again in a few moments.",
+    };
+  }
 
   /**
    * Execute a search with permission filtering.
@@ -102,44 +198,46 @@ export class SearchService {
       }
     }
 
+    // Build search params for ES
+    const searchParams = {
+      index: indices,
+      timeout: "5s", // Matches circuit breaker timeout
+      query: {
+        bool: {
+          must: must.length > 0 ? must : [{ match_all: {} }],
+          filter: filter,
+        },
+      },
+      highlight: {
+        pre_tags: ["<mark>"],
+        post_tags: ["</mark>"],
+        fields: {
+          details: { fragment_size: 150, number_of_fragments: 3 },
+          summary: { fragment_size: 150, number_of_fragments: 2 },
+          aiSummary: { fragment_size: 150, number_of_fragments: 2 },
+        },
+      },
+      aggs: {
+        by_status: { terms: { field: "status", size: 10 } },
+        by_severity: { terms: { field: "severity", size: 5 } },
+        by_category: { terms: { field: "categoryName", size: 20 } },
+        by_source: { terms: { field: "sourceChannel", size: 10 } },
+      },
+      from: query.offset ?? 0,
+      size: query.limit ?? 25,
+      sort: this.buildSortClause(query),
+      _source: {
+        excludes: this.permissionService.buildFieldVisibilityFilter(
+          ctx,
+          entityTypes[0],
+        ),
+      },
+    };
+
     try {
-      // Execute search with timeout
-      // ES v9 SDK uses flattened params (no body wrapper)
-      const response: SearchResponse<Record<string, unknown>> =
-        await this.esService.search({
-          index: indices,
-          timeout: "500ms", // Per CONTEXT.md: Search responds within 500ms
-          query: {
-            bool: {
-              must: must.length > 0 ? must : [{ match_all: {} }],
-              filter: filter,
-            },
-          },
-          highlight: {
-            pre_tags: ["<mark>"],
-            post_tags: ["</mark>"],
-            fields: {
-              details: { fragment_size: 150, number_of_fragments: 3 },
-              summary: { fragment_size: 150, number_of_fragments: 2 },
-              aiSummary: { fragment_size: 150, number_of_fragments: 2 },
-            },
-          },
-          aggs: {
-            by_status: { terms: { field: "status", size: 10 } },
-            by_severity: { terms: { field: "severity", size: 5 } },
-            by_category: { terms: { field: "categoryName", size: 20 } },
-            by_source: { terms: { field: "sourceChannel", size: 10 } },
-          },
-          from: query.offset ?? 0,
-          size: query.limit ?? 25,
-          sort: this.buildSortClause(query),
-          _source: {
-            excludes: this.permissionService.buildFieldVisibilityFilter(
-              ctx,
-              entityTypes[0],
-            ),
-          },
-        });
+      // Execute search through circuit breaker
+      // Circuit breaker provides graceful degradation when ES is unhealthy
+      const response = await this.searchCircuitBreaker.fire(searchParams);
 
       const elapsed = Date.now() - startTime;
       this.logger.debug(
@@ -148,6 +246,14 @@ export class SearchService {
 
       return this.transformResponse(response, elapsed);
     } catch (error) {
+      // Check if circuit breaker is open (rejected the request)
+      if (this.searchCircuitBreaker.opened) {
+        this.logger.warn(
+          `Search request rejected - circuit breaker is open for org ${ctx.organizationId}`,
+        );
+        return this.createFallbackResponse(startTime);
+      }
+
       // Handle index not found (no data yet for this tenant)
       if (
         error &&
@@ -164,6 +270,14 @@ export class SearchService {
           aggregations: {},
           took: Date.now() - startTime,
         };
+      }
+
+      // Handle circuit breaker timeout
+      if (error instanceof Error && error.message.includes("timed out")) {
+        this.logger.warn(
+          `Search timed out for org ${ctx.organizationId} - returning fallback`,
+        );
+        return this.createFallbackResponse(startTime);
       }
 
       this.logger.error(
@@ -229,6 +343,7 @@ export class SearchService {
 
   /**
    * Get suggestions for search autocomplete.
+   * Uses circuit breaker for graceful degradation.
    */
   async suggest(
     ctx: PermissionContext,
@@ -240,9 +355,15 @@ export class SearchService {
       this.indexingService.getIndexName(ctx.organizationId, t),
     );
 
+    // Return empty if circuit breaker is open (fail fast)
+    if (this.searchCircuitBreaker.opened) {
+      this.logger.debug("Suggest request skipped - circuit breaker is open");
+      return [];
+    }
+
     try {
-      // ES v9 SDK uses flattened params
-      const response = await this.esService.search({
+      // Use circuit breaker for suggest call
+      const response = await this.searchCircuitBreaker.fire({
         index: indices,
         suggest: {
           text: prefix,
@@ -269,8 +390,40 @@ export class SearchService {
 
       return suggestions;
     } catch {
-      // Return empty array if suggestion fails
+      // Return empty array if suggestion fails (graceful degradation)
       return [];
     }
+  }
+
+  /**
+   * Check if the circuit breaker is currently open.
+   * Useful for health checks and status monitoring.
+   */
+  isCircuitBreakerOpen(): boolean {
+    return this.searchCircuitBreaker.opened;
+  }
+
+  /**
+   * Get circuit breaker statistics for monitoring.
+   */
+  getCircuitBreakerStats(): {
+    state: string;
+    failures: number;
+    successes: number;
+    rejects: number;
+    timeouts: number;
+  } {
+    const stats = this.searchCircuitBreaker.stats;
+    return {
+      state: this.searchCircuitBreaker.opened
+        ? "open"
+        : this.searchCircuitBreaker.halfOpen
+          ? "half-open"
+          : "closed",
+      failures: stats.failures,
+      successes: stats.successes,
+      rejects: stats.rejects,
+      timeouts: stats.timeouts,
+    };
   }
 }
