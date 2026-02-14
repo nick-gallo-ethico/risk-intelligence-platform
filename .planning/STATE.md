@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-02-13)
 
 ## Current Position
 
-Phase: 28 of 31 (Production Readiness) — Complete
-Plan: 5 of 5 complete (28-01, 28-02, 28-03, 28-04, 28-05)
-Status: Phase 28 verified (7/7 must-haves passed) — Deploy ready milestone achieved
-Last activity: 2026-02-14 — Phase 28 verified
+Phase: 29 of 31 (Error Handling & Reliability)
+Plan: 2 of 5 complete (29-01, 29-02)
+Status: In progress — Event handler error boundaries done
+Last activity: 2026-02-14 — Completed 29-02-PLAN.md
 
-Progress: [████████░░] 52% (v1.1 remediation - 11 of 20+ plans)
+Progress: [████████░░] 60% (v1.1 remediation - 13 of 20+ plans)
 
 ## Milestone v1.1: Code Review Remediation
 
@@ -22,14 +22,14 @@ Progress: [████████░░] 52% (v1.1 remediation - 11 of 20+ pla
 **Findings:** 36 (8 Critical, 12 High, 13 Medium, 3 Low)
 **Overall Grade:** C- → Target: B+ after remediation
 
-| Phase | Name                         | Requirements              | Status   |
-| ----- | ---------------------------- | ------------------------- | -------- |
-| 26    | Emergency Fixes              | EMER-01, EMER-02, EMER-03 | Complete |
-| 27    | Security Hardening           | SEC-01 to SEC-06          | Complete |
-| 28    | Production Readiness         | PROD-01 to PROD-07        | Complete |
-| 29    | Error Handling & Reliability | ERR-01 to ERR-09          | Pending  |
-| 30    | Test Coverage Foundation     | TEST-01 to TEST-04        | Pending  |
-| 31    | Code Quality & Performance   | QUAL-01 to QUAL-08        | Pending  |
+| Phase | Name                         | Requirements              | Status            |
+| ----- | ---------------------------- | ------------------------- | ----------------- |
+| 26    | Emergency Fixes              | EMER-01, EMER-02, EMER-03 | Complete          |
+| 27    | Security Hardening           | SEC-01 to SEC-06          | Complete          |
+| 28    | Production Readiness         | PROD-01 to PROD-07        | Complete          |
+| 29    | Error Handling & Reliability | ERR-01 to ERR-09          | In Progress (2/5) |
+| 30    | Test Coverage Foundation     | TEST-01 to TEST-04        | Pending           |
+| 31    | Code Quality & Performance   | QUAL-01 to QUAL-08        | Pending           |
 
 ## Milestone Targets
 
@@ -40,6 +40,16 @@ Progress: [████████░░] 52% (v1.1 remediation - 11 of 20+ pla
 | CTO-presentable    | 26-29        | Clean error handling, no silent failures       |
 | SOC 2 prep         | 26-30        | Auditable test coverage, complete audit trail  |
 | Production quality | 26-31        | Maintainable, performant, fully tested         |
+
+## Phase 29 Plans
+
+| Plan  | Wave | Objective                                      | Autonomous | Status   |
+| ----- | ---- | ---------------------------------------------- | ---------- | -------- |
+| 29-01 | 1    | ERR-03/04/08: Critical services error handling | Yes        | Complete |
+| 29-02 | 1    | ERR-09: Event handler error boundaries         | Yes        | Complete |
+| 29-03 | 1    | ERR-06/07: Frontend error boundaries           | Yes        | Pending  |
+| 29-04 | 2    | ERR-05: Dead letter queue for failed events    | Yes        | Pending  |
+| 29-05 | 2    | ERR-01/02: Event validation improvements       | Yes        | Pending  |
 
 ## Phase 28 Plans
 
@@ -151,12 +161,19 @@ Key outcomes:
 - Three-stage Dockerfile: deps, build, production for minimal image size
 - dumb-init as ENTRYPOINT for proper SIGTERM forwarding to Node.js
 
+### Key Decisions (29-02)
+
+- Error type guard pattern: error instanceof Error for safe message/stack access
+- Keep debug log inside try block so it appears before potential error
+- Error messages include full event name and entity ID for debugging
+- Fire-and-forget preserved: errors logged but not rethrown
+
 ### Blockers
 
 None currently.
 
 ## Session Continuity
 
-Last session: 2026-02-14 14:20 EST
-Stopped at: Phase 28 verified (7/7 must-haves), ready for Phase 29
-Resume file: .planning/phases/29-error-handling/
+Last session: 2026-02-14 15:06 EST
+Stopped at: Completed 29-02-PLAN.md
+Resume file: .planning/phases/29-error-handling-reliability/29-03-PLAN.md
