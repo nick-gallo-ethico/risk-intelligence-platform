@@ -22,6 +22,15 @@ import {
   SocketContext,
 } from "./dto/websocket.dto";
 
+// CORS_ORIGIN validation - must be set for WebSocket gateways
+// SEC-02: No wildcard CORS fallback with credentials
+const corsOriginAi = process.env.CORS_ORIGIN;
+if (!corsOriginAi) {
+  throw new Error(
+    "CORS_ORIGIN environment variable is required for WebSocket gateway",
+  );
+}
+
 /**
  * AiGateway provides WebSocket connectivity for real-time AI streaming.
  *
@@ -75,7 +84,7 @@ import {
 @WebSocketGateway({
   namespace: "/ai",
   cors: {
-    origin: process.env.CORS_ORIGIN || "*",
+    origin: corsOriginAi,
     credentials: true,
   },
 })
