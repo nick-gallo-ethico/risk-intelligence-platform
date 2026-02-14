@@ -1001,10 +1001,114 @@ Plans:
 
 ---
 
+## Milestone v1.1: Code Review Remediation
+
+**Source:** `03-DEVELOPMENT/UNIFIED-AUDIT-REPORT.md` (36 findings, commit `9ac072f`)
+**Started:** 2026-02-13
+
+Phases 26-31 address all findings from the unified code review and silent failure audit. Ordered by severity: emergency fixes first, then security, production readiness, error handling, test coverage, and code quality.
+
+- [ ] **Phase 26: Emergency Fixes** — RLS bypass safety, API key rotation, global exception filter registration
+- [ ] **Phase 27: Security Hardening** — Guard/middleware tests, CORS fixes, nullable orgId, CSRF, body limits
+- [ ] **Phase 28: Production Readiness** — Dockerfile, health checks, fail-fast storage, Key Vault, env validation, graceful shutdown
+- [ ] **Phase 29: Error Handling & Reliability** — NestJS exceptions, audit alerting, orphan prevention, error boundaries, auth fixes
+- [ ] **Phase 30: Test Coverage Foundation** — Auth module tests, core service tests, campaign/policy tests, frontend test infrastructure
+- [ ] **Phase 31: Code Quality & Performance** — Service decomposition, association base class, controller cleanup, localhost URLs, toast errors, DB pool, JWT rotation
+
+## Phase Details (v1.1)
+
+### Phase 26: Emergency Fixes
+
+**Goal**: Resolve the three most dangerous issues immediately — a tenant data isolation vulnerability, an exposed API key, and unregistered exception filters that cause unstructured 500 responses.
+**Depends on**: Nothing (first phase of v1.1, can start immediately)
+**Requirements**: EMER-01, EMER-02, EMER-03
+**Success Criteria** (what must be TRUE):
+
+1. `withBypassRLS()` destroys tainted connections on `disableBypassRLS()` failure (no pooled connections with RLS bypass stuck open)
+2. Anthropic API key has been rotated in the dashboard; old key is invalidated
+3. `HttpExceptionFilter` and `SentryExceptionFilter` are registered globally via `app.useGlobalFilters()` in `main.ts`
+4. All unhandled exceptions produce structured JSON error responses (no stack trace leakage)
+5. Non-Error exceptions in `HttpExceptionFilter` else branch are logged (not silently dropped)
+
+### Phase 27: Security Hardening
+
+**Goal**: Harden the security layer with comprehensive tests for auth guards/middleware, fix CORS misconfigurations, close RLS gaps from nullable organizationId, and add CSRF/body-size protections.
+**Depends on**: Phase 26 (exception filters must work before testing guards)
+**Requirements**: SEC-01, SEC-02, SEC-03, SEC-04, SEC-05, SEC-06
+**Success Criteria** (what must be TRUE):
+
+1. Unit tests exist for `tenant.guard`, `tenant.middleware`, `jwt-auth.guard`, `roles.guard` — covering valid/invalid/expired tokens, wrong-tenant rejection, role enforcement, RLS session variable verification
+2. All 3 WebSocket gateways throw on missing `CORS_ORIGIN` config (no wildcard fallback with credentials)
+3. All 7 models with nullable `organizationId` either have it required or are documented as system-wide with application-level access control
+4. CSRF protection middleware is active for state-changing requests
+5. Request body size limits configured (e.g., 10MB JSON, 50MB file upload)
+
+### Phase 28: Production Readiness
+
+**Goal**: Make the application deployable — containerized with a multi-stage Dockerfile, deep health checks, fail-fast storage initialization, secrets vaulted via Azure Key Vault, environment validation, database connection resilience, and graceful shutdown.
+**Depends on**: Phase 27 (security layer must be solid before production deployment concerns)
+**Requirements**: PROD-01, PROD-02, PROD-03, PROD-04, PROD-05, PROD-06, PROD-07
+**Success Criteria** (what must be TRUE):
+
+1. `docker build` produces a working container image with Node.js 20 Alpine, non-root user, and HEALTHCHECK instruction
+2. `/health` endpoint checks database, Redis, and Elasticsearch connectivity — returns degraded status with specifics on failure
+3. Application refuses to start if storage provider initialization fails (LocalStorage or AzureBlob)
+4. Production environment reads secrets from Azure Key Vault; local dev falls back to env vars
+5. Application startup validates all required environment variables and fails with clear error messages listing missing vars
+6. PrismaService retries connection with exponential backoff (3 attempts, 1s/2s/4s delays)
+7. `SIGTERM` triggers graceful shutdown: in-flight requests drain, DB/Redis connections close cleanly
+
+### Phase 29: Error Handling & Reliability
+
+**Goal**: Eliminate silent failures throughout the stack — replace bare `throw new Error()` with proper NestJS exceptions, add audit trail alerting, prevent orphaned files, surface offline draft errors to users, add frontend error boundaries, and fix auth error swallowing.
+**Depends on**: Phase 28 (production infrastructure must exist for alerting/monitoring hooks)
+**Requirements**: ERR-01, ERR-02, ERR-03, ERR-04, ERR-05, ERR-06, ERR-07, ERR-08, ERR-09
+**Success Criteria** (what must be TRUE):
+
+1. Top 10 files with bare `throw new Error()` (100 of 133 instances) use NestJS exceptions (`BadRequestException`, `NotFoundException`, etc.)
+2. AuditService counts consecutive failures; after 5, emits a monitoring alert event
+3. Attachment deletion does NOT remove DB record if storage deletion fails (unless file already missing)
+4. Offline draft decryption failure shows user-visible error message (not silent empty data)
+5. Error boundary components exist for all top-level route segments (not just `/cases/[id]`)
+6. Auth logout logs server-side session invalidation failures to console.warn
+7. Auth storage logs corrupted localStorage entries and clears them
+8. AI provider `tryGetProvider()` logs error with provider name before returning null
+9. Async event handlers have try-catch boundaries that log errors (not fire-and-forget silent failures)
+
+### Phase 30: Test Coverage Foundation
+
+**Goal**: Build test coverage from ~2.5% toward the 80% target, starting with the most critical paths — security/auth services, core entity services (cases, RIUs, investigations), campaigns/policies, and frontend test infrastructure.
+**Depends on**: Phase 29 (error handling fixed so tests don't fight broken exception paths)
+**Requirements**: TEST-01, TEST-02, TEST-03, TEST-04
+**Success Criteria** (what must be TRUE):
+
+1. Auth module has unit tests for all 8 services — login, registration, token refresh, SSO callback, MFA setup/verify, password reset, session management
+2. Core services have unit tests: CasesService (CRUD, status transitions, merge), RiusService (creation, immutability enforcement), InvestigationsService (CRUD, template application)
+3. Campaign and Policy services have unit tests covering CRUD, workflow transitions, and event emission
+4. Frontend has MSW mock setup, at least 3 error boundary components, and component tests for dashboard, case list, and case detail
+
+### Phase 31: Code Quality & Performance
+
+**Goal**: Improve maintainability and performance — decompose monolithic services, extract shared patterns, clean up controllers, fix hardcoded URLs, add user-facing error feedback, tune database connections, and implement JWT key rotation.
+**Depends on**: Phase 30 (test coverage must exist before safe refactoring)
+**Requirements**: QUAL-01, QUAL-02, QUAL-03, QUAL-04, QUAL-05, QUAL-06, QUAL-07, QUAL-08
+**Success Criteria** (what must be TRUE):
+
+1. Top 5 services by LOC are each under 300 lines (decomposed into focused sub-services)
+2. `BaseAssociationService<T>` generic base class shared by all 4 association services
+3. Business logic extracted from 4 oversized controllers (report, projects, cases, ai) into services
+4. Zero hardcoded `localhost` URLs remain in frontend — all use environment config
+5. API errors in 30+ frontend components show toast notifications (not just console.error)
+6. DB connection pool size configurable (default 50), response compression enabled
+7. Elasticsearch timeout reduced to 5s with circuit breaker fallback
+8. JWT uses RS256 with key rotation mechanism (old keys valid until expiry, new keys for signing)
+
+---
+
 ## Progress
 
 **Execution Order:**
-Phases execute in dependency order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11 → 11.1 → 12 → 13 → 13.1 → 14 → 14.1 → 14.2 → 15 → 16 → 17 → 18 → 19 → 20 → 21 → 22 → 23 → 24 → 25 → 25.1
+Phases execute in dependency order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11 → 11.1 → 12 → 13 → 13.1 → 14 → 14.1 → 14.2 → 15 → 16 → 17 → 18 → 19 → 20 → 21 → 22 → 23 → 24 → 25 → 25.1 → 26 → 27 → 28 → 29 → 30 → 31
 
 > **Note on order**: Phase 13.1 fixes UAT gaps from Phase 13. Phase 14.1 fixes data seeding gaps from Phase 14. Phase 15 gap closure plans address verification failures.
 
@@ -1041,12 +1145,23 @@ Phases execute in dependency order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 
 | 25. Case & Investigation Redesign       | 6/6            | Complete | 2026-02-13 |
 | 25.1. Case Detail Vision Revision       | 0/10           | Planned  | -          |
 
+**v1.1 Code Review Remediation (Phases 26-31):**
+
+| Phase                            | Plans Complete | Status  | Completed |
+| -------------------------------- | -------------- | ------- | --------- |
+| 26. Emergency Fixes              | 0/?            | Planned | -         |
+| 27. Security Hardening           | 0/?            | Planned | -         |
+| 28. Production Readiness         | 0/?            | Planned | -         |
+| 29. Error Handling & Reliability | 0/?            | Planned | -         |
+| 30. Test Coverage Foundation     | 0/?            | Planned | -         |
+| 31. Code Quality & Performance   | 0/?            | Planned | -         |
+
 ---
 
 _Roadmap created: 2026-02-02_
-_Updated: 2026-02-13 (Phase 25.1 planned — 10 plans in 4 waves)_
+_Updated: 2026-02-13 (v1.1 Code Review Remediation — Phases 26-31 added, 36 requirements)_
 _Depth: Comprehensive_
-_Total phases: 25 (+ 11.1 and decimal insertions)_
-_Total plans: 242+ completed, ~29 estimated remaining_
-_Total v1 requirements: 149 + QA punch list items_
-_Issues reference: .planning/V1-ISSUES-AND-GAPS.md_
+_Total phases: 31 (+ decimal insertions)_
+_Total plans: 242+ completed (v1.0), ~29 remaining (v1.0), 6 phases pending planning (v1.1)_
+_Total requirements: 149 (v1.0) + 36 (v1.1) = 185_
+_Audit source: 03-DEVELOPMENT/UNIFIED-AUDIT-REPORT.md_
