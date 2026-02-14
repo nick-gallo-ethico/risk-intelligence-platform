@@ -1,4 +1,9 @@
-import { Injectable, OnModuleInit, OnModuleDestroy } from "@nestjs/common";
+import {
+  Injectable,
+  Logger,
+  OnModuleInit,
+  OnModuleDestroy,
+} from "@nestjs/common";
 import { PrismaClient } from "@prisma/client";
 
 @Injectable()
@@ -6,6 +11,8 @@ export class PrismaService
   extends PrismaClient
   implements OnModuleInit, OnModuleDestroy
 {
+  private readonly logger = new Logger(PrismaService.name);
+
   async onModuleInit() {
     await this.$connect();
   }
@@ -49,13 +56,27 @@ export class PrismaService
   /**
    * Executes a callback with RLS bypassed, then re-enables RLS.
    * Ensures bypass is always disabled even if callback throws.
+   *
+   * SECURITY: If disableBypassRLS() fails, the connection pool is destroyed
+   * to prevent tainted connections (with bypass_rls=true) from being reused.
    */
   async withBypassRLS<T>(callback: () => Promise<T>): Promise<T> {
     await this.enableBypassRLS();
     try {
       return await callback();
     } finally {
-      await this.disableBypassRLS();
+      try {
+        await this.disableBypassRLS();
+      } catch (error) {
+        // CRITICAL: If disableBypassRLS fails, the connection has bypass_rls=true
+        // stuck. We MUST destroy all pooled connections to prevent data leakage.
+        this.logger.error(
+          "SECURITY: Failed to disable RLS bypass. Destroying connection pool to prevent data leakage.",
+          error instanceof Error ? error.stack : String(error),
+        );
+        await this.$disconnect();
+        throw error; // Re-throw so caller knows the operation had a critical failure
+      }
     }
   }
 }
