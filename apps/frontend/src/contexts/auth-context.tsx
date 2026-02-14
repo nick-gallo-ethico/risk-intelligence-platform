@@ -1,9 +1,21 @@
-'use client';
+"use client";
 
-import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react';
-import { apiClient } from '@/lib/api';
-import { authStorage } from '@/lib/auth-storage';
-import type { AuthUser, AuthResponse, LoginCredentials, AuthState } from '@/types/auth';
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+  ReactNode,
+} from "react";
+import { apiClient } from "@/lib/api";
+import { authStorage } from "@/lib/auth-storage";
+import type {
+  AuthUser,
+  AuthResponse,
+  LoginCredentials,
+  AuthState,
+} from "@/types/auth";
 
 interface AuthContextType extends AuthState {
   login: (credentials: LoginCredentials) => Promise<void>;
@@ -46,7 +58,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = useCallback(async (credentials: LoginCredentials) => {
-    const response = await apiClient.post<AuthResponse>('/auth/login', credentials);
+    const response = await apiClient.post<AuthResponse>(
+      "/auth/login",
+      credentials,
+    );
 
     authStorage.setAccessToken(response.accessToken);
     authStorage.setRefreshToken(response.refreshToken);
@@ -63,9 +78,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(async () => {
     try {
-      await apiClient.post('/auth/logout');
-    } catch {
-      // Ignore errors - we're logging out anyway
+      await apiClient.post("/auth/logout");
+    } catch (error) {
+      // Log server-side session invalidation failure
+      // Local logout still proceeds, but session may remain active on server
+      console.warn(
+        "Server-side session invalidation failed. Session may remain active on other devices.",
+        error instanceof Error ? error.message : error,
+      );
     } finally {
       authStorage.clearAll();
       setState({
@@ -80,9 +100,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logoutAll = useCallback(async () => {
     try {
-      await apiClient.post('/auth/logout-all');
-    } catch {
-      // Ignore errors - we're logging out anyway
+      await apiClient.post("/auth/logout-all");
+    } catch (error) {
+      // Log server-side session invalidation failure
+      // Local logout still proceeds, but sessions may remain active on server
+      console.warn(
+        "Server-side session invalidation failed (logout-all). Sessions may remain active on other devices.",
+        error instanceof Error ? error.message : error,
+      );
     } finally {
       authStorage.clearAll();
       setState({
@@ -112,7 +137,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 }
