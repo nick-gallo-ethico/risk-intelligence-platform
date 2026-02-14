@@ -1129,8 +1129,13 @@ model FormSubmission {
 
 /// ReportTemplate defines reusable report configurations.
 /// Templates specify data source, columns, filters, and aggregations.
+/// SECURITY: System-wide entity - organizationId nullable for shared platform templates.
+/// - System templates (isSystem=true, organizationId=null): Platform-provided, read-only for all tenants
+/// - Tenant templates (organizationId set): Organization-specific, filtered by RLS
+/// Access control: Service layer checks isSystem flag; RLS filters tenant templates
 model ReportTemplate {
   id             String            @id @default(uuid())
+  /// Nullable for system-wide templates. See model comment for access control.
   organizationId String?           @map("organization_id")
   name           String
   description    String?
@@ -1901,8 +1906,14 @@ model AiMessage {
 /// AiContextFile stores CLAUDE.md-like context files for organizations and users.
 /// Platform context is stored in code; org/user context is stored in database.
 /// Context files enable organization-specific brand voice, terminology, and custom rules.
+/// SECURITY: System-wide entity - organizationId nullable for hierarchical context.
+/// - Platform context (organizationId=null, userId=null): Global AI guidelines
+/// - Org context (organizationId set, userId=null): Organization-specific AI rules
+/// - User context (userId set): Personal AI preferences
+/// Access control: Service layer filters by organizationId OR null (platform files), plus userId
 model AiContextFile {
   id             String   @id @default(uuid())
+  /// Nullable for platform-level context files. See model comment for access control.
   organizationId String?  @map("organization_id")
   userId         String?  @map("user_id")
   name           String
@@ -1946,8 +1957,13 @@ model AiUsage {
 
 /// PromptTemplate stores versioned prompt templates.
 /// Allows A/B testing, rollback, and organization-specific overrides.
+/// SECURITY: System-wide entity - organizationId nullable for shared platform prompts.
+/// - System prompts (organizationId=null): Platform-provided AI prompts, visible to all tenants
+/// - Tenant prompts (organizationId set): Organization-specific prompt overrides
+/// Access control: Service layer queries WHERE organizationId = ? OR organizationId IS NULL
 model PromptTemplate {
   id             String   @id @default(uuid())
+  /// Nullable for system-wide prompt templates. See model comment for access control.
   organizationId String?  @map("organization_id")
   name           String
   version        Int      @default(1)
@@ -3303,8 +3319,13 @@ model ProjectColumn {
 /// ProjectTemplate stores reusable project structures.
 /// System templates (isSystem=true, organizationId=null) are available to all orgs.
 /// Organization templates are scoped to a specific tenant.
+/// SECURITY: System-wide entity - organizationId nullable for platform project templates.
+/// - System templates (isSystem=true, organizationId=null): Platform-provided, read-only
+/// - Tenant templates (organizationId set): Organization-specific, filtered by RLS
+/// Access control: Service layer checks isSystem flag; RLS filters tenant templates
 model ProjectTemplate {
   id             String            @id @default(uuid())
+  /// Nullable for system-wide templates. See model comment for access control.
   organizationId String?           @map("organization_id")
   name           String
   description    String?
@@ -3747,8 +3768,13 @@ model Quiz {
 }
 
 /// QuizAttempt tracks a user's attempt at completing a quiz.
+/// SECURITY: System-wide entity - organizationId nullable for cross-org platform training.
+/// - Platform training (organizationId=null): Ethico-provided compliance certifications
+/// - Tenant training (organizationId set): Organization-specific training courses
+/// Access control: Service layer filters by userId; users can only view their own attempts
 model QuizAttempt {
   id             String        @id @default(uuid())
+  /// Nullable for platform-wide training modules. See model comment for access control.
   organizationId String?       @map("organization_id")
   quizId         String        @map("quiz_id")
   userId         String?       @map("user_id")
@@ -3797,6 +3823,10 @@ model UserCertification {
 
 /// Certificate represents an issued certification document.
 /// Per CONTEXT.md: PDF certificates with expiration tracking.
+/// SECURITY: System-wide entity - organizationId nullable for cross-org platform certifications.
+/// - Platform certificates (organizationId=null): Ethico-issued compliance certifications
+/// - Tenant certificates (organizationId set): Organization-specific internal certifications
+/// Access control: Service layer links to UserCertification; users can only view their own certificates
 model Certificate {
   id                 String              @id @default(uuid())
   certificateNumber  String              @unique @map("certificate_number")
@@ -3807,6 +3837,7 @@ model Certificate {
   expiresAt          DateTime?           @map("expires_at")
   status             CertificateStatus   @default(ACTIVE)
   pdfUrl             String?             @map("pdf_url")
+  /// Nullable for platform-wide certifications. See model comment for access control.
   organizationId     String?             @map("organization_id")
   organizationName   String?             @map("organization_name")
   createdAt          DateTime            @default(now()) @map("created_at")
@@ -5423,8 +5454,13 @@ enum TicketPriority {
 /// KnowledgeBaseArticle contains help content visible to users.
 /// Articles can be global (organizationId=null) visible to all tenants,
 /// or tenant-specific for custom documentation.
+/// SECURITY: System-wide entity - organizationId nullable for platform-wide help content.
+/// - Global articles (organizationId=null): Platform documentation visible to all authenticated users
+/// - Tenant articles (organizationId set): Organization-specific custom documentation
+/// Access control: Service layer queries WHERE organizationId = ? OR organizationId IS NULL
 model KnowledgeBaseArticle {
   id             String        @id @default(uuid())
+  /// Nullable for platform-wide articles. See model comment for access control.
   organizationId String?       @map("organization_id")
   slug           String        @unique
   title          String
