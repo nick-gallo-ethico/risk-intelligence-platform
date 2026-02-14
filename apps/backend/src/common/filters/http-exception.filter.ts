@@ -71,6 +71,15 @@ export class HttpExceptionFilter implements ExceptionFilter {
       status = HttpStatus.INTERNAL_SERVER_ERROR;
       message = "Internal server error";
       error = "Internal Server Error";
+
+      // Log non-Error exceptions (strings, numbers, objects, etc.)
+      // These were previously silently dropped - now we capture them
+      this.logger.error(
+        `Unhandled non-Error exception: ${typeof exception}`,
+        typeof exception === "object"
+          ? JSON.stringify(exception)
+          : String(exception),
+      );
     }
 
     const errorResponse: ErrorResponse = {
