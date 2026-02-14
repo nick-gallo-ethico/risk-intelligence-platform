@@ -51,14 +51,14 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 14.2: Case Creation & Search Fixes** - Category/subcategory dropdowns in case creation, unified search fix (INSERTED)
 - [x] **Phase 15: Case Detail Page Overhaul** - Three-column layout, activity feed, action buttons, AI panel, connected entities (gap closure complete)
 - [x] **Phase 16: AI Integration Fix** - Debug and fix non-functional AI, wire AI panel, enable AI actions on cases
-- [ ] **Phase 17: Campaigns Hub** - Centralized campaigns area, form creation, campaign lifecycle management
-- [ ] **Phase 18: Reports & Data Management** - Report designer UI, field availability, export from views
+- [x] **Phase 17: Campaigns Hub** - Centralized campaigns area, form creation, campaign lifecycle management
+- [x] **Phase 18: Reports & Data Management** - Report designer UI, field availability, export from views
 - [x] **Phase 19: Workflow Engine UI** - Visual workflow builder, workflow management section, apply to cases/approvals/disclosures
-- [ ] **Phase 20: Settings Overhaul (HubSpot-Style)** - Preferences, account management, data management, properties, permission sets
+- [x] **Phase 20: Settings Overhaul (HubSpot-Style)** - Preferences, account management, data management, properties, permission sets
 - [x] **Phase 21: Project Management (Monday.com-Style)** - Kanban boards, task views, timelines, project tracking
 - [ ] **Phase 22: Dark Mode & Theme** - Dark mode toggle, consistent nav theming, theme system
 - [x] **Phase 23: Help & Support System** - Knowledge base, in-platform ticket filing, real-time support
-- [ ] **Phase 24: Policy Content & Seed Data** - Populate policies with properly formatted text, improve case seed data
+- [x] **Phase 24: Policy Content & Seed Data** - Populate policies with properly formatted text, improve case seed data
 - [x] **Phase 25: Case & Investigation Page Redesign** - HubSpot three-column record pattern for case and investigation detail pages
 - [x] **Phase 25.1: Case Detail Page Vision Revision** - Rebuild case detail page to match revised HubSpot-style spec with pipeline bar, collapsible property cards, Activities tab pattern, and config-driven architecture (INSERTED)
 
@@ -720,10 +720,10 @@ Plans:
 
 Plans:
 
-- [ ] 17-01-PLAN.md (Wave 1) — Backend dashboard endpoints + sidebar navigation + /campaigns/new page
-- [ ] 17-02-PLAN.md (Wave 1) — Campaign detail page with overview, assignments, lifecycle actions
-- [ ] 17-03-PLAN.md (Wave 1) — Forms hub with list, create, and edit pages wrapping existing FormBuilder
-- [ ] 17-04-PLAN.md (Wave 2) — Demo data seeding and verification checkpoint
+- [x] 17-01-PLAN.md (Wave 1) — Backend dashboard endpoints + sidebar navigation + /campaigns/new page
+- [x] 17-02-PLAN.md (Wave 1) — Campaign detail page with overview, assignments, lifecycle actions
+- [x] 17-03-PLAN.md (Wave 1) — Forms hub with list, create, and edit pages wrapping existing FormBuilder
+- [x] 17-04-PLAN.md (Wave 2) — Demo data seeding and verification checkpoint
 
 ### Phase 18: Reports & Data Management
 
@@ -1088,6 +1088,15 @@ Plans:
 5. Error boundary components exist for all top-level route segments (not just `/cases/[id]`)
 6. Auth logout logs server-side session invalidation failures to console.warn
 
+**Plans**: 4 plans in 1 wave
+
+Plans:
+
+- [ ] 29-01-PLAN.md (Wave 1) — Backend service reliability: AuditService failure counting, safe attachment deletion, AI provider error logging
+- [ ] 29-02-PLAN.md (Wave 1) — Async event handler error boundaries with try-catch and context logging
+- [ ] 29-03-PLAN.md (Wave 1) — Frontend error boundaries for all route segments (22+ error.tsx files)
+- [ ] 29-04-PLAN.md (Wave 1) — Frontend error surfacing: offline draft decryption flag, auth logout logging, storage corruption handling
+
 ### Phase 30: Test Coverage Foundation
 
 **Goal**: Build test coverage from ~2.5% toward the 80% target, starting with the most critical paths — security/auth services, core entity services (cases, RIUs, investigations), campaigns/policies, and frontend test infrastructure.
@@ -1183,7 +1192,7 @@ Plans:
 | 26. Emergency Fixes              | 0/?            | Planned | -         |
 | 27. Security Hardening           | 0/4            | Planned | -         |
 | 28. Production Readiness         | 0/?            | Planned | -         |
-| 29. Error Handling & Reliability | 0/?            | Planned | -         |
+| 29. Error Handling & Reliability | 0/4            | Planned | -         |
 | 30. Test Coverage Foundation     | 0/5            | Planned | -         |
 | 31. Code Quality & Performance   | 0/8            | Planned | -         |
 

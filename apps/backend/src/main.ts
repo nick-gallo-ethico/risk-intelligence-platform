@@ -5,6 +5,8 @@ import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import helmet from "helmet";
 import pino from "pino";
 import { AppModule } from "./app.module";
+import { HttpExceptionFilter } from "./common/filters/http-exception.filter";
+import { SentryExceptionFilter } from "./common/filters/sentry-exception.filter";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -37,6 +39,14 @@ async function bootstrap() {
 
   // Security headers (HSTS, CSP, X-Frame-Options, etc.)
   app.use(helmet());
+
+  // Global exception filters
+  // HttpExceptionFilter handles response formatting for all exceptions
+  // SentryExceptionFilter reports 5xx errors to Sentry (extends BaseExceptionFilter)
+  app.useGlobalFilters(
+    new HttpExceptionFilter(),
+    new SentryExceptionFilter(app.getHttpAdapter()),
+  );
 
   // Global validation pipe
   app.useGlobalPipes(
