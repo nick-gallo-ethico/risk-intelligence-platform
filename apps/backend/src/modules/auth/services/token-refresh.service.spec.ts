@@ -13,10 +13,7 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { JwtService } from "@nestjs/jwt";
 import { ConfigService } from "@nestjs/config";
-import {
-  TokenRefreshService,
-  RefreshErrorCode,
-} from "./token-refresh.service";
+import { TokenRefreshService, RefreshErrorCode } from "./token-refresh.service";
 import { PrismaService } from "../../prisma/prisma.service";
 
 describe("TokenRefreshService", () => {
@@ -136,7 +133,9 @@ describe("TokenRefreshService", () => {
       mockPrismaService.session.findFirst.mockResolvedValue(mockSession);
       mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
       mockPrismaService.session.update.mockResolvedValue(mockSession);
-      mockJwtService.sign.mockReturnValueOnce(mockAccessToken).mockReturnValueOnce(mockRefreshToken);
+      mockJwtService.sign
+        .mockReturnValueOnce(mockAccessToken)
+        .mockReturnValueOnce(mockRefreshToken);
 
       // Act
       const result = await service.refreshAccessToken("valid-refresh-token");
@@ -243,7 +242,9 @@ describe("TokenRefreshService", () => {
       mockPrismaService.session.findFirst.mockResolvedValue(mockSession);
       mockPrismaService.user.findUnique.mockResolvedValue(mockUser);
       mockPrismaService.session.update.mockResolvedValue(mockSession);
-      mockJwtService.sign.mockReturnValueOnce(mockAccessToken).mockReturnValueOnce(mockRefreshToken);
+      mockJwtService.sign
+        .mockReturnValueOnce(mockAccessToken)
+        .mockReturnValueOnce(mockRefreshToken);
 
       // Act
       await service.refreshAccessToken("valid-refresh-token");
@@ -315,7 +316,9 @@ describe("TokenRefreshService", () => {
       mockJwtService.sign.mockReturnValue(mockAccessToken);
 
       // Act
-      const result = await service.refreshWebSocketToken("recently-expired-token");
+      const result = await service.refreshWebSocketToken(
+        "recently-expired-token",
+      );
 
       // Assert
       expect(result.success).toBe(true);
@@ -331,7 +334,9 @@ describe("TokenRefreshService", () => {
       });
 
       // Act
-      const result = await service.refreshWebSocketToken("revoked-session-token");
+      const result = await service.refreshWebSocketToken(
+        "revoked-session-token",
+      );
 
       // Assert
       expect(result.success).toBe(false);

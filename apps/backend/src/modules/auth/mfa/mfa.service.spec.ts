@@ -12,10 +12,7 @@
 // =============================================================================
 
 import { Test, TestingModule } from "@nestjs/testing";
-import {
-  BadRequestException,
-  UnauthorizedException,
-} from "@nestjs/common";
+import { BadRequestException, UnauthorizedException } from "@nestjs/common";
 import { MfaService } from "./mfa.service";
 import { PrismaService } from "../../prisma/prisma.service";
 import { AuditService } from "../../audit/audit.service";
@@ -183,7 +180,9 @@ describe("MfaService", () => {
 
     it("should throw if user already has MFA enabled", async () => {
       // Arrange
-      mockPrismaService.user.findUniqueOrThrow.mockResolvedValue(mockUserWithMfa);
+      mockPrismaService.user.findUniqueOrThrow.mockResolvedValue(
+        mockUserWithMfa,
+      );
 
       // Act & Assert
       await expect(service.initiateMfaSetup(mockUserId)).rejects.toThrow(
@@ -201,7 +200,9 @@ describe("MfaService", () => {
   describe("verifyAndEnableMfa", () => {
     it("should enable MFA when TOTP code is valid", async () => {
       // Arrange
-      mockPrismaService.user.findUniqueOrThrow.mockResolvedValue(mockUserWithPendingMfa);
+      mockPrismaService.user.findUniqueOrThrow.mockResolvedValue(
+        mockUserWithPendingMfa,
+      );
       mockTotpInstance.verify.mockResolvedValue({ valid: true });
       mockPrismaService.user.update.mockResolvedValue({
         ...mockUserWithPendingMfa,
@@ -227,7 +228,9 @@ describe("MfaService", () => {
 
     it("should throw BadRequestException when TOTP code is invalid", async () => {
       // Arrange
-      mockPrismaService.user.findUniqueOrThrow.mockResolvedValue(mockUserWithPendingMfa);
+      mockPrismaService.user.findUniqueOrThrow.mockResolvedValue(
+        mockUserWithPendingMfa,
+      );
       mockTotpInstance.verify.mockResolvedValue({ valid: false });
 
       // Act & Assert
@@ -251,7 +254,9 @@ describe("MfaService", () => {
 
     it("should throw BadRequestException if MFA already enabled", async () => {
       // Arrange
-      mockPrismaService.user.findUniqueOrThrow.mockResolvedValue(mockUserWithMfa);
+      mockPrismaService.user.findUniqueOrThrow.mockResolvedValue(
+        mockUserWithMfa,
+      );
 
       // Act & Assert
       await expect(
@@ -264,7 +269,9 @@ describe("MfaService", () => {
 
     it("should generate recovery codes on enable", async () => {
       // Arrange
-      mockPrismaService.user.findUniqueOrThrow.mockResolvedValue(mockUserWithPendingMfa);
+      mockPrismaService.user.findUniqueOrThrow.mockResolvedValue(
+        mockUserWithPendingMfa,
+      );
       mockTotpInstance.verify.mockResolvedValue({ valid: true });
       mockPrismaService.user.update.mockResolvedValue({
         ...mockUserWithPendingMfa,
@@ -284,7 +291,9 @@ describe("MfaService", () => {
 
     it("should log MFA_ENABLED audit event", async () => {
       // Arrange
-      mockPrismaService.user.findUniqueOrThrow.mockResolvedValue(mockUserWithPendingMfa);
+      mockPrismaService.user.findUniqueOrThrow.mockResolvedValue(
+        mockUserWithPendingMfa,
+      );
       mockTotpInstance.verify.mockResolvedValue({ valid: true });
       mockPrismaService.user.update.mockResolvedValue({
         ...mockUserWithPendingMfa,
@@ -311,7 +320,9 @@ describe("MfaService", () => {
   describe("verifyMfa", () => {
     it("should return true for valid TOTP code", async () => {
       // Arrange
-      mockPrismaService.user.findUniqueOrThrow.mockResolvedValue(mockUserWithMfa);
+      mockPrismaService.user.findUniqueOrThrow.mockResolvedValue(
+        mockUserWithMfa,
+      );
       mockTotpInstance.verify.mockResolvedValue({ valid: true });
 
       // Act
@@ -323,7 +334,9 @@ describe("MfaService", () => {
 
     it("should verify recovery code when TOTP fails", async () => {
       // Arrange
-      mockPrismaService.user.findUniqueOrThrow.mockResolvedValue(mockUserWithMfa);
+      mockPrismaService.user.findUniqueOrThrow.mockResolvedValue(
+        mockUserWithMfa,
+      );
       mockTotpInstance.verify.mockResolvedValue({ valid: false });
       mockRecoveryCodesService.verifyRecoveryCode.mockReturnValue(0); // First code matches
 
@@ -342,7 +355,9 @@ describe("MfaService", () => {
 
     it("should throw UnauthorizedException for invalid code", async () => {
       // Arrange
-      mockPrismaService.user.findUniqueOrThrow.mockResolvedValue(mockUserWithMfa);
+      mockPrismaService.user.findUniqueOrThrow.mockResolvedValue(
+        mockUserWithMfa,
+      );
       mockTotpInstance.verify.mockResolvedValue({ valid: false });
       mockRecoveryCodesService.verifyRecoveryCode.mockReturnValue(-1); // No match
 
@@ -370,7 +385,9 @@ describe("MfaService", () => {
 
     it("should remove used recovery code", async () => {
       // Arrange
-      mockPrismaService.user.findUniqueOrThrow.mockResolvedValue(mockUserWithMfa);
+      mockPrismaService.user.findUniqueOrThrow.mockResolvedValue(
+        mockUserWithMfa,
+      );
       mockTotpInstance.verify.mockResolvedValue({ valid: false });
       mockRecoveryCodesService.verifyRecoveryCode.mockReturnValue(1); // Second code matches
 
@@ -386,14 +403,19 @@ describe("MfaService", () => {
       expect(mockPrismaService.user.update).toHaveBeenCalledWith({
         where: { id: mockUserId },
         data: {
-          mfaRecoveryCodes: expect.arrayContaining(["hashedcode1", "hashedcode3"]),
+          mfaRecoveryCodes: expect.arrayContaining([
+            "hashedcode1",
+            "hashedcode3",
+          ]),
         },
       });
     });
 
     it("should log MFA_RECOVERY_CODE_USED audit event", async () => {
       // Arrange
-      mockPrismaService.user.findUniqueOrThrow.mockResolvedValue(mockUserWithMfa);
+      mockPrismaService.user.findUniqueOrThrow.mockResolvedValue(
+        mockUserWithMfa,
+      );
       mockTotpInstance.verify.mockResolvedValue({ valid: false });
       mockRecoveryCodesService.verifyRecoveryCode.mockReturnValue(0);
       mockPrismaService.user.update.mockResolvedValue({
@@ -419,7 +441,9 @@ describe("MfaService", () => {
   describe("disableMfa", () => {
     it("should clear MFA fields on user", async () => {
       // Arrange
-      mockPrismaService.user.findUniqueOrThrow.mockResolvedValue(mockUserWithMfa);
+      mockPrismaService.user.findUniqueOrThrow.mockResolvedValue(
+        mockUserWithMfa,
+      );
       mockTotpInstance.verify.mockResolvedValue({ valid: true });
       mockPrismaService.user.update.mockResolvedValue(mockUser);
 
@@ -443,17 +467,19 @@ describe("MfaService", () => {
       mockPrismaService.user.findUniqueOrThrow.mockResolvedValue(mockUser);
 
       // Act & Assert
-      await expect(service.disableMfa(mockUserId, mockTotpCode)).rejects.toThrow(
-        BadRequestException,
-      );
-      await expect(service.disableMfa(mockUserId, mockTotpCode)).rejects.toThrow(
-        "MFA is not enabled",
-      );
+      await expect(
+        service.disableMfa(mockUserId, mockTotpCode),
+      ).rejects.toThrow(BadRequestException);
+      await expect(
+        service.disableMfa(mockUserId, mockTotpCode),
+      ).rejects.toThrow("MFA is not enabled");
     });
 
     it("should throw on invalid TOTP code", async () => {
       // Arrange
-      mockPrismaService.user.findUniqueOrThrow.mockResolvedValue(mockUserWithMfa);
+      mockPrismaService.user.findUniqueOrThrow.mockResolvedValue(
+        mockUserWithMfa,
+      );
       mockTotpInstance.verify.mockResolvedValue({ valid: false });
 
       // Act & Assert
@@ -464,7 +490,9 @@ describe("MfaService", () => {
 
     it("should log MFA_DISABLED audit event", async () => {
       // Arrange
-      mockPrismaService.user.findUniqueOrThrow.mockResolvedValue(mockUserWithMfa);
+      mockPrismaService.user.findUniqueOrThrow.mockResolvedValue(
+        mockUserWithMfa,
+      );
       mockTotpInstance.verify.mockResolvedValue({ valid: true });
       mockPrismaService.user.update.mockResolvedValue(mockUser);
 
@@ -486,7 +514,9 @@ describe("MfaService", () => {
   describe("regenerateRecoveryCodes", () => {
     it("should generate new recovery codes", async () => {
       // Arrange
-      mockPrismaService.user.findUniqueOrThrow.mockResolvedValue(mockUserWithMfa);
+      mockPrismaService.user.findUniqueOrThrow.mockResolvedValue(
+        mockUserWithMfa,
+      );
       mockTotpInstance.verify.mockResolvedValue({ valid: true });
       mockPrismaService.user.update.mockResolvedValue({
         ...mockUserWithMfa,
@@ -506,7 +536,9 @@ describe("MfaService", () => {
 
     it("should hash codes before storage", async () => {
       // Arrange
-      mockPrismaService.user.findUniqueOrThrow.mockResolvedValue(mockUserWithMfa);
+      mockPrismaService.user.findUniqueOrThrow.mockResolvedValue(
+        mockUserWithMfa,
+      );
       mockTotpInstance.verify.mockResolvedValue({ valid: true });
       mockPrismaService.user.update.mockResolvedValue(mockUserWithMfa);
 
@@ -525,7 +557,9 @@ describe("MfaService", () => {
 
     it("should return plaintext codes to user", async () => {
       // Arrange
-      mockPrismaService.user.findUniqueOrThrow.mockResolvedValue(mockUserWithMfa);
+      mockPrismaService.user.findUniqueOrThrow.mockResolvedValue(
+        mockUserWithMfa,
+      );
       mockTotpInstance.verify.mockResolvedValue({ valid: true });
       mockPrismaService.user.update.mockResolvedValue(mockUserWithMfa);
 
@@ -551,7 +585,9 @@ describe("MfaService", () => {
 
     it("should throw on invalid TOTP code", async () => {
       // Arrange
-      mockPrismaService.user.findUniqueOrThrow.mockResolvedValue(mockUserWithMfa);
+      mockPrismaService.user.findUniqueOrThrow.mockResolvedValue(
+        mockUserWithMfa,
+      );
       mockTotpInstance.verify.mockResolvedValue({ valid: false });
 
       // Act & Assert
@@ -562,7 +598,9 @@ describe("MfaService", () => {
 
     it("should log MFA_RECOVERY_CODES_REGENERATED audit event", async () => {
       // Arrange
-      mockPrismaService.user.findUniqueOrThrow.mockResolvedValue(mockUserWithMfa);
+      mockPrismaService.user.findUniqueOrThrow.mockResolvedValue(
+        mockUserWithMfa,
+      );
       mockTotpInstance.verify.mockResolvedValue({ valid: true });
       mockPrismaService.user.update.mockResolvedValue(mockUserWithMfa);
 

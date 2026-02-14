@@ -187,6 +187,13 @@ Key outcomes:
 - Event class constructors retain bare throws: Internal validation, not HTTP requests - covered by handler try-catch
 - Implementation done during 29-04: Code changes attributed to 29-04 docs commit, summary documents completed work
 
+### Key Decisions (30-03)
+
+- Use CaseType.REPORT and CaseType.RFI (not COMPLAINT/FRAUD) per actual Prisma enum values
+- Test immutability via BadRequestException with guidance message about linked Case
+- Verify event emission via eventEmitter.emit mock with objectContaining matchers
+- Organize update tests into separate describe blocks for MUTABLE vs IMMUTABLE fields
+
 ### Key Decisions (30-04)
 
 - AuditService used for CampaignsService (not ActivityService) - matches actual service implementation
