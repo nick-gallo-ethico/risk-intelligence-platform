@@ -8,3 +8,8 @@
  */
 export { HealthModule } from "./health.module";
 export { HealthController } from "./health.controller";
+export {
+  PrismaHealthIndicator,
+  RedisHealthIndicator,
+  ElasticsearchHealthIndicator,
+} from "./indicators";
