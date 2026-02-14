@@ -121,9 +121,10 @@ export class RemediationEventHandler {
         actorType: ActorType.USER,
       });
     } catch (error) {
+      // Log but don't rethrow - event handlers are fire-and-forget
       this.logger.error(
-        `Error handling step created: ${error.message}`,
-        error.stack,
+        `Failed to handle remediation.step.created event for ${event.stepId}: ${error instanceof Error ? error.message : "Unknown"}`,
+        error instanceof Error ? error.stack : undefined,
       );
     }
   }
@@ -163,9 +164,10 @@ export class RemediationEventHandler {
         actorType: ActorType.USER,
       });
     } catch (error) {
+      // Log but don't rethrow - event handlers are fire-and-forget
       this.logger.error(
-        `Error handling step completed: ${error.message}`,
-        error.stack,
+        `Failed to handle remediation.step.completed event for ${event.stepId}: ${error instanceof Error ? error.message : "Unknown"}`,
+        error instanceof Error ? error.stack : undefined,
       );
     }
   }
@@ -196,9 +198,10 @@ export class RemediationEventHandler {
         actorType: ActorType.USER,
       });
     } catch (error) {
+      // Log but don't rethrow - event handlers are fire-and-forget
       this.logger.error(
-        `Error handling step approved: ${error.message}`,
-        error.stack,
+        `Failed to handle remediation.step.approved event for ${event.stepId}: ${error instanceof Error ? error.message : "Unknown"}`,
+        error instanceof Error ? error.stack : undefined,
       );
     }
   }
@@ -224,9 +227,10 @@ export class RemediationEventHandler {
         context: { caseId: event.caseId },
       });
     } catch (error) {
+      // Log but don't rethrow - event handlers are fire-and-forget
       this.logger.error(
-        `Error handling plan created: ${error.message}`,
-        error.stack,
+        `Failed to handle remediation.plan.created event for ${event.planId}: ${error instanceof Error ? error.message : "Unknown"}`,
+        error instanceof Error ? error.stack : undefined,
       );
     }
   }
@@ -250,9 +254,10 @@ export class RemediationEventHandler {
         actorType: ActorType.USER,
       });
     } catch (error) {
+      // Log but don't rethrow - event handlers are fire-and-forget
       this.logger.error(
-        `Error handling plan updated: ${error.message}`,
-        error.stack,
+        `Failed to handle remediation.plan.updated event for ${event.planId}: ${error instanceof Error ? error.message : "Unknown"}`,
+        error instanceof Error ? error.stack : undefined,
       );
     }
   }
@@ -286,9 +291,10 @@ export class RemediationEventHandler {
         context: { caseId: event.caseId },
       });
     } catch (error) {
+      // Log but don't rethrow - event handlers are fire-and-forget
       this.logger.error(
-        `Error handling plan completed: ${error.message}`,
-        error.stack,
+        `Failed to handle remediation.plan.completed event for ${event.planId}: ${error instanceof Error ? error.message : "Unknown"}`,
+        error instanceof Error ? error.stack : undefined,
       );
     }
   }
