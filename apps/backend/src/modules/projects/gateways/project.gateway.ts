@@ -47,6 +47,15 @@ import { Logger, Injectable } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { PrismaService } from "../../prisma/prisma.service";
 
+// CORS_ORIGIN validation - must be set for WebSocket gateways
+// SEC-02: No wildcard CORS fallback with credentials
+const corsOriginProjects = process.env.CORS_ORIGIN;
+if (!corsOriginProjects) {
+  throw new Error(
+    "CORS_ORIGIN environment variable is required for WebSocket gateway",
+  );
+}
+
 /**
  * Socket context stored on authenticated clients.
  */
@@ -108,7 +117,7 @@ interface UpdateBroadcastData {
 @WebSocketGateway({
   namespace: "/projects",
   cors: {
-    origin: process.env.CORS_ORIGIN || "*",
+    origin: corsOriginProjects,
     credentials: true,
   },
 })
