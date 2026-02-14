@@ -1092,11 +1092,11 @@ Plans:
 
 Plans:
 
-- [ ] 29-01-PLAN.md (Wave 1) — Backend service reliability: AuditService failure counting, safe attachment deletion, AI provider error logging
-- [ ] 29-02-PLAN.md (Wave 1) — Async event handler error boundaries with try-catch and context logging
-- [ ] 29-03-PLAN.md (Wave 1) — Frontend error boundaries for all route segments (22+ error.tsx files)
-- [ ] 29-04-PLAN.md (Wave 1) — Frontend error surfacing: offline draft decryption flag, auth logout logging, storage corruption handling
-- [ ] 29-05-PLAN.md (Wave 1) — Replace bare throw new Error() with NestJS HTTP exceptions in service/controller files (31 instances across 11 files)
+- [x] 29-01-PLAN.md (Wave 1) — Backend service reliability: AuditService failure counting, safe attachment deletion, AI provider error logging
+- [x] 29-02-PLAN.md (Wave 1) — Async event handler error boundaries with try-catch and context logging
+- [x] 29-03-PLAN.md (Wave 1) — Frontend error boundaries for all route segments (22+ error.tsx files)
+- [x] 29-04-PLAN.md (Wave 1) — Frontend error surfacing: offline draft decryption flag, auth logout logging, storage corruption handling
+- [x] 29-05-PLAN.md (Wave 1) — Replace bare throw new Error() with NestJS HTTP exceptions in service/controller files (31 instances across 11 files)
 
 ### Phase 30: Test Coverage Foundation
 

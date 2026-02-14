@@ -35,15 +35,15 @@ Requirements for production readiness. Organized by severity and remediation pha
 
 ### Error Handling & Reliability
 
-- [ ] **ERR-01**: Replace bare throw new Error() with NestJS exceptions in top 10 files (100 of 133 instances) (C3)
-- [ ] **ERR-02**: AuditService failure counting with threshold-based alerting (5 consecutive = alert) (H7)
-- [ ] **ERR-03**: Attachment deletion aborts on storage failure — no orphaned files (H8)
-- [ ] **ERR-04**: Offline draft decryption surfaces \_decryptionFailed flag to UI (H9, M10)
-- [ ] **ERR-05**: Frontend error boundary components added to route segments (M6)
-- [ ] **ERR-06**: Auth logout logs server-side session invalidation failures (H10)
-- [ ] **ERR-07**: Auth storage logs and clears corrupted localStorage entries (H11)
-- [ ] **ERR-08**: AI provider registry tryGetProvider() logs errors with provider name (H12)
-- [ ] **ERR-09**: Async event handler error boundaries added (M11, M12)
+- [x] **ERR-01**: Replace bare throw new Error() with NestJS exceptions in top 10 files (100 of 133 instances) (C3)
+- [x] **ERR-02**: AuditService failure counting with threshold-based alerting (5 consecutive = alert) (H7)
+- [x] **ERR-03**: Attachment deletion aborts on storage failure — no orphaned files (H8)
+- [x] **ERR-04**: Offline draft decryption surfaces \_decryptionFailed flag to UI (H9, M10)
+- [x] **ERR-05**: Frontend error boundary components added to route segments (M6)
+- [x] **ERR-06**: Auth logout logs server-side session invalidation failures (H10)
+- [x] **ERR-07**: Auth storage logs and clears corrupted localStorage entries (H11)
+- [x] **ERR-08**: AI provider registry tryGetProvider() logs errors with provider name (H12)
+- [x] **ERR-09**: Async event handler error boundaries added (M11, M12)
 
 ### Test Coverage Foundation
 
@@ -97,15 +97,15 @@ Which phases cover which requirements. Maps to ROADMAP.md phases.
 | PROD-05     | Phase 28 | Complete |
 | PROD-06     | Phase 28 | Complete |
 | PROD-07     | Phase 28 | Complete |
-| ERR-01      | Phase 29 | Pending  |
-| ERR-02      | Phase 29 | Pending  |
-| ERR-03      | Phase 29 | Pending  |
-| ERR-04      | Phase 29 | Pending  |
-| ERR-05      | Phase 29 | Pending  |
-| ERR-06      | Phase 29 | Pending  |
-| ERR-07      | Phase 29 | Pending  |
-| ERR-08      | Phase 29 | Pending  |
-| ERR-09      | Phase 29 | Pending  |
+| ERR-01      | Phase 29 | Complete |
+| ERR-02      | Phase 29 | Complete |
+| ERR-03      | Phase 29 | Complete |
+| ERR-04      | Phase 29 | Complete |
+| ERR-05      | Phase 29 | Complete |
+| ERR-06      | Phase 29 | Complete |
+| ERR-07      | Phase 29 | Complete |
+| ERR-08      | Phase 29 | Complete |
+| ERR-09      | Phase 29 | Complete |
 | TEST-01     | Phase 30 | Pending  |
 | TEST-02     | Phase 30 | Pending  |
 | TEST-03     | Phase 30 | Pending  |
