@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-02-13)
 
 ## Current Position
 
-Phase: 26 of 31 (Emergency Fixes) — COMPLETE
-Plan: 2 of 2 complete
-Status: Phase 26 complete, ready for Phase 27
-Last activity: 2026-02-14 — Completed 26-02-PLAN.md (API key rotation)
+Phase: 27 of 31 (Security Hardening) — In Progress
+Plan: 1 of 4 complete
+Status: 27-01 complete (SEC-01 security guard/middleware tests)
+Last activity: 2026-02-14 — Completed 27-01-PLAN.md (security guard/middleware tests)
 
-Progress: [██░░░░░░░░] 10% (v1.1 remediation - 2 of 20+ plans)
+Progress: [███░░░░░░░] 15% (v1.1 remediation - 3 of 20+ plans)
 
 ## Milestone v1.1: Code Review Remediation
 
@@ -22,14 +22,14 @@ Progress: [██░░░░░░░░] 10% (v1.1 remediation - 2 of 20+ plan
 **Findings:** 36 (8 Critical, 12 High, 13 Medium, 3 Low)
 **Overall Grade:** C- → Target: B+ after remediation
 
-| Phase | Name                         | Requirements              | Status   |
-| ----- | ---------------------------- | ------------------------- | -------- |
-| 26    | Emergency Fixes              | EMER-01, EMER-02, EMER-03 | Complete |
-| 27    | Security Hardening           | SEC-01 to SEC-06          | Pending  |
-| 28    | Production Readiness         | PROD-01 to PROD-07        | Pending  |
-| 29    | Error Handling & Reliability | ERR-01 to ERR-09          | Pending  |
-| 30    | Test Coverage Foundation     | TEST-01 to TEST-04        | Pending  |
-| 31    | Code Quality & Performance   | QUAL-01 to QUAL-08        | Pending  |
+| Phase | Name                         | Requirements              | Status      |
+| ----- | ---------------------------- | ------------------------- | ----------- |
+| 26    | Emergency Fixes              | EMER-01, EMER-02, EMER-03 | Complete    |
+| 27    | Security Hardening           | SEC-01 to SEC-06          | In Progress |
+| 28    | Production Readiness         | PROD-01 to PROD-07        | Pending     |
+| 29    | Error Handling & Reliability | ERR-01 to ERR-09          | Pending     |
+| 30    | Test Coverage Foundation     | TEST-01 to TEST-04        | Pending     |
+| 31    | Code Quality & Performance   | QUAL-01 to QUAL-08        | Pending     |
 
 ## Milestone Targets
 
@@ -40,6 +40,15 @@ Progress: [██░░░░░░░░] 10% (v1.1 remediation - 2 of 20+ plan
 | CTO-presentable    | 26-29        | Clean error handling, no silent failures       |
 | SOC 2 prep         | 26-30        | Auditable test coverage, complete audit trail  |
 | Production quality | 26-31        | Maintainable, performant, fully tested         |
+
+## Phase 27 Plans
+
+| Plan  | Wave | Objective                                                     | Autonomous | Status   |
+| ----- | ---- | ------------------------------------------------------------- | ---------- | -------- |
+| 27-01 | 1    | SEC-01: Security guard and middleware tests                   | Yes        | Complete |
+| 27-02 | 1    | SEC-02: CORS wildcard removal in WebSocket gateways           | Yes        | Pending  |
+| 27-03 | 1    | SEC-03 to SEC-04: Input sanitization and audit log encryption | Yes        | Pending  |
+| 27-04 | 1    | SEC-05 to SEC-06: Secret detection and rate limiting          | Yes        | Pending  |
 
 ## Phase 26 Plans
 
@@ -74,12 +83,18 @@ Key outcomes:
 - Re-throw error after pool destruction so callers know operation failed critically
 - Non-Error exceptions logged with type and value before generic 500 response
 
+### Key Decisions (27-01)
+
+- Test RLS $executeRaw calls by verifying organizationId is passed to Prisma
+- Mock Reflector.getAllAndOverride for testing @Public and @Roles decorators
+- Use jsonwebtoken library directly in tests to create valid/expired test tokens
+
 ### Blockers
 
 None currently.
 
 ## Session Continuity
 
-Last session: 2026-02-14 12:05 EST
-Stopped at: Completed 26-02-PLAN.md (Phase 26 complete)
-Resume file: .planning/phases/27-security-hardening/27-01-PLAN.md
+Last session: 2026-02-14 13:21 EST
+Stopped at: Completed 27-01-PLAN.md (SEC-01 security guard/middleware tests)
+Resume file: .planning/phases/27-security-hardening/27-02-PLAN.md
