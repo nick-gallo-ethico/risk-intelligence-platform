@@ -5,18 +5,18 @@
 See: .planning/PROJECT.md (updated 2026-02-02)
 
 **Core value:** Users can manage their entire compliance workflow - from anonymous report intake to investigation closure to board reporting - in one AI-assisted platform, with every task unified into a single "My Work" view.
-**Current focus:** Phase 25 Case & Investigation Page Redesign - Wave 5 checkpoint verification.
+**Current focus:** Phase 25.1 Case Detail Page Vision Revision - COMPLETE.
 
 ## Current Position
 
-Phase: 25.1 of 25+ (Case Detail Page Vision Revision) — IN PROGRESS
-Plan: 09 of ?? in current phase
-Status: Completed 25.1-01, 25.1-02, 25.1-03, 25.1-04, 25.1-05, 25.1-06, 25.1-07, 25.1-08, 25.1-09, 25.1-10
-Last activity: 2026-02-13 - Completed 25.1-09 (Responsive layout, loading/error states, collapsible persistence)
+Phase: 25.1 of 25+ (Case Detail Page Vision Revision) — COMPLETE
+Plan: 10 of 10 in current phase (ALL COMPLETE)
+Status: All 10 plans executed, verified (11/11 must-haves passed)
+Last activity: 2026-02-13 - Phase 25.1 COMPLETE
 
 Progress: [===================================================================+] ~100% (Phase 21 adds new plans beyond original 24)
 
-### Phase 25.1 Case Detail Page Vision Revision IN PROGRESS (2026-02-13)
+### Phase 25.1 Case Detail Page Vision Revision COMPLETE (2026-02-13)
 
 - 25.1-01: Config Foundation (COMPLETE - f1a9028, 2e5fce3)
   - Created RecordDetailConfig, PipelineStage, PipelineConfig, TabConfig, SidebarCardConfig types
@@ -109,6 +109,25 @@ Progress: [===================================================================+]
   - Created frontend pipeline.ts API client with React Query integration
   - Enhanced usePipeline hook to fetch from API with fallback to defaults
   - Pattern: API-first-fallback for tenant pipeline configuration
+
+### Phase 25.1 Case Detail Page Vision Revision COMPLETE (2026-02-13)
+
+Phase 25.1 rebuilt the Case Detail Page to match the revised HubSpot-style specification:
+
+- Config-driven architecture: RecordDetailConfig type system, CASES_DETAIL_CONFIG, RecordDetailLayout
+- PipelineStageBar: 7 stages (New → Archived), sticky, click-to-advance with confirmation
+- Three-column layout (300px | 1fr | 300px) with responsive breakpoints (tablet drawers, mobile full-width)
+- Left sidebar: RecordHeader, ActionsDropdown (8 actions), 3 CollapsiblePropertyCards (About, Intake, Classification)
+- Classification card: CategorySelector with dependent dropdowns, Risk Level, Regulatory Framework, Tags
+- Center column: 6 tabs (Overview default, Activities, Investigations, Messages, Files, Remediation)
+- Overview tab: DataHighlights, EditableSummary, StatusHistoryTimeline, 6 sections
+- Activities tab: HubSpot-style checkbox filters (8 types), pinning, hover actions, search
+- Right sidebar: 9 cards in spec order (Workflow → AI)
+- Backend API: PipelineController/Service, activity pinning, status history
+- Loading skeleton, error boundary, collapsible state persistence via localStorage
+- Verification: 11/11 must-haves passed, TypeScript clean, 25 artifacts verified
+
+**10 plans across 4 waves, 27 commits total**
 
 ### Phase 25 Case & Investigation Page Redesign IN PROGRESS (2026-02-13)
 
@@ -1285,7 +1304,7 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-02-13
-Stopped at: Completed 25.1-09-PLAN.md (Responsive layout, loading/error states, collapsible persistence)
+Stopped at: Phase 25.1 COMPLETE - all 10 plans executed, verified 11/11
 Resume file: None
 
 **Phase 23 Status: COMPLETE**

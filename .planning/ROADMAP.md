@@ -59,7 +59,8 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 22: Dark Mode & Theme** - Dark mode toggle, consistent nav theming, theme system
 - [x] **Phase 23: Help & Support System** - Knowledge base, in-platform ticket filing, real-time support
 - [ ] **Phase 24: Policy Content & Seed Data** - Populate policies with properly formatted text, improve case seed data
-- [ ] **Phase 25: Case & Investigation Page Redesign** - HubSpot three-column record pattern for case and investigation detail pages
+- [x] **Phase 25: Case & Investigation Page Redesign** - HubSpot three-column record pattern for case and investigation detail pages
+- [x] **Phase 25.1: Case Detail Page Vision Revision** - Rebuild case detail page to match revised HubSpot-style spec with pipeline bar, collapsible property cards, Activities tab pattern, and config-driven architecture (INSERTED)
 
 ## Phase Details
 
@@ -963,12 +964,47 @@ Plans:
 - [ ] 25-05-PLAN.md (Wave 4) — Investigation activity timeline and tabs: InvestigationActivityTimeline, Activities default tab, InvestigationInterviewsTab, InvestigationFilesTab
 - [ ] 25-06-PLAN.md (Wave 5) — Investigation right sidebar with human verification: ParentCaseCard, InvestigationEvidenceCard, ConnectedPeopleCard adaptation, AI Assistant button
 
+### Phase 25.1: Case Detail Page Vision Revision (INSERTED)
+
+**Goal**: Rebuild the Case Detail Page to match the revised HubSpot-style specification. Phase 25 delivered incremental improvements but does not match the owner's vision. This phase implements the full spec: sticky pipeline stage bar, collapsible left-sidebar property cards (About, Intake, Classification), HubSpot-exact Activities tab with type checkboxes/user filters/search/pinning, config-driven module architecture, proper Actions dropdown, Overview tab with lifecycle metrics and editable summary, and tenant-configurable pipeline stages (New → Assigned → Active → Review → Closed → Remediation → Archived).
+**Depends on**: Phase 25 (base components exist)
+**Requirements**: Full specification in `.planning/hubspot-view-system-spec.md` (Sections 12-23)
+**Success Criteria** (what must be TRUE):
+
+1. Sticky pipeline stage bar at top of center column showing current stage with click-to-advance
+2. Left sidebar has Actions dropdown (Assign, Change Status, Merge, Follow, View Properties, View History, Export, Delete)
+3. Left sidebar has 3 collapsible property cards: About This Case, Intake Information, Classification
+4. Classification card has dependent category/subcategory dropdowns (tenant-configurable)
+5. Overview tab is default, shows lifecycle metrics, editable summary, collapsible case details, status timeline, recent activities, upcoming tasks
+6. Activities tab follows exact HubSpot pattern: type checkboxes, user/team filter, search, pinning, per-activity actions
+7. Six tabs total: Overview, Activities, Investigations, Messages, Files, Remediation
+8. Messages tab handles official communications (reporter messages, platform emails, forwarded emails)
+9. Right sidebar has 9 cards: Workflow, People, RIUs, Cases, Policies, Documents, Tasks, Remediation Status, AI Assistant
+10. Config-driven architecture using module config objects (CASES_DETAIL_CONFIG pattern)
+11. Pipeline stages configurable per tenant with default: New → Assigned → Active → Review → Closed → Remediation → Archived
+12. Admin-only left sidebar field customization support
+
+**Plans**: 10 plans in 4 waves
+
+Plans:
+
+- [ ] 25.1-01-PLAN.md (Wave 1) — Config-driven foundation: RecordDetailLayout, CASES_DETAIL_CONFIG, TypeScript types, page.tsx restructure, dead code removal
+- [ ] 25.1-02-PLAN.md (Wave 1) — Sticky PipelineStageBar: usePipeline hook, click-to-advance with confirmation dialog, hover tooltips, days-in-stage chip
+- [ ] 25.1-03-PLAN.md (Wave 2) — Left sidebar restructure: RecordHeader, ActionsDropdown (8 items), CollapsiblePropertyCard, 3 property cards (About, Intake, Classification)
+- [ ] 25.1-04-PLAN.md (Wave 3) — Classification card content: CategorySelector with dependent dropdowns, Risk Level, Regulatory Framework, Tags fields
+- [ ] 25.1-05-PLAN.md (Wave 2) — Overview tab rebuild: DataHighlightsCard, EditableSummary with AI, StatusHistoryTimeline, 6-section layout, PipelineStageBar wiring
+- [ ] 25.1-06-PLAN.md (Wave 2) — Activities tab HubSpot pattern: useActivities hook, 8 checkbox-style type filters, pinning, per-activity hover actions, expand/collapse
+- [ ] 25.1-07-PLAN.md (Wave 2) — Tab cleanup: 6-tab config (Overview default, no URL state), Messages/Files/Investigations tab enhancements
+- [ ] 25.1-08-PLAN.md (Wave 2) — Right sidebar additions: TasksCard with inline checkboxes, RemediationStatusCard with progress bar, 9-card sidebar wiring
+- [ ] 25.1-09-PLAN.md (Wave 4) — Responsive & polish: tablet/mobile drawer sidebars, loading/error states, collapsible state persistence
+- [ ] 25.1-10-PLAN.md (Wave 1) — Backend API integration: Pipeline configuration endpoint, activity pinning, activity type verification, status history
+
 ---
 
 ## Progress
 
 **Execution Order:**
-Phases execute in dependency order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11 → 11.1 → 12 → 13 → 13.1 → 14 → 14.1 → 14.2 → 15 → 16 → 17 → 18 → 19 → 20 → 21 → 22 → 23 → 24 → 25
+Phases execute in dependency order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11 → 11.1 → 12 → 13 → 13.1 → 14 → 14.1 → 14.2 → 15 → 16 → 17 → 18 → 19 → 20 → 21 → 22 → 23 → 24 → 25 → 25.1
 
 > **Note on order**: Phase 13.1 fixes UAT gaps from Phase 13. Phase 14.1 fixes data seeding gaps from Phase 14. Phase 15 gap closure plans address verification failures.
 
@@ -1002,14 +1038,15 @@ Phases execute in dependency order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 
 | 22. Dark Mode & Theme                   | 0/14           | Planned  | -          |
 | 23. Help & Support System               | 0/5            | Planned  | -          |
 | 24. Policy Content & Seed Data          | 3/3            | Complete | 2026-02-12 |
-| 25. Case & Investigation Redesign       | 0/6            | Planned  | -          |
+| 25. Case & Investigation Redesign       | 6/6            | Complete | 2026-02-13 |
+| 25.1. Case Detail Vision Revision       | 0/10           | Planned  | -          |
 
 ---
 
 _Roadmap created: 2026-02-02_
-_Updated: 2026-02-13 (Phase 25 planned — 6 plans in 5 waves)_
+_Updated: 2026-02-13 (Phase 25.1 planned — 10 plans in 4 waves)_
 _Depth: Comprehensive_
 _Total phases: 25 (+ 11.1 and decimal insertions)_
-_Total plans: 242+ completed, ~25-35 estimated remaining_
+_Total plans: 242+ completed, ~29 estimated remaining_
 _Total v1 requirements: 149 + QA punch list items_
 _Issues reference: .planning/V1-ISSUES-AND-GAPS.md_
