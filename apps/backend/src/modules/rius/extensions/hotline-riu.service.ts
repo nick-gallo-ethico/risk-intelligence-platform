@@ -3,14 +3,10 @@ import {
   Logger,
   NotFoundException,
   BadRequestException,
-} from '@nestjs/common';
-import { EventEmitter2 } from '@nestjs/event-emitter';
-import {
-  RiuQaStatus,
-  RiuHotlineExtension,
-  Prisma,
-} from '@prisma/client';
-import { PrismaService } from '../../prisma/prisma.service';
+} from "@nestjs/common";
+import { EventEmitter2 } from "@nestjs/event-emitter";
+import { RiuQaStatus, RiuHotlineExtension, Prisma } from "@prisma/client";
+import { PrismaService } from "../../prisma/prisma.service";
 
 /**
  * DTO for creating a hotline extension
@@ -157,7 +153,10 @@ export class HotlineRiuService {
     };
 
     // Only set rejection reason if rejecting
-    if (newStatus === RiuQaStatus.REJECTED || newStatus === RiuQaStatus.NEEDS_REVISION) {
+    if (
+      newStatus === RiuQaStatus.REJECTED ||
+      newStatus === RiuQaStatus.NEEDS_REVISION
+    ) {
       updateData.qaRejectionReason = dto.rejectionReason;
     }
 
@@ -167,7 +166,7 @@ export class HotlineRiuService {
     });
 
     // Emit event for audit trail and notifications
-    this.emitEvent('riu.hotline.qa.changed', {
+    this.emitEvent("riu.hotline.qa.changed", {
       riuId,
       organizationId: extension.organizationId,
       oldStatus,
@@ -192,10 +191,14 @@ export class HotlineRiuService {
     reviewerId: string,
     notes?: string,
   ): Promise<RiuHotlineExtension> {
-    return this.updateQaStatus(riuId, {
-      status: RiuQaStatus.APPROVED,
-      notes,
-    }, reviewerId);
+    return this.updateQaStatus(
+      riuId,
+      {
+        status: RiuQaStatus.APPROVED,
+        notes,
+      },
+      reviewerId,
+    );
   }
 
   /**
@@ -209,14 +212,18 @@ export class HotlineRiuService {
     notes?: string,
   ): Promise<RiuHotlineExtension> {
     if (!rejectionReason) {
-      throw new BadRequestException('Rejection reason is required');
+      throw new BadRequestException("Rejection reason is required");
     }
 
-    return this.updateQaStatus(riuId, {
-      status: RiuQaStatus.REJECTED,
-      notes,
-      rejectionReason,
-    }, reviewerId);
+    return this.updateQaStatus(
+      riuId,
+      {
+        status: RiuQaStatus.REJECTED,
+        notes,
+        rejectionReason,
+      },
+      reviewerId,
+    );
   }
 
   /**
@@ -231,7 +238,11 @@ export class HotlineRiuService {
       where: {
         organizationId,
         qaStatus: {
-          in: [RiuQaStatus.PENDING, RiuQaStatus.IN_REVIEW, RiuQaStatus.NEEDS_REVISION],
+          in: [
+            RiuQaStatus.PENDING,
+            RiuQaStatus.IN_REVIEW,
+            RiuQaStatus.NEEDS_REVISION,
+          ],
         },
       },
       include: {
@@ -247,7 +258,7 @@ export class HotlineRiuService {
           },
         },
       },
-      orderBy: { createdAt: 'asc' },
+      orderBy: { createdAt: "asc" },
       take: limit,
     });
   }
@@ -263,7 +274,7 @@ export class HotlineRiuService {
     needsRevision: number;
   }> {
     const stats = await this.prisma.riuHotlineExtension.groupBy({
-      by: ['qaStatus'],
+      by: ["qaStatus"],
       where: { organizationId },
       _count: true,
     });

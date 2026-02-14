@@ -1,9 +1,9 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { InjectQueue } from '@nestjs/bullmq';
-import { Queue } from 'bullmq';
-import { PrismaService } from '../prisma/prisma.service';
-import { StepStatus, RemediationStatus } from '@prisma/client';
-import { EMAIL_QUEUE_NAME } from '../jobs/queues/email.queue';
+import { Injectable, Logger } from "@nestjs/common";
+import { InjectQueue } from "@nestjs/bullmq";
+import { Queue } from "bullmq";
+import { PrismaService } from "../prisma/prisma.service";
+import { StepStatus, RemediationStatus } from "@prisma/client";
+import { EMAIL_QUEUE_NAME } from "../jobs/queues/email.queue";
 
 /**
  * Notification configuration for remediation reminders.
@@ -29,13 +29,13 @@ export const DEFAULT_REMINDER_CONFIG: ReminderConfig = {
  * Email template IDs for remediation notifications.
  */
 export const REMEDIATION_EMAIL_TEMPLATES = {
-  STEP_ASSIGNED: 'remediation-step-assigned',
-  STEP_REMINDER_PRE_DUE: 'remediation-step-reminder-pre-due',
-  STEP_REMINDER_OVERDUE: 'remediation-step-reminder-overdue',
-  STEP_ESCALATION: 'remediation-step-escalation',
-  STEP_COMPLETED_APPROVAL_NEEDED: 'remediation-step-completed-approval-needed',
-  STEP_APPROVED: 'remediation-step-approved',
-  PLAN_COMPLETED: 'remediation-plan-completed',
+  STEP_ASSIGNED: "remediation-step-assigned",
+  STEP_REMINDER_PRE_DUE: "remediation-step-reminder-pre-due",
+  STEP_REMINDER_OVERDUE: "remediation-step-reminder-overdue",
+  STEP_ESCALATION: "remediation-step-escalation",
+  STEP_COMPLETED_APPROVAL_NEEDED: "remediation-step-completed-approval-needed",
+  STEP_APPROVED: "remediation-step-approved",
+  PLAN_COMPLETED: "remediation-plan-completed",
 };
 
 /**
@@ -108,7 +108,7 @@ export class RemediationNotificationService {
     }
 
     await this.emailQueue.add(
-      'remediation-assignment',
+      "remediation-assignment",
       {
         organizationId,
         templateId: REMEDIATION_EMAIL_TEMPLATES.STEP_ASSIGNED,
@@ -158,11 +158,11 @@ export class RemediationNotificationService {
       if (reminderDate > now) {
         const delay = reminderDate.getTime() - now.getTime();
         await this.emailQueue.add(
-          'remediation-reminder',
+          "remediation-reminder",
           {
             organizationId,
             stepId,
-            reminderType: 'pre-due',
+            reminderType: "pre-due",
             daysUntilDue: daysBeforeDue,
           },
           {
@@ -185,11 +185,11 @@ export class RemediationNotificationService {
       if (reminderDate > now) {
         const delay = reminderDate.getTime() - now.getTime();
         await this.emailQueue.add(
-          'remediation-reminder',
+          "remediation-reminder",
           {
             organizationId,
             stepId,
-            reminderType: 'overdue',
+            reminderType: "overdue",
             daysOverdue: daysAfterDue,
           },
           {
@@ -213,7 +213,7 @@ export class RemediationNotificationService {
     if (escalationDate > now) {
       const delay = escalationDate.getTime() - now.getTime();
       await this.emailQueue.add(
-        'remediation-escalation',
+        "remediation-escalation",
         {
           organizationId,
           stepId,
@@ -267,7 +267,7 @@ export class RemediationNotificationService {
   async processReminder(
     organizationId: string,
     stepId: string,
-    reminderType: 'pre-due' | 'overdue',
+    reminderType: "pre-due" | "overdue",
     days: number,
   ): Promise<void> {
     const step = await this.prisma.remediationStep.findFirst({
@@ -320,12 +320,12 @@ export class RemediationNotificationService {
     }
 
     const templateId =
-      reminderType === 'pre-due'
+      reminderType === "pre-due"
         ? REMEDIATION_EMAIL_TEMPLATES.STEP_REMINDER_PRE_DUE
         : REMEDIATION_EMAIL_TEMPLATES.STEP_REMINDER_OVERDUE;
 
     await this.emailQueue.add(
-      'send-email',
+      "send-email",
       {
         organizationId,
         templateId,
@@ -338,7 +338,7 @@ export class RemediationNotificationService {
           dueDate: step.dueDate?.toISOString(),
           reminderType,
           days,
-          isOverdue: reminderType === 'overdue',
+          isOverdue: reminderType === "overdue",
         },
       },
       { priority: 2 },
@@ -394,7 +394,7 @@ export class RemediationNotificationService {
     const complianceOfficers = await this.prisma.user.findMany({
       where: {
         organizationId,
-        role: { in: ['COMPLIANCE_OFFICER', 'SYSTEM_ADMIN'] },
+        role: { in: ["COMPLIANCE_OFFICER", "SYSTEM_ADMIN"] },
         isActive: true,
       },
       select: { email: true, firstName: true, lastName: true },
@@ -430,7 +430,7 @@ export class RemediationNotificationService {
     }
 
     await this.emailQueue.add(
-      'send-email',
+      "send-email",
       {
         organizationId,
         templateId: REMEDIATION_EMAIL_TEMPLATES.STEP_ESCALATION,
@@ -440,7 +440,7 @@ export class RemediationNotificationService {
           stepDescription: step.description,
           planTitle: step.plan.title,
           caseNumber: step.plan.case?.referenceNumber,
-          assigneeName: assigneeName || step.assigneeEmail || 'Unassigned',
+          assigneeName: assigneeName || step.assigneeEmail || "Unassigned",
           dueDate: step.dueDate?.toISOString(),
           daysOverdue,
         },
@@ -485,7 +485,7 @@ export class RemediationNotificationService {
     const complianceOfficers = await this.prisma.user.findMany({
       where: {
         organizationId,
-        role: { in: ['COMPLIANCE_OFFICER', 'SYSTEM_ADMIN'] },
+        role: { in: ["COMPLIANCE_OFFICER", "SYSTEM_ADMIN"] },
         isActive: true,
       },
       select: { email: true },
@@ -496,7 +496,7 @@ export class RemediationNotificationService {
     }
 
     await this.emailQueue.add(
-      'send-email',
+      "send-email",
       {
         organizationId,
         templateId: REMEDIATION_EMAIL_TEMPLATES.STEP_COMPLETED_APPROVAL_NEEDED,
@@ -511,7 +511,9 @@ export class RemediationNotificationService {
       { priority: 2 },
     );
 
-    this.logger.log(`Notified COs about step completion for approval: ${stepId}`);
+    this.logger.log(
+      `Notified COs about step completion for approval: ${stepId}`,
+    );
   }
 
   /**
@@ -558,7 +560,7 @@ export class RemediationNotificationService {
     }
 
     await this.emailQueue.add(
-      'send-email',
+      "send-email",
       {
         organizationId,
         templateId: REMEDIATION_EMAIL_TEMPLATES.STEP_APPROVED,
@@ -608,7 +610,7 @@ export class RemediationNotificationService {
     }
 
     await this.emailQueue.add(
-      'send-email',
+      "send-email",
       {
         organizationId,
         templateId: REMEDIATION_EMAIL_TEMPLATES.PLAN_COMPLETED,
@@ -635,7 +637,8 @@ export class RemediationNotificationService {
     const now = new Date();
     const escalationThreshold = new Date();
     escalationThreshold.setDate(
-      escalationThreshold.getDate() - DEFAULT_REMINDER_CONFIG.escalationThresholdDays,
+      escalationThreshold.getDate() -
+        DEFAULT_REMINDER_CONFIG.escalationThresholdDays,
     );
 
     // Find overdue steps that haven't been escalated
@@ -658,7 +661,7 @@ export class RemediationNotificationService {
     // Queue escalations
     for (const step of overdueSteps) {
       await this.emailQueue.add(
-        'remediation-escalation',
+        "remediation-escalation",
         {
           organizationId: step.organizationId,
           stepId: step.id,

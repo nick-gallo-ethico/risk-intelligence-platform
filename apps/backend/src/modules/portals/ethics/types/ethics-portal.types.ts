@@ -190,7 +190,7 @@ export interface Message {
   id: string;
 
   /** Message direction relative to reporter */
-  direction: 'inbound' | 'outbound';
+  direction: "inbound" | "outbound";
 
   /** Message content */
   content: string;
@@ -214,11 +214,11 @@ export interface Message {
  */
 export const AnonymityTier = {
   /** Fully anonymous - no contact info collected */
-  ANONYMOUS: 'ANONYMOUS',
+  ANONYMOUS: "ANONYMOUS",
   /** Confidential - identity known to Ethico only */
-  CONFIDENTIAL: 'CONFIDENTIAL',
+  CONFIDENTIAL: "CONFIDENTIAL",
   /** Open - identity shared with investigators */
-  OPEN: 'OPEN',
+  OPEN: "OPEN",
 } as const;
 
 export type AnonymityTier = (typeof AnonymityTier)[keyof typeof AnonymityTier];
@@ -227,27 +227,26 @@ export type AnonymityTier = (typeof AnonymityTier)[keyof typeof AnonymityTier];
  * Maps RIU status to reporter-friendly status labels.
  */
 export const STATUS_LABEL_MAP: Record<string, string> = {
-  PENDING_QA: 'Under Review',
-  IN_QA: 'Under Review',
-  QA_REJECTED: 'Additional Information Needed',
-  RELEASED: 'Received',
-  LINKED: 'Under Investigation',
-  CLOSED: 'Closed',
-  RECEIVED: 'Received',
-  COMPLETED: 'Completed',
+  PENDING_QA: "Under Review",
+  IN_QA: "Under Review",
+  QA_REJECTED: "Additional Information Needed",
+  RELEASED: "Received",
+  LINKED: "Under Investigation",
+  CLOSED: "Closed",
+  RECEIVED: "Received",
+  COMPLETED: "Completed",
 };
 
 /**
  * Maps RIU status to reporter-friendly descriptions.
  */
 export const STATUS_DESCRIPTION_MAP: Record<string, string> = {
-  PENDING_QA: 'Your report is being reviewed by our team.',
-  IN_QA: 'Your report is currently under review.',
-  QA_REJECTED:
-    'We need additional information. Please check messages below.',
-  RELEASED: 'Your report has been received and is being processed.',
-  LINKED: 'Your report has been assigned to an investigator.',
-  CLOSED: 'Your report has been closed. Thank you for reporting.',
-  RECEIVED: 'Your report has been received.',
-  COMPLETED: 'Your submission has been completed.',
+  PENDING_QA: "Your report is being reviewed by our team.",
+  IN_QA: "Your report is currently under review.",
+  QA_REJECTED: "We need additional information. Please check messages below.",
+  RELEASED: "Your report has been received and is being processed.",
+  LINKED: "Your report has been assigned to an investigator.",
+  CLOSED: "Your report has been closed. Thank you for reporting.",
+  RECEIVED: "Your report has been received.",
+  COMPLETED: "Your submission has been completed.",
 };

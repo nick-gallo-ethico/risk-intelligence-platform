@@ -3,9 +3,9 @@ import {
   Logger,
   NotFoundException,
   BadRequestException,
-} from '@nestjs/common';
-import { RiuWebFormExtension, Prisma } from '@prisma/client';
-import { PrismaService } from '../../prisma/prisma.service';
+} from "@nestjs/common";
+import { RiuWebFormExtension, Prisma } from "@prisma/client";
+import { PrismaService } from "../../prisma/prisma.service";
 
 /**
  * DTO for creating a web form extension
@@ -57,11 +57,13 @@ export class WebFormRiuService {
   ): Promise<RiuWebFormExtension> {
     // Validate required fields
     if (!dto.formDefinitionId) {
-      throw new BadRequestException('Form definition ID is required');
+      throw new BadRequestException("Form definition ID is required");
     }
 
     if (dto.formDefinitionVersion == null || dto.formDefinitionVersion < 1) {
-      throw new BadRequestException('Valid form definition version is required');
+      throw new BadRequestException(
+        "Valid form definition version is required",
+      );
     }
 
     // Check if extension already exists
@@ -95,7 +97,7 @@ export class WebFormRiuService {
 
     this.logger.debug(
       `Created web form extension for RIU ${riuId} in org ${organizationId}, ` +
-      `form: ${dto.formDefinitionId} v${dto.formDefinitionVersion}`,
+        `form: ${dto.formDefinitionId} v${dto.formDefinitionVersion}`,
     );
 
     return extension;
@@ -165,7 +167,7 @@ export class WebFormRiuService {
             },
           },
         },
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: "desc" },
         take: options?.limit ?? 50,
         skip: options?.offset ?? 0,
       }),
@@ -203,7 +205,7 @@ export class WebFormRiuService {
           },
         },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
     });
   }
 
@@ -232,14 +234,14 @@ export class WebFormRiuService {
 
     // Get by version
     const byVersion = await this.prisma.riuWebFormExtension.groupBy({
-      by: ['formDefinitionVersion'],
+      by: ["formDefinitionVersion"],
       where: baseWhere,
       _count: true,
     });
 
     // Get by source
     const bySource = await this.prisma.riuWebFormExtension.groupBy({
-      by: ['submissionSource'],
+      by: ["submissionSource"],
       where: baseWhere,
       _count: true,
     });
@@ -272,12 +274,12 @@ export class WebFormRiuService {
 
     return {
       totalSubmissions,
-      byVersion: byVersion.map(v => ({
+      byVersion: byVersion.map((v) => ({
         version: v.formDefinitionVersion,
         count: v._count,
       })),
-      bySource: bySource.map(s => ({
-        source: s.submissionSource ?? 'unknown',
+      bySource: bySource.map((s) => ({
+        source: s.submissionSource ?? "unknown",
         count: s._count,
       })),
       validationStats: {
@@ -308,7 +310,7 @@ export class WebFormRiuService {
         submitterIpAddress: ipAddress,
         createdAt: { gte: since },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
     });
   }
 

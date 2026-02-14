@@ -54,7 +54,7 @@ export class WorkflowEngineService {
 
   constructor(
     private prisma: PrismaService,
-    private eventEmitter: EventEmitter2
+    private eventEmitter: EventEmitter2,
   ) {}
 
   /**
@@ -88,7 +88,7 @@ export class WorkflowEngineService {
 
     if (!template) {
       throw new NotFoundException(
-        `No active workflow template found for ${entityType}`
+        `No active workflow template found for ${entityType}`,
       );
     }
 
@@ -97,7 +97,7 @@ export class WorkflowEngineService {
 
     if (!initialStage) {
       throw new BadRequestException(
-        "Invalid workflow template: initial stage not found"
+        "Invalid workflow template: initial stage not found",
       );
     }
 
@@ -134,11 +134,11 @@ export class WorkflowEngineService {
         entityType,
         entityId,
         initialStage: template.initialStage,
-      })
+      }),
     );
 
     this.logger.log(
-      `Started workflow ${instance.id} for ${entityType}:${entityId}`
+      `Started workflow ${instance.id} for ${entityType}:${entityId}`,
     );
     return instance.id;
   }
@@ -181,14 +181,15 @@ export class WorkflowEngineService {
       };
     }
 
-    const transitions =
-      instance.template.transitions as unknown as WorkflowTransition[];
+    const transitions = instance.template
+      .transitions as unknown as WorkflowTransition[];
     const stages = instance.template.stages as unknown as WorkflowStage[];
 
     // Validate transition is allowed
     const allowedTransition = transitions.find(
       (t) =>
-        (t.from === instance.currentStage || t.from === "*") && t.to === toStage
+        (t.from === instance.currentStage || t.from === "*") &&
+        t.to === toStage,
     );
 
     if (!allowedTransition) {
@@ -206,7 +207,7 @@ export class WorkflowEngineService {
       if (currentStage?.gates) {
         const gateResult = await this.validateGates(
           currentStage.gates,
-          instance as WorkflowInstanceWithTemplate
+          instance as WorkflowInstanceWithTemplate,
         );
         if (!gateResult.valid) {
           return {
@@ -226,7 +227,7 @@ export class WorkflowEngineService {
     let newDueDate = instance.dueDate;
     if (targetStageConfig?.slaDays) {
       newDueDate = new Date(
-        Date.now() + targetStageConfig.slaDays * 24 * 60 * 60 * 1000
+        Date.now() + targetStageConfig.slaDays * 24 * 60 * 60 * 1000,
       );
     }
 
@@ -261,10 +262,12 @@ export class WorkflowEngineService {
         newStage: toStage,
         triggeredBy: actorUserId || "system",
         reason,
-      })
+      }),
     );
 
-    this.logger.log(`Transitioned ${instanceId} from ${previousStage} to ${toStage}`);
+    this.logger.log(
+      `Transitioned ${instanceId} from ${previousStage} to ${toStage}`,
+    );
 
     return { success: true, previousStage, newStage: toStage };
   }
@@ -296,10 +299,12 @@ export class WorkflowEngineService {
         entityType: instance.entityType,
         entityId: instance.entityId,
         outcome: outcome || "completed",
-      })
+      }),
     );
 
-    this.logger.log(`Completed workflow ${instanceId} with outcome: ${outcome || "completed"}`);
+    this.logger.log(
+      `Completed workflow ${instanceId} with outcome: ${outcome || "completed"}`,
+    );
   }
 
   /**
@@ -312,7 +317,7 @@ export class WorkflowEngineService {
   async cancel(
     instanceId: string,
     actorUserId?: string,
-    reason?: string
+    reason?: string,
   ): Promise<void> {
     const instance = await this.prisma.workflowInstance.update({
       where: { id: instanceId },
@@ -331,7 +336,7 @@ export class WorkflowEngineService {
         entityType: instance.entityType,
         entityId: instance.entityId,
         reason,
-      })
+      }),
     );
 
     this.logger.log(`Cancelled workflow ${instanceId}`);
@@ -347,7 +352,7 @@ export class WorkflowEngineService {
   async pause(
     instanceId: string,
     actorUserId?: string,
-    reason?: string
+    reason?: string,
   ): Promise<void> {
     const instance = await this.prisma.workflowInstance.update({
       where: { id: instanceId },
@@ -366,7 +371,7 @@ export class WorkflowEngineService {
         entityType: instance.entityType,
         entityId: instance.entityId,
         reason,
-      })
+      }),
     );
 
     this.logger.log(`Paused workflow ${instanceId}`);
@@ -407,7 +412,7 @@ export class WorkflowEngineService {
         instanceId,
         entityType: instance.entityType,
         entityId: instance.entityId,
-      })
+      }),
     );
 
     this.logger.log(`Resumed workflow ${instanceId}`);
@@ -424,7 +429,7 @@ export class WorkflowEngineService {
   async getInstanceByEntity(
     organizationId: string,
     entityType: WorkflowEntityType,
-    entityId: string
+    entityId: string,
   ): Promise<WorkflowInstanceWithTemplate | null> {
     return this.prisma.workflowInstance.findUnique({
       where: {
@@ -441,7 +446,7 @@ export class WorkflowEngineService {
    * @returns Workflow instance with template, or null if not found
    */
   async getInstance(
-    instanceId: string
+    instanceId: string,
   ): Promise<WorkflowInstanceWithTemplate | null> {
     return this.prisma.workflowInstance.findUnique({
       where: { id: instanceId },
@@ -456,7 +461,7 @@ export class WorkflowEngineService {
    * @returns Array of allowed transition targets
    */
   async getAllowedTransitions(
-    instanceId: string
+    instanceId: string,
   ): Promise<{ to: string; label?: string }[]> {
     const instance = await this.prisma.workflowInstance.findUnique({
       where: { id: instanceId },
@@ -467,13 +472,11 @@ export class WorkflowEngineService {
       return [];
     }
 
-    const transitions =
-      instance.template.transitions as unknown as WorkflowTransition[];
+    const transitions = instance.template
+      .transitions as unknown as WorkflowTransition[];
 
     return transitions
-      .filter(
-        (t) => t.from === instance.currentStage || t.from === "*"
-      )
+      .filter((t) => t.from === instance.currentStage || t.from === "*")
       .map((t) => ({ to: t.to, label: t.label }));
   }
 
@@ -483,7 +486,7 @@ export class WorkflowEngineService {
    */
   private async validateGates(
     gates: StageGate[],
-    _instance: WorkflowInstanceWithTemplate
+    _instance: WorkflowInstanceWithTemplate,
   ): Promise<{ valid: boolean; error?: string }> {
     for (const gate of gates) {
       if (gate.type === "required_fields") {
@@ -514,7 +517,7 @@ export class WorkflowEngineService {
       this.eventEmitter.emit(eventName, event);
     } catch (error) {
       this.logger.error(
-        `Failed to emit event ${eventName}: ${error instanceof Error ? error.message : "Unknown error"}`
+        `Failed to emit event ${eventName}: ${error instanceof Error ? error.message : "Unknown error"}`,
       );
     }
   }

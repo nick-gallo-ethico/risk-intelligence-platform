@@ -1,1 +1,1 @@
-export * from './ethics-portal.types';
+export * from "./ethics-portal.types";

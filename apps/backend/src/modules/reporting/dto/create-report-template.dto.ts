@@ -50,17 +50,7 @@ class FilterDefinitionDto {
 
   @ApiProperty({
     description: "Comparison operator",
-    enum: [
-      "eq",
-      "neq",
-      "gt",
-      "gte",
-      "lt",
-      "lte",
-      "in",
-      "contains",
-      "between",
-    ],
+    enum: ["eq", "neq", "gt", "gte", "lt", "lte", "in", "contains", "between"],
   })
   @IsString()
   operator: string;

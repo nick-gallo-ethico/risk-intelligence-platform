@@ -9,20 +9,20 @@
  * @see https://nest-modules.github.io/mailer/
  */
 
-import { ConfigService } from '@nestjs/config';
-import { MailerOptions } from '@nestjs-modules/mailer';
+import { ConfigService } from "@nestjs/config";
+import { MailerOptions } from "@nestjs-modules/mailer";
 
 /**
  * Factory function for MailerModule async configuration.
  * Reads SMTP settings from environment variables.
  */
 export const mailerConfig = (configService: ConfigService): MailerOptions => {
-  const host = configService.get<string>('SMTP_HOST', 'localhost');
-  const port = configService.get<number>('SMTP_PORT', 1025);
-  const user = configService.get<string>('SMTP_USER', '');
-  const pass = configService.get<string>('SMTP_PASS', '');
-  const from = configService.get<string>('EMAIL_FROM', 'noreply@ethico.local');
-  const secure = configService.get<boolean>('SMTP_SECURE', false);
+  const host = configService.get<string>("SMTP_HOST", "localhost");
+  const port = configService.get<number>("SMTP_PORT", 1025);
+  const user = configService.get<string>("SMTP_USER", "");
+  const pass = configService.get<string>("SMTP_PASS", "");
+  const from = configService.get<string>("EMAIL_FROM", "noreply@ethico.local");
+  const secure = configService.get<boolean>("SMTP_SECURE", false);
 
   // Determine if auth should be used (only if credentials provided)
   const hasAuth = user && pass;
@@ -72,10 +72,10 @@ export interface SmtpConfig {
  * Used for health checks and diagnostics.
  */
 export const getSmtpConfig = (configService: ConfigService): SmtpConfig => ({
-  host: configService.get<string>('SMTP_HOST', 'localhost'),
-  port: configService.get<number>('SMTP_PORT', 1025),
-  secure: configService.get<boolean>('SMTP_SECURE', false),
-  user: configService.get<string>('SMTP_USER'),
-  pass: configService.get<string>('SMTP_PASS'),
-  from: configService.get<string>('EMAIL_FROM', 'noreply@ethico.local'),
+  host: configService.get<string>("SMTP_HOST", "localhost"),
+  port: configService.get<number>("SMTP_PORT", 1025),
+  secure: configService.get<boolean>("SMTP_SECURE", false),
+  user: configService.get<string>("SMTP_USER"),
+  pass: configService.get<string>("SMTP_PASS"),
+  from: configService.get<string>("EMAIL_FROM", "noreply@ethico.local"),
 });

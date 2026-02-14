@@ -29,21 +29,21 @@ import {
   HttpStatus,
   ParseUUIDPipe,
   NotFoundException,
-} from '@nestjs/common';
-import { ClientProfileService } from './client-profile.service';
+} from "@nestjs/common";
+import { ClientProfileService } from "./client-profile.service";
 import {
   CreateHotlineNumberDto,
   UpdateQaConfigDto,
   ListClientsQueryDto,
-} from './dto/client-profile.dto';
-import { JwtAuthGuard, RolesGuard } from '../../../common/guards';
-import { Roles, UserRole } from '../../../common/decorators/roles.decorator';
+} from "./dto/client-profile.dto";
+import { JwtAuthGuard, RolesGuard } from "../../../common/guards";
+import { Roles, UserRole } from "../../../common/decorators/roles.decorator";
 import {
   ClientProfile,
   ClientListResult,
   HotlineNumberInfo,
   QaConfigInfo,
-} from './types/client-profile.types';
+} from "./types/client-profile.types";
 
 /**
  * Controller for operator client lookup endpoints.
@@ -51,7 +51,7 @@ import {
  * These endpoints allow operators to identify clients by phone number
  * and load configuration for handling calls.
  */
-@Controller('operator')
+@Controller("operator")
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class ClientLookupController {
   constructor(private readonly clientProfileService: ClientProfileService) {}
@@ -67,13 +67,14 @@ export class ClientLookupController {
    * @param phoneNumber - Phone number in any format (will be normalized to E.164)
    * @returns Client profile or 404 if not found
    */
-  @Get('lookup/phone/:phoneNumber')
-  @Roles('OPERATOR' as UserRole, UserRole.SYSTEM_ADMIN)
+  @Get("lookup/phone/:phoneNumber")
+  @Roles("OPERATOR" as UserRole, UserRole.SYSTEM_ADMIN)
   async lookupByPhone(
-    @Param('phoneNumber') phoneNumber: string,
+    @Param("phoneNumber") phoneNumber: string,
   ): Promise<ClientProfile> {
     const decodedPhone = decodeURIComponent(phoneNumber);
-    const profile = await this.clientProfileService.findByPhoneNumber(decodedPhone);
+    const profile =
+      await this.clientProfileService.findByPhoneNumber(decodedPhone);
 
     if (!profile) {
       throw new NotFoundException(
@@ -95,10 +96,10 @@ export class ClientLookupController {
    * @param clientId - Client organization ID
    * @returns Full client profile
    */
-  @Get('clients/:clientId/profile')
-  @Roles('OPERATOR' as UserRole, UserRole.SYSTEM_ADMIN)
+  @Get("clients/:clientId/profile")
+  @Roles("OPERATOR" as UserRole, UserRole.SYSTEM_ADMIN)
   async getClientProfile(
-    @Param('clientId', ParseUUIDPipe) clientId: string,
+    @Param("clientId", ParseUUIDPipe) clientId: string,
   ): Promise<ClientProfile> {
     return this.clientProfileService.getClientProfile(clientId);
   }
@@ -114,8 +115,8 @@ export class ClientLookupController {
    * @param query - Search and pagination parameters
    * @returns Paginated list of clients
    */
-  @Get('clients')
-  @Roles('OPERATOR' as UserRole, UserRole.SYSTEM_ADMIN)
+  @Get("clients")
+  @Roles("OPERATOR" as UserRole, UserRole.SYSTEM_ADMIN)
   async listClients(
     @Query() query: ListClientsQueryDto,
   ): Promise<ClientListResult> {
@@ -133,7 +134,7 @@ export class ClientLookupController {
  * These endpoints allow system admins to manage client
  * hotline numbers and QA configuration.
  */
-@Controller('admin/clients/:clientId')
+@Controller("admin/clients/:clientId")
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class ClientAdminController {
   constructor(private readonly clientProfileService: ClientProfileService) {}
@@ -150,11 +151,11 @@ export class ClientAdminController {
    * @param dto - Hotline number data
    * @returns Created hotline number
    */
-  @Post('hotline-numbers')
+  @Post("hotline-numbers")
   @Roles(UserRole.SYSTEM_ADMIN)
   @HttpCode(HttpStatus.CREATED)
   async addHotlineNumber(
-    @Param('clientId', ParseUUIDPipe) clientId: string,
+    @Param("clientId", ParseUUIDPipe) clientId: string,
     @Body() dto: CreateHotlineNumberDto,
   ): Promise<HotlineNumberInfo> {
     return this.clientProfileService.addHotlineNumber(clientId, dto);
@@ -170,12 +171,12 @@ export class ClientAdminController {
    * @param clientId - Client organization ID
    * @param numberId - Hotline number ID to remove
    */
-  @Delete('hotline-numbers/:numberId')
+  @Delete("hotline-numbers/:numberId")
   @Roles(UserRole.SYSTEM_ADMIN)
   @HttpCode(HttpStatus.NO_CONTENT)
   async removeHotlineNumber(
-    @Param('clientId', ParseUUIDPipe) clientId: string,
-    @Param('numberId', ParseUUIDPipe) numberId: string,
+    @Param("clientId", ParseUUIDPipe) clientId: string,
+    @Param("numberId", ParseUUIDPipe) numberId: string,
   ): Promise<void> {
     await this.clientProfileService.removeHotlineNumber(clientId, numberId);
   }
@@ -192,10 +193,10 @@ export class ClientAdminController {
    * @param dto - QA configuration update data
    * @returns Updated QA configuration
    */
-  @Put('qa-config')
+  @Put("qa-config")
   @Roles(UserRole.SYSTEM_ADMIN)
   async updateQaConfig(
-    @Param('clientId', ParseUUIDPipe) clientId: string,
+    @Param("clientId", ParseUUIDPipe) clientId: string,
     @Body() dto: UpdateQaConfigDto,
   ): Promise<QaConfigInfo> {
     return this.clientProfileService.updateQaConfig(clientId, dto);

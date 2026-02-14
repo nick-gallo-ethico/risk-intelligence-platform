@@ -195,7 +195,9 @@ export class PolicyIndexer {
       }
     }
 
-    this.logger.log(`Reindexed ${count}/${policies.length} policies for org ${organizationId}`);
+    this.logger.log(
+      `Reindexed ${count}/${policies.length} policies for org ${organizationId}`,
+    );
     return count;
   }
 

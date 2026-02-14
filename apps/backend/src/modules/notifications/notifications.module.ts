@@ -20,37 +20,37 @@
  *
  */
 
-import { Module } from '@nestjs/common';
-import { CacheModule } from '@nestjs/cache-manager';
-import { BullModule } from '@nestjs/bullmq';
-import { ScheduleModule } from '@nestjs/schedule';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { MailerModule } from '@nestjs-modules/mailer';
-import { PrismaModule } from '../prisma/prisma.module';
-import { AuthModule } from '../auth/auth.module';
-import { EMAIL_QUEUE_NAME } from '../jobs/queues/email.queue';
-import { mailerConfig } from './mailer.config';
+import { Module } from "@nestjs/common";
+import { CacheModule } from "@nestjs/cache-manager";
+import { BullModule } from "@nestjs/bullmq";
+import { ScheduleModule } from "@nestjs/schedule";
+import { ConfigModule, ConfigService } from "@nestjs/config";
+import { MailerModule } from "@nestjs-modules/mailer";
+import { PrismaModule } from "../prisma/prisma.module";
+import { AuthModule } from "../auth/auth.module";
+import { EMAIL_QUEUE_NAME } from "../jobs/queues/email.queue";
+import { mailerConfig } from "./mailer.config";
 
 // Services
-import { EmailTemplateService } from './services/email-template.service';
-import { PreferenceService } from './services/preference.service';
-import { OrgNotificationSettingsService } from './services/org-settings.service';
-import { NotificationService } from './services/notification.service';
-import { DigestService } from './services/digest.service';
-import { DeliveryTrackerService } from './services/delivery-tracker.service';
+import { EmailTemplateService } from "./services/email-template.service";
+import { PreferenceService } from "./services/preference.service";
+import { OrgNotificationSettingsService } from "./services/org-settings.service";
+import { NotificationService } from "./services/notification.service";
+import { DigestService } from "./services/digest.service";
+import { DeliveryTrackerService } from "./services/delivery-tracker.service";
 
 // Gateway (07-05)
-import { NotificationGateway } from './gateways/notification.gateway';
+import { NotificationGateway } from "./gateways/notification.gateway";
 
 // Controllers
-import { WebhookController } from './controllers/webhook.controller';
-import { NotificationsController } from './controllers/notifications.controller';
-import { PreferencesController } from './controllers/preferences.controller';
+import { WebhookController } from "./controllers/webhook.controller";
+import { NotificationsController } from "./controllers/notifications.controller";
+import { PreferencesController } from "./controllers/preferences.controller";
 
 // Event listeners
-import { CaseEventListener } from './listeners/case.listener';
-import { SlaEventListener } from './listeners/sla.listener';
-import { WorkflowEventListener } from './listeners/workflow.listener';
+import { CaseEventListener } from "./listeners/case.listener";
+import { SlaEventListener } from "./listeners/sla.listener";
+import { WorkflowEventListener } from "./listeners/workflow.listener";
 
 @Module({
   imports: [

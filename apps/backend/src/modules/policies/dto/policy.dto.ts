@@ -14,11 +14,7 @@ import {
 } from "class-validator";
 import { Transform } from "class-transformer";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import {
-  PolicyType,
-  PolicyStatus,
-  PolicyCaseLinkType,
-} from "@prisma/client";
+import { PolicyType, PolicyStatus, PolicyCaseLinkType } from "@prisma/client";
 
 // ===========================================
 // Create Policy DTO
@@ -174,7 +170,7 @@ export class UpdatePolicyDto {
  */
 export class PublishPolicyDto {
   @ApiPropertyOptional({
-    description: "Version label (e.g., \"v1.0\", \"2026 Update\")",
+    description: 'Version label (e.g., "v1.0", "2026 Update")',
     maxLength: 100,
     example: "v1.0",
   })
@@ -186,7 +182,8 @@ export class PublishPolicyDto {
   @ApiPropertyOptional({
     description: "Brief summary of the policy (AI-generated or manual)",
     maxLength: 2000,
-    example: "This code of conduct establishes expected behavior standards for all employees.",
+    example:
+      "This code of conduct establishes expected behavior standards for all employees.",
   })
   @IsString()
   @IsOptional()
@@ -196,7 +193,8 @@ export class PublishPolicyDto {
   @ApiPropertyOptional({
     description: "Description of changes from previous version",
     maxLength: 5000,
-    example: "Updated harassment policy section to include remote work scenarios.",
+    example:
+      "Updated harassment policy section to include remote work scenarios.",
   })
   @IsString()
   @IsOptional()
@@ -220,7 +218,8 @@ export class PublishPolicyDto {
   requireReAttestation?: boolean;
 
   @ApiPropertyOptional({
-    description: "Reason for requiring re-attestation (required if requireReAttestation is true)",
+    description:
+      "Reason for requiring re-attestation (required if requireReAttestation is true)",
     maxLength: 1000,
     example: "Significant changes to harassment policy require acknowledgment.",
   })
@@ -322,7 +321,15 @@ export class PolicyQueryDto {
     description: "Field to sort by",
     example: "updatedAt",
     default: "updatedAt",
-    enum: ["title", "createdAt", "updatedAt", "effectiveDate", "reviewDate", "policyType", "status"],
+    enum: [
+      "title",
+      "createdAt",
+      "updatedAt",
+      "effectiveDate",
+      "reviewDate",
+      "policyType",
+      "status",
+    ],
   })
   @IsString()
   @IsOptional()
@@ -409,7 +416,8 @@ export class LinkPolicyToCaseDto {
   policyId: string;
 
   @ApiPropertyOptional({
-    description: "Specific policy version ID (defaults to latest published version)",
+    description:
+      "Specific policy version ID (defaults to latest published version)",
     example: "550e8400-e29b-41d4-a716-446655440001",
   })
   @IsUUID("4", { message: "policyVersionId must be a valid UUID" })
@@ -434,7 +442,8 @@ export class LinkPolicyToCaseDto {
   @ApiPropertyOptional({
     description: "Reason for linking policy to case",
     maxLength: 2000,
-    example: "Employee violated Section 3.2 of the gift policy by accepting vendor gifts over $100.",
+    example:
+      "Employee violated Section 3.2 of the gift policy by accepting vendor gifts over $100.",
   })
   @IsString()
   @IsOptional()

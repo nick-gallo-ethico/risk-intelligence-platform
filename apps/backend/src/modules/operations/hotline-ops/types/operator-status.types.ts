@@ -11,13 +11,13 @@
  */
 export enum OperatorStatus {
   /** Ready to take calls */
-  AVAILABLE = 'AVAILABLE',
+  AVAILABLE = "AVAILABLE",
   /** Currently on a call */
-  ON_CALL = 'ON_CALL',
+  ON_CALL = "ON_CALL",
   /** Taking a scheduled break */
-  ON_BREAK = 'ON_BREAK',
+  ON_BREAK = "ON_BREAK",
   /** Not available (end of shift, logged out) */
-  OFFLINE = 'OFFLINE',
+  OFFLINE = "OFFLINE",
 }
 
 /**

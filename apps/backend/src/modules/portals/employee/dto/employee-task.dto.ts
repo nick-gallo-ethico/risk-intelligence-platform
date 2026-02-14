@@ -9,9 +9,9 @@ import {
   IsInt,
   Min,
   Max,
-} from 'class-validator';
-import { Transform, Type } from 'class-transformer';
-import { TaskType, TaskStatus } from '../types/employee-task.types';
+} from "class-validator";
+import { Transform, Type } from "class-transformer";
+import { TaskType, TaskStatus } from "../types/employee-task.types";
 
 /**
  * Query parameters for fetching employee tasks.
@@ -23,8 +23,8 @@ export class GetTasksQueryDto {
    */
   @IsOptional()
   @Transform(({ value }) =>
-    typeof value === 'string'
-      ? value.split(',').map((s) => s.trim() as TaskType)
+    typeof value === "string"
+      ? value.split(",").map((s) => s.trim() as TaskType)
       : value,
   )
   @IsArray()
@@ -36,8 +36,8 @@ export class GetTasksQueryDto {
    */
   @IsOptional()
   @Transform(({ value }) =>
-    typeof value === 'string'
-      ? value.split(',').map((s) => s.trim() as TaskStatus)
+    typeof value === "string"
+      ? value.split(",").map((s) => s.trim() as TaskStatus)
       : value,
   )
   @IsArray()
@@ -81,7 +81,7 @@ export class GetTasksQueryDto {
  * Response for paginated task list.
  */
 export interface TaskListResponse {
-  data: import('../types/employee-task.types').EmployeeTask[];
+  data: import("../types/employee-task.types").EmployeeTask[];
   total: number;
   page: number;
   limit: number;

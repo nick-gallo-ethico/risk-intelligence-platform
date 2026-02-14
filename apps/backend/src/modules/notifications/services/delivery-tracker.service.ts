@@ -13,29 +13,36 @@
  * @see NotificationDelivery model in Prisma schema
  */
 
-import { Injectable, Logger } from '@nestjs/common';
-import { EventEmitter2 } from '@nestjs/event-emitter';
-import { AuditEntityType, AuditActionCategory, ActorType } from '@prisma/client';
-import { PrismaService } from '../../prisma/prisma.service';
-import { DeliveryStatus, NotificationStatus } from '../entities/notification.types';
+import { Injectable, Logger } from "@nestjs/common";
+import { EventEmitter2 } from "@nestjs/event-emitter";
+import {
+  AuditEntityType,
+  AuditActionCategory,
+  ActorType,
+} from "@prisma/client";
+import { PrismaService } from "../../prisma/prisma.service";
+import {
+  DeliveryStatus,
+  NotificationStatus,
+} from "../entities/notification.types";
 
 /**
  * Webhook event types from email providers.
  */
 export type WebhookEventType =
-  | 'delivered'
-  | 'bounce'
-  | 'dropped'
-  | 'deferred'
-  | 'open'
-  | 'click'
-  | 'spam_report'
-  | 'unsubscribe';
+  | "delivered"
+  | "bounce"
+  | "dropped"
+  | "deferred"
+  | "open"
+  | "click"
+  | "spam_report"
+  | "unsubscribe";
 
 /**
  * Bounce classification for categorizing delivery failures.
  */
-export type BounceType = 'hard' | 'soft' | 'blocked' | 'unknown';
+export type BounceType = "hard" | "soft" | "blocked" | "unknown";
 
 /**
  * Webhook event payload structure.
@@ -169,7 +176,10 @@ export class DeliveryTrackerService {
    * @param notificationId - Notification record ID
    * @param messageId - Provider's message ID
    */
-  async recordDelivered(notificationId: string, messageId: string): Promise<void> {
+  async recordDelivered(
+    notificationId: string,
+    messageId: string,
+  ): Promise<void> {
     this.logger.debug(
       `Recording delivered status for notification ${notificationId}, messageId: ${messageId}`,
     );
@@ -192,7 +202,7 @@ export class DeliveryTrackerService {
     });
 
     // Emit event for analytics/monitoring
-    this.eventEmitter.emit('email.delivered', {
+    this.eventEmitter.emit("email.delivered", {
       notificationId,
       messageId,
       timestamp: new Date(),
@@ -217,8 +227,8 @@ export class DeliveryTrackerService {
     bounceType?: BounceType,
   ): Promise<void> {
     const errorMessage = reason
-      ? `${bounceType || 'unknown'} bounce: ${reason}`
-      : `${bounceType || 'unknown'} bounce`;
+      ? `${bounceType || "unknown"} bounce: ${reason}`
+      : `${bounceType || "unknown"} bounce`;
 
     this.logger.warn(
       `Recording bounce for notification ${notificationId}: ${errorMessage}`,
@@ -242,7 +252,7 @@ export class DeliveryTrackerService {
     });
 
     // Emit event for bounce handling (could trigger user notification)
-    this.eventEmitter.emit('email.bounced', {
+    this.eventEmitter.emit("email.bounced", {
       notificationId,
       messageId,
       bounceType,
@@ -250,7 +260,9 @@ export class DeliveryTrackerService {
       timestamp: new Date(),
     });
 
-    this.logger.log(`Email bounced for notification ${notificationId}: ${bounceType}`);
+    this.logger.log(
+      `Email bounced for notification ${notificationId}: ${bounceType}`,
+    );
   }
 
   /**
@@ -328,7 +340,9 @@ export class DeliveryTrackerService {
     });
 
     if (!notification) {
-      this.logger.error(`Notification ${notificationId} not found for permanent failure`);
+      this.logger.error(
+        `Notification ${notificationId} not found for permanent failure`,
+      );
       return;
     }
 
@@ -354,8 +368,8 @@ export class DeliveryTrackerService {
           organizationId: notification.organizationId,
           actorUserId: null, // System action, no user actor
           actorType: ActorType.SYSTEM,
-          actorName: 'Email Delivery System',
-          action: 'email.permanent_failure',
+          actorName: "Email Delivery System",
+          action: "email.permanent_failure",
           actionCategory: AuditActionCategory.SYSTEM,
           actionDescription: `Permanent email delivery failure for ${notification.user.email}: ${reason}`,
           entityType: AuditEntityType.NOTIFICATION,
@@ -372,7 +386,7 @@ export class DeliveryTrackerService {
     });
 
     // Emit event for monitoring/alerting
-    this.eventEmitter.emit('email.permanent_failure', {
+    this.eventEmitter.emit("email.permanent_failure", {
       notificationId,
       organizationId: notification.organizationId,
       userId: notification.userId,
@@ -413,42 +427,44 @@ export class DeliveryTrackerService {
     const { notificationId } = delivery;
 
     switch (eventType) {
-      case 'delivered':
+      case "delivered":
         await this.recordDelivered(notificationId, messageId);
         break;
 
-      case 'bounce':
+      case "bounce":
         await this.recordBounced(notificationId, messageId, reason, bounceType);
         break;
 
-      case 'dropped':
+      case "dropped":
         // Dropped events are permanent failures (spam, invalid address, etc.)
-        await this.recordBounced(notificationId, messageId, reason, 'blocked');
+        await this.recordBounced(notificationId, messageId, reason, "blocked");
         break;
 
-      case 'deferred':
+      case "deferred":
         // Temporary delay - update status but don't mark as failed
         await this.prisma.notificationDelivery.update({
           where: { notificationId },
           data: {
             status: DeliveryStatus.DEFERRED,
-            errorMessage: reason || 'Email deferred by receiving server',
+            errorMessage: reason || "Email deferred by receiving server",
           },
         });
         break;
 
-      case 'spam_report':
+      case "spam_report":
         // User reported as spam - log for compliance but don't fail
-        this.logger.warn(`Spam report received for notification ${notificationId}`);
-        this.eventEmitter.emit('email.spam_report', {
+        this.logger.warn(
+          `Spam report received for notification ${notificationId}`,
+        );
+        this.eventEmitter.emit("email.spam_report", {
           notificationId,
           messageId,
           timestamp: new Date(),
         });
         break;
 
-      case 'open':
-      case 'click':
+      case "open":
+      case "click":
         // Engagement events - emit for analytics but no status change
         this.eventEmitter.emit(`email.${eventType}`, {
           notificationId,
@@ -468,7 +484,9 @@ export class DeliveryTrackerService {
    * @param notificationId - Notification record ID
    * @returns Delivery record or null if not found
    */
-  async getDeliveryStatus(notificationId: string): Promise<DeliveryRecord | null> {
+  async getDeliveryStatus(
+    notificationId: string,
+  ): Promise<DeliveryRecord | null> {
     const delivery = await this.prisma.notificationDelivery.findUnique({
       where: { notificationId },
       include: {
@@ -520,7 +538,7 @@ export class DeliveryTrackerService {
     const failures = await this.prisma.notificationDelivery.findMany({
       where: {
         status: DeliveryStatus.FAILED,
-        errorMessage: { startsWith: 'PERMANENT:' },
+        errorMessage: { startsWith: "PERMANENT:" },
         updatedAt: { gte: since },
         notification: {
           organizationId,
@@ -535,7 +553,7 @@ export class DeliveryTrackerService {
           },
         },
       },
-      orderBy: { updatedAt: 'desc' },
+      orderBy: { updatedAt: "desc" },
     });
 
     return failures.map((f) => ({
@@ -543,7 +561,7 @@ export class DeliveryTrackerService {
       notificationId: f.notificationId,
       userId: f.notification.userId,
       email: f.notification.user.email,
-      failureReason: f.errorMessage?.replace('PERMANENT: ', '') || 'Unknown',
+      failureReason: f.errorMessage?.replace("PERMANENT: ", "") || "Unknown",
       attempts: f.attempts,
       failedAt: f.updatedAt,
       notificationType: f.notification.type,
@@ -572,12 +590,12 @@ export class DeliveryTrackerService {
     deliveryRate: number;
   }> {
     const stats = await this.prisma.notificationDelivery.groupBy({
-      by: ['status'],
+      by: ["status"],
       where: {
         createdAt: { gte: since },
         notification: {
           organizationId,
-          channel: 'EMAIL',
+          channel: "EMAIL",
         },
       },
       _count: { id: true },
@@ -598,7 +616,7 @@ export class DeliveryTrackerService {
     const pending = statusCounts[DeliveryStatus.PENDING] || 0;
 
     const total = sent + delivered + bounced + failed;
-    const deliveryRate = total > 0 ? ((delivered / total) * 100) : 0;
+    const deliveryRate = total > 0 ? (delivered / total) * 100 : 0;
 
     return {
       sent,

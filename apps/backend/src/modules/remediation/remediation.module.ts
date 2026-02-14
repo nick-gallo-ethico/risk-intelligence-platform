@@ -1,14 +1,14 @@
-import { Module } from '@nestjs/common';
-import { BullModule } from '@nestjs/bullmq';
-import { PrismaModule } from '../prisma/prisma.module';
-import { AuditModule } from '../audit/audit.module';
-import { RemediationService } from './remediation.service';
-import { RemediationStepService } from './remediation-step.service';
-import { RemediationNotificationService } from './remediation-notification.service';
-import { RemediationProcessor } from './remediation.processor';
-import { RemediationEventHandler } from './handlers/remediation-event.handler';
-import { RemediationController } from './remediation.controller';
-import { EMAIL_QUEUE_NAME } from '../jobs/queues/email.queue';
+import { Module } from "@nestjs/common";
+import { BullModule } from "@nestjs/bullmq";
+import { PrismaModule } from "../prisma/prisma.module";
+import { AuditModule } from "../audit/audit.module";
+import { RemediationService } from "./remediation.service";
+import { RemediationStepService } from "./remediation-step.service";
+import { RemediationNotificationService } from "./remediation-notification.service";
+import { RemediationProcessor } from "./remediation.processor";
+import { RemediationEventHandler } from "./handlers/remediation-event.handler";
+import { RemediationController } from "./remediation.controller";
+import { EMAIL_QUEUE_NAME } from "../jobs/queues/email.queue";
 
 /**
  * Remediation Module

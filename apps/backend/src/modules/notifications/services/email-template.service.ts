@@ -146,10 +146,11 @@ export class EmailTemplateService implements OnModuleInit {
   async render(
     templateName: string,
     context: EmailTemplateContext,
-    organizationId?: string
+    organizationId?: string,
   ): Promise<RenderedEmail> {
     // Add default values
-    context.appUrl = context.appUrl || process.env.APP_URL || "https://app.ethico.com";
+    context.appUrl =
+      context.appUrl || process.env.APP_URL || "https://app.ethico.com";
     context.isTransactional = context.isTransactional ?? true;
 
     let mjmlContent: string | undefined;
@@ -205,7 +206,7 @@ export class EmailTemplateService implements OnModuleInit {
 
     if (errors && errors.length > 0) {
       this.logger.warn(
-        `MJML compilation warnings for ${templateName}: ${JSON.stringify(errors)}`
+        `MJML compilation warnings for ${templateName}: ${JSON.stringify(errors)}`,
       );
     }
 
@@ -224,7 +225,7 @@ export class EmailTemplateService implements OnModuleInit {
    */
   async getTemplate(
     templateName: string,
-    organizationId?: string
+    organizationId?: string,
   ): Promise<TemplateResult> {
     if (organizationId) {
       const dbTemplate = await this.prisma.emailTemplate.findFirst({
@@ -275,7 +276,9 @@ export class EmailTemplateService implements OnModuleInit {
    * @param params - Template save parameters
    * @returns Created template ID and version
    */
-  async saveTemplate(params: SaveTemplateParams): Promise<{ id: string; version: number }> {
+  async saveTemplate(
+    params: SaveTemplateParams,
+  ): Promise<{ id: string; version: number }> {
     // Validate MJML before saving
     const { errors } = mjml2html(params.mjmlContent, {
       validationLevel: "strict",
@@ -330,7 +333,7 @@ export class EmailTemplateService implements OnModuleInit {
    */
   listTemplates(): string[] {
     return Array.from(this.compiledTemplates.keys()).filter(
-      (name) => !name.startsWith("base/")
+      (name) => !name.startsWith("base/"),
     );
   }
 
@@ -343,7 +346,7 @@ export class EmailTemplateService implements OnModuleInit {
    */
   async getTemplateHistory(
     templateName: string,
-    organizationId: string
+    organizationId: string,
   ): Promise<TemplateHistoryEntry[]> {
     const templates = await this.prisma.emailTemplate.findMany({
       where: {
@@ -372,7 +375,7 @@ export class EmailTemplateService implements OnModuleInit {
   async revertToVersion(
     templateName: string,
     organizationId: string,
-    version: number
+    version: number,
   ): Promise<void> {
     const template = await this.prisma.emailTemplate.findFirst({
       where: {
@@ -383,7 +386,9 @@ export class EmailTemplateService implements OnModuleInit {
     });
 
     if (!template) {
-      throw new Error(`Template version not found: ${templateName} v${version}`);
+      throw new Error(
+        `Template version not found: ${templateName} v${version}`,
+      );
     }
 
     // Deactivate all versions
@@ -411,7 +416,7 @@ export class EmailTemplateService implements OnModuleInit {
    */
   async deleteOrgTemplate(
     templateName: string,
-    organizationId: string
+    organizationId: string,
   ): Promise<void> {
     await this.prisma.emailTemplate.deleteMany({
       where: {
@@ -430,7 +435,7 @@ export class EmailTemplateService implements OnModuleInit {
    */
   async preview(
     mjmlContent: string,
-    context: EmailTemplateContext
+    context: EmailTemplateContext,
   ): Promise<{ html: string; errors?: string[] }> {
     // Render Handlebars
     const handlebarsCompiled = Handlebars.compile(mjmlContent);
@@ -478,7 +483,7 @@ export class EmailTemplateService implements OnModuleInit {
    */
   private async loadTemplatesFromDir(
     dir: string,
-    prefix: string
+    prefix: string,
   ): Promise<void> {
     if (!fs.existsSync(dir)) {
       this.logger.warn(`Template directory not found: ${dir}`);
@@ -595,7 +600,7 @@ export class EmailTemplateService implements OnModuleInit {
     Handlebars.registerHelper("urgentBadge", (severity: string) => {
       if (severity === "HIGH" || severity === "CRITICAL") {
         return new Handlebars.SafeString(
-          '<span style="background-color: #dc2626; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">URGENT</span>'
+          '<span style="background-color: #dc2626; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">URGENT</span>',
         );
       }
       return "";

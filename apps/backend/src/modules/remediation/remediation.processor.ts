@@ -1,8 +1,8 @@
-import { Processor, WorkerHost, OnWorkerEvent } from '@nestjs/bullmq';
-import { Logger, Inject, forwardRef } from '@nestjs/common';
-import { Job } from 'bullmq';
-import { EMAIL_QUEUE_NAME } from '../jobs/queues/email.queue';
-import { RemediationNotificationService } from './remediation-notification.service';
+import { Processor, WorkerHost, OnWorkerEvent } from "@nestjs/bullmq";
+import { Logger, Inject, forwardRef } from "@nestjs/common";
+import { Job } from "bullmq";
+import { EMAIL_QUEUE_NAME } from "../jobs/queues/email.queue";
+import { RemediationNotificationService } from "./remediation-notification.service";
 
 /**
  * Remediation reminder job data
@@ -10,7 +10,7 @@ import { RemediationNotificationService } from './remediation-notification.servi
 export interface RemediationReminderJobData {
   organizationId: string;
   stepId: string;
-  reminderType: 'pre-due' | 'overdue';
+  reminderType: "pre-due" | "overdue";
   daysUntilDue?: number;
   daysOverdue?: number;
 }
@@ -51,10 +51,10 @@ export class RemediationProcessor extends WorkerHost {
     this.logger.log(`Processing remediation job ${job.id}: ${job.name}`);
 
     switch (job.name) {
-      case 'remediation-reminder':
+      case "remediation-reminder":
         return this.processReminder(job as Job<RemediationReminderJobData>);
 
-      case 'remediation-escalation':
+      case "remediation-escalation":
         return this.processEscalation(job as Job<RemediationEscalationJobData>);
 
       default:
@@ -79,7 +79,7 @@ export class RemediationProcessor extends WorkerHost {
 
     try {
       const days =
-        reminderType === 'pre-due' ? (daysUntilDue ?? 0) : (daysOverdue ?? 0);
+        reminderType === "pre-due" ? (daysUntilDue ?? 0) : (daysOverdue ?? 0);
 
       await this.notificationService.processReminder(
         organizationId,
@@ -88,8 +88,10 @@ export class RemediationProcessor extends WorkerHost {
         days,
       );
 
-      this.logger.log(`Successfully sent ${reminderType} reminder for step ${stepId}`);
-      return { processed: true, type: 'remediation-reminder' };
+      this.logger.log(
+        `Successfully sent ${reminderType} reminder for step ${stepId}`,
+      );
+      return { processed: true, type: "remediation-reminder" };
     } catch (error) {
       this.logger.error(
         `Failed to process reminder for step ${stepId}: ${error.message}`,
@@ -116,7 +118,7 @@ export class RemediationProcessor extends WorkerHost {
       await this.notificationService.processEscalation(organizationId, stepId);
 
       this.logger.log(`Successfully escalated step ${stepId}`);
-      return { processed: true, type: 'remediation-escalation' };
+      return { processed: true, type: "remediation-escalation" };
     } catch (error) {
       this.logger.error(
         `Failed to process escalation for step ${stepId}: ${error.message}`,
@@ -126,21 +128,21 @@ export class RemediationProcessor extends WorkerHost {
     }
   }
 
-  @OnWorkerEvent('completed')
+  @OnWorkerEvent("completed")
   onCompleted(job: Job) {
     if (
-      job.name === 'remediation-reminder' ||
-      job.name === 'remediation-escalation'
+      job.name === "remediation-reminder" ||
+      job.name === "remediation-escalation"
     ) {
       this.logger.log(`Remediation job ${job.id} (${job.name}) completed`);
     }
   }
 
-  @OnWorkerEvent('failed')
+  @OnWorkerEvent("failed")
   onFailed(job: Job, error: Error) {
     if (
-      job.name === 'remediation-reminder' ||
-      job.name === 'remediation-escalation'
+      job.name === "remediation-reminder" ||
+      job.name === "remediation-escalation"
     ) {
       this.logger.error(
         `Remediation job ${job.id} (${job.name}) failed after ${job.attemptsMade} attempts: ${error.message}`,

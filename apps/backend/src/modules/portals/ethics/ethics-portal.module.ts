@@ -14,19 +14,19 @@
  * Import this module in PortalsModule to enable Ethics Portal features.
  */
 
-import { Module } from '@nestjs/common';
-import { CacheModule } from '@nestjs/cache-manager';
-import { MulterModule } from '@nestjs/platform-express';
-import { PrismaModule } from '../../prisma/prisma.module';
-import { RiusModule } from '../../rius/rius.module';
-import { FormsModule } from '../../forms/forms.module';
-import { BrandingModule } from '../../branding/branding.module';
-import { MessagingModule } from '../../messaging/messaging.module';
-import { EthicsPortalService } from './ethics-portal.service';
+import { Module } from "@nestjs/common";
+import { CacheModule } from "@nestjs/cache-manager";
+import { MulterModule } from "@nestjs/platform-express";
+import { PrismaModule } from "../../prisma/prisma.module";
+import { RiusModule } from "../../rius/rius.module";
+import { FormsModule } from "../../forms/forms.module";
+import { BrandingModule } from "../../branding/branding.module";
+import { MessagingModule } from "../../messaging/messaging.module";
+import { EthicsPortalService } from "./ethics-portal.service";
 import {
   EthicsPortalController,
   EthicsAccessController,
-} from './ethics-portal.controller';
+} from "./ethics-portal.controller";
 
 @Module({
   imports: [

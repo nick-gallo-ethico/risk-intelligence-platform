@@ -9,9 +9,9 @@ import {
   IsDateString,
   IsEmail,
   Min,
-} from 'class-validator';
-import { Type } from 'class-transformer';
-import { RemediationStatus, StepStatus } from '@prisma/client';
+} from "class-validator";
+import { Type } from "class-transformer";
+import { RemediationStatus, StepStatus } from "@prisma/client";
 
 // Step template for creating from template
 export interface StepTemplate {
@@ -117,7 +117,7 @@ export class CreateRemediationStepDto {
   requiresCoApproval?: boolean;
 
   @IsArray()
-  @IsUUID('4', { each: true })
+  @IsUUID("4", { each: true })
   @IsOptional()
   dependsOnStepIds?: string[];
 }
@@ -157,7 +157,7 @@ export class UpdateRemediationStepDto {
   requiresCoApproval?: boolean;
 
   @IsArray()
-  @IsUUID('4', { each: true })
+  @IsUUID("4", { each: true })
   @IsOptional()
   dependsOnStepIds?: string[];
 }

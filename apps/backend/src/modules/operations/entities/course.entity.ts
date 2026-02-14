@@ -14,7 +14,7 @@
  * @see certification.types.ts for CourseType enum
  */
 
-import { CourseType } from '../types/certification.types';
+import { CourseType } from "../types/certification.types";
 
 /**
  * Course represents a single learning unit within a certification track.

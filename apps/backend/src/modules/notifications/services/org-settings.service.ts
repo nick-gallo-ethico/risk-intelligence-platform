@@ -13,12 +13,12 @@
  * - Org settings: `org-notification-settings:${organizationId}`
  */
 
-import { Injectable, Logger, Inject } from '@nestjs/common';
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { Cache } from 'cache-manager';
-import { PrismaService } from '../../prisma/prisma.service';
-import { NotificationCategory } from '../entities/notification.types';
-import { UpdateOrgNotificationSettingsDto } from '../dto/notification.dto';
+import { Injectable, Logger, Inject } from "@nestjs/common";
+import { CACHE_MANAGER } from "@nestjs/cache-manager";
+import { Cache } from "cache-manager";
+import { PrismaService } from "../../prisma/prisma.service";
+import { NotificationCategory } from "../entities/notification.types";
+import { UpdateOrgNotificationSettingsDto } from "../dto/notification.dto";
 
 /** Cache TTL in milliseconds (5 minutes) */
 const ORG_SETTINGS_CACHE_TTL = 5 * 60 * 1000;
@@ -42,10 +42,10 @@ export interface OrgNotificationSettings {
  * Per CONTEXT.md: assignments, deadlines, and escalations are critical.
  */
 const DEFAULT_ORG_SETTINGS: OrgNotificationSettings = {
-  enforcedCategories: ['ASSIGNMENT', 'DEADLINE'] as NotificationCategory[],
+  enforcedCategories: ["ASSIGNMENT", "DEADLINE"] as NotificationCategory[],
   defaultQuietHoursStart: null,
   defaultQuietHoursEnd: null,
-  digestTime: '17:00',
+  digestTime: "17:00",
 };
 
 @Injectable()
@@ -134,8 +134,7 @@ export class OrgNotificationSettingsService {
       create: {
         organizationId,
         enforcedCategories:
-          update.enforcedCategories ||
-          DEFAULT_ORG_SETTINGS.enforcedCategories,
+          update.enforcedCategories || DEFAULT_ORG_SETTINGS.enforcedCategories,
         defaultQuietHoursStart:
           update.defaultQuietHoursStart ||
           DEFAULT_ORG_SETTINGS.defaultQuietHoursStart,

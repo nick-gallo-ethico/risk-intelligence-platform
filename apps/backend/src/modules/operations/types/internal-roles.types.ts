@@ -79,7 +79,10 @@ export type InternalPermission =
  * Role to permissions mapping.
  * Defines which permissions each internal role has.
  */
-export const ROLE_PERMISSIONS: Record<InternalRole, readonly InternalPermission[]> = {
+export const ROLE_PERMISSIONS: Record<
+  InternalRole,
+  readonly InternalPermission[]
+> = {
   [InternalRole.SUPPORT_L1]: [
     InternalPermission.IMPERSONATE,
     InternalPermission.VIEW_CONFIG,
@@ -143,7 +146,9 @@ export function hasPermission(
  * @param role - The internal role
  * @returns Array of permissions for the role
  */
-export function getPermissionsForRole(role: InternalRole): InternalPermission[] {
+export function getPermissionsForRole(
+  role: InternalRole,
+): InternalPermission[] {
   const permissions = ROLE_PERMISSIONS[role];
   if (!permissions) {
     return [];
@@ -164,9 +169,12 @@ export function getPermissionsForRole(role: InternalRole): InternalPermission[] 
 export const ROLE_DESCRIPTIONS: Record<InternalRole, string> = {
   [InternalRole.SUPPORT_L1]: "Support Tier 1 - Basic read-only access",
   [InternalRole.SUPPORT_L2]: "Support Tier 2 - Advanced diagnostics access",
-  [InternalRole.SUPPORT_L3]: "Support Tier 3 - Full support with config changes",
-  [InternalRole.IMPLEMENTATION]: "Implementation Specialist - Migrations and setup",
-  [InternalRole.HOTLINE_OPS]: "Hotline Operations - QA and directive management",
+  [InternalRole.SUPPORT_L3]:
+    "Support Tier 3 - Full support with config changes",
+  [InternalRole.IMPLEMENTATION]:
+    "Implementation Specialist - Migrations and setup",
+  [InternalRole.HOTLINE_OPS]:
+    "Hotline Operations - QA and directive management",
   [InternalRole.CLIENT_SUCCESS]: "Client Success Manager - Health monitoring",
   [InternalRole.ADMIN]: "Platform Administrator - Full system access",
 };

@@ -18,7 +18,7 @@ import {
   QuizStatus,
   QuizQuestion,
   QuizAnswers,
-} from '../types/certification.types';
+} from "../types/certification.types";
 
 /**
  * Quiz represents the assessment for a course.

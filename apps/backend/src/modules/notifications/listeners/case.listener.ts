@@ -7,10 +7,10 @@
  * Uses async: true on all handlers per RESEARCH.md to prevent blocking requests.
  */
 
-import { Injectable, Logger } from '@nestjs/common';
-import { OnEvent } from '@nestjs/event-emitter';
-import { NotificationService } from '../services/notification.service';
-import { CaseAssignedEvent, CaseStatusChangedEvent } from '../../events/events';
+import { Injectable, Logger } from "@nestjs/common";
+import { OnEvent } from "@nestjs/event-emitter";
+import { NotificationService } from "../services/notification.service";
+import { CaseAssignedEvent, CaseStatusChangedEvent } from "../../events/events";
 
 @Injectable()
 export class CaseEventListener {
@@ -22,7 +22,7 @@ export class CaseEventListener {
    * Handle case assignment events.
    * Sends urgent notification to new assignee (always real-time per CONTEXT.md).
    */
-  @OnEvent('case.assigned', { async: true })
+  @OnEvent("case.assigned", { async: true })
   async handleCaseAssigned(event: CaseAssignedEvent): Promise<void> {
     this.logger.debug(
       `Handling case.assigned for case ${event.caseId} -> ${event.newAssigneeId}`,
@@ -32,20 +32,20 @@ export class CaseEventListener {
       await this.notificationService.notify({
         organizationId: event.organizationId,
         recipientUserId: event.newAssigneeId,
-        category: 'ASSIGNMENT',
-        type: 'ASSIGNMENT',
-        templateId: 'assignment/case-assigned',
+        category: "ASSIGNMENT",
+        type: "ASSIGNMENT",
+        templateId: "assignment/case-assigned",
         context: {
           case: {
             id: event.caseId,
-            referenceNumber: '',  // Will be populated by service if needed
-            categoryName: '',
-            severity: '',
+            referenceNumber: "", // Will be populated by service if needed
+            categoryName: "",
+            severity: "",
           },
         },
-        title: 'New case assigned to you',
-        body: 'A case has been assigned to you and requires your attention.',
-        entityType: 'case',
+        title: "New case assigned to you",
+        body: "A case has been assigned to you and requires your attention.",
+        entityType: "case",
         entityId: event.caseId,
         isUrgent: true, // Assignments are always urgent per CONTEXT.md
       });
@@ -61,7 +61,7 @@ export class CaseEventListener {
    * Handle case status change events.
    * Queues for daily digest (not urgent per CONTEXT.md).
    */
-  @OnEvent('case.status_changed', { async: true })
+  @OnEvent("case.status_changed", { async: true })
   async handleStatusChanged(event: CaseStatusChangedEvent): Promise<void> {
     this.logger.debug(
       `Handling case.status_changed for case ${event.caseId}: ${event.previousStatus} -> ${event.newStatus}`,
@@ -71,9 +71,9 @@ export class CaseEventListener {
       // Status changes go to daily digest per CONTEXT.md (not urgent)
       await this.notificationService.queueForDigest({
         organizationId: event.organizationId,
-        userId: event.actorUserId || '', // Notify the actor (or need to find assignee)
-        type: 'STATUS_UPDATE',
-        entityType: 'case',
+        userId: event.actorUserId || "", // Notify the actor (or need to find assignee)
+        type: "STATUS_UPDATE",
+        entityType: "case",
         entityId: event.caseId,
         metadata: {
           previousStatus: event.previousStatus,

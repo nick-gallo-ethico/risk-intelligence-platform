@@ -69,7 +69,11 @@ export class ReportingController {
     @Body() dto: CreateReportTemplateDto,
   ) {
     // Cast DTO to service type (DTO uses class-validator, service uses interface)
-    return this.templateService.create(orgId, dto as unknown as ServiceCreateDto, user.id);
+    return this.templateService.create(
+      orgId,
+      dto as unknown as ServiceCreateDto,
+      user.id,
+    );
   }
 
   @Get("templates")

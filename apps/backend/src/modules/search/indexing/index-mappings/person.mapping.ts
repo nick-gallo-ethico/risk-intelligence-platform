@@ -8,61 +8,61 @@ export const PERSON_INDEX_MAPPING = {
   mappings: {
     properties: {
       // Identifiers
-      id: { type: 'keyword' },
-      organizationId: { type: 'keyword' },
-      employeeId: { type: 'keyword' },
+      id: { type: "keyword" },
+      organizationId: { type: "keyword" },
+      employeeId: { type: "keyword" },
 
       // Type and Source
-      type: { type: 'keyword' }, // EMPLOYEE, EXTERNAL_CONTACT, ANONYMOUS_PLACEHOLDER
-      source: { type: 'keyword' }, // HRIS_SYNC, MANUAL, INTAKE_CREATED
+      type: { type: "keyword" }, // EMPLOYEE, EXTERNAL_CONTACT, ANONYMOUS_PLACEHOLDER
+      source: { type: "keyword" }, // HRIS_SYNC, MANUAL, INTAKE_CREATED
 
       // Name fields (searchable)
       firstName: {
-        type: 'text',
-        fields: { keyword: { type: 'keyword' } },
+        type: "text",
+        fields: { keyword: { type: "keyword" } },
       },
       lastName: {
-        type: 'text',
-        fields: { keyword: { type: 'keyword' } },
+        type: "text",
+        fields: { keyword: { type: "keyword" } },
       },
-      displayName: { type: 'text' },
+      displayName: { type: "text" },
 
       // Contact information
-      email: { type: 'keyword' },
-      phone: { type: 'keyword' },
+      email: { type: "keyword" },
+      phone: { type: "keyword" },
 
       // Employment details
-      jobTitle: { type: 'text' },
-      department: { type: 'text' },
-      businessUnitId: { type: 'keyword' },
-      businessUnitName: { type: 'text' },
-      locationId: { type: 'keyword' },
-      locationName: { type: 'text' },
-      employmentStatus: { type: 'keyword' }, // ACTIVE, TERMINATED, LEAVE, etc.
+      jobTitle: { type: "text" },
+      department: { type: "text" },
+      businessUnitId: { type: "keyword" },
+      businessUnitName: { type: "text" },
+      locationId: { type: "keyword" },
+      locationName: { type: "text" },
+      employmentStatus: { type: "keyword" }, // ACTIVE, TERMINATED, LEAVE, etc.
 
       // Manager
-      managerId: { type: 'keyword' },
-      managerName: { type: 'text' },
+      managerId: { type: "keyword" },
+      managerName: { type: "text" },
 
       // Case involvement counts (for pattern detection)
-      caseCount: { type: 'integer' },
-      subjectCount: { type: 'integer' },
-      witnessCount: { type: 'integer' },
-      reporterCount: { type: 'integer' },
+      caseCount: { type: "integer" },
+      subjectCount: { type: "integer" },
+      witnessCount: { type: "integer" },
+      reporterCount: { type: "integer" },
 
       // Metadata
-      createdById: { type: 'keyword' },
-      isActive: { type: 'boolean' },
+      createdById: { type: "keyword" },
+      isActive: { type: "boolean" },
 
       // Timestamps
-      createdAt: { type: 'date' },
-      updatedAt: { type: 'date' },
+      createdAt: { type: "date" },
+      updatedAt: { type: "date" },
 
       // ===========================================
       // CUSTOM FIELDS (Dynamic Object)
       // ===========================================
       customFields: {
-        type: 'object',
+        type: "object",
         dynamic: true,
         properties: {},
       },
@@ -75,7 +75,7 @@ export const PERSON_INDEX_MAPPING = {
       analyzer: {
         // Standard analyzer for person names
         standard: {
-          type: 'standard',
+          type: "standard",
         },
       },
     },

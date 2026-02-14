@@ -212,7 +212,11 @@ export class UserTableService {
     const columns = table.columns as unknown as TableColumn[];
     const filters = (table.filters as unknown as TableFilterCriteria[]) || [];
     const groupBy = table.groupBy || [];
-    const sortBy = (table.sortBy as unknown as { field: string; direction: "asc" | "desc" }[]) || [];
+    const sortBy =
+      (table.sortBy as unknown as {
+        field: string;
+        direction: "asc" | "desc";
+      }[]) || [];
 
     // Use first data source for now (multi-source joins are complex)
     const primarySource = table.dataSources[0] as TableDataSource;
@@ -230,9 +234,10 @@ export class UserTableService {
     // Build query
     const where = this.buildWhereClause(organizationId, filters);
     const select = this.buildSelectClause(columns);
-    const orderBy = sortBy.length > 0
-      ? sortBy.map((s) => ({ [s.field]: s.direction }))
-      : [{ createdAt: "desc" as const }];
+    const orderBy =
+      sortBy.length > 0
+        ? sortBy.map((s) => ({ [s.field]: s.direction }))
+        : [{ createdAt: "desc" as const }];
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const delegate = (this.prisma as any)[modelName];
@@ -318,7 +323,8 @@ export class UserTableService {
     });
 
     const filename =
-      dto.filename || `${table.name.replace(/[^a-zA-Z0-9]/g, "_")}_${Date.now()}`;
+      dto.filename ||
+      `${table.name.replace(/[^a-zA-Z0-9]/g, "_")}_${Date.now()}`;
     const columns = table.columns as unknown as TableColumn[];
 
     switch (dto.format) {
@@ -348,7 +354,9 @@ export class UserTableService {
         return { buffer: pdfBuffer, filename: `${filename}.xlsx` };
 
       default:
-        throw new BadRequestException(`Unsupported export format: ${dto.format}`);
+        throw new BadRequestException(
+          `Unsupported export format: ${dto.format}`,
+        );
     }
   }
 
@@ -391,7 +399,10 @@ export class UserTableService {
       actionDescription: `Scheduled ${dto.config.frequency} delivery for table "${table.name}"`,
       actorUserId: userId,
       actorType: ActorType.USER,
-      context: { frequency: dto.config.frequency, recipients: dto.config.recipients.length },
+      context: {
+        frequency: dto.config.frequency,
+        recipients: dto.config.recipients.length,
+      },
     });
 
     return updated;
@@ -839,7 +850,9 @@ export class UserTableService {
       },
     );
 
-    this.logger.log(`Created scheduled job for table ${table.id} with pattern ${pattern}`);
+    this.logger.log(
+      `Created scheduled job for table ${table.id} with pattern ${pattern}`,
+    );
   }
 
   /**
@@ -861,7 +874,9 @@ export class UserTableService {
     data: Record<string, unknown>[],
     columns: TableColumn[],
   ): string {
-    const headers = columns.map((c) => `"${c.label.replace(/"/g, '""')}"`).join(",");
+    const headers = columns
+      .map((c) => `"${c.label.replace(/"/g, '""')}"`)
+      .join(",");
 
     const rows = data.map((row) =>
       columns

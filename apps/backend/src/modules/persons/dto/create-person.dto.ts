@@ -6,11 +6,7 @@ import {
   MaxLength,
 } from "class-validator";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import {
-  PersonType,
-  PersonSource,
-  AnonymityTier,
-} from "@prisma/client";
+import { PersonType, PersonSource, AnonymityTier } from "@prisma/client";
 
 /**
  * DTO for creating a new person record.

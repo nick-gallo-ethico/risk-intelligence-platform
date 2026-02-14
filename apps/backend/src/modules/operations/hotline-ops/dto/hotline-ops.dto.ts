@@ -19,13 +19,17 @@ import {
   Max,
   IsNotEmpty,
   MaxLength,
-} from 'class-validator';
+} from "class-validator";
 
 /**
  * Bulk QA action types.
  * Actions that can be performed on multiple RIUs simultaneously.
  */
-export type BulkQaActionType = 'APPROVE' | 'REJECT' | 'REASSIGN' | 'CHANGE_PRIORITY';
+export type BulkQaActionType =
+  | "APPROVE"
+  | "REJECT"
+  | "REASSIGN"
+  | "CHANGE_PRIORITY";
 
 /**
  * DTO for performing bulk QA actions on multiple RIUs.
@@ -40,11 +44,11 @@ export type BulkQaActionType = 'APPROVE' | 'REJECT' | 'REASSIGN' | 'CHANGE_PRIOR
  */
 export class BulkQaActionDto {
   @IsArray()
-  @IsUUID('4', { each: true })
+  @IsUUID("4", { each: true })
   @IsNotEmpty({ each: true })
   riuIds: string[];
 
-  @IsEnum(['APPROVE', 'REJECT', 'REASSIGN', 'CHANGE_PRIORITY'])
+  @IsEnum(["APPROVE", "REJECT", "REASSIGN", "CHANGE_PRIORITY"])
   action: BulkQaActionType;
 
   /** Required for REJECT action */
@@ -55,7 +59,7 @@ export class BulkQaActionDto {
 
   /** Required for REASSIGN action - user ID to assign to */
   @IsOptional()
-  @IsUUID('4')
+  @IsUUID("4")
   assignToUserId?: string;
 
   /** Required for CHANGE_PRIORITY action - new priority (1-5) */
@@ -70,22 +74,26 @@ export class BulkQaActionDto {
  * Directive stages for hotline call flow.
  * Directives are displayed at specific stages of a call.
  */
-export type DirectiveStage = 'OPENING' | 'INTAKE' | 'CATEGORY_SPECIFIC' | 'CLOSING';
+export type DirectiveStage =
+  | "OPENING"
+  | "INTAKE"
+  | "CATEGORY_SPECIFIC"
+  | "CLOSING";
 
 /**
  * DTO for creating a new directive.
  * Supports draft mode for client-submitted directives pending Ethico approval.
  */
 export class CreateDirectiveDto {
-  @IsUUID('4')
+  @IsUUID("4")
   organizationId: string;
 
-  @IsEnum(['OPENING', 'INTAKE', 'CATEGORY_SPECIFIC', 'CLOSING'])
+  @IsEnum(["OPENING", "INTAKE", "CATEGORY_SPECIFIC", "CLOSING"])
   stage: DirectiveStage;
 
   /** Required when stage is CATEGORY_SPECIFIC */
   @IsOptional()
-  @IsUUID('4')
+  @IsUUID("4")
   categoryId?: string;
 
   @IsString()
@@ -144,7 +152,7 @@ export class UpdateDirectiveDto {
  * Used for real-time status board updates.
  */
 export class UpdateOperatorStatusDto {
-  @IsEnum(['AVAILABLE', 'ON_CALL', 'ON_BREAK', 'OFFLINE'])
+  @IsEnum(["AVAILABLE", "ON_CALL", "ON_BREAK", "OFFLINE"])
   status: string;
 
   /** Languages operator can handle (ISO 639-1 codes) */
@@ -159,11 +167,11 @@ export class UpdateOperatorStatusDto {
  */
 export class ListDirectivesQueryDto {
   @IsOptional()
-  @IsUUID('4')
+  @IsUUID("4")
   organizationId?: string;
 
   @IsOptional()
-  @IsEnum(['OPENING', 'INTAKE', 'CATEGORY_SPECIFIC', 'CLOSING'])
+  @IsEnum(["OPENING", "INTAKE", "CATEGORY_SPECIFIC", "CLOSING"])
   stage?: DirectiveStage;
 
   @IsOptional()
@@ -187,7 +195,7 @@ export class ListDirectivesQueryDto {
  */
 export class QaQueueQueryDto {
   @IsOptional()
-  @IsEnum(['PENDING', 'IN_REVIEW', 'APPROVED', 'REJECTED', 'NEEDS_REVISION'])
+  @IsEnum(["PENDING", "IN_REVIEW", "APPROVED", "REJECTED", "NEEDS_REVISION"])
   qaStatus?: string;
 
   @IsOptional()

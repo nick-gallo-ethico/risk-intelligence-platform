@@ -11,10 +11,7 @@
  * @see CONTEXT.md for implementation decisions
  */
 
-import {
-  ImplementationType,
-  ImplementationPhase,
-} from "@prisma/client";
+import { ImplementationType, ImplementationPhase } from "@prisma/client";
 import { PlgPhase } from "../types/implementation.types";
 
 /**

@@ -74,8 +74,14 @@ export class PolicyApprovalController {
     status: 200,
     description: "Policy submitted for approval successfully",
   })
-  @ApiResponse({ status: 400, description: "Policy not in DRAFT status or has no content" })
-  @ApiResponse({ status: 404, description: "Policy not found or no workflow configured" })
+  @ApiResponse({
+    status: 400,
+    description: "Policy not in DRAFT status or has no content",
+  })
+  @ApiResponse({
+    status: 404,
+    description: "Policy not found or no workflow configured",
+  })
   async submitForApproval(
     @Param("id", ParseUUIDPipe) id: string,
     @Body() dto: SubmitForApprovalDto,
@@ -188,9 +194,8 @@ export class PolicyApprovalController {
     status: 200,
     description: "Workflow templates retrieved successfully",
   })
-  async getWorkflowTemplates(
+  async getWorkflowTemplates() {
     // @TenantId() organizationId: string,
-  ) {
     return this.approvalService.getAvailableWorkflowTemplates(
       TEMP_ORG_ID, // organizationId
     );

@@ -15,11 +15,11 @@
  */
 export const CertificationLevel = {
   /** Platform Fundamentals (required for all) */
-  FOUNDATION: 'FOUNDATION',
+  FOUNDATION: "FOUNDATION",
   /** Intermediate knowledge tracks */
-  INTERMEDIATE: 'INTERMEDIATE',
+  INTERMEDIATE: "INTERMEDIATE",
   /** Advanced/specialized tracks */
-  ADVANCED: 'ADVANCED',
+  ADVANCED: "ADVANCED",
 } as const;
 
 export type CertificationLevel =
@@ -31,17 +31,17 @@ export type CertificationLevel =
  */
 export const TrackType = {
   /** Required for all - platform basics */
-  PLATFORM_FUNDAMENTALS: 'PLATFORM_FUNDAMENTALS',
+  PLATFORM_FUNDAMENTALS: "PLATFORM_FUNDAMENTALS",
   /** Case management and investigations */
-  CASE_MANAGEMENT: 'CASE_MANAGEMENT',
+  CASE_MANAGEMENT: "CASE_MANAGEMENT",
   /** Campaigns and disclosures module */
-  CAMPAIGNS_DISCLOSURES: 'CAMPAIGNS_DISCLOSURES',
+  CAMPAIGNS_DISCLOSURES: "CAMPAIGNS_DISCLOSURES",
   /** Policy lifecycle management */
-  POLICY_MANAGEMENT: 'POLICY_MANAGEMENT',
+  POLICY_MANAGEMENT: "POLICY_MANAGEMENT",
   /** Analytics and reporting */
-  ANALYTICS_REPORTING: 'ANALYTICS_REPORTING',
+  ANALYTICS_REPORTING: "ANALYTICS_REPORTING",
   /** System administration and configuration */
-  ADMIN_CONFIGURATION: 'ADMIN_CONFIGURATION',
+  ADMIN_CONFIGURATION: "ADMIN_CONFIGURATION",
 } as const;
 
 export type TrackType = (typeof TrackType)[keyof typeof TrackType];
@@ -51,11 +51,11 @@ export type TrackType = (typeof TrackType)[keyof typeof TrackType];
  */
 export const CourseType = {
   /** Video-based learning content */
-  VIDEO: 'VIDEO',
+  VIDEO: "VIDEO",
   /** Text/document-based learning content */
-  TEXT: 'TEXT',
+  TEXT: "TEXT",
   /** Interactive exercises or simulations */
-  INTERACTIVE: 'INTERACTIVE',
+  INTERACTIVE: "INTERACTIVE",
 } as const;
 
 export type CourseType = (typeof CourseType)[keyof typeof CourseType];
@@ -65,13 +65,13 @@ export type CourseType = (typeof CourseType)[keyof typeof CourseType];
  */
 export const QuizStatus = {
   /** Quiz not yet started */
-  NOT_STARTED: 'NOT_STARTED',
+  NOT_STARTED: "NOT_STARTED",
   /** Quiz started but not completed */
-  IN_PROGRESS: 'IN_PROGRESS',
+  IN_PROGRESS: "IN_PROGRESS",
   /** Quiz completed with passing score */
-  PASSED: 'PASSED',
+  PASSED: "PASSED",
   /** Quiz completed but did not meet passing threshold */
-  FAILED: 'FAILED',
+  FAILED: "FAILED",
 } as const;
 
 export type QuizStatus = (typeof QuizStatus)[keyof typeof QuizStatus];
@@ -81,11 +81,11 @@ export type QuizStatus = (typeof QuizStatus)[keyof typeof QuizStatus];
  */
 export const CertificateStatus = {
   /** Certificate is valid and active */
-  ACTIVE: 'ACTIVE',
+  ACTIVE: "ACTIVE",
   /** Certificate has expired (major version update) */
-  EXPIRED: 'EXPIRED',
+  EXPIRED: "EXPIRED",
   /** Certificate has been revoked */
-  REVOKED: 'REVOKED',
+  REVOKED: "REVOKED",
 } as const;
 
 export type CertificateStatus =
@@ -96,11 +96,11 @@ export type CertificateStatus =
  */
 export const QuestionType = {
   /** Single correct answer selection */
-  MULTIPLE_CHOICE: 'MULTIPLE_CHOICE',
+  MULTIPLE_CHOICE: "MULTIPLE_CHOICE",
   /** True or false answer */
-  TRUE_FALSE: 'TRUE_FALSE',
+  TRUE_FALSE: "TRUE_FALSE",
   /** Multiple correct answers allowed */
-  MULTI_SELECT: 'MULTI_SELECT',
+  MULTI_SELECT: "MULTI_SELECT",
 } as const;
 
 export type QuestionType = (typeof QuestionType)[keyof typeof QuestionType];
@@ -218,11 +218,10 @@ export interface CourseWithProgress {
  */
 export const LEVEL_DESCRIPTIONS: Record<CertificationLevel, string> = {
   [CertificationLevel.FOUNDATION]:
-    'Foundation - Essential platform knowledge for all users',
-  [CertificationLevel.INTERMEDIATE]:
-    'Intermediate - Module-specific expertise',
+    "Foundation - Essential platform knowledge for all users",
+  [CertificationLevel.INTERMEDIATE]: "Intermediate - Module-specific expertise",
   [CertificationLevel.ADVANCED]:
-    'Advanced - Deep specialization and advanced workflows',
+    "Advanced - Deep specialization and advanced workflows",
 };
 
 /**
@@ -230,17 +229,17 @@ export const LEVEL_DESCRIPTIONS: Record<CertificationLevel, string> = {
  */
 export const TRACK_DESCRIPTIONS: Record<TrackType, string> = {
   [TrackType.PLATFORM_FUNDAMENTALS]:
-    'Platform Fundamentals - Required for all users',
+    "Platform Fundamentals - Required for all users",
   [TrackType.CASE_MANAGEMENT]:
-    'Case Management - Investigations and case workflow',
+    "Case Management - Investigations and case workflow",
   [TrackType.CAMPAIGNS_DISCLOSURES]:
-    'Campaigns & Disclosures - Attestations and COI management',
+    "Campaigns & Disclosures - Attestations and COI management",
   [TrackType.POLICY_MANAGEMENT]:
-    'Policy Management - Policy lifecycle and attestations',
+    "Policy Management - Policy lifecycle and attestations",
   [TrackType.ANALYTICS_REPORTING]:
-    'Analytics & Reporting - Dashboards and reports',
+    "Analytics & Reporting - Dashboards and reports",
   [TrackType.ADMIN_CONFIGURATION]:
-    'Administration - System configuration and setup',
+    "Administration - System configuration and setup",
 };
 
 /**

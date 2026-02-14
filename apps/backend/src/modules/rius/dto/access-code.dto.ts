@@ -1,4 +1,4 @@
-import { IsString, Length, Matches } from 'class-validator';
+import { IsString, Length, Matches } from "class-validator";
 
 /**
  * DTO for validating access code parameter
@@ -7,7 +7,7 @@ export class AccessCodeDto {
   @IsString()
   @Length(12, 20)
   @Matches(/^[A-Z0-9]+$/, {
-    message: 'Access code must contain only uppercase letters and numbers',
+    message: "Access code must contain only uppercase letters and numbers",
   })
   accessCode: string;
 }
@@ -33,7 +33,7 @@ export class RiuStatusResponseDto {
 export class RiuMessagesResponseDto {
   messages: {
     id: string;
-    direction: 'inbound' | 'outbound';
+    direction: "inbound" | "outbound";
     content: string;
     createdAt: Date;
     isRead: boolean;

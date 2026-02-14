@@ -20,34 +20,38 @@ import {
   UseGuards,
   ForbiddenException,
   NotFoundException,
-} from '@nestjs/common';
-import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
-import { CurrentUser } from '../../../common/decorators/current-user.decorator';
-import { UserRole } from '@prisma/client';
-import { PrismaService } from '../../prisma/prisma.service';
-import { EmployeeTasksService } from './employee-tasks.service';
-import { EmployeeHistoryService } from './employee-history.service';
-import { ManagerProxyService } from './manager-proxy.service';
-import { GetTasksQueryDto, TaskListResponse } from './dto/employee-task.dto';
+} from "@nestjs/common";
+import { JwtAuthGuard } from "../../../common/guards/jwt-auth.guard";
+import { CurrentUser } from "../../../common/decorators/current-user.decorator";
+import { UserRole } from "@prisma/client";
+import { PrismaService } from "../../prisma/prisma.service";
+import { EmployeeTasksService } from "./employee-tasks.service";
+import { EmployeeHistoryService } from "./employee-history.service";
+import { ManagerProxyService } from "./manager-proxy.service";
+import { GetTasksQueryDto, TaskListResponse } from "./dto/employee-task.dto";
 import {
   GetReportsQueryDto,
   GetDisclosuresQueryDto,
   GetAttestationsQueryDto,
-} from './dto/employee-views.dto';
+} from "./dto/employee-views.dto";
 import {
   ProxyReportDto,
   TeamMember,
   ProxySubmissionResult,
   ProxySubmission,
-} from './dto/proxy-report.dto';
-import { TaskFilters, EmployeeTask, TaskCounts } from './types/employee-task.types';
+} from "./dto/proxy-report.dto";
+import {
+  TaskFilters,
+  EmployeeTask,
+  TaskCounts,
+} from "./types/employee-task.types";
 import {
   ReportSummary,
   DisclosureSummary,
   AttestationSummary,
   ComplianceOverview,
   PaginatedResult,
-} from './types/employee-history.types';
+} from "./types/employee-history.types";
 
 /**
  * Interface for authenticated user from JWT token.
@@ -64,7 +68,7 @@ interface AuthUser {
  *
  * Base path: /api/v1/employee
  */
-@Controller('employee')
+@Controller("employee")
 @UseGuards(JwtAuthGuard)
 export class EmployeePortalController {
   constructor(
@@ -86,7 +90,7 @@ export class EmployeePortalController {
    * @param query - Query parameters for filtering and pagination
    * @returns Paginated task list
    */
-  @Get('tasks')
+  @Get("tasks")
   async getTasks(
     @CurrentUser() user: AuthUser,
     @Query() query: GetTasksQueryDto,
@@ -144,7 +148,7 @@ export class EmployeePortalController {
    * @param user - Authenticated user from JWT
    * @returns Task counts by status
    */
-  @Get('tasks/counts')
+  @Get("tasks/counts")
   async getTaskCounts(@CurrentUser() user: AuthUser): Promise<TaskCounts> {
     return this.tasksService.getTaskCounts(user.id, user.organizationId);
   }
@@ -159,10 +163,10 @@ export class EmployeePortalController {
    * @param taskId - Task ID (format: {sourceType}-{sourceId})
    * @returns Task detail
    */
-  @Get('tasks/:taskId')
+  @Get("tasks/:taskId")
   async getTask(
     @CurrentUser() user: AuthUser,
-    @Param('taskId') taskId: string,
+    @Param("taskId") taskId: string,
   ): Promise<EmployeeTask> {
     return this.tasksService.getTaskById(user.id, user.organizationId, taskId);
   }
@@ -178,10 +182,10 @@ export class EmployeePortalController {
    * @param taskId - Task ID (format: {sourceType}-{sourceId})
    * @returns Updated task
    */
-  @Post('tasks/:taskId/complete')
+  @Post("tasks/:taskId/complete")
   async completeTask(
     @CurrentUser() user: AuthUser,
-    @Param('taskId') taskId: string,
+    @Param("taskId") taskId: string,
   ): Promise<EmployeeTask> {
     return this.tasksService.markTaskCompleted(
       user.id,
@@ -202,7 +206,7 @@ export class EmployeePortalController {
    * @param query - Pagination options
    * @returns Paginated list of report summaries
    */
-  @Get('reports')
+  @Get("reports")
   async getMyReports(
     @CurrentUser() user: AuthUser,
     @Query() query: GetReportsQueryDto,
@@ -227,7 +231,7 @@ export class EmployeePortalController {
    * @param query - Pagination and filter options
    * @returns Paginated list of disclosure summaries
    */
-  @Get('disclosures')
+  @Get("disclosures")
   async getMyDisclosures(
     @CurrentUser() user: AuthUser,
     @Query() query: GetDisclosuresQueryDto,
@@ -252,7 +256,7 @@ export class EmployeePortalController {
    * @param query - Pagination and filter options
    * @returns Paginated list of attestation summaries
    */
-  @Get('attestations')
+  @Get("attestations")
   async getMyAttestations(
     @CurrentUser() user: AuthUser,
     @Query() query: GetAttestationsQueryDto,
@@ -262,10 +266,14 @@ export class EmployeePortalController {
       return { data: [], total: 0, page: 1, limit: 20, hasMore: false };
     }
 
-    return this.historyService.getMyAttestations(personId, user.organizationId, {
-      page: query.page,
-      limit: query.limit,
-    });
+    return this.historyService.getMyAttestations(
+      personId,
+      user.organizationId,
+      {
+        page: query.page,
+        limit: query.limit,
+      },
+    );
   }
 
   /**
@@ -276,7 +284,7 @@ export class EmployeePortalController {
    * @param user - Authenticated user from JWT
    * @returns Compliance overview with counts and score
    */
-  @Get('overview')
+  @Get("overview")
   async getComplianceOverview(
     @CurrentUser() user: AuthUser,
   ): Promise<ComplianceOverview> {
@@ -291,7 +299,10 @@ export class EmployeePortalController {
       };
     }
 
-    return this.historyService.getComplianceOverview(personId, user.organizationId);
+    return this.historyService.getComplianceOverview(
+      personId,
+      user.organizationId,
+    );
   }
 
   // ==================== Manager Proxy Endpoints ====================
@@ -304,7 +315,7 @@ export class EmployeePortalController {
    * @param user - Authenticated user from JWT
    * @returns List of team members
    */
-  @Get('team')
+  @Get("team")
   async getTeamMembers(@CurrentUser() user: AuthUser): Promise<TeamMember[]> {
     const personId = await this.getPersonIdForUser(user);
     if (!personId) {
@@ -329,14 +340,16 @@ export class EmployeePortalController {
    * @param dto - Proxy report details
    * @returns Submission result with access code for employee
    */
-  @Post('proxy-report')
+  @Post("proxy-report")
   async submitProxyReport(
     @CurrentUser() user: AuthUser,
     @Body() dto: ProxyReportDto,
   ): Promise<ProxySubmissionResult> {
     const personId = await this.getPersonIdForUser(user);
     if (!personId) {
-      throw new ForbiddenException('You must be linked to a person record to submit proxy reports');
+      throw new ForbiddenException(
+        "You must be linked to a person record to submit proxy reports",
+      );
     }
 
     // Verify user is a manager (has direct reports)
@@ -346,7 +359,9 @@ export class EmployeePortalController {
     );
 
     if (teamMembers.length === 0) {
-      throw new ForbiddenException('You must be a manager to submit proxy reports');
+      throw new ForbiddenException(
+        "You must be a manager to submit proxy reports",
+      );
     }
 
     return this.proxyService.submitProxyReport(
@@ -365,7 +380,7 @@ export class EmployeePortalController {
    * @param user - Authenticated user from JWT
    * @returns List of proxy submissions
    */
-  @Get('proxy-submissions')
+  @Get("proxy-submissions")
   async getProxySubmissions(
     @CurrentUser() user: AuthUser,
   ): Promise<ProxySubmission[]> {
@@ -389,7 +404,7 @@ export class EmployeePortalController {
       where: {
         organizationId: user.organizationId,
         email: user.email,
-        status: 'ACTIVE',
+        status: "ACTIVE",
       },
       select: { id: true },
     });

@@ -263,9 +263,9 @@ export class SearchService {
         reference_suggest?: Array<{ options: Array<{ text: string }> }>;
       };
       const suggestions =
-        (response.suggest as SuggestResponse)?.reference_suggest?.[0]?.options?.map(
-          (opt) => opt.text,
-        ) || [];
+        (
+          response.suggest as SuggestResponse
+        )?.reference_suggest?.[0]?.options?.map((opt) => opt.text) || [];
 
       return suggestions;
     } catch {

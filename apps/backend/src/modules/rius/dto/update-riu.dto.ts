@@ -8,10 +8,10 @@ import {
   Max,
   MaxLength,
   IsDate,
-} from 'class-validator';
-import { ApiPropertyOptional } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
-import { RiuStatus } from '@prisma/client';
+} from "class-validator";
+import { ApiPropertyOptional } from "@nestjs/swagger";
+import { Type } from "class-transformer";
+import { RiuStatus } from "@prisma/client";
 
 /**
  * DTO for updating a Risk Intelligence Unit (RIU).
@@ -25,34 +25,35 @@ export class UpdateRiuDto {
   // Status workflow (mutable)
   @ApiPropertyOptional({
     enum: RiuStatus,
-    description: 'RIU status (PENDING_QA, IN_QA, QA_REJECTED, RELEASED, LINKED, CLOSED, RECEIVED, COMPLETED)',
+    description:
+      "RIU status (PENDING_QA, IN_QA, QA_REJECTED, RELEASED, LINKED, CLOSED, RECEIVED, COMPLETED)",
   })
   @IsOptional()
   @IsEnum(RiuStatus)
   status?: RiuStatus;
 
   // Language handling (mutable)
-  @ApiPropertyOptional({ description: 'Auto-detected language from content' })
+  @ApiPropertyOptional({ description: "Auto-detected language from content" })
   @IsOptional()
   @IsString()
   @MaxLength(10)
   languageDetected?: string;
 
-  @ApiPropertyOptional({ description: 'Manual language override by user' })
+  @ApiPropertyOptional({ description: "Manual language override by user" })
   @IsOptional()
   @IsString()
   @MaxLength(10)
   languageConfirmed?: string;
 
   // AI Enrichment (mutable - can be regenerated)
-  @ApiPropertyOptional({ description: 'AI-generated summary' })
+  @ApiPropertyOptional({ description: "AI-generated summary" })
   @IsOptional()
   @IsString()
   @MaxLength(5000)
   aiSummary?: string;
 
   @ApiPropertyOptional({
-    description: 'AI-calculated risk score (0.00 to 1.00)',
+    description: "AI-calculated risk score (0.00 to 1.00)",
     minimum: 0,
     maximum: 1,
   })
@@ -62,32 +63,32 @@ export class UpdateRiuDto {
   @Max(1)
   aiRiskScore?: number;
 
-  @ApiPropertyOptional({ description: 'AI-generated translation' })
+  @ApiPropertyOptional({ description: "AI-generated translation" })
   @IsOptional()
   @IsString()
   @MaxLength(50000)
   aiTranslation?: string;
 
-  @ApiPropertyOptional({ description: 'Language detected by AI' })
+  @ApiPropertyOptional({ description: "Language detected by AI" })
   @IsOptional()
   @IsString()
   @MaxLength(10)
   aiLanguageDetected?: string;
 
-  @ApiPropertyOptional({ description: 'AI model version used' })
+  @ApiPropertyOptional({ description: "AI model version used" })
   @IsOptional()
   @IsString()
   @MaxLength(50)
   aiModelVersion?: string;
 
-  @ApiPropertyOptional({ description: 'When AI enrichment was generated' })
+  @ApiPropertyOptional({ description: "When AI enrichment was generated" })
   @IsOptional()
   @IsDate()
   @Type(() => Date)
   aiGeneratedAt?: Date;
 
   @ApiPropertyOptional({
-    description: 'AI confidence score (0-100)',
+    description: "AI confidence score (0-100)",
     minimum: 0,
     maximum: 100,
   })

@@ -101,7 +101,8 @@ export const TrackedFeature = {
   API_USAGE: "API_USAGE",
 } as const;
 
-export type TrackedFeature = (typeof TrackedFeature)[keyof typeof TrackedFeature];
+export type TrackedFeature =
+  (typeof TrackedFeature)[keyof typeof TrackedFeature];
 
 /**
  * All tracked features as an array (useful for iteration).
@@ -164,7 +165,8 @@ export const BenchmarkMetric = {
   HEALTH_SCORE: "health_score",
 } as const;
 
-export type BenchmarkMetric = (typeof BenchmarkMetric)[keyof typeof BenchmarkMetric];
+export type BenchmarkMetric =
+  (typeof BenchmarkMetric)[keyof typeof BenchmarkMetric];
 
 /**
  * Industry sectors for peer benchmark filtering.
@@ -180,7 +182,8 @@ export const IndustrySector = {
   OTHER: "OTHER",
 } as const;
 
-export type IndustrySector = (typeof IndustrySector)[keyof typeof IndustrySector];
+export type IndustrySector =
+  (typeof IndustrySector)[keyof typeof IndustrySector];
 
 /**
  * Risk level thresholds for health score classification.
@@ -215,14 +218,20 @@ export const MIN_PEER_COUNT = 5;
  * @param trend - Current trend direction
  * @returns Risk level classification
  */
-export function calculateRiskLevel(score: number, trend: HealthTrend): RiskLevel {
+export function calculateRiskLevel(
+  score: number,
+  trend: HealthTrend,
+): RiskLevel {
   // Score < 40 is always HIGH risk
   if (score < RISK_THRESHOLDS.HIGH_RISK_THRESHOLD) {
     return RiskLevel.HIGH;
   }
 
   // Score < 60 AND declining is HIGH risk
-  if (score < RISK_THRESHOLDS.DECLINING_HIGH_THRESHOLD && trend === HealthTrend.DECLINING) {
+  if (
+    score < RISK_THRESHOLDS.DECLINING_HIGH_THRESHOLD &&
+    trend === HealthTrend.DECLINING
+  ) {
     return RiskLevel.HIGH;
   }
 
@@ -241,7 +250,10 @@ export function calculateRiskLevel(score: number, trend: HealthTrend): RiskLevel
  * @param previousScore - Previous health score (null if no history)
  * @returns Trend classification
  */
-export function calculateTrend(currentScore: number, previousScore: number | null): HealthTrend {
+export function calculateTrend(
+  currentScore: number,
+  previousScore: number | null,
+): HealthTrend {
   if (previousScore === null) {
     return HealthTrend.STABLE;
   }
@@ -264,7 +276,9 @@ export function calculateTrend(currentScore: number, previousScore: number | nul
  * @param components - Individual component scores
  * @returns Weighted overall score (0-100)
  */
-export function calculateOverallScore(components: HealthScoreComponents): number {
+export function calculateOverallScore(
+  components: HealthScoreComponents,
+): number {
   const weighted =
     components.loginScore * HEALTH_WEIGHTS.login +
     components.caseResolutionScore * HEALTH_WEIGHTS.caseResolution +

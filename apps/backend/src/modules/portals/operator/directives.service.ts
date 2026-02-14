@@ -21,23 +21,16 @@ import {
   Logger,
   NotFoundException,
   BadRequestException,
-} from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
-import {
-  ClientDirective,
-  DirectiveStage,
-  Prisma,
-} from '@prisma/client';
-import {
-  CreateDirectiveDto,
-  UpdateDirectiveDto,
-} from './dto/directives.dto';
+} from "@nestjs/common";
+import { PrismaService } from "../../prisma/prisma.service";
+import { ClientDirective, DirectiveStage, Prisma } from "@prisma/client";
+import { CreateDirectiveDto, UpdateDirectiveDto } from "./dto/directives.dto";
 import {
   CallDirectives,
   DirectiveWithCategory,
   DirectivesByStage,
   GetDirectivesOptions,
-} from './types/directives.types';
+} from "./types/directives.types";
 
 @Injectable()
 export class DirectivesService {
@@ -80,7 +73,7 @@ export class DirectivesService {
           select: { id: true, name: true, code: true },
         },
       },
-      orderBy: { order: 'asc' },
+      orderBy: { order: "asc" },
     });
 
     return directives as DirectiveWithCategory[];
@@ -118,7 +111,7 @@ export class DirectivesService {
           select: { id: true, name: true, code: true },
         },
       },
-      orderBy: { order: 'asc' },
+      orderBy: { order: "asc" },
     });
 
     // Group by stage
@@ -183,7 +176,7 @@ export class DirectivesService {
           select: { id: true, name: true, code: true },
         },
       },
-      orderBy: [{ stage: 'asc' }, { order: 'asc' }],
+      orderBy: [{ stage: "asc" }, { order: "asc" }],
     });
 
     // Group by stage
@@ -216,7 +209,7 @@ export class DirectivesService {
     // Validate categoryId is required when stage is CATEGORY_SPECIFIC
     if (dto.stage === DirectiveStage.CATEGORY_SPECIFIC && !dto.categoryId) {
       throw new BadRequestException(
-        'categoryId is required when stage is CATEGORY_SPECIFIC',
+        "categoryId is required when stage is CATEGORY_SPECIFIC",
       );
     }
 
@@ -230,9 +223,7 @@ export class DirectivesService {
       });
 
       if (!category) {
-        throw new NotFoundException(
-          `Category not found: ${dto.categoryId}`,
-        );
+        throw new NotFoundException(`Category not found: ${dto.categoryId}`);
       }
     }
 
@@ -303,7 +294,7 @@ export class DirectivesService {
       const effectiveCategoryId = dto.categoryId ?? existing.categoryId;
       if (!effectiveCategoryId) {
         throw new BadRequestException(
-          'categoryId is required when stage is CATEGORY_SPECIFIC',
+          "categoryId is required when stage is CATEGORY_SPECIFIC",
         );
       }
     }
@@ -318,9 +309,7 @@ export class DirectivesService {
       });
 
       if (!category) {
-        throw new NotFoundException(
-          `Category not found: ${dto.categoryId}`,
-        );
+        throw new NotFoundException(`Category not found: ${dto.categoryId}`);
       }
     }
 
@@ -363,9 +352,7 @@ export class DirectivesService {
       },
     });
 
-    this.logger.log(
-      `Updated directive ${directive.id}: ${directive.title}`,
-    );
+    this.logger.log(`Updated directive ${directive.id}: ${directive.title}`);
 
     return directive as DirectiveWithCategory;
   }
@@ -417,7 +404,7 @@ export class DirectivesService {
 
     if (directives.length !== ids.length) {
       throw new BadRequestException(
-        'Some directive IDs are invalid or do not belong to this organization',
+        "Some directive IDs are invalid or do not belong to this organization",
       );
     }
 
@@ -425,7 +412,7 @@ export class DirectivesService {
     const stages = new Set(directives.map((d) => d.stage));
     if (stages.size > 1) {
       throw new BadRequestException(
-        'Cannot reorder directives from different stages',
+        "Cannot reorder directives from different stages",
       );
     }
 

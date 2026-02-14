@@ -204,7 +204,9 @@ export class ExportService {
     });
 
     // Build CSV
-    const headers = columns.map((c) => `"${this.escapeCsv(c.label)}"`).join(",");
+    const headers = columns
+      .map((c) => `"${this.escapeCsv(c.label)}"`)
+      .join(",");
 
     const rows = result.data.map((row) =>
       columns

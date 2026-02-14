@@ -62,12 +62,12 @@ export class SlaSchedulerService implements OnModuleInit {
 
       this.logger.log(
         `SLA check completed in ${durationMs}ms: ` +
-          `${result.checked} checked, ${result.warnings} warnings, ${result.breaches} breaches`
+          `${result.checked} checked, ${result.warnings} warnings, ${result.breaches} breaches`,
       );
     } catch (error) {
       this.logger.error(
         `SLA check failed: ${error instanceof Error ? error.message : "Unknown error"}`,
-        error instanceof Error ? error.stack : undefined
+        error instanceof Error ? error.stack : undefined,
       );
     } finally {
       this.isRunning = false;

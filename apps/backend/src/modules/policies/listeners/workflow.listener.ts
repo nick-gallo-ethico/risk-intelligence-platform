@@ -277,7 +277,9 @@ export class PolicyWorkflowListener {
    * @param event - The workflow transitioned event
    */
   @OnEvent(WorkflowTransitionedEvent.eventName, { async: true })
-  async onWorkflowTransitioned(event: WorkflowTransitionedEvent): Promise<void> {
+  async onWorkflowTransitioned(
+    event: WorkflowTransitionedEvent,
+  ): Promise<void> {
     try {
       // Only process POLICY entity types
       if (event.entityType !== "POLICY") {

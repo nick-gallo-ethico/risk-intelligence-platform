@@ -174,7 +174,8 @@ export class GoLiveService {
     const blockers: string[] = [];
     if (!allGatesPassed) {
       const pendingGates = gates.filter(
-        (g) => g.status === GateStatus.PENDING || g.status === GateStatus.FAILED,
+        (g) =>
+          g.status === GateStatus.PENDING || g.status === GateStatus.FAILED,
       );
       for (const gate of pendingGates) {
         const gateDef = HARD_GATES.find((g) => g.id === gate.gateId);
@@ -330,7 +331,9 @@ export class GoLiveService {
     });
 
     if (!item) {
-      throw new NotFoundException(`Readiness item ${itemId} not found for project`);
+      throw new NotFoundException(
+        `Readiness item ${itemId} not found for project`,
+      );
     }
 
     await this.prisma.readinessItem.update({

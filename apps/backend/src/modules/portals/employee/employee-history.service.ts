@@ -10,14 +10,14 @@
  * All queries are scoped to the authenticated user's Person record
  * within their organization.
  */
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
+import { Injectable } from "@nestjs/common";
+import { PrismaService } from "../../prisma/prisma.service";
 import {
   CampaignType,
   RiuStatus,
   AssignmentStatus,
   PersonRiuLabel,
-} from '@prisma/client';
+} from "@prisma/client";
 import {
   ReportSummary,
   DisclosureSummary,
@@ -25,7 +25,7 @@ import {
   ComplianceOverview,
   PaginationOptions,
   PaginatedResult,
-} from './types/employee-history.types';
+} from "./types/employee-history.types";
 
 /**
  * Default pagination values.
@@ -72,7 +72,7 @@ export class EmployeeHistoryService {
               },
               caseAssociations: {
                 take: 1,
-                orderBy: { createdAt: 'desc' },
+                orderBy: { createdAt: "desc" },
                 include: {
                   case: {
                     select: { status: true },
@@ -82,7 +82,7 @@ export class EmployeeHistoryService {
             },
           },
         },
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: "desc" },
         skip,
         take: limit,
       }),
@@ -166,7 +166,7 @@ export class EmployeeHistoryService {
             },
           },
         },
-        orderBy: { assignedAt: 'desc' },
+        orderBy: { assignedAt: "desc" },
         skip,
         take: limit,
       }),
@@ -256,9 +256,9 @@ export class EmployeeHistoryService {
         },
         orderBy: [
           // Pending first (completed last)
-          { completedAt: { sort: 'asc', nulls: 'first' } },
+          { completedAt: { sort: "asc", nulls: "first" } },
           // Then by due date
-          { dueDate: 'asc' },
+          { dueDate: "asc" },
         ],
         skip,
         take: limit,
@@ -488,23 +488,26 @@ export class EmployeeHistoryService {
   }): string | null {
     // Try to extract from campaign name (common pattern: "COI Disclosure 2024")
     const campaignName = assignment.campaign.name.toUpperCase();
-    if (campaignName.includes('COI') || campaignName.includes('CONFLICT')) {
-      return 'COI';
+    if (campaignName.includes("COI") || campaignName.includes("CONFLICT")) {
+      return "COI";
     }
-    if (campaignName.includes('GIFT')) {
-      return 'GIFT';
+    if (campaignName.includes("GIFT")) {
+      return "GIFT";
     }
-    if (campaignName.includes('EMPLOYMENT') || campaignName.includes('OUTSIDE')) {
-      return 'OUTSIDE_EMPLOYMENT';
+    if (
+      campaignName.includes("EMPLOYMENT") ||
+      campaignName.includes("OUTSIDE")
+    ) {
+      return "OUTSIDE_EMPLOYMENT";
     }
-    if (campaignName.includes('POLITICAL')) {
-      return 'POLITICAL';
+    if (campaignName.includes("POLITICAL")) {
+      return "POLITICAL";
     }
-    if (campaignName.includes('TRAVEL')) {
-      return 'TRAVEL';
+    if (campaignName.includes("TRAVEL")) {
+      return "TRAVEL";
     }
-    if (campaignName.includes('CHARITABLE')) {
-      return 'CHARITABLE';
+    if (campaignName.includes("CHARITABLE")) {
+      return "CHARITABLE";
     }
 
     return null;

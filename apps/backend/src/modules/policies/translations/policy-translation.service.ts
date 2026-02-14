@@ -659,7 +659,10 @@ export class PolicyTranslationService {
           select: { id: true, firstName: true, lastName: true, email: true },
         },
       },
-      orderBy: [{ policyVersion: { policy: { title: "asc" } } }, { languageCode: "asc" }],
+      orderBy: [
+        { policyVersion: { policy: { title: "asc" } } },
+        { languageCode: "asc" },
+      ],
     });
   }
 

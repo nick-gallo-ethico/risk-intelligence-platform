@@ -15,17 +15,22 @@
  * - Org settings: `org-settings:${organizationId}`
  */
 
-import { Injectable, Logger, Inject, BadRequestException } from '@nestjs/common';
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { Cache } from 'cache-manager';
-import { PrismaService } from '../../prisma/prisma.service';
+import {
+  Injectable,
+  Logger,
+  Inject,
+  BadRequestException,
+} from "@nestjs/common";
+import { CACHE_MANAGER } from "@nestjs/cache-manager";
+import { Cache } from "cache-manager";
+import { PrismaService } from "../../prisma/prisma.service";
 import {
   PreferenceSettings,
   DEFAULT_PREFERENCES,
   NotificationCategory,
   CategoryPreference,
-} from '../entities/notification.types';
-import { UpdatePreferencesDto } from '../dto/notification.dto';
+} from "../entities/notification.types";
+import { UpdatePreferencesDto } from "../dto/notification.dto";
 
 /** Cache TTL in milliseconds (5 minutes) */
 const PREFERENCE_CACHE_TTL = 5 * 60 * 1000;
@@ -118,13 +123,17 @@ export class PreferenceService {
           preferences: { ...DEFAULT_PREFERENCES },
           quietHoursStart: null,
           quietHoursEnd: null,
-          timezone: 'UTC',
+          timezone: "UTC",
           backupUserId: null,
           oooUntil: null,
         };
 
     // Cache result
-    await this.cacheManager.set(cacheKey, userPreferences, PREFERENCE_CACHE_TTL);
+    await this.cacheManager.set(
+      cacheKey,
+      userPreferences,
+      PREFERENCE_CACHE_TTL,
+    );
     this.logger.debug(`Cached preferences for: ${cacheKey}`);
 
     return userPreferences;
@@ -152,7 +161,9 @@ export class PreferenceService {
     ]);
 
     // Get category preference (with defaults applied)
-    const categoryPref: CategoryPreference = userPrefs.preferences[category] || {
+    const categoryPref: CategoryPreference = userPrefs.preferences[
+      category
+    ] || {
       email: false,
       inApp: true,
     };
@@ -202,12 +213,12 @@ export class PreferenceService {
       });
 
       if (!backupUser) {
-        throw new BadRequestException('Backup user not found or inactive');
+        throw new BadRequestException("Backup user not found or inactive");
       }
 
       // Prevent self-backup
       if (update.backupUserId === userId) {
-        throw new BadRequestException('Cannot set yourself as backup user');
+        throw new BadRequestException("Cannot set yourself as backup user");
       }
     }
 
@@ -224,7 +235,7 @@ export class PreferenceService {
         select: { preferences: true },
       });
       const existingPrefs =
-        existing?.preferences && typeof existing.preferences === 'object'
+        existing?.preferences && typeof existing.preferences === "object"
           ? (existing.preferences as Record<string, unknown>)
           : {};
       const merged = {
@@ -265,7 +276,7 @@ export class PreferenceService {
         preferences: (data.preferences || DEFAULT_PREFERENCES) as object,
         quietHoursStart: (data.quietHoursStart as string) || null,
         quietHoursEnd: (data.quietHoursEnd as string) || null,
-        timezone: (data.timezone as string) || 'UTC',
+        timezone: (data.timezone as string) || "UTC",
         backupUserId: (data.backupUserId as string) || null,
         oooUntil: (data.oooUntil as Date) || null,
       },
@@ -323,11 +334,11 @@ export class PreferenceService {
     });
 
     if (!backupUser) {
-      throw new BadRequestException('Backup user not found or inactive');
+      throw new BadRequestException("Backup user not found or inactive");
     }
 
     if (backupUserId === userId) {
-      throw new BadRequestException('Cannot set yourself as backup user');
+      throw new BadRequestException("Cannot set yourself as backup user");
     }
 
     // Upsert with OOO settings
@@ -432,7 +443,8 @@ export class PreferenceService {
     // Build settings object with defaults
     const orgSettings: OrgNotificationSettings = settings
       ? {
-          enforcedCategories: settings.enforcedCategories as NotificationCategory[],
+          enforcedCategories:
+            settings.enforcedCategories as NotificationCategory[],
           defaultQuietHoursStart: settings.defaultQuietHoursStart,
           defaultQuietHoursEnd: settings.defaultQuietHoursEnd,
           digestTime: settings.digestTime,
@@ -475,7 +487,7 @@ export class PreferenceService {
     const merged: PreferenceSettings = { ...DEFAULT_PREFERENCES };
 
     for (const [category, pref] of Object.entries(userPrefs)) {
-      if (pref && typeof pref === 'object') {
+      if (pref && typeof pref === "object") {
         merged[category] = {
           email: pref.email ?? DEFAULT_PREFERENCES[category]?.email ?? false,
           inApp: pref.inApp ?? DEFAULT_PREFERENCES[category]?.inApp ?? true,
@@ -517,19 +529,19 @@ export class PreferenceService {
 
     // Get current time in user's timezone
     const now = new Date();
-    const timezone = userPrefs.timezone || 'UTC';
+    const timezone = userPrefs.timezone || "UTC";
 
     try {
       // Format current time in user's timezone
-      const formatter = new Intl.DateTimeFormat('en-US', {
+      const formatter = new Intl.DateTimeFormat("en-US", {
         timeZone: timezone,
-        hour: '2-digit',
-        minute: '2-digit',
+        hour: "2-digit",
+        minute: "2-digit",
         hour12: false,
       });
       const parts = formatter.formatToParts(now);
-      const hour = parts.find((p) => p.type === 'hour')?.value || '00';
-      const minute = parts.find((p) => p.type === 'minute')?.value || '00';
+      const hour = parts.find((p) => p.type === "hour")?.value || "00";
+      const minute = parts.find((p) => p.type === "minute")?.value || "00";
       const currentTime = `${hour}:${minute}`;
 
       // Parse times for comparison
@@ -557,7 +569,7 @@ export class PreferenceService {
    * Convert HH:MM time string to minutes since midnight.
    */
   private timeToMinutes(time: string): number {
-    const [hours, minutes] = time.split(':').map(Number);
+    const [hours, minutes] = time.split(":").map(Number);
     return hours * 60 + minutes;
   }
 }
@@ -581,8 +593,8 @@ export interface OrgNotificationSettings {
  * Per CONTEXT.md: assignments, escalations, deadlines are critical.
  */
 const DEFAULT_ORG_SETTINGS: OrgNotificationSettings = {
-  enforcedCategories: ['ASSIGNMENT', 'DEADLINE'] as NotificationCategory[],
+  enforcedCategories: ["ASSIGNMENT", "DEADLINE"] as NotificationCategory[],
   defaultQuietHoursStart: null,
   defaultQuietHoursEnd: null,
-  digestTime: '17:00',
+  digestTime: "17:00",
 };

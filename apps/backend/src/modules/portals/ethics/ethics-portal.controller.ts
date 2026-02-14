@@ -37,9 +37,9 @@ import {
   ParseFilePipe,
   MaxFileSizeValidator,
   FileTypeValidator,
-} from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { Throttle } from '@nestjs/throttler';
+} from "@nestjs/common";
+import { FileInterceptor } from "@nestjs/platform-express";
+import { Throttle } from "@nestjs/throttler";
 import {
   ApiTags,
   ApiOperation,
@@ -48,9 +48,9 @@ import {
   ApiBody,
   ApiConsumes,
   ApiQuery,
-} from '@nestjs/swagger';
-import { Public } from '../../../common/guards/jwt-auth.guard';
-import { EthicsPortalService } from './ethics-portal.service';
+} from "@nestjs/swagger";
+import { Public } from "../../../common/guards/jwt-auth.guard";
+import { EthicsPortalService } from "./ethics-portal.service";
 import {
   SubmitReportDto,
   SaveDraftDto,
@@ -60,7 +60,7 @@ import {
   AccessCodeParamDto,
   DraftCodeParamDto,
   AttachmentUploadDto,
-} from './dto';
+} from "./dto";
 import {
   SubmissionResult,
   CategoryInfo,
@@ -69,7 +69,7 @@ import {
   DraftReport,
   ReportStatus,
   Message,
-} from './types';
+} from "./types";
 
 // Maximum file size for attachments (25MB)
 const MAX_FILE_SIZE = 25 * 1024 * 1024;
@@ -83,8 +83,8 @@ const ALLOWED_FILE_TYPES =
  *
  * Route: /api/v1/public/ethics/:tenantSlug
  */
-@ApiTags('Ethics Portal (Public)')
-@Controller('public/ethics/:tenantSlug')
+@ApiTags("Ethics Portal (Public)")
+@Controller("public/ethics/:tenantSlug")
 @Public()
 export class EthicsPortalController {
   constructor(private readonly ethicsPortalService: EthicsPortalService) {}
@@ -97,12 +97,16 @@ export class EthicsPortalController {
    *
    * Rate limit: 30/min
    */
-  @Get('config')
+  @Get("config")
   @Throttle({ default: { limit: 30, ttl: 60000 } })
-  @ApiOperation({ summary: 'Get Ethics Portal configuration for tenant' })
-  @ApiParam({ name: 'tenantSlug', description: 'Organization slug', example: 'acme-corp' })
-  @ApiResponse({ status: 200, description: 'Portal configuration' })
-  @ApiResponse({ status: 404, description: 'Organization not found' })
+  @ApiOperation({ summary: "Get Ethics Portal configuration for tenant" })
+  @ApiParam({
+    name: "tenantSlug",
+    description: "Organization slug",
+    example: "acme-corp",
+  })
+  @ApiResponse({ status: 200, description: "Portal configuration" })
+  @ApiResponse({ status: 404, description: "Organization not found" })
   async getConfig(
     @Param() params: TenantSlugParamDto,
   ): Promise<TenantEthicsConfig> {
@@ -116,12 +120,12 @@ export class EthicsPortalController {
    *
    * Rate limit: 30/min
    */
-  @Get('categories')
+  @Get("categories")
   @Throttle({ default: { limit: 30, ttl: 60000 } })
-  @ApiOperation({ summary: 'Get report categories for tenant' })
-  @ApiParam({ name: 'tenantSlug', description: 'Organization slug' })
-  @ApiResponse({ status: 200, description: 'Category tree' })
-  @ApiResponse({ status: 404, description: 'Organization not found' })
+  @ApiOperation({ summary: "Get report categories for tenant" })
+  @ApiParam({ name: "tenantSlug", description: "Organization slug" })
+  @ApiResponse({ status: 200, description: "Category tree" })
+  @ApiResponse({ status: 404, description: "Organization not found" })
   async getCategories(
     @Param() params: TenantSlugParamDto,
   ): Promise<CategoryInfo[]> {
@@ -135,18 +139,25 @@ export class EthicsPortalController {
    *
    * Rate limit: 30/min
    */
-  @Get('categories/:categoryId/form')
+  @Get("categories/:categoryId/form")
   @Throttle({ default: { limit: 30, ttl: 60000 } })
-  @ApiOperation({ summary: 'Get form schema for category' })
-  @ApiParam({ name: 'tenantSlug', description: 'Organization slug' })
-  @ApiParam({ name: 'categoryId', description: 'Category UUID' })
-  @ApiResponse({ status: 200, description: 'Form schema' })
-  @ApiResponse({ status: 404, description: 'Category not found' })
+  @ApiOperation({ summary: "Get form schema for category" })
+  @ApiParam({ name: "tenantSlug", description: "Organization slug" })
+  @ApiParam({ name: "categoryId", description: "Category UUID" })
+  @ApiResponse({ status: 200, description: "Form schema" })
+  @ApiResponse({ status: 404, description: "Category not found" })
   async getFormSchema(
-    @Param('tenantSlug') tenantSlug: string,
+    @Param("tenantSlug") tenantSlug: string,
     @Param() params: CategoryIdParamDto,
-  ): Promise<{ schema: object; uiSchema: object | null; defaultValues: object | null }> {
-    return this.ethicsPortalService.getFormSchema(tenantSlug, params.categoryId);
+  ): Promise<{
+    schema: object;
+    uiSchema: object | null;
+    defaultValues: object | null;
+  }> {
+    return this.ethicsPortalService.getFormSchema(
+      tenantSlug,
+      params.categoryId,
+    );
   }
 
   /**
@@ -156,15 +167,15 @@ export class EthicsPortalController {
    *
    * Rate limit: 5/min (prevent spam)
    */
-  @Post('reports')
+  @Post("reports")
   @HttpCode(HttpStatus.CREATED)
   @Throttle({ default: { limit: 5, ttl: 60000 } })
-  @ApiOperation({ summary: 'Submit a new report' })
-  @ApiParam({ name: 'tenantSlug', description: 'Organization slug' })
+  @ApiOperation({ summary: "Submit a new report" })
+  @ApiParam({ name: "tenantSlug", description: "Organization slug" })
   @ApiBody({ type: SubmitReportDto })
-  @ApiResponse({ status: 201, description: 'Report submitted successfully' })
-  @ApiResponse({ status: 400, description: 'Invalid report data' })
-  @ApiResponse({ status: 404, description: 'Organization not found' })
+  @ApiResponse({ status: 201, description: "Report submitted successfully" })
+  @ApiResponse({ status: 400, description: "Invalid report data" })
+  @ApiResponse({ status: 404, description: "Organization not found" })
   async submitReport(
     @Param() params: TenantSlugParamDto,
     @Body() dto: SubmitReportDto,
@@ -181,19 +192,19 @@ export class EthicsPortalController {
    * Rate limit: 10/min
    * Max file size: 25MB
    */
-  @Post('attachments')
+  @Post("attachments")
   @HttpCode(HttpStatus.CREATED)
   @Throttle({ default: { limit: 10, ttl: 60000 } })
-  @UseInterceptors(FileInterceptor('file'))
-  @ApiOperation({ summary: 'Upload an attachment' })
-  @ApiParam({ name: 'tenantSlug', description: 'Organization slug' })
-  @ApiConsumes('multipart/form-data')
-  @ApiQuery({ name: 'isSensitive', required: false, type: Boolean })
-  @ApiResponse({ status: 201, description: 'Attachment uploaded' })
-  @ApiResponse({ status: 400, description: 'Invalid file' })
+  @UseInterceptors(FileInterceptor("file"))
+  @ApiOperation({ summary: "Upload an attachment" })
+  @ApiParam({ name: "tenantSlug", description: "Organization slug" })
+  @ApiConsumes("multipart/form-data")
+  @ApiQuery({ name: "isSensitive", required: false, type: Boolean })
+  @ApiResponse({ status: 201, description: "Attachment uploaded" })
+  @ApiResponse({ status: 400, description: "Invalid file" })
   async uploadAttachment(
     @Param() params: TenantSlugParamDto,
-    @Query('isSensitive') isSensitive: string,
+    @Query("isSensitive") isSensitive: string,
     @UploadedFile(
       new ParseFilePipe({
         validators: [
@@ -207,7 +218,7 @@ export class EthicsPortalController {
     return this.ethicsPortalService.uploadAttachment(
       params.tenantSlug,
       file,
-      isSensitive === 'true',
+      isSensitive === "true",
     );
   }
 
@@ -219,13 +230,13 @@ export class EthicsPortalController {
    *
    * Rate limit: 10/min
    */
-  @Post('draft')
+  @Post("draft")
   @HttpCode(HttpStatus.CREATED)
   @Throttle({ default: { limit: 10, ttl: 60000 } })
-  @ApiOperation({ summary: 'Save report draft' })
-  @ApiParam({ name: 'tenantSlug', description: 'Organization slug' })
+  @ApiOperation({ summary: "Save report draft" })
+  @ApiParam({ name: "tenantSlug", description: "Organization slug" })
   @ApiBody({ type: SaveDraftDto })
-  @ApiResponse({ status: 201, description: 'Draft saved' })
+  @ApiResponse({ status: 201, description: "Draft saved" })
   async saveDraft(
     @Param() params: TenantSlugParamDto,
     @Body() dto: SaveDraftDto,
@@ -238,15 +249,15 @@ export class EthicsPortalController {
    *
    * Rate limit: 10/min
    */
-  @Get('draft/:draftCode')
+  @Get("draft/:draftCode")
   @Throttle({ default: { limit: 10, ttl: 60000 } })
-  @ApiOperation({ summary: 'Get saved draft' })
-  @ApiParam({ name: 'tenantSlug', description: 'Organization slug' })
-  @ApiParam({ name: 'draftCode', description: 'Draft code' })
-  @ApiResponse({ status: 200, description: 'Draft data' })
-  @ApiResponse({ status: 404, description: 'Draft not found or expired' })
+  @ApiOperation({ summary: "Get saved draft" })
+  @ApiParam({ name: "tenantSlug", description: "Organization slug" })
+  @ApiParam({ name: "draftCode", description: "Draft code" })
+  @ApiResponse({ status: 200, description: "Draft data" })
+  @ApiResponse({ status: 404, description: "Draft not found or expired" })
   async getDraft(
-    @Param('tenantSlug') tenantSlug: string,
+    @Param("tenantSlug") tenantSlug: string,
     @Param() params: DraftCodeParamDto,
   ): Promise<DraftReport> {
     return this.ethicsPortalService.getDraft(tenantSlug, params.draftCode);
@@ -261,8 +272,8 @@ export class EthicsPortalController {
  * These endpoints allow anonymous reporters to check status and communicate
  * using their access code as authorization.
  */
-@ApiTags('Ethics Portal - Access Code (Public)')
-@Controller('public/access/:code')
+@ApiTags("Ethics Portal - Access Code (Public)")
+@Controller("public/access/:code")
 @Public()
 export class EthicsAccessController {
   constructor(private readonly ethicsPortalService: EthicsPortalService) {}
@@ -274,15 +285,17 @@ export class EthicsAccessController {
    *
    * Rate limit: 10/min (5 failed attempts trigger 15min lockout at rate limiter level)
    */
-  @Get('status')
+  @Get("status")
   @Throttle({ default: { limit: 10, ttl: 60000 } })
-  @ApiOperation({ summary: 'Check report status via access code' })
-  @ApiParam({ name: 'code', description: '12-character access code', example: 'A2B3C4D5E6F7' })
-  @ApiResponse({ status: 200, description: 'Report status' })
-  @ApiResponse({ status: 404, description: 'Invalid access code' })
-  async getStatus(
-    @Param() params: AccessCodeParamDto,
-  ): Promise<ReportStatus> {
+  @ApiOperation({ summary: "Check report status via access code" })
+  @ApiParam({
+    name: "code",
+    description: "12-character access code",
+    example: "A2B3C4D5E6F7",
+  })
+  @ApiResponse({ status: 200, description: "Report status" })
+  @ApiResponse({ status: 404, description: "Invalid access code" })
+  async getStatus(@Param() params: AccessCodeParamDto): Promise<ReportStatus> {
     return this.ethicsPortalService.getReportStatus(params.code);
   }
 
@@ -294,12 +307,12 @@ export class EthicsAccessController {
    *
    * Rate limit: 10/min
    */
-  @Get('messages')
+  @Get("messages")
   @Throttle({ default: { limit: 10, ttl: 60000 } })
-  @ApiOperation({ summary: 'Get messages via access code' })
-  @ApiParam({ name: 'code', description: '12-character access code' })
-  @ApiResponse({ status: 200, description: 'Messages list' })
-  @ApiResponse({ status: 404, description: 'Invalid access code' })
+  @ApiOperation({ summary: "Get messages via access code" })
+  @ApiParam({ name: "code", description: "12-character access code" })
+  @ApiResponse({ status: 200, description: "Messages list" })
+  @ApiResponse({ status: 404, description: "Invalid access code" })
   async getMessages(
     @Param() params: AccessCodeParamDto,
   ): Promise<{ messages: Message[]; totalCount: number }> {
@@ -315,15 +328,15 @@ export class EthicsAccessController {
    *
    * Rate limit: 5/min
    */
-  @Post('messages')
+  @Post("messages")
   @HttpCode(HttpStatus.CREATED)
   @Throttle({ default: { limit: 5, ttl: 60000 } })
-  @ApiOperation({ summary: 'Send message via access code' })
-  @ApiParam({ name: 'code', description: '12-character access code' })
+  @ApiOperation({ summary: "Send message via access code" })
+  @ApiParam({ name: "code", description: "12-character access code" })
   @ApiBody({ type: SendMessageDto })
-  @ApiResponse({ status: 201, description: 'Message sent' })
-  @ApiResponse({ status: 400, description: 'No case linked yet' })
-  @ApiResponse({ status: 404, description: 'Invalid access code' })
+  @ApiResponse({ status: 201, description: "Message sent" })
+  @ApiResponse({ status: 400, description: "No case linked yet" })
+  @ApiResponse({ status: 404, description: "Invalid access code" })
   async sendMessage(
     @Param() params: AccessCodeParamDto,
     @Body() dto: SendMessageDto,

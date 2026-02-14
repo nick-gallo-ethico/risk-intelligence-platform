@@ -5,7 +5,7 @@
  */
 
 // Module
-export { NotificationsModule } from './notifications.module';
+export { NotificationsModule } from "./notifications.module";
 
 // Types and enums
 export {
@@ -24,7 +24,7 @@ export {
   InAppNotification,
   PreferenceCheckResult,
   NotificationTriggerEvent,
-} from './entities/notification.types';
+} from "./entities/notification.types";
 
 // DTOs
 export {
@@ -37,13 +37,10 @@ export {
   NotificationListResponseDto,
   NotificationResponseDto,
   PreferencesResponseDto,
-} from './dto/notification.dto';
+} from "./dto/notification.dto";
 
 // WebSocket DTOs (07-05)
-export {
-  MarkReadPayload,
-  GetRecentPayload,
-} from './dto/websocket.dto';
+export { MarkReadPayload, GetRecentPayload } from "./dto/websocket.dto";
 
 export type {
   SocketContext,
@@ -53,10 +50,10 @@ export type {
   RecentNotificationsEvent,
   NotificationErrorEvent,
   NotificationWebSocketEvent,
-} from './dto/websocket.dto';
+} from "./dto/websocket.dto";
 
 // Gateway (07-05)
-export { NotificationGateway } from './gateways';
+export { NotificationGateway } from "./gateways";
 
 // Services
 export {
@@ -64,7 +61,7 @@ export {
   PreferenceService,
   OrgNotificationSettingsService,
   NotificationService,
-} from './services';
+} from "./services";
 
 // Service types
 export type {
@@ -77,4 +74,4 @@ export type {
   EffectivePreference,
   OrgNotificationSettings,
   PaginatedNotifications,
-} from './services';
+} from "./services";

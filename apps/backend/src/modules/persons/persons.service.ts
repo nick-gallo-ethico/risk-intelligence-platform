@@ -207,7 +207,8 @@ export class PersonsService {
     if (dto.phone !== undefined) data.phone = dto.phone;
     if (dto.employeeId !== undefined) data.employeeId = dto.employeeId;
     // Denormalized Employee fields
-    if (dto.businessUnitId !== undefined) data.businessUnitId = dto.businessUnitId;
+    if (dto.businessUnitId !== undefined)
+      data.businessUnitId = dto.businessUnitId;
     if (dto.businessUnitName !== undefined)
       data.businessUnitName = dto.businessUnitName;
     if (dto.jobTitle !== undefined) data.jobTitle = dto.jobTitle;
@@ -438,9 +439,7 @@ export class PersonsService {
       employeeId: employee.id,
     });
 
-    this.logger.log(
-      `Created Person ${person.id} from Employee ${employee.id}`,
-    );
+    this.logger.log(`Created Person ${person.id} from Employee ${employee.id}`);
 
     return person;
   }

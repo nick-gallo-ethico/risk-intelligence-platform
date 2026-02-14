@@ -15,14 +15,17 @@
  * @see EmailTemplateService for template rendering
  */
 
-import { Injectable, Logger } from '@nestjs/common';
-import { InjectQueue } from '@nestjs/bullmq';
-import { Queue } from 'bullmq';
-import { EventEmitter2 } from '@nestjs/event-emitter';
-import { PrismaService } from '../../prisma/prisma.service';
-import { PreferenceService, EffectivePreference } from './preference.service';
-import { EmailTemplateService, EmailTemplateContext } from './email-template.service';
-import { EMAIL_QUEUE_NAME } from '../../jobs/queues/email.queue';
+import { Injectable, Logger } from "@nestjs/common";
+import { InjectQueue } from "@nestjs/bullmq";
+import { Queue } from "bullmq";
+import { EventEmitter2 } from "@nestjs/event-emitter";
+import { PrismaService } from "../../prisma/prisma.service";
+import { PreferenceService, EffectivePreference } from "./preference.service";
+import {
+  EmailTemplateService,
+  EmailTemplateContext,
+} from "./email-template.service";
+import { EMAIL_QUEUE_NAME } from "../../jobs/queues/email.queue";
 import {
   NotificationCategory,
   NotificationChannel,
@@ -30,8 +33,8 @@ import {
   NotificationType,
   REAL_TIME_CATEGORIES,
   InAppNotification,
-} from '../entities/notification.types';
-import { NotificationQueryDto } from '../dto/notification.dto';
+} from "../entities/notification.types";
+import { NotificationQueryDto } from "../dto/notification.dto";
 
 /**
  * Parameters for queueing an email notification.
@@ -225,7 +228,9 @@ export class NotificationService {
     });
 
     if (!user) {
-      this.logger.warn(`User not found for email notification: ${actualRecipientId}`);
+      this.logger.warn(
+        `User not found for email notification: ${actualRecipientId}`,
+      );
       return;
     }
 
@@ -246,13 +251,18 @@ export class NotificationService {
       ...context,
       org: {
         name: org.name,
-        branding: orgSettings?.branding as EmailTemplateContext['org'] extends { branding?: infer B } ? B : undefined,
+        branding: orgSettings?.branding as EmailTemplateContext["org"] extends {
+          branding?: infer B;
+        }
+          ? B
+          : undefined,
       },
       recipient: {
-        name: `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email,
+        name:
+          `${user.firstName || ""} ${user.lastName || ""}`.trim() || user.email,
         email: user.email,
       },
-      appUrl: process.env.APP_URL || 'https://app.ethico.com',
+      appUrl: process.env.APP_URL || "https://app.ethico.com",
     };
 
     // Pre-render template (per RESEARCH.md - don't render in queue worker)
@@ -290,10 +300,10 @@ export class NotificationService {
     // Priority: urgent = 1, normal = 2
     const priority = isUrgent ? 1 : 2;
 
-    await this.emailQueue.add('send-email', jobData, {
+    await this.emailQueue.add("send-email", jobData, {
       priority,
       attempts: 3,
-      backoff: { type: 'exponential', delay: 1000 },
+      backoff: { type: "exponential", delay: 1000 },
     });
 
     this.logger.log(
@@ -362,7 +372,7 @@ export class NotificationService {
     };
 
     // Emit event for WebSocket delivery (gateway will subscribe to this)
-    this.eventEmitter.emit('notification.in_app.created', {
+    this.eventEmitter.emit("notification.in_app.created", {
       organizationId,
       userId: recipientUserId,
       notification: inAppNotification,
@@ -382,7 +392,8 @@ export class NotificationService {
    * @param params - Digest queue parameters
    */
   async queueForDigest(params: QueueForDigestParams): Promise<void> {
-    const { organizationId, userId, type, entityType, entityId, metadata } = params;
+    const { organizationId, userId, type, entityType, entityId, metadata } =
+      params;
 
     // Store in DigestQueue table for batch processing by DigestService (07-06)
     await this.prisma.digestQueue.create({
@@ -392,7 +403,7 @@ export class NotificationService {
         type: type as string,
         entityType,
         entityId,
-        metadata: metadata as object || {},
+        metadata: (metadata as object) || {},
       },
     });
 
@@ -519,7 +530,7 @@ export class NotificationService {
     const [notifications, total, unreadCount] = await Promise.all([
       this.prisma.notification.findMany({
         where,
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: "desc" },
         take: limit,
         skip: offset,
         select: {
@@ -600,7 +611,7 @@ export class NotificationService {
       },
     });
 
-    this.eventEmitter.emit('notification.unread_count.updated', {
+    this.eventEmitter.emit("notification.unread_count.updated", {
       organizationId,
       userId,
       unreadCount,
@@ -652,7 +663,10 @@ export class NotificationService {
    * @param userId - User ID
    * @returns Unread count
    */
-  async getUnreadCount(organizationId: string, userId: string): Promise<number> {
+  async getUnreadCount(
+    organizationId: string,
+    userId: string,
+  ): Promise<number> {
     return this.prisma.notification.count({
       where: {
         organizationId,
@@ -691,7 +705,7 @@ export class NotificationService {
 
     const notifications = await this.prisma.notification.findMany({
       where,
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
       take: limit,
       select: {
         id: true,
@@ -741,13 +755,15 @@ export class NotificationService {
     });
 
     // Emit event for real-time unread count update
-    this.eventEmitter.emit('notification.unread_count.updated', {
+    this.eventEmitter.emit("notification.unread_count.updated", {
       organizationId,
       userId,
       unreadCount: 0,
     });
 
-    this.logger.log(`Marked all (${result.count}) notifications as read for user ${userId}`);
+    this.logger.log(
+      `Marked all (${result.count}) notifications as read for user ${userId}`,
+    );
 
     return result.count;
   }
@@ -773,7 +789,7 @@ export class NotificationService {
     });
 
     if (!notification) {
-      throw new Error('Notification not found');
+      throw new Error("Notification not found");
     }
 
     await this.prisma.notification.update({
@@ -783,7 +799,9 @@ export class NotificationService {
       },
     });
 
-    this.logger.debug(`Archived notification ${notificationId} for user ${userId}`);
+    this.logger.debug(
+      `Archived notification ${notificationId} for user ${userId}`,
+    );
   }
 
   /**

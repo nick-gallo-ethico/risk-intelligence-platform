@@ -17,7 +17,10 @@ import {
   ClientListResult,
   ClientListItem,
 } from "./types/client-profile.types";
-import { CreateHotlineNumberDto, UpdateQaConfigDto } from "./dto/client-profile.dto";
+import {
+  CreateHotlineNumberDto,
+  UpdateQaConfigDto,
+} from "./dto/client-profile.dto";
 
 /**
  * Service for managing client profiles for operator console.
@@ -91,16 +94,10 @@ export class ClientProfileService {
               isActive: true,
               // Only include categories that apply to case management (hotline reports)
               module: {
-                in: [
-                  CategoryModule.CASE,
-                  CategoryModule.ALL,
-                ],
+                in: [CategoryModule.CASE, CategoryModule.ALL],
               },
             },
-            orderBy: [
-              { level: "asc" },
-              { name: "asc" },
-            ],
+            orderBy: [{ level: "asc" }, { name: "asc" }],
           },
           tenantBranding: true,
         },
@@ -126,7 +123,9 @@ export class ClientProfileService {
           samplePercentage: org.clientQaConfig.samplePercentage,
           highRiskCategories: org.clientQaConfig.highRiskCategories,
           keywordTriggers: org.clientQaConfig.keywordTriggers,
-          categoryOverrides: (org.clientQaConfig.categoryOverrides as Record<string, QaMode>) || {},
+          categoryOverrides:
+            (org.clientQaConfig.categoryOverrides as Record<string, QaMode>) ||
+            {},
         }
       : null;
 
@@ -195,14 +194,24 @@ export class ClientProfileService {
     }
 
     // Check category overrides first
-    const categoryOverrides = (qaConfig.categoryOverrides as Record<string, string>) || {};
+    const categoryOverrides =
+      (qaConfig.categoryOverrides as Record<string, string>) || {};
     if (categoryId && categoryOverrides[categoryId]) {
       const overrideMode = categoryOverrides[categoryId] as QaMode;
-      return this.evaluateQaMode(overrideMode, categoryId, content, qaConfig, "category_override");
+      return this.evaluateQaMode(
+        overrideMode,
+        categoryId,
+        content,
+        qaConfig,
+        "category_override",
+      );
     }
 
     // Check for keyword triggers (applies to all modes except NONE)
-    if (qaConfig.defaultMode !== QaMode.NONE && qaConfig.keywordTriggers.length > 0) {
+    if (
+      qaConfig.defaultMode !== QaMode.NONE &&
+      qaConfig.keywordTriggers.length > 0
+    ) {
       const contentLower = content.toLowerCase();
       for (const keyword of qaConfig.keywordTriggers) {
         if (contentLower.includes(keyword.toLowerCase())) {
@@ -216,7 +225,12 @@ export class ClientProfileService {
     }
 
     // Evaluate based on default mode
-    return this.evaluateQaMode(qaConfig.defaultMode, categoryId, content, qaConfig);
+    return this.evaluateQaMode(
+      qaConfig.defaultMode,
+      categoryId,
+      content,
+      qaConfig,
+    );
   }
 
   /**
@@ -423,7 +437,9 @@ export class ClientProfileService {
       });
 
       if (!org) {
-        throw new NotFoundException(`Organization not found: ${organizationId}`);
+        throw new NotFoundException(
+          `Organization not found: ${organizationId}`,
+        );
       }
 
       // Check if phone number already exists
@@ -482,7 +498,9 @@ export class ClientProfileService {
       });
     });
 
-    this.logger.log(`Removed hotline number ${numberId} from organization ${organizationId}`);
+    this.logger.log(
+      `Removed hotline number ${numberId} from organization ${organizationId}`,
+    );
   }
 
   /**
@@ -499,7 +517,9 @@ export class ClientProfileService {
       });
 
       if (!org) {
-        throw new NotFoundException(`Organization not found: ${organizationId}`);
+        throw new NotFoundException(
+          `Organization not found: ${organizationId}`,
+        );
       }
 
       // Upsert QA config
@@ -514,11 +534,21 @@ export class ClientProfileService {
           categoryOverrides: dto.categoryOverrides || {},
         },
         update: {
-          ...(dto.defaultMode !== undefined && { defaultMode: dto.defaultMode }),
-          ...(dto.samplePercentage !== undefined && { samplePercentage: dto.samplePercentage }),
-          ...(dto.highRiskCategories !== undefined && { highRiskCategories: dto.highRiskCategories }),
-          ...(dto.keywordTriggers !== undefined && { keywordTriggers: dto.keywordTriggers }),
-          ...(dto.categoryOverrides !== undefined && { categoryOverrides: dto.categoryOverrides }),
+          ...(dto.defaultMode !== undefined && {
+            defaultMode: dto.defaultMode,
+          }),
+          ...(dto.samplePercentage !== undefined && {
+            samplePercentage: dto.samplePercentage,
+          }),
+          ...(dto.highRiskCategories !== undefined && {
+            highRiskCategories: dto.highRiskCategories,
+          }),
+          ...(dto.keywordTriggers !== undefined && {
+            keywordTriggers: dto.keywordTriggers,
+          }),
+          ...(dto.categoryOverrides !== undefined && {
+            categoryOverrides: dto.categoryOverrides,
+          }),
         },
       });
     });
@@ -531,7 +561,8 @@ export class ClientProfileService {
       samplePercentage: result.samplePercentage,
       highRiskCategories: result.highRiskCategories,
       keywordTriggers: result.keywordTriggers,
-      categoryOverrides: (result.categoryOverrides as Record<string, QaMode>) || {},
+      categoryOverrides:
+        (result.categoryOverrides as Record<string, QaMode>) || {},
     };
   }
 }

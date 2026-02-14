@@ -8,15 +8,15 @@
  */
 export enum TaskType {
   /** Policy acknowledgment from attestation campaigns */
-  ATTESTATION = 'ATTESTATION',
+  ATTESTATION = "ATTESTATION",
   /** COI, gift, or other disclosure form from disclosure campaigns */
-  DISCLOSURE = 'DISCLOSURE',
+  DISCLOSURE = "DISCLOSURE",
   /** Approval request (e.g., disclosure approval for managers) */
-  APPROVAL = 'APPROVAL',
+  APPROVAL = "APPROVAL",
   /** Anonymous reporter communication follow-up */
-  REPORT_FOLLOW_UP = 'REPORT_FOLLOW_UP',
+  REPORT_FOLLOW_UP = "REPORT_FOLLOW_UP",
   /** Assigned remediation action from a remediation plan */
-  REMEDIATION_STEP = 'REMEDIATION_STEP',
+  REMEDIATION_STEP = "REMEDIATION_STEP",
 }
 
 /**
@@ -25,13 +25,13 @@ export enum TaskType {
  */
 export enum TaskStatus {
   /** Not started */
-  PENDING = 'PENDING',
+  PENDING = "PENDING",
   /** Past due date and not completed */
-  OVERDUE = 'OVERDUE',
+  OVERDUE = "OVERDUE",
   /** Started but not complete */
-  IN_PROGRESS = 'IN_PROGRESS',
+  IN_PROGRESS = "IN_PROGRESS",
   /** Done */
-  COMPLETED = 'COMPLETED',
+  COMPLETED = "COMPLETED",
 }
 
 /**
@@ -95,9 +95,9 @@ export interface TaskFilters {
  * Source type identifiers for task ID parsing and routing.
  */
 export const TASK_SOURCE_TYPES = {
-  CAMPAIGN_ASSIGNMENT: 'campaign_assignment',
-  REMEDIATION_STEP: 'remediation_step',
-  APPROVAL_REQUEST: 'approval_request',
+  CAMPAIGN_ASSIGNMENT: "campaign_assignment",
+  REMEDIATION_STEP: "remediation_step",
+  APPROVAL_REQUEST: "approval_request",
 } as const;
 
 export type TaskSourceType =
@@ -107,7 +107,10 @@ export type TaskSourceType =
  * Helper to build a task ID from source type and source ID.
  * Format: {sourceType}-{sourceId}
  */
-export function buildTaskId(sourceType: TaskSourceType, sourceId: string): string {
+export function buildTaskId(
+  sourceType: TaskSourceType,
+  sourceId: string,
+): string {
   return `${sourceType}-${sourceId}`;
 }
 
@@ -118,13 +121,13 @@ export function parseTaskId(taskId: string): {
   sourceType: TaskSourceType;
   sourceId: string;
 } | null {
-  const parts = taskId.split('-');
+  const parts = taskId.split("-");
   if (parts.length < 2) return null;
 
   // Source type is everything before the last UUID segment
   // Format: source_type-uuid
   const sourceType = parts[0] as TaskSourceType;
-  const sourceId = parts.slice(1).join('-');
+  const sourceId = parts.slice(1).join("-");
 
   if (!Object.values(TASK_SOURCE_TYPES).includes(sourceType)) {
     return null;

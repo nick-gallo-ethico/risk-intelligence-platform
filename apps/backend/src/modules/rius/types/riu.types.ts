@@ -11,50 +11,50 @@
  */
 export const IMMUTABLE_RIU_FIELDS = [
   // Classification
-  'type',
-  'sourceChannel',
+  "type",
+  "sourceChannel",
 
   // Content
-  'details',
-  'summary',
+  "details",
+  "summary",
 
   // Reporter Information
-  'reporterType',
-  'anonymousAccessCode',
-  'reporterName',
-  'reporterEmail',
-  'reporterPhone',
+  "reporterType",
+  "anonymousAccessCode",
+  "reporterName",
+  "reporterEmail",
+  "reporterPhone",
 
   // Classification (as captured at intake)
-  'categoryId',
-  'severity',
+  "categoryId",
+  "severity",
 
   // Location Information
-  'locationName',
-  'locationAddress',
-  'locationCity',
-  'locationState',
-  'locationZip',
-  'locationCountry',
+  "locationName",
+  "locationAddress",
+  "locationCity",
+  "locationState",
+  "locationZip",
+  "locationCountry",
 
   // Campaign linkage
-  'campaignId',
-  'campaignAssignmentId',
+  "campaignId",
+  "campaignAssignmentId",
 
   // Custom Data
-  'customFields',
-  'formResponses',
+  "customFields",
+  "formResponses",
 
   // Migration Support
-  'sourceSystem',
-  'sourceRecordId',
-  'migratedAt',
+  "sourceSystem",
+  "sourceRecordId",
+  "migratedAt",
 
   // Audit
-  'createdAt',
-  'createdById',
-  'referenceNumber',
-  'organizationId',
+  "createdAt",
+  "createdById",
+  "referenceNumber",
+  "organizationId",
 ] as const;
 
 /**
@@ -63,27 +63,27 @@ export const IMMUTABLE_RIU_FIELDS = [
  */
 export const MUTABLE_RIU_FIELDS = [
   // Status workflow
-  'status',
-  'statusChangedAt',
-  'statusChangedById',
+  "status",
+  "statusChangedAt",
+  "statusChangedById",
 
   // Language handling
-  'languageDetected',
-  'languageConfirmed',
-  'languageEffective',
+  "languageDetected",
+  "languageConfirmed",
+  "languageEffective",
 
   // AI Enrichment (can be regenerated)
-  'aiSummary',
-  'aiRiskScore',
-  'aiTranslation',
-  'aiLanguageDetected',
-  'aiModelVersion',
-  'aiGeneratedAt',
-  'aiConfidenceScore',
+  "aiSummary",
+  "aiRiskScore",
+  "aiTranslation",
+  "aiLanguageDetected",
+  "aiModelVersion",
+  "aiGeneratedAt",
+  "aiConfidenceScore",
 
   // Demo support
-  'demoUserSessionId',
-  'isBaseData',
+  "demoUserSessionId",
+  "isBaseData",
 ] as const;
 
 /**

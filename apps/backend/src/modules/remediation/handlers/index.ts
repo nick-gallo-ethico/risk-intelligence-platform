@@ -1,4 +1,4 @@
 /**
  * Remediation event handlers barrel export
  */
-export * from './remediation-event.handler';
+export * from "./remediation-event.handler";

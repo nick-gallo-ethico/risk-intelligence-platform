@@ -42,7 +42,7 @@ export class LeastLoadedStrategy extends AssignmentStrategy {
 
   async resolve(
     context: AssignmentContext,
-    config: LeastLoadedConfig
+    config: LeastLoadedConfig,
   ): Promise<AssignmentResult | null> {
     // Get users with their current investigation load
     const users = await this.prisma.user.findMany({
@@ -76,7 +76,7 @@ export class LeastLoadedStrategy extends AssignmentStrategy {
     const sortedUsers = [...users].sort(
       (a, b) =>
         a._count.investigationsPrimaryInvestigator -
-        b._count.investigationsPrimaryInvestigator
+        b._count.investigationsPrimaryInvestigator,
     );
 
     // Find first user under capacity limit

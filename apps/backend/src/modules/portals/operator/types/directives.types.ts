@@ -5,13 +5,13 @@
  * They can be opening statements, category-specific guidance, or closing scripts.
  */
 
-import { ClientDirective, DirectiveStage, Category } from '@prisma/client';
+import { ClientDirective, DirectiveStage, Category } from "@prisma/client";
 
 /**
  * A ClientDirective with its category relation included.
  */
 export interface DirectiveWithCategory extends ClientDirective {
-  category: Pick<Category, 'id' | 'name' | 'code'> | null;
+  category: Pick<Category, "id" | "name" | "code"> | null;
 }
 
 /**

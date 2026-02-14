@@ -25,8 +25,7 @@ export interface CreateReportTemplateDto {
 /**
  * DTO for updating a report template.
  */
-export interface UpdateReportTemplateDto
-  extends Partial<CreateReportTemplateDto> {}
+export interface UpdateReportTemplateDto extends Partial<CreateReportTemplateDto> {}
 
 /**
  * ReportTemplateService
@@ -116,10 +115,7 @@ export class ReportTemplateService {
    * Find templates by data source.
    * Useful for filtering available templates for a specific entity type.
    */
-  async findByDataSource(
-    organizationId: string,
-    dataSource: ReportDataSource,
-  ) {
+  async findByDataSource(organizationId: string, dataSource: ReportDataSource) {
     return this.prisma.reportTemplate.findMany({
       where: {
         OR: [{ organizationId }, { isSystem: true }],

@@ -54,6 +54,11 @@ import { JobsModule } from "../jobs/jobs.module";
     CaseIndexingHandler,
   ],
   controllers: [SearchController],
-  exports: [SearchService, UnifiedSearchService, IndexingService, PolicyIndexer],
+  exports: [
+    SearchService,
+    UnifiedSearchService,
+    IndexingService,
+    PolicyIndexer,
+  ],
 })
 export class SearchModule {}

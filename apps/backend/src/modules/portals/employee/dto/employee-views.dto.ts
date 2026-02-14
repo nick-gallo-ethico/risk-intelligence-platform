@@ -1,23 +1,16 @@
 /**
  * DTOs for employee history view endpoints.
  */
-import {
-  IsOptional,
-  IsString,
-  IsInt,
-  Min,
-  Max,
-  IsEnum,
-} from 'class-validator';
-import { Transform, Type } from 'class-transformer';
+import { IsOptional, IsString, IsInt, Min, Max, IsEnum } from "class-validator";
+import { Transform, Type } from "class-transformer";
 
 /**
  * Status filter for attestation list.
  */
 export enum AttestationStatusFilter {
-  PENDING = 'PENDING',
-  COMPLETED = 'COMPLETED',
-  ALL = 'ALL',
+  PENDING = "PENDING",
+  COMPLETED = "COMPLETED",
+  ALL = "ALL",
 }
 
 /**

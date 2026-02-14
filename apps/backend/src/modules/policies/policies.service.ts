@@ -122,10 +122,7 @@ export class PoliciesService {
    * Returns a single policy by ID.
    * Returns null if not found or belongs to different organization.
    */
-  async findById(
-    id: string,
-    organizationId: string,
-  ): Promise<Policy | null> {
+  async findById(id: string, organizationId: string): Promise<Policy | null> {
     const policy = await this.prisma.policy.findFirst({
       where: {
         id,
@@ -140,7 +137,12 @@ export class PoliciesService {
           take: 1,
           include: {
             publishedBy: {
-              select: { id: true, firstName: true, lastName: true, email: true },
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                email: true,
+              },
             },
           },
         },
@@ -153,10 +155,7 @@ export class PoliciesService {
   /**
    * Returns a single policy by ID, throwing if not found.
    */
-  async findByIdOrFail(
-    id: string,
-    organizationId: string,
-  ): Promise<Policy> {
+  async findByIdOrFail(id: string, organizationId: string): Promise<Policy> {
     const policy = await this.findById(id, organizationId);
     if (!policy) {
       throw new NotFoundException(`Policy with ID ${id} not found`);
@@ -253,10 +252,7 @@ export class PoliciesService {
     }
 
     // If published and no draft, initialize draft from latest version
-    if (
-      existing.status === PolicyStatus.PUBLISHED &&
-      !existing.draftContent
-    ) {
+    if (existing.status === PolicyStatus.PUBLISHED && !existing.draftContent) {
       const latestVersion = await this.prisma.policyVersion.findFirst({
         where: {
           policyId,
@@ -291,7 +287,10 @@ export class PoliciesService {
       changes.title = { old: existing.title, new: dto.title };
     }
 
-    if (dto.policyType !== undefined && dto.policyType !== existing.policyType) {
+    if (
+      dto.policyType !== undefined &&
+      dto.policyType !== existing.policyType
+    ) {
       data.policyType = dto.policyType;
       changes.policyType = { old: existing.policyType, new: dto.policyType };
     }

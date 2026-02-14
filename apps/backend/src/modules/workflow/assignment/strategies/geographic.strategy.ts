@@ -43,7 +43,7 @@ export class GeographicStrategy extends AssignmentStrategy {
 
   async resolve(
     context: AssignmentContext,
-    config: GeographicConfig
+    config: GeographicConfig,
   ): Promise<AssignmentResult | null> {
     if (!context.location && !config.fallbackUserId) {
       return null;
@@ -100,9 +100,7 @@ export class GeographicStrategy extends AssignmentStrategy {
     }
 
     const locationDesc =
-      matchKey === "fallback"
-        ? "(fallback)"
-        : `for ${matchKey}`;
+      matchKey === "fallback" ? "(fallback)" : `for ${matchKey}`;
 
     return {
       userId: user.id,

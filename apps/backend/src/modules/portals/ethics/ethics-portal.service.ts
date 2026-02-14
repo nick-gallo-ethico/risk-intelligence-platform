@@ -20,24 +20,24 @@ import {
   NotFoundException,
   BadRequestException,
   Inject,
-} from '@nestjs/common';
-import { EventEmitter2 } from '@nestjs/event-emitter';
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { Cache } from 'cache-manager';
+} from "@nestjs/common";
+import { EventEmitter2 } from "@nestjs/event-emitter";
+import { CACHE_MANAGER } from "@nestjs/cache-manager";
+import { Cache } from "cache-manager";
 import {
   RiuType,
   RiuSourceChannel,
   RiuReporterType,
   Severity,
   AttachmentEntityType,
-} from '@prisma/client';
-import { PrismaService } from '../../prisma/prisma.service';
-import { RiusService } from '../../rius/rius.service';
-import { RiuAccessService } from '../../rius/riu-access.service';
-import { FormSchemaService } from '../../forms/form-schema.service';
-import { BrandingService } from '../../branding/branding.service';
-import { MessageRelayService } from '../../messaging/relay.service';
-import { SubmitReportDto, SaveDraftDto } from './dto/submit-report.dto';
+} from "@prisma/client";
+import { PrismaService } from "../../prisma/prisma.service";
+import { RiusService } from "../../rius/rius.service";
+import { RiuAccessService } from "../../rius/riu-access.service";
+import { FormSchemaService } from "../../forms/form-schema.service";
+import { BrandingService } from "../../branding/branding.service";
+import { MessageRelayService } from "../../messaging/relay.service";
+import { SubmitReportDto, SaveDraftDto } from "./dto/submit-report.dto";
 import {
   SubmissionResult,
   CategoryInfo,
@@ -48,14 +48,14 @@ import {
   Message,
   STATUS_LABEL_MAP,
   STATUS_DESCRIPTION_MAP,
-} from './types/ethics-portal.types';
-import { customAlphabet } from 'nanoid';
+} from "./types/ethics-portal.types";
+import { customAlphabet } from "nanoid";
 
 /** Cache TTL for tenant config (5 minutes) */
 const CONFIG_CACHE_TTL = 5 * 60 * 1000;
 
 /** Draft code alphabet (readable, no confusing chars) */
-const DRAFT_CODE_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+const DRAFT_CODE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
 const generateDraftCode = customAlphabet(DRAFT_CODE_ALPHABET, 12);
 
 /** Draft expiration time (24 hours) */
@@ -153,11 +153,16 @@ export class EthicsPortalService {
 
     // Link temporary attachments to the RIU
     if (dto.attachmentIds && dto.attachmentIds.length > 0) {
-      await this.linkAttachmentsToRiu(org.id, riu.id, dto.attachmentIds, systemUserId);
+      await this.linkAttachmentsToRiu(
+        org.id,
+        riu.id,
+        dto.attachmentIds,
+        systemUserId,
+      );
     }
 
     // Emit event for analytics and notifications
-    this.emitEvent('ethics_portal.report_submitted', {
+    this.emitEvent("ethics_portal.report_submitted", {
       organizationId: org.id,
       riuId: riu.id,
       referenceNumber: riu.referenceNumber,
@@ -177,7 +182,7 @@ export class EthicsPortalService {
       referenceNumber: riu.referenceNumber,
       submittedAt: riu.createdAt,
       statusMessage:
-        'Your report has been received. Save your access code to check status.',
+        "Your report has been received. Save your access code to check status.",
     };
   }
 
@@ -196,7 +201,11 @@ export class EthicsPortalService {
         organizationId: org.id,
         isActive: true,
       },
-      orderBy: [{ parentCategoryId: 'asc' }, { sortOrder: 'asc' }, { name: 'asc' }],
+      orderBy: [
+        { parentCategoryId: "asc" },
+        { sortOrder: "asc" },
+        { name: "asc" },
+      ],
     });
 
     // Build tree structure
@@ -211,7 +220,10 @@ export class EthicsPortalService {
         description: cat.description,
         parentId: cat.parentCategoryId,
         // Form schema derived from moduleConfig if present
-        formSchemaId: (cat.moduleConfig as Record<string, unknown>)?.formSchemaId as string | null ?? null,
+        formSchemaId:
+          ((cat.moduleConfig as Record<string, unknown>)?.formSchemaId as
+            | string
+            | null) ?? null,
         icon: cat.icon,
         isActive: cat.isActive,
         children: [],
@@ -264,7 +276,8 @@ export class EthicsPortalService {
     }
 
     // Check if category has a specific form schema in moduleConfig
-    const formSchemaId = (category.moduleConfig as Record<string, unknown>)?.formSchemaId as string | undefined;
+    const formSchemaId = (category.moduleConfig as Record<string, unknown>)
+      ?.formSchemaId as string | undefined;
 
     // If category has a specific form schema, fetch it
     if (formSchemaId) {
@@ -362,9 +375,11 @@ export class EthicsPortalService {
     const categories = await this.getCategoriesForTenant(tenantSlug);
 
     // Get branding
-    let branding: TenantEthicsConfig['branding'];
+    let branding: TenantEthicsConfig["branding"];
     try {
-      const brandingConfig = await this.brandingService.getBrandingByOrgId(org.id);
+      const brandingConfig = await this.brandingService.getBrandingByOrgId(
+        org.id,
+      );
       branding = {
         logoUrl: brandingConfig.logoUrl,
         primaryColor: brandingConfig.primaryColor,
@@ -453,7 +468,7 @@ export class EthicsPortalService {
     const draft = await this.cacheManager.get<DraftReport>(cacheKey);
 
     if (!draft) {
-      throw new NotFoundException('Draft not found or expired');
+      throw new NotFoundException("Draft not found or expired");
     }
 
     return draft;
@@ -471,9 +486,10 @@ export class EthicsPortalService {
     return {
       referenceNumber: statusDto.caseReferenceNumber ?? statusDto.accessCode,
       status: statusDto.status,
-      statusLabel: STATUS_LABEL_MAP[statusDto.status] ?? 'Processing',
+      statusLabel: STATUS_LABEL_MAP[statusDto.status] ?? "Processing",
       statusDescription:
-        STATUS_DESCRIPTION_MAP[statusDto.status] ?? 'Your report is being processed.',
+        STATUS_DESCRIPTION_MAP[statusDto.status] ??
+        "Your report is being processed.",
       canMessage: statusDto.caseLinked,
       hasUnreadMessages: statusDto.hasMessages,
       lastUpdated: statusDto.lastUpdatedAt,
@@ -568,7 +584,7 @@ export class EthicsPortalService {
       !dto.reporterContact.phone
     ) {
       throw new BadRequestException(
-        'At least one contact method (email or phone) is required',
+        "At least one contact method (email or phone) is required",
       );
     }
   }
@@ -576,16 +592,19 @@ export class EthicsPortalService {
   /**
    * Infer RIU type from category.
    */
-  private inferRiuType(category: { code?: string | null; name: string }): RiuType {
-    const code = category.code?.toUpperCase() ?? '';
+  private inferRiuType(category: {
+    code?: string | null;
+    name: string;
+  }): RiuType {
+    const code = category.code?.toUpperCase() ?? "";
     const name = category.name.toUpperCase();
 
     // Check for disclosure-related categories
     if (
-      code.includes('COI') ||
-      code.includes('DISCLOSURE') ||
-      name.includes('CONFLICT OF INTEREST') ||
-      name.includes('DISCLOSURE')
+      code.includes("COI") ||
+      code.includes("DISCLOSURE") ||
+      name.includes("CONFLICT OF INTEREST") ||
+      name.includes("DISCLOSURE")
     ) {
       return RiuType.DISCLOSURE_RESPONSE;
     }
@@ -602,7 +621,7 @@ export class EthicsPortalService {
     let systemUser = await this.prisma.user.findFirst({
       where: {
         organizationId,
-        email: 'system@ethico.com',
+        email: "system@ethico.com",
       },
     });
 
@@ -610,10 +629,10 @@ export class EthicsPortalService {
       systemUser = await this.prisma.user.create({
         data: {
           organizationId,
-          email: 'system@ethico.com',
-          firstName: 'System',
-          lastName: 'User',
-          role: 'SYSTEM_ADMIN',
+          email: "system@ethico.com",
+          firstName: "System",
+          lastName: "User",
+          role: "SYSTEM_ADMIN",
           isActive: false, // System user cannot login
         },
       });
@@ -670,57 +689,57 @@ export class EthicsPortalService {
    */
   private getBaseReportSchema(): object {
     return {
-      type: 'object',
+      type: "object",
       properties: {
         content: {
-          type: 'string',
-          title: 'What would you like to report?',
-          description: 'Please provide as much detail as possible.',
+          type: "string",
+          title: "What would you like to report?",
+          description: "Please provide as much detail as possible.",
           minLength: 10,
           maxLength: 50000,
         },
         incidentDate: {
-          type: 'string',
-          format: 'date',
-          title: 'When did this occur?',
+          type: "string",
+          format: "date",
+          title: "When did this occur?",
         },
         incidentLocation: {
-          type: 'string',
-          title: 'Where did this occur?',
+          type: "string",
+          title: "Where did this occur?",
         },
         involvedParties: {
-          type: 'string',
-          title: 'Who was involved? (optional)',
-          description: 'Names or descriptions of people involved.',
+          type: "string",
+          title: "Who was involved? (optional)",
+          description: "Names or descriptions of people involved.",
         },
       },
-      required: ['content'],
+      required: ["content"],
     };
   }
 
   /**
    * Get default demographic fields.
    */
-  private getDefaultDemographicFields(): TenantEthicsConfig['demographicFields'] {
+  private getDefaultDemographicFields(): TenantEthicsConfig["demographicFields"] {
     return [
       {
-        key: 'department',
-        label: 'Department',
+        key: "department",
+        label: "Department",
         required: false,
-        type: 'text',
+        type: "text",
       },
       {
-        key: 'location',
-        label: 'Location/Facility',
+        key: "location",
+        label: "Location/Facility",
         required: false,
-        type: 'text',
+        type: "text",
       },
       {
-        key: 'employeeStatus',
-        label: 'Employment Status',
+        key: "employeeStatus",
+        label: "Employment Status",
         required: false,
-        type: 'select',
-        options: ['Current Employee', 'Former Employee', 'Contractor', 'Other'],
+        type: "select",
+        options: ["Current Employee", "Former Employee", "Contractor", "Other"],
       },
     ];
   }

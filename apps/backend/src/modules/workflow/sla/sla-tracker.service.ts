@@ -39,7 +39,7 @@ export class SlaTrackerService {
 
   constructor(
     private prisma: PrismaService,
-    private eventEmitter: EventEmitter2
+    private eventEmitter: EventEmitter2,
   ) {}
 
   /**
@@ -53,7 +53,7 @@ export class SlaTrackerService {
   calculateSlaStatus(
     dueDate: Date,
     startDate?: Date,
-    slaConfig?: SlaConfig
+    slaConfig?: SlaConfig,
   ): SlaCalculation {
     const now = new Date();
     const remainingMs = dueDate.getTime() - now.getTime();
@@ -69,10 +69,7 @@ export class SlaTrackerService {
       : new Date(dueDate.getTime() - totalMs);
 
     const elapsedMs = now.getTime() - effectiveStartDate.getTime();
-    const percentUsed = Math.min(
-      200,
-      Math.max(0, (elapsedMs / totalMs) * 100)
-    );
+    const percentUsed = Math.min(200, Math.max(0, (elapsedMs / totalMs) * 100));
 
     const warningThreshold =
       slaConfig?.warningThresholdPercent || this.DEFAULT_WARNING_THRESHOLD;
@@ -132,7 +129,7 @@ export class SlaTrackerService {
         const calc = this.calculateSlaStatus(
           instance.dueDate,
           instance.createdAt,
-          slaConfig || undefined
+          slaConfig || undefined,
         );
 
         const previousStatus = instance.slaStatus;
@@ -189,13 +186,13 @@ export class SlaTrackerService {
         }
       } catch (error) {
         this.logger.error(
-          `Failed to update SLA for instance ${instance.id}: ${error instanceof Error ? error.message : "Unknown error"}`
+          `Failed to update SLA for instance ${instance.id}: ${error instanceof Error ? error.message : "Unknown error"}`,
         );
       }
     }
 
     this.logger.log(
-      `SLA check complete: ${instances.length} checked, ${warnings} warnings, ${breaches} breaches`
+      `SLA check complete: ${instances.length} checked, ${warnings} warnings, ${breaches} breaches`,
     );
 
     return { checked: instances.length, warnings, breaches };
@@ -222,7 +219,7 @@ export class SlaTrackerService {
     return this.calculateSlaStatus(
       instance.dueDate,
       instance.createdAt,
-      slaConfig || undefined
+      slaConfig || undefined,
     );
   }
 
@@ -245,8 +242,15 @@ export class SlaTrackerService {
    * Emit a warning event for an at-risk instance.
    */
   private emitWarningEvent(
-    instance: { id: string; organizationId: string; entityType: string; entityId: string; currentStage: string; dueDate: Date | null },
-    calc: SlaCalculation
+    instance: {
+      id: string;
+      organizationId: string;
+      entityType: string;
+      entityId: string;
+      currentStage: string;
+      dueDate: Date | null;
+    },
+    calc: SlaCalculation,
   ): void {
     try {
       this.eventEmitter.emit(
@@ -260,15 +264,15 @@ export class SlaTrackerService {
           stage: instance.currentStage,
           dueDate: instance.dueDate!,
           percentUsed: calc.percentUsed,
-        })
+        }),
       );
 
       this.logger.debug(
-        `Emitted SLA warning for instance ${instance.id} (${calc.percentUsed.toFixed(1)}% used)`
+        `Emitted SLA warning for instance ${instance.id} (${calc.percentUsed.toFixed(1)}% used)`,
       );
     } catch (error) {
       this.logger.error(
-        `Failed to emit SLA warning event: ${error instanceof Error ? error.message : "Unknown error"}`
+        `Failed to emit SLA warning event: ${error instanceof Error ? error.message : "Unknown error"}`,
       );
     }
   }
@@ -277,8 +281,14 @@ export class SlaTrackerService {
    * Emit a breach event for an overdue instance.
    */
   private emitBreachEvent(
-    instance: { id: string; organizationId: string; entityType: string; entityId: string; currentStage: string },
-    calc: SlaCalculation
+    instance: {
+      id: string;
+      organizationId: string;
+      entityType: string;
+      entityId: string;
+      currentStage: string;
+    },
+    calc: SlaCalculation,
   ): void {
     try {
       const hoursOverdue = Math.abs(calc.remainingHours);
@@ -294,15 +304,15 @@ export class SlaTrackerService {
           stage: instance.currentStage,
           breachLevel: calc.status as "breached" | "critical",
           hoursOverdue,
-        })
+        }),
       );
 
       this.logger.debug(
-        `Emitted SLA ${calc.status} for instance ${instance.id} (${hoursOverdue.toFixed(1)}h overdue)`
+        `Emitted SLA ${calc.status} for instance ${instance.id} (${hoursOverdue.toFixed(1)}h overdue)`,
       );
     } catch (error) {
       this.logger.error(
-        `Failed to emit SLA breach event: ${error instanceof Error ? error.message : "Unknown error"}`
+        `Failed to emit SLA breach event: ${error instanceof Error ? error.message : "Unknown error"}`,
       );
     }
   }

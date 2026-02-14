@@ -2,17 +2,17 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
-} from '@nestjs/common';
-import { PrismaService } from '../../modules/prisma/prisma.service';
-import { EventEmitter2 } from '@nestjs/event-emitter';
-import { StepStatus } from '@prisma/client';
+} from "@nestjs/common";
+import { PrismaService } from "../../modules/prisma/prisma.service";
+import { EventEmitter2 } from "@nestjs/event-emitter";
+import { StepStatus } from "@prisma/client";
 import {
   CreateRemediationStepDto,
   UpdateRemediationStepDto,
   CompleteStepDto,
   ApproveStepDto,
-} from './dto/remediation.dto';
-import { RemediationService } from './remediation.service';
+} from "./dto/remediation.dto";
+import { RemediationService } from "./remediation.service";
 
 @Injectable()
 export class RemediationStepService {
@@ -51,7 +51,7 @@ export class RemediationStepService {
     // Update plan step counts
     await this.remediationService.updateStepCounts(dto.planId);
 
-    this.eventEmitter.emit('remediation.step.created', {
+    this.eventEmitter.emit("remediation.step.created", {
       organizationId,
       stepId: step.id,
       planId: dto.planId,
@@ -72,7 +72,7 @@ export class RemediationStepService {
     });
 
     if (!step) {
-      throw new NotFoundException('Remediation step not found');
+      throw new NotFoundException("Remediation step not found");
     }
 
     return step;
@@ -86,7 +86,11 @@ export class RemediationStepService {
     const existing = await this.findById(organizationId, id);
 
     if (dto.dependsOnStepIds?.length) {
-      await this.validateDependencies(existing.planId, dto.dependsOnStepIds, id);
+      await this.validateDependencies(
+        existing.planId,
+        dto.dependsOnStepIds,
+        id,
+      );
     }
 
     const step = await this.prisma.remediationStep.update({
@@ -155,7 +159,7 @@ export class RemediationStepService {
     // Update plan step counts
     await this.remediationService.updateStepCounts(step.planId);
 
-    this.eventEmitter.emit('remediation.step.completed', {
+    this.eventEmitter.emit("remediation.step.completed", {
       organizationId,
       stepId: id,
       planId: step.planId,
@@ -175,11 +179,11 @@ export class RemediationStepService {
     const step = await this.findById(organizationId, id);
 
     if (!step.requiresCoApproval) {
-      throw new BadRequestException('This step does not require approval');
+      throw new BadRequestException("This step does not require approval");
     }
 
     if (step.status !== StepStatus.COMPLETED) {
-      throw new BadRequestException('Step must be completed before approval');
+      throw new BadRequestException("Step must be completed before approval");
     }
 
     const updatedStep = await this.prisma.remediationStep.update({
@@ -191,7 +195,7 @@ export class RemediationStepService {
       },
     });
 
-    this.eventEmitter.emit('remediation.step.approved', {
+    this.eventEmitter.emit("remediation.step.approved", {
       organizationId,
       stepId: id,
       planId: step.planId,
@@ -299,17 +303,13 @@ export class RemediationStepService {
       visited.clear();
       recursionStack.clear();
       if (hasCycle(stepId)) {
-        throw new BadRequestException('Circular dependency detected');
+        throw new BadRequestException("Circular dependency detected");
       }
     }
   }
 
   // Get steps assigned to a user
-  async findByAssignee(
-    organizationId: string,
-    userId: string,
-    email?: string,
-  ) {
+  async findByAssignee(organizationId: string, userId: string, email?: string) {
     return this.prisma.remediationStep.findMany({
       where: {
         organizationId,
@@ -324,7 +324,7 @@ export class RemediationStepService {
           select: { id: true, title: true, caseId: true },
         },
       },
-      orderBy: [{ dueDate: 'asc' }, { createdAt: 'asc' }],
+      orderBy: [{ dueDate: "asc" }, { createdAt: "asc" }],
     });
   }
 }

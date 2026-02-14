@@ -84,7 +84,7 @@ export class AssignmentRulesService {
     private readonly prisma: PrismaService,
     roundRobin: RoundRobinStrategy,
     leastLoaded: LeastLoadedStrategy,
-    geographic: GeographicStrategy
+    geographic: GeographicStrategy,
   ) {
     this.strategies = new Map<string, AssignmentStrategy>([
       [roundRobin.type, roundRobin],
@@ -105,10 +105,10 @@ export class AssignmentRulesService {
    * @returns Assignment result, or null if no suitable assignee
    */
   async resolveAssignee(
-    context: AssignmentContext
+    context: AssignmentContext,
   ): Promise<AssignmentResult | null> {
     this.logger.debug(
-      `Resolving assignee for ${context.entityType}:${context.entityId}`
+      `Resolving assignee for ${context.entityType}:${context.entityId}`,
     );
 
     // Step 1: Check category-based routing
@@ -133,7 +133,7 @@ export class AssignmentRulesService {
    * Resolve assignee based on category configuration.
    */
   private async resolveByCategoryRules(
-    context: AssignmentContext
+    context: AssignmentContext,
   ): Promise<AssignmentResult | null> {
     if (!context.category) return null;
 
@@ -186,7 +186,7 @@ export class AssignmentRulesService {
    * Fallback resolution using round-robin among investigators.
    */
   private async resolveFallback(
-    context: AssignmentContext
+    context: AssignmentContext,
   ): Promise<AssignmentResult | null> {
     const roundRobin = this.strategies.get("round_robin");
     if (!roundRobin) return null;
@@ -206,9 +206,7 @@ export class AssignmentRulesService {
    */
   registerStrategy(strategy: AssignmentStrategy): void {
     if (this.strategies.has(strategy.type)) {
-      this.logger.warn(
-        `Overwriting existing strategy: ${strategy.type}`
-      );
+      this.logger.warn(`Overwriting existing strategy: ${strategy.type}`);
     }
     this.strategies.set(strategy.type, strategy);
     this.logger.log(`Registered assignment strategy: ${strategy.type}`);

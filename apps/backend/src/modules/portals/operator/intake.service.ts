@@ -39,7 +39,11 @@ import { RiuAccessService } from "../../rius/riu-access.service";
 import { HotlineRiuService } from "../../rius/extensions/hotline-riu.service";
 import { ClientProfileService } from "./client-profile.service";
 import { ActivityService } from "../../../common/services/activity.service";
-import { CreateIntakeDto, UpdateIntakeDto, FollowUpNoteDto } from "./dto/intake.dto";
+import {
+  CreateIntakeDto,
+  UpdateIntakeDto,
+  FollowUpNoteDto,
+} from "./dto/intake.dto";
 import {
   IntakeResult,
   IntakeSummary,
@@ -73,7 +77,9 @@ export class IntakeService {
     dto: CreateIntakeDto,
   ): Promise<IntakeResult> {
     // Validate client exists and get profile
-    const clientProfile = await this.clientProfileService.getClientProfile(dto.clientId);
+    const clientProfile = await this.clientProfileService.getClientProfile(
+      dto.clientId,
+    );
     if (!clientProfile.isActive) {
       throw new BadRequestException(`Client ${dto.clientId} is not active`);
     }
@@ -113,7 +119,9 @@ export class IntakeService {
     );
 
     // Create the HotlineRiuExtension with QA status
-    const qaStatus = qaCheck.requiresQa ? RiuQaStatus.PENDING : RiuQaStatus.APPROVED;
+    const qaStatus = qaCheck.requiresQa
+      ? RiuQaStatus.PENDING
+      : RiuQaStatus.APPROVED;
 
     await this.hotlineRiuService.createExtension(
       riu.id,
@@ -215,13 +223,27 @@ export class IntakeService {
     await this.prisma.riuHotlineExtension.update({
       where: { riuId },
       data: {
-        ...(dto.callDuration !== undefined && { callDuration: dto.callDuration }),
-        ...(dto.interpreterUsed !== undefined && { interpreterUsed: dto.interpreterUsed }),
-        ...(dto.interpreterLanguage !== undefined && { interpreterLanguage: dto.interpreterLanguage }),
-        ...(dto.callerDemeanor !== undefined && { callerDemeanor: dto.callerDemeanor }),
-        ...(dto.callbackRequested !== undefined && { callbackRequested: dto.callbackRequested }),
-        ...(dto.callerPhoneNumber !== undefined && { callbackNumber: dto.callerPhoneNumber }),
-        ...(dto.operatorNotes !== undefined && { operatorNotes: dto.operatorNotes }),
+        ...(dto.callDuration !== undefined && {
+          callDuration: dto.callDuration,
+        }),
+        ...(dto.interpreterUsed !== undefined && {
+          interpreterUsed: dto.interpreterUsed,
+        }),
+        ...(dto.interpreterLanguage !== undefined && {
+          interpreterLanguage: dto.interpreterLanguage,
+        }),
+        ...(dto.callerDemeanor !== undefined && {
+          callerDemeanor: dto.callerDemeanor,
+        }),
+        ...(dto.callbackRequested !== undefined && {
+          callbackRequested: dto.callbackRequested,
+        }),
+        ...(dto.callerPhoneNumber !== undefined && {
+          callbackNumber: dto.callerPhoneNumber,
+        }),
+        ...(dto.operatorNotes !== undefined && {
+          operatorNotes: dto.operatorNotes,
+        }),
       },
     });
 

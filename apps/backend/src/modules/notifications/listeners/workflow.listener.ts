@@ -7,9 +7,9 @@
  * Uses async: true on all handlers per RESEARCH.md to prevent blocking requests.
  */
 
-import { Injectable, Logger } from '@nestjs/common';
-import { OnEvent } from '@nestjs/event-emitter';
-import { NotificationService } from '../services/notification.service';
+import { Injectable, Logger } from "@nestjs/common";
+import { OnEvent } from "@nestjs/event-emitter";
+import { NotificationService } from "../services/notification.service";
 
 /**
  * Event emitted when a workflow step is completed.
@@ -82,14 +82,14 @@ export class WorkflowEventListener {
    * Handle workflow step completion events.
    * Notifies the next assignee when their step becomes active.
    */
-  @OnEvent('workflow.step_completed', { async: true })
+  @OnEvent("workflow.step_completed", { async: true })
   async handleStepCompleted(event: WorkflowStepCompletedEvent): Promise<void> {
     this.logger.debug(
       `Handling workflow.step_completed for step ${event.stepId}`,
     );
 
     if (!event.nextStepAssigneeId) {
-      this.logger.debug('No next step assignee, skipping notification');
+      this.logger.debug("No next step assignee, skipping notification");
       return;
     }
 
@@ -97,9 +97,9 @@ export class WorkflowEventListener {
       await this.notificationService.notify({
         organizationId: event.organizationId,
         recipientUserId: event.nextStepAssigneeId,
-        category: 'ASSIGNMENT',
-        type: 'ASSIGNMENT',
-        templateId: 'workflow/step-assigned',
+        category: "ASSIGNMENT",
+        type: "ASSIGNMENT",
+        templateId: "workflow/step-assigned",
         context: {
           stepName: event.stepName,
           workflowInstanceId: event.workflowInstanceId,
@@ -107,7 +107,7 @@ export class WorkflowEventListener {
           entityId: event.entityId,
         },
         title: `Workflow step ready: ${event.stepName}`,
-        body: 'A workflow step has been assigned to you.',
+        body: "A workflow step has been assigned to you.",
         entityType: event.entityType,
         entityId: event.entityId,
         isUrgent: true, // Workflow assignments are urgent
@@ -124,8 +124,10 @@ export class WorkflowEventListener {
    * Handle workflow approval request events.
    * Notifies the approver that their approval is needed.
    */
-  @OnEvent('workflow.approval_needed', { async: true })
-  async handleApprovalNeeded(event: WorkflowApprovalNeededEvent): Promise<void> {
+  @OnEvent("workflow.approval_needed", { async: true })
+  async handleApprovalNeeded(
+    event: WorkflowApprovalNeededEvent,
+  ): Promise<void> {
     this.logger.debug(
       `Handling workflow.approval_needed for step ${event.stepId} -> ${event.approverId}`,
     );
@@ -134,9 +136,9 @@ export class WorkflowEventListener {
       await this.notificationService.notify({
         organizationId: event.organizationId,
         recipientUserId: event.approverId,
-        category: 'APPROVAL',
-        type: 'APPROVAL',
-        templateId: 'workflow/approval-needed',
+        category: "APPROVAL",
+        type: "APPROVAL",
+        templateId: "workflow/approval-needed",
         context: {
           stepName: event.stepName,
           requesterName: event.requesterName,
@@ -147,7 +149,7 @@ export class WorkflowEventListener {
         title: `Approval needed: ${event.stepName}`,
         body: event.requesterName
           ? `${event.requesterName} is requesting your approval.`
-          : 'Your approval is needed for a workflow step.',
+          : "Your approval is needed for a workflow step.",
         entityType: event.entityType,
         entityId: event.entityId,
         isUrgent: true, // Approval requests are urgent per CONTEXT.md
@@ -164,8 +166,10 @@ export class WorkflowEventListener {
    * Handle workflow approval granted events.
    * Notifies the requester that their request was approved.
    */
-  @OnEvent('workflow.approval_granted', { async: true })
-  async handleApprovalGranted(event: WorkflowApprovalGrantedEvent): Promise<void> {
+  @OnEvent("workflow.approval_granted", { async: true })
+  async handleApprovalGranted(
+    event: WorkflowApprovalGrantedEvent,
+  ): Promise<void> {
     this.logger.debug(
       `Handling workflow.approval_granted for step ${event.stepId}`,
     );
@@ -175,9 +179,9 @@ export class WorkflowEventListener {
       await this.notificationService.sendInApp({
         organizationId: event.organizationId,
         recipientUserId: event.requesterUserId,
-        category: 'STATUS_UPDATE',
+        category: "STATUS_UPDATE",
         title: `Approved: ${event.stepName}`,
-        body: 'Your workflow step has been approved.',
+        body: "Your workflow step has been approved.",
         entityType: event.entityType,
         entityId: event.entityId,
       });
@@ -193,8 +197,10 @@ export class WorkflowEventListener {
    * Handle workflow approval rejected events.
    * Notifies the requester that their request was rejected.
    */
-  @OnEvent('workflow.approval_rejected', { async: true })
-  async handleApprovalRejected(event: WorkflowApprovalRejectedEvent): Promise<void> {
+  @OnEvent("workflow.approval_rejected", { async: true })
+  async handleApprovalRejected(
+    event: WorkflowApprovalRejectedEvent,
+  ): Promise<void> {
     this.logger.debug(
       `Handling workflow.approval_rejected for step ${event.stepId}`,
     );
@@ -204,9 +210,9 @@ export class WorkflowEventListener {
       await this.notificationService.notify({
         organizationId: event.organizationId,
         recipientUserId: event.requesterUserId,
-        category: 'STATUS_UPDATE',
-        type: 'STATUS_UPDATE',
-        templateId: 'workflow/approval-rejected',
+        category: "STATUS_UPDATE",
+        type: "STATUS_UPDATE",
+        templateId: "workflow/approval-rejected",
         context: {
           stepName: event.stepName,
           rejectionReason: event.rejectionReason,
@@ -217,7 +223,7 @@ export class WorkflowEventListener {
         title: `Rejected: ${event.stepName}`,
         body: event.rejectionReason
           ? `Your request was rejected: ${event.rejectionReason}`
-          : 'Your workflow step has been rejected.',
+          : "Your workflow step has been rejected.",
         entityType: event.entityType,
         entityId: event.entityId,
         isUrgent: false, // Status updates are not urgent

@@ -10,41 +10,42 @@
 export const RECOMMENDED_SCORE = 85; // Recommended minimum readiness score
 
 export enum GateStatus {
-  PENDING = 'PENDING',
-  PASSED = 'PASSED',
-  FAILED = 'FAILED',
-  WAIVED = 'WAIVED', // With sign-off
+  PENDING = "PENDING",
+  PASSED = "PASSED",
+  FAILED = "FAILED",
+  WAIVED = "WAIVED", // With sign-off
 }
 
 export enum SignoffType {
-  CLIENT = 'CLIENT', // Client acknowledges risk
-  INTERNAL = 'INTERNAL', // Ethico approves exception
+  CLIENT = "CLIENT", // Client acknowledges risk
+  INTERNAL = "INTERNAL", // Ethico approves exception
 }
 
 // Hard gates per CONTEXT.md - these MUST pass
 export const HARD_GATES = [
   {
-    id: 'auth_configured',
-    name: 'Authentication configured',
-    description: 'SSO or password authentication is set up and tested',
+    id: "auth_configured",
+    name: "Authentication configured",
+    description: "SSO or password authentication is set up and tested",
     order: 1,
   },
   {
-    id: 'admin_trained',
-    name: 'At least 1 admin trained/certified',
-    description: 'Primary admin has completed Platform Fundamentals certification',
+    id: "admin_trained",
+    name: "At least 1 admin trained/certified",
+    description:
+      "Primary admin has completed Platform Fundamentals certification",
     order: 2,
   },
   {
-    id: 'terms_signed',
-    name: 'Terms & data processing agreement signed',
-    description: 'Legal agreements are executed',
+    id: "terms_signed",
+    name: "Terms & data processing agreement signed",
+    description: "Legal agreements are executed",
     order: 3,
   },
   {
-    id: 'contact_designated',
-    name: 'Primary contact designated',
-    description: 'Escalation contact information is on file',
+    id: "contact_designated",
+    name: "Primary contact designated",
+    description: "Escalation contact information is on file",
     order: 4,
   },
 ] as const;
@@ -52,53 +53,53 @@ export const HARD_GATES = [
 // Readiness items with weights (must sum to 100)
 export const READINESS_ITEMS = [
   {
-    id: 'data_migration',
-    name: 'Data migration completed',
-    description: 'Historical data imported and verified',
+    id: "data_migration",
+    name: "Data migration completed",
+    description: "Historical data imported and verified",
     weight: 20,
-    category: 'data',
+    category: "data",
   },
   {
-    id: 'test_workflow',
-    name: 'Test workflow executed',
-    description: 'End-to-end workflow tested with sample data',
+    id: "test_workflow",
+    name: "Test workflow executed",
+    description: "End-to-end workflow tested with sample data",
     weight: 15,
-    category: 'testing',
+    category: "testing",
   },
   {
-    id: 'users_invited',
-    name: 'Users invited',
-    description: 'At least 50% of target users have accounts',
+    id: "users_invited",
+    name: "Users invited",
+    description: "At least 50% of target users have accounts",
     weight: 15,
-    category: 'users',
+    category: "users",
   },
   {
-    id: 'branding_configured',
-    name: 'Branding configured',
-    description: 'Logo, colors, and portal customization complete',
+    id: "branding_configured",
+    name: "Branding configured",
+    description: "Logo, colors, and portal customization complete",
     weight: 10,
-    category: 'configuration',
+    category: "configuration",
   },
   {
-    id: 'categories_configured',
-    name: 'Categories configured',
-    description: 'Category taxonomy set up for organization',
+    id: "categories_configured",
+    name: "Categories configured",
+    description: "Category taxonomy set up for organization",
     weight: 10,
-    category: 'configuration',
+    category: "configuration",
   },
   {
-    id: 'integrations_tested',
-    name: 'Integrations tested',
-    description: 'HRIS, SSO, and other integrations verified',
+    id: "integrations_tested",
+    name: "Integrations tested",
+    description: "HRIS, SSO, and other integrations verified",
     weight: 15,
-    category: 'integrations',
+    category: "integrations",
   },
   {
-    id: 'first_policy',
-    name: 'First policy published',
-    description: 'At least one policy is live',
+    id: "first_policy",
+    name: "First policy published",
+    description: "At least one policy is live",
     weight: 15,
-    category: 'content',
+    category: "content",
   },
 ] as const;
 
@@ -108,9 +109,9 @@ export const TOTAL_WEIGHT = READINESS_ITEMS.reduce(
   0,
 ); // Should be 100
 
-export type HardGateId = (typeof HARD_GATES)[number]['id'];
-export type ReadinessItemId = (typeof READINESS_ITEMS)[number]['id'];
-export type ReadinessCategory = (typeof READINESS_ITEMS)[number]['category'];
+export type HardGateId = (typeof HARD_GATES)[number]["id"];
+export type ReadinessItemId = (typeof READINESS_ITEMS)[number]["id"];
+export type ReadinessCategory = (typeof READINESS_ITEMS)[number]["category"];
 
 /**
  * Represents a hard gate definition from HARD_GATES

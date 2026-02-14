@@ -50,7 +50,7 @@ export class WorkflowService {
   async create(
     organizationId: string,
     dto: CreateWorkflowTemplateDto,
-    createdById: string
+    createdById: string,
   ): Promise<WorkflowTemplate> {
     // Validate template configuration
     this.validateTemplate(dto);
@@ -66,7 +66,7 @@ export class WorkflowService {
 
     if (existing) {
       throw new ConflictException(
-        `Workflow template with name "${dto.name}" already exists`
+        `Workflow template with name "${dto.name}" already exists`,
       );
     }
 
@@ -98,7 +98,9 @@ export class WorkflowService {
       },
     });
 
-    this.logger.log(`Created workflow template ${template.id}: ${template.name}`);
+    this.logger.log(
+      `Created workflow template ${template.id}: ${template.name}`,
+    );
     return template;
   }
 
@@ -115,7 +117,7 @@ export class WorkflowService {
   async update(
     organizationId: string,
     templateId: string,
-    dto: UpdateWorkflowTemplateDto
+    dto: UpdateWorkflowTemplateDto,
   ): Promise<WorkflowTemplate> {
     const template = await this.prisma.workflowTemplate.findFirst({
       where: { id: templateId, organizationId },
@@ -144,7 +146,10 @@ export class WorkflowService {
     });
 
     // If active instances exist and significant changes are being made, create new version
-    if (activeInstances > 0 && (dto.stages || dto.transitions || dto.initialStage)) {
+    if (
+      activeInstances > 0 &&
+      (dto.stages || dto.transitions || dto.initialStage)
+    ) {
       return this.createNewVersion(template, dto);
     }
 
@@ -167,7 +172,9 @@ export class WorkflowService {
         name: dto.name,
         description: dto.description,
         stages: dto.stages ? (dto.stages as unknown as object) : undefined,
-        transitions: dto.transitions ? (dto.transitions as unknown as object) : undefined,
+        transitions: dto.transitions
+          ? (dto.transitions as unknown as object)
+          : undefined,
         initialStage: dto.initialStage,
         defaultSlaDays: dto.defaultSlaDays,
         tags: dto.tags,
@@ -186,7 +193,7 @@ export class WorkflowService {
    */
   private async createNewVersion(
     existing: WorkflowTemplate,
-    dto: UpdateWorkflowTemplateDto
+    dto: UpdateWorkflowTemplateDto,
   ): Promise<WorkflowTemplate> {
     // Deactivate the old version
     await this.prisma.workflowTemplate.update({
@@ -202,8 +209,12 @@ export class WorkflowService {
         description: dto.description ?? existing.description,
         entityType: existing.entityType,
         version: existing.version + 1,
-        stages: dto.stages ? (dto.stages as unknown as object) : (existing.stages as object),
-        transitions: dto.transitions ? (dto.transitions as unknown as object) : (existing.transitions as object),
+        stages: dto.stages
+          ? (dto.stages as unknown as object)
+          : (existing.stages as object),
+        transitions: dto.transitions
+          ? (dto.transitions as unknown as object)
+          : (existing.transitions as object),
         initialStage: dto.initialStage || existing.initialStage,
         defaultSlaDays: dto.defaultSlaDays ?? existing.defaultSlaDays,
         tags: dto.tags || existing.tags,
@@ -215,7 +226,7 @@ export class WorkflowService {
     });
 
     this.logger.log(
-      `Created new version ${newVersion.version} of template ${existing.name}`
+      `Created new version ${newVersion.version} of template ${existing.name}`,
     );
     return newVersion;
   }
@@ -225,7 +236,7 @@ export class WorkflowService {
    */
   async findById(
     organizationId: string,
-    templateId: string
+    templateId: string,
   ): Promise<WorkflowTemplate | null> {
     return this.prisma.workflowTemplate.findFirst({
       where: { id: templateId, organizationId },
@@ -240,7 +251,7 @@ export class WorkflowService {
     options?: {
       entityType?: WorkflowEntityType;
       isActive?: boolean;
-    }
+    },
   ): Promise<WorkflowTemplate[]> {
     return this.prisma.workflowTemplate.findMany({
       where: {
@@ -257,7 +268,7 @@ export class WorkflowService {
    */
   async findDefault(
     organizationId: string,
-    entityType: WorkflowEntityType
+    entityType: WorkflowEntityType,
   ): Promise<WorkflowTemplate | null> {
     return this.prisma.workflowTemplate.findFirst({
       where: {
@@ -288,7 +299,7 @@ export class WorkflowService {
 
     if (instanceCount > 0) {
       throw new ConflictException(
-        "Cannot delete template with existing instances. Deactivate it instead."
+        "Cannot delete template with existing instances. Deactivate it instead.",
       );
     }
 
@@ -310,7 +321,7 @@ export class WorkflowService {
     // Validate initial stage exists
     if (!stageIds.has(dto.initialStage)) {
       throw new BadRequestException(
-        `Initial stage "${dto.initialStage}" not found in stages`
+        `Initial stage "${dto.initialStage}" not found in stages`,
       );
     }
 
@@ -318,12 +329,12 @@ export class WorkflowService {
     for (const transition of transitions) {
       if (transition.from !== "*" && !stageIds.has(transition.from)) {
         throw new BadRequestException(
-          `Transition references unknown stage "${transition.from}"`
+          `Transition references unknown stage "${transition.from}"`,
         );
       }
       if (!stageIds.has(transition.to)) {
         throw new BadRequestException(
-          `Transition references unknown stage "${transition.to}"`
+          `Transition references unknown stage "${transition.to}"`,
         );
       }
     }
@@ -331,7 +342,9 @@ export class WorkflowService {
     // Validate at least one terminal stage or transition to self for completion
     const hasTerminalStage = stages.some((s) => s.isTerminal);
     if (!hasTerminalStage) {
-      this.logger.warn("Template has no terminal stages - ensure completion is handled externally");
+      this.logger.warn(
+        "Template has no terminal stages - ensure completion is handled externally",
+      );
     }
   }
 
@@ -348,7 +361,7 @@ export class WorkflowService {
    */
   async listInstances(
     organizationId: string,
-    filters: ListInstancesDto
+    filters: ListInstancesDto,
   ): Promise<{
     data: any[];
     total: number;
@@ -398,7 +411,7 @@ export class WorkflowService {
   async clone(
     organizationId: string,
     templateId: string,
-    userId: string
+    userId: string,
   ): Promise<WorkflowTemplate> {
     const original = await this.prisma.workflowTemplate.findFirst({
       where: { id: templateId, organizationId },
@@ -441,7 +454,7 @@ export class WorkflowService {
    */
   async findVersions(
     organizationId: string,
-    templateId: string
+    templateId: string,
   ): Promise<WorkflowTemplate[]> {
     const template = await this.prisma.workflowTemplate.findFirst({
       where: { id: templateId, organizationId },
@@ -474,7 +487,7 @@ export class WorkflowService {
     options?: {
       entityType?: WorkflowEntityType;
       isActive?: boolean;
-    }
+    },
   ): Promise<WorkflowTemplateWithCount[]> {
     // Get all templates matching filters
     const templates = await this.prisma.workflowTemplate.findMany({
@@ -502,9 +515,7 @@ export class WorkflowService {
     });
 
     // Create a map for quick lookup
-    const countMap = new Map(
-      counts.map((c) => [c.templateId, c._count.id])
-    );
+    const countMap = new Map(counts.map((c) => [c.templateId, c._count.id]));
 
     // Enrich templates with counts
     return templates.map((template) => ({

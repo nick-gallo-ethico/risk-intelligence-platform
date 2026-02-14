@@ -9,7 +9,7 @@ import {
   IsEnum,
   MinLength,
   MaxLength,
-} from 'class-validator';
+} from "class-validator";
 
 /**
  * Reason why manager is submitting on behalf of an employee.
@@ -17,13 +17,13 @@ import {
  */
 export enum ProxyReason {
   /** Employee explicitly requested manager to submit */
-  REQUESTED_BY_EMPLOYEE = 'REQUESTED_BY_EMPLOYEE',
+  REQUESTED_BY_EMPLOYEE = "REQUESTED_BY_EMPLOYEE",
   /** Employee has language barriers */
-  LANGUAGE_BARRIER = 'LANGUAGE_BARRIER',
+  LANGUAGE_BARRIER = "LANGUAGE_BARRIER",
   /** Employee has technical difficulties accessing the system */
-  TECHNICAL_DIFFICULTY = 'TECHNICAL_DIFFICULTY',
+  TECHNICAL_DIFFICULTY = "TECHNICAL_DIFFICULTY",
   /** Other reason (requires explanation in notes) */
-  OTHER = 'OTHER',
+  OTHER = "OTHER",
 }
 
 /**
@@ -47,15 +47,17 @@ export class ProxyReportDto {
    * Content/details of the report.
    */
   @IsString()
-  @MinLength(10, { message: 'Report content must be at least 10 characters' })
-  @MaxLength(50000, { message: 'Report content cannot exceed 50000 characters' })
+  @MinLength(10, { message: "Report content must be at least 10 characters" })
+  @MaxLength(50000, {
+    message: "Report content cannot exceed 50000 characters",
+  })
   content!: string;
 
   /**
    * Reason why manager is submitting proxy report.
    * Required for audit trail.
    */
-  @IsEnum(ProxyReason, { message: 'Invalid proxy reason' })
+  @IsEnum(ProxyReason, { message: "Invalid proxy reason" })
   reason!: ProxyReason;
 
   /**

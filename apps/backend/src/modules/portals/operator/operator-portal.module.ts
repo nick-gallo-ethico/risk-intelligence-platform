@@ -12,17 +12,20 @@
  * used by operators handling hotline calls across multiple client organizations.
  */
 
-import { Module } from '@nestjs/common';
-import { DirectivesService } from './directives.service';
-import { DirectivesController } from './directives.controller';
-import { ClientProfileService } from './client-profile.service';
-import { ClientLookupController, ClientAdminController } from './client-profile.controller';
-import { IntakeService } from './intake.service';
-import { IntakeController } from './intake.controller';
-import { QaQueueService } from './qa-queue.service';
-import { QaQueueController } from './qa-queue.controller';
-import { PrismaModule } from '../../prisma/prisma.module';
-import { RiusModule } from '../../rius/rius.module';
+import { Module } from "@nestjs/common";
+import { DirectivesService } from "./directives.service";
+import { DirectivesController } from "./directives.controller";
+import { ClientProfileService } from "./client-profile.service";
+import {
+  ClientLookupController,
+  ClientAdminController,
+} from "./client-profile.controller";
+import { IntakeService } from "./intake.service";
+import { IntakeController } from "./intake.controller";
+import { QaQueueService } from "./qa-queue.service";
+import { QaQueueController } from "./qa-queue.controller";
+import { PrismaModule } from "../../prisma/prisma.module";
+import { RiusModule } from "../../rius/rius.module";
 
 @Module({
   imports: [PrismaModule, RiusModule],

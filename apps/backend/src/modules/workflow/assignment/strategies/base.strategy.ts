@@ -84,6 +84,6 @@ export abstract class AssignmentStrategy {
    */
   abstract resolve(
     context: AssignmentContext,
-    config: Record<string, unknown>
+    config: Record<string, unknown>,
   ): Promise<AssignmentResult | null>;
 }

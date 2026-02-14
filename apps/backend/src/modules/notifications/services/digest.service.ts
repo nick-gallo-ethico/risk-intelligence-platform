@@ -14,21 +14,24 @@
  * @see PreferenceService for user preference checking
  */
 
-import { Injectable, Logger } from '@nestjs/common';
-import { Cron, CronExpression } from '@nestjs/schedule';
-import { InjectQueue } from '@nestjs/bullmq';
-import { Queue } from 'bullmq';
-import { PrismaService } from '../../prisma/prisma.service';
-import { EmailTemplateService, EmailTemplateContext } from './email-template.service';
-import { PreferenceService } from './preference.service';
-import { OrgNotificationSettingsService } from './org-settings.service';
-import { EMAIL_QUEUE_NAME } from '../../jobs/queues/email.queue';
+import { Injectable, Logger } from "@nestjs/common";
+import { Cron, CronExpression } from "@nestjs/schedule";
+import { InjectQueue } from "@nestjs/bullmq";
+import { Queue } from "bullmq";
+import { PrismaService } from "../../prisma/prisma.service";
+import {
+  EmailTemplateService,
+  EmailTemplateContext,
+} from "./email-template.service";
+import { PreferenceService } from "./preference.service";
+import { OrgNotificationSettingsService } from "./org-settings.service";
+import { EMAIL_QUEUE_NAME } from "../../jobs/queues/email.queue";
 import {
   NotificationStatus,
   NotificationChannel,
   NotificationType,
   DIGEST_CATEGORIES,
-} from '../entities/notification.types';
+} from "../entities/notification.types";
 
 /**
  * Parameters for queueing an item for daily digest.
@@ -121,7 +124,8 @@ export class DigestService {
    * @param params - Queue parameters
    */
   async queueItem(params: QueueForDigestParams): Promise<void> {
-    const { organizationId, userId, type, entityType, entityId, metadata } = params;
+    const { organizationId, userId, type, entityType, entityId, metadata } =
+      params;
 
     // Store in DigestQueue table for batch processing
     await this.prisma.digestQueue.create({
@@ -131,7 +135,7 @@ export class DigestService {
         type,
         entityType: entityType || null,
         entityId: entityId || null,
-        metadata: metadata as object || {},
+        metadata: (metadata as object) || {},
       },
     });
 
@@ -148,37 +152,40 @@ export class DigestService {
    */
   @Cron(CronExpression.EVERY_HOUR)
   async processDigestsHourly(): Promise<void> {
-    this.logger.log('Running hourly digest check');
+    this.logger.log("Running hourly digest check");
 
     try {
       // Get all organizations with pending digest items
       const orgsWithPending = await this.prisma.digestQueue.groupBy({
-        by: ['organizationId'],
+        by: ["organizationId"],
         where: {
           processed: false,
         },
       });
 
       if (orgsWithPending.length === 0) {
-        this.logger.debug('No pending digest items');
+        this.logger.debug("No pending digest items");
         return;
       }
 
       // Get current hour in HH:00 format
       const now = new Date();
-      const currentHour = now.getUTCHours().toString().padStart(2, '0') + ':00';
+      const currentHour = now.getUTCHours().toString().padStart(2, "0") + ":00";
 
       // Process each organization that has matching digest time
       for (const { organizationId } of orgsWithPending) {
         try {
-          const settings = await this.orgSettingsService.getSettings(organizationId);
+          const settings =
+            await this.orgSettingsService.getSettings(organizationId);
           const digestTime = settings.digestTime; // e.g., "17:00"
 
           // Extract hour from digest time for comparison
-          const digestHour = digestTime.split(':')[0].padStart(2, '0') + ':00';
+          const digestHour = digestTime.split(":")[0].padStart(2, "0") + ":00";
 
           if (digestHour === currentHour) {
-            this.logger.log(`Processing digest for organization ${organizationId} at ${digestTime}`);
+            this.logger.log(
+              `Processing digest for organization ${organizationId} at ${digestTime}`,
+            );
             await this.processOrgDigest(organizationId);
           }
         } catch (error) {
@@ -203,7 +210,7 @@ export class DigestService {
 
     // Get all users in this org with unprocessed digest items
     const usersWithItems = await this.prisma.digestQueue.groupBy({
-      by: ['userId'],
+      by: ["userId"],
       where: {
         organizationId,
         processed: false,
@@ -221,7 +228,10 @@ export class DigestService {
     for (const { userId } of usersWithItems) {
       try {
         // Check if user has digest enabled (any category with email: true that's digestable)
-        const hasDigestEnabled = await this.isDigestEnabledForUser(userId, organizationId);
+        const hasDigestEnabled = await this.isDigestEnabledForUser(
+          userId,
+          organizationId,
+        );
 
         if (!hasDigestEnabled) {
           // Mark items as processed but don't send email
@@ -237,7 +247,7 @@ export class DigestService {
             userId,
             processed: false,
           },
-          orderBy: { createdAt: 'desc' },
+          orderBy: { createdAt: "desc" },
         });
 
         if (items.length === 0) {
@@ -255,7 +265,9 @@ export class DigestService {
 
         processedCount++;
       } catch (error) {
-        this.logger.error(`Error processing digest for user ${userId}: ${error}`);
+        this.logger.error(
+          `Error processing digest for user ${userId}: ${error}`,
+        );
       }
     }
 
@@ -292,8 +304,8 @@ export class DigestService {
     });
 
     const userName = user
-      ? `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email
-      : 'User';
+      ? `${user.firstName || ""} ${user.lastName || ""}`.trim() || user.email
+      : "User";
 
     // Group items by type + entityType + entityId
     const groups = this.groupItems(items);
@@ -318,11 +330,11 @@ export class DigestService {
       userName,
       totalCount: items.length,
       groups,
-      date: now.toLocaleDateString('en-US', {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
+      date: now.toLocaleDateString("en-US", {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
       }),
       periodDescription: `Activity from the past 24 hours`,
     };
@@ -367,18 +379,22 @@ export class DigestService {
       digest,
       org: {
         name: org.name,
-        branding: orgSettings?.branding as EmailTemplateContext['org'] extends { branding?: infer B } ? B : undefined,
+        branding: orgSettings?.branding as EmailTemplateContext["org"] extends {
+          branding?: infer B;
+        }
+          ? B
+          : undefined,
       },
       recipient: {
         name: digest.userName,
         email: user.email,
       },
-      appUrl: process.env.APP_URL || 'https://app.ethico.com',
+      appUrl: process.env.APP_URL || "https://app.ethico.com",
     };
 
     // Pre-render template
     const { subject, html } = await this.templateService.render(
-      'digest/daily-digest',
+      "digest/daily-digest",
       context,
       organizationId,
     );
@@ -393,7 +409,7 @@ export class DigestService {
         status: NotificationStatus.QUEUED,
         title: subject,
         body: `${digest.totalCount} notifications`,
-        templateId: 'digest/daily-digest',
+        templateId: "digest/daily-digest",
       },
     });
 
@@ -401,16 +417,16 @@ export class DigestService {
     const jobData: EmailJobData = {
       organizationId,
       notificationId: notification.id,
-      templateId: 'digest/daily-digest',
+      templateId: "digest/daily-digest",
       to: user.email,
       subject,
       html,
     };
 
-    await this.emailQueue.add('send-email', jobData, {
+    await this.emailQueue.add("send-email", jobData, {
       priority: 3, // Lower priority than urgent notifications
       attempts: 3,
-      backoff: { type: 'exponential', delay: 1000 },
+      backoff: { type: "exponential", delay: 1000 },
     });
 
     this.logger.log(
@@ -427,7 +443,10 @@ export class DigestService {
     userId: string,
     organizationId: string,
   ): Promise<boolean> {
-    const prefs = await this.preferenceService.getPreferences(userId, organizationId);
+    const prefs = await this.preferenceService.getPreferences(
+      userId,
+      organizationId,
+    );
 
     // Check if any digest category has email enabled
     for (const category of DIGEST_CATEGORIES) {
@@ -480,15 +499,15 @@ export class DigestService {
     const groupMap = new Map<string, GroupedDigestItem>();
 
     for (const item of items) {
-      const key = `${item.type}:${item.entityType || 'none'}:${item.entityId || 'none'}`;
+      const key = `${item.type}:${item.entityType || "none"}:${item.entityId || "none"}`;
 
       if (!groupMap.has(key)) {
         groupMap.set(key, {
           type: item.type,
-          entityType: item.entityType || 'GENERAL',
-          entityId: item.entityId || '',
+          entityType: item.entityType || "GENERAL",
+          entityId: item.entityId || "",
           count: 0,
-          summary: '',
+          summary: "",
           items: [],
         });
       }
@@ -511,20 +530,20 @@ export class DigestService {
    */
   private getDigestSummary(group: GroupedDigestItem): string {
     const { type, entityType, count, entityReference } = group;
-    const entityDisplay = entityReference || entityType || 'item';
+    const entityDisplay = entityReference || entityType || "item";
 
     switch (type) {
-      case 'COMMENT':
+      case "COMMENT":
         return count === 1
           ? `New comment on ${entityDisplay}`
           : `${count} new comments on ${entityDisplay}`;
 
-      case 'STATUS_UPDATE':
+      case "STATUS_UPDATE":
         return count === 1
           ? `Status update on ${entityDisplay}`
           : `${count} status updates on ${entityDisplay}`;
 
-      case 'COMPLETION':
+      case "COMPLETION":
         return count === 1
           ? `${entityDisplay} completed`
           : `${count} items completed`;
@@ -550,14 +569,14 @@ export class DigestService {
 
     try {
       switch (entityType) {
-        case 'CASE':
+        case "CASE":
           const caseEntity = await this.prisma.case.findFirst({
             where: { id: entityId, organizationId },
             select: { referenceNumber: true },
           });
           return caseEntity?.referenceNumber || `Case #${entityId.slice(0, 8)}`;
 
-        case 'INVESTIGATION':
+        case "INVESTIGATION":
           const investigation = await this.prisma.investigation.findFirst({
             where: { id: entityId, organizationId },
             select: { investigationNumber: true, caseId: true },
@@ -574,14 +593,14 @@ export class DigestService {
           }
           return `Investigation #${entityId.slice(0, 8)}`;
 
-        case 'RIU':
+        case "RIU":
           const riu = await this.prisma.riskIntelligenceUnit.findFirst({
             where: { id: entityId, organizationId },
             select: { referenceNumber: true },
           });
           return riu?.referenceNumber || `RIU #${entityId.slice(0, 8)}`;
 
-        case 'REMEDIATION_PLAN':
+        case "REMEDIATION_PLAN":
           return `Remediation Plan #${entityId.slice(0, 8)}`;
 
         default:
@@ -597,16 +616,16 @@ export class DigestService {
    * Get URL for entity navigation.
    */
   private getEntityUrl(entityType: string, entityId: string): string {
-    const baseUrl = process.env.APP_URL || 'https://app.ethico.com';
+    const baseUrl = process.env.APP_URL || "https://app.ethico.com";
 
     switch (entityType) {
-      case 'CASE':
+      case "CASE":
         return `${baseUrl}/cases/${entityId}`;
-      case 'INVESTIGATION':
+      case "INVESTIGATION":
         return `${baseUrl}/investigations/${entityId}`;
-      case 'RIU':
+      case "RIU":
         return `${baseUrl}/rius/${entityId}`;
-      case 'REMEDIATION_PLAN':
+      case "REMEDIATION_PLAN":
         return `${baseUrl}/remediation/${entityId}`;
       default:
         return baseUrl;

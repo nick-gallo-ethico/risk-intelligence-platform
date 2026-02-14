@@ -363,7 +363,8 @@ export class PolicyApprovalService {
     }
 
     // 3. Parse current step from workflow template stages
-    const stages = workflowInstance.template.stages as unknown as WorkflowStage[];
+    const stages = workflowInstance.template
+      .stages as unknown as WorkflowStage[];
     const currentStage = stages.find(
       (s) => s.id === workflowInstance.currentStage,
     );

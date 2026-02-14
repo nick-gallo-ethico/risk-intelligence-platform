@@ -6,15 +6,15 @@ import {
   Param,
   HttpCode,
   HttpStatus,
-} from '@nestjs/common';
-import { Throttle } from '@nestjs/throttler';
-import { RiuAccessService } from './riu-access.service';
+} from "@nestjs/common";
+import { Throttle } from "@nestjs/throttler";
+import { RiuAccessService } from "./riu-access.service";
 import {
   AccessCodeDto,
   SendMessageDto,
   RiuStatusResponseDto,
   RiuMessagesResponseDto,
-} from './dto/access-code.dto';
+} from "./dto/access-code.dto";
 
 /**
  * Public controller for anonymous RIU access operations.
@@ -29,7 +29,7 @@ import {
  *
  * Route: /api/v1/public/access
  */
-@Controller('public/access')
+@Controller("public/access")
 export class RiuAccessController {
   constructor(private readonly accessService: RiuAccessService) {}
 
@@ -46,7 +46,7 @@ export class RiuAccessController {
    *
    * @example GET /api/v1/public/access/A2B3C4D5E6F7/status
    */
-  @Get(':accessCode/status')
+  @Get(":accessCode/status")
   @Throttle({ default: { limit: 10, ttl: 60000 } })
   async checkStatus(
     @Param() params: AccessCodeDto,
@@ -64,7 +64,7 @@ export class RiuAccessController {
    *
    * @example GET /api/v1/public/access/A2B3C4D5E6F7/messages
    */
-  @Get(':accessCode/messages')
+  @Get(":accessCode/messages")
   @Throttle({ default: { limit: 20, ttl: 60000 } })
   async getMessages(
     @Param() params: AccessCodeDto,
@@ -83,7 +83,7 @@ export class RiuAccessController {
    * @example POST /api/v1/public/access/A2B3C4D5E6F7/messages
    *          Body: { "content": "I have additional information..." }
    */
-  @Post(':accessCode/messages')
+  @Post(":accessCode/messages")
   @HttpCode(HttpStatus.CREATED)
   @Throttle({ default: { limit: 5, ttl: 60000 } })
   async sendMessage(

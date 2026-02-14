@@ -1,8 +1,12 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { OnEvent } from '@nestjs/event-emitter';
-import { AuditEntityType, AuditActionCategory, ActorType } from '@prisma/client';
-import { RemediationNotificationService } from '../remediation-notification.service';
-import { AuditService } from '../../audit/audit.service';
+import { Injectable, Logger } from "@nestjs/common";
+import { OnEvent } from "@nestjs/event-emitter";
+import {
+  AuditEntityType,
+  AuditActionCategory,
+  ActorType,
+} from "@prisma/client";
+import { RemediationNotificationService } from "../remediation-notification.service";
+import { AuditService } from "../../audit/audit.service";
 
 /**
  * Remediation Step Created Event Payload
@@ -88,7 +92,7 @@ export class RemediationEventHandler {
   /**
    * Handle step creation - notify assignee and schedule reminders.
    */
-  @OnEvent('remediation.step.created')
+  @OnEvent("remediation.step.created")
   async handleStepCreated(event: RemediationStepCreatedEvent): Promise<void> {
     this.logger.log(`Handling step created: ${event.stepId}`);
 
@@ -110,9 +114,9 @@ export class RemediationEventHandler {
         organizationId: event.organizationId,
         entityType: AuditEntityType.REMEDIATION_STEP,
         entityId: event.stepId,
-        action: 'created',
+        action: "created",
         actionCategory: AuditActionCategory.CREATE,
-        actionDescription: 'Remediation step created and assignee notified',
+        actionDescription: "Remediation step created and assignee notified",
         actorUserId: event.userId,
         actorType: ActorType.USER,
       });
@@ -127,7 +131,7 @@ export class RemediationEventHandler {
   /**
    * Handle step completion - cancel reminders, notify CO if approval needed.
    */
-  @OnEvent('remediation.step.completed')
+  @OnEvent("remediation.step.completed")
   async handleStepCompleted(
     event: RemediationStepCompletedEvent,
   ): Promise<void> {
@@ -150,11 +154,11 @@ export class RemediationEventHandler {
         organizationId: event.organizationId,
         entityType: AuditEntityType.REMEDIATION_STEP,
         entityId: event.stepId,
-        action: 'completed',
+        action: "completed",
         actionCategory: AuditActionCategory.UPDATE,
         actionDescription: event.requiresApproval
-          ? 'Remediation step completed, awaiting CO approval'
-          : 'Remediation step completed',
+          ? "Remediation step completed, awaiting CO approval"
+          : "Remediation step completed",
         actorUserId: event.userId,
         actorType: ActorType.USER,
       });
@@ -169,7 +173,7 @@ export class RemediationEventHandler {
   /**
    * Handle step approval - notify the assignee.
    */
-  @OnEvent('remediation.step.approved')
+  @OnEvent("remediation.step.approved")
   async handleStepApproved(event: RemediationStepApprovedEvent): Promise<void> {
     this.logger.log(`Handling step approved: ${event.stepId}`);
 
@@ -185,9 +189,9 @@ export class RemediationEventHandler {
         organizationId: event.organizationId,
         entityType: AuditEntityType.REMEDIATION_STEP,
         entityId: event.stepId,
-        action: 'approved',
+        action: "approved",
         actionCategory: AuditActionCategory.UPDATE,
-        actionDescription: 'Remediation step approved by compliance officer',
+        actionDescription: "Remediation step approved by compliance officer",
         actorUserId: event.userId,
         actorType: ActorType.USER,
       });
@@ -202,7 +206,7 @@ export class RemediationEventHandler {
   /**
    * Handle plan creation - log for audit.
    */
-  @OnEvent('remediation.plan.created')
+  @OnEvent("remediation.plan.created")
   async handlePlanCreated(event: RemediationPlanCreatedEvent): Promise<void> {
     this.logger.log(`Handling plan created: ${event.planId}`);
 
@@ -212,7 +216,7 @@ export class RemediationEventHandler {
         organizationId: event.organizationId,
         entityType: AuditEntityType.REMEDIATION_PLAN,
         entityId: event.planId,
-        action: 'created',
+        action: "created",
         actionCategory: AuditActionCategory.CREATE,
         actionDescription: `Remediation plan created for case`,
         actorUserId: event.userId,
@@ -230,7 +234,7 @@ export class RemediationEventHandler {
   /**
    * Handle plan update - log for audit.
    */
-  @OnEvent('remediation.plan.updated')
+  @OnEvent("remediation.plan.updated")
   async handlePlanUpdated(event: RemediationPlanUpdatedEvent): Promise<void> {
     this.logger.log(`Handling plan updated: ${event.planId}`);
 
@@ -239,9 +243,9 @@ export class RemediationEventHandler {
         organizationId: event.organizationId,
         entityType: AuditEntityType.REMEDIATION_PLAN,
         entityId: event.planId,
-        action: 'updated',
+        action: "updated",
         actionCategory: AuditActionCategory.UPDATE,
-        actionDescription: 'Remediation plan updated',
+        actionDescription: "Remediation plan updated",
         actorUserId: event.userId,
         actorType: ActorType.USER,
       });
@@ -256,7 +260,7 @@ export class RemediationEventHandler {
   /**
    * Handle plan completion - notify case owner.
    */
-  @OnEvent('remediation.plan.completed')
+  @OnEvent("remediation.plan.completed")
   async handlePlanCompleted(
     event: RemediationPlanCompletedEvent,
   ): Promise<void> {
@@ -274,9 +278,9 @@ export class RemediationEventHandler {
         organizationId: event.organizationId,
         entityType: AuditEntityType.REMEDIATION_PLAN,
         entityId: event.planId,
-        action: 'completed',
+        action: "completed",
         actionCategory: AuditActionCategory.UPDATE,
-        actionDescription: 'Remediation plan completed - all steps finished',
+        actionDescription: "Remediation plan completed - all steps finished",
         actorUserId: event.userId,
         actorType: ActorType.USER,
         context: { caseId: event.caseId },

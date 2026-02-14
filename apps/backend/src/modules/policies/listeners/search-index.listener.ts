@@ -37,7 +37,10 @@ export class PolicySearchIndexListener {
   async onPolicyCreated(event: PolicyCreatedEvent): Promise<void> {
     try {
       this.logger.debug(`Indexing new policy: ${event.policyId}`);
-      await this.policyIndexer.indexPolicy(event.policyId, event.organizationId);
+      await this.policyIndexer.indexPolicy(
+        event.policyId,
+        event.organizationId,
+      );
     } catch (error) {
       this.logger.error(
         `Failed to index created policy ${event.policyId}: ${error instanceof Error ? error.message : "Unknown error"}`,
@@ -53,7 +56,10 @@ export class PolicySearchIndexListener {
   async onPolicyUpdated(event: PolicyUpdatedEvent): Promise<void> {
     try {
       this.logger.debug(`Re-indexing updated policy: ${event.policyId}`);
-      await this.policyIndexer.indexPolicy(event.policyId, event.organizationId);
+      await this.policyIndexer.indexPolicy(
+        event.policyId,
+        event.organizationId,
+      );
     } catch (error) {
       this.logger.error(
         `Failed to re-index updated policy ${event.policyId}: ${error instanceof Error ? error.message : "Unknown error"}`,
@@ -69,8 +75,13 @@ export class PolicySearchIndexListener {
   @OnEvent("policy.published", { async: true })
   async onPolicyPublished(event: PolicyPublishedEvent): Promise<void> {
     try {
-      this.logger.log(`Re-indexing published policy: ${event.policyId} (v${event.version})`);
-      await this.policyIndexer.indexPolicy(event.policyId, event.organizationId);
+      this.logger.log(
+        `Re-indexing published policy: ${event.policyId} (v${event.version})`,
+      );
+      await this.policyIndexer.indexPolicy(
+        event.policyId,
+        event.organizationId,
+      );
     } catch (error) {
       this.logger.error(
         `Failed to re-index published policy ${event.policyId}: ${error instanceof Error ? error.message : "Unknown error"}`,
@@ -86,7 +97,10 @@ export class PolicySearchIndexListener {
   async onPolicyRetired(event: PolicyRetiredEvent): Promise<void> {
     try {
       this.logger.debug(`Re-indexing retired policy: ${event.policyId}`);
-      await this.policyIndexer.indexPolicy(event.policyId, event.organizationId);
+      await this.policyIndexer.indexPolicy(
+        event.policyId,
+        event.organizationId,
+      );
     } catch (error) {
       this.logger.error(
         `Failed to re-index retired policy ${event.policyId}: ${error instanceof Error ? error.message : "Unknown error"}`,
@@ -109,7 +123,10 @@ export class PolicySearchIndexListener {
       this.logger.debug(
         `Re-indexing policy ${event.policyId} after translation created (${event.languageCode})`,
       );
-      await this.policyIndexer.indexPolicy(event.policyId, event.organizationId);
+      await this.policyIndexer.indexPolicy(
+        event.policyId,
+        event.organizationId,
+      );
     } catch (error) {
       this.logger.error(
         `Failed to re-index policy ${event.policyId} after translation created: ${error instanceof Error ? error.message : "Unknown error"}`,
@@ -131,7 +148,10 @@ export class PolicySearchIndexListener {
       this.logger.debug(
         `Re-indexing policy ${event.policyId} after translation updated (${event.languageCode})`,
       );
-      await this.policyIndexer.indexPolicy(event.policyId, event.organizationId);
+      await this.policyIndexer.indexPolicy(
+        event.policyId,
+        event.organizationId,
+      );
     } catch (error) {
       this.logger.error(
         `Failed to re-index policy ${event.policyId} after translation updated: ${error instanceof Error ? error.message : "Unknown error"}`,
@@ -154,7 +174,10 @@ export class PolicySearchIndexListener {
       this.logger.debug(
         `Re-indexing policy ${event.policyId} after case linked`,
       );
-      await this.policyIndexer.indexPolicy(event.policyId, event.organizationId);
+      await this.policyIndexer.indexPolicy(
+        event.policyId,
+        event.organizationId,
+      );
     } catch (error) {
       this.logger.error(
         `Failed to re-index policy ${event.policyId} after case linked: ${error instanceof Error ? error.message : "Unknown error"}`,
@@ -177,7 +200,10 @@ export class PolicySearchIndexListener {
       this.logger.debug(
         `Re-indexing policy ${event.policyId} after case unlinked`,
       );
-      await this.policyIndexer.indexPolicy(event.policyId, event.organizationId);
+      await this.policyIndexer.indexPolicy(
+        event.policyId,
+        event.organizationId,
+      );
     } catch (error) {
       this.logger.error(
         `Failed to re-index policy ${event.policyId} after case unlinked: ${error instanceof Error ? error.message : "Unknown error"}`,

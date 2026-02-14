@@ -62,7 +62,11 @@ export class PolicyCaseAssociationController {
    * Creates a policy-to-case association.
    */
   @Post()
-  @Roles(UserRole.SYSTEM_ADMIN, UserRole.COMPLIANCE_OFFICER, UserRole.INVESTIGATOR)
+  @Roles(
+    UserRole.SYSTEM_ADMIN,
+    UserRole.COMPLIANCE_OFFICER,
+    UserRole.INVESTIGATOR,
+  )
   @UseGuards(RolesGuard)
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({
@@ -74,9 +78,15 @@ export class PolicyCaseAssociationController {
   @ApiResponse({ status: 201, description: "Association created successfully" })
   @ApiResponse({ status: 400, description: "Validation error" })
   @ApiResponse({ status: 401, description: "Unauthorized" })
-  @ApiResponse({ status: 403, description: "Forbidden - insufficient permissions" })
+  @ApiResponse({
+    status: 403,
+    description: "Forbidden - insufficient permissions",
+  })
   @ApiResponse({ status: 404, description: "Policy or case not found" })
-  @ApiResponse({ status: 409, description: "Policy already linked to this case" })
+  @ApiResponse({
+    status: 409,
+    description: "Policy already linked to this case",
+  })
   async create(
     @Body() dto: CreatePolicyCaseAssociationDto,
     @CurrentUser() user: RequestUser,
@@ -107,7 +117,10 @@ export class PolicyCaseAssociationController {
     description:
       "Returns paginated list of associations with optional filtering by policy, case, or link type",
   })
-  @ApiResponse({ status: 200, description: "List of associations with pagination" })
+  @ApiResponse({
+    status: 200,
+    description: "List of associations with pagination",
+  })
   @ApiResponse({ status: 401, description: "Unauthorized" })
   async findAll(
     @Query() query: PolicyCaseQueryDto,
@@ -131,7 +144,8 @@ export class PolicyCaseAssociationController {
   @UseGuards(RolesGuard)
   @ApiOperation({
     summary: "Get association by ID",
-    description: "Returns a single policy-case association with full relation details",
+    description:
+      "Returns a single policy-case association with full relation details",
   })
   @ApiParam({ name: "id", description: "Association UUID" })
   @ApiResponse({ status: 200, description: "Association found" })
@@ -161,7 +175,10 @@ export class PolicyCaseAssociationController {
     description: "Returns all cases linked to a specific policy",
   })
   @ApiParam({ name: "policyId", description: "Policy UUID" })
-  @ApiResponse({ status: 200, description: "List of associations for the policy" })
+  @ApiResponse({
+    status: 200,
+    description: "List of associations for the policy",
+  })
   @ApiResponse({ status: 401, description: "Unauthorized" })
   @ApiResponse({ status: 404, description: "Policy not found" })
   async findByPolicy(
@@ -189,7 +206,10 @@ export class PolicyCaseAssociationController {
       "Returns all policies linked to a specific case, ordered by link type (violations first)",
   })
   @ApiParam({ name: "caseId", description: "Case UUID" })
-  @ApiResponse({ status: 200, description: "List of associations for the case" })
+  @ApiResponse({
+    status: 200,
+    description: "List of associations for the case",
+  })
   @ApiResponse({ status: 401, description: "Unauthorized" })
   @ApiResponse({ status: 404, description: "Case not found" })
   async findByCase(
@@ -217,7 +237,10 @@ export class PolicyCaseAssociationController {
   })
   @ApiResponse({ status: 200, description: "Violation statistics by policy" })
   @ApiResponse({ status: 401, description: "Unauthorized" })
-  @ApiResponse({ status: 403, description: "Forbidden - requires admin or compliance role" })
+  @ApiResponse({
+    status: 403,
+    description: "Forbidden - requires admin or compliance role",
+  })
   async getViolationStats(
     @Query() query: ViolationStatsQueryDto,
     @TenantId() organizationId: string,
@@ -238,7 +261,11 @@ export class PolicyCaseAssociationController {
    * Updates a policy-case association.
    */
   @Put(":id")
-  @Roles(UserRole.SYSTEM_ADMIN, UserRole.COMPLIANCE_OFFICER, UserRole.INVESTIGATOR)
+  @Roles(
+    UserRole.SYSTEM_ADMIN,
+    UserRole.COMPLIANCE_OFFICER,
+    UserRole.INVESTIGATOR,
+  )
   @UseGuards(RolesGuard)
   @ApiOperation({
     summary: "Update policy-case link",
@@ -269,7 +296,11 @@ export class PolicyCaseAssociationController {
    * Deletes a policy-case association.
    */
   @Delete(":id")
-  @Roles(UserRole.SYSTEM_ADMIN, UserRole.COMPLIANCE_OFFICER, UserRole.INVESTIGATOR)
+  @Roles(
+    UserRole.SYSTEM_ADMIN,
+    UserRole.COMPLIANCE_OFFICER,
+    UserRole.INVESTIGATOR,
+  )
   @UseGuards(RolesGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({

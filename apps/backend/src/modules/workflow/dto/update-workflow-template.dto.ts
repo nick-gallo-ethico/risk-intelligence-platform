@@ -7,7 +7,7 @@ import { IsBoolean, IsOptional } from "class-validator";
  * All fields are optional.
  */
 export class UpdateWorkflowTemplateDto extends PartialType(
-  CreateWorkflowTemplateDto
+  CreateWorkflowTemplateDto,
 ) {
   @IsBoolean()
   @IsOptional()

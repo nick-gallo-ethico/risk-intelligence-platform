@@ -8,14 +8,14 @@ import {
 import { JwtAuthGuard } from "../../common/guards/jwt-auth.guard";
 import { TenantGuard } from "../../common/guards/tenant.guard";
 import { TenantId } from "../../common/decorators/tenant-id.decorator";
-import { SearchService } from './search.service';
+import { SearchService } from "./search.service";
 import {
   UnifiedSearchService,
   UnifiedSearchResult,
   UnifiedSearchEntityType,
-} from './unified-search.service';
-import { SearchQueryDto, SearchResultDto } from './dto';
-import { UserRole } from '@prisma/client';
+} from "./unified-search.service";
+import { SearchQueryDto, SearchResultDto } from "./dto";
+import { UserRole } from "@prisma/client";
 
 /**
  * Interface for CurrentUser decorator result.
@@ -57,9 +57,9 @@ export const CurrentUser = createParamDecorator(
  * - Requires tenant context
  * - Permission filtering applied automatically
  */
-@ApiTags('Search')
+@ApiTags("Search")
 @ApiBearerAuth()
-@Controller('search')
+@Controller("search")
 @UseGuards(JwtAuthGuard, TenantGuard)
 export class SearchController {
   constructor(
@@ -103,36 +103,36 @@ export class SearchController {
     );
   }
 
-  @Get('unified')
+  @Get("unified")
   @ApiOperation({
-    summary: 'Unified search across all entity types',
+    summary: "Unified search across all entity types",
     description:
-      'Performs a unified search across Cases, RIUs, Investigations, and Persons. ' +
-      'Returns results grouped by entity type with counts and top hits per type. ' +
-      'Results are automatically filtered based on user permissions.',
+      "Performs a unified search across Cases, RIUs, Investigations, and Persons. " +
+      "Returns results grouped by entity type with counts and top hits per type. " +
+      "Results are automatically filtered based on user permissions.",
   })
   @ApiResponse({
     status: 200,
-    description: 'Grouped search results with entity type counts',
+    description: "Grouped search results with entity type counts",
   })
   @ApiResponse({
     status: 401,
-    description: 'Unauthorized - invalid or missing JWT token',
+    description: "Unauthorized - invalid or missing JWT token",
   })
   @ApiResponse({
     status: 403,
-    description: 'Forbidden - missing tenant context',
+    description: "Forbidden - missing tenant context",
   })
   async unifiedSearch(
     @CurrentUser() user: CurrentUserPayload,
     @TenantId() orgId: string,
-    @Query('q') query: string,
-    @Query('types') types?: string,
-    @Query('limit') limit?: string,
+    @Query("q") query: string,
+    @Query("types") types?: string,
+    @Query("limit") limit?: string,
   ): Promise<UnifiedSearchResult> {
     // Parse entity types from comma-separated string
     const entityTypes = types
-      ? (types.split(',').filter(Boolean) as UnifiedSearchEntityType[])
+      ? (types.split(",").filter(Boolean) as UnifiedSearchEntityType[])
       : undefined;
 
     // Parse limit
@@ -142,7 +142,7 @@ export class SearchController {
       orgId,
       user.id,
       user.role,
-      query || '',
+      query || "",
       {
         entityTypes,
         limit: parsedLimit && !isNaN(parsedLimit) ? parsedLimit : undefined,
@@ -151,25 +151,25 @@ export class SearchController {
     );
   }
 
-  @Get('suggest')
+  @Get("suggest")
   @ApiOperation({
-    summary: 'Get search suggestions',
+    summary: "Get search suggestions",
     description:
-      'Returns autocomplete suggestions for partial queries. ' +
-      'Useful for reference number lookups.',
+      "Returns autocomplete suggestions for partial queries. " +
+      "Useful for reference number lookups.",
   })
   @ApiResponse({
     status: 200,
-    description: 'Array of suggestion strings',
+    description: "Array of suggestion strings",
     type: [String],
   })
   async suggest(
     @CurrentUser() user: CurrentUserPayload,
     @TenantId() orgId: string,
-    @Query('q') prefix: string,
-    @Query('types') types?: string,
+    @Query("q") prefix: string,
+    @Query("types") types?: string,
   ): Promise<string[]> {
-    const entityTypes = types ? types.split(',') : undefined;
+    const entityTypes = types ? types.split(",") : undefined;
 
     return this.searchService.suggest(
       {

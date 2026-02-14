@@ -18,10 +18,10 @@ import {
   NotFoundException,
   BadRequestException,
   Logger,
-} from '@nestjs/common';
-import { EventEmitter2 } from '@nestjs/event-emitter';
-import { PrismaService } from '../../prisma/prisma.service';
-import { AuditService } from '../../audit/audit.service';
+} from "@nestjs/common";
+import { EventEmitter2 } from "@nestjs/event-emitter";
+import { PrismaService } from "../../prisma/prisma.service";
+import { AuditService } from "../../audit/audit.service";
 import {
   RiuType,
   RiuSourceChannel,
@@ -31,23 +31,26 @@ import {
   AuditEntityType,
   AuditActionCategory,
   ActorType,
-} from '@prisma/client';
-import { customAlphabet } from 'nanoid';
+} from "@prisma/client";
+import { customAlphabet } from "nanoid";
 import {
   ProxyReportDto,
   ProxyReason,
   TeamMember,
   ProxySubmissionResult,
   ProxySubmission,
-} from './dto/proxy-report.dto';
+} from "./dto/proxy-report.dto";
 
 /**
  * Custom nanoid alphabet excluding confusing characters (0, O, I, l, 1).
  * Same as RiuAccessService for consistency.
  */
-const ACCESS_CODE_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+const ACCESS_CODE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
 const ACCESS_CODE_LENGTH = 12;
-const generateAccessCode = customAlphabet(ACCESS_CODE_ALPHABET, ACCESS_CODE_LENGTH);
+const generateAccessCode = customAlphabet(
+  ACCESS_CODE_ALPHABET,
+  ACCESS_CODE_LENGTH,
+);
 
 /**
  * Maximum depth for checking transitive manager relationship.
@@ -81,7 +84,7 @@ export class ManagerProxyService {
       where: {
         organizationId,
         managerId: managerPersonId,
-        status: 'ACTIVE',
+        status: "ACTIVE",
       },
       select: {
         id: true,
@@ -91,12 +94,14 @@ export class ManagerProxyService {
         jobTitle: true,
         businessUnitName: true,
       },
-      orderBy: [{ lastName: 'asc' }, { firstName: 'asc' }],
+      orderBy: [{ lastName: "asc" }, { firstName: "asc" }],
     });
 
     return directReports.map((person) => ({
       id: person.id,
-      name: [person.firstName, person.lastName].filter(Boolean).join(' ') || 'Unknown',
+      name:
+        [person.firstName, person.lastName].filter(Boolean).join(" ") ||
+        "Unknown",
       email: person.email,
       jobTitle: person.jobTitle,
       department: person.businessUnitName,
@@ -127,7 +132,7 @@ export class ManagerProxyService {
       where: {
         id: employeePersonId,
         organizationId,
-        status: 'ACTIVE',
+        status: "ACTIVE",
       },
       select: { managerId: true },
     });
@@ -174,14 +179,14 @@ export class ManagerProxyService {
 
     if (!canProxy) {
       throw new ForbiddenException(
-        'You do not have permission to submit reports on behalf of this employee',
+        "You do not have permission to submit reports on behalf of this employee",
       );
     }
 
     // Validate reason notes if OTHER is selected
     if (dto.reason === ProxyReason.OTHER && !dto.reasonNotes) {
       throw new BadRequestException(
-        'Reason notes are required when selecting OTHER as the proxy reason',
+        "Reason notes are required when selecting OTHER as the proxy reason",
       );
     }
 
@@ -198,12 +203,12 @@ export class ManagerProxyService {
     });
 
     if (!employee) {
-      throw new NotFoundException('Employee not found');
+      throw new NotFoundException("Employee not found");
     }
 
-    const employeeName = [employee.firstName, employee.lastName]
-      .filter(Boolean)
-      .join(' ') || 'Unknown';
+    const employeeName =
+      [employee.firstName, employee.lastName].filter(Boolean).join(" ") ||
+      "Unknown";
 
     // Generate unique access code for the employee
     const accessCode = await this.generateUniqueAccessCode();
@@ -253,7 +258,7 @@ export class ManagerProxyService {
           personId: dto.employeePersonId,
           riuId: riu.id,
           label: PersonRiuLabel.REPORTER,
-          notes: 'Submitted via manager proxy',
+          notes: "Submitted via manager proxy",
           createdById: userId,
         },
       ],
@@ -264,7 +269,7 @@ export class ManagerProxyService {
       organizationId,
       entityType: AuditEntityType.RIU,
       entityId: riu.id,
-      action: 'proxy_report.submitted',
+      action: "proxy_report.submitted",
       actionCategory: AuditActionCategory.CREATE,
       actionDescription: `Manager submitted proxy report on behalf of ${employeeName}`,
       actorUserId: userId,
@@ -279,7 +284,7 @@ export class ManagerProxyService {
     });
 
     // Emit event for downstream processing
-    this.eventEmitter.emit('proxy_report.submitted', {
+    this.eventEmitter.emit("proxy_report.submitted", {
       organizationId,
       riuId: riu.id,
       referenceNumber,
@@ -317,7 +322,7 @@ export class ManagerProxyService {
         organizationId,
         sourceChannel: RiuSourceChannel.PROXY,
         customFields: {
-          path: ['proxySubmitterId'],
+          path: ["proxySubmitterId"],
           equals: managerPersonId,
         },
       },
@@ -335,15 +340,15 @@ export class ManagerProxyService {
           take: 1,
         },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
     });
 
     return rius.map((riu) => {
       const customFields = riu.customFields as Record<string, unknown> | null;
       const reporter = riu.personAssociations[0]?.person;
       const employeeName = reporter
-        ? [reporter.firstName, reporter.lastName].filter(Boolean).join(' ')
-        : 'Unknown';
+        ? [reporter.firstName, reporter.lastName].filter(Boolean).join(" ")
+        : "Unknown";
 
       return {
         reportId: riu.id,
@@ -417,7 +422,9 @@ export class ManagerProxyService {
     } while (attempts < maxAttempts);
 
     if (attempts >= maxAttempts) {
-      throw new Error('Failed to generate unique access code after maximum attempts');
+      throw new Error(
+        "Failed to generate unique access code after maximum attempts",
+      );
     }
 
     return code;
@@ -427,7 +434,9 @@ export class ManagerProxyService {
    * Generate a reference number for the RIU.
    * Format: RIU-YYYY-NNNNN
    */
-  private async generateReferenceNumber(organizationId: string): Promise<string> {
+  private async generateReferenceNumber(
+    organizationId: string,
+  ): Promise<string> {
     const year = new Date().getFullYear();
     const prefix = `RIU-${year}-`;
 
@@ -437,16 +446,16 @@ export class ManagerProxyService {
         organizationId,
         referenceNumber: { startsWith: prefix },
       },
-      orderBy: { referenceNumber: 'desc' },
+      orderBy: { referenceNumber: "desc" },
       select: { referenceNumber: true },
     });
 
     let nextNumber = 1;
     if (lastRiu) {
-      const lastNumber = parseInt(lastRiu.referenceNumber.split('-')[2], 10);
+      const lastNumber = parseInt(lastRiu.referenceNumber.split("-")[2], 10);
       nextNumber = lastNumber + 1;
     }
 
-    return `${prefix}${nextNumber.toString().padStart(5, '0')}`;
+    return `${prefix}${nextNumber.toString().padStart(5, "0")}`;
   }
 }

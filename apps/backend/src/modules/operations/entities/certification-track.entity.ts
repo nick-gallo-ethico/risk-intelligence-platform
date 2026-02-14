@@ -14,10 +14,7 @@
  * @see certification.types.ts for TrackType, CertificationLevel enums
  */
 
-import {
-  CertificationLevel,
-  TrackType,
-} from '../types/certification.types';
+import { CertificationLevel, TrackType } from "../types/certification.types";
 
 /**
  * CertificationTrack represents a modular training track.

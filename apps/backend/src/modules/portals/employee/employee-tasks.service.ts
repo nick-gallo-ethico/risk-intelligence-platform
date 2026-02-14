@@ -1,12 +1,16 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from "@nestjs/common";
+import { PrismaService } from "../../prisma/prisma.service";
 import {
   CampaignAssignment,
   RemediationStep,
   AssignmentStatus,
   StepStatus,
   CampaignType,
-} from '@prisma/client';
+} from "@prisma/client";
 import {
   EmployeeTask,
   TaskType,
@@ -16,7 +20,7 @@ import {
   TASK_SOURCE_TYPES,
   buildTaskId,
   parseTaskId,
-} from './types/employee-task.types';
+} from "./types/employee-task.types";
 
 /**
  * Campaign assignment with campaign relation for type determination.
@@ -258,7 +262,7 @@ export class EmployeeTasksService {
   ): Promise<EmployeeTask> {
     const parsed = parseTaskId(taskId);
     if (!parsed) {
-      throw new BadRequestException('Invalid task ID format');
+      throw new BadRequestException("Invalid task ID format");
     }
 
     const { sourceType, sourceId } = parsed;
@@ -282,7 +286,7 @@ export class EmployeeTasksService {
       });
 
       if (!assignment) {
-        throw new NotFoundException('Task not found');
+        throw new NotFoundException("Task not found");
       }
 
       // Verify user owns this assignment via employee (link via email)
@@ -297,7 +301,7 @@ export class EmployeeTasksService {
         : null;
 
       if (!employee || assignment.employeeId !== employee.id) {
-        throw new NotFoundException('Task not found');
+        throw new NotFoundException("Task not found");
       }
 
       return this.mapCampaignAssignmentToTask(
@@ -319,7 +323,7 @@ export class EmployeeTasksService {
       });
 
       if (!step) {
-        throw new NotFoundException('Task not found');
+        throw new NotFoundException("Task not found");
       }
 
       // Verify user owns this step (link via email)
@@ -337,13 +341,13 @@ export class EmployeeTasksService {
         step.assigneeUserId !== userId &&
         step.assigneeEmail !== employee?.email
       ) {
-        throw new NotFoundException('Task not found');
+        throw new NotFoundException("Task not found");
       }
 
       return this.mapRemediationStepToTask(step as RemediationStepWithPlan);
     }
 
-    throw new BadRequestException('Unknown task source type');
+    throw new BadRequestException("Unknown task source type");
   }
 
   /**
@@ -357,7 +361,7 @@ export class EmployeeTasksService {
   ): Promise<EmployeeTask> {
     const parsed = parseTaskId(taskId);
     if (!parsed) {
-      throw new BadRequestException('Invalid task ID format');
+      throw new BadRequestException("Invalid task ID format");
     }
 
     const { sourceType, sourceId } = parsed;
@@ -366,7 +370,7 @@ export class EmployeeTasksService {
       // Campaign assignments require form submission - return task with action URL
       // The actual completion happens via the form submission flow
       throw new BadRequestException(
-        'Campaign tasks must be completed via the task action URL',
+        "Campaign tasks must be completed via the task action URL",
       );
     }
 
@@ -385,7 +389,7 @@ export class EmployeeTasksService {
       });
 
       if (!step) {
-        throw new NotFoundException('Task not found');
+        throw new NotFoundException("Task not found");
       }
 
       // Verify user owns this step (link via email)
@@ -403,7 +407,7 @@ export class EmployeeTasksService {
         step.assigneeUserId !== userId &&
         step.assigneeEmail !== employee?.email
       ) {
-        throw new NotFoundException('Task not found');
+        throw new NotFoundException("Task not found");
       }
 
       // Check dependencies are satisfied
@@ -414,7 +418,8 @@ export class EmployeeTasksService {
 
         const unmetDependencies = dependencySteps.filter(
           (s) =>
-            s.status !== StepStatus.COMPLETED && s.status !== StepStatus.SKIPPED,
+            s.status !== StepStatus.COMPLETED &&
+            s.status !== StepStatus.SKIPPED,
         );
 
         if (unmetDependencies.length > 0) {
@@ -447,7 +452,7 @@ export class EmployeeTasksService {
       );
     }
 
-    throw new BadRequestException('Unknown task source type');
+    throw new BadRequestException("Unknown task source type");
   }
 
   // ==================== Private Methods ====================
@@ -484,7 +489,7 @@ export class EmployeeTasksService {
           },
         },
       },
-      orderBy: { dueDate: 'asc' },
+      orderBy: { dueDate: "asc" },
     }) as Promise<CampaignAssignmentWithCampaign[]>;
   }
 
@@ -510,7 +515,7 @@ export class EmployeeTasksService {
           select: { id: true, title: true, caseId: true },
         },
       },
-      orderBy: [{ dueDate: 'asc' }, { createdAt: 'asc' }],
+      orderBy: [{ dueDate: "asc" }, { createdAt: "asc" }],
     }) as Promise<RemediationStepWithPlan[]>;
   }
 
@@ -550,7 +555,9 @@ export class EmployeeTasksService {
   /**
    * Map a remediation step to the unified EmployeeTask format.
    */
-  private mapRemediationStepToTask(step: RemediationStepWithPlan): EmployeeTask {
+  private mapRemediationStepToTask(
+    step: RemediationStepWithPlan,
+  ): EmployeeTask {
     return {
       id: buildTaskId(TASK_SOURCE_TYPES.REMEDIATION_STEP, step.id),
       type: TaskType.REMEDIATION_STEP,
@@ -617,7 +624,10 @@ export class EmployeeTasksService {
   /**
    * Apply filters to the task list.
    */
-  private applyFilters(tasks: EmployeeTask[], filters: TaskFilters): EmployeeTask[] {
+  private applyFilters(
+    tasks: EmployeeTask[],
+    filters: TaskFilters,
+  ): EmployeeTask[] {
     let filtered = tasks;
 
     if (filters.types && filters.types.length > 0) {

@@ -1,1 +1,1 @@
-export * from './riu.types';
+export * from "./riu.types";

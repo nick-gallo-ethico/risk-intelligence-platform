@@ -29,18 +29,18 @@ import {
   HttpCode,
   HttpStatus,
   ParseUUIDPipe,
-} from '@nestjs/common';
-import { DirectivesService } from './directives.service';
+} from "@nestjs/common";
+import { DirectivesService } from "./directives.service";
 import {
   CreateDirectiveDto,
   UpdateDirectiveDto,
   ReorderDirectivesDto,
-} from './dto/directives.dto';
-import { JwtAuthGuard, RolesGuard } from '../../../common/guards';
-import { Roles, UserRole } from '../../../common/decorators/roles.decorator';
-import { CallDirectives, DirectivesByStage } from './types/directives.types';
+} from "./dto/directives.dto";
+import { JwtAuthGuard, RolesGuard } from "../../../common/guards";
+import { Roles, UserRole } from "../../../common/decorators/roles.decorator";
+import { CallDirectives, DirectivesByStage } from "./types/directives.types";
 
-@Controller('operator/clients/:clientId/directives')
+@Controller("operator/clients/:clientId/directives")
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class DirectivesController {
   constructor(private readonly directivesService: DirectivesService) {}
@@ -56,10 +56,10 @@ export class DirectivesController {
    * @returns Directives grouped by stage
    */
   @Get()
-  @Roles('OPERATOR' as UserRole, UserRole.SYSTEM_ADMIN)
+  @Roles("OPERATOR" as UserRole, UserRole.SYSTEM_ADMIN)
   async listDirectives(
-    @Param('clientId', ParseUUIDPipe) clientId: string,
-    @Query('categoryId') categoryId?: string,
+    @Param("clientId", ParseUUIDPipe) clientId: string,
+    @Query("categoryId") categoryId?: string,
   ): Promise<DirectivesByStage> {
     return this.directivesService.getAllDirectives(clientId, {
       categoryId,
@@ -78,11 +78,11 @@ export class DirectivesController {
    * @param categoryId - Optional category ID for category-specific directives
    * @returns CallDirectives with opening, intake, categorySpecific, and closing arrays
    */
-  @Get('call')
-  @Roles('OPERATOR' as UserRole, UserRole.SYSTEM_ADMIN)
+  @Get("call")
+  @Roles("OPERATOR" as UserRole, UserRole.SYSTEM_ADMIN)
   async getDirectivesForCall(
-    @Param('clientId', ParseUUIDPipe) clientId: string,
-    @Query('categoryId') categoryId?: string,
+    @Param("clientId", ParseUUIDPipe) clientId: string,
+    @Query("categoryId") categoryId?: string,
   ): Promise<CallDirectives> {
     return this.directivesService.getDirectivesForCall(clientId, categoryId);
   }
@@ -97,11 +97,11 @@ export class DirectivesController {
    * @param id - Directive ID
    * @returns Single directive with category relation
    */
-  @Get(':id')
-  @Roles('OPERATOR' as UserRole, UserRole.SYSTEM_ADMIN)
+  @Get(":id")
+  @Roles("OPERATOR" as UserRole, UserRole.SYSTEM_ADMIN)
   async getDirective(
-    @Param('clientId', ParseUUIDPipe) clientId: string,
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param("clientId", ParseUUIDPipe) clientId: string,
+    @Param("id", ParseUUIDPipe) id: string,
   ) {
     return this.directivesService.getById(id, clientId);
   }
@@ -120,7 +120,7 @@ export class DirectivesController {
   @Roles(UserRole.SYSTEM_ADMIN)
   @HttpCode(HttpStatus.CREATED)
   async createDirective(
-    @Param('clientId', ParseUUIDPipe) clientId: string,
+    @Param("clientId", ParseUUIDPipe) clientId: string,
     @Body() dto: CreateDirectiveDto,
   ) {
     return this.directivesService.create(clientId, dto);
@@ -137,11 +137,11 @@ export class DirectivesController {
    * @param dto - Update data
    * @returns Updated directive
    */
-  @Put(':id')
+  @Put(":id")
   @Roles(UserRole.SYSTEM_ADMIN)
   async updateDirective(
-    @Param('clientId', ParseUUIDPipe) clientId: string,
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param("clientId", ParseUUIDPipe) clientId: string,
+    @Param("id", ParseUUIDPipe) id: string,
     @Body() dto: UpdateDirectiveDto,
   ) {
     return this.directivesService.update(id, clientId, dto);
@@ -156,12 +156,12 @@ export class DirectivesController {
    * @param clientId - Client organization ID
    * @param id - Directive ID
    */
-  @Delete(':id')
+  @Delete(":id")
   @Roles(UserRole.SYSTEM_ADMIN)
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteDirective(
-    @Param('clientId', ParseUUIDPipe) clientId: string,
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param("clientId", ParseUUIDPipe) clientId: string,
+    @Param("id", ParseUUIDPipe) id: string,
   ): Promise<void> {
     await this.directivesService.delete(id, clientId);
   }
@@ -176,11 +176,11 @@ export class DirectivesController {
    * @param clientId - Client organization ID
    * @param dto - Reorder data with array of directive IDs
    */
-  @Post('reorder')
+  @Post("reorder")
   @Roles(UserRole.SYSTEM_ADMIN)
   @HttpCode(HttpStatus.NO_CONTENT)
   async reorderDirectives(
-    @Param('clientId', ParseUUIDPipe) clientId: string,
+    @Param("clientId", ParseUUIDPipe) clientId: string,
     @Body() dto: ReorderDirectivesDto,
   ): Promise<void> {
     await this.directivesService.reorder(clientId, dto.ids);

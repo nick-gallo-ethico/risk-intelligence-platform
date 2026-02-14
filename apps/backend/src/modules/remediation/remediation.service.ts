@@ -2,17 +2,17 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
-} from '@nestjs/common';
-import { PrismaService } from '../../modules/prisma/prisma.service';
-import { EventEmitter2 } from '@nestjs/event-emitter';
-import { RemediationStatus, Prisma } from '@prisma/client';
+} from "@nestjs/common";
+import { PrismaService } from "../../modules/prisma/prisma.service";
+import { EventEmitter2 } from "@nestjs/event-emitter";
+import { RemediationStatus, Prisma } from "@prisma/client";
 import {
   CreateRemediationPlanDto,
   UpdateRemediationPlanDto,
   RemediationQueryDto,
   CreateRemediationTemplateDto,
   StepTemplate,
-} from './dto/remediation.dto';
+} from "./dto/remediation.dto";
 
 @Injectable()
 export class RemediationService {
@@ -74,7 +74,7 @@ export class RemediationService {
       });
     }
 
-    this.eventEmitter.emit('remediation.plan.created', {
+    this.eventEmitter.emit("remediation.plan.created", {
       organizationId,
       planId: plan.id,
       caseId: dto.caseId,
@@ -89,7 +89,7 @@ export class RemediationService {
       where: { id, organizationId },
       include: {
         steps: {
-          orderBy: { order: 'asc' },
+          orderBy: { order: "asc" },
         },
         case: {
           select: { id: true, referenceNumber: true, status: true },
@@ -98,7 +98,7 @@ export class RemediationService {
     });
 
     if (!plan) {
-      throw new NotFoundException('Remediation plan not found');
+      throw new NotFoundException("Remediation plan not found");
     }
 
     return plan;
@@ -109,10 +109,10 @@ export class RemediationService {
       where: { organizationId, caseId },
       include: {
         steps: {
-          orderBy: { order: 'asc' },
+          orderBy: { order: "asc" },
         },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
     });
   }
 
@@ -139,7 +139,7 @@ export class RemediationService {
             select: { steps: true },
           },
         },
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: "desc" },
         skip: ((query.page || 1) - 1) * (query.limit || 20),
         take: query.limit || 20,
       }),
@@ -179,7 +179,7 @@ export class RemediationService {
       },
     });
 
-    this.eventEmitter.emit('remediation.plan.updated', {
+    this.eventEmitter.emit("remediation.plan.updated", {
       organizationId,
       planId: id,
       userId,
@@ -192,7 +192,7 @@ export class RemediationService {
     const plan = await this.findById(organizationId, id);
 
     if (plan.status !== RemediationStatus.DRAFT) {
-      throw new BadRequestException('Only draft plans can be activated');
+      throw new BadRequestException("Only draft plans can be activated");
     }
 
     return this.update(organizationId, id, userId, {
@@ -205,7 +205,7 @@ export class RemediationService {
 
     // Check all required steps are completed
     const incompleteSteps = plan.steps.filter(
-      (s) => s.status !== 'COMPLETED' && s.status !== 'SKIPPED',
+      (s) => s.status !== "COMPLETED" && s.status !== "SKIPPED",
     );
 
     if (incompleteSteps.length > 0) {
@@ -241,10 +241,10 @@ export class RemediationService {
     });
 
     const totalSteps = steps.length;
-    const completedSteps = steps.filter((s) => s.status === 'COMPLETED').length;
+    const completedSteps = steps.filter((s) => s.status === "COMPLETED").length;
     const overdueSteps = steps.filter(
       (s) =>
-        s.dueDate && new Date(s.dueDate) < new Date() && s.status === 'PENDING',
+        s.dueDate && new Date(s.dueDate) < new Date() && s.status === "PENDING",
     ).length;
 
     await this.prisma.remediationPlan.update({
@@ -279,7 +279,7 @@ export class RemediationService {
         isActive: true,
         ...(categoryId && { categoryId }),
       },
-      orderBy: { name: 'asc' },
+      orderBy: { name: "asc" },
     });
   }
 }

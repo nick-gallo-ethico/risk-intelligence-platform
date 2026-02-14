@@ -47,7 +47,11 @@ export class PersonsController {
    * Creates a new person record.
    */
   @Post()
-  @Roles(UserRole.COMPLIANCE_OFFICER, UserRole.SYSTEM_ADMIN, UserRole.TRIAGE_LEAD)
+  @Roles(
+    UserRole.COMPLIANCE_OFFICER,
+    UserRole.SYSTEM_ADMIN,
+    UserRole.TRIAGE_LEAD,
+  )
   @UseGuards(RolesGuard)
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({

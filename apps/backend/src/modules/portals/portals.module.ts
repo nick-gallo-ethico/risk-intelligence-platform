@@ -20,10 +20,10 @@
  *
  * Import this single module in AppModule to enable all portal features.
  */
-import { Module } from '@nestjs/common';
-import { EmployeePortalModule } from './employee/employee-portal.module';
-import { OperatorPortalModule } from './operator/operator-portal.module';
-import { EthicsPortalModule } from './ethics/ethics-portal.module';
+import { Module } from "@nestjs/common";
+import { EmployeePortalModule } from "./employee/employee-portal.module";
+import { OperatorPortalModule } from "./operator/operator-portal.module";
+import { EthicsPortalModule } from "./ethics/ethics-portal.module";
 
 @Module({
   imports: [EmployeePortalModule, OperatorPortalModule, EthicsPortalModule],

@@ -87,19 +87,52 @@ export class QaQueueController {
   @Get()
   @Roles(UserRole.TRIAGE_LEAD, UserRole.SYSTEM_ADMIN)
   @ApiOperation({ summary: "Get QA queue with filters" })
-  @ApiQuery({ name: "clientId", required: false, description: "Filter by client organization" })
-  @ApiQuery({ name: "severityMin", required: false, enum: Severity, description: "Minimum severity" })
-  @ApiQuery({ name: "operatorId", required: false, description: "Filter by creating operator" })
-  @ApiQuery({ name: "dateFrom", required: false, description: "Filter from date (ISO)" })
-  @ApiQuery({ name: "dateTo", required: false, description: "Filter to date (ISO)" })
-  @ApiQuery({ name: "page", required: false, type: Number, description: "Page number (default: 1)" })
-  @ApiQuery({ name: "limit", required: false, type: Number, description: "Items per page (default: 20)" })
+  @ApiQuery({
+    name: "clientId",
+    required: false,
+    description: "Filter by client organization",
+  })
+  @ApiQuery({
+    name: "severityMin",
+    required: false,
+    enum: Severity,
+    description: "Minimum severity",
+  })
+  @ApiQuery({
+    name: "operatorId",
+    required: false,
+    description: "Filter by creating operator",
+  })
+  @ApiQuery({
+    name: "dateFrom",
+    required: false,
+    description: "Filter from date (ISO)",
+  })
+  @ApiQuery({
+    name: "dateTo",
+    required: false,
+    description: "Filter to date (ISO)",
+  })
+  @ApiQuery({
+    name: "page",
+    required: false,
+    type: Number,
+    description: "Page number (default: 1)",
+  })
+  @ApiQuery({
+    name: "limit",
+    required: false,
+    type: Number,
+    description: "Items per page (default: 20)",
+  })
   @ApiResponse({
     status: 200,
     description: "Paginated QA queue",
     type: Object, // PaginatedQaQueueResult
   })
-  async getQaQueue(@Query() query: QaQueueQueryDto): Promise<PaginatedQaQueueResult> {
+  async getQaQueue(
+    @Query() query: QaQueueQueryDto,
+  ): Promise<PaginatedQaQueueResult> {
     const filters: QaQueueFilters = {
       clientId: query.clientId,
       severityMin: query.severityMin,
@@ -122,7 +155,10 @@ export class QaQueueController {
   @ApiParam({ name: "riuId", description: "RIU ID to claim" })
   @ApiResponse({ status: 204, description: "Item claimed" })
   @ApiResponse({ status: 404, description: "QA item not found" })
-  @ApiResponse({ status: 409, description: "Item already claimed or not in PENDING status" })
+  @ApiResponse({
+    status: 409,
+    description: "Item already claimed or not in PENDING status",
+  })
   async claimForReview(
     @Param("riuId") riuId: string,
     @CurrentUser() user: User,
@@ -157,21 +193,25 @@ export class QaQueueController {
   @ApiOperation({ summary: "Release (approve) item from QA" })
   @ApiParam({ name: "riuId", description: "RIU ID to release" })
   @ApiResponse({ status: 204, description: "Item released" })
-  @ApiResponse({ status: 400, description: "Item not in IN_REVIEW status or wrong reviewer" })
+  @ApiResponse({
+    status: 400,
+    description: "Item not in IN_REVIEW status or wrong reviewer",
+  })
   @ApiResponse({ status: 404, description: "QA item not found" })
   async releaseFromQa(
     @Param("riuId") riuId: string,
     @Body() body: QaEditsBodyDto,
     @CurrentUser() user: User,
   ): Promise<void> {
-    const edits: QaEditsDto | undefined = Object.keys(body).length > 0
-      ? {
-          summary: body.summary,
-          categoryId: body.categoryId,
-          severityScore: body.severityScore,
-          editNotes: body.editNotes,
-        }
-      : undefined;
+    const edits: QaEditsDto | undefined =
+      Object.keys(body).length > 0
+        ? {
+            summary: body.summary,
+            categoryId: body.categoryId,
+            severityScore: body.severityScore,
+            editNotes: body.editNotes,
+          }
+        : undefined;
     await this.qaQueueService.releaseFromQa(user.id, riuId, edits);
   }
 
@@ -184,7 +224,10 @@ export class QaQueueController {
   @ApiOperation({ summary: "Reject item back to operator" })
   @ApiParam({ name: "riuId", description: "RIU ID to reject" })
   @ApiResponse({ status: 204, description: "Item rejected" })
-  @ApiResponse({ status: 400, description: "Rejection reason required, wrong status, or wrong reviewer" })
+  @ApiResponse({
+    status: 400,
+    description: "Rejection reason required, wrong status, or wrong reviewer",
+  })
   @ApiResponse({ status: 404, description: "QA item not found" })
   async rejectToOperator(
     @Param("riuId") riuId: string,
@@ -203,7 +246,10 @@ export class QaQueueController {
   @ApiOperation({ summary: "Abandon claim on item" })
   @ApiParam({ name: "riuId", description: "RIU ID to abandon" })
   @ApiResponse({ status: 204, description: "Claim abandoned" })
-  @ApiResponse({ status: 400, description: "Item not in IN_REVIEW status or wrong reviewer" })
+  @ApiResponse({
+    status: 400,
+    description: "Item not in IN_REVIEW status or wrong reviewer",
+  })
   @ApiResponse({ status: 404, description: "QA item not found" })
   async abandonClaim(
     @Param("riuId") riuId: string,

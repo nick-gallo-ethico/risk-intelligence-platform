@@ -3,18 +3,21 @@ import {
   Logger,
   NotFoundException,
   BadRequestException,
-} from '@nestjs/common';
-import { EventEmitter2 } from '@nestjs/event-emitter';
-import { PrismaService } from '../prisma/prisma.service';
-import { customAlphabet } from 'nanoid';
-import { RiuStatusResponseDto, RiuMessagesResponseDto } from './dto/access-code.dto';
+} from "@nestjs/common";
+import { EventEmitter2 } from "@nestjs/event-emitter";
+import { PrismaService } from "../prisma/prisma.service";
+import { customAlphabet } from "nanoid";
+import {
+  RiuStatusResponseDto,
+  RiuMessagesResponseDto,
+} from "./dto/access-code.dto";
 
 /**
  * Custom alphabet for access code generation.
  * Excludes visually confusing characters: 0/O, 1/I/L
  * Results in 12-character codes like: "A2B3C4D5E6F7"
  */
-const ACCESS_CODE_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+const ACCESS_CODE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
 const ACCESS_CODE_LENGTH = 12;
 const generateCode = customAlphabet(ACCESS_CODE_ALPHABET, ACCESS_CODE_LENGTH);
 
@@ -60,8 +63,10 @@ export class RiuAccessService {
     } while (attempts < maxAttempts);
 
     if (attempts >= maxAttempts) {
-      this.logger.error('Failed to generate unique access code after max attempts');
-      throw new Error('Failed to generate unique access code');
+      this.logger.error(
+        "Failed to generate unique access code after max attempts",
+      );
+      throw new Error("Failed to generate unique access code");
     }
 
     return code;
@@ -95,7 +100,7 @@ export class RiuAccessService {
 
     if (!riu) {
       // Generic error message - don't reveal whether code exists
-      throw new NotFoundException('Invalid access code');
+      throw new NotFoundException("Invalid access code");
     }
 
     // Get unread message count (outbound = TO reporter)
@@ -106,7 +111,7 @@ export class RiuAccessService {
       unreadMessageCount = await this.prisma.caseMessage.count({
         where: {
           caseId: linkedCaseId,
-          direction: 'OUTBOUND', // Messages TO reporter
+          direction: "OUTBOUND", // Messages TO reporter
           isRead: false,
         },
       });
@@ -143,7 +148,7 @@ export class RiuAccessService {
     });
 
     if (!riu) {
-      throw new NotFoundException('Invalid access code');
+      throw new NotFoundException("Invalid access code");
     }
 
     const linkedCaseId = riu.caseAssociations[0]?.caseId;
@@ -155,14 +160,14 @@ export class RiuAccessService {
     // Get all messages for the linked case
     const messages = await this.prisma.caseMessage.findMany({
       where: { caseId: linkedCaseId },
-      orderBy: { createdAt: 'asc' },
+      orderBy: { createdAt: "asc" },
     });
 
     // Mark outbound messages (TO reporter) as read
     await this.prisma.caseMessage.updateMany({
       where: {
         caseId: linkedCaseId,
-        direction: 'OUTBOUND',
+        direction: "OUTBOUND",
         isRead: false,
       },
       data: {
@@ -174,7 +179,7 @@ export class RiuAccessService {
     return {
       messages: messages.map((m) => ({
         id: m.id,
-        direction: m.direction.toLowerCase() as 'inbound' | 'outbound',
+        direction: m.direction.toLowerCase() as "inbound" | "outbound",
         content: m.content,
         createdAt: m.createdAt,
         isRead: m.isRead,
@@ -202,13 +207,13 @@ export class RiuAccessService {
     });
 
     if (!riu) {
-      throw new NotFoundException('Invalid access code');
+      throw new NotFoundException("Invalid access code");
     }
 
     const linkedCaseId = riu.caseAssociations[0]?.caseId;
     if (!linkedCaseId) {
       throw new BadRequestException(
-        'Your report has not been assigned to a case yet. Please check back later.',
+        "Your report has not been assigned to a case yet. Please check back later.",
       );
     }
 
@@ -217,8 +222,8 @@ export class RiuAccessService {
       data: {
         organizationId: riu.organizationId,
         caseId: linkedCaseId,
-        direction: 'INBOUND',
-        senderType: 'REPORTER',
+        direction: "INBOUND",
+        senderType: "REPORTER",
         content,
         isRead: false,
         // No createdById - anonymous reporter
@@ -226,7 +231,7 @@ export class RiuAccessService {
     });
 
     // Emit event for notification system
-    this.emitEvent('case.message.received', {
+    this.emitEvent("case.message.received", {
       organizationId: riu.organizationId,
       caseId: linkedCaseId,
       messageId: message.id,
@@ -257,17 +262,17 @@ export class RiuAccessService {
    */
   private getStatusDescription(status: string): string {
     const descriptions: Record<string, string> = {
-      PENDING_QA: 'Your report is being reviewed by our team.',
-      IN_QA: 'Your report is currently under review.',
+      PENDING_QA: "Your report is being reviewed by our team.",
+      IN_QA: "Your report is currently under review.",
       QA_REJECTED:
-        'We need additional information. Please check messages below.',
-      RELEASED: 'Your report has been received and is being processed.',
-      LINKED: 'Your report has been assigned to an investigator.',
-      CLOSED: 'Your report has been closed. Thank you for reporting.',
-      RECEIVED: 'Your report has been received.',
-      COMPLETED: 'Your submission has been completed.',
+        "We need additional information. Please check messages below.",
+      RELEASED: "Your report has been received and is being processed.",
+      LINKED: "Your report has been assigned to an investigator.",
+      CLOSED: "Your report has been closed. Thank you for reporting.",
+      RECEIVED: "Your report has been received.",
+      COMPLETED: "Your submission has been completed.",
     };
-    return descriptions[status] || 'Status unknown';
+    return descriptions[status] || "Status unknown";
   }
 
   /**

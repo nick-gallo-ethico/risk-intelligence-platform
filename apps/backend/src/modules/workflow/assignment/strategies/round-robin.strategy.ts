@@ -38,7 +38,7 @@ export class RoundRobinStrategy extends AssignmentStrategy {
 
   async resolve(
     context: AssignmentContext,
-    config: RoundRobinConfig
+    config: RoundRobinConfig,
   ): Promise<AssignmentResult | null> {
     // Get eligible users
     const users = await this.prisma.user.findMany({
@@ -76,9 +76,7 @@ export class RoundRobinStrategy extends AssignmentStrategy {
     let nextIndex = 0;
     if (lastAssignment?.changes) {
       const changes = lastAssignment.changes as Record<string, unknown>;
-      const assignedTo = changes.assignedTo as
-        | { new?: string }
-        | undefined;
+      const assignedTo = changes.assignedTo as { new?: string } | undefined;
       const lastUserId = assignedTo?.new;
 
       if (lastUserId) {

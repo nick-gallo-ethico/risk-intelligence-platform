@@ -22,11 +22,7 @@ import {
   ConflictException,
 } from "@nestjs/common";
 import { EventEmitter2 } from "@nestjs/event-emitter";
-import {
-  RiuQaStatus,
-  Severity,
-  AuditEntityType,
-} from "@prisma/client";
+import { RiuQaStatus, Severity, AuditEntityType } from "@prisma/client";
 import { PrismaService } from "../../prisma/prisma.service";
 import { ActivityService } from "../../../common/services/activity.service";
 import {
@@ -318,7 +314,9 @@ export class QaQueueService {
       referenceNumber: riu.referenceNumber,
     });
 
-    this.logger.log(`QA reviewer ${reviewerId} released RIU ${riu.referenceNumber}`);
+    this.logger.log(
+      `QA reviewer ${reviewerId} released RIU ${riu.referenceNumber}`,
+    );
   }
 
   /**
@@ -396,7 +394,9 @@ export class QaQueueService {
       referenceNumber: riu.referenceNumber,
     });
 
-    this.logger.log(`QA reviewer ${reviewerId} rejected RIU ${riu.referenceNumber}`);
+    this.logger.log(
+      `QA reviewer ${reviewerId} rejected RIU ${riu.referenceNumber}`,
+    );
   }
 
   /**
@@ -549,7 +549,9 @@ export class QaQueueService {
       reviewerId,
     });
 
-    this.logger.log(`QA reviewer ${reviewerId} abandoned claim on RIU ${riuId}`);
+    this.logger.log(
+      `QA reviewer ${reviewerId} abandoned claim on RIU ${riuId}`,
+    );
   }
 
   /**

@@ -1,1 +1,1 @@
-export * from './submit-report.dto';
+export * from "./submit-report.dto";

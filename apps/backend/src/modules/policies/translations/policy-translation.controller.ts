@@ -30,7 +30,12 @@ import {
   ApiParam,
 } from "@nestjs/swagger";
 import { JwtAuthGuard, TenantGuard, RolesGuard } from "../../../common/guards";
-import { CurrentUser, TenantId, Roles, UserRole } from "../../../common/decorators";
+import {
+  CurrentUser,
+  TenantId,
+  Roles,
+  UserRole,
+} from "../../../common/decorators";
 import { PolicyTranslationService } from "./policy-translation.service";
 import {
   CreateTranslationDto,
@@ -61,7 +66,11 @@ export class PolicyTranslationController {
    */
   @Post("versions/:versionId/translations")
   @UseGuards(RolesGuard)
-  @Roles(UserRole.SYSTEM_ADMIN, UserRole.COMPLIANCE_OFFICER, UserRole.POLICY_AUTHOR)
+  @Roles(
+    UserRole.SYSTEM_ADMIN,
+    UserRole.COMPLIANCE_OFFICER,
+    UserRole.POLICY_AUTHOR,
+  )
   @ApiOperation({
     summary: "Create translation for policy version",
     description:
@@ -75,9 +84,15 @@ export class PolicyTranslationController {
     format: "uuid",
   })
   @ApiResponse({ status: 201, description: "Translation created successfully" })
-  @ApiResponse({ status: 400, description: "Invalid input or AI translation failed" })
+  @ApiResponse({
+    status: 400,
+    description: "Invalid input or AI translation failed",
+  })
   @ApiResponse({ status: 404, description: "Policy version not found" })
-  @ApiResponse({ status: 409, description: "Translation already exists for language" })
+  @ApiResponse({
+    status: 409,
+    description: "Translation already exists for language",
+  })
   async createTranslation(
     @Param("versionId", ParseUUIDPipe) versionId: string,
     @Body() dto: CreateTranslationDto,
@@ -120,7 +135,10 @@ export class PolicyTranslationController {
     @Param("versionId", ParseUUIDPipe) versionId: string,
     @TenantId() organizationId: string,
   ) {
-    return this.policyTranslationService.findByVersion(versionId, organizationId);
+    return this.policyTranslationService.findByVersion(
+      versionId,
+      organizationId,
+    );
   }
 
   // =========================================================================
@@ -133,7 +151,11 @@ export class PolicyTranslationController {
    */
   @Put("translations/:id")
   @UseGuards(RolesGuard)
-  @Roles(UserRole.SYSTEM_ADMIN, UserRole.COMPLIANCE_OFFICER, UserRole.POLICY_AUTHOR)
+  @Roles(
+    UserRole.SYSTEM_ADMIN,
+    UserRole.COMPLIANCE_OFFICER,
+    UserRole.POLICY_AUTHOR,
+  )
   @ApiOperation({
     summary: "Update translation content",
     description:
@@ -184,7 +206,10 @@ export class PolicyTranslationController {
     type: "string",
     format: "uuid",
   })
-  @ApiResponse({ status: 200, description: "Translation reviewed successfully" })
+  @ApiResponse({
+    status: 200,
+    description: "Translation reviewed successfully",
+  })
   @ApiResponse({ status: 404, description: "Translation not found" })
   async reviewTranslation(
     @Param("id", ParseUUIDPipe) translationId: string,
@@ -209,7 +234,11 @@ export class PolicyTranslationController {
    */
   @Post("translations/:id/refresh")
   @UseGuards(RolesGuard)
-  @Roles(UserRole.SYSTEM_ADMIN, UserRole.COMPLIANCE_OFFICER, UserRole.POLICY_AUTHOR)
+  @Roles(
+    UserRole.SYSTEM_ADMIN,
+    UserRole.COMPLIANCE_OFFICER,
+    UserRole.POLICY_AUTHOR,
+  )
   @ApiOperation({
     summary: "Refresh stale translation",
     description:
@@ -222,8 +251,14 @@ export class PolicyTranslationController {
     type: "string",
     format: "uuid",
   })
-  @ApiResponse({ status: 200, description: "Translation refreshed successfully" })
-  @ApiResponse({ status: 400, description: "Translation is not stale or AI failed" })
+  @ApiResponse({
+    status: 200,
+    description: "Translation refreshed successfully",
+  })
+  @ApiResponse({
+    status: 400,
+    description: "Translation is not stale or AI failed",
+  })
   @ApiResponse({ status: 404, description: "Translation not found" })
   async refreshTranslation(
     @Param("id", ParseUUIDPipe) translationId: string,

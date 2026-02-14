@@ -94,12 +94,14 @@ export class PermissionFilterService {
 
         if (caseIds.length > 0) {
           // Get RIU IDs associated with these cases
-          const riuAssociations = await this.prisma.riuCaseAssociation.findMany({
-            where: {
-              caseId: { in: caseIds },
+          const riuAssociations = await this.prisma.riuCaseAssociation.findMany(
+            {
+              where: {
+                caseId: { in: caseIds },
+              },
+              select: { riuId: true },
             },
-            select: { riuId: true },
-          });
+          );
 
           const riuIds = riuAssociations.map((a) => a.riuId);
 

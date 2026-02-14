@@ -3,14 +3,10 @@ import {
   Logger,
   NotFoundException,
   BadRequestException,
-} from '@nestjs/common';
-import {
-  DisclosureType,
-  RiuDisclosureExtension,
-  Prisma,
-} from '@prisma/client';
-import { Decimal } from '@prisma/client/runtime/library';
-import { PrismaService } from '../../prisma/prisma.service';
+} from "@nestjs/common";
+import { DisclosureType, RiuDisclosureExtension, Prisma } from "@prisma/client";
+import { Decimal } from "@prisma/client/runtime/library";
+import { PrismaService } from "../../prisma/prisma.service";
 
 /**
  * DTO for creating a disclosure extension
@@ -96,17 +92,20 @@ export class DisclosureRiuService {
         organizationId,
         disclosureType: dto.disclosureType,
         disclosureSubtype: dto.disclosureSubtype,
-        disclosureValue: dto.disclosureValue != null
-          ? new Decimal(dto.disclosureValue)
-          : undefined,
+        disclosureValue:
+          dto.disclosureValue != null
+            ? new Decimal(dto.disclosureValue)
+            : undefined,
         disclosureCurrency: dto.disclosureCurrency,
-        estimatedAnnualValue: dto.estimatedAnnualValue != null
-          ? new Decimal(dto.estimatedAnnualValue)
-          : undefined,
+        estimatedAnnualValue:
+          dto.estimatedAnnualValue != null
+            ? new Decimal(dto.estimatedAnnualValue)
+            : undefined,
         thresholdTriggered,
-        thresholdAmount: thresholdConfig != null
-          ? new Decimal(thresholdConfig.amount)
-          : undefined,
+        thresholdAmount:
+          thresholdConfig != null
+            ? new Decimal(thresholdConfig.amount)
+            : undefined,
         relatedPersonId: dto.relatedPersonId,
         relatedPersonName: dto.relatedPersonName,
         relatedCompany: dto.relatedCompany,
@@ -118,7 +117,7 @@ export class DisclosureRiuService {
 
     this.logger.debug(
       `Created disclosure extension for RIU ${riuId} in org ${organizationId}, ` +
-      `type: ${dto.disclosureType}, threshold: ${thresholdTriggered ? 'triggered' : 'not triggered'}`,
+        `type: ${dto.disclosureType}, threshold: ${thresholdTriggered ? "triggered" : "not triggered"}`,
     );
 
     return extension;
@@ -161,7 +160,7 @@ export class DisclosureRiuService {
     reason: string,
   ): Promise<RiuDisclosureExtension> {
     if (!reason) {
-      throw new BadRequestException('Conflict reason is required');
+      throw new BadRequestException("Conflict reason is required");
     }
 
     // Verify extension exists
@@ -175,9 +174,7 @@ export class DisclosureRiuService {
       },
     });
 
-    this.logger.log(
-      `Flagged conflict for RIU ${riuId}: ${reason}`,
-    );
+    this.logger.log(`Flagged conflict for RIU ${riuId}: ${reason}`);
 
     return updated;
   }
@@ -226,7 +223,7 @@ export class DisclosureRiuService {
           },
         },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
     });
   }
 
@@ -243,7 +240,7 @@ export class DisclosureRiuService {
         organizationId,
         relatedCompany: {
           contains: companyName,
-          mode: 'insensitive',
+          mode: "insensitive",
         },
       },
       include: {
@@ -256,7 +253,7 @@ export class DisclosureRiuService {
           },
         },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
     });
   }
 
@@ -283,7 +280,7 @@ export class DisclosureRiuService {
           },
         },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
     });
   }
 
@@ -310,28 +307,30 @@ export class DisclosureRiuService {
           },
         },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
     });
   }
 
   /**
    * Gets disclosure statistics by type for an organization.
    */
-  async getDisclosureStatsByType(organizationId: string): Promise<{
-    type: DisclosureType;
-    count: number;
-    thresholdTriggered: number;
-    conflictDetected: number;
-  }[]> {
+  async getDisclosureStatsByType(organizationId: string): Promise<
+    {
+      type: DisclosureType;
+      count: number;
+      thresholdTriggered: number;
+      conflictDetected: number;
+    }[]
+  > {
     const stats = await this.prisma.riuDisclosureExtension.groupBy({
-      by: ['disclosureType'],
+      by: ["disclosureType"],
       where: { organizationId },
       _count: true,
     });
 
     // Get threshold and conflict counts per type
     const thresholdCounts = await this.prisma.riuDisclosureExtension.groupBy({
-      by: ['disclosureType'],
+      by: ["disclosureType"],
       where: {
         organizationId,
         thresholdTriggered: true,
@@ -340,7 +339,7 @@ export class DisclosureRiuService {
     });
 
     const conflictCounts = await this.prisma.riuDisclosureExtension.groupBy({
-      by: ['disclosureType'],
+      by: ["disclosureType"],
       where: {
         organizationId,
         conflictDetected: true,
@@ -350,13 +349,13 @@ export class DisclosureRiuService {
 
     // Build result map
     const thresholdMap = new Map(
-      thresholdCounts.map(t => [t.disclosureType, t._count]),
+      thresholdCounts.map((t) => [t.disclosureType, t._count]),
     );
     const conflictMap = new Map(
-      conflictCounts.map(c => [c.disclosureType, c._count]),
+      conflictCounts.map((c) => [c.disclosureType, c._count]),
     );
 
-    return stats.map(s => ({
+    return stats.map((s) => ({
       type: s.disclosureType,
       count: s._count,
       thresholdTriggered: thresholdMap.get(s.disclosureType) ?? 0,
@@ -388,7 +387,7 @@ export class DisclosureRiuService {
     }
 
     const results = await this.prisma.riuDisclosureExtension.groupBy({
-      by: ['disclosureCurrency'],
+      by: ["disclosureCurrency"],
       where,
       _sum: {
         disclosureValue: true,
@@ -396,10 +395,10 @@ export class DisclosureRiuService {
     });
 
     return results
-      .filter(r => r._sum.disclosureValue != null)
-      .map(r => ({
+      .filter((r) => r._sum.disclosureValue != null)
+      .map((r) => ({
         total: r._sum.disclosureValue!,
-        currency: r.disclosureCurrency ?? 'USD',
+        currency: r.disclosureCurrency ?? "USD",
       }));
   }
 }

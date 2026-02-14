@@ -68,17 +68,25 @@ export class PoliciesController {
    * Creates a new policy in DRAFT status.
    */
   @Post()
-  @Roles(UserRole.SYSTEM_ADMIN, UserRole.COMPLIANCE_OFFICER, UserRole.POLICY_AUTHOR)
+  @Roles(
+    UserRole.SYSTEM_ADMIN,
+    UserRole.COMPLIANCE_OFFICER,
+    UserRole.POLICY_AUTHOR,
+  )
   @UseGuards(RolesGuard)
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({
     summary: "Create a new policy",
-    description: "Creates a new policy in DRAFT status with optional initial content",
+    description:
+      "Creates a new policy in DRAFT status with optional initial content",
   })
   @ApiResponse({ status: 201, description: "Policy created successfully" })
   @ApiResponse({ status: 400, description: "Validation error" })
   @ApiResponse({ status: 401, description: "Unauthorized" })
-  @ApiResponse({ status: 403, description: "Forbidden - insufficient permissions" })
+  @ApiResponse({
+    status: 403,
+    description: "Forbidden - insufficient permissions",
+  })
   async create(
     @Body() dto: CreatePolicyDto,
     @CurrentUser() user: RequestUser,
@@ -98,7 +106,8 @@ export class PoliciesController {
   @Get()
   @ApiOperation({
     summary: "List policies",
-    description: "Returns paginated list of policies with optional filtering and search",
+    description:
+      "Returns paginated list of policies with optional filtering and search",
   })
   @ApiResponse({ status: 200, description: "List of policies with pagination" })
   @ApiResponse({ status: 401, description: "Unauthorized" })
@@ -116,7 +125,8 @@ export class PoliciesController {
   @Get(":id")
   @ApiOperation({
     summary: "Get policy by ID",
-    description: "Returns a single policy by its UUID, including latest version",
+    description:
+      "Returns a single policy by its UUID, including latest version",
   })
   @ApiParam({ name: "id", description: "Policy UUID" })
   @ApiResponse({ status: 200, description: "Policy found" })
@@ -138,7 +148,11 @@ export class PoliciesController {
    * Updates the draft content of a policy.
    */
   @Put(":id")
-  @Roles(UserRole.SYSTEM_ADMIN, UserRole.COMPLIANCE_OFFICER, UserRole.POLICY_AUTHOR)
+  @Roles(
+    UserRole.SYSTEM_ADMIN,
+    UserRole.COMPLIANCE_OFFICER,
+    UserRole.POLICY_AUTHOR,
+  )
   @UseGuards(RolesGuard)
   @ApiOperation({
     summary: "Update policy draft",
@@ -147,7 +161,10 @@ export class PoliciesController {
   })
   @ApiParam({ name: "id", description: "Policy UUID" })
   @ApiResponse({ status: 200, description: "Policy updated successfully" })
-  @ApiResponse({ status: 400, description: "Validation error or policy pending approval" })
+  @ApiResponse({
+    status: 400,
+    description: "Validation error or policy pending approval",
+  })
   @ApiResponse({ status: 401, description: "Unauthorized" })
   @ApiResponse({ status: 403, description: "Forbidden" })
   @ApiResponse({ status: 404, description: "Policy not found" })
@@ -178,7 +195,10 @@ export class PoliciesController {
       "Publishes the current draft as a new immutable PolicyVersion. Clears the draft after publishing.",
   })
   @ApiParam({ name: "id", description: "Policy UUID" })
-  @ApiResponse({ status: 200, description: "Policy published, returns new PolicyVersion" })
+  @ApiResponse({
+    status: 200,
+    description: "Policy published, returns new PolicyVersion",
+  })
   @ApiResponse({ status: 400, description: "No draft content to publish" })
   @ApiResponse({ status: 401, description: "Unauthorized" })
   @ApiResponse({ status: 403, description: "Forbidden" })
@@ -233,7 +253,8 @@ export class PoliciesController {
   @Get(":id/versions")
   @ApiOperation({
     summary: "Get policy versions",
-    description: "Returns all versions of a policy, ordered by version number descending",
+    description:
+      "Returns all versions of a policy, ordered by version number descending",
   })
   @ApiParam({ name: "id", description: "Policy UUID" })
   @ApiResponse({ status: 200, description: "List of policy versions" })
@@ -306,7 +327,12 @@ export class PoliciesController {
       { key: "status", label: "Status", type: "string", width: 12 },
       { key: "category", label: "Category", type: "string", width: 20 },
       { key: "version", label: "Version", type: "string", width: 10 },
-      { key: "effectiveDate", label: "Effective Date", type: "date", width: 12 },
+      {
+        key: "effectiveDate",
+        label: "Effective Date",
+        type: "date",
+        width: 12,
+      },
       { key: "createdAt", label: "Created Date", type: "date", width: 12 },
     ];
 
