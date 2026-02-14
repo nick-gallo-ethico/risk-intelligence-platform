@@ -1,13 +1,15 @@
-import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
-import './globals.css';
-import { Providers } from './providers';
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
+import "./globals.css";
+import { Providers } from "./providers";
+import { Toaster } from "@/components/ui/toaster";
 
-const inter = Inter({ subsets: ['latin'] });
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: 'Ethico Risk Intelligence Platform',
-  description: 'Unified compliance management system for ethics hotline, case management, and policy administration',
+  title: "Ethico Risk Intelligence Platform",
+  description:
+    "Unified compliance management system for ethics hotline, case management, and policy administration",
 };
 
 export default function RootLayout({
@@ -19,9 +21,8 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <Providers>
-          <main className="min-h-screen">
-            {children}
-          </main>
+          <main className="min-h-screen">{children}</main>
+          <Toaster />
         </Providers>
       </body>
     </html>
