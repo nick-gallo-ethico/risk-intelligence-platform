@@ -1,3 +1,20 @@
+/**
+ * Application configuration factory.
+ *
+ * SECRET HANDLING:
+ * - Development: Reads from environment variables (.env file)
+ * - Production: KeyVaultService reads from Azure Key Vault
+ *
+ * This factory reads env vars. For Key Vault secrets, inject KeyVaultService
+ * directly and call getSecret() with the kebab-case secret name.
+ *
+ * KEY VAULT SECRET NAMES (kebab-case):
+ * - database-url -> DATABASE_URL
+ * - jwt-secret -> JWT_SECRET
+ * - redis-password -> REDIS_PASSWORD
+ * - anthropic-api-key -> ANTHROPIC_API_KEY
+ * - azure-storage-account-key -> AZURE_STORAGE_ACCOUNT_KEY
+ */
 export default () => ({
   nodeEnv: process.env.NODE_ENV || "development",
   port: parseInt(process.env.PORT ?? "3000", 10),
@@ -83,5 +100,11 @@ export default () => ({
     local: {
       basePath: process.env.LOCAL_STORAGE_PATH || "./uploads",
     },
+  },
+
+  // Azure Key Vault configuration
+  // Set AZURE_KEY_VAULT_URL to enable Key Vault for secrets in production
+  keyVault: {
+    url: process.env.AZURE_KEY_VAULT_URL || "",
   },
 });

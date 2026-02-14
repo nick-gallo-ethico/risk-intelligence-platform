@@ -45,8 +45,7 @@ import { HelpModule } from "./modules/help/help.module";
 import { ActivityModule } from "./common/activity.module";
 import { StorageModule } from "./common/storage.module";
 import { TenantMiddleware } from "./common/middleware/tenant.middleware";
-import configuration from "./config/configuration";
-import { validateEnv } from "./config/env.validation";
+import { AppConfigModule } from "./config/config.module";
 
 // Rate limiting configuration:
 // THROTTLE_TTL: Window duration in milliseconds (default: 60000)
@@ -54,12 +53,8 @@ import { validateEnv } from "./config/env.validation";
 // Uses REDIS_URL for distributed rate limiting across instances
 @Module({
   imports: [
-    ConfigModule.forRoot({
-      isGlobal: true,
-      load: [configuration],
-      envFilePath: [".env", ".env.local"],
-      validate: validateEnv,
-    }),
+    // Global config with Key Vault support (provides ConfigService and KeyVaultService)
+    AppConfigModule,
     // Global rate limiting with Redis storage for multi-instance deployments
     ThrottlerModule.forRootAsync({
       imports: [ConfigModule],
