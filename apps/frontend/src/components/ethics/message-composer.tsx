@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { useState, useCallback, useRef } from 'react';
 import { Send, Paperclip, Loader2, AlertCircle, X } from 'lucide-react';
+import { handleApiError } from '@/lib/api-error-handler';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
@@ -67,7 +68,7 @@ export function MessageComposer({
         setError('Failed to send message. Please try again.');
       }
     } catch (err) {
-      console.error('Failed to send message:', err);
+      handleApiError(err, 'Failed to send message');
       setError('Failed to send message. Please try again.');
     } finally {
       setIsSending(false);

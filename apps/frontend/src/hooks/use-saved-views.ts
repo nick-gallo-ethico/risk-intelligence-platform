@@ -16,6 +16,7 @@ import {
   SavedView,
   CreateSavedViewInput,
 } from '@/services/savedViews.service';
+import { handleApiError, showSuccess } from '@/lib/api-error-handler';
 
 export interface UseSavedViewsOptions {
   /** Whether to auto-apply the default view on mount */
@@ -80,7 +81,7 @@ export function useSavedViews(
         }
       }
     } catch (err) {
-      console.error('Failed to load saved views:', err);
+      handleApiError(err, 'Failed to load saved views');
       setError('Failed to load saved views');
     } finally {
       setLoading(false);

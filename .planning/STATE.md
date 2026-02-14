@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-13)
 ## Current Position
 
 Phase: 31 of 31 (Code Quality & Performance) — In Progress
-Plan: 3 of 8 complete (31-01, 31-02, 31-03)
+Plan: 4 of 8 complete (31-01, 31-02, 31-03, 31-04)
 Status: Phase 31 in progress
-Last activity: 2026-02-14 — Completed 31-03-PLAN.md
+Last activity: 2026-02-14 — Completed 31-04-PLAN.md
 
-Progress: [█████████░] 93% (v1.1 remediation - 24 of 26 plans)
+Progress: [█████████░] 96% (v1.1 remediation - 25 of 26 plans)
 
 ## Milestone v1.1: Code Review Remediation
 
@@ -239,6 +239,13 @@ Key outcomes:
 - Timeout alignment: ES timeout and circuit breaker timeout both 5s
 - Circuit opens after 50% error rate with 5+ requests (volumeThreshold)
 
+### Key Decisions (31-04)
+
+- Template Method pattern for shared CRUD with customization points via abstract methods
+- Generic BaseAssociationService<TCreateDto, TEntity, TLabel> for type safety across services
+- Dynamic Prisma model access via config.prismaModelName to avoid repetitive model references
+- All existing public method signatures preserved - API unchanged
+
 ### Blockers
 
 None currently.
@@ -250,6 +257,7 @@ None currently.
 | 31-01 | 1    | QUAL-01: Response compression and DB pool size   | Yes        | Complete |
 | 31-02 | 1    | QUAL-02: Frontend environment URL centralization | Yes        | Complete |
 | 31-03 | 1    | QUAL-03: Elasticsearch circuit breaker           | Yes        | Complete |
+| 31-04 | 2    | QUAL-04: BaseAssociationService extraction       | Yes        | Complete |
 
 ## Phase 30 Plans
 
@@ -263,7 +271,7 @@ None currently.
 
 ## Session Continuity
 
-Last session: 2026-02-14 — Completed 31-03-PLAN.md (Elasticsearch circuit breaker)
-Stopped at: Phase 31 in progress — 3 of 8 plans complete (31-01, 31-02, 31-03)
+Last session: 2026-02-14 — Completed 31-04-PLAN.md (BaseAssociationService extraction)
+Stopped at: Phase 31 in progress — 4 of 8 plans complete (31-01, 31-02, 31-03, 31-04)
 Resume file: None
-Next action: Continue with remaining Phase 31 plans (31-04 to 31-08)
+Next action: Continue with remaining Phase 31 plans (31-05 to 31-08)

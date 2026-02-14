@@ -19,6 +19,7 @@ import {
 } from '@/components/ui/select';
 import { RichTextEditor } from '@/components/rich-text';
 import { investigationNotesApi } from '@/lib/investigation-notes-api';
+import { handleApiError, showSuccess } from '@/lib/api-error-handler';
 import type { NoteType, NoteVisibility, InvestigationNote } from '@/lib/investigation-notes-api';
 
 interface AddNoteModalProps {
@@ -102,10 +103,11 @@ export function AddNoteModal({
         visibility,
       });
 
+      showSuccess('Note saved successfully');
       onSuccess?.(note);
       handleOpenChange(false);
     } catch (err) {
-      console.error('Failed to create note:', err);
+      handleApiError(err, 'Failed to create note');
       setError('Failed to save note. Please try again.');
     } finally {
       setIsSaving(false);

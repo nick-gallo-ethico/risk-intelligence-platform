@@ -22,6 +22,7 @@ import {
   Users,
   ChevronDown,
 } from 'lucide-react';
+import { handleApiError, showSuccess } from '@/lib/api-error-handler';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -92,12 +93,13 @@ export function SavedViewSelector({
     setSaving(true);
     try {
       await onSaveView(newViewName.trim(), isShared, isPinned);
+      showSuccess('View saved successfully');
       setSaveDialogOpen(false);
       setNewViewName('');
       setIsShared(false);
       setIsPinned(false);
     } catch (error) {
-      console.error('Failed to save view:', error);
+      handleApiError(error, 'Failed to save view');
     } finally {
       setSaving(false);
     }

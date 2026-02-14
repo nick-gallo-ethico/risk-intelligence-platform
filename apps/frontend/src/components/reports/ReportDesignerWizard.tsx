@@ -21,6 +21,7 @@ import {
   Save,
   Play,
 } from "lucide-react";
+import { handleApiError, showSuccess } from "@/lib/api-error-handler";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -284,13 +285,13 @@ export function ReportDesignerWizard({
         };
 
         const saved = await reportsApi.createReport(input);
+        showSuccess("Report saved successfully");
         onSave(saved);
 
         // If runAfterSave is true, the parent will handle navigation with auto-run
         // This is handled by the onSave callback
       } catch (err) {
-        console.error("Failed to save report:", err);
-        // TODO: Show error toast
+        handleApiError(err, "Failed to save report");
       } finally {
         setSaving(false);
       }
