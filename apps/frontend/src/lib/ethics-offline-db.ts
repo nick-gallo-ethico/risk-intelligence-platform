@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import Dexie, { Table } from 'dexie';
+import Dexie, { Table } from "dexie";
 
 /**
  * Interface for report draft stored locally.
@@ -26,7 +26,17 @@ export interface ReportDraft {
   /** Auto-expiration date (7 days from creation) */
   expiresAt: Date;
   /** Sync status */
-  syncStatus: 'draft' | 'pending' | 'synced' | 'failed';
+  syncStatus: "draft" | "pending" | "synced" | "failed";
+}
+
+/**
+ * Decrypted draft with optional decryption failure flag.
+ * When _decryptionFailed is true, content and attachments are empty
+ * and UI should display an appropriate error message.
+ */
+export interface DecryptedDraft extends ReportDraft {
+  /** True when decryption failed (key mismatch, corruption, etc.) */
+  _decryptionFailed?: boolean;
 }
 
 /**
@@ -76,7 +86,7 @@ export interface PendingSubmission {
  * - Data exposure if device is compromised while locked
  */
 async function getOrCreateDeviceKey(): Promise<Uint8Array> {
-  const storageKey = 'ethics-device-key';
+  const storageKey = "ethics-device-key";
 
   try {
     const stored = localStorage.getItem(storageKey);
@@ -95,7 +105,7 @@ async function getOrCreateDeviceKey(): Promise<Uint8Array> {
   } catch {
     // If localStorage write fails, key will be regenerated next time
     // This means drafts won't persist across sessions on this device
-    console.warn('Failed to persist device key to localStorage');
+    console.warn("Failed to persist device key to localStorage");
   }
 
   return key;
@@ -118,7 +128,7 @@ function encryptValue(value: string, key: Uint8Array): string {
   }
 
   // Convert Uint8Array to string for base64 encoding
-  let result = '';
+  let result = "";
   for (let i = 0; i < encrypted.length; i++) {
     result += String.fromCharCode(encrypted[i]);
   }
@@ -127,7 +137,9 @@ function encryptValue(value: string, key: Uint8Array): string {
 
 function decryptValue(encrypted: string, key: Uint8Array): string {
   const data = new Uint8Array(
-    atob(encrypted).split('').map((c) => c.charCodeAt(0))
+    atob(encrypted)
+      .split("")
+      .map((c) => c.charCodeAt(0)),
   );
   const decrypted = new Uint8Array(data.length);
 
@@ -150,17 +162,17 @@ class EthicsPortalDB extends Dexie {
   private encryptionKey: Uint8Array | null = null;
 
   constructor() {
-    super('EthicsPortalDB');
+    super("EthicsPortalDB");
 
     this.version(1).stores({
       // Indexes for drafts table
       // ++id: auto-increment, localId: for resume code lookup
       // tenantSlug: for multi-tenant isolation
       // expiresAt: for cleanup, syncStatus: for filtering
-      drafts: '++id, localId, tenantSlug, expiresAt, syncStatus',
+      drafts: "++id, localId, tenantSlug, expiresAt, syncStatus",
 
       // Indexes for pending submissions
-      pendingSubmissions: '++id, tenantSlug, createdAt',
+      pendingSubmissions: "++id, tenantSlug, createdAt",
     });
   }
 
@@ -177,12 +189,20 @@ class EthicsPortalDB extends Dexie {
    */
   encryptDraft(draft: ReportDraft): ReportDraft {
     if (!this.encryptionKey) {
-      throw new Error('Encryption not initialized. Call initEncryption() first.');
+      throw new Error(
+        "Encryption not initialized. Call initEncryption() first.",
+      );
     }
 
     // Store encrypted values as strings (will be cast back on read)
-    const encryptedContent = encryptValue(JSON.stringify(draft.content), this.encryptionKey);
-    const encryptedAttachments = encryptValue(JSON.stringify(draft.attachments), this.encryptionKey);
+    const encryptedContent = encryptValue(
+      JSON.stringify(draft.content),
+      this.encryptionKey,
+    );
+    const encryptedAttachments = encryptValue(
+      JSON.stringify(draft.attachments),
+      this.encryptionKey,
+    );
 
     return {
       ...draft,
@@ -195,28 +215,44 @@ class EthicsPortalDB extends Dexie {
 
   /**
    * Decrypt sensitive fields after reading.
+   * Returns DecryptedDraft with _decryptionFailed flag when decryption fails.
    */
-  decryptDraft(draft: ReportDraft): ReportDraft {
+  decryptDraft(draft: ReportDraft): DecryptedDraft {
     if (!this.encryptionKey) {
-      throw new Error('Encryption not initialized. Call initEncryption() first.');
+      throw new Error(
+        "Encryption not initialized. Call initEncryption() first.",
+      );
     }
 
     try {
       return {
         ...draft,
         content: JSON.parse(
-          decryptValue(draft.content as unknown as string, this.encryptionKey)
+          decryptValue(draft.content as unknown as string, this.encryptionKey),
         ),
         attachments: JSON.parse(
-          decryptValue(draft.attachments as unknown as string, this.encryptionKey)
+          decryptValue(
+            draft.attachments as unknown as string,
+            this.encryptionKey,
+          ),
         ),
       };
-    } catch {
-      // If decryption fails, return empty content (key may have changed)
+    } catch (error) {
+      // Log decryption failure for debugging (key mismatch, corruption, etc.)
+      console.error(
+        "Draft decryption failed. This may occur if the device key was regenerated.",
+        {
+          draftId: draft.id,
+          localId: draft.localId,
+          error: error instanceof Error ? error.message : error,
+        },
+      );
+      // Return empty content with failure flag for UI to display error message
       return {
         ...draft,
         content: {},
         attachments: [],
+        _decryptionFailed: true,
       };
     }
   }
@@ -234,10 +270,7 @@ export const db = new EthicsPortalDB();
  */
 export async function cleanupExpiredDrafts(): Promise<number> {
   const now = new Date();
-  const deletedCount = await db.drafts
-    .where('expiresAt')
-    .below(now)
-    .delete();
+  const deletedCount = await db.drafts.where("expiresAt").below(now).delete();
 
   return deletedCount;
 }
@@ -247,8 +280,8 @@ export async function cleanupExpiredDrafts(): Promise<number> {
  * Uses a simple random string generator.
  */
 function generateLocalId(length = 16): string {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789";
   const array = new Uint8Array(length);
   crypto.getRandomValues(array);
-  return Array.from(array, (byte) => chars[byte % chars.length]).join('');
+  return Array.from(array, (byte) => chars[byte % chars.length]).join("");
 }

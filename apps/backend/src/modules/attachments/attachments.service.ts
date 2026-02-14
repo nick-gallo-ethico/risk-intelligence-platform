@@ -17,6 +17,7 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  InternalServerErrorException,
   Logger,
 } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
@@ -376,14 +377,28 @@ export class AttachmentsService {
       throw new NotFoundException("Attachment not found");
     }
 
-    // 2. Delete file from storage
+    // 2. Delete file from storage FIRST (abort on failure to prevent orphans)
     try {
       await this.storageService.delete(attachment.fileKey);
     } catch (error) {
-      // Log but don't fail - file might already be deleted
+      // Only allow deletion if file was already missing (404/NotFound)
+      const isNotFound =
+        error instanceof NotFoundException ||
+        (error instanceof Error &&
+          error.message.toLowerCase().includes("not found"));
+
+      if (!isNotFound) {
+        this.logger.error(
+          `Storage deletion failed for ${attachment.fileKey}; aborting DB deletion to prevent orphan`,
+          error,
+        );
+        throw new InternalServerErrorException(
+          "Failed to delete file from storage. Please try again.",
+        );
+      }
+      // File already missing - proceed with DB cleanup
       this.logger.warn(
-        `Failed to delete file from storage: ${attachment.fileKey}`,
-        error,
+        `File ${attachment.fileKey} already missing from storage`,
       );
     }
 

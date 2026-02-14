@@ -34,104 +34,130 @@ export class InvestigationAuditHandler {
   async handleInvestigationCreated(
     event: InvestigationCreatedEvent,
   ): Promise<void> {
-    this.logger.debug(
-      `Handling investigation.created event for ${event.investigationId}`,
-    );
+    try {
+      this.logger.debug(
+        `Handling investigation.created event for ${event.investigationId}`,
+      );
 
-    const description =
-      await this.descriptionService.buildInvestigationCreatedDescription({
+      const description =
+        await this.descriptionService.buildInvestigationCreatedDescription({
+          actorUserId: event.actorUserId,
+          investigationId: event.investigationId,
+          caseId: event.caseId,
+          investigationNumber: event.investigationNumber,
+        });
+
+      await this.auditService.log({
+        organizationId: event.organizationId,
+        entityType: AuditEntityType.INVESTIGATION,
+        entityId: event.investigationId,
+        action: "created",
+        actionCategory: AuditActionCategory.CREATE,
+        actionDescription: description,
         actorUserId: event.actorUserId,
-        investigationId: event.investigationId,
-        caseId: event.caseId,
-        investigationNumber: event.investigationNumber,
+        actorType: this.mapActorType(event.actorType),
+        context: {
+          caseId: event.caseId,
+          investigationNumber: event.investigationNumber,
+        },
+        requestId: event.correlationId,
       });
-
-    await this.auditService.log({
-      organizationId: event.organizationId,
-      entityType: AuditEntityType.INVESTIGATION,
-      entityId: event.investigationId,
-      action: "created",
-      actionCategory: AuditActionCategory.CREATE,
-      actionDescription: description,
-      actorUserId: event.actorUserId,
-      actorType: this.mapActorType(event.actorType),
-      context: {
-        caseId: event.caseId,
-        investigationNumber: event.investigationNumber,
-      },
-      requestId: event.correlationId,
-    });
+    } catch (error) {
+      // Log but don't rethrow - async handlers are fire-and-forget
+      this.logger.error(
+        `Failed to handle investigation.created event for ${event.investigationId}: ${error instanceof Error ? error.message : "Unknown"}`,
+        error instanceof Error ? error.stack : undefined,
+      );
+    }
   }
 
   @OnEvent("investigation.status_changed", { async: true })
   async handleInvestigationStatusChanged(
     event: InvestigationStatusChangedEvent,
   ): Promise<void> {
-    this.logger.debug(
-      `Handling investigation.status_changed event for ${event.investigationId}`,
-    );
+    try {
+      this.logger.debug(
+        `Handling investigation.status_changed event for ${event.investigationId}`,
+      );
 
-    const description =
-      await this.descriptionService.buildInvestigationStatusChangedDescription({
+      const description =
+        await this.descriptionService.buildInvestigationStatusChangedDescription(
+          {
+            actorUserId: event.actorUserId,
+            previousStatus: event.previousStatus,
+            newStatus: event.newStatus,
+          },
+        );
+
+      await this.auditService.log({
+        organizationId: event.organizationId,
+        entityType: AuditEntityType.INVESTIGATION,
+        entityId: event.investigationId,
+        action: "status_changed",
+        actionCategory: AuditActionCategory.UPDATE,
+        actionDescription: description,
         actorUserId: event.actorUserId,
-        previousStatus: event.previousStatus,
-        newStatus: event.newStatus,
+        actorType: this.mapActorType(event.actorType),
+        changes: {
+          status: { old: event.previousStatus, new: event.newStatus },
+        },
+        context: {
+          caseId: event.caseId,
+        },
+        requestId: event.correlationId,
       });
-
-    await this.auditService.log({
-      organizationId: event.organizationId,
-      entityType: AuditEntityType.INVESTIGATION,
-      entityId: event.investigationId,
-      action: "status_changed",
-      actionCategory: AuditActionCategory.UPDATE,
-      actionDescription: description,
-      actorUserId: event.actorUserId,
-      actorType: this.mapActorType(event.actorType),
-      changes: {
-        status: { old: event.previousStatus, new: event.newStatus },
-      },
-      context: {
-        caseId: event.caseId,
-      },
-      requestId: event.correlationId,
-    });
+    } catch (error) {
+      // Log but don't rethrow - async handlers are fire-and-forget
+      this.logger.error(
+        `Failed to handle investigation.status_changed event for ${event.investigationId}: ${error instanceof Error ? error.message : "Unknown"}`,
+        error instanceof Error ? error.stack : undefined,
+      );
+    }
   }
 
   @OnEvent("investigation.assigned", { async: true })
   async handleInvestigationAssigned(
     event: InvestigationAssignedEvent,
   ): Promise<void> {
-    this.logger.debug(
-      `Handling investigation.assigned event for ${event.investigationId}`,
-    );
+    try {
+      this.logger.debug(
+        `Handling investigation.assigned event for ${event.investigationId}`,
+      );
 
-    const description =
-      await this.descriptionService.buildInvestigationAssignedDescription({
+      const description =
+        await this.descriptionService.buildInvestigationAssignedDescription({
+          actorUserId: event.actorUserId,
+          previousInvestigatorId: event.previousInvestigatorId,
+          newInvestigatorId: event.newInvestigatorId,
+        });
+
+      await this.auditService.log({
+        organizationId: event.organizationId,
+        entityType: AuditEntityType.INVESTIGATION,
+        entityId: event.investigationId,
+        action: "assigned",
+        actionCategory: AuditActionCategory.UPDATE,
+        actionDescription: description,
         actorUserId: event.actorUserId,
-        previousInvestigatorId: event.previousInvestigatorId,
-        newInvestigatorId: event.newInvestigatorId,
-      });
-
-    await this.auditService.log({
-      organizationId: event.organizationId,
-      entityType: AuditEntityType.INVESTIGATION,
-      entityId: event.investigationId,
-      action: "assigned",
-      actionCategory: AuditActionCategory.UPDATE,
-      actionDescription: description,
-      actorUserId: event.actorUserId,
-      actorType: this.mapActorType(event.actorType),
-      changes: {
-        primaryInvestigatorId: {
-          old: event.previousInvestigatorId,
-          new: event.newInvestigatorId,
+        actorType: this.mapActorType(event.actorType),
+        changes: {
+          primaryInvestigatorId: {
+            old: event.previousInvestigatorId,
+            new: event.newInvestigatorId,
+          },
         },
-      },
-      context: {
-        caseId: event.caseId,
-      },
-      requestId: event.correlationId,
-    });
+        context: {
+          caseId: event.caseId,
+        },
+        requestId: event.correlationId,
+      });
+    } catch (error) {
+      // Log but don't rethrow - async handlers are fire-and-forget
+      this.logger.error(
+        `Failed to handle investigation.assigned event for ${event.investigationId}: ${error instanceof Error ? error.message : "Unknown"}`,
+        error instanceof Error ? error.stack : undefined,
+      );
+    }
   }
 
   /**
