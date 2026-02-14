@@ -1066,12 +1066,20 @@ Plans:
 6. PrismaService retries connection with exponential backoff (3 attempts, 1s/2s/4s delays)
 7. `SIGTERM` triggers graceful shutdown: in-flight requests drain, DB/Redis connections close cleanly
 
+**Plans**: 5 plans in 2 waves
+
+Plans:
+
+- [ ] 28-01-PLAN.md (Wave 1) — Environment validation, Prisma connection retry, graceful shutdown
+- [ ] 28-02-PLAN.md (Wave 1) — Storage providers fail-fast on initialization
+- [ ] 28-03-PLAN.md (Wave 1) — Azure Key Vault integration for secrets
+- [ ] 28-04-PLAN.md (Wave 2) — Deep health checks with @nestjs/terminus (DB, Redis, ES)
+- [ ] 28-05-PLAN.md (Wave 2) — Multi-stage Dockerfile with Node.js 20 Alpine
+
 ### Phase 29: Error Handling & Reliability
 
-**Goal**: Eliminate silent failures throughout the stack — replace bare `throw new Error()` with proper NestJS exceptions, add audit trail alerting, prevent orphaned files, surface offline draft errors to users, add frontend error boundaries, and fix auth error swallowing.
+**Goal**: Eliminate silent failures throughout the stack
 **Depends on**: Phase 28 (production infrastructure must exist for alerting/monitoring hooks)
-**Requirements**: ERR-01, ERR-02, ERR-03, ERR-04, ERR-05, ERR-06, ERR-07, ERR-08, ERR-09
-**Success Criteria** (what must be TRUE):
 
 1. Top 10 files with bare `throw new Error()` (100 of 133 instances) use NestJS exceptions (`BadRequestException`, `NotFoundException`, etc.)
 2. AuditService counts consecutive failures; after 5, emits a monitoring alert event
@@ -1095,7 +1103,21 @@ Plans:
 3. Campaign and Policy services have unit tests covering CRUD, workflow transitions, and event emission
 4. Frontend has MSW mock setup, at least 3 error boundary components, and component tests for dashboard, case list, and case detail
 
+**Plans**: 5 plans in 1 wavePlans:- [ ] 30-01-PLAN.md (Wave 1) — Auth core tests: AuthService, MfaService, TokenRefreshService, RecoveryCodesService- [ ] 30-02-PLAN.md (Wave 1) — Auth SSO/domain tests: SsoService, SsoConfigService, DomainService, DomainVerificationService- [ ] 30-03-PLAN.md (Wave 1) — Core service tests: CasesService, RiusService (with immutability enforcement)- [ ] 30-04-PLAN.md (Wave 1) — Campaign and policy tests: CampaignsService, PoliciesService (with versioning)- [ ] 30-05-PLAN.md (Wave 1) — Frontend infrastructure: MSW setup, 3 error boundaries, dashboard component tests
+
 ### Phase 31: Code Quality & Performance
+
+**Goal**: Improve maintainability and performance — decompose monolithic services, extract shared patterns, clean up controllers, fix hardcoded URLs, add user-facing error feedback, tune database connections, and implement JWT key rotation.
+
+**Plans**: 5 plans in 1 wave
+
+Plans:
+
+- [ ] 30-01-PLAN.md (Wave 1) — Auth core tests: AuthService, MfaService, TokenRefreshService, RecoveryCodesService
+- [ ] 30-02-PLAN.md (Wave 1) — Auth SSO/domain tests: SsoService, SsoConfigService, DomainService, DomainVerificationService
+- [ ] 30-03-PLAN.md (Wave 1) — Core service tests: CasesService, RiusService (with immutability enforcement)
+- [ ] 30-04-PLAN.md (Wave 1) — Campaign and policy tests: CampaignsService, PoliciesService (with versioning)
+- [ ] 30-05-PLAN.md (Wave 1) — Frontend infrastructure: MSW setup, 3 error boundaries, dashboard component tests
 
 **Goal**: Improve maintainability and performance — decompose monolithic services, extract shared patterns, clean up controllers, fix hardcoded URLs, add user-facing error feedback, tune database connections, and implement JWT key rotation.
 **Depends on**: Phase 30 (test coverage must exist before safe refactoring)
@@ -1161,7 +1183,7 @@ Phases execute in dependency order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 
 | 27. Security Hardening           | 0/4            | Planned | -         |
 | 28. Production Readiness         | 0/?            | Planned | -         |
 | 29. Error Handling & Reliability | 0/?            | Planned | -         |
-| 30. Test Coverage Foundation     | 0/?            | Planned | -         |
+| 30. Test Coverage Foundation     | 0/5            | Planned | -         |
 | 31. Code Quality & Performance   | 0/?            | Planned | -         |
 
 ---
