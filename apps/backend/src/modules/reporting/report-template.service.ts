@@ -1,4 +1,9 @@
-import { Injectable, Logger, NotFoundException } from "@nestjs/common";
+import {
+  Injectable,
+  Logger,
+  NotFoundException,
+  ForbiddenException,
+} from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { ReportDataSource } from "@prisma/client";
 import { ColumnDefinition, FilterDefinition } from "./types/report.types";
@@ -137,11 +142,11 @@ export class ReportTemplateService {
     const template = await this.findById(organizationId, id);
 
     if (template.isSystem) {
-      throw new Error("Cannot modify system templates");
+      throw new ForbiddenException("Cannot modify system templates");
     }
 
     if (template.organizationId !== organizationId) {
-      throw new Error("Cannot modify templates from other organizations");
+      throw new ForbiddenException("Cannot modify templates from other organizations");
     }
 
     this.logger.log(`Updating report template ${id}`);
@@ -182,11 +187,11 @@ export class ReportTemplateService {
     const template = await this.findById(organizationId, id);
 
     if (template.isSystem) {
-      throw new Error("Cannot delete system templates");
+      throw new ForbiddenException("Cannot delete system templates");
     }
 
     if (template.organizationId !== organizationId) {
-      throw new Error("Cannot delete templates from other organizations");
+      throw new ForbiddenException("Cannot delete templates from other organizations");
     }
 
     this.logger.log(`Deleting report template ${id}`);

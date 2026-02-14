@@ -1,4 +1,10 @@
-import { Injectable, Logger, OnModuleInit } from "@nestjs/common";
+import {
+  Injectable,
+  Logger,
+  OnModuleInit,
+  NotFoundException,
+  BadRequestException,
+} from "@nestjs/common";
 import * as Handlebars from "handlebars";
 import * as fs from "fs";
 import * as path from "path";
@@ -177,7 +183,7 @@ export class EmailTemplateService implements OnModuleInit {
     if (!mjmlContent) {
       const rawTemplate = this.rawTemplates.get(templateName);
       if (!rawTemplate) {
-        throw new Error(`Email template not found: ${templateName}`);
+        throw new NotFoundException(`Email template not found: ${templateName}`);
       }
       mjmlContent = rawTemplate;
     }
@@ -189,7 +195,7 @@ export class EmailTemplateService implements OnModuleInit {
     } else {
       const compiledSubject = this.subjectTemplates.get(templateName);
       if (!compiledSubject) {
-        throw new Error(`Subject template not found: ${templateName}`);
+        throw new NotFoundException(`Subject template not found: ${templateName}`);
       }
       renderedSubject = compiledSubject(context);
     }
@@ -251,7 +257,7 @@ export class EmailTemplateService implements OnModuleInit {
     const subjectCompiled = this.subjectTemplates.get(templateName);
 
     if (!mjmlContent) {
-      throw new Error(`Template not found: ${templateName}`);
+      throw new NotFoundException(`Template not found: ${templateName}`);
     }
 
     // Read subject from _subjects.json
@@ -285,7 +291,7 @@ export class EmailTemplateService implements OnModuleInit {
     });
 
     if (errors && errors.length > 0) {
-      throw new Error(`Invalid MJML template: ${JSON.stringify(errors)}`);
+      throw new BadRequestException(`Invalid MJML template: ${JSON.stringify(errors)}`);
     }
 
     // Get current version
@@ -386,7 +392,7 @@ export class EmailTemplateService implements OnModuleInit {
     });
 
     if (!template) {
-      throw new Error(
+      throw new NotFoundException(
         `Template version not found: ${templateName} v${version}`,
       );
     }

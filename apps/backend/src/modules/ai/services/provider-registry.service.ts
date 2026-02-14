@@ -107,11 +107,18 @@ export class ProviderRegistryService implements OnModuleInit {
   /**
    * Try to get a provider without throwing.
    * Returns null if provider not found or not ready.
+   * Logs error with provider name for debugging.
    */
   tryGetProvider(name?: string): AIProvider | null {
+    const providerName = name || this.defaultProviderName;
+
     try {
-      return this.getProvider(name);
-    } catch {
+      return this.getProvider(providerName);
+    } catch (error) {
+      this.logger.error(
+        `Failed to get AI provider '${providerName}': ${error instanceof Error ? error.message : "Unknown error"}`,
+        error instanceof Error ? error.stack : undefined,
+      );
       return null;
     }
   }

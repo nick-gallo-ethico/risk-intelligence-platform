@@ -1,4 +1,9 @@
-import { Injectable, Logger, OnModuleInit } from "@nestjs/common";
+import {
+  Injectable,
+  Logger,
+  OnModuleInit,
+  NotFoundException,
+} from "@nestjs/common";
 import * as Handlebars from "handlebars";
 import * as fs from "fs";
 import * as path from "path";
@@ -87,7 +92,7 @@ export class PromptService implements OnModuleInit {
   async render(
     templateName: string,
     context: TemplateContext,
-    organizationId?: string
+    organizationId?: string,
   ): Promise<string> {
     // Add current datetime
     context.currentDateTime = new Date().toISOString();
@@ -112,7 +117,7 @@ export class PromptService implements OnModuleInit {
     // Use file template
     const compiled = this.compiledTemplates.get(templateName);
     if (!compiled) {
-      throw new Error(`Prompt template not found: ${templateName}`);
+      throw new NotFoundException(`Prompt template not found: ${templateName}`);
     }
 
     return compiled(context);
@@ -127,7 +132,7 @@ export class PromptService implements OnModuleInit {
    */
   async getTemplate(
     templateName: string,
-    organizationId?: string
+    organizationId?: string,
   ): Promise<TemplateResult> {
     if (organizationId) {
       const dbTemplate = await this.prisma.promptTemplate.findFirst({
@@ -156,7 +161,7 @@ export class PromptService implements OnModuleInit {
       };
     }
 
-    throw new Error(`Template not found: ${templateName}`);
+    throw new NotFoundException(`Template not found: ${templateName}`);
   }
 
   /**
@@ -227,7 +232,7 @@ export class PromptService implements OnModuleInit {
    */
   async getTemplateHistory(
     templateName: string,
-    organizationId: string
+    organizationId: string,
   ): Promise<TemplateHistoryEntry[]> {
     const templates = await this.prisma.promptTemplate.findMany({
       where: {
@@ -256,7 +261,7 @@ export class PromptService implements OnModuleInit {
   async revertToVersion(
     templateName: string,
     organizationId: string,
-    version: number
+    version: number,
   ): Promise<void> {
     const template = await this.prisma.promptTemplate.findFirst({
       where: {
@@ -267,7 +272,9 @@ export class PromptService implements OnModuleInit {
     });
 
     if (!template) {
-      throw new Error(`Template version not found: ${templateName} v${version}`);
+      throw new NotFoundException(
+        `Template version not found: ${templateName} v${version}`,
+      );
     }
 
     // Deactivate all versions
@@ -295,7 +302,7 @@ export class PromptService implements OnModuleInit {
    */
   async deleteOrgTemplate(
     templateName: string,
-    organizationId: string
+    organizationId: string,
   ): Promise<void> {
     await this.prisma.promptTemplate.deleteMany({
       where: {
@@ -317,7 +324,7 @@ export class PromptService implements OnModuleInit {
    */
   private async loadTemplatesFromDir(
     dir: string,
-    prefix: string
+    prefix: string,
   ): Promise<void> {
     if (!fs.existsSync(dir)) {
       this.logger.warn(`Template directory not found: ${dir}`);
@@ -445,7 +452,7 @@ export class PromptService implements OnModuleInit {
       "join",
       (arr: unknown[], separator: string = ", ") => {
         return Array.isArray(arr) ? arr.join(separator) : "";
-      }
+      },
     );
   }
 }
