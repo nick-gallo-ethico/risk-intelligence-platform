@@ -2,6 +2,7 @@ import { NestFactory } from "@nestjs/core";
 import { ValidationPipe } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
+import helmet from "helmet";
 import pino from "pino";
 import { AppModule } from "./app.module";
 
@@ -34,6 +35,9 @@ async function bootstrap() {
         : undefined,
   });
 
+  // Security headers (HSTS, CSP, X-Frame-Options, etc.)
+  app.use(helmet());
+
   // Global validation pipe
   app.useGlobalPipes(
     new ValidationPipe({
@@ -59,43 +63,47 @@ async function bootstrap() {
     exclude: ["health"],
   });
 
-  // Swagger/OpenAPI documentation
-  const swaggerConfig = new DocumentBuilder()
-    .setTitle("Risk Intelligence Platform API")
-    .setDescription(
-      "API documentation for the Ethico Risk Intelligence Platform - a multi-tenant SaaS compliance management system",
-    )
-    .setVersion("1.0")
-    .addBearerAuth(
-      {
-        type: "http",
-        scheme: "bearer",
-        bearerFormat: "JWT",
-        description: "Enter your JWT access token",
+  // Swagger/OpenAPI documentation (disabled in production)
+  if (nodeEnv !== "production") {
+    const swaggerConfig = new DocumentBuilder()
+      .setTitle("Risk Intelligence Platform API")
+      .setDescription(
+        "API documentation for the Ethico Risk Intelligence Platform - a multi-tenant SaaS compliance management system",
+      )
+      .setVersion("1.0")
+      .addBearerAuth(
+        {
+          type: "http",
+          scheme: "bearer",
+          bearerFormat: "JWT",
+          description: "Enter your JWT access token",
+        },
+        "JWT",
+      )
+      .addTag("Auth", "Authentication endpoints")
+      .addTag("Cases", "Case management endpoints")
+      .addTag("Investigations", "Investigation management endpoints")
+      .addTag("Investigation Notes", "Investigation notes endpoints")
+      .addTag("Activity", "Activity/audit log endpoints")
+      .addTag("Health", "Health check endpoints")
+      .build();
+    const document = SwaggerModule.createDocument(app, swaggerConfig);
+    SwaggerModule.setup("api/docs", app, document, {
+      swaggerOptions: {
+        persistAuthorization: true,
       },
-      "JWT",
-    )
-    .addTag("Auth", "Authentication endpoints")
-    .addTag("Cases", "Case management endpoints")
-    .addTag("Investigations", "Investigation management endpoints")
-    .addTag("Investigation Notes", "Investigation notes endpoints")
-    .addTag("Activity", "Activity/audit log endpoints")
-    .addTag("Health", "Health check endpoints")
-    .build();
-  const document = SwaggerModule.createDocument(app, swaggerConfig);
-  SwaggerModule.setup("api/docs", app, document, {
-    swaggerOptions: {
-      persistAuthorization: true,
-    },
-  });
+    });
+  }
 
   await app.listen(port);
 
   logger.info(`Application is running on: http://localhost:${port}`);
   logger.info(`Health check available at: http://localhost:${port}/health`);
-  logger.info(
-    `API documentation available at: http://localhost:${port}/api/docs`,
-  );
+  if (nodeEnv !== "production") {
+    logger.info(
+      `API documentation available at: http://localhost:${port}/api/docs`,
+    );
+  }
   logger.info(`Environment: ${nodeEnv}`);
 }
 

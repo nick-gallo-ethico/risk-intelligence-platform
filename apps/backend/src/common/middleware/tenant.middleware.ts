@@ -1,4 +1,4 @@
-import { Injectable, NestMiddleware } from "@nestjs/common";
+import { Injectable, Logger, NestMiddleware } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { Request, Response, NextFunction } from "express";
 import * as jwt from "jsonwebtoken";
@@ -31,6 +31,8 @@ interface JwtPayload {
 
 @Injectable()
 export class TenantMiddleware implements NestMiddleware {
+  private readonly logger = new Logger(TenantMiddleware.name);
+
   constructor(
     private prisma: PrismaService,
     private configService: ConfigService,
@@ -76,8 +78,19 @@ export class TenantMiddleware implements NestMiddleware {
       await this.prisma
         .$executeRaw`SELECT set_config('app.current_organization', ${payload.organizationId}, true)`;
     } catch (error) {
-      // If token is invalid, let the auth guard handle it
-      // Don't block the request here - guards will validate
+      // Token is invalid — set RLS to an impossible tenant ID so that
+      // even if a downstream guard is missing, queries return nothing.
+      this.logger.warn(
+        "Invalid JWT in tenant middleware — setting null RLS context",
+        {
+          path: req.path,
+          error: error instanceof Error ? error.message : "Unknown error",
+        },
+      );
+      req.organizationId = undefined;
+      req.userId = undefined;
+      await this.prisma
+        .$executeRaw`SELECT set_config('app.current_organization', '00000000-0000-0000-0000-000000000000', true)`;
     }
 
     next();
