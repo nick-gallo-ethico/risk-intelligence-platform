@@ -20,6 +20,22 @@ async function bootstrap() {
   app.use(bodyParser.json({ limit: "10mb" }));
   app.use(bodyParser.urlencoded({ limit: "10mb", extended: true }));
 
+  // CSRF Protection (SEC-04 - Mitigated by Design)
+  // ------------------------------------------------
+  // This API uses JWT tokens in Authorization headers (not cookies) for authentication.
+  // Browsers do not automatically send Authorization headers on cross-site requests,
+  // which inherently mitigates CSRF attacks for most endpoints.
+  //
+  // The refresh token endpoint (/auth/refresh) uses httpOnly cookies, but:
+  // 1. It requires a valid refresh_token cookie with correct signature
+  // 2. It only issues new access tokens, not perform state changes
+  // 3. The SameSite cookie attribute provides additional protection
+  //
+  // For SPAs, adding traditional CSRF middleware (csurf) would break the API flow
+  // since there's no server-rendered form to embed CSRF tokens.
+  //
+  // Decision: CSRF is mitigated by architecture rather than additional middleware.
+
   const configService = app.get(ConfigService);
   const port = configService.get<number>("PORT", 3000);
   const corsOrigin = configService.get<string>(
