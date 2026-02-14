@@ -10,9 +10,9 @@ Requirements for production readiness. Organized by severity and remediation pha
 
 ### Emergency Fixes
 
-- [ ] **EMER-01**: RLS bypass cleanup failure destroys tainted connection instead of returning to pool (C1)
-- [ ] **EMER-02**: Anthropic API key rotated and removed from local .env (C2)
-- [ ] **EMER-03**: Global exception filters registered in main.ts via useGlobalFilters() (C3 partial)
+- [x] **EMER-01**: RLS bypass cleanup failure destroys tainted connection instead of returning to pool (C1)
+- [x] **EMER-02**: Anthropic API key rotated and removed from local .env (C2)
+- [x] **EMER-03**: Global exception filters registered in main.ts via useGlobalFilters() (C3 partial)
 
 ### Security Hardening
 
@@ -79,45 +79,45 @@ Explicitly excluded from v1.1 remediation.
 
 Which phases cover which requirements. Maps to ROADMAP.md phases.
 
-| Requirement | Phase    | Status  |
-| ----------- | -------- | ------- |
-| EMER-01     | Phase 26 | Pending |
-| EMER-02     | Phase 26 | Pending |
-| EMER-03     | Phase 26 | Pending |
-| SEC-01      | Phase 27 | Pending |
-| SEC-02      | Phase 27 | Pending |
-| SEC-03      | Phase 27 | Pending |
-| SEC-04      | Phase 27 | Pending |
-| SEC-05      | Phase 27 | Pending |
-| SEC-06      | Phase 27 | Pending |
-| PROD-01     | Phase 28 | Pending |
-| PROD-02     | Phase 28 | Pending |
-| PROD-03     | Phase 28 | Pending |
-| PROD-04     | Phase 28 | Pending |
-| PROD-05     | Phase 28 | Pending |
-| PROD-06     | Phase 28 | Pending |
-| PROD-07     | Phase 28 | Pending |
-| ERR-01      | Phase 29 | Pending |
-| ERR-02      | Phase 29 | Pending |
-| ERR-03      | Phase 29 | Pending |
-| ERR-04      | Phase 29 | Pending |
-| ERR-05      | Phase 29 | Pending |
-| ERR-06      | Phase 29 | Pending |
-| ERR-07      | Phase 29 | Pending |
-| ERR-08      | Phase 29 | Pending |
-| ERR-09      | Phase 29 | Pending |
-| TEST-01     | Phase 30 | Pending |
-| TEST-02     | Phase 30 | Pending |
-| TEST-03     | Phase 30 | Pending |
-| TEST-04     | Phase 30 | Pending |
-| QUAL-01     | Phase 31 | Pending |
-| QUAL-02     | Phase 31 | Pending |
-| QUAL-03     | Phase 31 | Pending |
-| QUAL-04     | Phase 31 | Pending |
-| QUAL-05     | Phase 31 | Pending |
-| QUAL-06     | Phase 31 | Pending |
-| QUAL-07     | Phase 31 | Pending |
-| QUAL-08     | Phase 31 | Pending |
+| Requirement | Phase    | Status   |
+| ----------- | -------- | -------- |
+| EMER-01     | Phase 26 | Complete |
+| EMER-02     | Phase 26 | Complete |
+| EMER-03     | Phase 26 | Complete |
+| SEC-01      | Phase 27 | Pending  |
+| SEC-02      | Phase 27 | Pending  |
+| SEC-03      | Phase 27 | Pending  |
+| SEC-04      | Phase 27 | Pending  |
+| SEC-05      | Phase 27 | Pending  |
+| SEC-06      | Phase 27 | Pending  |
+| PROD-01     | Phase 28 | Pending  |
+| PROD-02     | Phase 28 | Pending  |
+| PROD-03     | Phase 28 | Pending  |
+| PROD-04     | Phase 28 | Pending  |
+| PROD-05     | Phase 28 | Pending  |
+| PROD-06     | Phase 28 | Pending  |
+| PROD-07     | Phase 28 | Pending  |
+| ERR-01      | Phase 29 | Pending  |
+| ERR-02      | Phase 29 | Pending  |
+| ERR-03      | Phase 29 | Pending  |
+| ERR-04      | Phase 29 | Pending  |
+| ERR-05      | Phase 29 | Pending  |
+| ERR-06      | Phase 29 | Pending  |
+| ERR-07      | Phase 29 | Pending  |
+| ERR-08      | Phase 29 | Pending  |
+| ERR-09      | Phase 29 | Pending  |
+| TEST-01     | Phase 30 | Pending  |
+| TEST-02     | Phase 30 | Pending  |
+| TEST-03     | Phase 30 | Pending  |
+| TEST-04     | Phase 30 | Pending  |
+| QUAL-01     | Phase 31 | Pending  |
+| QUAL-02     | Phase 31 | Pending  |
+| QUAL-03     | Phase 31 | Pending  |
+| QUAL-04     | Phase 31 | Pending  |
+| QUAL-05     | Phase 31 | Pending  |
+| QUAL-06     | Phase 31 | Pending  |
+| QUAL-07     | Phase 31 | Pending  |
+| QUAL-08     | Phase 31 | Pending  |
 
 **Coverage:**
 
