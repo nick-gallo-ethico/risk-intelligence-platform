@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-13)
 ## Current Position
 
 Phase: 27 of 31 (Security Hardening) — In Progress
-Plan: 2 of 4 complete
-Status: 27-02 complete (SEC-02 CORS + SEC-06 logging)
-Last activity: 2026-02-14 — Completed 27-02-PLAN.md (WebSocket CORS + exception logging)
+Plan: 3 of 4 complete
+Status: 27-03 complete (SEC-04 CSRF + SEC-05 body limits)
+Last activity: 2026-02-14 — Completed 27-03-PLAN.md (body size limits + CSRF documentation)
 
-Progress: [████░░░░░░] 20% (v1.1 remediation - 4 of 20+ plans)
+Progress: [████░░░░░░] 25% (v1.1 remediation - 5 of 20+ plans)
 
 ## Milestone v1.1: Code Review Remediation
 
@@ -43,12 +43,12 @@ Progress: [████░░░░░░] 20% (v1.1 remediation - 4 of 20+ plan
 
 ## Phase 27 Plans
 
-| Plan  | Wave | Objective                                                     | Autonomous | Status   |
-| ----- | ---- | ------------------------------------------------------------- | ---------- | -------- |
-| 27-01 | 1    | SEC-01: Security guard and middleware tests                   | Yes        | Complete |
-| 27-02 | 1    | SEC-02: CORS wildcard removal in WebSocket gateways           | Yes        | Complete |
-| 27-03 | 1    | SEC-03 to SEC-04: Input sanitization and audit log encryption | Yes        | Pending  |
-| 27-04 | 1    | SEC-05 to SEC-06: Secret detection and rate limiting          | Yes        | Pending  |
+| Plan  | Wave | Objective                                            | Autonomous | Status   |
+| ----- | ---- | ---------------------------------------------------- | ---------- | -------- |
+| 27-01 | 1    | SEC-01: Security guard and middleware tests          | Yes        | Complete |
+| 27-02 | 1    | SEC-02: CORS wildcard removal in WebSocket gateways  | Yes        | Complete |
+| 27-03 | 2    | SEC-04 CSRF + SEC-05 body size limits                | Yes        | Complete |
+| 27-04 | 1    | SEC-05 to SEC-06: Secret detection and rate limiting | Yes        | Pending  |
 
 ## Phase 26 Plans
 
@@ -95,12 +95,18 @@ Key outcomes:
 - Throw Error on missing CORS_ORIGIN (fail-fast) rather than wildcard fallback
 - All 3 WebSocket gateways use identical validation pattern and error message
 
+### Key Decisions (27-03)
+
+- CSRF mitigated by JWT architecture (Authorization header not cookies)
+- 10MB body limit for JSON/form data; Multer handles file uploads separately
+- body-parser types via @types/express; no additional package needed
+
 ### Blockers
 
 None currently.
 
 ## Session Continuity
 
-Last session: 2026-02-14 13:22 EST
-Stopped at: Completed 27-02-PLAN.md (WebSocket CORS + exception logging)
-Resume file: .planning/phases/27-security-hardening/27-03-PLAN.md
+Last session: 2026-02-14 13:28 EST
+Stopped at: Completed 27-03-PLAN.md (body size limits + CSRF documentation)
+Resume file: .planning/phases/27-security-hardening/27-04-PLAN.md
