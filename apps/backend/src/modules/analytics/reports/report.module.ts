@@ -23,6 +23,7 @@ import { ReportExecutionService } from "./report-execution.service";
 import { ReportFieldRegistryService } from "./report-field-registry.service";
 import { ReportScheduleService } from "./services/report-schedule.service";
 import { ReportAiService } from "./services/report-ai.service";
+import { CustomPropertyFieldService } from "./services/custom-property-field.service";
 import { AiQueryModule } from "../ai-query/ai-query.module";
 import { ExportsModule } from "../exports/exports.module";
 
@@ -38,6 +39,7 @@ import { ExportsModule } from "../exports/exports.module";
     ReportService,
     ReportExecutionService,
     ReportFieldRegistryService,
+    CustomPropertyFieldService,
     ReportScheduleService,
     ReportAiService,
   ],
