@@ -8,6 +8,8 @@ import {
   DisclosureRiuService,
   WebFormRiuService,
 } from "./extensions";
+import { RiuQueryService } from "./services/riu-query.service";
+import { RiuFormDataService } from "./services/riu-form-data.service";
 
 /**
  * RIU (Risk Intelligence Unit) Module
@@ -16,7 +18,9 @@ import {
  * RIU content is frozen at creation; only status and AI enrichment can change.
  *
  * Services:
- * - RiusService: Core RIU CRUD with immutability enforcement
+ * - RiusService: Coordinator with immutability enforcement
+ * - RiuQueryService: Read operations (find, list)
+ * - RiuFormDataService: Form data structuring for UI
  * - RiuAccessService: Anonymous access code generation and lookup
  *
  * Extension services manage type-specific data:
@@ -33,6 +37,8 @@ import {
   providers: [
     RiusService,
     RiuAccessService,
+    RiuQueryService,
+    RiuFormDataService,
     HotlineRiuService,
     DisclosureRiuService,
     WebFormRiuService,
@@ -40,6 +46,8 @@ import {
   exports: [
     RiusService,
     RiuAccessService,
+    RiuQueryService,
+    RiuFormDataService,
     HotlineRiuService,
     DisclosureRiuService,
     WebFormRiuService,
