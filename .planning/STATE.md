@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-02-13)
 
 ## Current Position
 
-Phase: 27 of 31 (Security Hardening) — Complete
-Plan: 4 of 4 complete
-Status: Phase 27 complete (SEC-01 to SEC-06 all addressed)
-Last activity: 2026-02-14 — Completed 27-04-PLAN.md (system-wide entity documentation)
+Phase: 28 of 31 (Production Readiness) — In Progress
+Plan: 2 of 5 complete
+Status: Completed 28-02-PLAN.md (storage provider fail-fast)
+Last activity: 2026-02-14 — Completed 28-02-PLAN.md
 
-Progress: [██████░░░░] 30% (v1.1 remediation - 6 of 20+ plans)
+Progress: [██████░░░░] 35% (v1.1 remediation - 8 of 20+ plans)
 
 ## Milestone v1.1: Code Review Remediation
 
@@ -22,14 +22,14 @@ Progress: [██████░░░░] 30% (v1.1 remediation - 6 of 20+ plan
 **Findings:** 36 (8 Critical, 12 High, 13 Medium, 3 Low)
 **Overall Grade:** C- → Target: B+ after remediation
 
-| Phase | Name                         | Requirements              | Status   |
-| ----- | ---------------------------- | ------------------------- | -------- |
-| 26    | Emergency Fixes              | EMER-01, EMER-02, EMER-03 | Complete |
-| 27    | Security Hardening           | SEC-01 to SEC-06          | Complete |
-| 28    | Production Readiness         | PROD-01 to PROD-07        | Pending  |
-| 29    | Error Handling & Reliability | ERR-01 to ERR-09          | Pending  |
-| 30    | Test Coverage Foundation     | TEST-01 to TEST-04        | Pending  |
-| 31    | Code Quality & Performance   | QUAL-01 to QUAL-08        | Pending  |
+| Phase | Name                         | Requirements              | Status      |
+| ----- | ---------------------------- | ------------------------- | ----------- |
+| 26    | Emergency Fixes              | EMER-01, EMER-02, EMER-03 | Complete    |
+| 27    | Security Hardening           | SEC-01 to SEC-06          | Complete    |
+| 28    | Production Readiness         | PROD-01 to PROD-07        | In Progress |
+| 29    | Error Handling & Reliability | ERR-01 to ERR-09          | Pending     |
+| 30    | Test Coverage Foundation     | TEST-01 to TEST-04        | Pending     |
+| 31    | Code Quality & Performance   | QUAL-01 to QUAL-08        | Pending     |
 
 ## Milestone Targets
 
@@ -40,6 +40,16 @@ Progress: [██████░░░░] 30% (v1.1 remediation - 6 of 20+ plan
 | CTO-presentable    | 26-29        | Clean error handling, no silent failures       |
 | SOC 2 prep         | 26-30        | Auditable test coverage, complete audit trail  |
 | Production quality | 26-31        | Maintainable, performant, fully tested         |
+
+## Phase 28 Plans
+
+| Plan  | Wave | Objective                                          | Autonomous | Status   |
+| ----- | ---- | -------------------------------------------------- | ---------- | -------- |
+| 28-01 | 1    | PROD-01: Containerization with multi-stage Docker  | Yes        | Pending  |
+| 28-02 | 1    | PROD-02: Storage provider fail-fast initialization | Yes        | Complete |
+| 28-03 | 2    | PROD-03: Health checks and readiness probes        | Yes        | Pending  |
+| 28-04 | 2    | PROD-04: Azure Key Vault integration               | Yes        | Pending  |
+| 28-05 | 3    | PROD-05 to PROD-07: Logging and monitoring         | Yes        | Pending  |
 
 ## Phase 27 Plans
 
@@ -107,12 +117,19 @@ Key outcomes:
 - AiContextFile uses hierarchical pattern (platform/org/user)
 - Comprehensive documentation (428 lines) explaining RLS interaction
 
+### Key Decisions (28-02)
+
+- Check storage.provider config first; skip initialization if not active provider
+- AzureBlobProvider verifies connectivity via getProperties() call
+- LocalStorageProvider verifies write permissions via test file write/delete
+- Error messages include actionable guidance (env var names, alternatives)
+
 ### Blockers
 
 None currently.
 
 ## Session Continuity
 
-Last session: 2026-02-14 13:40 EST
-Stopped at: Phase 27 verified (5/5 must-haves passed), ready for Phase 28
-Resume file: .planning/phases/28-production-readiness/28-01-PLAN.md
+Last session: 2026-02-14 13:52 EST
+Stopped at: Completed 28-02-PLAN.md (storage provider fail-fast)
+Resume file: .planning/phases/28-production-readiness/28-03-PLAN.md
