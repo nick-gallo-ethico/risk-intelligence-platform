@@ -1087,9 +1087,6 @@ Plans:
 4. Offline draft decryption failure shows user-visible error message (not silent empty data)
 5. Error boundary components exist for all top-level route segments (not just `/cases/[id]`)
 6. Auth logout logs server-side session invalidation failures to console.warn
-7. Auth storage logs corrupted localStorage entries and clears them
-8. AI provider `tryGetProvider()` logs error with provider name before returning null
-9. Async event handlers have try-catch boundaries that log errors (not fire-and-forget silent failures)
 
 ### Phase 30: Test Coverage Foundation
 
@@ -1103,12 +1100,6 @@ Plans:
 3. Campaign and Policy services have unit tests covering CRUD, workflow transitions, and event emission
 4. Frontend has MSW mock setup, at least 3 error boundary components, and component tests for dashboard, case list, and case detail
 
-**Plans**: 5 plans in 1 wavePlans:- [ ] 30-01-PLAN.md (Wave 1) — Auth core tests: AuthService, MfaService, TokenRefreshService, RecoveryCodesService- [ ] 30-02-PLAN.md (Wave 1) — Auth SSO/domain tests: SsoService, SsoConfigService, DomainService, DomainVerificationService- [ ] 30-03-PLAN.md (Wave 1) — Core service tests: CasesService, RiusService (with immutability enforcement)- [ ] 30-04-PLAN.md (Wave 1) — Campaign and policy tests: CampaignsService, PoliciesService (with versioning)- [ ] 30-05-PLAN.md (Wave 1) — Frontend infrastructure: MSW setup, 3 error boundaries, dashboard component tests
-
-### Phase 31: Code Quality & Performance
-
-**Goal**: Improve maintainability and performance — decompose monolithic services, extract shared patterns, clean up controllers, fix hardcoded URLs, add user-facing error feedback, tune database connections, and implement JWT key rotation.
-
 **Plans**: 5 plans in 1 wave
 
 Plans:
@@ -1118,6 +1109,8 @@ Plans:
 - [ ] 30-03-PLAN.md (Wave 1) — Core service tests: CasesService, RiusService (with immutability enforcement)
 - [ ] 30-04-PLAN.md (Wave 1) — Campaign and policy tests: CampaignsService, PoliciesService (with versioning)
 - [ ] 30-05-PLAN.md (Wave 1) — Frontend infrastructure: MSW setup, 3 error boundaries, dashboard component tests
+
+### Phase 31: Code Quality & Performance
 
 **Goal**: Improve maintainability and performance — decompose monolithic services, extract shared patterns, clean up controllers, fix hardcoded URLs, add user-facing error feedback, tune database connections, and implement JWT key rotation.
 **Depends on**: Phase 30 (test coverage must exist before safe refactoring)
@@ -1133,12 +1126,20 @@ Plans:
 7. Elasticsearch timeout reduced to 5s with circuit breaker fallback
 8. JWT uses RS256 with key rotation mechanism (old keys valid until expiry, new keys for signing)
 
----
+**Plans**: 8 plans in 5 waves
 
-## Progress
+Plans:
 
-**Execution Order:**
-Phases execute in dependency order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11 → 11.1 → 12 → 13 → 13.1 → 14 → 14.1 → 14.2 → 15 → 16 → 17 → 18 → 19 → 20 → 21 → 22 → 23 → 24 → 25 → 25.1 → 26 → 27 → 28 → 29 → 30 → 31
+- [ ] 31-01-PLAN.md (Wave 1) — Response compression and DB pool config
+- [ ] 31-02-PLAN.md (Wave 1) — Replace hardcoded localhost URLs with env config
+- [ ] 31-03-PLAN.md (Wave 1) — Elasticsearch timeout reduction with circuit breaker
+- [ ] 31-04-PLAN.md (Wave 2) — Extract BaseAssociationService generic base class
+- [ ] 31-05-PLAN.md (Wave 2) — Toast notification system for API errors
+- [ ] 31-06-PLAN.md (Wave 3) — Controller logic extraction to services
+- [ ] 31-07-PLAN.md (Wave 4) — Service decomposition (<300 LOC)
+- [ ] 31-08-PLAN.md (Wave 5) — JWT RS256 with key rotation
+      **Execution Order:**
+      Phases execute in dependency order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11 → 11.1 → 12 → 13 → 13.1 → 14 → 14.1 → 14.2 → 15 → 16 → 17 → 18 → 19 → 20 → 21 → 22 → 23 → 24 → 25 → 25.1 → 26 → 27 → 28 → 29 → 30 → 31
 
 > **Note on order**: Phase 13.1 fixes UAT gaps from Phase 13. Phase 14.1 fixes data seeding gaps from Phase 14. Phase 15 gap closure plans address verification failures.
 
@@ -1184,7 +1185,7 @@ Phases execute in dependency order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 
 | 28. Production Readiness         | 0/?            | Planned | -         |
 | 29. Error Handling & Reliability | 0/?            | Planned | -         |
 | 30. Test Coverage Foundation     | 0/5            | Planned | -         |
-| 31. Code Quality & Performance   | 0/?            | Planned | -         |
+| 31. Code Quality & Performance   | 0/8            | Planned | -         |
 
 ---
 
