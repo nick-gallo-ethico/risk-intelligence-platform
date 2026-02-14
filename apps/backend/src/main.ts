@@ -1,5 +1,5 @@
 import { NestFactory } from "@nestjs/core";
-import { ValidationPipe } from "@nestjs/common";
+import { ValidationPipe, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import * as bodyParser from "body-parser";
@@ -10,9 +10,16 @@ import { HttpExceptionFilter } from "./common/filters/http-exception.filter";
 import { SentryExceptionFilter } from "./common/filters/sentry-exception.filter";
 
 async function bootstrap() {
+  const nestLogger = new Logger("Bootstrap");
+
   const app = await NestFactory.create(AppModule, {
     bufferLogs: true,
   });
+
+  // Enable graceful shutdown - NestJS will call onApplicationShutdown hooks
+  // This ensures database connections, WebSockets, and background jobs close cleanly
+  app.enableShutdownHooks();
+  nestLogger.log("Graceful shutdown hooks enabled");
 
   // Configure body size limits for security (SEC-05)
   // 10MB limit for JSON and URL-encoded bodies
