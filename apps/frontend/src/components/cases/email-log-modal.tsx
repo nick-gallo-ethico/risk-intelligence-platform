@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { apiClient } from "@/lib/api";
+import { handleApiError, showSuccess } from "@/lib/api-error-handler";
 
 interface EmailLogModalProps {
   caseId: string;
@@ -97,10 +98,10 @@ export function EmailLogModal({
         },
       });
 
+      showSuccess("Email logged successfully");
       onEmailLogged();
       onOpenChange(false);
     } catch (err) {
-      console.error("Failed to log email:", err);
       // Fallback: try a different endpoint structure
       try {
         await apiClient.post(`/cases/${caseId}/communications`, {
@@ -111,10 +112,11 @@ export function EmailLogModal({
           content: summary.trim(),
           date: emailDate,
         });
+        showSuccess("Email logged successfully");
         onEmailLogged();
         onOpenChange(false);
       } catch (fallbackErr) {
-        console.error("Fallback also failed:", fallbackErr);
+        handleApiError(fallbackErr, "Failed to log email");
         setError("Failed to log email. Please try again.");
       }
     } finally {

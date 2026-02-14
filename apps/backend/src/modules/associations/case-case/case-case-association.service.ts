@@ -1,8 +1,13 @@
-import { Injectable, Logger, BadRequestException } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
-import { EventEmitter2 } from '@nestjs/event-emitter';
-import { AuditService } from '../../audit/audit.service';
-import { CaseCaseLabel } from '@prisma/client';
+import { Injectable, BadRequestException } from "@nestjs/common";
+import { PrismaService } from "../../prisma/prisma.service";
+import { EventEmitter2 } from "@nestjs/event-emitter";
+import { AuditService } from "../../audit/audit.service";
+import { CaseCaseLabel, CaseCaseAssociation } from "@prisma/client";
+import {
+  BaseAssociationService,
+  AssociationAuditContext,
+  AssociationEventContext,
+} from "../base";
 
 export interface CreateCaseCaseAssociationDto {
   sourceCaseId: string;
@@ -10,6 +15,14 @@ export interface CreateCaseCaseAssociationDto {
   label: CaseCaseLabel;
   notes?: string;
 }
+
+/**
+ * Entity type with relations included.
+ */
+type CaseCaseAssociationWithRelations = CaseCaseAssociation & {
+  sourceCase?: { id: string; referenceNumber?: string; status?: string } | null;
+  targetCase?: { id: string; referenceNumber?: string; status?: string } | null;
+};
 
 /**
  * CaseCaseAssociationService manages Case-to-Case associations.
@@ -28,84 +41,153 @@ export interface CreateCaseCaseAssociationDto {
  *   - The reverse would be Case B with label SPLIT_FROM pointing to Case A
  */
 @Injectable()
-export class CaseCaseAssociationService {
-  private readonly logger = new Logger(CaseCaseAssociationService.name);
-
+export class CaseCaseAssociationService extends BaseAssociationService<
+  CreateCaseCaseAssociationDto,
+  CaseCaseAssociationWithRelations,
+  CaseCaseLabel
+> {
   constructor(
-    private prisma: PrismaService,
-    private eventEmitter: EventEmitter2,
-    private auditService: AuditService,
-  ) {}
+    prisma: PrismaService,
+    eventEmitter: EventEmitter2,
+    auditService: AuditService,
+  ) {
+    super(prisma, eventEmitter, auditService, {
+      associationType: "case-case",
+      prismaModelName: "caseCaseAssociation",
+      eventPrefix: "association.case-case",
+      primaryAuditEntityType: "CASE",
+    });
+  }
 
   /**
-   * Create association between two Cases.
-   *
-   * @throws BadRequestException if source equals target or if association already exists
+   * Validate that source and target are different cases.
+   * @throws BadRequestException if source equals target
+   */
+  protected validateCreate(dto: CreateCaseCaseAssociationDto): void {
+    if (dto.sourceCaseId === dto.targetCaseId) {
+      throw new BadRequestException(
+        "Cannot create association from case to itself",
+      );
+    }
+  }
+
+  protected buildCreateData(
+    dto: CreateCaseCaseAssociationDto,
+    userId: string,
+    organizationId: string,
+  ): Record<string, unknown> {
+    return {
+      organizationId,
+      sourceCaseId: dto.sourceCaseId,
+      targetCaseId: dto.targetCaseId,
+      label: dto.label,
+      notes: dto.notes,
+      createdById: userId,
+    };
+  }
+
+  protected getCreateInclude(): Record<string, unknown> {
+    return {
+      sourceCase: { select: { id: true, referenceNumber: true } },
+      targetCase: { select: { id: true, referenceNumber: true } },
+    };
+  }
+
+  protected buildCreateAuditContext(
+    dto: CreateCaseCaseAssociationDto,
+    entity: CaseCaseAssociationWithRelations,
+  ): AssociationAuditContext {
+    const targetRef = entity.targetCase?.referenceNumber || dto.targetCaseId;
+    return {
+      entityType: "CASE",
+      entityId: dto.sourceCaseId,
+      action: "case_associated",
+      actionDescription: `Associated as ${dto.label} to case ${targetRef}`,
+      actionCategory: "CREATE",
+      context: { targetCaseId: dto.targetCaseId, label: dto.label },
+    };
+  }
+
+  protected buildCreateEventPayload(
+    dto: CreateCaseCaseAssociationDto,
+    entity: CaseCaseAssociationWithRelations,
+    organizationId: string,
+  ): AssociationEventContext {
+    return {
+      organizationId,
+      associationId: entity.id,
+      sourceCaseId: dto.sourceCaseId,
+      targetCaseId: dto.targetCaseId,
+      label: dto.label,
+    };
+  }
+
+  protected getDeleteAuditEntityId(
+    entity: CaseCaseAssociationWithRelations,
+  ): string {
+    return entity.sourceCaseId;
+  }
+
+  protected buildDeleteAuditDescription(
+    entity: CaseCaseAssociationWithRelations,
+  ): string {
+    const targetRef =
+      entity.targetCase?.referenceNumber || entity.targetCaseId;
+    return `Removed ${entity.label} association to ${targetRef}`;
+  }
+
+  protected buildDeleteAuditContext(
+    entity: CaseCaseAssociationWithRelations,
+  ): Record<string, unknown> {
+    return {
+      targetCaseId: entity.targetCaseId,
+      label: entity.label,
+    };
+  }
+
+  protected buildDeleteEventPayload(
+    entity: CaseCaseAssociationWithRelations,
+    organizationId: string,
+  ): AssociationEventContext {
+    return {
+      organizationId,
+      associationId: entity.id,
+      sourceCaseId: entity.sourceCaseId,
+      targetCaseId: entity.targetCaseId,
+      label: entity.label,
+    };
+  }
+
+  protected getEntityLabel(
+    entity: CaseCaseAssociationWithRelations,
+  ): CaseCaseLabel {
+    return entity.label;
+  }
+
+  /**
+   * Override create to also log audit on the target case.
    */
   async create(
     dto: CreateCaseCaseAssociationDto,
     userId: string,
     organizationId: string,
-  ) {
-    // Prevent self-association
-    if (dto.sourceCaseId === dto.targetCaseId) {
-      throw new BadRequestException('Cannot create association from case to itself');
-    }
+  ): Promise<CaseCaseAssociationWithRelations> {
+    const entity = await super.create(dto, userId, organizationId);
 
-    const association = await this.prisma.caseCaseAssociation.create({
-      data: {
-        organizationId,
-        sourceCaseId: dto.sourceCaseId,
-        targetCaseId: dto.targetCaseId,
-        label: dto.label,
-        notes: dto.notes,
-        createdById: userId,
-      },
-      include: {
-        sourceCase: { select: { id: true, referenceNumber: true } },
-        targetCase: { select: { id: true, referenceNumber: true } },
-      },
-    });
-
-    this.logger.log(
-      `Created Case-Case association: ${dto.sourceCaseId} -[${dto.label}]-> ${dto.targetCaseId}`,
+    // Also audit on the target case (bidirectional audit)
+    const sourceRef = entity.sourceCase?.referenceNumber || dto.sourceCaseId;
+    await this.logAudit(
+      "CASE",
+      dto.targetCaseId,
+      "case_associated",
+      `Associated from case ${sourceRef} as ${dto.label}`,
+      "CREATE",
+      userId,
+      organizationId,
+      { sourceCaseId: dto.sourceCaseId, label: dto.label },
     );
 
-    this.eventEmitter.emit('association.case-case.created', {
-      organizationId,
-      associationId: association.id,
-      sourceCaseId: dto.sourceCaseId,
-      targetCaseId: dto.targetCaseId,
-      label: dto.label,
-    });
-
-    // Audit on both cases
-    await Promise.all([
-      this.auditService.log({
-        entityType: 'CASE',
-        entityId: dto.sourceCaseId,
-        action: 'case_associated',
-        actionDescription: `Associated as ${dto.label} to case ${association.targetCase.referenceNumber}`,
-        actionCategory: 'CREATE',
-        actorUserId: userId,
-        actorType: 'USER',
-        organizationId,
-        context: { targetCaseId: dto.targetCaseId, label: dto.label },
-      }),
-      this.auditService.log({
-        entityType: 'CASE',
-        entityId: dto.targetCaseId,
-        action: 'case_associated',
-        actionDescription: `Associated from case ${association.sourceCase.referenceNumber} as ${dto.label}`,
-        actionCategory: 'CREATE',
-        actorUserId: userId,
-        actorType: 'USER',
-        organizationId,
-        context: { sourceCaseId: dto.sourceCaseId, label: dto.label },
-      }),
-    ]);
-
-    return association;
+    return entity;
   }
 
   /**
@@ -198,7 +280,7 @@ export class CaseCaseAssociationService {
           },
         },
       },
-      orderBy: { createdAt: 'asc' },
+      orderBy: { createdAt: "asc" },
     });
   }
 
@@ -218,7 +300,7 @@ export class CaseCaseAssociationService {
           },
         },
       },
-      orderBy: { createdAt: 'asc' },
+      orderBy: { createdAt: "asc" },
     });
   }
 
@@ -301,44 +383,6 @@ export class CaseCaseAssociationService {
             createdAt: true,
           },
         },
-      },
-    });
-  }
-
-  /**
-   * Delete association.
-   */
-  async delete(associationId: string, userId: string, organizationId: string) {
-    const association = await this.prisma.caseCaseAssociation.findFirst({
-      where: { id: associationId, organizationId },
-      include: {
-        sourceCase: { select: { referenceNumber: true } },
-        targetCase: { select: { referenceNumber: true } },
-      },
-    });
-
-    if (!association) {
-      throw new BadRequestException('Association not found');
-    }
-
-    await this.prisma.caseCaseAssociation.delete({
-      where: { id: associationId },
-    });
-
-    this.logger.log(`Deleted Case-Case association: ${associationId}`);
-
-    await this.auditService.log({
-      entityType: 'CASE',
-      entityId: association.sourceCaseId,
-      action: 'case_association_deleted',
-      actionDescription: `Removed ${association.label} association to ${association.targetCase.referenceNumber}`,
-      actionCategory: 'DELETE',
-      actorUserId: userId,
-      actorType: 'USER',
-      organizationId,
-      context: {
-        targetCaseId: association.targetCaseId,
-        label: association.label,
       },
     });
   }

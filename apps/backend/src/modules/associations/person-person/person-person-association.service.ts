@@ -1,8 +1,17 @@
-import { Injectable, Logger, BadRequestException } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
-import { EventEmitter2 } from '@nestjs/event-emitter';
-import { AuditService } from '../../audit/audit.service';
-import { PersonPersonLabel, PersonPersonSource } from '@prisma/client';
+import { Injectable, BadRequestException } from "@nestjs/common";
+import { PrismaService } from "../../prisma/prisma.service";
+import { EventEmitter2 } from "@nestjs/event-emitter";
+import { AuditService } from "../../audit/audit.service";
+import {
+  PersonPersonLabel,
+  PersonPersonSource,
+  PersonPersonAssociation,
+} from "@prisma/client";
+import {
+  BaseAssociationService,
+  AssociationAuditContext,
+  AssociationEventContext,
+} from "../base";
 
 export interface CreatePersonPersonAssociationDto {
   personAId: string;
@@ -26,6 +35,26 @@ const DIRECTIONAL_LABELS: PersonPersonLabel[] = [
 ];
 
 /**
+ * Entity type with relations included.
+ */
+type PersonPersonAssociationWithRelations = PersonPersonAssociation & {
+  personA?: {
+    id: string;
+    firstName?: string | null;
+    lastName?: string | null;
+    type?: string;
+    company?: string | null;
+  } | null;
+  personB?: {
+    id: string;
+    firstName?: string | null;
+    lastName?: string | null;
+    type?: string;
+    company?: string | null;
+  } | null;
+};
+
+/**
  * PersonPersonAssociationService manages Person-to-Person relationships.
  *
  * Per CONTEXT.md decision, sources include:
@@ -43,14 +72,23 @@ const DIRECTIONAL_LABELS: PersonPersonLabel[] = [
  * For asymmetric relationships (manager_of), isDirectional=true with aToB/bToA descriptors.
  */
 @Injectable()
-export class PersonPersonAssociationService {
-  private readonly logger = new Logger(PersonPersonAssociationService.name);
-
+export class PersonPersonAssociationService extends BaseAssociationService<
+  CreatePersonPersonAssociationDto,
+  PersonPersonAssociationWithRelations,
+  PersonPersonLabel
+> {
   constructor(
-    private prisma: PrismaService,
-    private eventEmitter: EventEmitter2,
-    private auditService: AuditService,
-  ) {}
+    prisma: PrismaService,
+    eventEmitter: EventEmitter2,
+    auditService: AuditService,
+  ) {
+    super(prisma, eventEmitter, auditService, {
+      associationType: "person-person",
+      prismaModelName: "personPersonAssociation",
+      eventPrefix: "association.person-person",
+      primaryAuditEntityType: "PERSON",
+    });
+  }
 
   /**
    * Check if a label is directional (asymmetric).
@@ -60,24 +98,24 @@ export class PersonPersonAssociationService {
   }
 
   /**
-   * Create association between two Persons.
-   *
-   * For symmetric relationships, normalizes so personAId < personBId alphabetically.
-   * For directional relationships, preserves order and sets aToB/bToA descriptors.
-   *
+   * Validate that personA and personB are different.
    * @throws BadRequestException if personA equals personB
    */
-  async create(
+  protected validateCreate(dto: CreatePersonPersonAssociationDto): void {
+    if (dto.personAId === dto.personBId) {
+      throw new BadRequestException(
+        "Cannot create relationship from person to themselves",
+      );
+    }
+  }
+
+  protected buildCreateData(
     dto: CreatePersonPersonAssociationDto,
     userId: string,
     organizationId: string,
-  ) {
-    // Prevent self-association
-    if (dto.personAId === dto.personBId) {
-      throw new BadRequestException('Cannot create relationship from person to themselves');
-    }
-
-    const isDirectional = dto.isDirectional ?? this.isDirectionalLabel(dto.label);
+  ): Record<string, unknown> {
+    const isDirectional =
+      dto.isDirectional ?? this.isDirectionalLabel(dto.label);
 
     // For symmetric relationships, normalize order
     let personAId = dto.personAId;
@@ -87,53 +125,95 @@ export class PersonPersonAssociationService {
       personBId = dto.personAId;
     }
 
-    const association = await this.prisma.personPersonAssociation.create({
-      data: {
-        organizationId,
-        personAId,
-        personBId,
-        label: dto.label,
-        source: dto.source,
-        isDirectional,
-        aToB: dto.aToB,
-        bToA: dto.bToA,
-        effectiveFrom: dto.effectiveFrom || new Date(),
-        effectiveUntil: dto.effectiveUntil,
-        notes: dto.notes,
-        createdById: userId,
-      },
-      include: {
-        personA: { select: { id: true, firstName: true, lastName: true } },
-        personB: { select: { id: true, firstName: true, lastName: true } },
-      },
-    });
-
-    this.logger.log(
-      `Created Person-Person association: ${personAId} -[${dto.label}]- ${personBId}`,
-    );
-
-    this.eventEmitter.emit('association.person-person.created', {
+    return {
       organizationId,
-      associationId: association.id,
       personAId,
       personBId,
       label: dto.label,
       source: dto.source,
-    });
+      isDirectional,
+      aToB: dto.aToB,
+      bToA: dto.bToA,
+      effectiveFrom: dto.effectiveFrom || new Date(),
+      effectiveUntil: dto.effectiveUntil,
+      notes: dto.notes,
+      createdById: userId,
+    };
+  }
 
-    await this.auditService.log({
-      entityType: 'PERSON',
-      entityId: personAId,
-      action: 'relationship_created',
+  protected getCreateInclude(): Record<string, unknown> {
+    return {
+      personA: { select: { id: true, firstName: true, lastName: true } },
+      personB: { select: { id: true, firstName: true, lastName: true } },
+    };
+  }
+
+  protected buildCreateAuditContext(
+    dto: CreatePersonPersonAssociationDto,
+  ): AssociationAuditContext {
+    return {
+      entityType: "PERSON",
+      entityId: dto.personAId,
+      action: "relationship_created",
       actionDescription: `Relationship (${dto.label}) created with another person`,
-      actionCategory: 'CREATE',
-      actorUserId: userId,
-      actorType: 'USER',
-      organizationId,
-      context: { personBId, label: dto.label, source: dto.source },
-    });
+      actionCategory: "CREATE",
+      context: { personBId: dto.personBId, label: dto.label, source: dto.source },
+    };
+  }
 
-    return association;
+  protected buildCreateEventPayload(
+    dto: CreatePersonPersonAssociationDto,
+    entity: PersonPersonAssociationWithRelations,
+    organizationId: string,
+  ): AssociationEventContext {
+    return {
+      organizationId,
+      associationId: entity.id,
+      personAId: entity.personAId,
+      personBId: entity.personBId,
+      label: dto.label,
+      source: dto.source,
+    };
+  }
+
+  protected getDeleteAuditEntityId(
+    entity: PersonPersonAssociationWithRelations,
+  ): string {
+    return entity.personAId;
+  }
+
+  protected buildDeleteAuditDescription(
+    entity: PersonPersonAssociationWithRelations,
+  ): string {
+    return `Relationship (${entity.label}) deleted`;
+  }
+
+  protected buildDeleteAuditContext(
+    entity: PersonPersonAssociationWithRelations,
+  ): Record<string, unknown> {
+    return {
+      personBId: entity.personBId,
+      label: entity.label,
+    };
+  }
+
+  protected buildDeleteEventPayload(
+    entity: PersonPersonAssociationWithRelations,
+    organizationId: string,
+  ): AssociationEventContext {
+    return {
+      organizationId,
+      associationId: entity.id,
+      personAId: entity.personAId,
+      personBId: entity.personBId,
+      label: entity.label,
+    };
+  }
+
+  protected getEntityLabel(
+    entity: PersonPersonAssociationWithRelations,
+  ): PersonPersonLabel {
+    return entity.label;
   }
 
   /**
@@ -155,8 +235,8 @@ export class PersonPersonAssociationService {
         label: PersonPersonLabel.MANAGER_OF,
         source,
         isDirectional: true,
-        aToB: 'manager_of',
-        bToA: 'reports_to',
+        aToB: "manager_of",
+        bToA: "reports_to",
         ...options,
       },
       userId,
@@ -172,13 +252,17 @@ export class PersonPersonAssociationService {
       this.prisma.personPersonAssociation.findMany({
         where: { organizationId, personAId: personId },
         include: {
-          personB: { select: { id: true, firstName: true, lastName: true, type: true } },
+          personB: {
+            select: { id: true, firstName: true, lastName: true, type: true },
+          },
         },
       }),
       this.prisma.personPersonAssociation.findMany({
         where: { organizationId, personBId: personId },
         include: {
-          personA: { select: { id: true, firstName: true, lastName: true, type: true } },
+          personA: {
+            select: { id: true, firstName: true, lastName: true, type: true },
+          },
         },
       }),
     ]);
@@ -286,10 +370,7 @@ export class PersonPersonAssociationService {
         effectiveFrom: { lte: now },
         AND: [
           {
-            OR: [
-              { effectiveUntil: null },
-              { effectiveUntil: { gt: now } },
-            ],
+            OR: [{ effectiveUntil: null }, { effectiveUntil: { gt: now } }],
           },
         ],
       },
@@ -314,11 +395,11 @@ export class PersonPersonAssociationService {
     });
 
     if (!association) {
-      throw new BadRequestException('Relationship not found');
+      throw new BadRequestException("Relationship not found");
     }
 
     if (association.effectiveUntil) {
-      throw new BadRequestException('Relationship has already ended');
+      throw new BadRequestException("Relationship has already ended");
     }
 
     const updated = await this.prisma.personPersonAssociation.update({
@@ -334,20 +415,19 @@ export class PersonPersonAssociationService {
 
     this.logger.log(`Ended Person-Person relationship: ${associationId}`);
 
-    await this.auditService.log({
-      entityType: 'PERSON',
-      entityId: association.personAId,
-      action: 'relationship_ended',
-      actionDescription: `Relationship (${association.label}) ended`,
-      actionCategory: 'UPDATE',
-      actorUserId: userId,
-      actorType: 'USER',
+    await this.logAudit(
+      "PERSON",
+      association.personAId,
+      "relationship_ended",
+      `Relationship (${association.label}) ended`,
+      "UPDATE",
+      userId,
       organizationId,
-      context: {
+      {
         personBId: association.personBId,
         label: association.label,
       },
-    });
+    );
 
     return updated;
   }
@@ -374,50 +454,17 @@ export class PersonPersonAssociationService {
         effectiveFrom: { lte: now },
         AND: [
           {
-            OR: [
-              { effectiveUntil: null },
-              { effectiveUntil: { gt: now } },
-            ],
+            OR: [{ effectiveUntil: null }, { effectiveUntil: { gt: now } }],
           },
         ],
       },
       include: {
-        personA: { select: { id: true, firstName: true, lastName: true, company: true } },
-        personB: { select: { id: true, firstName: true, lastName: true, company: true } },
-      },
-    });
-  }
-
-  /**
-   * Delete association (rare - typically only for data correction).
-   */
-  async delete(associationId: string, userId: string, organizationId: string) {
-    const association = await this.prisma.personPersonAssociation.findFirst({
-      where: { id: associationId, organizationId },
-    });
-
-    if (!association) {
-      throw new BadRequestException('Relationship not found');
-    }
-
-    await this.prisma.personPersonAssociation.delete({
-      where: { id: associationId },
-    });
-
-    this.logger.log(`Deleted Person-Person association: ${associationId}`);
-
-    await this.auditService.log({
-      entityType: 'PERSON',
-      entityId: association.personAId,
-      action: 'relationship_deleted',
-      actionDescription: `Relationship (${association.label}) deleted`,
-      actionCategory: 'DELETE',
-      actorUserId: userId,
-      actorType: 'USER',
-      organizationId,
-      context: {
-        personBId: association.personBId,
-        label: association.label,
+        personA: {
+          select: { id: true, firstName: true, lastName: true, company: true },
+        },
+        personB: {
+          select: { id: true, firstName: true, lastName: true, company: true },
+        },
       },
     });
   }

@@ -24,6 +24,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { casesApi } from "@/lib/cases-api";
 import { apiClient } from "@/lib/api";
+import { handleApiError, showSuccess } from "@/lib/api-error-handler";
 import type { Case, CaseStatus } from "@/types/case";
 
 interface MergeModalProps {
@@ -90,7 +91,7 @@ export function MergeModal({
         const filtered = response.data.filter((c) => c.id !== caseId);
         setSearchResults(filtered);
       } catch (err) {
-        console.error("Failed to search cases:", err);
+        handleApiError(err, "Failed to search cases");
         setError("Failed to search cases. Please try again.");
       } finally {
         setIsSearching(false);
@@ -136,10 +137,11 @@ export function MergeModal({
         reason: reason.trim(),
       });
 
+      showSuccess("Cases merged successfully");
       onMerged(selectedCase.id);
       onOpenChange(false);
     } catch (err) {
-      console.error("Failed to merge cases:", err);
+      handleApiError(err, "Failed to merge cases");
       setError("Failed to merge cases. Please try again.");
     } finally {
       setIsSubmitting(false);

@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { apiClient } from "@/lib/api";
+import { handleApiError, showSuccess } from "@/lib/api-error-handler";
 
 interface AddNoteModalProps {
   caseId: string;
@@ -63,20 +64,21 @@ export function AddNoteModal({
         actionDescription: `Added note: ${note.trim().substring(0, 100)}${note.trim().length > 100 ? "..." : ""}`,
       });
 
+      showSuccess("Note added successfully");
       onNoteAdded();
       onOpenChange(false);
     } catch (err) {
-      console.error("Failed to add note:", err);
       // Fallback: try adding via case update with a notes field
       try {
         // Alternative approach if activity endpoint doesn't exist
         await apiClient.post(`/cases/${caseId}/notes`, {
           content: note.trim(),
         });
+        showSuccess("Note added successfully");
         onNoteAdded();
         onOpenChange(false);
       } catch (fallbackErr) {
-        console.error("Fallback also failed:", fallbackErr);
+        handleApiError(fallbackErr, "Failed to add note");
         setError("Failed to add note. Please try again.");
       }
     } finally {

@@ -16,6 +16,7 @@ import { Label } from "@/components/ui/label";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { usersApi } from "@/lib/users-api";
 import { casesApi } from "@/lib/cases-api";
+import { handleApiError, showSuccess } from "@/lib/api-error-handler";
 import type { User, UserRole } from "@/types/user";
 
 interface AssignModalProps {
@@ -78,7 +79,7 @@ export function AssignModal({
       );
       setUsers(investigators);
     } catch (err) {
-      console.error("Failed to fetch users:", err);
+      handleApiError(err, "Failed to load users");
       setError("Failed to load users. Please try again.");
     } finally {
       setIsLoading(false);
@@ -109,10 +110,11 @@ export function AssignModal({
         assignedInvestigatorIds: selectedIds,
       });
 
+      showSuccess("Investigators assigned successfully");
       onAssigned();
       onOpenChange(false);
     } catch (err) {
-      console.error("Failed to assign investigators:", err);
+      handleApiError(err, "Failed to assign investigators");
       setError("Failed to assign investigators. Please try again.");
     } finally {
       setIsSubmitting(false);

@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { apiClient } from "@/lib/api";
+import { handleApiError, showSuccess } from "@/lib/api-error-handler";
 
 interface CreateTaskModalProps {
   caseId: string;
@@ -82,8 +83,8 @@ export function CreateTaskModal({
         .then((data) => {
           setUsers(Array.isArray(data) ? data : []);
         })
-        .catch((err) => {
-          console.error("Failed to fetch users:", err);
+        .catch(() => {
+          // Silent failure for background user fetch - not user-initiated
           setUsers([]);
         })
         .finally(() => {
@@ -160,10 +161,10 @@ export function CreateTaskModal({
         },
       });
 
+      showSuccess("Task created successfully");
       onTaskCreated();
       onOpenChange(false);
     } catch (err) {
-      console.error("Failed to create task:", err);
       // Fallback: try via tasks endpoint if it exists
       try {
         await apiClient.post(`/cases/${caseId}/tasks`, {
@@ -173,10 +174,11 @@ export function CreateTaskModal({
           dueDate: dueDate || undefined,
           priority,
         });
+        showSuccess("Task created successfully");
         onTaskCreated();
         onOpenChange(false);
       } catch (fallbackErr) {
-        console.error("Fallback also failed:", fallbackErr);
+        handleApiError(fallbackErr, "Failed to create task");
         setError("Failed to create task. Please try again.");
       }
     } finally {

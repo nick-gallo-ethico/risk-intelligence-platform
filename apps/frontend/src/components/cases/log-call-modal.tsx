@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { apiClient } from "@/lib/api";
+import { handleApiError, showSuccess } from "@/lib/api-error-handler";
 
 interface LogCallModalProps {
   open: boolean;
@@ -73,6 +74,7 @@ export function LogCallModal({
         notes,
       });
 
+      showSuccess("Call logged successfully");
       // Reset form
       setDirection("OUTBOUND");
       setOutcome("CONNECTED");
@@ -83,7 +85,7 @@ export function LogCallModal({
       onOpenChange(false);
       onSuccess?.();
     } catch (error) {
-      console.error("Failed to log call:", error);
+      handleApiError(error, "Failed to log call");
     } finally {
       setIsSubmitting(false);
     }

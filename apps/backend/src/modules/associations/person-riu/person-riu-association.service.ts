@@ -1,8 +1,13 @@
-import { Injectable, Logger, BadRequestException } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
-import { EventEmitter2 } from '@nestjs/event-emitter';
-import { AuditService } from '../../audit/audit.service';
-import { PersonRiuLabel } from '@prisma/client';
+import { Injectable } from "@nestjs/common";
+import { PrismaService } from "../../prisma/prisma.service";
+import { EventEmitter2 } from "@nestjs/event-emitter";
+import { AuditService } from "../../audit/audit.service";
+import { PersonRiuLabel, PersonRiuAssociation, Person } from "@prisma/client";
+import {
+  BaseAssociationService,
+  AssociationAuditContext,
+  AssociationEventContext,
+} from "../base";
 
 export interface CreatePersonRiuAssociationDto {
   personId: string;
@@ -11,6 +16,14 @@ export interface CreatePersonRiuAssociationDto {
   notes?: string;
   mentionContext?: string; // Quote from RIU where person was mentioned
 }
+
+/**
+ * Entity type with relations included.
+ */
+type PersonRiuAssociationWithRelations = PersonRiuAssociation & {
+  person?: Person | null;
+  riu?: { id: string; referenceNumber?: string } | null;
+};
 
 /**
  * PersonRiuAssociationService manages Person-to-RIU associations.
@@ -23,62 +36,113 @@ export interface CreatePersonRiuAssociationDto {
  * or validity periods since RIUs themselves are immutable.
  */
 @Injectable()
-export class PersonRiuAssociationService {
-  private readonly logger = new Logger(PersonRiuAssociationService.name);
-
+export class PersonRiuAssociationService extends BaseAssociationService<
+  CreatePersonRiuAssociationDto,
+  PersonRiuAssociationWithRelations,
+  PersonRiuLabel
+> {
   constructor(
-    private prisma: PrismaService,
-    private eventEmitter: EventEmitter2,
-    private auditService: AuditService,
-  ) {}
+    prisma: PrismaService,
+    eventEmitter: EventEmitter2,
+    auditService: AuditService,
+  ) {
+    super(prisma, eventEmitter, auditService, {
+      associationType: "person-riu",
+      prismaModelName: "personRiuAssociation",
+      eventPrefix: "association.person-riu",
+      primaryAuditEntityType: "RIU",
+    });
+  }
 
   /**
-   * Create association between Person and RIU.
-   * Typically called during intake when people are identified in the report.
+   * No validation needed for PersonRiu - just basic CRUD.
    */
-  async create(
+  protected validateCreate(): void {
+    // No special validation needed
+  }
+
+  protected buildCreateData(
     dto: CreatePersonRiuAssociationDto,
     userId: string,
     organizationId: string,
-  ) {
-    const association = await this.prisma.personRiuAssociation.create({
-      data: {
-        organizationId,
-        personId: dto.personId,
-        riuId: dto.riuId,
-        label: dto.label,
-        notes: dto.notes,
-        mentionContext: dto.mentionContext,
-        createdById: userId,
-      },
-      include: { person: true, riu: true },
-    });
-
-    this.logger.log(
-      `Created Person-RIU association: ${dto.personId} -> ${dto.riuId} (${dto.label})`,
-    );
-
-    this.eventEmitter.emit('association.person-riu.created', {
+  ): Record<string, unknown> {
+    return {
       organizationId,
-      associationId: association.id,
       personId: dto.personId,
       riuId: dto.riuId,
       label: dto.label,
-    });
+      notes: dto.notes,
+      mentionContext: dto.mentionContext,
+      createdById: userId,
+    };
+  }
 
-    await this.auditService.log({
-      entityType: 'RIU',
+  protected getCreateInclude(): Record<string, unknown> {
+    return { person: true, riu: true };
+  }
+
+  protected buildCreateAuditContext(
+    dto: CreatePersonRiuAssociationDto,
+  ): AssociationAuditContext {
+    return {
+      entityType: "RIU",
       entityId: dto.riuId,
-      action: 'person_associated',
+      action: "person_associated",
       actionDescription: `Person associated as ${dto.label}`,
-      actionCategory: 'CREATE',
-      actorUserId: userId,
-      actorType: 'USER',
-      organizationId,
+      actionCategory: "CREATE",
       context: { personId: dto.personId, label: dto.label },
-    });
+    };
+  }
 
-    return association;
+  protected buildCreateEventPayload(
+    dto: CreatePersonRiuAssociationDto,
+    entity: PersonRiuAssociationWithRelations,
+    organizationId: string,
+  ): AssociationEventContext {
+    return {
+      organizationId,
+      associationId: entity.id,
+      personId: dto.personId,
+      riuId: dto.riuId,
+      label: dto.label,
+    };
+  }
+
+  protected getDeleteAuditEntityId(
+    entity: PersonRiuAssociationWithRelations,
+  ): string {
+    return entity.riuId;
+  }
+
+  protected buildDeleteAuditDescription(
+    entity: PersonRiuAssociationWithRelations,
+  ): string {
+    return `Person association (${entity.label}) removed`;
+  }
+
+  protected buildDeleteAuditContext(
+    entity: PersonRiuAssociationWithRelations,
+  ): Record<string, unknown> {
+    return { personId: entity.personId, label: entity.label };
+  }
+
+  protected buildDeleteEventPayload(
+    entity: PersonRiuAssociationWithRelations,
+    organizationId: string,
+  ): AssociationEventContext {
+    return {
+      organizationId,
+      associationId: entity.id,
+      personId: entity.personId,
+      riuId: entity.riuId,
+      label: entity.label,
+    };
+  }
+
+  protected getEntityLabel(
+    entity: PersonRiuAssociationWithRelations,
+  ): PersonRiuLabel {
+    return entity.label;
   }
 
   /**
@@ -89,7 +153,7 @@ export class PersonRiuAssociationService {
     return this.prisma.personRiuAssociation.findMany({
       where: { organizationId, riuId },
       include: { person: true },
-      orderBy: { createdAt: 'asc' },
+      orderBy: { createdAt: "asc" },
     });
   }
 
@@ -101,14 +165,18 @@ export class PersonRiuAssociationService {
     return this.prisma.personRiuAssociation.findMany({
       where: { organizationId, personId },
       include: { riu: true },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
     });
   }
 
   /**
    * Find associations by label.
    */
-  async findByLabel(riuId: string, label: PersonRiuLabel, organizationId: string) {
+  async findByLabel(
+    riuId: string,
+    label: PersonRiuLabel,
+    organizationId: string,
+  ) {
     return this.prisma.personRiuAssociation.findMany({
       where: {
         organizationId,
@@ -163,39 +231,8 @@ export class PersonRiuAssociationService {
           },
         },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
       ...(options?.limit && { take: options.limit }),
-    });
-  }
-
-  /**
-   * Delete association (rare - typically only for data correction).
-   */
-  async delete(associationId: string, userId: string, organizationId: string) {
-    const association = await this.prisma.personRiuAssociation.findFirst({
-      where: { id: associationId, organizationId },
-    });
-
-    if (!association) {
-      throw new BadRequestException('Association not found');
-    }
-
-    await this.prisma.personRiuAssociation.delete({
-      where: { id: associationId },
-    });
-
-    this.logger.log(`Deleted Person-RIU association: ${associationId}`);
-
-    await this.auditService.log({
-      entityType: 'RIU',
-      entityId: association.riuId,
-      action: 'person_association_deleted',
-      actionDescription: `Person association (${association.label}) removed`,
-      actionCategory: 'DELETE',
-      actorUserId: userId,
-      actorType: 'USER',
-      organizationId,
-      context: { personId: association.personId, label: association.label },
     });
   }
 }

@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { casesApi } from "@/lib/cases-api";
+import { handleApiError, showSuccess } from "@/lib/api-error-handler";
 import type { CaseStatus } from "@/types/case";
 
 interface StatusChangeModalProps {
@@ -80,10 +81,11 @@ export function StatusChangeModal({
 
     try {
       await casesApi.updateStatus(caseId, status, rationale.trim());
+      showSuccess("Status updated successfully");
       onStatusChanged();
       onOpenChange(false);
     } catch (err) {
-      console.error("Failed to update status:", err);
+      handleApiError(err, "Failed to update status");
       setError("Failed to update status. Please try again.");
     } finally {
       setIsSubmitting(false);

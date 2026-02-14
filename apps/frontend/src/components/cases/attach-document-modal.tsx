@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { apiClient } from "@/lib/api";
+import { handleApiError, showSuccess } from "@/lib/api-error-handler";
 
 interface AttachDocumentModalProps {
   caseId: string;
@@ -141,10 +142,10 @@ export function AttachDocumentModal({
         },
       });
 
+      showSuccess("Document attached successfully");
       onDocumentAttached();
       onOpenChange(false);
     } catch (err) {
-      console.error("Failed to attach document:", err);
       // Fallback: try via documents endpoint if it exists
       try {
         await apiClient.post(`/cases/${caseId}/documents`, {
@@ -154,10 +155,11 @@ export function AttachDocumentModal({
           fileName: fileName.trim(),
           fileSize,
         });
+        showSuccess("Document attached successfully");
         onDocumentAttached();
         onOpenChange(false);
       } catch (fallbackErr) {
-        console.error("Fallback also failed:", fallbackErr);
+        handleApiError(fallbackErr, "Failed to attach document");
         setError("Failed to attach document. Please try again.");
       }
     } finally {

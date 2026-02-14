@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { apiClient } from "@/lib/api";
+import { handleApiError, showSuccess } from "@/lib/api-error-handler";
 
 interface LogInterviewModalProps {
   caseId: string;
@@ -112,10 +113,10 @@ export function LogInterviewModal({
         },
       });
 
+      showSuccess("Interview logged successfully");
       onInterviewLogged();
       onOpenChange(false);
     } catch (err) {
-      console.error("Failed to log interview:", err);
       // Fallback: try via investigation interviews endpoint if it exists
       try {
         await apiClient.post(`/investigation-interviews`, {
@@ -125,10 +126,11 @@ export function LogInterviewModal({
           scheduledAt,
           notes: notes.trim() || undefined,
         });
+        showSuccess("Interview logged successfully");
         onInterviewLogged();
         onOpenChange(false);
       } catch (fallbackErr) {
-        console.error("Fallback also failed:", fallbackErr);
+        handleApiError(fallbackErr, "Failed to log interview");
         setError("Failed to log interview. Please try again.");
       }
     } finally {

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { apiClient } from "@/lib/api";
+import { handleApiError, showSuccess } from "@/lib/api-error-handler";
 import {
   Dialog,
   DialogContent,
@@ -163,7 +164,7 @@ export function AddPersonModal({
         });
         setSearchResults(response.data);
       } catch (err) {
-        console.error("Failed to search persons:", err);
+        // Silent failure for search - not critical, user can retry
         setSearchResults([]);
       } finally {
         setSearching(false);
@@ -226,9 +227,10 @@ export function AddPersonModal({
         notes: notes.trim() || undefined,
       });
 
+      showSuccess("Person added to case successfully");
       onPersonAdded();
     } catch (err) {
-      console.error("Failed to add person to case:", err);
+      handleApiError(err, "Failed to add person to case");
       if (err && typeof err === "object" && "response" in err) {
         const axiosError = err as {
           response?: { data?: { message?: string } };
