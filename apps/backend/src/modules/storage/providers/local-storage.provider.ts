@@ -39,14 +39,40 @@ export class LocalStorageProvider implements StorageProvider, OnModuleInit {
 
   /**
    * Initialize local storage directory on module init.
+   * FAIL-FAST: Throws if base directory cannot be created or is not writable.
    */
   async onModuleInit(): Promise<void> {
+    const storageProvider = this.configService.get<string>("storage.provider");
+
+    // Only initialize if local is the configured provider
+    if (storageProvider !== "local") {
+      this.logger.log(
+        "Local Storage provider skipped (not configured as active provider)",
+      );
+      return;
+    }
+
     this.basePath =
       this.configService.get<string>("storage.local.basePath") || "./uploads";
 
-    // Ensure base directory exists
-    await fs.mkdir(this.basePath, { recursive: true });
-    this.logger.log(`Local Storage provider initialized at ${this.basePath}`);
+    try {
+      // Ensure base directory exists
+      await fs.mkdir(this.basePath, { recursive: true });
+
+      // Verify we can write to the directory
+      const testFile = path.join(this.basePath, ".write-test");
+      await fs.writeFile(testFile, "test");
+      await fs.unlink(testFile);
+
+      this.logger.log(`Local Storage provider initialized at ${this.basePath}`);
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
+      throw new Error(
+        `Failed to initialize Local Storage at "${this.basePath}": ${errorMessage}. ` +
+          "Check that the directory exists and is writable, or change LOCAL_STORAGE_PATH.",
+      );
+    }
   }
 
   /**
