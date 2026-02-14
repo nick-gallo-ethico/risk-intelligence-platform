@@ -200,6 +200,13 @@ Key outcomes:
 - Verify event emission via eventEmitter.emit mock with objectContaining matchers
 - Organize update tests into separate describe blocks for MUTABLE vs IMMUTABLE fields
 
+### Key Decisions (30-01)
+
+- Mock bcrypt at module level with jest.mock for password comparison
+- Use mockTotpInstance pattern for otplib TOTP class mocking (v13 class-based API)
+- Verify RLS bypass calls rather than actual RLS behavior (unit test scope)
+- withBypassRLS mock pattern: jest.fn((callback) => callback())
+
 ### Key Decisions (30-04)
 
 - AuditService used for CampaignsService (not ActivityService) - matches actual service implementation
@@ -214,15 +221,15 @@ None currently.
 
 | Plan  | Wave | Objective                                | Autonomous | Status      |
 | ----- | ---- | ---------------------------------------- | ---------- | ----------- |
-| 30-01 | 1    | TEST-01: Test infrastructure setup       | Yes        | Complete    |
-| 30-02 | 1    | TEST-02: Auth service tests              | Yes        | Complete    |
-| 30-03 | 1    | TEST-02: Cases service tests             | Yes        | Complete    |
-| 30-04 | 1    | TEST-02: Campaigns/Policies tests        | Yes        | Complete    |
-| 30-05 | 2    | TEST-03/04: Frontend tests               | Yes        | Pending     |
+| 30-01 | 1    | Auth services unit tests (AuthService, MfaService, TokenRefreshService, RecoveryCodesService) | Yes | Complete |
+| 30-02 | 1    | Domain services unit tests (DomainService, DomainVerificationService) | Yes | Complete |
+| 30-03 | 1    | Cases service tests (RIUs, Cases)        | Yes        | Complete    |
+| 30-04 | 1    | Campaigns/Policies service tests         | Yes        | Complete    |
+| 30-05 | 2    | Frontend tests (React Testing Library + MSW) | Yes     | Pending     |
 
 ## Session Continuity
 
-Last session: 2026-02-14 — Completed 30-04-PLAN.md (campaigns/policies tests)
-Stopped at: Plan 30-04 complete — 91 tests for CampaignsService and PoliciesService
+Last session: 2026-02-14 — Completed 30-01-PLAN.md (auth services unit tests)
+Stopped at: Plan 30-01 complete — 92 tests for AuthService, MfaService, TokenRefreshService, RecoveryCodesService
 Resume file: .planning/phases/30-test-coverage-foundation/30-05-PLAN.md
 Next action: /gsd:execute-phase 30 (plan 05)

@@ -67,3 +67,17 @@ global.ResizeObserver = vi.fn().mockImplementation(() => ({
   unobserve: vi.fn(),
   disconnect: vi.fn(),
 }));
+
+// Mock localStorage for auth-storage and other localStorage-dependent code
+const localStorageMock = {
+  getItem: vi.fn(() => null),
+  setItem: vi.fn(),
+  removeItem: vi.fn(),
+  clear: vi.fn(),
+  length: 0,
+  key: vi.fn(() => null),
+};
+Object.defineProperty(window, "localStorage", {
+  value: localStorageMock,
+  writable: true,
+});

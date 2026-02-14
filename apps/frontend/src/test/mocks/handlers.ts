@@ -3,7 +3,12 @@ import { http, HttpResponse } from "msw";
 /**
  * MSW request handlers for frontend tests.
  * These handlers mock the backend API endpoints.
+ *
+ * Note: Use wildcard URL patterns (*) to match the full axios baseURL
+ * (http://localhost:3000/api/v1/...) regardless of environment.
  */
+
+const API_BASE = "*/api/v1";
 
 // Mock data for cases
 const mockCases = [
@@ -98,7 +103,7 @@ export const handlers = [
   // =========================================
   // Cases endpoints
   // =========================================
-  http.get("/api/v1/cases", ({ request }) => {
+  http.get(`${API_BASE}/cases`, ({ request }) => {
     const url = new URL(request.url);
     const status = url.searchParams.get("status");
     const limit = parseInt(url.searchParams.get("limit") || "20", 10);
@@ -117,7 +122,7 @@ export const handlers = [
     });
   }),
 
-  http.get("/api/v1/cases/:id", ({ params }) => {
+  http.get(`${API_BASE}/cases/:id`, ({ params }) => {
     const caseItem = mockCases.find((c) => c.id === params.id);
     if (!caseItem) {
       return new HttpResponse(null, { status: 404 });
@@ -128,7 +133,7 @@ export const handlers = [
   // =========================================
   // Tasks endpoints
   // =========================================
-  http.get("/api/v1/tasks", ({ request }) => {
+  http.get(`${API_BASE}/tasks`, ({ request }) => {
     const url = new URL(request.url);
     const limit = parseInt(url.searchParams.get("limit") || "20", 10);
     const offset = parseInt(url.searchParams.get("offset") || "0", 10);
@@ -144,7 +149,7 @@ export const handlers = [
   // =========================================
   // My Work endpoint (unified task view)
   // =========================================
-  http.get("/api/v1/my-work", ({ request }) => {
+  http.get(`${API_BASE}/my-work`, ({ request }) => {
     const url = new URL(request.url);
     const limit = parseInt(url.searchParams.get("limit") || "10", 10);
 
@@ -172,21 +177,21 @@ export const handlers = [
   // =========================================
   // Dashboard stats endpoint
   // =========================================
-  http.get("/api/v1/dashboard/stats", () => {
+  http.get(`${API_BASE}/dashboard/stats`, () => {
     return HttpResponse.json(mockStats);
   }),
 
   // =========================================
   // User endpoints
   // =========================================
-  http.get("/api/v1/users/me", () => {
+  http.get(`${API_BASE}/users/me`, () => {
     return HttpResponse.json(mockCurrentUser);
   }),
 
   // =========================================
   // Auth endpoints (for completeness)
   // =========================================
-  http.post("/api/v1/auth/refresh", () => {
+  http.post(`${API_BASE}/auth/refresh`, () => {
     return HttpResponse.json({
       accessToken: "mock-access-token",
       refreshToken: "mock-refresh-token",
