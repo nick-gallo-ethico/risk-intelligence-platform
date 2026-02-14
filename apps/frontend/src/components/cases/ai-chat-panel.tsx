@@ -18,6 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { authStorage } from "@/lib/auth-storage";
 import { apiClient } from "@/lib/api";
+import { config } from "@/config/env";
 import { cn } from "@/lib/utils";
 
 interface AiChatPanelProps {
@@ -81,9 +82,7 @@ function getOrCreateSocket(
     return null;
   }
 
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
-
-  globalSocket = io(`${apiUrl}/ai`, {
+  globalSocket = io(`${config.wsUrl}/ai`, {
     auth: {
       token,
       organizationId: user.organizationId,

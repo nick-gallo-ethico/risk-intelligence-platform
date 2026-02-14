@@ -1,12 +1,14 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useCallback } from 'react';
-import type { TenantBranding } from '@/types/branding';
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+import { useState, useEffect, useCallback } from "react";
+import type { TenantBranding } from "@/types/branding";
+import { config } from "@/config/env";
 
 // Cache branding data with 1-hour stale time (matches backend cache)
-const brandingCache = new Map<string, { data: TenantBranding; timestamp: number }>();
+const brandingCache = new Map<
+  string,
+  { data: TenantBranding; timestamp: number }
+>();
 const CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
 
 interface UseTenantBrandingResult {
@@ -56,13 +58,13 @@ export function useTenantBranding(tenantSlug: string): UseTenantBrandingResult {
 
     try {
       const response = await fetch(
-        `${API_BASE_URL}/api/v1/public/branding/${encodeURIComponent(tenantSlug)}`,
+        `${config.apiUrl}/api/v1/public/branding/${encodeURIComponent(tenantSlug)}`,
         {
-          method: 'GET',
+          method: "GET",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
-        }
+        },
       );
 
       if (!response.ok) {
@@ -70,7 +72,10 @@ export function useTenantBranding(tenantSlug: string): UseTenantBrandingResult {
           // Tenant not found - use default branding
           const defaultBranding = getDefaultBranding(tenantSlug);
           setBranding(defaultBranding);
-          brandingCache.set(tenantSlug, { data: defaultBranding, timestamp: Date.now() });
+          brandingCache.set(tenantSlug, {
+            data: defaultBranding,
+            timestamp: Date.now(),
+          });
         } else {
           throw new Error(`Failed to fetch branding: ${response.status}`);
         }
@@ -80,7 +85,10 @@ export function useTenantBranding(tenantSlug: string): UseTenantBrandingResult {
         brandingCache.set(tenantSlug, { data, timestamp: Date.now() });
       }
     } catch (err) {
-      const fetchError = err instanceof Error ? err : new Error('Unknown error fetching branding');
+      const fetchError =
+        err instanceof Error
+          ? err
+          : new Error("Unknown error fetching branding");
       setError(fetchError);
       // Fall back to default branding on error
       const defaultBranding = getDefaultBranding(tenantSlug);
@@ -107,12 +115,12 @@ export function useTenantBranding(tenantSlug: string): UseTenantBrandingResult {
  */
 function getDefaultBranding(tenantSlug: string): TenantBranding {
   return {
-    id: 'default',
-    organizationId: 'default',
-    mode: 'TEMPLATE',
+    id: "default",
+    organizationId: "default",
+    mode: "TEMPLATE",
     logoUrl: null,
-    primaryColor: '221 83% 53%', // Ethico blue
-    theme: 'LIGHT',
+    primaryColor: "221 83% 53%", // Ethico blue
+    theme: "LIGHT",
     colorPalette: null,
     typography: null,
     customDomain: null,

@@ -3,13 +3,14 @@
  *
  * Handles file uploads via multipart/form-data and attachment CRUD operations.
  */
-import { api, apiClient } from './api';
+import { api, apiClient } from "./api";
+import { config } from "@/config/env";
 import type {
   Attachment,
   AttachmentListResponse,
   AttachmentQueryParams,
   AttachmentEntityType,
-} from '@/types/attachment';
+} from "@/types/attachment";
 
 export interface UploadAttachmentParams {
   file: File;
@@ -34,23 +35,25 @@ export const attachmentsApi = {
     onProgress,
   }: UploadAttachmentParams): Promise<Attachment> => {
     const formData = new FormData();
-    formData.append('file', file);
-    formData.append('entityType', entityType);
-    formData.append('entityId', entityId);
+    formData.append("file", file);
+    formData.append("entityType", entityType);
+    formData.append("entityId", entityId);
     if (description) {
-      formData.append('description', description);
+      formData.append("description", description);
     }
     if (isEvidence !== undefined) {
-      formData.append('isEvidence', String(isEvidence));
+      formData.append("isEvidence", String(isEvidence));
     }
 
-    const response = await api.post<Attachment>('/attachments', formData, {
+    const response = await api.post<Attachment>("/attachments", formData, {
       headers: {
-        'Content-Type': 'multipart/form-data',
+        "Content-Type": "multipart/form-data",
       },
       onUploadProgress: (progressEvent) => {
         if (progressEvent.total && onProgress) {
-          const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+          const percent = Math.round(
+            (progressEvent.loaded * 100) / progressEvent.total,
+          );
           onProgress(percent);
         }
       },
@@ -66,13 +69,15 @@ export const attachmentsApi = {
     const searchParams = new URLSearchParams();
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined && value !== null && value !== '') {
+        if (value !== undefined && value !== null && value !== "") {
           searchParams.append(key, String(value));
         }
       });
     }
     const query = searchParams.toString();
-    return apiClient.get<AttachmentListResponse>(`/attachments${query ? `?${query}` : ''}`);
+    return apiClient.get<AttachmentListResponse>(
+      `/attachments${query ? `?${query}` : ""}`,
+    );
   },
 
   /**
@@ -80,7 +85,7 @@ export const attachmentsApi = {
    */
   getForEntity: (
     entityType: AttachmentEntityType,
-    entityId: string
+    entityId: string,
   ): Promise<AttachmentListResponse> => {
     return attachmentsApi.list({ entityType, entityId, limit: 100 });
   },
@@ -103,7 +108,6 @@ export const attachmentsApi = {
    * Get download URL for an attachment (returns redirect, handled by browser)
    */
   getDownloadUrl: (id: string): string => {
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
-    return `${baseUrl}/api/v1/attachments/${id}/download`;
+    return `${config.apiUrl}/api/v1/attachments/${id}/download`;
   },
 };

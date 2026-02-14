@@ -1,5 +1,6 @@
-import Link from 'next/link';
-import { Button } from '@/components/ui/button';
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { config } from "@/config/env";
 
 export default function Home() {
   return (
@@ -9,8 +10,8 @@ export default function Home() {
           Ethico Risk Intelligence Platform
         </h1>
         <p className="text-lg text-muted-foreground mb-8">
-          Unified compliance management for ethics hotline intake, case management,
-          investigations, disclosures, and policy administration.
+          Unified compliance management for ethics hotline intake, case
+          management, investigations, disclosures, and policy administration.
         </p>
 
         <div className="flex gap-4 justify-center">
@@ -22,14 +23,19 @@ export default function Home() {
           </Button>
         </div>
 
-        <div className="mt-12 p-4 bg-muted rounded-lg">
-          <p className="text-sm text-muted-foreground">
-            Development Environment
-          </p>
-          <p className="text-xs text-muted-foreground mt-1">
-            Backend: <a href="http://localhost:3000/health" className="underline">localhost:3000</a>
-          </p>
-        </div>
+        {config.isDevelopment && (
+          <div className="mt-12 p-4 bg-muted rounded-lg">
+            <p className="text-sm text-muted-foreground">
+              Development Environment
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Backend:{" "}
+              <a href={`${config.apiUrl}/health`} className="underline">
+                {config.apiUrl}
+              </a>
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

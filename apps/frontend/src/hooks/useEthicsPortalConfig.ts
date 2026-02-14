@@ -1,12 +1,14 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useCallback } from 'react';
-import type { EthicsPortalConfig } from '@/types/branding';
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+import { useState, useEffect, useCallback } from "react";
+import type { EthicsPortalConfig } from "@/types/branding";
+import { config as envConfig } from "@/config/env";
 
 // Cache portal config with 1-hour stale time
-const configCache = new Map<string, { data: EthicsPortalConfig; timestamp: number }>();
+const configCache = new Map<
+  string,
+  { data: EthicsPortalConfig; timestamp: number }
+>();
 const CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
 
 interface UseEthicsPortalConfigResult {
@@ -31,7 +33,9 @@ interface UseEthicsPortalConfigResult {
  * }
  * ```
  */
-export function useEthicsPortalConfig(tenantSlug: string): UseEthicsPortalConfigResult {
+export function useEthicsPortalConfig(
+  tenantSlug: string,
+): UseEthicsPortalConfigResult {
   const [config, setConfig] = useState<EthicsPortalConfig | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -55,13 +59,13 @@ export function useEthicsPortalConfig(tenantSlug: string): UseEthicsPortalConfig
 
     try {
       const response = await fetch(
-        `${API_BASE_URL}/api/v1/public/ethics/${encodeURIComponent(tenantSlug)}/config`,
+        `${envConfig.apiUrl}/api/v1/public/ethics/${encodeURIComponent(tenantSlug)}/config`,
         {
-          method: 'GET',
+          method: "GET",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
-        }
+        },
       );
 
       if (!response.ok) {
@@ -69,7 +73,10 @@ export function useEthicsPortalConfig(tenantSlug: string): UseEthicsPortalConfig
           // Tenant not found - use default config
           const defaultConfig = getDefaultConfig(tenantSlug);
           setConfig(defaultConfig);
-          configCache.set(tenantSlug, { data: defaultConfig, timestamp: Date.now() });
+          configCache.set(tenantSlug, {
+            data: defaultConfig,
+            timestamp: Date.now(),
+          });
         } else {
           throw new Error(`Failed to fetch portal config: ${response.status}`);
         }
@@ -79,7 +86,8 @@ export function useEthicsPortalConfig(tenantSlug: string): UseEthicsPortalConfig
         configCache.set(tenantSlug, { data, timestamp: Date.now() });
       }
     } catch (err) {
-      const fetchError = err instanceof Error ? err : new Error('Unknown error fetching config');
+      const fetchError =
+        err instanceof Error ? err : new Error("Unknown error fetching config");
       setError(fetchError);
       // Fall back to default config on error
       const defaultConfig = getDefaultConfig(tenantSlug);
@@ -106,8 +114,8 @@ export function useEthicsPortalConfig(tenantSlug: string): UseEthicsPortalConfig
  */
 function getDefaultConfig(tenantSlug: string): EthicsPortalConfig {
   return {
-    organizationId: 'default',
-    organizationName: 'Ethics Portal',
+    organizationId: "default",
+    organizationName: "Ethics Portal",
     tenantSlug,
     features: {
       chatbotEnabled: false,

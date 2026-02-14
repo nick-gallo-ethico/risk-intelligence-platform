@@ -1,6 +1,11 @@
-import axios, { AxiosError, AxiosInstance, InternalAxiosRequestConfig } from 'axios';
-import { authStorage } from './auth-storage';
-import type { AuthResponse } from '@/types/auth';
+import axios, {
+  AxiosError,
+  AxiosInstance,
+  InternalAxiosRequestConfig,
+} from "axios";
+import { authStorage } from "./auth-storage";
+import type { AuthResponse } from "@/types/auth";
+import { config } from "@/config/env";
 
 /**
  * API client configured for the Ethico backend.
@@ -10,8 +15,6 @@ import type { AuthResponse } from '@/types/auth';
  * - Token refresh on 401
  * - Typed error responses
  */
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
 export interface ApiError {
   statusCode: number;
@@ -23,9 +26,9 @@ export interface ApiError {
 
 // Create axios instance with default config
 export const api: AxiosInstance = axios.create({
-  baseURL: `${API_BASE_URL}/api/v1`,
+  baseURL: `${config.apiUrl}/api/v1`,
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
   timeout: 30000,
 });
@@ -59,14 +62,16 @@ api.interceptors.request.use(
   },
   (error) => {
     return Promise.reject(error);
-  }
+  },
 );
 
 // Response interceptor - handle auth errors with token refresh
 api.interceptors.response.use(
   (response) => response,
   async (error: AxiosError<ApiError>) => {
-    const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
+    const originalRequest = error.config as InternalAxiosRequestConfig & {
+      _retry?: boolean;
+    };
 
     // Handle 401 Unauthorized - attempt token refresh
     if (error.response?.status === 401 && !originalRequest._retry) {
@@ -92,14 +97,14 @@ api.interceptors.response.use(
       if (!refreshToken) {
         // No refresh token, redirect to login
         authStorage.clearAll();
-        window.location.href = '/login';
+        window.location.href = "/login";
         return Promise.reject(error);
       }
 
       try {
         const response = await axios.post<AuthResponse>(
-          `${API_BASE_URL}/api/v1/auth/refresh`,
-          { refreshToken }
+          `${config.apiUrl}/api/v1/auth/refresh`,
+          { refreshToken },
         );
 
         const { accessToken, refreshToken: newRefreshToken } = response.data;
@@ -113,7 +118,7 @@ api.interceptors.response.use(
       } catch (refreshError) {
         processQueue(refreshError, null);
         authStorage.clearAll();
-        window.location.href = '/login';
+        window.location.href = "/login";
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;
@@ -121,7 +126,7 @@ api.interceptors.response.use(
     }
 
     return Promise.reject(error);
-  }
+  },
 );
 
 /**
@@ -131,14 +136,23 @@ export const apiClient = {
   get: <T>(url: string, config?: Parameters<typeof api.get>[1]) =>
     api.get<T>(url, config).then((res) => res.data),
 
-  post: <T>(url: string, data?: unknown, config?: Parameters<typeof api.post>[2]) =>
-    api.post<T>(url, data, config).then((res) => res.data),
+  post: <T>(
+    url: string,
+    data?: unknown,
+    config?: Parameters<typeof api.post>[2],
+  ) => api.post<T>(url, data, config).then((res) => res.data),
 
-  put: <T>(url: string, data?: unknown, config?: Parameters<typeof api.put>[2]) =>
-    api.put<T>(url, data, config).then((res) => res.data),
+  put: <T>(
+    url: string,
+    data?: unknown,
+    config?: Parameters<typeof api.put>[2],
+  ) => api.put<T>(url, data, config).then((res) => res.data),
 
-  patch: <T>(url: string, data?: unknown, config?: Parameters<typeof api.patch>[2]) =>
-    api.patch<T>(url, data, config).then((res) => res.data),
+  patch: <T>(
+    url: string,
+    data?: unknown,
+    config?: Parameters<typeof api.patch>[2],
+  ) => api.patch<T>(url, data, config).then((res) => res.data),
 
   delete: <T>(url: string, config?: Parameters<typeof api.delete>[1]) =>
     api.delete<T>(url, config).then((res) => res.data),

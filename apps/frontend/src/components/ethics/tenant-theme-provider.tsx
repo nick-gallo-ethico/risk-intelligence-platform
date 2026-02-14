@@ -1,12 +1,11 @@
-'use client';
+"use client";
 
-import { useEffect, useState, useCallback } from 'react';
-import { ThemeSkeleton } from './theme-skeleton';
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+import { useEffect, useState, useCallback } from "react";
+import { ThemeSkeleton } from "./theme-skeleton";
+import { config } from "@/config/env";
 
 /** ID for the injected style element */
-const THEME_STYLE_ID = 'tenant-theme';
+const THEME_STYLE_ID = "tenant-theme";
 
 /** Default Ethico CSS custom properties (fallback theme) */
 const DEFAULT_THEME_CSS = `:root {
@@ -76,21 +75,21 @@ export function TenantThemeProvider({
 
     try {
       const response = await fetch(
-        `${API_BASE_URL}/api/v1/public/branding/${encodeURIComponent(tenantSlug)}/css`,
+        `${config.apiUrl}/api/v1/public/branding/${encodeURIComponent(tenantSlug)}/css`,
         {
-          method: 'GET',
+          method: "GET",
           // Don't send credentials - this is a public endpoint
-          credentials: 'omit',
+          credentials: "omit",
           headers: {
-            Accept: 'text/css',
+            Accept: "text/css",
           },
-        }
+        },
       );
 
       if (!response.ok) {
         // If tenant not found or error, use default theme
         console.warn(
-          `Failed to load theme for tenant "${tenantSlug}": ${response.status}`
+          `Failed to load theme for tenant "${tenantSlug}": ${response.status}`,
         );
         applyThemeCss(DEFAULT_THEME_CSS);
         setLoadError(true);
@@ -99,7 +98,7 @@ export function TenantThemeProvider({
         applyThemeCss(css);
       }
     } catch (error) {
-      console.error('Error loading tenant theme:', error);
+      console.error("Error loading tenant theme:", error);
       // Apply default theme on error
       applyThemeCss(DEFAULT_THEME_CSS);
       setLoadError(true);
@@ -139,7 +138,7 @@ function applyThemeCss(css: string): void {
   }
 
   // Create and inject new style element
-  const style = document.createElement('style');
+  const style = document.createElement("style");
   style.id = THEME_STYLE_ID;
   style.textContent = css;
   document.head.appendChild(style);
@@ -151,12 +150,12 @@ function applyThemeCss(css: string): void {
  */
 export function reloadTenantTheme(tenantSlug: string): void {
   // Clear browser cache for the CSS endpoint
-  if ('caches' in window) {
+  if ("caches" in window) {
     caches.keys().then((names) => {
       names.forEach((name) => {
         caches.open(name).then((cache) => {
           cache.delete(
-            `${API_BASE_URL}/api/v1/public/branding/${encodeURIComponent(tenantSlug)}/css`
+            `${config.apiUrl}/api/v1/public/branding/${encodeURIComponent(tenantSlug)}/css`,
           );
         });
       });

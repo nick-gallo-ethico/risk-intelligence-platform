@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect, useRef } from "react";
 import type {
   ReportStatus,
   ReporterMessage,
@@ -8,9 +8,8 @@ import type {
   AccessCodeValidation,
   RateLimitError,
   SendMessageRequest,
-} from '@/types/ethics-portal.types';
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+} from "@/types/ethics-portal.types";
+import { config } from "@/config/env";
 
 /** Auto-refresh interval for status (60 seconds) */
 const STATUS_REFRESH_INTERVAL = 60000;
@@ -92,76 +91,86 @@ export function useReportStatus(): UseReportStatusReturn {
   const handleRateLimitError = useCallback((retryAfterSeconds: number) => {
     setIsLocked(true);
     setLockoutRemaining(retryAfterSeconds);
-    setError(`Too many attempts. Please try again in ${retryAfterSeconds} seconds.`);
+    setError(
+      `Too many attempts. Please try again in ${retryAfterSeconds} seconds.`,
+    );
   }, []);
 
   // Fetch status (internal - no side effects like starting intervals)
-  const fetchStatusInternal = useCallback(async (
-    accessCode: string,
-    showLoading = true
-  ): Promise<StatusCheckResponse | null> => {
-    if (showLoading) {
-      setIsLoading(true);
-      setError(null);
-    }
-
-    try {
-      const response = await fetch(
-        `${API_BASE_URL}/api/v1/public/access/${encodeURIComponent(accessCode)}/status`,
-        {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }
-      );
-
-      if (response.status === 429) {
-        // Rate limited
-        const data = (await response.json()) as RateLimitError;
-        handleRateLimitError(data.retryAfterSeconds || 900); // Default to 15 min
-        return null;
-      }
-
-      if (response.status === 404) {
-        setError('Invalid access code. Please check and try again.');
-        return null;
-      }
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
-        setError(errorData.message || 'Failed to check status');
-        return null;
-      }
-
-      const data = (await response.json()) as StatusCheckResponse;
-      setStatus(data.status);
-      setMessages(data.messages || []);
-      return data;
-    } catch (err) {
-      console.error('Failed to check status:', err);
-      setError('Network error. Please check your connection and try again.');
-      return null;
-    } finally {
+  const fetchStatusInternal = useCallback(
+    async (
+      accessCode: string,
+      showLoading = true,
+    ): Promise<StatusCheckResponse | null> => {
       if (showLoading) {
-        setIsLoading(false);
+        setIsLoading(true);
+        setError(null);
       }
-    }
-  }, [handleRateLimitError]);
+
+      try {
+        const response = await fetch(
+          `${config.apiUrl}/api/v1/public/access/${encodeURIComponent(accessCode)}/status`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          },
+        );
+
+        if (response.status === 429) {
+          // Rate limited
+          const data = (await response.json()) as RateLimitError;
+          handleRateLimitError(data.retryAfterSeconds || 900); // Default to 15 min
+          return null;
+        }
+
+        if (response.status === 404) {
+          setError("Invalid access code. Please check and try again.");
+          return null;
+        }
+
+        if (!response.ok) {
+          const errorData = await response
+            .json()
+            .catch(() => ({ message: "Unknown error" }));
+          setError(errorData.message || "Failed to check status");
+          return null;
+        }
+
+        const data = (await response.json()) as StatusCheckResponse;
+        setStatus(data.status);
+        setMessages(data.messages || []);
+        return data;
+      } catch (err) {
+        console.error("Failed to check status:", err);
+        setError("Network error. Please check your connection and try again.");
+        return null;
+      } finally {
+        if (showLoading) {
+          setIsLoading(false);
+        }
+      }
+    },
+    [handleRateLimitError],
+  );
 
   // Check status for an access code (public API - starts intervals)
-  const checkStatus = useCallback(async (accessCode: string): Promise<boolean> => {
-    if (isLocked) {
-      return false;
-    }
+  const checkStatus = useCallback(
+    async (accessCode: string): Promise<boolean> => {
+      if (isLocked) {
+        return false;
+      }
 
-    const result = await fetchStatusInternal(accessCode, true);
-    if (result) {
-      accessCodeRef.current = accessCode;
-      return true;
-    }
-    return false;
-  }, [isLocked, fetchStatusInternal]);
+      const result = await fetchStatusInternal(accessCode, true);
+      if (result) {
+        accessCodeRef.current = accessCode;
+        return true;
+      }
+      return false;
+    },
+    [isLocked, fetchStatusInternal],
+  );
 
   // Refresh messages only (internal implementation) - defined before sendMessage uses it
   const refreshMessagesInternal = useCallback(async () => {
@@ -172,13 +181,13 @@ export function useReportStatus(): UseReportStatusReturn {
 
     try {
       const response = await fetch(
-        `${API_BASE_URL}/api/v1/public/access/${encodeURIComponent(accessCode)}/messages`,
+        `${config.apiUrl}/api/v1/public/access/${encodeURIComponent(accessCode)}/messages`,
         {
-          method: 'GET',
+          method: "GET",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
-        }
+        },
       );
 
       if (response.ok) {
@@ -187,7 +196,7 @@ export function useReportStatus(): UseReportStatusReturn {
 
         // Update unread count in status
         const newUnreadCount = (data.messages || []).filter(
-          (m) => m.direction === 'inbound' && !m.readAt
+          (m) => m.direction === "inbound" && !m.readAt,
         ).length;
 
         setStatus((prev) => {
@@ -200,7 +209,7 @@ export function useReportStatus(): UseReportStatusReturn {
         });
       }
     } catch (err) {
-      console.error('Failed to refresh messages:', err);
+      console.error("Failed to refresh messages:", err);
     }
   }, []);
 
@@ -210,57 +219,59 @@ export function useReportStatus(): UseReportStatusReturn {
   }, [refreshMessagesInternal]);
 
   // Send a message
-  const sendMessage = useCallback(async (
-    content: string,
-    attachmentIds?: string[]
-  ): Promise<boolean> => {
-    const accessCode = accessCodeRef.current;
-    if (!accessCode || !status?.canMessage) {
-      return false;
-    }
+  const sendMessage = useCallback(
+    async (content: string, attachmentIds?: string[]): Promise<boolean> => {
+      const accessCode = accessCodeRef.current;
+      if (!accessCode || !status?.canMessage) {
+        return false;
+      }
 
-    setIsLoading(true);
+      setIsLoading(true);
 
-    try {
-      const body: SendMessageRequest = {
-        content,
-        attachmentIds,
-      };
+      try {
+        const body: SendMessageRequest = {
+          content,
+          attachmentIds,
+        };
 
-      const response = await fetch(
-        `${API_BASE_URL}/api/v1/public/access/${encodeURIComponent(accessCode)}/messages`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
+        const response = await fetch(
+          `${config.apiUrl}/api/v1/public/access/${encodeURIComponent(accessCode)}/messages`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(body),
           },
-          body: JSON.stringify(body),
+        );
+
+        if (response.status === 429) {
+          const data = (await response.json()) as RateLimitError;
+          handleRateLimitError(data.retryAfterSeconds || 60);
+          return false;
         }
-      );
 
-      if (response.status === 429) {
-        const data = (await response.json()) as RateLimitError;
-        handleRateLimitError(data.retryAfterSeconds || 60);
+        if (!response.ok) {
+          const errorData = await response
+            .json()
+            .catch(() => ({ message: "Unknown error" }));
+          setError(errorData.message || "Failed to send message");
+          return false;
+        }
+
+        // Refresh messages to get the sent message
+        await refreshMessagesInternal();
+        return true;
+      } catch (err) {
+        console.error("Failed to send message:", err);
+        setError("Failed to send message. Please try again.");
         return false;
+      } finally {
+        setIsLoading(false);
       }
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
-        setError(errorData.message || 'Failed to send message');
-        return false;
-      }
-
-      // Refresh messages to get the sent message
-      await refreshMessagesInternal();
-      return true;
-    } catch (err) {
-      console.error('Failed to send message:', err);
-      setError('Failed to send message. Please try again.');
-      return false;
-    } finally {
-      setIsLoading(false);
-    }
-  }, [status?.canMessage, handleRateLimitError, refreshMessagesInternal]);
+    },
+    [status?.canMessage, handleRateLimitError, refreshMessagesInternal],
+  );
 
   // Mark messages as read
   const markMessagesRead = useCallback(async () => {
@@ -271,21 +282,24 @@ export function useReportStatus(): UseReportStatusReturn {
 
     try {
       await fetch(
-        `${API_BASE_URL}/api/v1/public/access/${encodeURIComponent(accessCode)}/messages/read`,
+        `${config.apiUrl}/api/v1/public/access/${encodeURIComponent(accessCode)}/messages/read`,
         {
-          method: 'POST',
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
-        }
+        },
       );
 
       // Update local state
       setMessages((prev) =>
         prev.map((m) => ({
           ...m,
-          readAt: m.direction === 'inbound' && !m.readAt ? new Date().toISOString() : m.readAt,
-        }))
+          readAt:
+            m.direction === "inbound" && !m.readAt
+              ? new Date().toISOString()
+              : m.readAt,
+        })),
       );
 
       setStatus((prev) => {
@@ -297,7 +311,7 @@ export function useReportStatus(): UseReportStatusReturn {
         };
       });
     } catch (err) {
-      console.error('Failed to mark messages as read:', err);
+      console.error("Failed to mark messages as read:", err);
     }
   }, []);
 
@@ -318,7 +332,7 @@ export function useReportStatus(): UseReportStatusReturn {
 
     // Only refresh when page is visible
     const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible' && accessCodeRef.current) {
+      if (document.visibilityState === "visible" && accessCodeRef.current) {
         // Refresh immediately on becoming visible
         fetchStatusInternal(accessCodeRef.current, false);
       }
@@ -326,24 +340,24 @@ export function useReportStatus(): UseReportStatusReturn {
 
     // Status refresh (every 60 seconds)
     statusIntervalRef.current = setInterval(() => {
-      if (document.visibilityState === 'visible' && accessCodeRef.current) {
+      if (document.visibilityState === "visible" && accessCodeRef.current) {
         fetchStatusInternal(accessCodeRef.current, false);
       }
     }, STATUS_REFRESH_INTERVAL);
 
     // Message refresh (every 30 seconds)
     messageIntervalRef.current = setInterval(() => {
-      if (document.visibilityState === 'visible') {
+      if (document.visibilityState === "visible") {
         refreshMessagesInternal();
       }
     }, MESSAGE_REFRESH_INTERVAL);
 
     // Add visibility listener
-    document.addEventListener('visibilitychange', handleVisibilityChange);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
 
     // Cleanup function
     return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
       if (statusIntervalRef.current) {
         clearInterval(statusIntervalRef.current);
       }
