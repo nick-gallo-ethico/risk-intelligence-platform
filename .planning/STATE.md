@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-13)
 ## Current Position
 
 Phase: 28 of 31 (Production Readiness) — In Progress
-Plan: 2 of 5 complete (28-01, 28-02)
-Status: Completed 28-01-PLAN.md (env validation, Prisma retry, graceful shutdown)
-Last activity: 2026-02-14 — Completed 28-01-PLAN.md
+Plan: 3 of 5 complete (28-01, 28-02, 28-03)
+Status: Completed 28-03-PLAN.md (Azure Key Vault integration)
+Last activity: 2026-02-14 — Completed 28-03-PLAN.md
 
-Progress: [███████░░░] 38% (v1.1 remediation - 8 of 20+ plans)
+Progress: [████████░░] 42% (v1.1 remediation - 9 of 20+ plans)
 
 ## Milestone v1.1: Code Review Remediation
 
@@ -47,8 +47,8 @@ Progress: [███████░░░] 38% (v1.1 remediation - 8 of 20+ plan
 | ----- | ---- | -------------------------------------------------- | ---------- | -------- |
 | 28-01 | 1    | PROD-01: Env validation, Prisma retry, shutdown    | Yes        | Complete |
 | 28-02 | 1    | PROD-02: Storage provider fail-fast initialization | Yes        | Complete |
-| 28-03 | 2    | PROD-03: Health checks and readiness probes        | Yes        | Pending  |
-| 28-04 | 2    | PROD-04: Azure Key Vault integration               | Yes        | Pending  |
+| 28-03 | 1    | PROD-03: Azure Key Vault integration               | Yes        | Complete |
+| 28-04 | 2    | PROD-04: Health checks and readiness probes        | Yes        | Pending  |
 | 28-05 | 3    | PROD-05 to PROD-07: Logging and monitoring         | Yes        | Pending  |
 
 ## Phase 27 Plans
@@ -130,12 +130,19 @@ Key outcomes:
 - LocalStorageProvider verifies write permissions via test file write/delete
 - Error messages include actionable guidance (env var names, alternatives)
 
+### Key Decisions (28-03)
+
+- Key Vault only active in production mode (NODE_ENV=production)
+- Pre-load critical secrets (database-url, jwt-secret, etc.) on startup
+- Fail fast in production if Key Vault configured but unavailable
+- Kebab-case secret naming (database-url) maps to env vars (DATABASE_URL)
+
 ### Blockers
 
 None currently.
 
 ## Session Continuity
 
-Last session: 2026-02-14 13:57 EST
-Stopped at: Completed 28-01-PLAN.md (env validation, Prisma retry, graceful shutdown)
-Resume file: .planning/phases/28-production-readiness/28-03-PLAN.md
+Last session: 2026-02-14 13:58 EST
+Stopped at: Completed 28-03-PLAN.md (Azure Key Vault integration)
+Resume file: .planning/phases/28-production-readiness/28-04-PLAN.md
