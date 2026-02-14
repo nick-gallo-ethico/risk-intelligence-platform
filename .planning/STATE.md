@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-13)
 ## Current Position
 
 Phase: 31 of 31 (Code Quality & Performance) — In Progress
-Plan: 1 of ? complete (31-02)
+Plan: 2 of 8 complete (31-01, 31-02)
 Status: Phase 31 in progress
-Last activity: 2026-02-14 — Completed 31-02-PLAN.md
+Last activity: 2026-02-14 — Completed 31-01-PLAN.md
 
-Progress: [█████████░] 92% (v1.1 remediation - 22 of 24 plans estimated)
+Progress: [█████████░] 92% (v1.1 remediation - 23 of 24 plans estimated)
 
 ## Milestone v1.1: Code Review Remediation
 
@@ -220,6 +220,12 @@ Key outcomes:
 - ErrorBoundary uses class component pattern as required by React error boundary API
 - ApiErrorBoundary uses render props pattern for react-query integration
 
+### Key Decisions (31-01)
+
+- 1KB compression threshold: Compressing small payloads has overhead exceeding benefit
+- Compression level 6: Default zlib level balances CPU usage vs ratio
+- 50-connection pool default: Supports 10K+ users while within PostgreSQL defaults
+
 ### Key Decisions (31-02)
 
 - Named alias for config import: Used `envConfig` in useEthicsPortalConfig.ts to avoid collision with local `config` state variable
@@ -234,6 +240,7 @@ None currently.
 
 | Plan  | Wave | Objective                                              | Autonomous | Status   |
 | ----- | ---- | ------------------------------------------------------ | ---------- | -------- |
+| 31-01 | 1    | QUAL-01: Response compression and DB pool size         | Yes        | Complete |
 | 31-02 | 1    | QUAL-02: Frontend environment URL centralization       | Yes        | Complete |
 
 ## Phase 30 Plans
@@ -248,7 +255,7 @@ None currently.
 
 ## Session Continuity
 
-Last session: 2026-02-14 — Completed 31-02-PLAN.md (frontend environment centralization)
-Stopped at: Phase 31 in progress — centralized env.ts config, 8 files updated
+Last session: 2026-02-14 — Completed 31-01-PLAN.md (response compression and DB pool)
+Stopped at: Phase 31 in progress — 2 of 8 plans complete (31-01, 31-02)
 Resume file: None
-Next action: Continue with remaining Phase 31 plans
+Next action: Continue with remaining Phase 31 plans (31-03 to 31-08)
