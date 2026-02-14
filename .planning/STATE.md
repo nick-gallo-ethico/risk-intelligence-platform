@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-02-02)
 ## Current Position
 
 Phase: 25.1 of 25+ (Case Detail Page Vision Revision) — IN PROGRESS
-Plan: 06 of ?? in current phase
-Status: Completed 25.1-01, 25.1-02, 25.1-03, 25.1-04, 25.1-05, 25.1-06, 25.1-07, 25.1-08, 25.1-10
-Last activity: 2026-02-13 - Completed 25.1-04 (Classification card with CategorySelector)
+Plan: 09 of ?? in current phase
+Status: Completed 25.1-01, 25.1-02, 25.1-03, 25.1-04, 25.1-05, 25.1-06, 25.1-07, 25.1-08, 25.1-09, 25.1-10
+Last activity: 2026-02-13 - Completed 25.1-09 (Responsive layout, loading/error states, collapsible persistence)
 
 Progress: [===================================================================+] ~100% (Phase 21 adds new plans beyond original 24)
 
@@ -89,6 +89,17 @@ Progress: [===================================================================+]
   - Fixed React hooks ordering bug from parallel Wave 2 plan
   - Cards ready to wire when task/remediation API endpoints exist
   - Pattern: Props-based sidebar cards without API, empty states with guidance
+
+- 25.1-09: Responsive Layout & Loading/Error States (COMPLETE - 329ffd0, ebc3e2f)
+  - Created MobileSidebarDrawer component using shadcn Sheet for slide-over drawers
+  - Added useBreakpoint hook for desktop/tablet/mobile detection (1280px/768px)
+  - Desktop (>=1280px): three-column grid unchanged
+  - Tablet (768-1279px): center column full width, sidebars in 320px drawers with toggle buttons
+  - Mobile (<768px): single column, full-width drawers
+  - Created loading.tsx skeleton and error.tsx error boundary for case detail route
+  - Created useCollapsibleState hook for localStorage-persisted collapsible state
+  - Added controlled mode to CollapsiblePropertyCard, wired About/Intake/Classification persistence
+  - Pattern: useBreakpoint for responsive switching, useCollapsibleState for UI state persistence
 
 - 25.1-10: Pipeline Configuration API (COMPLETE - db7005c, fbb6516)
   - Created PipelineController with GET/PUT endpoints at /pipelines
@@ -1274,7 +1285,7 @@ Recent decisions affecting current work:
 ## Session Continuity
 
 Last session: 2026-02-13
-Stopped at: Completed 25.1-04-PLAN.md (Classification card with CategorySelector)
+Stopped at: Completed 25.1-09-PLAN.md (Responsive layout, loading/error states, collapsible persistence)
 Resume file: None
 
 **Phase 23 Status: COMPLETE**
