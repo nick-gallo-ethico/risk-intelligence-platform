@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-13)
 ## Current Position
 
 Phase: 27 of 31 (Security Hardening) — In Progress
-Plan: 1 of 4 complete
-Status: 27-01 complete (SEC-01 security guard/middleware tests)
-Last activity: 2026-02-14 — Completed 27-01-PLAN.md (security guard/middleware tests)
+Plan: 2 of 4 complete
+Status: 27-02 complete (SEC-02 CORS + SEC-06 logging)
+Last activity: 2026-02-14 — Completed 27-02-PLAN.md (WebSocket CORS + exception logging)
 
-Progress: [███░░░░░░░] 15% (v1.1 remediation - 3 of 20+ plans)
+Progress: [████░░░░░░] 20% (v1.1 remediation - 4 of 20+ plans)
 
 ## Milestone v1.1: Code Review Remediation
 
@@ -46,7 +46,7 @@ Progress: [███░░░░░░░] 15% (v1.1 remediation - 3 of 20+ plan
 | Plan  | Wave | Objective                                                     | Autonomous | Status   |
 | ----- | ---- | ------------------------------------------------------------- | ---------- | -------- |
 | 27-01 | 1    | SEC-01: Security guard and middleware tests                   | Yes        | Complete |
-| 27-02 | 1    | SEC-02: CORS wildcard removal in WebSocket gateways           | Yes        | Pending  |
+| 27-02 | 1    | SEC-02: CORS wildcard removal in WebSocket gateways           | Yes        | Complete |
 | 27-03 | 1    | SEC-03 to SEC-04: Input sanitization and audit log encryption | Yes        | Pending  |
 | 27-04 | 1    | SEC-05 to SEC-06: Secret detection and rate limiting          | Yes        | Pending  |
 
@@ -89,12 +89,18 @@ Key outcomes:
 - Mock Reflector.getAllAndOverride for testing @Public and @Roles decorators
 - Use jsonwebtoken library directly in tests to create valid/expired test tokens
 
+### Key Decisions (27-02)
+
+- Use safeStringify helper in HttpExceptionFilter to handle circular references
+- Throw Error on missing CORS_ORIGIN (fail-fast) rather than wildcard fallback
+- All 3 WebSocket gateways use identical validation pattern and error message
+
 ### Blockers
 
 None currently.
 
 ## Session Continuity
 
-Last session: 2026-02-14 13:21 EST
-Stopped at: Completed 27-01-PLAN.md (SEC-01 security guard/middleware tests)
-Resume file: .planning/phases/27-security-hardening/27-02-PLAN.md
+Last session: 2026-02-14 13:22 EST
+Stopped at: Completed 27-02-PLAN.md (WebSocket CORS + exception logging)
+Resume file: .planning/phases/27-security-hardening/27-03-PLAN.md
