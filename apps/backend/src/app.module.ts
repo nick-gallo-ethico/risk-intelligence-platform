@@ -46,6 +46,7 @@ import { ActivityModule } from "./common/activity.module";
 import { StorageModule } from "./common/storage.module";
 import { TenantMiddleware } from "./common/middleware/tenant.middleware";
 import configuration from "./config/configuration";
+import { validateEnv } from "./config/env.validation";
 
 // Rate limiting configuration:
 // THROTTLE_TTL: Window duration in milliseconds (default: 60000)
@@ -57,6 +58,7 @@ import configuration from "./config/configuration";
       isGlobal: true,
       load: [configuration],
       envFilePath: [".env", ".env.local"],
+      validate: validateEnv,
     }),
     // Global rate limiting with Redis storage for multi-instance deployments
     ThrottlerModule.forRootAsync({

@@ -41,9 +41,19 @@ export class AzureBlobProvider implements StorageProvider, OnModuleInit {
 
   /**
    * Initialize Azure Blob Storage client on module init.
-   * Uses account name and key for authentication.
+   * FAIL-FAST: Throws if credentials missing or connection fails.
    */
-  onModuleInit(): void {
+  async onModuleInit(): Promise<void> {
+    const storageProvider = this.configService.get<string>("storage.provider");
+
+    // Only initialize if Azure is the configured provider
+    if (storageProvider !== "azure") {
+      this.logger.log(
+        "Azure Blob Storage provider skipped (not configured as active provider)",
+      );
+      return;
+    }
+
     const accountName = this.configService.get<string>(
       "storage.azure.accountName",
     );
@@ -54,11 +64,13 @@ export class AzureBlobProvider implements StorageProvider, OnModuleInit {
       this.configService.get<string>("storage.azure.containerPrefix") ||
       "ethico";
 
+    // Fail fast if credentials are missing
     if (!accountName || !accountKey) {
-      this.logger.warn(
-        "Azure Storage credentials not configured - provider will not be functional",
+      throw new Error(
+        "Azure Blob Storage credentials not configured. " +
+          "Set AZURE_STORAGE_ACCOUNT_NAME and AZURE_STORAGE_ACCOUNT_KEY environment variables, " +
+          'or change STORAGE_PROVIDER to "local" for development.',
       );
-      return;
     }
 
     try {
@@ -70,13 +82,20 @@ export class AzureBlobProvider implements StorageProvider, OnModuleInit {
         `https://${accountName}.blob.core.windows.net`,
         this.sharedKeyCredential,
       );
+
+      // Verify connectivity by listing service properties
+      await this.blobServiceClient.getProperties();
+
       this.isInitialized = true;
       this.logger.log(
         `Azure Blob Storage provider initialized (account: ${accountName})`,
       );
     } catch (error) {
-      this.logger.error(
-        `Failed to initialize Azure Blob Storage: ${error instanceof Error ? error.message : "Unknown error"}`,
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
+      throw new Error(
+        `Failed to initialize Azure Blob Storage: ${errorMessage}. ` +
+          "Check your AZURE_STORAGE_ACCOUNT_NAME and AZURE_STORAGE_ACCOUNT_KEY values.",
       );
     }
   }
