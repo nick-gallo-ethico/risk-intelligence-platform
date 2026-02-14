@@ -6,6 +6,8 @@
  * - ReportService: CRUD operations for saved reports
  * - ReportExecutionService: Query execution engine
  * - ReportFieldRegistryService: Field discovery for report designer
+ * - ReportScheduleService: Schedule management with format mapping
+ * - ReportAiService: Natural language to report generation
  *
  * Dependencies:
  * - PrismaModule: Database access
@@ -19,6 +21,8 @@ import { ReportController } from "./report.controller";
 import { ReportService } from "./report.service";
 import { ReportExecutionService } from "./report-execution.service";
 import { ReportFieldRegistryService } from "./report-field-registry.service";
+import { ReportScheduleService } from "./services/report-schedule.service";
+import { ReportAiService } from "./services/report-ai.service";
 import { AiQueryModule } from "../ai-query/ai-query.module";
 import { ExportsModule } from "../exports/exports.module";
 
@@ -34,7 +38,9 @@ import { ExportsModule } from "../exports/exports.module";
     ReportService,
     ReportExecutionService,
     ReportFieldRegistryService,
+    ReportScheduleService,
+    ReportAiService,
   ],
-  exports: [ReportService, ReportFieldRegistryService],
+  exports: [ReportService, ReportFieldRegistryService, ReportScheduleService],
 })
 export class ReportModule {}
