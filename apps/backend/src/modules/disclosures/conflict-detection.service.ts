@@ -1,24 +1,33 @@
+/**
+ * ConflictDetectionService - Coordinator for conflict detection operations
+ *
+ * Thin coordinator that delegates to:
+ * - ConflictMatchingService: Fuzzy matching and individual conflict checks
+ * - ConflictExclusionService: Exclusion management
+ *
+ * RS.41-RS.45: Six-way conflict detection, fuzzy matching, contextual
+ * presentation, categorized dismissals, and entity timeline.
+ */
+
 import {
   Injectable,
   Logger,
   NotFoundException,
   BadRequestException,
-} from '@nestjs/common';
-import { EventEmitter2 } from '@nestjs/event-emitter';
+} from "@nestjs/common";
+import { EventEmitter2 } from "@nestjs/event-emitter";
 import {
   ConflictType,
-  ConflictSeverity,
   ConflictStatus,
   ExclusionScope,
   ConflictAlert,
-  ConflictExclusion,
   Prisma,
   AuditEntityType,
   AuditActionCategory,
   ActorType,
-} from '@prisma/client';
-import { PrismaService } from '../prisma/prisma.service';
-import { AuditService } from '../audit/audit.service';
+} from "@prisma/client";
+import { PrismaService } from "../prisma/prisma.service";
+import { AuditService } from "../audit/audit.service";
 import {
   ConflictAlertDto,
   ConflictCheckResult,
@@ -32,68 +41,15 @@ import {
   ConflictQueryDto,
   ConflictAlertPageDto,
   ConflictExclusionDto,
-  CreateExclusionDto,
-} from './dto/conflict.dto';
+} from "./dto/conflict.dto";
+import {
+  ConflictMatchingService,
+  FuzzyMatchConfig,
+  DEFAULT_FUZZY_CONFIG,
+  DetectedConflict,
+} from "./services/conflict-matching.service";
+import { ConflictExclusionService } from "./services/conflict-exclusion.service";
 
-// ===========================================
-// Types
-// ===========================================
-
-/**
- * Match result from fuzzy matching.
- */
-interface MatchResult {
-  matched: boolean;
-  confidence: number;
-  matchedEntity: string;
-}
-
-/**
- * Detected conflict before being saved to database.
- */
-interface DetectedConflict {
-  conflictType: ConflictType;
-  severity: ConflictSeverity;
-  summary: string;
-  matchedEntity: string;
-  matchConfidence: number;
-  matchDetails: MatchDetails;
-  severityFactors?: SeverityFactors;
-}
-
-/**
- * Configuration for fuzzy matching thresholds.
- * RS.42: Multi-algorithm fuzzy matching with configurable thresholds.
- */
-interface FuzzyMatchConfig {
-  /** Below this threshold, no match (default: 60) */
-  minThreshold: number;
-  /** Low confidence match threshold (default: 75) */
-  lowConfidenceThreshold: number;
-  /** High confidence match threshold (default: 90) */
-  highConfidenceThreshold: number;
-  /** Exact match threshold (default: 100) */
-  exactMatchThreshold: number;
-}
-
-const DEFAULT_FUZZY_CONFIG: FuzzyMatchConfig = {
-  minThreshold: 60,
-  lowConfidenceThreshold: 75,
-  highConfidenceThreshold: 90,
-  exactMatchThreshold: 100,
-};
-
-// ===========================================
-// Conflict Detection Service
-// ===========================================
-
-/**
- * Service for detecting conflicts across disclosure history, vendor data,
- * HRIS, and case history.
- *
- * RS.41-RS.45: Six-way conflict detection, fuzzy matching, contextual
- * presentation, categorized dismissals, and entity timeline.
- */
 @Injectable()
 export class ConflictDetectionService {
   private readonly logger = new Logger(ConflictDetectionService.name);
@@ -102,6 +58,8 @@ export class ConflictDetectionService {
     private readonly prisma: PrismaService,
     private readonly auditService: AuditService,
     private readonly eventEmitter: EventEmitter2,
+    private readonly matchingService: ConflictMatchingService,
+    private readonly exclusionService: ConflictExclusionService,
   ) {}
 
   // ===========================================
@@ -111,11 +69,6 @@ export class ConflictDetectionService {
   /**
    * Detects conflicts for a disclosure.
    * RS.41: Six-way conflict detection across systems.
-   *
-   * @param disclosureId - The disclosure RIU ID to check
-   * @param personId - The person who submitted the disclosure
-   * @param organizationId - The organization ID
-   * @param config - Optional fuzzy matching configuration
    */
   async detectConflicts(
     disclosureId: string,
@@ -162,8 +115,7 @@ export class ConflictDetectionService {
 
     // Run all conflict detection checks
     for (const entityName of entitiesToCheck) {
-      // Check self-dealing (prior disclosures with same entity)
-      const selfDealingConflicts = await this.checkSelfDealing(
+      const conflicts = await this.runAllChecks(
         entityName,
         personId,
         disclosureId,
@@ -171,85 +123,8 @@ export class ConflictDetectionService {
         fuzzyConfig,
       );
 
-      for (const conflict of selfDealingConflicts) {
-        const isExcluded = await this.isExcluded(
-          personId,
-          conflict.matchedEntity,
-          conflict.conflictType,
-          organizationId,
-        );
-
-        if (isExcluded.excluded) {
-          excludedConflictCount++;
-          if (isExcluded.exclusionId) {
-            appliedExclusionIds.push(isExcluded.exclusionId);
-          }
-        } else {
-          detectedConflicts.push(conflict);
-        }
-      }
-
-      // Check HRIS match (disclosed person matches employee)
-      const hrisConflicts = await this.checkHrisMatch(
-        entityName,
-        personId,
-        organizationId,
-        fuzzyConfig,
-      );
-
-      for (const conflict of hrisConflicts) {
-        const isExcluded = await this.isExcluded(
-          personId,
-          conflict.matchedEntity,
-          conflict.conflictType,
-          organizationId,
-        );
-
-        if (isExcluded.excluded) {
-          excludedConflictCount++;
-          if (isExcluded.exclusionId) {
-            appliedExclusionIds.push(isExcluded.exclusionId);
-          }
-        } else {
-          detectedConflicts.push(conflict);
-        }
-      }
-
-      // Check prior cases
-      const caseConflicts = await this.checkPriorCases(
-        entityName,
-        organizationId,
-        fuzzyConfig,
-      );
-
-      for (const conflict of caseConflicts) {
-        const isExcluded = await this.isExcluded(
-          personId,
-          conflict.matchedEntity,
-          conflict.conflictType,
-          organizationId,
-        );
-
-        if (isExcluded.excluded) {
-          excludedConflictCount++;
-          if (isExcluded.exclusionId) {
-            appliedExclusionIds.push(isExcluded.exclusionId);
-          }
-        } else {
-          detectedConflicts.push(conflict);
-        }
-      }
-
-      // Check relationship patterns (multiple employees with same entity)
-      const patternConflicts = await this.checkRelationshipPatterns(
-        entityName,
-        personId,
-        organizationId,
-        fuzzyConfig,
-      );
-
-      for (const conflict of patternConflicts) {
-        const isExcluded = await this.isExcluded(
+      for (const conflict of conflicts) {
+        const isExcluded = await this.exclusionService.isExcluded(
           personId,
           conflict.matchedEntity,
           conflict.conflictType,
@@ -292,7 +167,7 @@ export class ConflictDetectionService {
 
     // Emit event if conflicts detected
     if (savedAlerts.length > 0) {
-      this.eventEmitter.emit('conflict.detected', {
+      this.eventEmitter.emit("conflict.detected", {
         organizationId,
         disclosureId,
         personId,
@@ -316,453 +191,40 @@ export class ConflictDetectionService {
     };
   }
 
-  // ===========================================
-  // Individual Conflict Checks
-  // ===========================================
-
   /**
-   * Checks for self-dealing: prior disclosures with the same entity by this person.
-   * RS.41: SELF_DEALING conflict type.
+   * Runs all conflict checks for an entity.
    */
-  private async checkSelfDealing(
+  private async runAllChecks(
     entityName: string,
     personId: string,
-    currentDisclosureId: string,
+    disclosureId: string,
     organizationId: string,
     config: FuzzyMatchConfig,
   ): Promise<DetectedConflict[]> {
-    const conflicts: DetectedConflict[] = [];
-
-    // Get prior disclosures by this person
-    const priorDisclosures = await this.prisma.riuDisclosureExtension.findMany({
-      where: {
+    const [selfDealing, hris, cases, patterns] = await Promise.all([
+      this.matchingService.checkSelfDealing(
+        entityName,
+        personId,
+        disclosureId,
         organizationId,
-        riu: {
-          createdById: personId,
-        },
-        riuId: { not: currentDisclosureId },
-      },
-      select: {
-        riuId: true,
-        relatedCompany: true,
-        relatedPersonName: true,
-        disclosureType: true,
-        disclosureValue: true,
-        createdAt: true,
-      },
-    });
-
-    for (const disclosure of priorDisclosures) {
-      // Check company name match
-      if (disclosure.relatedCompany) {
-        const match = this.fuzzyMatch(
-          entityName,
-          disclosure.relatedCompany,
-          config,
-        );
-        if (match.matched) {
-          conflicts.push({
-            conflictType: ConflictType.SELF_DEALING,
-            severity: this.determineSeverity(match.confidence, [
-              'Prior disclosure exists',
-            ]),
-            summary: `Prior disclosure to "${match.matchedEntity}" found (${Math.round(match.confidence)}% match)`,
-            matchedEntity: match.matchedEntity,
-            matchConfidence: match.confidence,
-            matchDetails: {
-              disclosureContext: {
-                priorDisclosureIds: [disclosure.riuId],
-                totalValue: disclosure.disclosureValue
-                  ? Number(disclosure.disclosureValue)
-                  : undefined,
-                disclosureTypes: [disclosure.disclosureType],
-                dateRange: {
-                  start: disclosure.createdAt.toISOString(),
-                  end: disclosure.createdAt.toISOString(),
-                },
-              },
-            },
-            severityFactors: {
-              factors: ['Prior disclosure with same entity'],
-              matchConfidence: match.confidence,
-            },
-          });
-        }
-      }
-
-      // Check person name match
-      if (disclosure.relatedPersonName) {
-        const match = this.fuzzyMatch(
-          entityName,
-          disclosure.relatedPersonName,
-          config,
-        );
-        if (match.matched) {
-          conflicts.push({
-            conflictType: ConflictType.SELF_DEALING,
-            severity: this.determineSeverity(match.confidence, [
-              'Prior disclosure exists',
-            ]),
-            summary: `Prior disclosure involving "${match.matchedEntity}" found (${Math.round(match.confidence)}% match)`,
-            matchedEntity: match.matchedEntity,
-            matchConfidence: match.confidence,
-            matchDetails: {
-              disclosureContext: {
-                priorDisclosureIds: [disclosure.riuId],
-                totalValue: disclosure.disclosureValue
-                  ? Number(disclosure.disclosureValue)
-                  : undefined,
-                disclosureTypes: [disclosure.disclosureType],
-              },
-            },
-          });
-        }
-      }
-    }
-
-    return conflicts;
-  }
-
-  /**
-   * Checks for HRIS match: disclosed person matches employee in directory.
-   * RS.41: HRIS_MATCH conflict type (potential nepotism).
-   */
-  private async checkHrisMatch(
-    entityName: string,
-    disclosingPersonId: string,
-    organizationId: string,
-    config: FuzzyMatchConfig,
-  ): Promise<DetectedConflict[]> {
-    const conflicts: DetectedConflict[] = [];
-
-    // Get employees to check against
-    const employees = await this.prisma.employee.findMany({
-      where: {
+        config,
+      ),
+      this.matchingService.checkHrisMatch(
+        entityName,
+        personId,
         organizationId,
-        employmentStatus: 'ACTIVE',
-      },
-      select: {
-        id: true,
-        firstName: true,
-        lastName: true,
-        email: true,
-        department: true,
-        jobTitle: true,
-        managerId: true,
-      },
-      take: 1000, // Limit for performance
-    });
-
-    for (const employee of employees) {
-      const fullName = `${employee.firstName} ${employee.lastName}`.trim();
-      const match = this.fuzzyMatch(entityName, fullName, config);
-
-      if (match.matched) {
-        conflicts.push({
-          conflictType: ConflictType.HRIS_MATCH,
-          severity: this.determineSeverity(match.confidence, [
-            'Potential nepotism',
-          ]),
-          summary: `Name matches employee "${match.matchedEntity}" (${Math.round(match.confidence)}% match)`,
-          matchedEntity: match.matchedEntity,
-          matchConfidence: match.confidence,
-          matchDetails: {
-            employeeContext: {
-              employeeId: employee.id,
-              name: fullName,
-              department: employee.department ?? undefined,
-              jobTitle: employee.jobTitle ?? undefined,
-            },
-          },
-          severityFactors: {
-            factors: ['Name matches active employee'],
-            matchConfidence: match.confidence,
-          },
-        });
-      }
-    }
-
-    return conflicts;
-  }
-
-  /**
-   * Checks for prior case history involving the entity.
-   * RS.41: PRIOR_CASE_HISTORY conflict type.
-   */
-  private async checkPriorCases(
-    entityName: string,
-    organizationId: string,
-    config: FuzzyMatchConfig,
-  ): Promise<DetectedConflict[]> {
-    const conflicts: DetectedConflict[] = [];
-
-    // Get subjects from prior cases
-    const subjects = await this.prisma.subject.findMany({
-      where: {
+        config,
+      ),
+      this.matchingService.checkPriorCases(entityName, organizationId, config),
+      this.matchingService.checkRelationshipPatterns(
+        entityName,
+        personId,
         organizationId,
-      },
-      select: {
-        id: true,
-        externalName: true,
-        caseId: true,
-        role: true,
-        case: {
-          select: {
-            referenceNumber: true,
-            status: true,
-            outcome: true,
-          },
-        },
-      },
-      take: 1000,
-    });
+        config,
+      ),
+    ]);
 
-    const matchedCases = new Map<string, { caseId: string; roles: string[] }>();
-
-    for (const subject of subjects) {
-      if (subject.externalName) {
-        const match = this.fuzzyMatch(entityName, subject.externalName, config);
-        if (match.matched) {
-          const existing = matchedCases.get(subject.caseId);
-          if (existing) {
-            existing.roles.push(subject.role);
-          } else {
-            matchedCases.set(subject.caseId, {
-              caseId: subject.caseId,
-              roles: [subject.role],
-            });
-          }
-        }
-      }
-    }
-
-    if (matchedCases.size > 0) {
-      const caseIds = Array.from(matchedCases.keys());
-      const cases = await this.prisma.case.findMany({
-        where: { id: { in: caseIds } },
-        select: {
-          id: true,
-          referenceNumber: true,
-          status: true,
-          outcome: true,
-        },
-      });
-
-      conflicts.push({
-        conflictType: ConflictType.PRIOR_CASE_HISTORY,
-        severity:
-          matchedCases.size > 2
-            ? ConflictSeverity.HIGH
-            : ConflictSeverity.MEDIUM,
-        summary: `Entity appears in ${matchedCases.size} prior case(s)`,
-        matchedEntity: entityName,
-        matchConfidence: 85, // Weighted average
-        matchDetails: {
-          caseContext: {
-            caseIds,
-            caseTypes: cases.map((c) => c.status),
-            outcomes: cases
-              .filter((c) => c.outcome)
-              .map((c) => c.outcome as string),
-            roles: Array.from(
-              new Set(
-                Array.from(matchedCases.values()).flatMap((m) => m.roles),
-              ),
-            ),
-          },
-        },
-        severityFactors: {
-          factors: [`Appeared in ${matchedCases.size} prior cases`],
-          historicalOccurrences: matchedCases.size,
-        },
-      });
-    }
-
-    return conflicts;
-  }
-
-  /**
-   * Checks for relationship patterns: multiple employees linked to same entity.
-   * RS.41: RELATIONSHIP_PATTERN conflict type.
-   */
-  private async checkRelationshipPatterns(
-    entityName: string,
-    currentPersonId: string,
-    organizationId: string,
-    config: FuzzyMatchConfig,
-  ): Promise<DetectedConflict[]> {
-    const conflicts: DetectedConflict[] = [];
-
-    // Get other disclosures involving similar entity names
-    const otherDisclosures = await this.prisma.riuDisclosureExtension.findMany({
-      where: {
-        organizationId,
-        riu: {
-          createdById: { not: currentPersonId },
-        },
-      },
-      select: {
-        riuId: true,
-        relatedCompany: true,
-        relatedPersonName: true,
-        riu: {
-          select: {
-            createdById: true,
-          },
-        },
-      },
-      take: 1000,
-    });
-
-    const matchedPersons = new Map<string, number>();
-
-    for (const disclosure of otherDisclosures) {
-      const checkEntities = [
-        disclosure.relatedCompany,
-        disclosure.relatedPersonName,
-      ].filter(Boolean) as string[];
-
-      for (const entity of checkEntities) {
-        const match = this.fuzzyMatch(entityName, entity, config);
-        if (match.matched && disclosure.riu?.createdById) {
-          const count = matchedPersons.get(disclosure.riu.createdById) || 0;
-          matchedPersons.set(disclosure.riu.createdById, count + 1);
-        }
-      }
-    }
-
-    if (matchedPersons.size >= 2) {
-      conflicts.push({
-        conflictType: ConflictType.RELATIONSHIP_PATTERN,
-        severity:
-          matchedPersons.size >= 5
-            ? ConflictSeverity.HIGH
-            : ConflictSeverity.MEDIUM,
-        summary: `${matchedPersons.size + 1} employees have disclosed relationships with "${entityName}"`,
-        matchedEntity: entityName,
-        matchConfidence: 80,
-        matchDetails: {
-          disclosureContext: {
-            priorDisclosureIds: otherDisclosures.map((d) => d.riuId),
-          },
-        },
-        severityFactors: {
-          factors: [`Multiple employees (${matchedPersons.size + 1}) involved`],
-          historicalOccurrences: matchedPersons.size + 1,
-        },
-      });
-    }
-
-    return conflicts;
-  }
-
-  // ===========================================
-  // Fuzzy Matching (RS.42)
-  // ===========================================
-
-  /**
-   * Calculates similarity between two strings using Levenshtein distance.
-   * RS.42: Fuzzy matching with configurable thresholds.
-   *
-   * @param str1 - First string
-   * @param str2 - Second string
-   * @param config - Threshold configuration
-   * @returns Match result with confidence score
-   */
-  fuzzyMatch(
-    str1: string,
-    str2: string,
-    config: FuzzyMatchConfig = DEFAULT_FUZZY_CONFIG,
-  ): MatchResult {
-    const s1 = str1.toLowerCase().trim();
-    const s2 = str2.toLowerCase().trim();
-
-    // Exact match
-    if (s1 === s2) {
-      return {
-        matched: true,
-        confidence: 100,
-        matchedEntity: str2,
-      };
-    }
-
-    // Calculate Levenshtein distance and normalize to 0-100
-    const confidence = this.calculateSimilarity(s1, s2);
-
-    return {
-      matched: confidence >= config.minThreshold,
-      confidence,
-      matchedEntity: str2,
-    };
-  }
-
-  /**
-   * Calculates similarity using normalized Levenshtein distance.
-   * Returns a value 0-100 where 100 is exact match.
-   */
-  calculateSimilarity(str1: string, str2: string): number {
-    const s1 = str1.toLowerCase().trim();
-    const s2 = str2.toLowerCase().trim();
-
-    if (s1 === s2) return 100;
-    if (s1.length === 0) return s2.length === 0 ? 100 : 0;
-    if (s2.length === 0) return 0;
-
-    const distance = this.levenshteinDistance(s1, s2);
-    const maxLength = Math.max(s1.length, s2.length);
-
-    // Normalize to 0-100 scale where 100 = perfect match
-    return Math.round((1 - distance / maxLength) * 100);
-  }
-
-  /**
-   * Computes Levenshtein distance between two strings.
-   */
-  private levenshteinDistance(s1: string, s2: string): number {
-    const m = s1.length;
-    const n = s2.length;
-
-    // Create matrix
-    const dp: number[][] = Array(m + 1)
-      .fill(null)
-      .map(() => Array(n + 1).fill(0));
-
-    // Initialize first column and row
-    for (let i = 0; i <= m; i++) dp[i][0] = i;
-    for (let j = 0; j <= n; j++) dp[0][j] = j;
-
-    // Fill the matrix
-    for (let i = 1; i <= m; i++) {
-      for (let j = 1; j <= n; j++) {
-        const cost = s1[i - 1] === s2[j - 1] ? 0 : 1;
-        dp[i][j] = Math.min(
-          dp[i - 1][j] + 1, // deletion
-          dp[i][j - 1] + 1, // insertion
-          dp[i - 1][j - 1] + cost, // substitution
-        );
-      }
-    }
-
-    return dp[m][n];
-  }
-
-  /**
-   * Determines severity based on confidence and other factors.
-   */
-  private determineSeverity(
-    confidence: number,
-    factors: string[],
-  ): ConflictSeverity {
-    if (confidence >= 95 || factors.length >= 3) {
-      return ConflictSeverity.CRITICAL;
-    }
-    if (confidence >= 85 || factors.length >= 2) {
-      return ConflictSeverity.HIGH;
-    }
-    if (confidence >= 75) {
-      return ConflictSeverity.MEDIUM;
-    }
-    return ConflictSeverity.LOW;
+    return [...selfDealing, ...hris, ...cases, ...patterns];
   }
 
   // ===========================================
@@ -799,57 +261,22 @@ export class ConflictDetectionService {
         dto.category as DismissalCategory,
       )
     ) {
-      throw new BadRequestException(`Invalid dismissal category: ${dto.category}`);
+      throw new BadRequestException(
+        `Invalid dismissal category: ${dto.category}`,
+      );
     }
 
     let exclusionId: string | undefined;
 
     // Create exclusion if requested
     if (dto.createExclusion) {
-      // Get the person associated with this disclosure
-      const disclosure = await this.prisma.riuDisclosureExtension.findUnique({
-        where: { riuId: alert.disclosureId },
-        include: {
-          riu: {
-            select: { createdById: true },
-          },
-        },
-      });
-
-      if (!disclosure?.riu?.createdById) {
-        throw new BadRequestException(
-          'Cannot create exclusion: disclosure has no associated person',
-        );
-      }
-
-      // Get the Person record for this user
-      const person = await this.prisma.person.findFirst({
-        where: {
-          organizationId,
-          email: {
-            not: null,
-          },
-        },
-        orderBy: { createdAt: 'desc' },
-      });
-
-      if (person) {
-        const exclusion = await this.createExclusion(
-          {
-            personId: person.id,
-            matchedEntity: alert.matchedEntity,
-            conflictType: alert.conflictType,
-            reason: dto.reason,
-            notes: dto.exclusionNotes,
-            scope: dto.exclusionScope ?? ExclusionScope.PERMANENT,
-            expiresAt: dto.exclusionExpiresAt,
-          },
-          userId,
-          organizationId,
-          alertId,
-        );
-        exclusionId = exclusion.id;
-      }
+      exclusionId = await this.createExclusionFromAlert(
+        alert,
+        dto,
+        userId,
+        organizationId,
+        alertId,
+      );
     }
 
     // Update the alert
@@ -865,12 +292,12 @@ export class ConflictDetectionService {
       },
     });
 
-    // Log audit entry (using DISCLOSURE entity type as conflict alerts relate to disclosures)
+    // Log audit entry
     await this.auditService.log({
       organizationId,
       entityType: AuditEntityType.DISCLOSURE,
       entityId: alert.disclosureId,
-      action: 'conflict_dismissed',
+      action: "conflict_dismissed",
       actionCategory: AuditActionCategory.UPDATE,
       actionDescription: `Dismissed conflict alert (${alert.conflictType}) with category: ${dto.category}`,
       actorUserId: userId,
@@ -888,96 +315,102 @@ export class ConflictDetectionService {
     return this.mapAlertToDto(updated);
   }
 
-  // ===========================================
-  // Exclusion Management
-  // ===========================================
-
   /**
-   * Creates a conflict exclusion.
+   * Creates an exclusion from a dismissed alert.
    */
-  async createExclusion(
-    dto: CreateExclusionDto,
+  private async createExclusionFromAlert(
+    alert: ConflictAlert,
+    dto: DismissConflictDto,
     userId: string,
     organizationId: string,
-    sourceAlertId?: string,
-  ): Promise<ConflictExclusion> {
-    // Check for existing active exclusion
-    const existing = await this.prisma.conflictExclusion.findFirst({
-      where: {
-        organizationId,
-        personId: dto.personId,
-        matchedEntity: dto.matchedEntity,
-        conflictType: dto.conflictType,
-        isActive: true,
+    alertId: string,
+  ): Promise<string | undefined> {
+    // Get the person associated with this disclosure
+    const disclosure = await this.prisma.riuDisclosureExtension.findUnique({
+      where: { riuId: alert.disclosureId },
+      include: {
+        riu: {
+          select: { createdById: true },
+        },
       },
     });
 
-    if (existing) {
+    if (!disclosure?.riu?.createdById) {
       throw new BadRequestException(
-        'An active exclusion already exists for this combination',
+        "Cannot create exclusion: disclosure has no associated person",
       );
     }
 
-    const exclusion = await this.prisma.conflictExclusion.create({
-      data: {
-        organizationId,
-        personId: dto.personId,
-        matchedEntity: dto.matchedEntity,
-        conflictType: dto.conflictType,
-        reason: dto.reason,
-        notes: dto.notes,
-        scope: dto.scope ?? ExclusionScope.PERMANENT,
-        expiresAt: dto.expiresAt ? new Date(dto.expiresAt) : undefined,
-        createdBy: userId,
-        createdFromAlertId: sourceAlertId,
-      },
-    });
-
-    this.logger.log(
-      `Created exclusion ${exclusion.id} for person ${dto.personId} + entity "${dto.matchedEntity}"`,
-    );
-
-    return exclusion;
-  }
-
-  /**
-   * Checks if a conflict is excluded by an active exclusion.
-   */
-  async isExcluded(
-    personId: string,
-    matchedEntity: string,
-    conflictType: ConflictType,
-    organizationId: string,
-  ): Promise<{ excluded: boolean; exclusionId?: string }> {
-    const exclusion = await this.prisma.conflictExclusion.findFirst({
+    // Get the Person record for this user
+    const person = await this.prisma.person.findFirst({
       where: {
         organizationId,
-        personId,
-        conflictType,
-        isActive: true,
-        OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
+        email: {
+          not: null,
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+
+    if (person) {
+      const exclusion = await this.exclusionService.createExclusion(
+        {
+          personId: person.id,
+          matchedEntity: alert.matchedEntity,
+          conflictType: alert.conflictType,
+          reason: dto.reason,
+          notes: dto.exclusionNotes,
+          scope: dto.exclusionScope ?? ExclusionScope.PERMANENT,
+          expiresAt: dto.exclusionExpiresAt,
+        },
+        userId,
+        organizationId,
+        alertId,
+      );
+      return exclusion.id;
+    }
+
+    return undefined;
+  }
+
+  // ===========================================
+  // Escalation
+  // ===========================================
+
+  /**
+   * Escalates a conflict alert to a case.
+   */
+  async escalateConflict(
+    alertId: string,
+    dto: { existingCaseId?: string; notes?: string },
+    userId: string,
+    organizationId: string,
+  ): Promise<ConflictAlertDto> {
+    const alert = await this.prisma.conflictAlert.findFirst({
+      where: { id: alertId, organizationId },
+    });
+
+    if (!alert) {
+      throw new NotFoundException(`Conflict alert ${alertId} not found`);
+    }
+
+    if (alert.status !== ConflictStatus.OPEN) {
+      throw new BadRequestException(
+        `Cannot escalate alert with status ${alert.status}`,
+      );
+    }
+
+    const updated = await this.prisma.conflictAlert.update({
+      where: { id: alertId },
+      data: {
+        status: ConflictStatus.ESCALATED,
+        escalatedToCaseId: dto.existingCaseId,
       },
     });
 
-    if (!exclusion) {
-      return { excluded: false };
-    }
+    this.logger.log(`Escalated conflict alert ${alertId}`);
 
-    // Check fuzzy match on entity name
-    const match = this.fuzzyMatch(matchedEntity, exclusion.matchedEntity);
-    if (match.confidence >= 90) {
-      // If ONE_TIME scope, mark as used
-      if (exclusion.scope === ExclusionScope.ONE_TIME) {
-        await this.prisma.conflictExclusion.update({
-          where: { id: exclusion.id },
-          data: { isActive: false },
-        });
-      }
-
-      return { excluded: true, exclusionId: exclusion.id };
-    }
-
-    return { excluded: false };
+    return this.mapAlertToDto(updated);
   }
 
   // ===========================================
@@ -1000,8 +433,8 @@ export class ConflictDetectionService {
       where: {
         organizationId,
         OR: [
-          { relatedCompany: { contains: entityName, mode: 'insensitive' } },
-          { relatedPersonName: { contains: entityName, mode: 'insensitive' } },
+          { relatedCompany: { contains: entityName, mode: "insensitive" } },
+          { relatedPersonName: { contains: entityName, mode: "insensitive" } },
         ],
       },
       include: {
@@ -1014,7 +447,7 @@ export class ConflictDetectionService {
           },
         },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
     });
 
     for (const disclosure of disclosures) {
@@ -1034,9 +467,9 @@ export class ConflictDetectionService {
     const alerts = await this.prisma.conflictAlert.findMany({
       where: {
         organizationId,
-        matchedEntity: { contains: entityName, mode: 'insensitive' },
+        matchedEntity: { contains: entityName, mode: "insensitive" },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
     });
 
     for (const alert of alerts) {
@@ -1059,7 +492,7 @@ export class ConflictDetectionService {
     const subjects = await this.prisma.subject.findMany({
       where: {
         organizationId,
-        externalName: { contains: entityName, mode: 'insensitive' },
+        externalName: { contains: entityName, mode: "insensitive" },
       },
       include: {
         case: {
@@ -1070,7 +503,7 @@ export class ConflictDetectionService {
           },
         },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
     });
 
     for (const subject of subjects) {
@@ -1084,13 +517,20 @@ export class ConflictDetectionService {
 
     // Sort all events by date descending
     events.sort(
-      (a, b) => new Date(b.occurredAt).getTime() - new Date(a.occurredAt).getTime(),
+      (a, b) =>
+        new Date(b.occurredAt).getTime() - new Date(a.occurredAt).getTime(),
     );
 
     // Calculate date range
     const dates = events.map((e) => new Date(e.occurredAt));
-    const earliest = dates.length > 0 ? new Date(Math.min(...dates.map((d) => d.getTime()))) : null;
-    const latest = dates.length > 0 ? new Date(Math.max(...dates.map((d) => d.getTime()))) : null;
+    const earliest =
+      dates.length > 0
+        ? new Date(Math.min(...dates.map((d) => d.getTime())))
+        : null;
+    const latest =
+      dates.length > 0
+        ? new Date(Math.max(...dates.map((d) => d.getTime())))
+        : null;
 
     return {
       entityName,
@@ -1142,7 +582,10 @@ export class ConflictDetectionService {
     }
 
     if (query.matchedEntity) {
-      where.matchedEntity = { contains: query.matchedEntity, mode: 'insensitive' };
+      where.matchedEntity = {
+        contains: query.matchedEntity,
+        mode: "insensitive",
+      };
     }
 
     if (query.minConfidence !== undefined) {
@@ -1164,7 +607,7 @@ export class ConflictDetectionService {
         where,
         skip,
         take: pageSize,
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: "desc" },
         include: {
           dismissedByUser: {
             select: { id: true, firstName: true, lastName: true },
@@ -1212,55 +655,38 @@ export class ConflictDetectionService {
   }
 
   // ===========================================
-  // Helpers
-  // ===========================================
-
-  // ===========================================
-  // Escalation (called from controller)
+  // Delegated Exclusion Methods
   // ===========================================
 
   /**
-   * Escalates a conflict alert to a case.
+   * Creates a conflict exclusion.
+   * Delegates to ConflictExclusionService.
    */
-  async escalateConflict(
-    alertId: string,
-    dto: { existingCaseId?: string; notes?: string },
+  async createExclusion(
+    dto: {
+      personId: string;
+      matchedEntity: string;
+      conflictType: ConflictType;
+      reason: string;
+      notes?: string;
+      scope?: ExclusionScope;
+      expiresAt?: string;
+    },
     userId: string,
     organizationId: string,
-  ): Promise<ConflictAlertDto> {
-    const alert = await this.prisma.conflictAlert.findFirst({
-      where: { id: alertId, organizationId },
-    });
-
-    if (!alert) {
-      throw new NotFoundException(`Conflict alert ${alertId} not found`);
-    }
-
-    if (alert.status !== ConflictStatus.OPEN) {
-      throw new BadRequestException(
-        `Cannot escalate alert with status ${alert.status}`,
-      );
-    }
-
-    const updated = await this.prisma.conflictAlert.update({
-      where: { id: alertId },
-      data: {
-        status: ConflictStatus.ESCALATED,
-        escalatedToCaseId: dto.existingCaseId,
-      },
-    });
-
-    this.logger.log(`Escalated conflict alert ${alertId}`);
-
-    return this.mapAlertToDto(updated);
+    sourceAlertId?: string,
+  ) {
+    return this.exclusionService.createExclusion(
+      dto,
+      userId,
+      organizationId,
+      sourceAlertId,
+    );
   }
-
-  // ===========================================
-  // Exclusion Query Methods
-  // ===========================================
 
   /**
    * Finds exclusions with pagination and filters.
+   * Delegates to ConflictExclusionService.
    */
   async findExclusions(
     organizationId: string,
@@ -1271,89 +697,55 @@ export class ConflictDetectionService {
       page?: number;
       pageSize?: number;
     },
-  ): Promise<{ items: ConflictExclusionDto[]; total: number; page: number; pageSize: number }> {
-    const page = options.page ?? 1;
-    const pageSize = options.pageSize ?? 20;
-    const skip = (page - 1) * pageSize;
-
-    const where: Prisma.ConflictExclusionWhereInput = {
-      organizationId,
-    };
-
-    if (options.personId) {
-      where.personId = options.personId;
-    }
-
-    if (options.conflictType) {
-      where.conflictType = options.conflictType;
-    }
-
-    if (options.activeOnly) {
-      where.isActive = true;
-    }
-
-    const [items, total] = await Promise.all([
-      this.prisma.conflictExclusion.findMany({
-        where,
-        skip,
-        take: pageSize,
-        orderBy: { createdAt: 'desc' },
-      }),
-      this.prisma.conflictExclusion.count({ where }),
-    ]);
-
-    return {
-      items: items.map((item) => this.mapExclusionToDto(item)),
-      total,
-      page,
-      pageSize,
-    };
+  ): Promise<{
+    items: ConflictExclusionDto[];
+    total: number;
+    page: number;
+    pageSize: number;
+  }> {
+    return this.exclusionService.findExclusions(organizationId, options);
   }
 
   /**
-   * Deactivates an exclusion (soft delete).
+   * Deactivates an exclusion.
+   * Delegates to ConflictExclusionService.
    */
   async deactivateExclusion(
     exclusionId: string,
     userId: string,
     organizationId: string,
   ): Promise<void> {
-    const exclusion = await this.prisma.conflictExclusion.findFirst({
-      where: { id: exclusionId, organizationId },
-    });
-
-    if (!exclusion) {
-      throw new NotFoundException(`Exclusion ${exclusionId} not found`);
-    }
-
-    await this.prisma.conflictExclusion.update({
-      where: { id: exclusionId },
-      data: { isActive: false },
-    });
-
-    this.logger.log(`Deactivated exclusion ${exclusionId}`);
+    return this.exclusionService.deactivateExclusion(
+      exclusionId,
+      userId,
+      organizationId,
+    );
   }
 
   /**
-   * Maps a ConflictExclusion to DTO.
+   * Maps exclusion to DTO.
+   * Delegates to ConflictExclusionService.
    */
-  mapExclusionToDto(exclusion: ConflictExclusion): ConflictExclusionDto {
-    return {
-      id: exclusion.id,
-      organizationId: exclusion.organizationId,
-      personId: exclusion.personId,
-      matchedEntity: exclusion.matchedEntity,
-      conflictType: exclusion.conflictType,
-      reason: exclusion.reason,
-      notes: exclusion.notes ?? undefined,
-      scope: exclusion.scope,
-      expiresAt: exclusion.expiresAt ?? undefined,
-      isActive: exclusion.isActive,
-      createdBy: exclusion.createdBy,
-      createdFromAlertId: exclusion.createdFromAlertId ?? undefined,
-      createdAt: exclusion.createdAt,
-      updatedAt: exclusion.updatedAt,
-    };
+  mapExclusionToDto(exclusion: any): ConflictExclusionDto {
+    return this.exclusionService.mapExclusionToDto(exclusion);
+  }
+
+  // ===========================================
+  // Delegated Matching Methods (for external callers)
+  // ===========================================
+
+  /**
+   * Exposes fuzzy match for external callers.
+   */
+  fuzzyMatch(str1: string, str2: string, config?: FuzzyMatchConfig) {
+    return this.matchingService.fuzzyMatch(str1, str2, config);
+  }
+
+  /**
+   * Exposes calculate similarity for external callers.
+   */
+  calculateSimilarity(str1: string, str2: string): number {
+    return this.matchingService.calculateSimilarity(str1, str2);
   }
 
   // ===========================================
@@ -1363,10 +755,20 @@ export class ConflictDetectionService {
   /**
    * Maps a database alert to DTO.
    */
-  private mapAlertToDto(alert: ConflictAlert & {
-    dismissedByUser?: { id: string; firstName: string; lastName: string } | null;
-    escalatedCase?: { id: string; referenceNumber: string; status: string } | null;
-  }): ConflictAlertDto {
+  private mapAlertToDto(
+    alert: ConflictAlert & {
+      dismissedByUser?: {
+        id: string;
+        firstName: string;
+        lastName: string;
+      } | null;
+      escalatedCase?: {
+        id: string;
+        referenceNumber: string;
+        status: string;
+      } | null;
+    },
+  ): ConflictAlertDto {
     return {
       id: alert.id,
       organizationId: alert.organizationId,
@@ -1381,7 +783,9 @@ export class ConflictDetectionService {
       severityFactors: alert.severityFactors
         ? (alert.severityFactors as unknown as SeverityFactors)
         : undefined,
-      dismissedCategory: alert.dismissedCategory as DismissalCategory | undefined,
+      dismissedCategory: alert.dismissedCategory as
+        | DismissalCategory
+        | undefined,
       dismissedReason: alert.dismissedReason ?? undefined,
       dismissedBy: alert.dismissedBy ?? undefined,
       dismissedAt: alert.dismissedAt ?? undefined,

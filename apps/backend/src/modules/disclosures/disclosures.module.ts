@@ -1,15 +1,17 @@
-import { Module, forwardRef } from '@nestjs/common';
-import { CacheModule } from '@nestjs/cache-manager';
-import { PrismaModule } from '../prisma/prisma.module';
-import { AuditModule } from '../audit/audit.module';
-import { AiModule } from '../ai/ai.module';
-import { DisclosureFormService } from './disclosure-form.service';
-import { DisclosureFormController } from './disclosure-form.controller';
-import { ThresholdService } from './threshold.service';
-import { ConflictDetectionService } from './conflict-detection.service';
-import { AiTriageService } from './ai-triage.service';
-import { TriageController } from './triage.controller';
-import { ConflictController } from './conflict.controller';
+import { Module, forwardRef } from "@nestjs/common";
+import { CacheModule } from "@nestjs/cache-manager";
+import { PrismaModule } from "../prisma/prisma.module";
+import { AuditModule } from "../audit/audit.module";
+import { AiModule } from "../ai/ai.module";
+import { DisclosureFormService } from "./disclosure-form.service";
+import { DisclosureFormController } from "./disclosure-form.controller";
+import { ThresholdService } from "./threshold.service";
+import { ConflictDetectionService } from "./conflict-detection.service";
+import { ConflictMatchingService } from "./services/conflict-matching.service";
+import { ConflictExclusionService } from "./services/conflict-exclusion.service";
+import { AiTriageService } from "./ai-triage.service";
+import { TriageController } from "./triage.controller";
+import { ConflictController } from "./conflict.controller";
 
 /**
  * DisclosuresModule provides disclosure form template management,
@@ -20,7 +22,9 @@ import { ConflictController } from './conflict.controller';
  * Provides:
  * - DisclosureFormService: Form template CRUD with versioning (RS.32)
  * - ThresholdService: Threshold rule evaluation for auto-case creation (RS.35-38)
- * - ConflictDetectionService: Cross-system conflict detection (RS.41-46)
+ * - ConflictDetectionService: Cross-system conflict detection coordinator (RS.41-46)
+ * - ConflictMatchingService: Fuzzy matching and individual conflict checks
+ * - ConflictExclusionService: Exclusion management
  * - AiTriageService: AI-assisted bulk triage (RS.47)
  *
  * Controllers:
@@ -40,6 +44,8 @@ import { ConflictController } from './conflict.controller';
   providers: [
     DisclosureFormService,
     ThresholdService,
+    ConflictMatchingService,
+    ConflictExclusionService,
     ConflictDetectionService,
     AiTriageService,
   ],
@@ -47,6 +53,8 @@ import { ConflictController } from './conflict.controller';
     DisclosureFormService,
     ThresholdService,
     ConflictDetectionService,
+    ConflictMatchingService,
+    ConflictExclusionService,
     AiTriageService,
   ],
 })
