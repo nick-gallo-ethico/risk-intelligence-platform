@@ -5,6 +5,8 @@ import { CasesService } from "./cases.service";
 import { CasePipelineService } from "./case-pipeline.service";
 import { CaseMergeService } from "./case-merge.service";
 import { CaseExportService } from "./services/case-export.service";
+import { CaseQueryService } from "./services/case-query.service";
+import { CaseStatusService } from "./services/case-status.service";
 import { PipelineService } from "./pipeline.service";
 import { PrismaModule } from "../prisma/prisma.module";
 import { ExportsModule } from "../analytics/exports/exports.module";
@@ -13,6 +15,8 @@ import { ExportsModule } from "../analytics/exports/exports.module";
   imports: [PrismaModule, ExportsModule],
   controllers: [CasesController, PipelineController],
   providers: [
+    CaseQueryService,
+    CaseStatusService,
     CasesService,
     CasePipelineService,
     CaseMergeService,
@@ -20,6 +24,8 @@ import { ExportsModule } from "../analytics/exports/exports.module";
     PipelineService,
   ],
   exports: [
+    CaseQueryService,
+    CaseStatusService,
     CasesService,
     CasePipelineService,
     CaseMergeService,

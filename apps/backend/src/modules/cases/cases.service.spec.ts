@@ -4,6 +4,8 @@ import { EventEmitter2 } from "@nestjs/event-emitter";
 import { CasesService } from "./cases.service";
 import { PrismaService } from "../prisma/prisma.service";
 import { ActivityService } from "../../common/services/activity.service";
+import { CaseQueryService } from "./services/case-query.service";
+import { CaseStatusService } from "./services/case-status.service";
 import {
   CaseStatus,
   SourceChannel,
@@ -23,6 +25,8 @@ describe("CasesService", () => {
   let prisma: jest.Mocked<PrismaService>;
   let activityService: jest.Mocked<ActivityService>;
   let eventEmitter: jest.Mocked<EventEmitter2>;
+  let caseQueryService: jest.Mocked<CaseQueryService>;
+  let caseStatusService: jest.Mocked<CaseStatusService>;
 
   // -------------------------------------------------------------------------
   // Test Data Fixtures
@@ -89,6 +93,22 @@ describe("CasesService", () => {
     emit: jest.fn(),
   };
 
+  const mockCaseQueryService = {
+    findAll: jest.fn(),
+    findOne: jest.fn(),
+    findByReferenceNumber: jest.fn(),
+    findAllWithFullTextSearch: jest.fn(),
+    buildWhereClause: jest.fn(),
+    applyFilterCondition: jest.fn(),
+    buildOrderByClause: jest.fn(),
+  };
+
+  const mockCaseStatusService = {
+    updateStatus: jest.fn(),
+    close: jest.fn(),
+    validateStatusTransition: jest.fn(),
+  };
+
   // -------------------------------------------------------------------------
   // Module Setup
   // -------------------------------------------------------------------------
@@ -99,6 +119,8 @@ describe("CasesService", () => {
         { provide: PrismaService, useValue: mockPrismaService },
         { provide: ActivityService, useValue: mockActivityService },
         { provide: EventEmitter2, useValue: mockEventEmitter },
+        { provide: CaseQueryService, useValue: mockCaseQueryService },
+        { provide: CaseStatusService, useValue: mockCaseStatusService },
       ],
     }).compile();
 
@@ -106,6 +128,8 @@ describe("CasesService", () => {
     prisma = module.get(PrismaService);
     activityService = module.get(ActivityService);
     eventEmitter = module.get(EventEmitter2);
+    caseQueryService = module.get(CaseQueryService);
+    caseStatusService = module.get(CaseStatusService);
 
     // Reset all mocks before each test
     jest.clearAllMocks();
@@ -229,27 +253,26 @@ describe("CasesService", () => {
   // describe('findOne')
   // -------------------------------------------------------------------------
   describe("findOne", () => {
-    it("should return case when found in organization", async () => {
+    it("should delegate to CaseQueryService", async () => {
       // Arrange
-      mockPrismaService.case.findFirst.mockResolvedValue(mockCase);
+      mockCaseQueryService.findOne.mockResolvedValue(mockCase);
 
       // Act
       const result = await service.findOne(mockCaseId, mockOrgId);
 
       // Assert
       expect(result).toEqual(mockCase);
-      expect(prisma.case.findFirst).toHaveBeenCalledWith({
-        where: {
-          id: mockCaseId,
-          organizationId: mockOrgId, // CRITICAL: Tenant isolation
-        },
-        include: expect.any(Object),
-      });
+      expect(caseQueryService.findOne).toHaveBeenCalledWith(
+        mockCaseId,
+        mockOrgId,
+      );
     });
 
-    it("should throw NotFoundException when case does not exist", async () => {
+    it("should throw NotFoundException when CaseQueryService throws", async () => {
       // Arrange
-      mockPrismaService.case.findFirst.mockResolvedValue(null);
+      mockCaseQueryService.findOne.mockRejectedValue(
+        new NotFoundException(`Case with ID non-existent-id not found`),
+      );
 
       // Act & Assert
       await expect(
@@ -258,39 +281,28 @@ describe("CasesService", () => {
     });
 
     it("should throw NotFoundException when case belongs to different org", async () => {
-      // Arrange - Case exists but query returns null due to org filter
-      mockPrismaService.case.findFirst.mockResolvedValue(null);
+      // Arrange - CaseQueryService throws for different org
+      mockCaseQueryService.findOne.mockRejectedValue(
+        new NotFoundException(`Case with ID ${mockCaseId} not found`),
+      );
 
       // Act & Assert
       await expect(service.findOne(mockCaseId, mockOtherOrgId)).rejects.toThrow(
         NotFoundException,
       );
-
-      // Verify query included the different org filter
-      expect(prisma.case.findFirst).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: expect.objectContaining({
-            organizationId: mockOtherOrgId,
-          }),
-        }),
-      );
     });
 
-    it("should verify query includes organizationId filter", async () => {
+    it("should pass correct parameters to CaseQueryService", async () => {
       // Arrange
-      mockPrismaService.case.findFirst.mockResolvedValue(mockCase);
+      mockCaseQueryService.findOne.mockResolvedValue(mockCase);
 
       // Act
       await service.findOne(mockCaseId, mockOrgId);
 
-      // Assert - CRITICAL: Must always include org filter
-      expect(prisma.case.findFirst).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: expect.objectContaining({
-            id: mockCaseId,
-            organizationId: mockOrgId,
-          }),
-        }),
+      // Assert - Verify delegation with correct params
+      expect(caseQueryService.findOne).toHaveBeenCalledWith(
+        mockCaseId,
+        mockOrgId,
       );
     });
   });
@@ -299,9 +311,9 @@ describe("CasesService", () => {
   // describe('findByReferenceNumber')
   // -------------------------------------------------------------------------
   describe("findByReferenceNumber", () => {
-    it("should return case when found by reference number", async () => {
+    it("should delegate to CaseQueryService", async () => {
       // Arrange
-      mockPrismaService.case.findFirst.mockResolvedValue(mockCase);
+      mockCaseQueryService.findByReferenceNumber.mockResolvedValue(mockCase);
 
       // Act
       const result = await service.findByReferenceNumber(
@@ -311,17 +323,17 @@ describe("CasesService", () => {
 
       // Assert
       expect(result).toEqual(mockCase);
-      expect(prisma.case.findFirst).toHaveBeenCalledWith({
-        where: {
-          referenceNumber: mockReferenceNumber,
-          organizationId: mockOrgId,
-        },
-      });
+      expect(caseQueryService.findByReferenceNumber).toHaveBeenCalledWith(
+        mockReferenceNumber,
+        mockOrgId,
+      );
     });
 
-    it("should throw NotFoundException when reference number not found", async () => {
+    it("should throw NotFoundException when CaseQueryService throws", async () => {
       // Arrange
-      mockPrismaService.case.findFirst.mockResolvedValue(null);
+      mockCaseQueryService.findByReferenceNumber.mockRejectedValue(
+        new NotFoundException(`Case ETH-2026-99999 not found`),
+      );
 
       // Act & Assert
       await expect(
@@ -334,10 +346,15 @@ describe("CasesService", () => {
   // describe('findAll')
   // -------------------------------------------------------------------------
   describe("findAll", () => {
-    it("should return paginated results", async () => {
+    it("should delegate to CaseQueryService and return paginated results", async () => {
       // Arrange
-      mockPrismaService.case.findMany.mockResolvedValue([mockCase]);
-      mockPrismaService.case.count.mockResolvedValue(1);
+      const paginatedResult = {
+        data: [mockCase],
+        total: 1,
+        limit: 20,
+        offset: 0,
+      };
+      mockCaseQueryService.findAll.mockResolvedValue(paginatedResult);
 
       // Act
       const result = await service.findAll({ limit: 20, offset: 0 }, mockOrgId);
@@ -347,68 +364,39 @@ describe("CasesService", () => {
       expect(result.total).toBe(1);
       expect(result.limit).toBe(20);
       expect(result.offset).toBe(0);
-    });
-
-    it("should always filter by organizationId", async () => {
-      // Arrange
-      mockPrismaService.case.findMany.mockResolvedValue([]);
-      mockPrismaService.case.count.mockResolvedValue(0);
-
-      // Act
-      await service.findAll({}, mockOrgId);
-
-      // Assert - CRITICAL: Must always include org filter
-      expect(prisma.case.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: expect.objectContaining({
-            organizationId: mockOrgId,
-          }),
-        }),
+      expect(caseQueryService.findAll).toHaveBeenCalledWith(
+        { limit: 20, offset: 0 },
+        mockOrgId,
       );
     });
 
-    it("should filter by status when provided", async () => {
+    it("should pass query parameters to CaseQueryService", async () => {
       // Arrange
-      mockPrismaService.case.findMany.mockResolvedValue([]);
-      mockPrismaService.case.count.mockResolvedValue(0);
+      mockCaseQueryService.findAll.mockResolvedValue({
+        data: [],
+        total: 0,
+        limit: 20,
+        offset: 0,
+      });
 
       // Act
       await service.findAll({ status: CaseStatus.OPEN }, mockOrgId);
 
       // Assert
-      expect(prisma.case.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: expect.objectContaining({
-            organizationId: mockOrgId,
-            status: CaseStatus.OPEN,
-          }),
-        }),
+      expect(caseQueryService.findAll).toHaveBeenCalledWith(
+        { status: CaseStatus.OPEN },
+        mockOrgId,
       );
     });
 
-    it("should filter by severity when provided", async () => {
+    it("should pass filter parameters to CaseQueryService", async () => {
       // Arrange
-      mockPrismaService.case.findMany.mockResolvedValue([]);
-      mockPrismaService.case.count.mockResolvedValue(0);
-
-      // Act
-      await service.findAll({ severity: Severity.HIGH }, mockOrgId);
-
-      // Assert
-      expect(prisma.case.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: expect.objectContaining({
-            organizationId: mockOrgId,
-            severity: Severity.HIGH,
-          }),
-        }),
-      );
-    });
-
-    it("should filter by dateRange when provided", async () => {
-      // Arrange
-      mockPrismaService.case.findMany.mockResolvedValue([]);
-      mockPrismaService.case.count.mockResolvedValue(0);
+      mockCaseQueryService.findAll.mockResolvedValue({
+        data: [],
+        total: 0,
+        limit: 20,
+        offset: 0,
+      });
       const createdAfter = "2026-01-01";
       const createdBefore = "2026-01-31";
 
@@ -416,23 +404,20 @@ describe("CasesService", () => {
       await service.findAll({ createdAfter, createdBefore }, mockOrgId);
 
       // Assert
-      expect(prisma.case.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: expect.objectContaining({
-            organizationId: mockOrgId,
-            createdAt: expect.objectContaining({
-              gte: expect.any(Date),
-              lte: expect.any(Date),
-            }),
-          }),
-        }),
+      expect(caseQueryService.findAll).toHaveBeenCalledWith(
+        { createdAfter, createdBefore },
+        mockOrgId,
       );
     });
 
-    it("should filter by sourceChannel when provided", async () => {
+    it("should pass sourceChannel filter to CaseQueryService", async () => {
       // Arrange
-      mockPrismaService.case.findMany.mockResolvedValue([]);
-      mockPrismaService.case.count.mockResolvedValue(0);
+      mockCaseQueryService.findAll.mockResolvedValue({
+        data: [],
+        total: 0,
+        limit: 20,
+        offset: 0,
+      });
 
       // Act
       await service.findAll(
@@ -441,32 +426,28 @@ describe("CasesService", () => {
       );
 
       // Assert
-      expect(prisma.case.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: expect.objectContaining({
-            organizationId: mockOrgId,
-            sourceChannel: SourceChannel.HOTLINE,
-          }),
-        }),
+      expect(caseQueryService.findAll).toHaveBeenCalledWith(
+        { sourceChannel: SourceChannel.HOTLINE },
+        mockOrgId,
       );
     });
 
-    it("should filter by caseType when provided", async () => {
+    it("should pass caseType filter to CaseQueryService", async () => {
       // Arrange
-      mockPrismaService.case.findMany.mockResolvedValue([]);
-      mockPrismaService.case.count.mockResolvedValue(0);
+      mockCaseQueryService.findAll.mockResolvedValue({
+        data: [],
+        total: 0,
+        limit: 20,
+        offset: 0,
+      });
 
       // Act
       await service.findAll({ caseType: CaseType.RFI }, mockOrgId);
 
       // Assert
-      expect(prisma.case.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: expect.objectContaining({
-            organizationId: mockOrgId,
-            caseType: CaseType.RFI,
-          }),
-        }),
+      expect(caseQueryService.findAll).toHaveBeenCalledWith(
+        { caseType: CaseType.RFI },
+        mockOrgId,
       );
     });
   });
@@ -480,7 +461,7 @@ describe("CasesService", () => {
       const updateDto = { details: "Updated details" };
       const updatedCase = { ...mockCase, details: "Updated details" };
 
-      mockPrismaService.case.findFirst.mockResolvedValue(mockCase);
+      mockCaseQueryService.findOne.mockResolvedValue(mockCase);
       mockPrismaService.case.update.mockResolvedValue(updatedCase);
 
       // Act
@@ -500,7 +481,7 @@ describe("CasesService", () => {
       const updateDto = { details: "Updated details" };
       const updatedCase = { ...mockCase, details: "Updated details" };
 
-      mockPrismaService.case.findFirst.mockResolvedValue(mockCase);
+      mockCaseQueryService.findOne.mockResolvedValue(mockCase);
       mockPrismaService.case.update.mockResolvedValue(updatedCase);
 
       // Act
@@ -524,7 +505,7 @@ describe("CasesService", () => {
       const updateDto = { details: "Updated details" };
       const updatedCase = { ...mockCase, details: "Updated details" };
 
-      mockPrismaService.case.findFirst.mockResolvedValue(mockCase);
+      mockCaseQueryService.findOne.mockResolvedValue(mockCase);
       mockPrismaService.case.update.mockResolvedValue(updatedCase);
 
       // Act
@@ -543,7 +524,9 @@ describe("CasesService", () => {
 
     it("should throw NotFoundException for case in different org", async () => {
       // Arrange
-      mockPrismaService.case.findFirst.mockResolvedValue(null);
+      mockCaseQueryService.findOne.mockRejectedValue(
+        new NotFoundException(`Case with ID ${mockCaseId} not found`),
+      );
 
       // Act & Assert
       await expect(
@@ -561,11 +544,10 @@ describe("CasesService", () => {
   // describe('updateStatus')
   // -------------------------------------------------------------------------
   describe("updateStatus", () => {
-    it("should update status with rationale", async () => {
+    it("should delegate to CaseStatusService", async () => {
       // Arrange
       const updatedCase = { ...mockCase, status: CaseStatus.OPEN };
-      mockPrismaService.case.findFirst.mockResolvedValue(mockCase);
-      mockPrismaService.case.update.mockResolvedValue(updatedCase);
+      mockCaseStatusService.updateStatus.mockResolvedValue(updatedCase);
 
       // Act
       const result = await service.updateStatus(
@@ -578,20 +560,19 @@ describe("CasesService", () => {
 
       // Assert
       expect(result.status).toBe(CaseStatus.OPEN);
-      expect(prisma.case.update).toHaveBeenCalledWith({
-        where: { id: mockCaseId },
-        data: expect.objectContaining({
-          status: CaseStatus.OPEN,
-          statusRationale: "Starting investigation",
-        }),
-      });
+      expect(caseStatusService.updateStatus).toHaveBeenCalledWith(
+        mockCaseId,
+        CaseStatus.OPEN,
+        "Starting investigation",
+        mockUserId,
+        mockOrgId,
+      );
     });
 
-    it("should emit case.status_changed event", async () => {
+    it("should pass all parameters to CaseStatusService", async () => {
       // Arrange
       const updatedCase = { ...mockCase, status: CaseStatus.OPEN };
-      mockPrismaService.case.findFirst.mockResolvedValue(mockCase);
-      mockPrismaService.case.update.mockResolvedValue(updatedCase);
+      mockCaseStatusService.updateStatus.mockResolvedValue(updatedCase);
 
       // Act
       await service.updateStatus(
@@ -603,49 +584,20 @@ describe("CasesService", () => {
       );
 
       // Assert
-      expect(eventEmitter.emit).toHaveBeenCalledWith(
-        CaseStatusChangedEvent.eventName,
-        expect.objectContaining({
-          organizationId: mockOrgId,
-          caseId: mockCaseId,
-          previousStatus: CaseStatus.NEW,
-          newStatus: CaseStatus.OPEN,
-          rationale: "Opening case",
-        }),
-      );
-    });
-
-    it("should log status change activity", async () => {
-      // Arrange
-      const updatedCase = { ...mockCase, status: CaseStatus.OPEN };
-      mockPrismaService.case.findFirst.mockResolvedValue(mockCase);
-      mockPrismaService.case.update.mockResolvedValue(updatedCase);
-
-      // Act
-      await service.updateStatus(
+      expect(caseStatusService.updateStatus).toHaveBeenCalledWith(
         mockCaseId,
         CaseStatus.OPEN,
         "Opening case",
         mockUserId,
         mockOrgId,
       );
-
-      // Assert
-      expect(activityService.log).toHaveBeenCalledWith(
-        expect.objectContaining({
-          action: "status_changed",
-          actionDescription: expect.stringContaining("NEW"),
-          changes: expect.objectContaining({
-            oldValue: { status: CaseStatus.NEW },
-            newValue: expect.objectContaining({ status: CaseStatus.OPEN }),
-          }),
-        }),
-      );
     });
 
-    it("should reject invalid status transition when status is same", async () => {
-      // Arrange - Case already in NEW status
-      mockPrismaService.case.findFirst.mockResolvedValue(mockCase);
+    it("should propagate errors from CaseStatusService", async () => {
+      // Arrange - CaseStatusService throws for invalid transition
+      mockCaseStatusService.updateStatus.mockRejectedValue(
+        new BadRequestException(`Case is already in NEW status`),
+      );
 
       // Act & Assert - Transitioning to same status should fail
       await expect(
@@ -664,12 +616,10 @@ describe("CasesService", () => {
   // describe('close')
   // -------------------------------------------------------------------------
   describe("close", () => {
-    it("should set status to CLOSED", async () => {
+    it("should delegate to CaseStatusService", async () => {
       // Arrange
-      const openCase = { ...mockCase, status: CaseStatus.OPEN };
       const closedCase = { ...mockCase, status: CaseStatus.CLOSED };
-      mockPrismaService.case.findFirst.mockResolvedValue(openCase);
-      mockPrismaService.case.update.mockResolvedValue(closedCase);
+      mockCaseStatusService.close.mockResolvedValue(closedCase);
 
       // Act
       const result = await service.close(
@@ -681,14 +631,18 @@ describe("CasesService", () => {
 
       // Assert
       expect(result.status).toBe(CaseStatus.CLOSED);
+      expect(caseStatusService.close).toHaveBeenCalledWith(
+        mockCaseId,
+        "Issue resolved",
+        mockUserId,
+        mockOrgId,
+      );
     });
 
-    it("should update with rationale", async () => {
+    it("should pass rationale to CaseStatusService", async () => {
       // Arrange
-      const openCase = { ...mockCase, status: CaseStatus.OPEN };
       const closedCase = { ...mockCase, status: CaseStatus.CLOSED };
-      mockPrismaService.case.findFirst.mockResolvedValue(openCase);
-      mockPrismaService.case.update.mockResolvedValue(closedCase);
+      mockCaseStatusService.close.mockResolvedValue(closedCase);
 
       // Act
       await service.close(
@@ -699,63 +653,24 @@ describe("CasesService", () => {
       );
 
       // Assert
-      expect(prisma.case.update).toHaveBeenCalledWith({
-        where: { id: mockCaseId },
-        data: expect.objectContaining({
-          status: CaseStatus.CLOSED,
-          statusRationale: "Investigation complete - no violation found",
-        }),
-      });
-    });
-
-    it("should emit case.status_changed event on close", async () => {
-      // Arrange
-      const openCase = { ...mockCase, status: CaseStatus.OPEN };
-      const closedCase = { ...mockCase, status: CaseStatus.CLOSED };
-      mockPrismaService.case.findFirst.mockResolvedValue(openCase);
-      mockPrismaService.case.update.mockResolvedValue(closedCase);
-
-      // Act
-      await service.close(mockCaseId, "Issue resolved", mockUserId, mockOrgId);
-
-      // Assert
-      expect(eventEmitter.emit).toHaveBeenCalledWith(
-        CaseStatusChangedEvent.eventName,
-        expect.objectContaining({
-          previousStatus: CaseStatus.OPEN,
-          newStatus: CaseStatus.CLOSED,
-        }),
+      expect(caseStatusService.close).toHaveBeenCalledWith(
+        mockCaseId,
+        "Investigation complete - no violation found",
+        mockUserId,
+        mockOrgId,
       );
     });
 
-    it("should throw if case already closed", async () => {
+    it("should propagate errors from CaseStatusService when already closed", async () => {
       // Arrange
-      const closedCase = { ...mockCase, status: CaseStatus.CLOSED };
-      mockPrismaService.case.findFirst.mockResolvedValue(closedCase);
+      mockCaseStatusService.close.mockRejectedValue(
+        new BadRequestException(`Case is already in CLOSED status`),
+      );
 
       // Act & Assert
       await expect(
         service.close(mockCaseId, "Try to close again", mockUserId, mockOrgId),
       ).rejects.toThrow(BadRequestException);
-    });
-
-    it("should log close activity", async () => {
-      // Arrange
-      const openCase = { ...mockCase, status: CaseStatus.OPEN };
-      const closedCase = { ...mockCase, status: CaseStatus.CLOSED };
-      mockPrismaService.case.findFirst.mockResolvedValue(openCase);
-      mockPrismaService.case.update.mockResolvedValue(closedCase);
-
-      // Act
-      await service.close(mockCaseId, "Issue resolved", mockUserId, mockOrgId);
-
-      // Assert
-      expect(activityService.log).toHaveBeenCalledWith(
-        expect.objectContaining({
-          action: "closed",
-          actionDescription: expect.stringContaining("Closed case"),
-        }),
-      );
     });
   });
 

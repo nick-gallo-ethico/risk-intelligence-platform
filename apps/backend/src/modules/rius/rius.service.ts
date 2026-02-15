@@ -1,5 +1,5 @@
 /**
- * RiusService - Coordinator for Risk Intelligence Unit operations
+ * RiusService - Thin Coordinator for Risk Intelligence Unit operations
  *
  * CRITICAL: RIU content is IMMUTABLE after creation.
  * - Only status, language handling, and AI enrichment fields can be modified.
@@ -12,10 +12,11 @@
  * Delegates to:
  * - RiuQueryService: Read operations (find, list)
  * - RiuFormDataService: Form data structuring for UI
+ * - RiuUpdateService: Update operations (status, AI enrichment, language)
  * - Extension services: Type-specific data handling
  */
 
-import { Injectable, Logger, BadRequestException } from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
 import { EventEmitter2 } from "@nestjs/event-emitter";
 import {
   Prisma,
@@ -27,10 +28,6 @@ import {
 import { PrismaService } from "../prisma/prisma.service";
 import { ActivityService } from "../../common/services/activity.service";
 import { CreateRiuDto, UpdateRiuDto, RiuQueryDto } from "./dto";
-import {
-  IMMUTABLE_RIU_FIELDS,
-  getImmutableFieldsInObject,
-} from "./types/riu.types";
 import { RiuFormDataResponse } from "./types/riu-form-data.types";
 import {
   HotlineRiuService,
@@ -43,6 +40,7 @@ import {
 } from "./extensions";
 import { RiuQueryService } from "./services/riu-query.service";
 import { RiuFormDataService } from "./services/riu-form-data.service";
+import { RiuUpdateService } from "./services/riu-update.service";
 
 @Injectable()
 export class RiusService {
@@ -57,6 +55,7 @@ export class RiusService {
     private readonly webFormRiuService: WebFormRiuService,
     private readonly riuQueryService: RiuQueryService,
     private readonly riuFormDataService: RiuFormDataService,
+    private readonly riuUpdateService: RiuUpdateService,
   ) {}
 
   // ===========================================
@@ -237,7 +236,7 @@ export class RiusService {
   }
 
   // ===========================================
-  // Update Operations (immutability enforced)
+  // Update Operations (delegated to RiuUpdateService)
   // ===========================================
 
   /**
@@ -250,87 +249,7 @@ export class RiusService {
     userId: string,
     organizationId: string,
   ): Promise<RiskIntelligenceUnit> {
-    const attemptedImmutableChanges = getImmutableFieldsInObject(dto);
-
-    if (attemptedImmutableChanges.length > 0) {
-      throw new BadRequestException(
-        `Cannot modify immutable RIU fields: ${attemptedImmutableChanges.join(", ")}. ` +
-          `RIU content is frozen at intake. Corrections should go on the linked Case.`,
-      );
-    }
-
-    const existing = await this.findOne(id, organizationId);
-    const statusChanged = dto.status && dto.status !== existing.status;
-    const oldStatus = existing.status;
-
-    const data: Prisma.RiskIntelligenceUnitUncheckedUpdateInput = {};
-
-    // Status workflow
-    if (dto.status !== undefined) {
-      data.status = dto.status;
-    }
-    if (statusChanged) {
-      data.statusChangedAt = new Date();
-      data.statusChangedById = userId;
-    }
-
-    // Language handling
-    if (dto.languageDetected !== undefined) {
-      data.languageDetected = dto.languageDetected;
-    }
-    if (dto.languageConfirmed !== undefined) {
-      data.languageConfirmed = dto.languageConfirmed;
-    }
-    if (
-      dto.languageConfirmed !== undefined ||
-      dto.languageDetected !== undefined
-    ) {
-      const newConfirmed = dto.languageConfirmed ?? existing.languageConfirmed;
-      const newDetected = dto.languageDetected ?? existing.languageDetected;
-      data.languageEffective = newConfirmed ?? newDetected ?? "en";
-    }
-
-    // AI Enrichment
-    if (dto.aiSummary !== undefined) data.aiSummary = dto.aiSummary;
-    if (dto.aiRiskScore !== undefined) data.aiRiskScore = dto.aiRiskScore;
-    if (dto.aiTranslation !== undefined) data.aiTranslation = dto.aiTranslation;
-    if (dto.aiLanguageDetected !== undefined)
-      data.aiLanguageDetected = dto.aiLanguageDetected;
-    if (dto.aiModelVersion !== undefined)
-      data.aiModelVersion = dto.aiModelVersion;
-    if (dto.aiGeneratedAt !== undefined) data.aiGeneratedAt = dto.aiGeneratedAt;
-    if (dto.aiConfidenceScore !== undefined)
-      data.aiConfidenceScore = dto.aiConfidenceScore;
-
-    const updated = await this.prisma.riskIntelligenceUnit.update({
-      where: { id },
-      data,
-    });
-
-    if (statusChanged) {
-      await this.activityService.log({
-        entityType: AuditEntityType.RIU,
-        entityId: id,
-        action: "status_changed",
-        actionDescription: `Changed RIU status from ${oldStatus} to ${dto.status}`,
-        actorUserId: userId,
-        organizationId,
-        changes: {
-          oldValue: { status: oldStatus },
-          newValue: { status: dto.status },
-        },
-      });
-
-      this.emitEvent("riu.status.changed", {
-        organizationId,
-        actorUserId: userId,
-        riuId: id,
-        previousStatus: oldStatus,
-        newStatus: dto.status,
-      });
-    }
-
-    return updated;
+    return this.riuUpdateService.update(id, dto, userId, organizationId);
   }
 
   /**
@@ -342,7 +261,12 @@ export class RiusService {
     userId: string,
     organizationId: string,
   ): Promise<RiskIntelligenceUnit> {
-    return this.update(id, { status: newStatus }, userId, organizationId);
+    return this.riuUpdateService.updateStatus(
+      id,
+      newStatus,
+      userId,
+      organizationId,
+    );
   }
 
   /**
@@ -360,23 +284,11 @@ export class RiusService {
     },
     organizationId: string,
   ): Promise<RiskIntelligenceUnit> {
-    await this.findOne(id, organizationId);
-
-    const updated = await this.prisma.riskIntelligenceUnit.update({
-      where: { id },
-      data: {
-        ...enrichment,
-        aiGeneratedAt: new Date(),
-      },
-    });
-
-    this.emitEvent("riu.ai.enriched", {
+    return this.riuUpdateService.updateAiEnrichment(
+      id,
+      enrichment,
       organizationId,
-      riuId: id,
-      aiModelVersion: enrichment.aiModelVersion,
-    });
-
-    return updated;
+    );
   }
 
   /**
@@ -388,35 +300,12 @@ export class RiusService {
     userId: string,
     organizationId: string,
   ): Promise<RiskIntelligenceUnit> {
-    const existing = await this.findOne(id, organizationId);
-
-    const languageEffective =
-      languageConfirmed ?? existing.languageDetected ?? "en";
-
-    const updated = await this.prisma.riskIntelligenceUnit.update({
-      where: { id },
-      data: {
-        languageConfirmed,
-        languageEffective,
-      },
-    });
-
-    await this.activityService.log({
-      entityType: AuditEntityType.RIU,
-      entityId: id,
-      action: "language_updated",
-      actionDescription: languageConfirmed
-        ? `Confirmed language as ${languageConfirmed} for RIU ${existing.referenceNumber}`
-        : `Cleared language confirmation for RIU ${existing.referenceNumber}`,
-      actorUserId: userId,
+    return this.riuUpdateService.updateLanguage(
+      id,
+      languageConfirmed,
+      userId,
       organizationId,
-      changes: {
-        oldValue: { languageConfirmed: existing.languageConfirmed },
-        newValue: { languageConfirmed },
-      },
-    });
-
-    return updated;
+    );
   }
 
   // ===========================================
