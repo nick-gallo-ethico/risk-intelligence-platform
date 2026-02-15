@@ -1,3 +1,21 @@
+/**
+ * DisclosureSubmissionService - Coordinator for disclosure operations
+ *
+ * Thin coordinator that orchestrates the full disclosure workflow and delegates to:
+ * - DisclosureDraftService: Draft save/resume functionality
+ * - DisclosureQueryService: Query operations and DTO mapping
+ * - ThresholdService: Threshold evaluation
+ * - ConflictDetectionService: Conflict detection
+ *
+ * Handles:
+ * - Full submission with validation
+ * - Automatic threshold evaluation (RS.35-RS.38)
+ * - Automatic conflict detection (RS.41-RS.45)
+ * - Campaign assignment completion
+ * - Case creation when thresholds trigger
+ * - Approval workflow
+ */
+
 import { Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { EventEmitter2 } from "@nestjs/event-emitter";
 import {
@@ -7,7 +25,6 @@ import {
   SourceChannel,
   ReporterType,
   RiuStatus,
-  DisclosureType,
   AuditEntityType,
   AuditActionCategory,
   ActorType,
@@ -18,12 +35,13 @@ import { PrismaService } from "../prisma/prisma.service";
 import { AuditService } from "../audit/audit.service";
 import { ThresholdService } from "./threshold.service";
 import { ConflictDetectionService } from "./conflict-detection.service";
+import { DisclosureDraftService } from "./services/disclosure-draft.service";
+import { DisclosureQueryService } from "./services/disclosure-query.service";
 import {
   SaveDraftDto,
   DraftResponseDto,
   SubmitDisclosureDto,
   DisclosureResponseDto,
-  DisclosureListItemDto,
   DisclosureListResponseDto,
   DisclosureQueryDto,
   DisclosureStatus,
@@ -35,41 +53,8 @@ import {
   ThresholdEvaluationResult,
   ThresholdActionDto,
 } from "./dto/threshold-rule.dto";
-import { ConflictAlertDto, DismissalCategory } from "./dto/conflict.dto";
+import { ConflictAlertDto } from "./dto/conflict.dto";
 
-/**
- * Disclosure draft stored in database.
- * Used for save/resume functionality.
- */
-interface DisclosureDraft {
-  id: string;
-  organizationId: string;
-  employeeId: string;
-  assignmentId: string | null;
-  formTemplateId: string | null;
-  disclosureType: DisclosureType | null;
-  formData: Prisma.JsonValue;
-  completionPercentage: number;
-  currentSection: string | null;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-/**
- * Service for managing disclosure submissions.
- *
- * This service orchestrates the full disclosure workflow:
- * - Draft save/resume for partial form completion
- * - Full submission with validation
- * - Automatic threshold evaluation (RS.35-RS.38)
- * - Automatic conflict detection (RS.41-RS.45)
- * - Campaign assignment completion
- * - Case creation when thresholds trigger
- *
- * The submission creates an RIU (Risk Intelligence Unit) with:
- * - Type: DISCLOSURE_RESPONSE
- * - Extension: RiuDisclosureExtension with type-specific data
- */
 @Injectable()
 export class DisclosureSubmissionService {
   private readonly logger = new Logger(DisclosureSubmissionService.name);
@@ -80,142 +65,44 @@ export class DisclosureSubmissionService {
     private readonly eventEmitter: EventEmitter2,
     private readonly thresholdService: ThresholdService,
     private readonly conflictDetectionService: ConflictDetectionService,
+    private readonly draftService: DisclosureDraftService,
+    private readonly queryService: DisclosureQueryService,
   ) {}
 
   // ===========================================
-  // Draft Management
+  // Delegated Draft Methods
   // ===========================================
 
-  /**
-   * Saves a disclosure draft for later completion.
-   * Creates or updates a draft based on employee context.
-   */
   async saveDraft(
     dto: SaveDraftDto,
     employeeId: string,
     organizationId: string,
-    _userId: string,
+    userId: string,
   ): Promise<DraftResponseDto> {
-    // Check for existing draft for this employee and optional assignment
-    const existingDraft = await this.prisma.disclosureDraft.findFirst({
-      where: {
-        organizationId,
-        employeeId,
-        ...(dto.assignmentId && { assignmentId: dto.assignmentId }),
-        ...(!dto.assignmentId && { assignmentId: null }),
-      },
-    });
-
-    let draft;
-
-    if (existingDraft) {
-      // Update existing draft
-      draft = await this.prisma.disclosureDraft.update({
-        where: { id: existingDraft.id },
-        data: {
-          formData: dto.formData as Prisma.InputJsonValue,
-          disclosureType: dto.disclosureType,
-          formTemplateId: dto.formTemplateId,
-          completionPercentage: dto.completionPercentage ?? 0,
-          currentSection: dto.currentSection,
-        },
-      });
-
-      this.logger.debug(`Updated draft ${draft.id} for employee ${employeeId}`);
-    } else {
-      // Create new draft
-      draft = await this.prisma.disclosureDraft.create({
-        data: {
-          organizationId,
-          employeeId,
-          assignmentId: dto.assignmentId,
-          formTemplateId: dto.formTemplateId,
-          disclosureType: dto.disclosureType,
-          formData: dto.formData as Prisma.InputJsonValue,
-          completionPercentage: dto.completionPercentage ?? 0,
-          currentSection: dto.currentSection,
-        },
-      });
-
-      // If assignment exists, mark as in progress
-      if (dto.assignmentId) {
-        await this.prisma.campaignAssignment.update({
-          where: { id: dto.assignmentId },
-          data: {
-            status: AssignmentStatus.IN_PROGRESS,
-            startedAt: new Date(),
-          },
-        });
-      }
-
-      this.logger.log(`Created draft ${draft.id} for employee ${employeeId}`);
-    }
-
-    return this.mapDraftToDto(draft);
+    return this.draftService.saveDraft(dto, employeeId, organizationId, userId);
   }
 
-  /**
-   * Gets a draft by ID.
-   */
   async getDraft(
     draftId: string,
     employeeId: string,
     organizationId: string,
   ): Promise<DraftResponseDto | null> {
-    const draft = await this.prisma.disclosureDraft.findFirst({
-      where: {
-        id: draftId,
-        employeeId,
-        organizationId,
-      },
-    });
-
-    return draft ? this.mapDraftToDto(draft) : null;
+    return this.draftService.getDraft(draftId, employeeId, organizationId);
   }
 
-  /**
-   * Gets drafts for an employee.
-   */
   async getDraftsForEmployee(
     employeeId: string,
     organizationId: string,
   ): Promise<DraftResponseDto[]> {
-    const drafts = await this.prisma.disclosureDraft.findMany({
-      where: {
-        employeeId,
-        organizationId,
-      },
-      orderBy: { updatedAt: "desc" },
-    });
-
-    return drafts.map((d) => this.mapDraftToDto(d));
+    return this.draftService.getDraftsForEmployee(employeeId, organizationId);
   }
 
-  /**
-   * Deletes a draft.
-   */
   async deleteDraft(
     draftId: string,
     employeeId: string,
     organizationId: string,
   ): Promise<void> {
-    const draft = await this.prisma.disclosureDraft.findFirst({
-      where: {
-        id: draftId,
-        employeeId,
-        organizationId,
-      },
-    });
-
-    if (!draft) {
-      throw new NotFoundException(`Draft ${draftId} not found`);
-    }
-
-    await this.prisma.disclosureDraft.delete({
-      where: { id: draftId },
-    });
-
-    this.logger.log(`Deleted draft ${draftId} for employee ${employeeId}`);
+    return this.draftService.deleteDraft(draftId, employeeId, organizationId);
   }
 
   // ===========================================
@@ -428,13 +315,7 @@ export class DisclosureSubmissionService {
 
     // Clean up draft if submitted from one
     if (dto.draftId) {
-      await this.prisma.disclosureDraft
-        .delete({
-          where: { id: dto.draftId },
-        })
-        .catch(() => {
-          // Ignore if draft doesn't exist
-        });
+      await this.draftService.deleteDraftById(dto.draftId);
     }
 
     // Log audit entry
@@ -496,226 +377,21 @@ export class DisclosureSubmissionService {
   }
 
   // ===========================================
-  // Query Methods
+  // Delegated Query Methods
   // ===========================================
 
-  /**
-   * Gets a disclosure by ID.
-   */
   async getDisclosure(
     disclosureId: string,
     organizationId: string,
   ): Promise<DisclosureResponseDto | null> {
-    const extension = await this.prisma.riuDisclosureExtension.findFirst({
-      where: {
-        riuId: disclosureId,
-        organizationId,
-      },
-      include: {
-        riu: {
-          include: {
-            createdBy: {
-              select: {
-                id: true,
-                firstName: true,
-                lastName: true,
-                email: true,
-              },
-            },
-            caseAssociations: {
-              include: {
-                case: {
-                  select: { id: true, referenceNumber: true },
-                },
-              },
-              take: 1,
-            },
-          },
-        },
-      },
-    });
-
-    if (!extension) {
-      return null;
-    }
-
-    // Get conflicts for this disclosure
-    const conflicts = await this.prisma.conflictAlert.findMany({
-      where: {
-        disclosureId,
-        organizationId,
-      },
-    });
-
-    return this.mapExtensionToResponse(extension, conflicts);
+    return this.queryService.getDisclosure(disclosureId, organizationId);
   }
 
-  /**
-   * Finds disclosures with filters and pagination.
-   */
   async findMany(
     query: DisclosureQueryDto,
     organizationId: string,
   ): Promise<DisclosureListResponseDto> {
-    const page = query.page ?? 1;
-    const pageSize = query.pageSize ?? 20;
-    const skip = (page - 1) * pageSize;
-
-    const where: Prisma.RiuDisclosureExtensionWhereInput = {
-      organizationId,
-    };
-
-    if (query.disclosureType) {
-      where.disclosureType = query.disclosureType;
-    }
-
-    if (query.thresholdTriggered !== undefined) {
-      where.thresholdTriggered = query.thresholdTriggered;
-    }
-
-    if (query.conflictDetected !== undefined) {
-      where.conflictDetected = query.conflictDetected;
-    }
-
-    if (query.relatedCompany) {
-      where.relatedCompany = {
-        contains: query.relatedCompany,
-        mode: "insensitive",
-      };
-    }
-
-    if (query.relatedPersonName) {
-      where.relatedPersonName = {
-        contains: query.relatedPersonName,
-        mode: "insensitive",
-      };
-    }
-
-    if (query.submittedById) {
-      where.riu = {
-        ...(where.riu as Prisma.RiskIntelligenceUnitWhereInput),
-        createdById: query.submittedById,
-      };
-    }
-
-    if (query.campaignId) {
-      // Filter by campaign via the campaign assignment relation
-      const assignmentIds = await this.prisma.campaignAssignment.findMany({
-        where: { organizationId, campaignId: query.campaignId },
-        select: { id: true },
-      });
-      where.riu = {
-        ...(where.riu as Prisma.RiskIntelligenceUnitWhereInput),
-        campaignAssignmentId: { in: assignmentIds.map((a) => a.id) },
-      };
-    }
-
-    if (query.startDate || query.endDate) {
-      where.createdAt = {};
-      if (query.startDate) {
-        where.createdAt.gte = new Date(query.startDate);
-      }
-      if (query.endDate) {
-        where.createdAt.lte = new Date(query.endDate);
-      }
-    }
-
-    if (query.search) {
-      where.OR = [
-        { relatedCompany: { contains: query.search, mode: "insensitive" } },
-        { relatedPersonName: { contains: query.search, mode: "insensitive" } },
-        {
-          riu: {
-            referenceNumber: { contains: query.search, mode: "insensitive" },
-          },
-        },
-      ];
-    }
-
-    // Determine sort field
-    let orderBy: Prisma.RiuDisclosureExtensionOrderByWithRelationInput = {
-      createdAt: "desc",
-    };
-    if (query.sortBy) {
-      const order = query.sortOrder ?? "desc";
-      switch (query.sortBy) {
-        case "disclosureValue":
-          orderBy = { disclosureValue: order };
-          break;
-        case "disclosureType":
-          orderBy = { disclosureType: order };
-          break;
-        case "submittedAt":
-        case "createdAt":
-        default:
-          orderBy = { createdAt: order };
-          break;
-      }
-    }
-
-    const [items, total] = await Promise.all([
-      this.prisma.riuDisclosureExtension.findMany({
-        where,
-        skip,
-        take: pageSize,
-        orderBy,
-        include: {
-          riu: {
-            select: {
-              id: true,
-              referenceNumber: true,
-              status: true,
-              createdAt: true,
-              createdBy: {
-                select: {
-                  id: true,
-                  firstName: true,
-                  lastName: true,
-                  email: true,
-                },
-              },
-            },
-          },
-          _count: {
-            select: {
-              // This would require a relation to ConflictAlert which may not exist
-            },
-          },
-        },
-      }),
-      this.prisma.riuDisclosureExtension.count({ where }),
-    ]);
-
-    // Get conflict counts for each disclosure
-    const disclosureIds = items.map((i) => i.riuId);
-    const conflictCounts = await this.prisma.conflictAlert.groupBy({
-      by: ["disclosureId"],
-      where: {
-        disclosureId: { in: disclosureIds },
-        organizationId,
-      },
-      _count: true,
-    });
-
-    const conflictCountMap = new Map(
-      conflictCounts.map((c) => [c.disclosureId, c._count]),
-    );
-
-    const totalPages = Math.ceil(total / pageSize);
-
-    return {
-      items: items.map((item) =>
-        this.mapExtensionToListItem(
-          item,
-          conflictCountMap.get(item.riuId) ?? 0,
-        ),
-      ),
-      total,
-      page,
-      pageSize,
-      totalPages,
-      hasMore: page < totalPages,
-    };
+    return this.queryService.findMany(query, organizationId);
   }
 
   // ===========================================
@@ -964,31 +640,12 @@ export class DisclosureSubmissionService {
   }
 
   /**
-   * Maps draft to DTO.
-   */
-  private mapDraftToDto(draft: DisclosureDraft): DraftResponseDto {
-    return {
-      id: draft.id,
-      organizationId: draft.organizationId,
-      employeeId: draft.employeeId,
-      assignmentId: draft.assignmentId ?? undefined,
-      formTemplateId: draft.formTemplateId ?? undefined,
-      disclosureType: draft.disclosureType ?? undefined,
-      formData: (draft.formData as Record<string, unknown>) ?? {},
-      completionPercentage: draft.completionPercentage,
-      currentSection: draft.currentSection ?? undefined,
-      createdAt: draft.createdAt,
-      updatedAt: draft.updatedAt,
-    };
-  }
-
-  /**
    * Builds full disclosure response.
    */
   private async buildDisclosureResponse(
     riu: RiskIntelligenceUnit,
     extension: {
-      disclosureType: DisclosureType;
+      disclosureType: import("@prisma/client").DisclosureType;
       disclosureSubtype: string | null;
       disclosureValue: Decimal | null;
       disclosureCurrency: string | null;
@@ -1015,21 +672,7 @@ export class DisclosureSubmissionService {
       reason: string;
     },
   ): Promise<DisclosureResponseDto> {
-    // Determine status from RIU status
-    let status: DisclosureStatus;
-    switch (riu.status) {
-      case RiuStatus.COMPLETED:
-        status = DisclosureStatus.APPROVED;
-        break;
-      case RiuStatus.CLOSED:
-        status = DisclosureStatus.REJECTED;
-        break;
-      case RiuStatus.RELEASED:
-        status = DisclosureStatus.UNDER_REVIEW;
-        break;
-      default:
-        status = DisclosureStatus.SUBMITTED;
-    }
+    const status = this.queryService.determineStatus(riu.status);
 
     return {
       id: riu.id,
@@ -1070,259 +713,6 @@ export class DisclosureSubmissionService {
       updatedAt: extension.createdAt,
       submittedAt: riu.createdAt,
       submittedById: riu.createdById,
-    };
-  }
-
-  /**
-   * Maps extension to response DTO.
-   */
-  private mapExtensionToResponse(
-    extension: {
-      riuId: string;
-      organizationId: string;
-      disclosureType: DisclosureType;
-      disclosureSubtype: string | null;
-      disclosureValue: Decimal | null;
-      disclosureCurrency: string | null;
-      estimatedAnnualValue: Decimal | null;
-      thresholdTriggered: boolean;
-      thresholdAmount: Decimal | null;
-      conflictDetected: boolean;
-      conflictReason: string | null;
-      relatedPersonId: string | null;
-      relatedPersonName: string | null;
-      relatedCompany: string | null;
-      relationshipType: string | null;
-      effectiveDate: Date | null;
-      expirationDate: Date | null;
-      formTemplateId: string | null;
-      formVersion: number | null;
-      createdAt: Date;
-      riu: {
-        id: string;
-        referenceNumber: string;
-        status: RiuStatus;
-        organizationId: string;
-        createdAt: Date;
-        createdById: string;
-        formResponses: Prisma.JsonValue;
-        campaignId: string | null;
-        campaignAssignmentId: string | null;
-        caseAssociations?: Array<{
-          case: {
-            id: string;
-            referenceNumber: string;
-          };
-        }>;
-      };
-    },
-    conflicts: Array<{
-      id: string;
-      organizationId: string;
-      disclosureId: string;
-      conflictType: string;
-      severity: string;
-      status: string;
-      summary: string;
-      matchedEntity: string;
-      matchConfidence: number;
-      matchDetails: Prisma.JsonValue;
-      severityFactors: Prisma.JsonValue | null;
-      dismissedCategory: string | null;
-      dismissedReason: string | null;
-      dismissedBy: string | null;
-      dismissedAt: Date | null;
-      escalatedToCaseId: string | null;
-      exclusionId: string | null;
-      createdAt: Date;
-      updatedAt: Date;
-    }>,
-  ): DisclosureResponseDto {
-    const riu = extension.riu;
-
-    // Determine status from RIU status
-    let status: DisclosureStatus;
-    switch (riu.status) {
-      case RiuStatus.COMPLETED:
-        status = DisclosureStatus.APPROVED;
-        break;
-      case RiuStatus.CLOSED:
-        status = DisclosureStatus.REJECTED;
-        break;
-      case RiuStatus.RELEASED:
-        status = DisclosureStatus.UNDER_REVIEW;
-        break;
-      default:
-        status = DisclosureStatus.SUBMITTED;
-    }
-
-    // Get case info if linked
-    const caseAssoc = riu.caseAssociations?.[0];
-
-    return {
-      id: riu.id,
-      referenceNumber: riu.referenceNumber,
-      organizationId: riu.organizationId,
-      status,
-      disclosureType: extension.disclosureType,
-      disclosureSubtype: extension.disclosureSubtype ?? undefined,
-      disclosureValue: extension.disclosureValue
-        ? Number(extension.disclosureValue)
-        : undefined,
-      disclosureCurrency: extension.disclosureCurrency ?? undefined,
-      estimatedAnnualValue: extension.estimatedAnnualValue
-        ? Number(extension.estimatedAnnualValue)
-        : undefined,
-      thresholdTriggered: extension.thresholdTriggered,
-      thresholdAmount: extension.thresholdAmount
-        ? Number(extension.thresholdAmount)
-        : undefined,
-      conflictDetected: extension.conflictDetected,
-      conflictReason: extension.conflictReason ?? undefined,
-      relatedPersonId: extension.relatedPersonId ?? undefined,
-      relatedPersonName: extension.relatedPersonName ?? undefined,
-      relatedCompany: extension.relatedCompany ?? undefined,
-      relationshipType: extension.relationshipType ?? undefined,
-      effectiveDate: extension.effectiveDate ?? undefined,
-      expirationDate: extension.expirationDate ?? undefined,
-      formTemplateId: extension.formTemplateId ?? undefined,
-      formVersion: extension.formVersion ?? undefined,
-      formData: (riu.formResponses as Record<string, unknown>) ?? {},
-      campaignId: riu.campaignId ?? undefined,
-      campaignAssignmentId: riu.campaignAssignmentId ?? undefined,
-      thresholdEvaluation: undefined, // Not loaded in query
-      conflicts: conflicts.map((c) => this.mapConflictToDto(c)),
-      caseId: caseAssoc?.case?.id,
-      caseReferenceNumber: caseAssoc?.case?.referenceNumber,
-      createdAt: riu.createdAt,
-      updatedAt: extension.createdAt,
-      submittedAt: riu.createdAt,
-      submittedById: riu.createdById,
-    };
-  }
-
-  /**
-   * Maps extension to list item DTO.
-   */
-  private mapExtensionToListItem(
-    extension: {
-      riuId: string;
-      createdAt: Date;
-      disclosureType: DisclosureType;
-      disclosureSubtype: string | null;
-      disclosureValue: Decimal | null;
-      disclosureCurrency: string | null;
-      relatedCompany: string | null;
-      relatedPersonName: string | null;
-      thresholdTriggered: boolean;
-      conflictDetected: boolean;
-      riu: {
-        id: string;
-        referenceNumber: string;
-        status: RiuStatus;
-        createdAt: Date;
-        createdBy?: {
-          id: string;
-          firstName: string;
-          lastName: string;
-          email: string;
-        };
-      };
-    },
-    conflictCount: number,
-  ): DisclosureListItemDto {
-    const riu = extension.riu;
-
-    // Determine status from RIU status
-    let status: DisclosureStatus;
-    switch (riu.status) {
-      case RiuStatus.COMPLETED:
-        status = DisclosureStatus.APPROVED;
-        break;
-      case RiuStatus.CLOSED:
-        status = DisclosureStatus.REJECTED;
-        break;
-      case RiuStatus.RELEASED:
-        status = DisclosureStatus.UNDER_REVIEW;
-        break;
-      default:
-        status = DisclosureStatus.SUBMITTED;
-    }
-
-    return {
-      id: riu.id,
-      referenceNumber: riu.referenceNumber,
-      status,
-      disclosureType: extension.disclosureType,
-      disclosureSubtype: extension.disclosureSubtype ?? undefined,
-      disclosureValue: extension.disclosureValue
-        ? Number(extension.disclosureValue)
-        : undefined,
-      disclosureCurrency: extension.disclosureCurrency ?? undefined,
-      relatedCompany: extension.relatedCompany ?? undefined,
-      relatedPersonName: extension.relatedPersonName ?? undefined,
-      thresholdTriggered: extension.thresholdTriggered,
-      conflictDetected: extension.conflictDetected,
-      conflictCount,
-      createdAt: extension.createdAt,
-      submittedAt: riu.createdAt,
-      submittedBy: riu.createdBy ?? {
-        id: "",
-        firstName: "",
-        lastName: "",
-        email: "",
-      },
-    };
-  }
-
-  /**
-   * Maps conflict alert to DTO.
-   */
-  private mapConflictToDto(conflict: {
-    id: string;
-    organizationId: string;
-    disclosureId: string;
-    conflictType: string;
-    severity: string;
-    status: string;
-    summary: string;
-    matchedEntity: string;
-    matchConfidence: number;
-    matchDetails: Prisma.JsonValue;
-    severityFactors: Prisma.JsonValue | null;
-    dismissedCategory: string | null;
-    dismissedReason: string | null;
-    dismissedBy: string | null;
-    dismissedAt: Date | null;
-    escalatedToCaseId: string | null;
-    exclusionId: string | null;
-    createdAt: Date;
-    updatedAt: Date;
-  }): ConflictAlertDto {
-    return {
-      id: conflict.id,
-      organizationId: conflict.organizationId,
-      disclosureId: conflict.disclosureId,
-      conflictType: conflict.conflictType as ConflictAlertDto["conflictType"],
-      severity: conflict.severity as ConflictAlertDto["severity"],
-      status: conflict.status as ConflictAlertDto["status"],
-      summary: conflict.summary,
-      matchedEntity: conflict.matchedEntity,
-      matchConfidence: conflict.matchConfidence,
-      matchDetails: conflict.matchDetails as ConflictAlertDto["matchDetails"],
-      severityFactors: conflict.severityFactors
-        ? (conflict.severityFactors as unknown as ConflictAlertDto["severityFactors"])
-        : undefined,
-      dismissedCategory:
-        (conflict.dismissedCategory as DismissalCategory | undefined) ??
-        undefined,
-      dismissedReason: conflict.dismissedReason ?? undefined,
-      dismissedBy: conflict.dismissedBy ?? undefined,
-      dismissedAt: conflict.dismissedAt ?? undefined,
-      escalatedToCaseId: conflict.escalatedToCaseId ?? undefined,
-      exclusionId: conflict.exclusionId ?? undefined,
-      createdAt: conflict.createdAt,
-      updatedAt: conflict.updatedAt,
     };
   }
 }

@@ -9,6 +9,9 @@ import { ThresholdService } from "./threshold.service";
 import { ConflictDetectionService } from "./conflict-detection.service";
 import { ConflictMatchingService } from "./services/conflict-matching.service";
 import { ConflictExclusionService } from "./services/conflict-exclusion.service";
+import { DisclosureDraftService } from "./services/disclosure-draft.service";
+import { DisclosureQueryService } from "./services/disclosure-query.service";
+import { DisclosureSubmissionService } from "./disclosure-submission.service";
 import { AiTriageService } from "./ai-triage.service";
 import { TriageController } from "./triage.controller";
 import { ConflictController } from "./conflict.controller";
@@ -25,6 +28,9 @@ import { ConflictController } from "./conflict.controller";
  * - ConflictDetectionService: Cross-system conflict detection coordinator (RS.41-46)
  * - ConflictMatchingService: Fuzzy matching and individual conflict checks
  * - ConflictExclusionService: Exclusion management
+ * - DisclosureSubmissionService: Disclosure submission coordinator
+ * - DisclosureDraftService: Draft save/resume functionality
+ * - DisclosureQueryService: Query operations and DTO mapping
  * - AiTriageService: AI-assisted bulk triage (RS.47)
  *
  * Controllers:
@@ -47,6 +53,9 @@ import { ConflictController } from "./conflict.controller";
     ConflictMatchingService,
     ConflictExclusionService,
     ConflictDetectionService,
+    DisclosureDraftService,
+    DisclosureQueryService,
+    DisclosureSubmissionService,
     AiTriageService,
   ],
   exports: [
@@ -55,6 +64,9 @@ import { ConflictController } from "./conflict.controller";
     ConflictDetectionService,
     ConflictMatchingService,
     ConflictExclusionService,
+    DisclosureDraftService,
+    DisclosureQueryService,
+    DisclosureSubmissionService,
     AiTriageService,
   ],
 })
