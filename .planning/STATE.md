@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-02-13)
 
 ## Current Position
 
-Phase: 31 of 31 (Code Quality & Performance) — In Progress
-Plan: 7 of 8 complete (31-01 through 31-07)
-Status: Phase 31 in progress
-Last activity: 2026-02-15 — Completed 31-07-PLAN.md
+Phase: 31 of 31 (Code Quality & Performance) — COMPLETE
+Plan: 8 of 8 complete (31-01 through 31-08)
+Status: Phase 31 complete - Milestone v1.1 Complete
+Last activity: 2026-02-15 — Completed 31-08-PLAN.md (JWT RS256 with key rotation)
 
-Progress: [█████████░] 97% (v1.1 remediation - 28 of 31 plans)
+Progress: [██████████] 100% (v1.1 remediation - 31 of 31 plans)
 
 ## Milestone v1.1: Code Review Remediation
 
@@ -22,14 +22,14 @@ Progress: [█████████░] 97% (v1.1 remediation - 28 of 31 plan
 **Findings:** 36 (8 Critical, 12 High, 13 Medium, 3 Low)
 **Overall Grade:** C- → Target: B+ after remediation
 
-| Phase | Name                         | Requirements              | Status      |
-| ----- | ---------------------------- | ------------------------- | ----------- |
-| 26    | Emergency Fixes              | EMER-01, EMER-02, EMER-03 | Complete    |
-| 27    | Security Hardening           | SEC-01 to SEC-06          | Complete    |
-| 28    | Production Readiness         | PROD-01 to PROD-07        | Complete    |
-| 29    | Error Handling & Reliability | ERR-01 to ERR-09          | Complete    |
-| 30    | Test Coverage Foundation     | TEST-01 to TEST-04        | Complete    |
-| 31    | Code Quality & Performance   | QUAL-01 to QUAL-08        | In Progress |
+| Phase | Name                         | Requirements              | Status   |
+| ----- | ---------------------------- | ------------------------- | -------- |
+| 26    | Emergency Fixes              | EMER-01, EMER-02, EMER-03 | Complete |
+| 27    | Security Hardening           | SEC-01 to SEC-06          | Complete |
+| 28    | Production Readiness         | PROD-01 to PROD-07        | Complete |
+| 29    | Error Handling & Reliability | ERR-01 to ERR-09          | Complete |
+| 30    | Test Coverage Foundation     | TEST-01 to TEST-04        | Complete |
+| 31    | Code Quality & Performance   | QUAL-01 to QUAL-08        | Complete |
 
 ## Milestone Targets
 
@@ -267,6 +267,13 @@ Key outcomes:
 - Skipped cases.service.ts decomposition: Actual LOC (795) below 1000+ threshold
 - Some services remain >300 LOC but significantly reduced (e.g., conflict-detection 1431->806)
 
+### Key Decisions (31-08)
+
+- RS256 auto-generated in development, env-configured in production
+- 7-day key overlap period matches refresh token lifetime
+- Dual RS256/HS256 support during migration (existing tokens valid)
+- secretOrKeyProvider pattern for dynamic key resolution by kid
+
 ### Blockers
 
 None currently.
@@ -282,6 +289,7 @@ None currently.
 | 31-05 | 2    | QUAL-05: Frontend toast notifications            | Yes        | Complete |
 | 31-06 | 3    | QUAL-06: Controller logic extraction             | Yes        | Complete |
 | 31-07 | 4    | QUAL-07: Service decomposition (1000+ LOC)       | Yes        | Complete |
+| 31-08 | 5    | QUAL-08: JWT RS256 with key rotation             | Yes        | Complete |
 
 ## Phase 30 Plans
 
@@ -295,7 +303,7 @@ None currently.
 
 ## Session Continuity
 
-Last session: 2026-02-15 — Completed 31-07-PLAN.md (Service decomposition)
-Stopped at: Phase 31 in progress — 7 of 8 plans complete (31-01 through 31-07)
+Last session: 2026-02-15 — Completed 31-08-PLAN.md (JWT RS256 with key rotation)
+Stopped at: Milestone v1.1 Complete - All 31 plans executed
 Resume file: None
-Next action: Continue with remaining Phase 31 plan (31-08)
+Next action: Milestone v1.1 Code Review Remediation complete. Ready for production deployment.
