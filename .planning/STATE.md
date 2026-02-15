@@ -69,7 +69,9 @@ Progress: v1.0 + v1.1 complete. v1.2 Phase 32 Plans 01, 02, 03, 04, 05, 06, 07 c
 - 32-05: @MaxLength(72) on password fields to prevent bcrypt CPU exhaustion
 - 32-07: MessageRelayService audit logs use AuditActionCategory.ACCESS
 - 32-07: MFA logs use user.id instead of user.email (PII minimization)
-- 32-07: Operations middleware exemptions are specific internal/* routes
+- 32-07: Operations middleware exemptions are specific internal/\* routes
+- 32-06: mfaVerified stored in both access and refresh tokens for session persistence
+- 32-06: MfaGuard checks user.mfaVerified from RequestUser (JWT payload)
 
 ### Blockers
 
@@ -77,7 +79,7 @@ None currently.
 
 ## Session Continuity
 
-Last session: 2026-02-15T19:52:00Z
-Stopped at: Completed 32-07-PLAN.md
+Last session: 2026-02-15T19:58:49Z
+Stopped at: Completed 32-06-PLAN.md (Session-Bound MFA in JWT)
 Resume file: None
 Next action: Execute 32-08-PLAN.md (final plan in Phase 32), then continue to Phase 33
