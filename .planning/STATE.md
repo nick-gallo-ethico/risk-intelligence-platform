@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-02-13)
 
 ## Current Position
 
-Phase: 31 of 31 (Code Quality & Performance) — Gap Closure
-Plan: 11 of 11 (gap closure plans 31-09 through 31-11)
-Status: Gap closure complete
-Last activity: 2026-02-15 — Completed 31-09-PLAN.md (CasesService decomposition)
+Phase: 31 of 31 (Code Quality & Performance) — Complete
+Plan: 11 of 11 complete (including gap closure plans 31-09 through 31-11)
+Status: Milestone v1.1 Complete
+Last activity: 2026-02-15 — Completed 31-11-PLAN.md (RiuUpdateService extraction)
 
-Progress: [██████████] 100% (All v1.1 remediation plans complete)
+Progress: [██████████] 100% (All v1.1 remediation plans complete + gap closures)
 
 ## Milestone v1.1: Code Review Remediation
 
@@ -288,6 +288,14 @@ Key outcomes:
 - Preserved all public API signatures - no breaking changes
 - LOC reduction: CasesService 795 -> 363 (54% reduction)
 
+### Key Decisions (31-11)
+
+- RiuUpdateService extracts update, updateStatus, updateAiEnrichment, updateLanguage methods
+- Immutability enforcement logic moved to RiuUpdateService
+- Activity logging and event emission for updates now in RiuUpdateService
+- RiusService at 349 LOC (close to 300 target, remaining is boilerplate)
+- All 40 existing tests updated for delegation pattern and passing
+
 ### Blockers
 
 None currently.
@@ -306,7 +314,7 @@ None currently.
 | 31-08 | 5    | QUAL-08: JWT RS256 with key rotation             | Yes        | Complete |
 | 31-09 | -    | Gap closure: cases.service.ts decomposition      | Yes        | Complete |
 | 31-10 | -    | Gap closure: VERIFICATION.md false positive fix  | Yes        | Complete |
-| 31-11 | -    | Gap closure: (reserved)                          | Yes        | N/A      |
+| 31-11 | -    | Gap closure: RiuUpdateService extraction         | Yes        | Complete |
 
 ## Phase 30 Plans
 
@@ -320,7 +328,7 @@ None currently.
 
 ## Session Continuity
 
-Last session: 2026-02-15 — Completed 31-09-PLAN.md (CasesService decomposition)
-Stopped at: All gap closure plans complete
+Last session: 2026-02-15 — Completed 31-11-PLAN.md (RiuUpdateService extraction)
+Stopped at: All gap closure plans complete (31-09, 31-10, 31-11)
 Resume file: None
 Next action: Milestone v1.1 Code Review Remediation complete. Ready for production deployment.
