@@ -2,9 +2,10 @@ import {
   Injectable,
   UnauthorizedException,
   BadRequestException,
+  Logger,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
-import { JwtService } from "@nestjs/jwt";
+import { JwtService, JwtSignOptions } from "@nestjs/jwt";
 import * as bcrypt from "bcrypt";
 import { PrismaService } from "../prisma/prisma.service";
 import { LoginDto, AuthResponseDto, AuthUserDto } from "./dto";
@@ -12,9 +13,11 @@ import {
   AccessTokenPayload,
   RefreshTokenPayload,
 } from "./interfaces/jwt-payload.interface";
+import { JwtKeyService } from "./services";
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
   private readonly accessTokenExpiry: string;
   private readonly refreshTokenExpiry: string;
 
@@ -22,6 +25,7 @@ export class AuthService {
     private prisma: PrismaService,
     private jwtService: JwtService,
     private configService: ConfigService,
+    private jwtKeyService: JwtKeyService,
   ) {
     this.accessTokenExpiry =
       this.configService.get<string>("jwt.accessTokenExpiry") ?? "15m";
@@ -288,6 +292,7 @@ export class AuthService {
 
   /**
    * Generates access and refresh tokens for a user.
+   * Uses RS256 if configured, falls back to HS256.
    */
   private async generateTokens(
     user: {
@@ -314,13 +319,44 @@ export class AuthService {
       type: "refresh",
     };
 
+    // Get signing options from JwtKeyService
+    const signingOptions = this.jwtKeyService.getSigningOptions();
+
+    // Build sign options with algorithm and key
+    const accessSignOptions: JwtSignOptions = {
+      expiresIn: this.accessTokenExpiry,
+    };
+
+    const refreshSignOptions: JwtSignOptions = {
+      expiresIn: this.refreshTokenExpiry,
+    };
+
+    // Add RS256-specific options
+    if (signingOptions.algorithm === "RS256") {
+      accessSignOptions.algorithm = "RS256";
+      accessSignOptions.privateKey = signingOptions.key;
+      if (signingOptions.kid) {
+        accessSignOptions.keyid = signingOptions.kid;
+      }
+
+      refreshSignOptions.algorithm = "RS256";
+      refreshSignOptions.privateKey = signingOptions.key;
+      if (signingOptions.kid) {
+        refreshSignOptions.keyid = signingOptions.kid;
+      }
+
+      this.logger.debug(
+        `Signing tokens with RS256, kid: ${signingOptions.kid || "none"}`,
+      );
+    } else {
+      // HS256 uses secret configured in JwtModule
+      accessSignOptions.secret = signingOptions.key;
+      refreshSignOptions.secret = signingOptions.key;
+    }
+
     const [accessToken, refreshToken] = await Promise.all([
-      this.jwtService.signAsync(accessPayload, {
-        expiresIn: this.accessTokenExpiry,
-      }),
-      this.jwtService.signAsync(refreshPayload, {
-        expiresIn: this.refreshTokenExpiry,
-      }),
+      this.jwtService.signAsync(accessPayload, accessSignOptions),
+      this.jwtService.signAsync(refreshPayload, refreshSignOptions),
     ]);
 
     // Calculate expiresIn in seconds (default 15 minutes = 900 seconds)
