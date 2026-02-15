@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-02-13)
 
 ## Current Position
 
-Phase: 31 of 31 (Code Quality & Performance) — COMPLETE
-Plan: 8 of 8 complete (31-01 through 31-08)
-Status: Phase 31 complete - Milestone v1.1 Complete
-Last activity: 2026-02-15 — Completed 31-08-PLAN.md (JWT RS256 with key rotation)
+Phase: 31 of 31 (Code Quality & Performance) — Gap Closure
+Plan: 10 of 11 (gap closure plans 31-09 through 31-11)
+Status: Executing gap closure plans
+Last activity: 2026-02-15 — Completed 31-10-PLAN.md (VERIFICATION.md false positive correction)
 
-Progress: [██████████] 100% (v1.1 remediation - 31 of 31 plans)
+Progress: [██████████] 100% base plans + gap closure in progress
 
 ## Milestone v1.1: Code Review Remediation
 
@@ -274,6 +274,12 @@ Key outcomes:
 - Dual RS256/HS256 support during migration (existing tokens valid)
 - secretOrKeyProvider pattern for dynamic key resolution by kid
 
+### Key Decisions (31-10)
+
+- Toast component filename is toaster.tsx (shadcn convention), not sonner.tsx (library name)
+- Phase 31 now has 5/8 success criteria verified (up from 4/8)
+- Gap 3 (toast component) is fully resolved, not partial
+
 ### Blockers
 
 None currently.
@@ -290,6 +296,9 @@ None currently.
 | 31-06 | 3    | QUAL-06: Controller logic extraction             | Yes        | Complete |
 | 31-07 | 4    | QUAL-07: Service decomposition (1000+ LOC)       | Yes        | Complete |
 | 31-08 | 5    | QUAL-08: JWT RS256 with key rotation             | Yes        | Complete |
+| 31-09 | -    | Gap closure: create gap closure plans            | Yes        | Complete |
+| 31-10 | -    | Gap closure: VERIFICATION.md false positive fix  | Yes        | Complete |
+| 31-11 | -    | Gap closure: cases.service.ts decomposition      | Yes        | Pending  |
 
 ## Phase 30 Plans
 
@@ -303,7 +312,7 @@ None currently.
 
 ## Session Continuity
 
-Last session: 2026-02-15 — Completed 31-08-PLAN.md (JWT RS256 with key rotation)
-Stopped at: Milestone v1.1 Complete - All 31 plans executed
-Resume file: None
-Next action: Milestone v1.1 Code Review Remediation complete. Ready for production deployment.
+Last session: 2026-02-15 — Completed 31-10-PLAN.md (VERIFICATION.md false positive correction)
+Stopped at: Gap closure plan 31-10 complete
+Resume file: .planning/phases/31-code-quality-performance/31-11-PLAN.md
+Next action: Execute 31-11 (cases.service.ts decomposition) to complete Phase 31 gap closure.
