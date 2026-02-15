@@ -1022,7 +1022,19 @@ Plans:
 3. JWT tokens use RS256 algorithm only (algorithm confusion attack prevented)
 4. Application fails startup if JWT_REFRESH_SECRET is undefined
 5. MFA verification persists in JWT payload (session-bound, not per-request)
-   **Plans**: TBD (created during plan-phase)
+
+**Plans**: 8 plans in 3 waves
+
+Plans:
+
+- [ ] 32-01-PLAN.md (Wave 1) — Secure 4 controllers: campaigns, attestation, conflict, checklist with JwtAuthGuard + TenantGuard + RolesGuard
+- [ ] 32-02-PLAN.md (Wave 1) — Secure remaining 2 controllers: migration, policy-approval with guards and decorators
+- [ ] 32-03-PLAN.md (Wave 1) — Fix WebSocket AI gateway: verify JWT on connection, extract context from verified payload
+- [ ] 32-04-PLAN.md (Wave 1) — Pin JWT algorithm to RS256 only, validate JWT_REFRESH_SECRET on startup
+- [ ] 32-05-PLAN.md (Wave 2) — Fix DTOs: remove organizationId from chat DTO, add @MaxLength(72) to password, random demo passwords
+- [ ] 32-06-PLAN.md (Wave 2) — Add mfaVerified to JWT payload for session-bound MFA verification
+- [ ] 32-07-PLAN.md (Wave 2) — Add audit logging to relay service, minimize PII in logs, narrow operations middleware exemption
+- [ ] 32-08-PLAN.md (Wave 3) — Human verification checkpoint for all security fixes
 
 ### Phase 33: Slop Cleanup & Production Readiness (v1.2)
 
@@ -1036,7 +1048,19 @@ Plans:
 3. 384 section-separator comments removed across 84 files
 4. All 38 TODO comments triaged (resolved or converted to tracked issues)
 5. File uploads validate magic bytes before processing (not just MIME header)
-   **Plans**: TBD (created during plan-phase)
+
+**Plans**: 8 plans in 3 waves
+
+Plans:
+
+- [ ] 32-01-PLAN.md (Wave 1) — Secure 4 controllers: campaigns, attestation, conflict, checklist with JwtAuthGuard + TenantGuard + RolesGuard
+- [ ] 32-02-PLAN.md (Wave 1) — Secure remaining 2 controllers: migration, policy-approval with guards and decorators
+- [ ] 32-03-PLAN.md (Wave 1) — Fix WebSocket AI gateway: verify JWT on connection, extract context from verified payload
+- [ ] 32-04-PLAN.md (Wave 1) — Pin JWT algorithm to RS256 only, validate JWT_REFRESH_SECRET on startup
+- [ ] 32-05-PLAN.md (Wave 2) — Fix DTOs: remove organizationId from chat DTO, add @MaxLength(72) to password, random demo passwords
+- [ ] 32-06-PLAN.md (Wave 2) — Add mfaVerified to JWT payload for session-bound MFA verification
+- [ ] 32-07-PLAN.md (Wave 2) — Add audit logging to relay service, minimize PII in logs, narrow operations middleware exemption
+- [ ] 32-08-PLAN.md (Wave 3) — Human verification checkpoint for all security fixes
 
 ### Phase 34: Performance & Scalability (v1.2)
 
@@ -1050,7 +1074,15 @@ Plans:
 3. Prisma connection pool configured with limits and timeouts
 4. Persons createFromEmployee and getManagerChain batch-fetch relations (no N+1)
 5. Dashboard cache uses Redis store (multi-instance safe)
-   **Plans**: TBD (created during plan-phase)
+   **Plans**: 5 plans in 2 waves
+
+Plans:
+
+- [ ] 34-01-PLAN.md (Wave 1) — Fix unbounded queries: cursor-based batch processing for campaign reminders, bounded getDueSchedules/getDirectReports, Prisma aggregate for compliance stats
+- [ ] 34-02-PLAN.md (Wave 1) — Fix N+1 patterns: batch createFromEmployee with parallel relation fetching, recursive CTE for getManagerChain
+- [ ] 34-03-PLAN.md (Wave 1) — Redis caching: TenantCacheService with tenant-isolated keys, Redis-backed CacheModule, dashboard cache migration
+- [ ] 34-04-PLAN.md (Wave 2) — Resource management: Prisma connection pool configuration, LRU cache for agent instances with TTL/max eviction
+- [ ] 34-05-PLAN.md (Wave 2) — Verification checkpoint: automated checks for all 11 PERF requirements, human verification
 
 ### Phase 35: Code Quality & Architecture (v1.2)
 
@@ -1064,7 +1096,19 @@ Plans:
 3. Backend tsconfig.json has strict: true with all code compiling
 4. Non-null assertions replaced with explicit null checks or runtime guards
 5. Forms controller uses matching DTO types (no as any casts)
-   **Plans**: TBD (created during plan-phase)
+
+**Plans**: 8 plans in 3 waves
+
+Plans:
+
+- [ ] 32-01-PLAN.md (Wave 1) — Secure 4 controllers: campaigns, attestation, conflict, checklist with JwtAuthGuard + TenantGuard + RolesGuard
+- [ ] 32-02-PLAN.md (Wave 1) — Secure remaining 2 controllers: migration, policy-approval with guards and decorators
+- [ ] 32-03-PLAN.md (Wave 1) — Fix WebSocket AI gateway: verify JWT on connection, extract context from verified payload
+- [ ] 32-04-PLAN.md (Wave 1) — Pin JWT algorithm to RS256 only, validate JWT_REFRESH_SECRET on startup
+- [ ] 32-05-PLAN.md (Wave 2) — Fix DTOs: remove organizationId from chat DTO, add @MaxLength(72) to password, random demo passwords
+- [ ] 32-06-PLAN.md (Wave 2) — Add mfaVerified to JWT payload for session-bound MFA verification
+- [ ] 32-07-PLAN.md (Wave 2) — Add audit logging to relay service, minimize PII in logs, narrow operations middleware exemption
+- [ ] 32-08-PLAN.md (Wave 3) — Human verification checkpoint for all security fixes
 
 ### Phase 36: Test Coverage Expansion (v1.2)
 
@@ -1078,7 +1122,19 @@ Plans:
 3. Impersonation service, middleware, and guard have 90%+ unit test coverage
 4. 12+ modules have tenant isolation E2E tests
 5. Overall backend service coverage reaches 60%+ (from 7.9%)
-   **Plans**: TBD (created during plan-phase)
+
+**Plans**: 8 plans in 3 waves
+
+Plans:
+
+- [ ] 32-01-PLAN.md (Wave 1) — Secure 4 controllers: campaigns, attestation, conflict, checklist with JwtAuthGuard + TenantGuard + RolesGuard
+- [ ] 32-02-PLAN.md (Wave 1) — Secure remaining 2 controllers: migration, policy-approval with guards and decorators
+- [ ] 32-03-PLAN.md (Wave 1) — Fix WebSocket AI gateway: verify JWT on connection, extract context from verified payload
+- [ ] 32-04-PLAN.md (Wave 1) — Pin JWT algorithm to RS256 only, validate JWT_REFRESH_SECRET on startup
+- [ ] 32-05-PLAN.md (Wave 2) — Fix DTOs: remove organizationId from chat DTO, add @MaxLength(72) to password, random demo passwords
+- [ ] 32-06-PLAN.md (Wave 2) — Add mfaVerified to JWT payload for session-bound MFA verification
+- [ ] 32-07-PLAN.md (Wave 2) — Add audit logging to relay service, minimize PII in logs, narrow operations middleware exemption
+- [ ] 32-08-PLAN.md (Wave 3) — Human verification checkpoint for all security fixes
 
 ---
 
@@ -1128,16 +1184,16 @@ Plans:
 | 29. Error Handling & Reliability        | v1.1      | 5/5            | Verified    | 2026-02-14 |
 | 30. Test Coverage Foundation            | v1.1      | 5/5            | Verified    | 2026-02-15 |
 | 31. Code Quality & Performance          | v1.1      | 22/22          | Verified    | 2026-02-15 |
-| 32. Security & SOC 2 Fixes              | v1.2      | 0/TBD          | Not started | -          |
+| 32. Security & SOC 2 Fixes              | v1.2      | 0/8            | Planned     | -          |
 | 33. Slop Cleanup & Production Readiness | v1.2      | 0/TBD          | Not started | -          |
-| 34. Performance & Scalability           | v1.2      | 0/TBD          | Not started | -          |
+| 34. Performance & Scalability           | v1.2      | 0/5            | Planned     | -          |
 | 35. Code Quality & Architecture         | v1.2      | 0/TBD          | Not started | -          |
 | 36. Test Coverage Expansion             | v1.2      | 0/TBD          | Not started | -          |
 
 ---
 
 _Roadmap created: 2026-02-02_
-_Updated: 2026-02-15 (v1.2 phases added)_
+_Updated: 2026-02-15 (Phase 32 plans created)_
 _Total phases: 36 (+ decimal insertions)_
 _Total plans: 285+ completed across v1.0 and v1.1, TBD for v1.2_
 _Total requirements: 149 (v1.0) + 36 (v1.1) + 77 (v1.2) = 262_
