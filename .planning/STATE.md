@@ -12,9 +12,9 @@ See: .planning/PROJECT.md (updated 2026-02-15)
 Phase: 32 of 36 (Security & SOC 2 Fixes) + Phases 22, 23, 25.1 continued
 Plan: 7 of 8 complete
 Status: In progress
-Last activity: 2026-02-15 — Completed 32-05-PLAN.md (DTO Security Fixes)
+Last activity: 2026-02-15 — Completed 32-07-PLAN.md (Audit Logging & PII Minimization)
 
-Progress: v1.0 + v1.1 complete. v1.2 Phase 32 Plans 01, 02, 03, 04, 05 complete.
+Progress: v1.0 + v1.1 complete. v1.2 Phase 32 Plans 01, 02, 03, 04, 05, 06, 07 complete.
 
 ## Shipped Milestones
 
@@ -67,6 +67,9 @@ Progress: v1.0 + v1.1 complete. v1.2 Phase 32 Plans 01, 02, 03, 04, 05 complete.
 - 32-05: AiClientService accepts organizationId as separate parameter for logging
 - 32-05: Permanent demo accounts use DEMO_ACCOUNT_PASSWORD environment variable with fallback
 - 32-05: @MaxLength(72) on password fields to prevent bcrypt CPU exhaustion
+- 32-07: MessageRelayService audit logs use AuditActionCategory.ACCESS
+- 32-07: MFA logs use user.id instead of user.email (PII minimization)
+- 32-07: Operations middleware exemptions are specific internal/* routes
 
 ### Blockers
 
@@ -74,7 +77,7 @@ None currently.
 
 ## Session Continuity
 
-Last session: 2026-02-15T19:48:53Z
-Stopped at: Completed 32-05-PLAN.md
+Last session: 2026-02-15T19:52:00Z
+Stopped at: Completed 32-07-PLAN.md
 Resume file: None
-Next action: Execute 32-06-PLAN.md, 32-07-PLAN.md, 32-08-PLAN.md, or continue to Phase 33
+Next action: Execute 32-08-PLAN.md (final plan in Phase 32), then continue to Phase 33
