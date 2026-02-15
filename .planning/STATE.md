@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-15)
 ## Current Position
 
 Phase: 32 of 36 (Security & SOC 2 Fixes) + Phases 22, 23, 25.1 continued
-Plan: 4 of 8 complete
+Plan: 5 of 8 complete
 Status: In progress
-Last activity: 2026-02-15 — Completed 32-04-PLAN.md (JWT Algorithm Pinning)
+Last activity: 2026-02-15 — Completed 32-03-PLAN.md (WebSocket AI Gateway JWT Auth)
 
-Progress: v1.0 + v1.1 complete. v1.2 Phase 32 Plan 04 complete.
+Progress: v1.0 + v1.1 complete. v1.2 Phase 32 Plans 01, 03, 04 complete.
 
 ## Shipped Milestones
 
@@ -36,7 +36,7 @@ Progress: v1.0 + v1.1 complete. v1.2 Phase 32 Plan 04 complete.
 
 **Execution Order:**
 
-1. Phase 32: Security & SOC 2 (CRITICAL) - 13 requirements [IN PROGRESS - 4/8 plans complete]
+1. Phase 32: Security & SOC 2 (CRITICAL) - 13 requirements [IN PROGRESS - 5/8 plans complete]
 2. Phase 33: Slop Cleanup + Production - 16 requirements
 3. Phase 34: Performance & Scalability - 11 requirements
 4. Phase 35: Code Quality & Architecture - 5 requirements
@@ -56,6 +56,8 @@ Progress: v1.0 + v1.1 complete. v1.2 Phase 32 Plan 04 complete.
 - ESLint max-lines guardrail (warn at 500 LOC) prevents service bloat
 - 32-01: Employee attestation endpoints allow all authenticated roles
 - 32-01: userName derived from user.firstName + user.lastName in checklist controller
+- 32-03: WebSocket JWT verification extracts context from verified payload only (SEC-02)
+- 32-03: Use JwtKeyService.getAlgorithm() for algorithm-aware verification
 - 32-04: RS256 only for JWT - removed HS256 from all verification points (CVE-2015-9235)
 - 32-04: Fail closed on unknown algorithm - no fallback to weaker algorithms
 - 32-04: Startup validation throws error if JWT_REFRESH_SECRET undefined
@@ -66,7 +68,7 @@ None currently.
 
 ## Session Continuity
 
-Last session: 2026-02-15T19:27:49Z
-Stopped at: Completed 32-04-PLAN.md
+Last session: 2026-02-15T19:32:28Z
+Stopped at: Completed 32-03-PLAN.md
 Resume file: None
-Next action: Execute 32-05-PLAN.md
+Next action: Execute 32-02-PLAN.md or 32-05-PLAN.md
