@@ -32,6 +32,7 @@ import {
   HttpCode,
   HttpStatus,
   BadRequestException,
+  UseGuards,
 } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
 import {
@@ -42,6 +43,7 @@ import {
   ApiQuery,
   ApiConsumes,
   ApiBody,
+  ApiBearerAuth,
 } from "@nestjs/swagger";
 import { InjectQueue } from "@nestjs/bullmq";
 import { Queue } from "bullmq";
@@ -75,17 +77,13 @@ import {
 } from "./processors/migration.processor";
 import { MigrationSourceType } from "@prisma/client";
 import { nanoid } from "nanoid";
-
-// TODO: Add guards when auth module is fully integrated
-// import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
-// import { RolesGuard } from '../../../common/guards/roles.guard';
-// import { Roles } from '../../../common/decorators/roles.decorator';
-// import { CurrentUser } from '../../../common/decorators/current-user.decorator';
-// import { Role } from '@prisma/client';
-
-// Temporary hardcoded values for development
-const TEMP_ORG_ID = "00000000-0000-0000-0000-000000000001";
-const TEMP_USER_ID = "00000000-0000-0000-0000-000000000001";
+import { JwtAuthGuard } from "../../../common/guards/jwt-auth.guard";
+import { TenantGuard } from "../../../common/guards/tenant.guard";
+import { RolesGuard } from "../../../common/guards/roles.guard";
+import { Roles, UserRole } from "../../../common/decorators/roles.decorator";
+import { TenantId } from "../../../common/decorators/tenant-id.decorator";
+import { CurrentUser } from "../../../common/decorators/current-user.decorator";
+import { RequestUser } from "../../auth/interfaces/jwt-payload.interface";
 
 /**
  * Response DTO for upload operation
@@ -129,9 +127,10 @@ interface QueuedJobResponse {
 }
 
 @ApiTags("migrations")
+@ApiBearerAuth()
 @Controller("migrations")
-// @UseGuards(JwtAuthGuard, RolesGuard)
-// @Roles(Role.SYSTEM_ADMIN, Role.COMPLIANCE_OFFICER)
+@UseGuards(JwtAuthGuard, TenantGuard, RolesGuard)
+@Roles(UserRole.SYSTEM_ADMIN, UserRole.COMPLIANCE_OFFICER)
 export class MigrationController {
   constructor(
     private readonly migrationService: MigrationService,
@@ -170,14 +169,14 @@ export class MigrationController {
   async uploadFile(
     @UploadedFile() file: Express.Multer.File,
     @Body("sourceType") sourceType?: MigrationSourceType,
-    // @CurrentUser() user: User,
+    @TenantId() organizationId?: string,
+    @CurrentUser() user?: RequestUser,
   ): Promise<CreateMigrationJobResponseDto> {
     if (!file) {
       throw new BadRequestException("No file provided");
     }
 
-    const organizationId = TEMP_ORG_ID;
-    const userId = TEMP_USER_ID;
+    const userId = user!.id;
 
     // Upload to storage
     const uploadResult = await this.storageService.upload(
@@ -187,7 +186,7 @@ export class MigrationController {
         size: file.size,
         buffer: file.buffer,
       },
-      organizationId,
+      organizationId!,
       { subdirectory: "migrations" },
     );
 
@@ -200,7 +199,7 @@ export class MigrationController {
     };
 
     const job = await this.migrationService.createJob(
-      organizationId,
+      organizationId!,
       userId,
       dto,
     );
@@ -229,9 +228,8 @@ export class MigrationController {
   @ApiResponse({ status: 200, description: "List of migration jobs" })
   async listJobs(
     @Query() query: MigrationJobQueryDto,
-    // @CurrentUser() user: User,
+    @TenantId() organizationId: string,
   ): Promise<PaginatedResult<MigrationJobSummaryDto>> {
-    const organizationId = TEMP_ORG_ID;
     const result = await this.migrationService.listJobs(organizationId, query);
 
     return {
@@ -256,9 +254,8 @@ export class MigrationController {
   @ApiResponse({ status: 200, description: "Migration job details" })
   async getJob(
     @Param("id", ParseUUIDPipe) id: string,
-    // @CurrentUser() user: User,
+    @TenantId() organizationId: string,
   ): Promise<MigrationJobResponseDto> {
-    const organizationId = TEMP_ORG_ID;
     const job = await this.migrationService.getJob(organizationId, id);
 
     return {
@@ -289,9 +286,8 @@ export class MigrationController {
   @ApiResponse({ status: 204, description: "Migration cancelled" })
   async cancelJob(
     @Param("id", ParseUUIDPipe) id: string,
-    // @CurrentUser() user: User,
+    @TenantId() organizationId: string,
   ): Promise<void> {
-    const organizationId = TEMP_ORG_ID;
     await this.migrationService.cancelImport(organizationId, id);
   }
 
@@ -304,10 +300,8 @@ export class MigrationController {
   @ApiResponse({ status: 200, description: "Format detection result" })
   async detectFormat(
     @Param("id", ParseUUIDPipe) id: string,
-    // @CurrentUser() user: User,
+    @TenantId() organizationId: string,
   ): Promise<FormatDetectionResponseDto> {
-    const organizationId = TEMP_ORG_ID;
-
     // Get job to retrieve file
     const job = await this.migrationService.getJob(organizationId, id);
 
@@ -355,14 +349,13 @@ export class MigrationController {
   })
   async getSuggestedMappings(
     @Param("id", ParseUUIDPipe) id: string,
-    // @CurrentUser() user: User,
+    @TenantId() organizationId: string,
   ): Promise<{
     mappings: FieldMappingDto[];
     targetFields: ReturnType<
       typeof MappingSuggestionService.prototype.getTargetFields
     >;
   }> {
-    const organizationId = TEMP_ORG_ID;
     const job = await this.migrationService.getJob(organizationId, id);
 
     // Get sample data from preview or parse file
@@ -430,10 +423,10 @@ export class MigrationController {
   async saveMappings(
     @Param("id", ParseUUIDPipe) id: string,
     @Body() dto: SaveFieldMappingsDto,
-    // @CurrentUser() user: User,
+    @TenantId() organizationId: string,
+    @CurrentUser() user: RequestUser,
   ): Promise<{ saved: boolean }> {
-    const organizationId = TEMP_ORG_ID;
-    const userId = TEMP_USER_ID;
+    const userId = user.id;
     await this.migrationService.saveMappings(organizationId, id, userId, dto);
 
     // Optionally save as template
@@ -455,9 +448,8 @@ export class MigrationController {
   @ApiResponse({ status: 200, description: "Available templates" })
   async getMappingTemplates(
     @Param("id", ParseUUIDPipe) id: string,
-    // @CurrentUser() user: User,
+    @TenantId() organizationId: string,
   ): Promise<FieldMappingDto[]> {
-    const organizationId = TEMP_ORG_ID;
     const job = await this.migrationService.getJob(organizationId, id);
     return this.migrationTemplateService.loadTemplate(
       organizationId,
@@ -474,10 +466,10 @@ export class MigrationController {
   @ApiResponse({ status: 200, description: "Validation job queued" })
   async queueValidation(
     @Param("id", ParseUUIDPipe) id: string,
-    // @CurrentUser() user: User,
+    @TenantId() organizationId: string,
+    @CurrentUser() user: RequestUser,
   ): Promise<QueuedJobResponse> {
-    const organizationId = TEMP_ORG_ID;
-    const userId = TEMP_USER_ID;
+    const userId = user.id;
 
     // Queue for async processing
     const queueJob = await this.migrationQueue.add(
@@ -509,10 +501,10 @@ export class MigrationController {
   @ApiResponse({ status: 200, description: "Preview job queued" })
   async queuePreview(
     @Param("id", ParseUUIDPipe) id: string,
-    // @CurrentUser() user: User,
+    @TenantId() organizationId: string,
+    @CurrentUser() user: RequestUser,
   ): Promise<QueuedJobResponse> {
-    const organizationId = TEMP_ORG_ID;
-    const userId = TEMP_USER_ID;
+    const userId = user.id;
 
     // Queue for async processing
     const queueJob = await this.migrationQueue.add(
@@ -545,9 +537,8 @@ export class MigrationController {
   async getPreview(
     @Param("id", ParseUUIDPipe) id: string,
     @Query("limit", new DefaultValuePipe(20), ParseIntPipe) limit: number,
-    // @CurrentUser() user: User,
+    @TenantId() organizationId: string,
   ): Promise<{ previewData: PreviewRow[]; status: string }> {
-    const organizationId = TEMP_ORG_ID;
     const job = await this.migrationService.getJob(organizationId, id);
 
     const previewData = (job.previewData as unknown as PreviewRow[]) || [];
@@ -568,10 +559,10 @@ export class MigrationController {
   async startImport(
     @Param("id", ParseUUIDPipe) id: string,
     @Body() dto: StartImportDto,
-    // @CurrentUser() user: User,
+    @TenantId() organizationId: string,
+    @CurrentUser() user: RequestUser,
   ): Promise<QueuedJobResponse> {
-    const organizationId = TEMP_ORG_ID;
-    const userId = TEMP_USER_ID;
+    const userId = user.id;
 
     if (!dto.confirmed) {
       throw new BadRequestException("Import must be confirmed");
@@ -611,9 +602,8 @@ export class MigrationController {
   @ApiResponse({ status: 200, description: "Rollback status" })
   async getRollbackStatus(
     @Param("id", ParseUUIDPipe) id: string,
-    // @CurrentUser() user: User,
+    @TenantId() organizationId: string,
   ): Promise<RollbackCheckResponseDto> {
-    const organizationId = TEMP_ORG_ID;
     return this.migrationService.canRollback(organizationId, id);
   }
 
@@ -625,10 +615,10 @@ export class MigrationController {
   async queueRollback(
     @Param("id", ParseUUIDPipe) id: string,
     @Body() dto: RollbackDto,
-    // @CurrentUser() user: User,
+    @TenantId() organizationId: string,
+    @CurrentUser() user: RequestUser,
   ): Promise<QueuedJobResponse> {
-    const organizationId = TEMP_ORG_ID;
-    const userId = TEMP_USER_ID;
+    const userId = user.id;
 
     if (dto.confirmText !== "ROLLBACK") {
       throw new BadRequestException('Confirmation text must be "ROLLBACK"');
@@ -673,9 +663,9 @@ export class MigrationController {
   @Get("templates/list")
   @ApiOperation({ summary: "List saved mapping templates" })
   @ApiResponse({ status: 200, description: "Available templates" })
-  async listTemplates() // @CurrentUser() user: User,
-  : Promise<{ templates: { name: string; fieldCount: number }[] }> {
-    const organizationId = TEMP_ORG_ID;
+  async listTemplates(
+    @TenantId() organizationId: string,
+  ): Promise<{ templates: { name: string; fieldCount: number }[] }> {
     const templates =
       await this.mappingSuggestionService.listTemplates(organizationId);
     return { templates };
@@ -720,14 +710,14 @@ export class MigrationController {
     @Body("context") context?: string,
     @Body("competitorHint") competitorHint?: string,
     @Body("additionalInstructions") additionalInstructions?: string,
-    // @CurrentUser() user: User,
+    @TenantId() organizationId?: string,
+    @CurrentUser() user?: RequestUser,
   ): Promise<ScreenshotAnalysisResult> {
     if (!file) {
       throw new BadRequestException("No image provided");
     }
 
-    const organizationId = TEMP_ORG_ID;
-    const userId = TEMP_USER_ID;
+    const userId = user!.id;
 
     // Build DTO for screenshot analysis
     const dto: AnalyzeScreenshotDto = {
@@ -741,7 +731,7 @@ export class MigrationController {
 
     // Use the existing analyzeScreenshot method
     return this.screenshotService.analyzeScreenshot(
-      organizationId,
+      organizationId!,
       userId,
       file,
       dto,

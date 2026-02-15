@@ -67,6 +67,16 @@ export class TokenRefreshService {
     private readonly configService: ConfigService,
     private readonly prisma: PrismaService,
   ) {
+    // SEC-04: Validate refresh secret exists on startup
+    // Tokens signed with undefined secret would be forgeable
+    const refreshSecret = this.configService.get<string>("JWT_REFRESH_SECRET");
+    if (!refreshSecret) {
+      throw new Error(
+        "FATAL: JWT_REFRESH_SECRET is required but not defined. " +
+          "Tokens signed with undefined secret would be forgeable.",
+      );
+    }
+
     this.accessTokenExpiry =
       this.configService.get<string>("JWT_ACCESS_EXPIRY") || "15m";
     this.refreshTokenExpiry =
@@ -82,10 +92,12 @@ export class TokenRefreshService {
    */
   async refreshAccessToken(refreshToken: string): Promise<RefreshResult> {
     try {
-      // Verify refresh token
-      const refreshSecret = this.configService.get<string>("JWT_REFRESH_SECRET");
+      // Verify refresh token with RS256 only (SEC-03: Pin algorithm)
+      const refreshSecret =
+        this.configService.get<string>("JWT_REFRESH_SECRET");
       const payload = await this.jwtService.verifyAsync(refreshToken, {
         secret: refreshSecret,
+        algorithms: ["RS256"], // SEC-03: Prevent algorithm confusion attack
       });
 
       // Check if token is stored and not revoked
@@ -243,7 +255,8 @@ export class TokenRefreshService {
           );
           return {
             success: false,
-            error: "Token too old for WebSocket refresh - please re-authenticate",
+            error:
+              "Token too old for WebSocket refresh - please re-authenticate",
             errorCode: RefreshErrorCode.TOKEN_TOO_OLD,
           };
         }
