@@ -31,7 +31,10 @@ export class JwtStrategy extends PassportStrategy(Strategy, "jwt") {
     private prisma: PrismaService,
     private jwtKeyService: JwtKeyService,
   ) {
-    // Create secretOrKeyProvider that handles RS256/HS256 dynamically
+    // Capture logger reference for use inside secretOrKeyProvider
+    const logger = new Logger(JwtStrategy.name);
+
+    // Create secretOrKeyProvider that handles RS256 key lookup
     const secretOrKeyProvider: SecretOrKeyProvider = (
       _request,
       rawJwtToken,
@@ -50,14 +53,14 @@ export class JwtStrategy extends PassportStrategy(Strategy, "jwt") {
           const verificationKey = jwtKeyService.getVerificationKey();
           done(null, verificationKey);
         } else {
-          // HS256 or no algorithm specified - use secret
-          const secret = configService.get<string>("jwt.secret");
-          done(null, secret);
+          // SECURITY: Reject non-RS256 tokens - no HS256 fallback (CVE-2015-9235)
+          logger.warn(`JWT rejected: unsupported algorithm ${header?.alg}`);
+          done(new Error("Invalid token algorithm"), null);
         }
-      } catch {
-        // Fall back to HS256 secret on any error
-        const secret = configService.get<string>("jwt.secret");
-        done(null, secret);
+      } catch (error) {
+        // SECURITY: Fail closed - no HS256 fallback
+        logger.error(`JWT key lookup failed: ${(error as Error).message}`);
+        done(new Error("Token verification failed"), null);
       }
     };
 
@@ -65,8 +68,8 @@ export class JwtStrategy extends PassportStrategy(Strategy, "jwt") {
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
       secretOrKeyProvider,
-      // Accept both algorithms during migration
-      algorithms: ["RS256", "HS256"],
+      // SECURITY: RS256 only - prevents algorithm confusion attack (CVE-2015-9235)
+      algorithms: ["RS256"],
     };
     super(options);
   }
