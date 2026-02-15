@@ -44,6 +44,37 @@ export default () => ({
       })(),
     accessTokenExpiry: process.env.JWT_ACCESS_TOKEN_EXPIRY || "15m",
     refreshTokenExpiry: process.env.JWT_REFRESH_TOKEN_EXPIRY || "7d",
+
+    // RS256 asymmetric key configuration
+    // In production, set these for RS256 signing. In development, keys are auto-generated.
+    // RS256 enables key rotation without mass user logout and supports microservices.
+    rs256: {
+      // PEM-encoded RSA private key (for signing)
+      // Can be base64-encoded or have escaped newlines (\n)
+      privateKey: process.env.JWT_RS256_PRIVATE_KEY || undefined,
+
+      // PEM-encoded RSA public key (for verification)
+      // Can be base64-encoded or have escaped newlines (\n)
+      publicKey: process.env.JWT_RS256_PUBLIC_KEY || undefined,
+
+      // Key ID (kid) - should be unique per key rotation
+      // If not provided, one is auto-generated
+      keyId: process.env.JWT_RS256_KEY_ID || undefined,
+
+      // Enable key rotation support (default: true)
+      rotationEnabled: process.env.JWT_RS256_ROTATION_ENABLED !== "false",
+
+      // Days to keep old keys valid for verification (default: 7, matches refresh token lifetime)
+      keyOverlapDays: parseInt(
+        process.env.JWT_RS256_KEY_OVERLAP_DAYS || "7",
+        10,
+      ),
+    },
+
+    // Algorithm selection (RS256 preferred, HS256 for migration)
+    // In development without RS256 keys: auto-generates RS256 keys
+    // In production without RS256 keys: falls back to HS256 with warning
+    algorithm: (process.env.JWT_ALGORITHM || "RS256") as "RS256" | "HS256",
   },
 
   cors: {
