@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-13)
 ## Current Position
 
 Phase: 31 of 31 (Code Quality & Performance) — Gap Closure Round 2
-Plan: 11 of 17 complete (gap closure plans 31-12 through 31-17 created)
+Plan: 13 of 17 complete
 Status: Executing gap closure
-Last activity: 2026-02-15 — Created gap closure plans 31-12 through 31-17
+Last activity: 2026-02-15 — Completed 31-13 widget-data.service decomposition
 
-Progress: [████████░░] 80% (Original plans + first gap closure complete, second gap closure planned)
+Progress: [████████░░] 82% (12 original + 1 gap closure round 2 complete)
 
 ## Milestone v1.1: Code Review Remediation
 
@@ -57,7 +57,7 @@ Progress: [████████░░] 80% (Original plans + first gap closu
 | 31-10 | -    | Gap closure: VERIFICATION.md false positive fix  | Yes        | Complete |
 | 31-11 | -    | Gap closure: RiuUpdateService extraction         | Yes        | Complete |
 | 31-12 | 1    | Gap closure: Controller analysis (doc closure)   | Yes        | Planned  |
-| 31-13 | 2    | Gap closure: widget-data.service decomposition   | Yes        | Planned  |
+| 31-13 | 2    | Gap closure: widget-data.service decomposition   | Yes        | Complete |
 | 31-14 | 2    | Gap closure: board-report.service decomposition  | Yes        | Planned  |
 | 31-15 | 2    | Gap closure: migration.service decomposition     | Yes        | Planned  |
 | 31-16 | 2    | Gap closure: task-aggregator decomposition       | Yes        | Planned  |
@@ -157,6 +157,7 @@ Key outcomes:
 - Toast component is toaster.tsx (shadcn convention)
 - CasesService 795 -> 363 LOC (54% reduction)
 - RiusService 460 -> 349 LOC with RiuUpdateService extraction
+- WidgetDataService 1240 -> 277 LOC with 3 sub-services (78% reduction)
 
 ### Blockers
 
@@ -164,7 +165,7 @@ None currently.
 
 ## Session Continuity
 
-Last session: 2026-02-15 — Created gap closure plans 31-12 through 31-17
-Stopped at: Planning complete for gap closure round 2
+Last session: 2026-02-15 — Completed 31-13 widget-data.service decomposition
+Stopped at: Completed 31-13-PLAN.md
 Resume file: None
-Next action: Execute `/gsd:execute-phase 31` to run gap closure plans
+Next action: Execute 31-14 (board-report.service decomposition)
