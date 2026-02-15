@@ -24,7 +24,24 @@ The platform is production-hardened with all 36 audit findings resolved:
 - Monolithic services decomposed, JWT RS256 with key rotation, Elasticsearch circuit breaker
 - ESLint max-lines guardrail (warn at 500 LOC) prevents service bloat
 
-**Next milestone:** TBD — run `/gsd:new-milestone` to define scope
+## Current Milestone: v1.2 Production Hardening & Feature Completion
+
+**Goal:** Raise the platform from D+ to B+ overall code quality by remediating all findings from the pre-Series A code review across 6 dimensions, while completing the 3 unfinished v1.0 feature phases.
+
+**Track 1 — Code Review Remediation (targeting B+ overall grade):**
+
+- Security & SOC 2 hardening (auth bypass fixes, JWT algorithm, MIME validation, WebSocket auth)
+- AI code slop cleanup (hardcoded IDs, orphaned modules, section separators, dead code)
+- Performance & scalability (unbounded queries, Redis caching, connection pooling, N+1 fixes)
+- Code quality & architecture (fat services, `any` types, barrel exports, error handling)
+- Test coverage expansion (from 7.9% toward 60%+ backend coverage)
+- Production readiness (MIME validation, graceful degradation, observability)
+
+**Track 2 — Unfinished v1.0 Feature Phases:**
+
+- Dark Mode & Theme System (Phase 22 — 0/14 plans completed)
+- Help & Support System (Phase 23 — 0/5 plans completed)
+- Case Detail Vision Revision (Phase 25.1 — 0/10 plans completed)
 
 ## Requirements
 
@@ -220,20 +237,22 @@ Explicitly excluded from v1:
 
 ## Key Decisions
 
-| Decision                          | Rationale                                                        | Outcome       |
-| --------------------------------- | ---------------------------------------------------------------- | ------------- |
-| RIU→Case separation               | Immutable inputs enable audit trail, merging, pattern detection  | ✓ Good        |
-| Strategic differentiation for v1  | Q1 deadline requires focus on differentiators vs. feature parity | ✓ Good        |
-| AI as core differentiator         | Market gap: competitors have limited/add-on AI                   | ✓ Good        |
-| Unified "My Work" queue           | Reduces context switching, improves completion rates             | ✓ Good        |
-| Scoped AI agents                  | Better context, specialized skills per domain                    | ✓ Good        |
-| All migration paths supported     | Customer flexibility > implementation simplicity                 | — Pending     |
-| Code review before production     | Unified audit identified 36 findings; remediate before deploy    | ✓ Good — v1.1 |
-| All 5 remediation phases in scope | Full hardening vs. incremental; chose comprehensive              | ✓ Good — v1.1 |
-| Thin coordinator pattern          | Main services delegate to domain-specific sub-services           | ✓ Good — v1.1 |
-| AI services exempt from 300 LOC   | Complex orchestration logic needs different decomposition        | ✓ Good — v1.1 |
-| ESLint max-lines guardrail        | Warn at 500 LOC prevents growth; decompose opportunistically     | ✓ Good — v1.1 |
+| Decision                             | Rationale                                                                       | Outcome         |
+| ------------------------------------ | ------------------------------------------------------------------------------- | --------------- |
+| RIU→Case separation                  | Immutable inputs enable audit trail, merging, pattern detection                 | ✓ Good          |
+| Strategic differentiation for v1     | Q1 deadline requires focus on differentiators vs. feature parity                | ✓ Good          |
+| AI as core differentiator            | Market gap: competitors have limited/add-on AI                                  | ✓ Good          |
+| Unified "My Work" queue              | Reduces context switching, improves completion rates                            | ✓ Good          |
+| Scoped AI agents                     | Better context, specialized skills per domain                                   | ✓ Good          |
+| All migration paths supported        | Customer flexibility > implementation simplicity                                | — Pending       |
+| Code review before production        | Unified audit identified 36 findings; remediate before deploy                   | ✓ Good — v1.1   |
+| All 5 remediation phases in scope    | Full hardening vs. incremental; chose comprehensive                             | ✓ Good — v1.1   |
+| Thin coordinator pattern             | Main services delegate to domain-specific sub-services                          | ✓ Good — v1.1   |
+| AI services exempt from 300 LOC      | Complex orchestration logic needs different decomposition                       | ✓ Good — v1.1   |
+| ESLint max-lines guardrail           | Warn at 500 LOC prevents growth; decompose opportunistically                    | ✓ Good — v1.1   |
+| Dual-track v1.2 (hardening+features) | Pre-Series A review found D+ grade; combine remediation with feature completion | — Active — v1.2 |
+| B+ target grade                      | Investor-credible codebase requires measurable quality bar                      | — Active — v1.2 |
 
 ---
 
-_Last updated: 2026-02-15 after v1.1 Code Review Remediation shipped_
+_Last updated: 2026-02-15 after v1.2 milestone started_
