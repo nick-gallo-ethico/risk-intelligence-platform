@@ -9,6 +9,9 @@ import {
   DisclosureRiuService,
   WebFormRiuService,
 } from "./extensions";
+import { RiuQueryService } from "./services/riu-query.service";
+import { RiuFormDataService } from "./services/riu-form-data.service";
+import { RiuUpdateService } from "./services/riu-update.service";
 import {
   RiuStatus,
   RiuType,
@@ -136,6 +139,26 @@ describe("RiusService", () => {
     createExtension: jest.fn(),
   };
 
+  // Sub-services mocks (extracted from RiusService)
+  const mockRiuQueryService = {
+    findAll: jest.fn(),
+    findOne: jest.fn(),
+    findByReferenceNumber: jest.fn(),
+    findByAccessCode: jest.fn(),
+    findOneWithExtension: jest.fn(),
+  };
+
+  const mockRiuFormDataService = {
+    getFormData: jest.fn(),
+  };
+
+  const mockRiuUpdateService = {
+    update: jest.fn(),
+    updateStatus: jest.fn(),
+    updateAiEnrichment: jest.fn(),
+    updateLanguage: jest.fn(),
+  };
+
   // -------------------------------------------------------------------------
   // Module Setup
   // -------------------------------------------------------------------------
@@ -149,6 +172,9 @@ describe("RiusService", () => {
         { provide: HotlineRiuService, useValue: mockHotlineRiuService },
         { provide: DisclosureRiuService, useValue: mockDisclosureRiuService },
         { provide: WebFormRiuService, useValue: mockWebFormRiuService },
+        { provide: RiuQueryService, useValue: mockRiuQueryService },
+        { provide: RiuFormDataService, useValue: mockRiuFormDataService },
+        { provide: RiuUpdateService, useValue: mockRiuUpdateService },
       ],
     }).compile();
 
@@ -282,32 +308,29 @@ describe("RiusService", () => {
   });
 
   // -------------------------------------------------------------------------
-  // describe('findOne')
+  // describe('findOne') - Delegated to RiuQueryService
   // -------------------------------------------------------------------------
   describe("findOne", () => {
     it("should return RIU when found in organization", async () => {
       // Arrange
-      mockPrismaService.riskIntelligenceUnit.findFirst.mockResolvedValue(
-        mockRiu,
-      );
+      mockRiuQueryService.findOne.mockResolvedValue(mockRiu);
 
       // Act
       const result = await service.findOne(mockRiuId, mockOrgId);
 
       // Assert
       expect(result).toEqual(mockRiu);
-      expect(prisma.riskIntelligenceUnit.findFirst).toHaveBeenCalledWith({
-        where: {
-          id: mockRiuId,
-          organizationId: mockOrgId, // CRITICAL: Tenant isolation
-        },
-        include: expect.any(Object),
-      });
+      expect(mockRiuQueryService.findOne).toHaveBeenCalledWith(
+        mockRiuId,
+        mockOrgId, // CRITICAL: Tenant isolation
+      );
     });
 
     it("should throw NotFoundException when RIU does not exist", async () => {
       // Arrange
-      mockPrismaService.riskIntelligenceUnit.findFirst.mockResolvedValue(null);
+      mockRiuQueryService.findOne.mockRejectedValue(
+        new NotFoundException(`RIU with ID non-existent-id not found`),
+      );
 
       // Act & Assert
       await expect(
@@ -317,38 +340,33 @@ describe("RiusService", () => {
 
     it("should throw NotFoundException when RIU belongs to different org", async () => {
       // Arrange - RIU exists but query returns null due to org filter
-      mockPrismaService.riskIntelligenceUnit.findFirst.mockResolvedValue(null);
+      mockRiuQueryService.findOne.mockRejectedValue(
+        new NotFoundException(`RIU with ID ${mockRiuId} not found`),
+      );
 
       // Act & Assert
       await expect(service.findOne(mockRiuId, mockOtherOrgId)).rejects.toThrow(
         NotFoundException,
       );
 
-      // Verify query included the different org filter
-      expect(prisma.riskIntelligenceUnit.findFirst).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: expect.objectContaining({
-            organizationId: mockOtherOrgId,
-          }),
-        }),
+      // Verify delegation includes the different org filter
+      expect(mockRiuQueryService.findOne).toHaveBeenCalledWith(
+        mockRiuId,
+        mockOtherOrgId,
       );
     });
   });
 
   // -------------------------------------------------------------------------
-  // describe('update') - CRITICAL: Immutability enforcement
+  // describe('update') - Delegated to RiuUpdateService
+  // CRITICAL: Immutability enforcement tested in RiuUpdateService unit tests
   // -------------------------------------------------------------------------
   describe("update", () => {
     describe("MUTABLE fields - should allow updates", () => {
       it("should allow updating status field", async () => {
         // Arrange
         const updatedRiu = { ...mockRiu, status: RiuStatus.RELEASED };
-        mockPrismaService.riskIntelligenceUnit.findFirst.mockResolvedValue(
-          mockRiu,
-        );
-        mockPrismaService.riskIntelligenceUnit.update.mockResolvedValue(
-          updatedRiu,
-        );
+        mockRiuUpdateService.update.mockResolvedValue(updatedRiu);
 
         // Act
         const result = await service.update(
@@ -360,17 +378,18 @@ describe("RiusService", () => {
 
         // Assert
         expect(result.status).toBe(RiuStatus.RELEASED);
+        expect(mockRiuUpdateService.update).toHaveBeenCalledWith(
+          mockRiuId,
+          { status: RiuStatus.RELEASED },
+          mockUserId,
+          mockOrgId,
+        );
       });
 
       it("should allow updating aiSummary field (AI enrichment)", async () => {
         // Arrange
         const updatedRiu = { ...mockRiu, aiSummary: "AI generated summary" };
-        mockPrismaService.riskIntelligenceUnit.findFirst.mockResolvedValue(
-          mockRiu,
-        );
-        mockPrismaService.riskIntelligenceUnit.update.mockResolvedValue(
-          updatedRiu,
-        );
+        mockRiuUpdateService.update.mockResolvedValue(updatedRiu);
 
         // Act
         const result = await service.update(
@@ -387,12 +406,7 @@ describe("RiusService", () => {
       it("should allow updating aiRiskScore field", async () => {
         // Arrange
         const updatedRiu = { ...mockRiu, aiRiskScore: 75 };
-        mockPrismaService.riskIntelligenceUnit.findFirst.mockResolvedValue(
-          mockRiu,
-        );
-        mockPrismaService.riskIntelligenceUnit.update.mockResolvedValue(
-          updatedRiu,
-        );
+        mockRiuUpdateService.update.mockResolvedValue(updatedRiu);
 
         // Act
         const result = await service.update(
@@ -413,12 +427,7 @@ describe("RiusService", () => {
           languageConfirmed: "es",
           languageEffective: "es",
         };
-        mockPrismaService.riskIntelligenceUnit.findFirst.mockResolvedValue(
-          mockRiu,
-        );
-        mockPrismaService.riskIntelligenceUnit.update.mockResolvedValue(
-          updatedRiu,
-        );
+        mockRiuUpdateService.update.mockResolvedValue(updatedRiu);
 
         // Act
         const result = await service.update(
@@ -433,11 +442,13 @@ describe("RiusService", () => {
       });
     });
 
-    describe("IMMUTABLE fields - should REJECT updates", () => {
+    describe("IMMUTABLE fields - should REJECT updates (delegated to RiuUpdateService)", () => {
       it("should REJECT updating details field (immutable content)", async () => {
         // Arrange
-        mockPrismaService.riskIntelligenceUnit.findFirst.mockResolvedValue(
-          mockRiu,
+        mockRiuUpdateService.update.mockRejectedValue(
+          new BadRequestException(
+            "Cannot modify immutable RIU fields: details. RIU content is frozen at intake. Corrections should go on the linked Case.",
+          ),
         );
 
         // Act & Assert
@@ -453,8 +464,10 @@ describe("RiusService", () => {
 
       it("should REJECT updating reporterType field (immutable)", async () => {
         // Arrange
-        mockPrismaService.riskIntelligenceUnit.findFirst.mockResolvedValue(
-          mockRiu,
+        mockRiuUpdateService.update.mockRejectedValue(
+          new BadRequestException(
+            "Cannot modify immutable RIU fields: reporterType",
+          ),
         );
 
         // Act & Assert
@@ -470,8 +483,10 @@ describe("RiusService", () => {
 
       it("should REJECT updating sourceChannel field (immutable)", async () => {
         // Arrange
-        mockPrismaService.riskIntelligenceUnit.findFirst.mockResolvedValue(
-          mockRiu,
+        mockRiuUpdateService.update.mockRejectedValue(
+          new BadRequestException(
+            "Cannot modify immutable RIU fields: sourceChannel",
+          ),
         );
 
         // Act & Assert
@@ -487,8 +502,8 @@ describe("RiusService", () => {
 
       it("should REJECT updating type field (immutable)", async () => {
         // Arrange
-        mockPrismaService.riskIntelligenceUnit.findFirst.mockResolvedValue(
-          mockRiu,
+        mockRiuUpdateService.update.mockRejectedValue(
+          new BadRequestException("Cannot modify immutable RIU fields: type"),
         );
 
         // Act & Assert
@@ -504,8 +519,10 @@ describe("RiusService", () => {
 
       it("should REJECT updating categoryId field (immutable)", async () => {
         // Arrange
-        mockPrismaService.riskIntelligenceUnit.findFirst.mockResolvedValue(
-          mockRiu,
+        mockRiuUpdateService.update.mockRejectedValue(
+          new BadRequestException(
+            "Cannot modify immutable RIU fields: categoryId",
+          ),
         );
 
         // Act & Assert
@@ -521,8 +538,10 @@ describe("RiusService", () => {
 
       it("should REJECT updating severity field (immutable)", async () => {
         // Arrange
-        mockPrismaService.riskIntelligenceUnit.findFirst.mockResolvedValue(
-          mockRiu,
+        mockRiuUpdateService.update.mockRejectedValue(
+          new BadRequestException(
+            "Cannot modify immutable RIU fields: severity",
+          ),
         );
 
         // Act & Assert
@@ -538,8 +557,10 @@ describe("RiusService", () => {
 
       it("should throw BadRequestException with list of immutable fields", async () => {
         // Arrange
-        mockPrismaService.riskIntelligenceUnit.findFirst.mockResolvedValue(
-          mockRiu,
+        mockRiuUpdateService.update.mockRejectedValue(
+          new BadRequestException(
+            "Cannot modify immutable RIU fields: details, reporterType",
+          ),
         );
 
         // Act & Assert
@@ -555,8 +576,10 @@ describe("RiusService", () => {
 
       it("should include correction guidance in error message", async () => {
         // Arrange
-        mockPrismaService.riskIntelligenceUnit.findFirst.mockResolvedValue(
-          mockRiu,
+        mockRiuUpdateService.update.mockRejectedValue(
+          new BadRequestException(
+            "Cannot modify immutable RIU fields: details. RIU content is frozen at intake. Corrections should go on the linked Case.",
+          ),
         );
 
         // Act & Assert
@@ -579,7 +602,7 @@ describe("RiusService", () => {
   });
 
   // -------------------------------------------------------------------------
-  // describe('updateStatus')
+  // describe('updateStatus') - Delegated to RiuUpdateService
   // -------------------------------------------------------------------------
   describe("updateStatus", () => {
     it("should update status with statusChangedAt timestamp", async () => {
@@ -589,12 +612,7 @@ describe("RiusService", () => {
         status: RiuStatus.RELEASED,
         statusChangedAt: new Date(),
       };
-      mockPrismaService.riskIntelligenceUnit.findFirst.mockResolvedValue(
-        mockRiu,
-      );
-      mockPrismaService.riskIntelligenceUnit.update.mockResolvedValue(
-        updatedRiu,
-      );
+      mockRiuUpdateService.updateStatus.mockResolvedValue(updatedRiu);
 
       // Act
       const result = await service.updateStatus(
@@ -606,17 +624,19 @@ describe("RiusService", () => {
 
       // Assert
       expect(result.status).toBe(RiuStatus.RELEASED);
+      expect(mockRiuUpdateService.updateStatus).toHaveBeenCalledWith(
+        mockRiuId,
+        RiuStatus.RELEASED,
+        mockUserId,
+        mockOrgId,
+      );
     });
 
-    it("should emit riu.status.changed event", async () => {
-      // Arrange
+    it("should emit riu.status.changed event (delegated to RiuUpdateService)", async () => {
+      // Note: Event emission is handled by RiuUpdateService
+      // This test verifies the delegation chain
       const updatedRiu = { ...mockRiu, status: RiuStatus.RELEASED };
-      mockPrismaService.riskIntelligenceUnit.findFirst.mockResolvedValue(
-        mockRiu,
-      );
-      mockPrismaService.riskIntelligenceUnit.update.mockResolvedValue(
-        updatedRiu,
-      );
+      mockRiuUpdateService.updateStatus.mockResolvedValue(updatedRiu);
 
       // Act
       await service.updateStatus(
@@ -626,27 +646,15 @@ describe("RiusService", () => {
         mockOrgId,
       );
 
-      // Assert
-      expect(eventEmitter.emit).toHaveBeenCalledWith(
-        "riu.status.changed",
-        expect.objectContaining({
-          organizationId: mockOrgId,
-          riuId: mockRiuId,
-          previousStatus: RiuStatus.PENDING_QA,
-          newStatus: RiuStatus.RELEASED,
-        }),
-      );
+      // Assert - Delegation verified
+      expect(mockRiuUpdateService.updateStatus).toHaveBeenCalled();
     });
 
-    it("should log status change activity", async () => {
-      // Arrange
+    it("should log status change activity (delegated to RiuUpdateService)", async () => {
+      // Note: Activity logging is handled by RiuUpdateService
+      // This test verifies the delegation chain
       const updatedRiu = { ...mockRiu, status: RiuStatus.RELEASED };
-      mockPrismaService.riskIntelligenceUnit.findFirst.mockResolvedValue(
-        mockRiu,
-      );
-      mockPrismaService.riskIntelligenceUnit.update.mockResolvedValue(
-        updatedRiu,
-      );
+      mockRiuUpdateService.updateStatus.mockResolvedValue(updatedRiu);
 
       // Act
       await service.updateStatus(
@@ -656,28 +664,14 @@ describe("RiusService", () => {
         mockOrgId,
       );
 
-      // Assert
-      expect(activityService.log).toHaveBeenCalledWith(
-        expect.objectContaining({
-          action: "status_changed",
-          actionDescription: expect.stringContaining("PENDING_QA"),
-          changes: expect.objectContaining({
-            oldValue: { status: RiuStatus.PENDING_QA },
-            newValue: { status: RiuStatus.RELEASED },
-          }),
-        }),
-      );
+      // Assert - Delegation verified
+      expect(mockRiuUpdateService.updateStatus).toHaveBeenCalled();
     });
 
     it("should allow PENDING_QA -> RELEASED transition", async () => {
       // Arrange
       const updatedRiu = { ...mockRiu, status: RiuStatus.RELEASED };
-      mockPrismaService.riskIntelligenceUnit.findFirst.mockResolvedValue(
-        mockRiu,
-      );
-      mockPrismaService.riskIntelligenceUnit.update.mockResolvedValue(
-        updatedRiu,
-      );
+      mockRiuUpdateService.updateStatus.mockResolvedValue(updatedRiu);
 
       // Act
       const result = await service.updateStatus(
@@ -693,18 +687,13 @@ describe("RiusService", () => {
   });
 
   // -------------------------------------------------------------------------
-  // describe('updateAiEnrichment')
+  // describe('updateAiEnrichment') - Delegated to RiuUpdateService
   // -------------------------------------------------------------------------
   describe("updateAiEnrichment", () => {
     it("should update aiSummary", async () => {
       // Arrange
       const enrichedRiu = { ...mockRiu, aiSummary: "AI summary content" };
-      mockPrismaService.riskIntelligenceUnit.findFirst.mockResolvedValue(
-        mockRiu,
-      );
-      mockPrismaService.riskIntelligenceUnit.update.mockResolvedValue(
-        enrichedRiu,
-      );
+      mockRiuUpdateService.updateAiEnrichment.mockResolvedValue(enrichedRiu);
 
       // Act
       const result = await service.updateAiEnrichment(
@@ -715,17 +704,17 @@ describe("RiusService", () => {
 
       // Assert
       expect(result.aiSummary).toBe("AI summary content");
+      expect(mockRiuUpdateService.updateAiEnrichment).toHaveBeenCalledWith(
+        mockRiuId,
+        { aiSummary: "AI summary content" },
+        mockOrgId,
+      );
     });
 
     it("should update aiRiskScore", async () => {
       // Arrange
       const enrichedRiu = { ...mockRiu, aiRiskScore: 85 };
-      mockPrismaService.riskIntelligenceUnit.findFirst.mockResolvedValue(
-        mockRiu,
-      );
-      mockPrismaService.riskIntelligenceUnit.update.mockResolvedValue(
-        enrichedRiu,
-      );
+      mockRiuUpdateService.updateAiEnrichment.mockResolvedValue(enrichedRiu);
 
       // Act
       const result = await service.updateAiEnrichment(
@@ -744,12 +733,7 @@ describe("RiusService", () => {
         ...mockRiu,
         aiTranslation: "Translated content in English",
       };
-      mockPrismaService.riskIntelligenceUnit.findFirst.mockResolvedValue(
-        mockRiu,
-      );
-      mockPrismaService.riskIntelligenceUnit.update.mockResolvedValue(
-        enrichedRiu,
-      );
+      mockRiuUpdateService.updateAiEnrichment.mockResolvedValue(enrichedRiu);
 
       // Act
       const result = await service.updateAiEnrichment(
@@ -762,49 +746,34 @@ describe("RiusService", () => {
       expect(result.aiTranslation).toBe("Translated content in English");
     });
 
-    it("should set aiGeneratedAt timestamp", async () => {
+    it("should set aiGeneratedAt timestamp (handled by RiuUpdateService)", async () => {
       // Arrange
       const enrichedRiu = {
         ...mockRiu,
         aiSummary: "Summary",
         aiGeneratedAt: new Date(),
       };
-      mockPrismaService.riskIntelligenceUnit.findFirst.mockResolvedValue(
-        mockRiu,
-      );
-      mockPrismaService.riskIntelligenceUnit.update.mockResolvedValue(
-        enrichedRiu,
-      );
+      mockRiuUpdateService.updateAiEnrichment.mockResolvedValue(enrichedRiu);
 
       // Act
-      await service.updateAiEnrichment(
+      const result = await service.updateAiEnrichment(
         mockRiuId,
         { aiSummary: "Summary" },
         mockOrgId,
       );
 
-      // Assert
-      expect(prisma.riskIntelligenceUnit.update).toHaveBeenCalledWith({
-        where: { id: mockRiuId },
-        data: expect.objectContaining({
-          aiGeneratedAt: expect.any(Date),
-        }),
-      });
+      // Assert - Delegation verified, timestamp set by sub-service
+      expect(result.aiGeneratedAt).toBeDefined();
     });
 
-    it("should emit riu.ai.enriched event", async () => {
-      // Arrange
+    it("should emit riu.ai.enriched event (delegated to RiuUpdateService)", async () => {
+      // Note: Event emission is handled by RiuUpdateService
       const enrichedRiu = {
         ...mockRiu,
         aiSummary: "Summary",
         aiModelVersion: "claude-3-opus",
       };
-      mockPrismaService.riskIntelligenceUnit.findFirst.mockResolvedValue(
-        mockRiu,
-      );
-      mockPrismaService.riskIntelligenceUnit.update.mockResolvedValue(
-        enrichedRiu,
-      );
+      mockRiuUpdateService.updateAiEnrichment.mockResolvedValue(enrichedRiu);
 
       // Act
       await service.updateAiEnrichment(
@@ -813,23 +782,13 @@ describe("RiusService", () => {
         mockOrgId,
       );
 
-      // Assert
-      expect(eventEmitter.emit).toHaveBeenCalledWith(
-        "riu.ai.enriched",
-        expect.objectContaining({
-          organizationId: mockOrgId,
-          riuId: mockRiuId,
-          aiModelVersion: "claude-3-opus",
-        }),
-      );
+      // Assert - Delegation verified
+      expect(mockRiuUpdateService.updateAiEnrichment).toHaveBeenCalled();
     });
 
-    it("should NOT modify immutable content fields", async () => {
-      // Arrange
-      mockPrismaService.riskIntelligenceUnit.findFirst.mockResolvedValue(
-        mockRiu,
-      );
-      mockPrismaService.riskIntelligenceUnit.update.mockResolvedValue(mockRiu);
+    it("should NOT modify immutable content fields (enforced by RiuUpdateService)", async () => {
+      // Note: Immutability enforcement is handled by RiuUpdateService
+      mockRiuUpdateService.updateAiEnrichment.mockResolvedValue(mockRiu);
 
       // Act
       await service.updateAiEnrichment(
@@ -838,20 +797,17 @@ describe("RiusService", () => {
         mockOrgId,
       );
 
-      // Assert - Verify no immutable fields in update call
-      expect(prisma.riskIntelligenceUnit.update).toHaveBeenCalledWith({
-        where: { id: mockRiuId },
-        data: expect.not.objectContaining({
-          details: expect.anything(),
-          reporterType: expect.anything(),
-          sourceChannel: expect.anything(),
-        }),
-      });
+      // Assert - Delegation verified
+      expect(mockRiuUpdateService.updateAiEnrichment).toHaveBeenCalledWith(
+        mockRiuId,
+        { aiSummary: "Summary" },
+        mockOrgId,
+      );
     });
   });
 
   // -------------------------------------------------------------------------
-  // describe('findByAccessCode')
+  // describe('findByAccessCode') - Delegated to RiuQueryService
   // -------------------------------------------------------------------------
   describe("findByAccessCode", () => {
     it("should return RIU for valid access code", async () => {
@@ -867,9 +823,7 @@ describe("RiusService", () => {
         severity: Severity.MEDIUM,
         createdAt: new Date(),
       };
-      mockPrismaService.riskIntelligenceUnit.findFirst.mockResolvedValue(
-        minimalRiu,
-      );
+      mockRiuQueryService.findByAccessCode.mockResolvedValue(minimalRiu);
 
       // Act
       const result = await service.findByAccessCode(mockAccessCode, mockOrgId);
@@ -881,7 +835,7 @@ describe("RiusService", () => {
 
     it("should return null for invalid access code", async () => {
       // Arrange
-      mockPrismaService.riskIntelligenceUnit.findFirst.mockResolvedValue(null);
+      mockRiuQueryService.findByAccessCode.mockResolvedValue(null);
 
       // Act
       const result = await service.findByAccessCode("INVALID123", mockOrgId);
@@ -892,54 +846,47 @@ describe("RiusService", () => {
 
     it("should filter by organizationId", async () => {
       // Arrange
-      mockPrismaService.riskIntelligenceUnit.findFirst.mockResolvedValue(null);
+      mockRiuQueryService.findByAccessCode.mockResolvedValue(null);
 
       // Act
       await service.findByAccessCode(mockAccessCode, mockOrgId);
 
       // Assert
-      expect(prisma.riskIntelligenceUnit.findFirst).toHaveBeenCalledWith({
-        where: {
-          anonymousAccessCode: mockAccessCode,
-          organizationId: mockOrgId,
-        },
-        select: expect.any(Object),
-      });
+      expect(mockRiuQueryService.findByAccessCode).toHaveBeenCalledWith(
+        mockAccessCode,
+        mockOrgId, // CRITICAL: Tenant isolation
+      );
     });
 
-    it("should not return sensitive content fields", async () => {
-      // Arrange
-      mockPrismaService.riskIntelligenceUnit.findFirst.mockResolvedValue({
+    it("should not return sensitive content fields (enforced by RiuQueryService)", async () => {
+      // Note: Field selection is handled by RiuQueryService
+      mockRiuQueryService.findByAccessCode.mockResolvedValue({
         id: mockRiuId,
         referenceNumber: mockReferenceNumber,
         status: RiuStatus.PENDING_QA,
-        // Note: details and other sensitive fields should NOT be selected
+        // Note: details and other sensitive fields excluded by sub-service
       });
 
       // Act
       await service.findByAccessCode(mockAccessCode, mockOrgId);
 
-      // Assert - Verify select does not include sensitive fields
-      expect(prisma.riskIntelligenceUnit.findFirst).toHaveBeenCalledWith(
-        expect.objectContaining({
-          select: expect.not.objectContaining({
-            details: true,
-          }),
-        }),
-      );
+      // Assert - Delegation verified
+      expect(mockRiuQueryService.findByAccessCode).toHaveBeenCalled();
     });
   });
 
   // -------------------------------------------------------------------------
-  // describe('findAll')
+  // describe('findAll') - Delegated to RiuQueryService
   // -------------------------------------------------------------------------
   describe("findAll", () => {
     it("should return paginated results", async () => {
       // Arrange
-      mockPrismaService.riskIntelligenceUnit.findMany.mockResolvedValue([
-        mockRiu,
-      ]);
-      mockPrismaService.riskIntelligenceUnit.count.mockResolvedValue(1);
+      mockRiuQueryService.findAll.mockResolvedValue({
+        data: [mockRiu],
+        total: 1,
+        limit: 20,
+        offset: 0,
+      });
 
       // Act
       const result = await service.findAll({ limit: 20, offset: 0 }, mockOrgId);
@@ -953,56 +900,58 @@ describe("RiusService", () => {
 
     it("should always filter by organizationId", async () => {
       // Arrange
-      mockPrismaService.riskIntelligenceUnit.findMany.mockResolvedValue([]);
-      mockPrismaService.riskIntelligenceUnit.count.mockResolvedValue(0);
+      mockRiuQueryService.findAll.mockResolvedValue({
+        data: [],
+        total: 0,
+        limit: 20,
+        offset: 0,
+      });
 
       // Act
       await service.findAll({}, mockOrgId);
 
       // Assert - CRITICAL: Must always include org filter
-      expect(prisma.riskIntelligenceUnit.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: expect.objectContaining({
-            organizationId: mockOrgId,
-          }),
-        }),
+      expect(mockRiuQueryService.findAll).toHaveBeenCalledWith(
+        {},
+        mockOrgId, // Tenant isolation enforced
       );
     });
 
     it("should filter by type when provided", async () => {
       // Arrange
-      mockPrismaService.riskIntelligenceUnit.findMany.mockResolvedValue([]);
-      mockPrismaService.riskIntelligenceUnit.count.mockResolvedValue(0);
+      mockRiuQueryService.findAll.mockResolvedValue({
+        data: [],
+        total: 0,
+        limit: 20,
+        offset: 0,
+      });
 
       // Act
       await service.findAll({ type: RiuType.DISCLOSURE_RESPONSE }, mockOrgId);
 
       // Assert
-      expect(prisma.riskIntelligenceUnit.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: expect.objectContaining({
-            organizationId: mockOrgId,
-            type: RiuType.DISCLOSURE_RESPONSE,
-          }),
-        }),
+      expect(mockRiuQueryService.findAll).toHaveBeenCalledWith(
+        { type: RiuType.DISCLOSURE_RESPONSE },
+        mockOrgId,
       );
     });
 
     it("should filter by status when provided", async () => {
       // Arrange
-      mockPrismaService.riskIntelligenceUnit.findMany.mockResolvedValue([]);
-      mockPrismaService.riskIntelligenceUnit.count.mockResolvedValue(0);
+      mockRiuQueryService.findAll.mockResolvedValue({
+        data: [],
+        total: 0,
+        limit: 20,
+        offset: 0,
+      });
 
       // Act
       await service.findAll({ status: RiuStatus.RELEASED }, mockOrgId);
 
       // Assert
-      expect(prisma.riskIntelligenceUnit.findMany).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: expect.objectContaining({
-            status: RiuStatus.RELEASED,
-          }),
-        }),
+      expect(mockRiuQueryService.findAll).toHaveBeenCalledWith(
+        { status: RiuStatus.RELEASED },
+        mockOrgId,
       );
     });
   });
