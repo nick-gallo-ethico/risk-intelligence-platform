@@ -1013,7 +1013,7 @@ Phases 26-31 address all findings from the unified code review and silent failur
 - [x] **Phase 28: Production Readiness** — Dockerfile, health checks, fail-fast storage, Key Vault, env validation, graceful shutdown
 - [x] **Phase 29: Error Handling & Reliability** — NestJS exceptions, audit alerting, orphan prevention, error boundaries, auth fixes
 - [x] **Phase 30: Test Coverage Foundation** — Auth module tests, core service tests, campaign/policy tests, frontend test infrastructure
-- [ ] **Phase 31: Code Quality & Performance** — Service decomposition, association base class, controller cleanup, localhost URLs, toast errors, DB pool, JWT rotation
+- [x] **Phase 31: Code Quality & Performance** — Service decomposition, association base class, controller cleanup, localhost URLs, toast errors, DB pool, JWT rotation
 
 ## Phase Details (v1.1)
 
@@ -1140,14 +1140,14 @@ Plans:
 
 Plans:
 
-- [ ] 31-01-PLAN.md (Wave 1) — Response compression and DB pool config
-- [ ] 31-02-PLAN.md (Wave 1) — Replace hardcoded localhost URLs with env config
-- [ ] 31-03-PLAN.md (Wave 1) — Elasticsearch timeout reduction with circuit breaker
-- [ ] 31-04-PLAN.md (Wave 2) — Extract BaseAssociationService generic base class
-- [ ] 31-05-PLAN.md (Wave 2) — Toast notification system for API errors
-- [ ] 31-06-PLAN.md (Wave 3) — Controller logic extraction to services
-- [ ] 31-07-PLAN.md (Wave 4) — Service decomposition (<300 LOC)
-- [ ] 31-08-PLAN.md (Wave 5) — JWT RS256 with key rotation
+- [x] 31-01-PLAN.md (Wave 1) — Response compression and DB pool config
+- [x] 31-02-PLAN.md (Wave 1) — Replace hardcoded localhost URLs with env config
+- [x] 31-03-PLAN.md (Wave 1) — Elasticsearch timeout reduction with circuit breaker
+- [x] 31-04-PLAN.md (Wave 2) — Extract BaseAssociationService generic base class
+- [x] 31-05-PLAN.md (Wave 2) — Toast notification system for API errors
+- [x] 31-06-PLAN.md (Wave 3) — Controller logic extraction to services
+- [x] 31-07-PLAN.md (Wave 4) — Service decomposition (<300 LOC)
+- [x] 31-08-PLAN.md (Wave 5) — JWT RS256 with key rotation
       **Execution Order:**
       Phases execute in dependency order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11 → 11.1 → 12 → 13 → 13.1 → 14 → 14.1 → 14.2 → 15 → 16 → 17 → 18 → 19 → 20 → 21 → 22 → 23 → 24 → 25 → 25.1 → 26 → 27 → 28 → 29 → 30 → 31
 
@@ -1193,9 +1193,9 @@ Plans:
 | 26. Emergency Fixes              | 2/2            | Verified | 2026-02-14 |
 | 27. Security Hardening           | 4/4            | Verified | 2026-02-14 |
 | 28. Production Readiness         | 5/5            | Verified | 2026-02-14 |
-| 29. Error Handling & Reliability | 0/5            | Planned  | -          |
-| 30. Test Coverage Foundation     | 0/5            | Planned  | -          |
-| 31. Code Quality & Performance   | 0/8            | Planned  | -          |
+| 29. Error Handling & Reliability | 5/5            | Verified | 2026-02-14 |
+| 30. Test Coverage Foundation     | 5/5            | Verified | 2026-02-15 |
+| 31. Code Quality & Performance   | 22/22          | Verified | 2026-02-15 |
 
 ---
 
@@ -1203,6 +1203,6 @@ _Roadmap created: 2026-02-02_
 _Updated: 2026-02-13 (v1.1 Code Review Remediation — Phases 26-31 added, 36 requirements)_
 _Depth: Comprehensive_
 _Total phases: 31 (+ decimal insertions)_
-_Total plans: 242+ completed (v1.0), ~29 remaining (v1.0), 6 phases pending planning (v1.1)_
+_Total plans: 242+ completed (v1.0), ~29 remaining (v1.0), 29 completed (v1.1)_
 _Total requirements: 149 (v1.0) + 36 (v1.1) = 185_
 _Audit source: 03-DEVELOPMENT/UNIFIED-AUDIT-REPORT.md_

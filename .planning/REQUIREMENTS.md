@@ -54,14 +54,14 @@ Requirements for production readiness. Organized by severity and remediation pha
 
 ### Code Quality & Performance
 
-- [ ] **QUAL-01**: Decompose top 5 monolithic services to <300 LOC each (H5)
-- [ ] **QUAL-02**: Extract BaseAssociationService generic base class for 4 association services (H6)
-- [ ] **QUAL-03**: Extract business logic from 4 oversized controllers into services (M5)
-- [ ] **QUAL-04**: Replace hardcoded localhost URLs with environment config in 19+ frontend files (M7)
-- [ ] **QUAL-05**: Frontend toast notification system for API errors replacing console.error in 30+ components (M8, M9)
-- [ ] **QUAL-06**: DB connection pool increased to 50-100, PgBouncer enabled, response compression added (L1, L2)
-- [ ] **QUAL-07**: Elasticsearch timeout reduced to 5s with circuit breaker pattern (L3)
-- [ ] **QUAL-08**: JWT rotation mechanism with RS256 migration (M2)
+- [x] **QUAL-01**: Decompose top 5 monolithic services to <300 LOC each (H5)
+- [x] **QUAL-02**: Extract BaseAssociationService generic base class for 4 association services (H6)
+- [x] **QUAL-03**: Extract business logic from 4 oversized controllers into services (M5)
+- [x] **QUAL-04**: Replace hardcoded localhost URLs with environment config in 19+ frontend files (M7)
+- [x] **QUAL-05**: Frontend toast notification system for API errors replacing console.error in 30+ components (M8, M9)
+- [x] **QUAL-06**: DB connection pool increased to 50-100, PgBouncer enabled, response compression added (L1, L2)
+- [x] **QUAL-07**: Elasticsearch timeout reduced to 5s with circuit breaker pattern (L3)
+- [x] **QUAL-08**: JWT rotation mechanism with RS256 migration (M2)
 
 ## Out of Scope
 
@@ -110,14 +110,14 @@ Which phases cover which requirements. Maps to ROADMAP.md phases.
 | TEST-02     | Phase 30 | Complete |
 | TEST-03     | Phase 30 | Complete |
 | TEST-04     | Phase 30 | Complete |
-| QUAL-01     | Phase 31 | Pending  |
-| QUAL-02     | Phase 31 | Pending  |
-| QUAL-03     | Phase 31 | Pending  |
-| QUAL-04     | Phase 31 | Pending  |
-| QUAL-05     | Phase 31 | Pending  |
-| QUAL-06     | Phase 31 | Pending  |
-| QUAL-07     | Phase 31 | Pending  |
-| QUAL-08     | Phase 31 | Pending  |
+| QUAL-01     | Phase 31 | Complete |
+| QUAL-02     | Phase 31 | Complete |
+| QUAL-03     | Phase 31 | Complete |
+| QUAL-04     | Phase 31 | Complete |
+| QUAL-05     | Phase 31 | Complete |
+| QUAL-06     | Phase 31 | Complete |
+| QUAL-07     | Phase 31 | Complete |
+| QUAL-08     | Phase 31 | Complete |
 
 **Coverage:**
 
