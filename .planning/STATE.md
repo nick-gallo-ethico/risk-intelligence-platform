@@ -73,7 +73,7 @@ Progress: [██████████] 100% (All plans complete)
 | Service | Before | After | Reduction |
 |---------|--------|-------|-----------|
 | widget-data.service.ts | 1240 | 277 | 78% |
-| board-report.service.ts | 1189 | ~300 | ~75% |
+| board-report.service.ts | 1189 | 448 | 62% |
 | migration.service.ts | 1159 | ~300 | ~74% |
 | task-aggregator.service.ts | 1099 | 291 | 73% |
 | campaign-targeting.service.ts | 1007 | 578 | 43% |
@@ -161,6 +161,7 @@ Key outcomes:
 - RiusService 460 -> 349 LOC with RiuUpdateService extraction
 - WidgetDataService 1240 -> 277 LOC with 3 sub-services (78% reduction)
 - TaskAggregatorService 1099 -> 291 LOC with 3 sub-services (73% reduction)
+- BoardReportService 1189 -> 448 LOC with 3 sub-services (62% reduction)
 
 ### Blockers
 
