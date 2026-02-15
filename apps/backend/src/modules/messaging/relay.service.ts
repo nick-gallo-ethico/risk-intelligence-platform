@@ -12,9 +12,16 @@ import {
   MessageDirection,
   MessageSenderType,
   MessageDeliveryStatus,
+  AuditEntityType,
+  AuditActionCategory,
+  ActorType,
 } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
-import { PiiDetectionService, PiiDetectionResult } from "./pii-detection.service";
+import {
+  PiiDetectionService,
+  PiiDetectionResult,
+} from "./pii-detection.service";
+import { AuditService } from "../audit/audit.service";
 import { EMAIL_QUEUE_NAME } from "../jobs/queues/email.queue";
 import { EmailJobData } from "../jobs/types";
 
@@ -108,6 +115,7 @@ export class MessageRelayService {
     private readonly piiDetectionService: PiiDetectionService,
     private readonly eventEmitter: EventEmitter2,
     @InjectQueue(EMAIL_QUEUE_NAME) private readonly emailQueue: Queue,
+    private readonly auditService: AuditService,
   ) {}
 
   /**
@@ -193,6 +201,24 @@ export class MessageRelayService {
       },
     });
 
+    // SEC-11: Audit log for SOC 2 compliance
+    await this.auditService.log({
+      organizationId,
+      entityType: AuditEntityType.CASE_MESSAGE,
+      entityId: message.id,
+      action: "MESSAGE_SENT_TO_REPORTER",
+      actionCategory: AuditActionCategory.ACCESS,
+      actionDescription: `Investigator sent message to reporter for case ${caseRecord.referenceNumber}`,
+      actorType: ActorType.USER,
+      actorUserId: userId,
+      context: {
+        caseId: dto.caseId,
+        direction: "outbound",
+        hasSubject: !!dto.subject,
+        // Don't log content - PII risk
+      },
+    });
+
     // Find reporter email from linked RIU (for notification only)
     // CRITICAL: This email is NEVER exposed to the investigator
     const primaryRiu = caseRecord.riuAssociations[0]?.riu;
@@ -270,6 +296,23 @@ export class MessageRelayService {
       },
     });
 
+    // SEC-11: Audit log for SOC 2 compliance
+    await this.auditService.log({
+      organizationId: riu.organizationId,
+      entityType: AuditEntityType.CASE_MESSAGE,
+      entityId: message.id,
+      action: "MESSAGE_RECEIVED_FROM_REPORTER",
+      actionCategory: AuditActionCategory.ACCESS,
+      actionDescription: `Reporter sent message for case (via access code)`,
+      actorType: ActorType.SYSTEM,
+      actorUserId: null, // Anonymous reporter
+      context: {
+        caseId: linkedCaseId,
+        direction: "inbound",
+        riuId: riu.id,
+      },
+    });
+
     // Emit event for notification system
     this.emitEvent("case.message.received", {
       organizationId: riu.organizationId,
@@ -327,6 +370,24 @@ export class MessageRelayService {
           readById: userId,
         },
       });
+
+      // SEC-11: Audit log for SOC 2 compliance - bulk mark read
+      for (const messageId of unreadInboundIds) {
+        await this.auditService.log({
+          organizationId,
+          entityType: AuditEntityType.CASE_MESSAGE,
+          entityId: messageId,
+          action: "MESSAGE_MARKED_READ",
+          actionCategory: AuditActionCategory.ACCESS,
+          actionDescription: `Investigator viewed message`,
+          actorType: ActorType.USER,
+          actorUserId: userId,
+          context: {
+            caseId,
+            direction: "inbound",
+          },
+        });
+      }
     }
 
     return messages.map((m) => ({

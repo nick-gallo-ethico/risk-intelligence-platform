@@ -1,8 +1,12 @@
 import { Module } from "@nestjs/common";
 import { BullModule } from "@nestjs/bullmq";
 import { PrismaModule } from "../prisma/prisma.module";
+import { AuditModule } from "../audit/audit.module";
 import { EMAIL_QUEUE_NAME } from "../jobs/queues/email.queue";
-import { MessagingController, PublicMessagingController } from "./messaging.controller";
+import {
+  MessagingController,
+  PublicMessagingController,
+} from "./messaging.controller";
 import { MessageRelayService } from "./relay.service";
 import { PiiDetectionService } from "./pii-detection.service";
 
@@ -26,6 +30,7 @@ import { PiiDetectionService } from "./pii-detection.service";
 @Module({
   imports: [
     PrismaModule,
+    AuditModule,
     BullModule.registerQueue({
       name: EMAIL_QUEUE_NAME,
     }),
