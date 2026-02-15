@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-15)
 ## Current Position
 
 Phase: 32 of 36 (Security & SOC 2 Fixes) + Phases 22, 23, 25.1 continued
-Plan: Ready to plan
-Status: Roadmap created, ready to plan first phase
-Last activity: 2026-02-15 — v1.2 roadmap created with 8 phases (5 new + 3 continued)
+Plan: 1 of 8 complete
+Status: In progress
+Last activity: 2026-02-15 — Completed 32-01-PLAN.md (Secure 4 Unauthenticated Controllers)
 
-Progress: v1.0 + v1.1 complete. v1.2 roadmap created.
+Progress: v1.0 + v1.1 complete. v1.2 Phase 32 Plan 01 complete.
 
 ## Shipped Milestones
 
@@ -36,7 +36,7 @@ Progress: v1.0 + v1.1 complete. v1.2 roadmap created.
 
 **Execution Order:**
 
-1. Phase 32: Security & SOC 2 (CRITICAL) - 13 requirements
+1. Phase 32: Security & SOC 2 (CRITICAL) - 13 requirements [IN PROGRESS - 1/8 plans complete]
 2. Phase 33: Slop Cleanup + Production - 16 requirements
 3. Phase 34: Performance & Scalability - 11 requirements
 4. Phase 35: Code Quality & Architecture - 5 requirements
@@ -54,6 +54,8 @@ Progress: v1.0 + v1.1 complete. v1.2 roadmap created.
 - Track 2 phases (22, 23, 25.1) use existing plans from v1.0 - do NOT re-plan
 - Phase ordering: Security FIRST, then cleanup, perf, quality, tests, then features
 - ESLint max-lines guardrail (warn at 500 LOC) prevents service bloat
+- 32-01: Employee attestation endpoints allow all authenticated roles
+- 32-01: userName derived from user.firstName + user.lastName in checklist controller
 
 ### Blockers
 
@@ -61,7 +63,7 @@ None currently.
 
 ## Session Continuity
 
-Last session: 2026-02-15 — v1.2 roadmap created
-Stopped at: Roadmap creation complete
+Last session: 2026-02-15 19:27 UTC
+Stopped at: Completed 32-01-PLAN.md
 Resume file: None
-Next action: `/gsd:plan-phase 32` to plan Security & SOC 2 Fixes
+Next action: Execute 32-02-PLAN.md
