@@ -4,43 +4,52 @@
  * These DTOs define the request/response shapes for prospect account management.
  */
 
-import { IsString, IsOptional, IsDate, IsEnum, IsNumber } from 'class-validator';
-import { Type } from 'class-transformer';
-import { UserRole } from '@prisma/client';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import {
+  IsString,
+  IsOptional,
+  IsDate,
+  IsEnum,
+  IsNumber,
+} from "class-validator";
+import { Type } from "class-transformer";
+import { UserRole } from "@prisma/client";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 
 /**
  * Request DTO for provisioning a new prospect demo account
  */
 export class ProvisionProspectDto {
-  @ApiPropertyOptional({ description: 'Name of the prospect (e.g., "John Smith")' })
+  @ApiPropertyOptional({
+    description: 'Name of the prospect (e.g., "John Smith")',
+  })
   @IsOptional()
   @IsString()
   prospectName?: string;
 
-  @ApiPropertyOptional({ description: 'Company name for the prospect' })
+  @ApiPropertyOptional({ description: "Company name for the prospect" })
   @IsOptional()
   @IsString()
   prospectCompany?: string;
 
   @ApiPropertyOptional({
-    description: 'Role to assign to the prospect account',
+    description: "Role to assign to the prospect account",
     enum: UserRole,
-    default: 'COMPLIANCE_OFFICER',
+    default: "COMPLIANCE_OFFICER",
   })
   @IsOptional()
   @IsEnum(UserRole)
   role?: UserRole;
 
   @ApiPropertyOptional({
-    description: 'Expiry date for the prospect account (default: 14 days from now)',
+    description:
+      "Expiry date for the prospect account (default: 14 days from now)",
   })
   @IsOptional()
   @Type(() => Date)
   @IsDate()
   expiresAt?: Date;
 
-  @ApiPropertyOptional({ description: 'Internal notes about this prospect' })
+  @ApiPropertyOptional({ description: "Internal notes about this prospect" })
   @IsOptional()
   @IsString()
   notes?: string;
@@ -50,7 +59,7 @@ export class ProvisionProspectDto {
  * Request DTO for extending a prospect account expiry
  */
 export class ExtendExpiryDto {
-  @ApiProperty({ description: 'New expiry date for the account' })
+  @ApiProperty({ description: "New expiry date for the account" })
   @Type(() => Date)
   @IsDate()
   newExpiryDate: Date;
@@ -60,7 +69,7 @@ export class ExtendExpiryDto {
  * Request DTO for revoking a prospect account
  */
 export class RevokeAccountDto {
-  @ApiPropertyOptional({ description: 'Reason for revocation' })
+  @ApiPropertyOptional({ description: "Reason for revocation" })
   @IsOptional()
   @IsString()
   reason?: string;
@@ -70,41 +79,44 @@ export class RevokeAccountDto {
  * Response DTO for demo account data
  */
 export class DemoAccountResponseDto {
-  @ApiProperty({ description: 'Demo account ID' })
+  @ApiProperty({ description: "Demo account ID" })
   id: string;
 
-  @ApiProperty({ description: 'Generated prospect email' })
+  @ApiProperty({ description: "Generated prospect email" })
   prospectEmail: string;
 
-  @ApiPropertyOptional({ description: 'Prospect name' })
+  @ApiPropertyOptional({ description: "Prospect name" })
   prospectName?: string;
 
-  @ApiPropertyOptional({ description: 'Prospect company' })
+  @ApiPropertyOptional({ description: "Prospect company" })
   prospectCompany?: string;
 
-  @ApiProperty({ description: 'Role assigned to the prospect' })
+  @ApiProperty({ description: "Role assigned to the prospect" })
   role: string;
 
-  @ApiProperty({ description: 'Account status', enum: ['ACTIVE', 'EXPIRED', 'REVOKED'] })
+  @ApiProperty({
+    description: "Account status",
+    enum: ["ACTIVE", "EXPIRED", "REVOKED"],
+  })
   status: string;
 
-  @ApiProperty({ description: 'Account expiry date' })
+  @ApiProperty({ description: "Account expiry date" })
   expiresAt: Date;
 
-  @ApiPropertyOptional({ description: 'When account was actually expired' })
+  @ApiPropertyOptional({ description: "When account was actually expired" })
   expiredAt?: Date;
 
-  @ApiPropertyOptional({ description: 'Last access timestamp' })
+  @ApiPropertyOptional({ description: "Last access timestamp" })
   lastAccessAt?: Date;
 
-  @ApiProperty({ description: 'Number of times the account was accessed' })
+  @ApiProperty({ description: "Number of times the account was accessed" })
   accessCount: number;
 
-  @ApiProperty({ description: 'Account creation date' })
+  @ApiProperty({ description: "Account creation date" })
   createdAt: Date;
 
   @ApiPropertyOptional({
-    description: 'Login credentials (only returned on provision)',
+    description: "Login credentials (only returned on provision)",
   })
   credentials?: {
     email: string;
@@ -117,11 +129,11 @@ export class DemoAccountResponseDto {
  */
 export class ProvisionResponseDto extends DemoAccountResponseDto {
   @ApiProperty({
-    description: 'Login credentials for the provisioned account',
-    type: 'object',
+    description: "Login credentials for the provisioned account",
+    type: "object",
     properties: {
-      email: { type: 'string', example: 'prospect-abc12345@demo.local' },
-      password: { type: 'string', example: 'Password123!' },
+      email: { type: "string", example: "prospect-abc12345@demo.local" },
+      password: { type: "string", example: "xK8_Secure_rAnDoM" },
     },
   })
   credentials: {
@@ -134,18 +146,18 @@ export class ProvisionResponseDto extends DemoAccountResponseDto {
  * Response DTO for demo credentials listing (public endpoint)
  */
 export class DemoCredentialsDto {
-  @ApiProperty({ description: 'Password for all demo accounts' })
+  @ApiProperty({ description: "Password for all demo accounts" })
   password: string;
 
   @ApiProperty({
-    description: 'List of available demo accounts',
-    type: 'array',
+    description: "List of available demo accounts",
+    type: "array",
     items: {
-      type: 'object',
+      type: "object",
       properties: {
-        email: { type: 'string' },
-        role: { type: 'string' },
-        description: { type: 'string' },
+        email: { type: "string" },
+        role: { type: "string" },
+        description: { type: "string" },
       },
     },
   })
@@ -160,44 +172,44 @@ export class DemoCredentialsDto {
  * DTO for sales rep's prospect account listing
  */
 export class ProspectListItemDto {
-  @ApiProperty({ description: 'Demo account ID' })
+  @ApiProperty({ description: "Demo account ID" })
   id: string;
 
-  @ApiProperty({ description: 'Prospect email' })
+  @ApiProperty({ description: "Prospect email" })
   prospectEmail: string;
 
-  @ApiPropertyOptional({ description: 'Prospect name' })
+  @ApiPropertyOptional({ description: "Prospect name" })
   prospectName?: string;
 
-  @ApiPropertyOptional({ description: 'Prospect company' })
+  @ApiPropertyOptional({ description: "Prospect company" })
   prospectCompany?: string;
 
-  @ApiProperty({ description: 'Account status' })
+  @ApiProperty({ description: "Account status" })
   status: string;
 
-  @ApiProperty({ description: 'Expiry date' })
+  @ApiProperty({ description: "Expiry date" })
   expiresAt: Date;
 
-  @ApiProperty({ description: 'Access count' })
+  @ApiProperty({ description: "Access count" })
   accessCount: number;
 
-  @ApiPropertyOptional({ description: 'Last access' })
+  @ApiPropertyOptional({ description: "Last access" })
   lastAccessAt?: Date;
 
-  @ApiProperty({ description: 'Created date' })
+  @ApiProperty({ description: "Created date" })
   createdAt: Date;
 
   @ApiProperty({
-    description: 'Prospect user details',
-    type: 'object',
+    description: "Prospect user details",
+    type: "object",
     properties: {
-      id: { type: 'string' },
-      email: { type: 'string' },
-      firstName: { type: 'string' },
-      lastName: { type: 'string' },
-      role: { type: 'string' },
-      isActive: { type: 'boolean' },
-      lastLoginAt: { type: 'string', format: 'date-time', nullable: true },
+      id: { type: "string" },
+      email: { type: "string" },
+      firstName: { type: "string" },
+      lastName: { type: "string" },
+      role: { type: "string" },
+      isActive: { type: "boolean" },
+      lastLoginAt: { type: "string", format: "date-time", nullable: true },
     },
   })
   prospectUser: {

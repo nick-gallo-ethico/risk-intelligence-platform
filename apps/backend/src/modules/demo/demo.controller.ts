@@ -20,14 +20,16 @@ import {
   ParseUUIDPipe,
   HttpCode,
   HttpStatus,
-} from '@nestjs/common';
+  Inject,
+} from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import {
   ApiTags,
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
-} from '@nestjs/swagger';
-import { DemoService } from './demo.service';
+} from "@nestjs/swagger";
+import { DemoService } from "./demo.service";
 import {
   ProvisionProspectDto,
   ExtendExpiryDto,
@@ -36,10 +38,10 @@ import {
   DemoAccountResponseDto,
   DemoCredentialsDto,
   ProspectListItemDto,
-} from './dto';
-import { JwtAuthGuard, TenantGuard } from '../../common/guards';
-import { CurrentUser, TenantId } from '../../common/decorators';
-import { Public } from '../../common/guards/jwt-auth.guard';
+} from "./dto";
+import { JwtAuthGuard, TenantGuard } from "../../common/guards";
+import { CurrentUser, TenantId } from "../../common/decorators";
+import { Public } from "../../common/guards/jwt-auth.guard";
 
 /**
  * Request user interface (from JWT payload)
@@ -51,33 +53,43 @@ interface RequestUser {
   role: string;
 }
 
-@ApiTags('Demo')
-@Controller('demo')
+@ApiTags("Demo")
+@Controller("demo")
 export class DemoController {
-  constructor(private readonly demoService: DemoService) {}
+  /** Password for permanent demo accounts (from environment or fallback) */
+  private readonly demoAccountPassword: string;
+
+  constructor(
+    private readonly demoService: DemoService,
+    private readonly configService: ConfigService,
+  ) {
+    // SEC-06: Demo account password from environment, not hardcoded
+    this.demoAccountPassword =
+      this.configService.get<string>("DEMO_ACCOUNT_PASSWORD") || "Demo2026!";
+  }
 
   /**
    * POST /api/v1/demo/prospects
    * Provision a new prospect demo account (sales reps only)
    */
-  @Post('prospects')
+  @Post("prospects")
   @UseGuards(JwtAuthGuard, TenantGuard)
-  @ApiBearerAuth('JWT')
+  @ApiBearerAuth("JWT")
   @ApiOperation({
-    summary: 'Provision a new prospect demo account',
+    summary: "Provision a new prospect demo account",
     description:
-      'Creates a time-limited demo account for a prospect. Only sales reps can provision accounts. Returns credentials for the prospect to use.',
+      "Creates a time-limited demo account for a prospect. Only sales reps can provision accounts. Returns credentials for the prospect to use.",
   })
   @ApiResponse({
     status: 201,
-    description: 'Prospect account provisioned successfully',
+    description: "Prospect account provisioned successfully",
     type: ProvisionResponseDto,
   })
-  @ApiResponse({ status: 400, description: 'Invalid request data' })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 400, description: "Invalid request data" })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
   @ApiResponse({
     status: 403,
-    description: 'Only sales reps can provision prospect accounts',
+    description: "Only sales reps can provision prospect accounts",
   })
   async provisionProspect(
     @Body() dto: ProvisionProspectDto,
@@ -104,7 +116,7 @@ export class DemoController {
       createdAt: result.demoAccount.createdAt,
       credentials: {
         email: result.user.email,
-        password: 'Password123!',
+        password: result.plaintextPassword, // SEC-06: Use generated secure password
       },
     };
   }
@@ -113,20 +125,20 @@ export class DemoController {
    * GET /api/v1/demo/prospects
    * List all prospect accounts for current sales rep
    */
-  @Get('prospects')
+  @Get("prospects")
   @UseGuards(JwtAuthGuard, TenantGuard)
-  @ApiBearerAuth('JWT')
+  @ApiBearerAuth("JWT")
   @ApiOperation({
-    summary: 'List prospect accounts provisioned by current user',
+    summary: "List prospect accounts provisioned by current user",
     description:
-      'Returns all prospect demo accounts created by the authenticated sales rep.',
+      "Returns all prospect demo accounts created by the authenticated sales rep.",
   })
   @ApiResponse({
     status: 200,
-    description: 'List of prospect accounts',
+    description: "List of prospect accounts",
     type: [ProspectListItemDto],
   })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
   async listProspects(
     @CurrentUser() user: RequestUser,
     @TenantId() orgId: string,
@@ -155,27 +167,27 @@ export class DemoController {
    * PATCH /api/v1/demo/prospects/:id/extend
    * Extend expiry date for a prospect account
    */
-  @Patch('prospects/:id/extend')
+  @Patch("prospects/:id/extend")
   @UseGuards(JwtAuthGuard, TenantGuard)
-  @ApiBearerAuth('JWT')
+  @ApiBearerAuth("JWT")
   @ApiOperation({
-    summary: 'Extend prospect account expiry',
+    summary: "Extend prospect account expiry",
     description:
-      'Extends the expiry date of a prospect account. Only the originating sales rep can extend.',
+      "Extends the expiry date of a prospect account. Only the originating sales rep can extend.",
   })
   @ApiResponse({
     status: 200,
-    description: 'Account expiry extended',
+    description: "Account expiry extended",
     type: DemoAccountResponseDto,
   })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
   @ApiResponse({
     status: 403,
-    description: 'Only the originating sales rep can extend this account',
+    description: "Only the originating sales rep can extend this account",
   })
-  @ApiResponse({ status: 404, description: 'Demo account not found' })
+  @ApiResponse({ status: 404, description: "Demo account not found" })
   async extendExpiry(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param("id", ParseUUIDPipe) id: string,
     @Body() dto: ExtendExpiryDto,
     @CurrentUser() user: RequestUser,
   ): Promise<DemoAccountResponseDto> {
@@ -186,7 +198,7 @@ export class DemoController {
       prospectEmail: account.prospectEmail,
       prospectName: account.prospectName ?? undefined,
       prospectCompany: account.prospectCompany ?? undefined,
-      role: 'COMPLIANCE_OFFICER', // Default role
+      role: "COMPLIANCE_OFFICER", // Default role
       status: account.status,
       expiresAt: account.expiresAt,
       expiredAt: account.expiredAt ?? undefined,
@@ -200,28 +212,28 @@ export class DemoController {
    * POST /api/v1/demo/prospects/:id/revoke
    * Revoke a prospect account
    */
-  @Post('prospects/:id/revoke')
+  @Post("prospects/:id/revoke")
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, TenantGuard)
-  @ApiBearerAuth('JWT')
+  @ApiBearerAuth("JWT")
   @ApiOperation({
-    summary: 'Revoke prospect account',
+    summary: "Revoke prospect account",
     description:
-      'Revokes (deactivates) a prospect account. Only the originating sales rep can revoke.',
+      "Revokes (deactivates) a prospect account. Only the originating sales rep can revoke.",
   })
   @ApiResponse({
     status: 200,
-    description: 'Account revoked',
+    description: "Account revoked",
     type: DemoAccountResponseDto,
   })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
   @ApiResponse({
     status: 403,
-    description: 'Only the originating sales rep can revoke this account',
+    description: "Only the originating sales rep can revoke this account",
   })
-  @ApiResponse({ status: 404, description: 'Demo account not found' })
+  @ApiResponse({ status: 404, description: "Demo account not found" })
   async revokeAccount(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param("id", ParseUUIDPipe) id: string,
     @Body() dto: RevokeAccountDto,
     @CurrentUser() user: RequestUser,
   ): Promise<DemoAccountResponseDto> {
@@ -236,7 +248,7 @@ export class DemoController {
       prospectEmail: account.prospectEmail,
       prospectName: account.prospectName ?? undefined,
       prospectCompany: account.prospectCompany ?? undefined,
-      role: 'COMPLIANCE_OFFICER', // Default role
+      role: "COMPLIANCE_OFFICER", // Default role
       status: account.status,
       expiresAt: account.expiresAt,
       expiredAt: account.expiredAt ?? undefined,
@@ -250,66 +262,66 @@ export class DemoController {
    * GET /api/v1/demo/credentials
    * Get demo credentials for permanent accounts (public info)
    */
-  @Get('credentials')
+  @Get("credentials")
   @Public()
   @ApiOperation({
-    summary: 'Get demo account credentials',
+    summary: "Get demo account credentials",
     description:
-      'Returns the password and list of available demo accounts for testing. This endpoint is public.',
+      "Returns the password and list of available demo accounts for testing. This endpoint is public.",
   })
   @ApiResponse({
     status: 200,
-    description: 'Demo credentials',
+    description: "Demo credentials",
     type: DemoCredentialsDto,
   })
   async getDemoCredentials(): Promise<DemoCredentialsDto> {
     return {
-      password: 'Password123!',
+      password: this.demoAccountPassword, // SEC-06: From environment, not hardcoded
       accounts: [
         {
-          email: 'demo-admin@acme.local',
-          role: 'SYSTEM_ADMIN',
-          description: 'System Administrator with full access',
+          email: "demo-admin@acme.local",
+          role: "SYSTEM_ADMIN",
+          description: "System Administrator with full access",
         },
         {
-          email: 'demo-cco@acme.local',
-          role: 'COMPLIANCE_OFFICER',
-          description: 'Chief Compliance Officer - executive oversight',
+          email: "demo-cco@acme.local",
+          role: "COMPLIANCE_OFFICER",
+          description: "Chief Compliance Officer - executive oversight",
         },
         {
-          email: 'demo-triage@acme.local',
-          role: 'TRIAGE_LEAD',
-          description: 'Triage Lead - initial case routing',
+          email: "demo-triage@acme.local",
+          role: "TRIAGE_LEAD",
+          description: "Triage Lead - initial case routing",
         },
         {
-          email: 'demo-investigator@acme.local',
-          role: 'INVESTIGATOR',
-          description: 'Senior Investigator - case investigation',
+          email: "demo-investigator@acme.local",
+          role: "INVESTIGATOR",
+          description: "Senior Investigator - case investigation",
         },
         {
-          email: 'demo-investigator2@acme.local',
-          role: 'INVESTIGATOR',
-          description: 'Junior Investigator - case investigation',
+          email: "demo-investigator2@acme.local",
+          role: "INVESTIGATOR",
+          description: "Junior Investigator - case investigation",
         },
         {
-          email: 'demo-policy@acme.local',
-          role: 'POLICY_AUTHOR',
-          description: 'Policy Author - policy management',
+          email: "demo-policy@acme.local",
+          role: "POLICY_AUTHOR",
+          description: "Policy Author - policy management",
         },
         {
-          email: 'demo-reviewer@acme.local',
-          role: 'POLICY_REVIEWER',
-          description: 'Policy Reviewer - policy approval',
+          email: "demo-reviewer@acme.local",
+          role: "POLICY_REVIEWER",
+          description: "Policy Reviewer - policy approval",
         },
         {
-          email: 'demo-manager@acme.local',
-          role: 'MANAGER',
-          description: 'Department Manager - limited case view',
+          email: "demo-manager@acme.local",
+          role: "MANAGER",
+          description: "Department Manager - limited case view",
         },
         {
-          email: 'demo-employee@acme.local',
-          role: 'EMPLOYEE',
-          description: 'Employee - self-service portal access',
+          email: "demo-employee@acme.local",
+          role: "EMPLOYEE",
+          description: "Employee - self-service portal access",
         },
       ],
     };

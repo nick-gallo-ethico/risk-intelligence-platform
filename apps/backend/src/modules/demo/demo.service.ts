@@ -14,28 +14,37 @@ import {
   ForbiddenException,
   NotFoundException,
   Logger,
-} from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
-import { ActivityService } from '../../common/services/activity.service';
+} from "@nestjs/common";
+import { PrismaService } from "../prisma/prisma.service";
+import { ActivityService } from "../../common/services/activity.service";
 import {
   ProvisionProspectDto,
   ExtendExpiryDto,
   RevokeAccountDto,
-} from './dto/provision-prospect.dto';
+} from "./dto/provision-prospect.dto";
 import {
   DemoAccount,
   DemoAccountStatus,
   User,
   UserRole,
   AuditEntityType,
-} from '@prisma/client';
-import * as bcrypt from 'bcrypt';
-import { v4 as uuid } from 'uuid';
+} from "@prisma/client";
+import * as bcrypt from "bcrypt";
+import * as crypto from "crypto";
+import { v4 as uuid } from "uuid";
 
 // Constants
 const BCRYPT_ROUNDS = 12;
 const DEFAULT_EXPIRY_DAYS = 14;
-const DEMO_PASSWORD = 'Password123!';
+
+/**
+ * Generate a cryptographically secure random password.
+ * Returns a 24-character base64url string (192 bits of entropy).
+ * SEC-06: Replaces hardcoded "Password123!" security risk.
+ */
+function generateSecurePassword(): string {
+  return crypto.randomBytes(18).toString("base64url");
+}
 
 /**
  * Result of provisioning a new prospect account
@@ -43,6 +52,8 @@ const DEMO_PASSWORD = 'Password123!';
 export interface ProvisionResult {
   user: User;
   demoAccount: DemoAccount;
+  /** The generated plaintext password - must be shared with prospect securely */
+  plaintextPassword: string;
 }
 
 /**
@@ -86,13 +97,17 @@ export class DemoService {
     });
 
     if (!salesRep) {
-      throw new NotFoundException('Sales rep not found');
+      throw new NotFoundException("Sales rep not found");
     }
 
     // Check if user is a demo sales rep (has demo-* email pattern)
-    const isDemoSalesRep = salesRep.email.startsWith('demo-') && salesRep.email.endsWith('@acme.local');
+    const isDemoSalesRep =
+      salesRep.email.startsWith("demo-") &&
+      salesRep.email.endsWith("@acme.local");
     if (!isDemoSalesRep) {
-      throw new ForbiddenException('Only sales reps can provision prospect accounts');
+      throw new ForbiddenException(
+        "Only sales reps can provision prospect accounts",
+      );
     }
 
     // 2. Calculate expiry (default 14 days if not specified)
@@ -101,13 +116,14 @@ export class DemoService {
     // 3. Generate unique prospect email
     const prospectEmail = `prospect-${uuid().slice(0, 8)}@demo.local`;
 
-    // 4. Create prospect user with known password
-    const passwordHash = await bcrypt.hash(DEMO_PASSWORD, BCRYPT_ROUNDS);
+    // 4. Create prospect user with secure random password (SEC-06)
+    const plaintextPassword = generateSecurePassword();
+    const passwordHash = await bcrypt.hash(plaintextPassword, BCRYPT_ROUNDS);
 
     // Parse name if provided
-    const nameParts = dto.prospectName?.split(' ') || [];
-    const firstName = nameParts[0] || 'Demo';
-    const lastName = nameParts.slice(1).join(' ') || 'User';
+    const nameParts = dto.prospectName?.split(" ") || [];
+    const firstName = nameParts[0] || "Demo";
+    const lastName = nameParts.slice(1).join(" ") || "User";
 
     // Determine role (default to COMPLIANCE_OFFICER for best demo experience)
     const role = dto.role || UserRole.COMPLIANCE_OFFICER;
@@ -143,17 +159,17 @@ export class DemoService {
     await this.activityService.log({
       entityType: AuditEntityType.DEMO_ACCOUNT,
       entityId: demoAccount.id,
-      action: 'provisioned',
-      actionDescription: `${salesRep.email} provisioned prospect account for ${dto.prospectName || 'unnamed prospect'} (${dto.prospectCompany || 'unknown company'})`,
+      action: "provisioned",
+      actionDescription: `${salesRep.email} provisioned prospect account for ${dto.prospectName || "unnamed prospect"} (${dto.prospectCompany || "unknown company"})`,
       actorUserId: salesRepUserId,
       organizationId,
     });
 
     this.logger.log(
-      `Provisioned prospect account ${prospectEmail} by ${salesRep.email} for ${dto.prospectCompany || 'unknown company'}`,
+      `Provisioned prospect account ${prospectEmail} by ${salesRep.email} for ${dto.prospectCompany || "unknown company"}`,
     );
 
-    return { user: prospectUser, demoAccount };
+    return { user: prospectUser, demoAccount, plaintextPassword };
   }
 
   /**
@@ -177,12 +193,14 @@ export class DemoService {
     });
 
     if (!demoAccount) {
-      throw new NotFoundException('Demo account not found');
+      throw new NotFoundException("Demo account not found");
     }
 
     // Only the originating sales rep can extend
     if (demoAccount.salesRepUserId !== salesRepUserId) {
-      throw new ForbiddenException('Only the originating sales rep can extend this account');
+      throw new ForbiddenException(
+        "Only the originating sales rep can extend this account",
+      );
     }
 
     const updated = await this.prisma.demoAccount.update({
@@ -204,13 +222,15 @@ export class DemoService {
     await this.activityService.log({
       entityType: AuditEntityType.DEMO_ACCOUNT,
       entityId: demoAccountId,
-      action: 'expiry_extended',
+      action: "expiry_extended",
       actionDescription: `${demoAccount.salesRepUser.email} extended expiry to ${dto.newExpiryDate.toISOString()}`,
       actorUserId: salesRepUserId,
       organizationId: demoAccount.organizationId,
     });
 
-    this.logger.log(`Extended demo account ${demoAccountId} to ${dto.newExpiryDate.toISOString()}`);
+    this.logger.log(
+      `Extended demo account ${demoAccountId} to ${dto.newExpiryDate.toISOString()}`,
+    );
 
     return updated;
   }
@@ -236,12 +256,14 @@ export class DemoService {
     });
 
     if (!demoAccount) {
-      throw new NotFoundException('Demo account not found');
+      throw new NotFoundException("Demo account not found");
     }
 
     // Only the originating sales rep can revoke
     if (demoAccount.salesRepUserId !== salesRepUserId) {
-      throw new ForbiddenException('Only the originating sales rep can revoke this account');
+      throw new ForbiddenException(
+        "Only the originating sales rep can revoke this account",
+      );
     }
 
     const now = new Date();
@@ -252,7 +274,9 @@ export class DemoService {
       data: {
         status: DemoAccountStatus.REVOKED,
         expiredAt: now,
-        notes: reason ? `${demoAccount.notes || ''}\nRevoked: ${reason}`.trim() : demoAccount.notes,
+        notes: reason
+          ? `${demoAccount.notes || ""}\nRevoked: ${reason}`.trim()
+          : demoAccount.notes,
       },
     });
 
@@ -266,8 +290,8 @@ export class DemoService {
     await this.activityService.log({
       entityType: AuditEntityType.DEMO_ACCOUNT,
       entityId: demoAccountId,
-      action: 'revoked',
-      actionDescription: `${demoAccount.salesRepUser.email} revoked prospect account${reason ? `: ${reason}` : ''}`,
+      action: "revoked",
+      actionDescription: `${demoAccount.salesRepUser.email} revoked prospect account${reason ? `: ${reason}` : ""}`,
       actorUserId: salesRepUserId,
       organizationId: demoAccount.organizationId,
     });
@@ -306,7 +330,7 @@ export class DemoService {
           },
         },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
     });
   }
 
@@ -353,10 +377,12 @@ export class DemoService {
           }),
         ]);
 
-        this.logger.log(`Expired demo account ${account.id} (${account.prospectEmail})`);
+        this.logger.log(
+          `Expired demo account ${account.id} (${account.prospectEmail})`,
+        );
       } catch (error) {
         this.logger.error(
-          `Failed to expire demo account ${account.id}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          `Failed to expire demo account ${account.id}: ${error instanceof Error ? error.message : "Unknown error"}`,
         );
       }
     }
@@ -383,7 +409,7 @@ export class DemoService {
     } catch (error) {
       // Don't throw - access recording should not break login flow
       this.logger.warn(
-        `Failed to record access for prospect ${prospectUserId}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        `Failed to record access for prospect ${prospectUserId}: ${error instanceof Error ? error.message : "Unknown error"}`,
       );
     }
   }
@@ -394,7 +420,9 @@ export class DemoService {
    * @param prospectUserId - ID of the prospect user
    * @returns Demo account or null
    */
-  async getDemoAccountByProspectUserId(prospectUserId: string): Promise<DemoAccount | null> {
+  async getDemoAccountByProspectUserId(
+    prospectUserId: string,
+  ): Promise<DemoAccount | null> {
     return this.prisma.demoAccount.findUnique({
       where: { prospectUserId },
     });
