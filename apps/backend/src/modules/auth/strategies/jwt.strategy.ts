@@ -55,12 +55,12 @@ export class JwtStrategy extends PassportStrategy(Strategy, "jwt") {
         } else {
           // SECURITY: Reject non-RS256 tokens - no HS256 fallback (CVE-2015-9235)
           logger.warn(`JWT rejected: unsupported algorithm ${header?.alg}`);
-          done(new Error("Invalid token algorithm"), null);
+          done(new Error("Invalid token algorithm"), undefined);
         }
       } catch (error) {
         // SECURITY: Fail closed - no HS256 fallback
         logger.error(`JWT key lookup failed: ${(error as Error).message}`);
-        done(new Error("Token verification failed"), null);
+        done(new Error("Token verification failed"), undefined);
       }
     };
 
