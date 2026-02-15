@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-15)
 ## Current Position
 
 Phase: 32 of 36 (Security & SOC 2 Fixes) + Phases 22, 23, 25.1 continued
-Plan: 6 of 8 complete
+Plan: 7 of 8 complete
 Status: In progress
-Last activity: 2026-02-15 — Completed 32-02-PLAN.md (Secure Remaining Controllers)
+Last activity: 2026-02-15 — Completed 32-05-PLAN.md (DTO Security Fixes)
 
-Progress: v1.0 + v1.1 complete. v1.2 Phase 32 Plans 01, 02, 03, 04 complete.
+Progress: v1.0 + v1.1 complete. v1.2 Phase 32 Plans 01, 02, 03, 04, 05 complete.
 
 ## Shipped Milestones
 
@@ -36,7 +36,7 @@ Progress: v1.0 + v1.1 complete. v1.2 Phase 32 Plans 01, 02, 03, 04 complete.
 
 **Execution Order:**
 
-1. Phase 32: Security & SOC 2 (CRITICAL) - 13 requirements [IN PROGRESS - 6/8 plans complete]
+1. Phase 32: Security & SOC 2 (CRITICAL) - 13 requirements [IN PROGRESS - 7/8 plans complete]
 2. Phase 33: Slop Cleanup + Production - 16 requirements
 3. Phase 34: Performance & Scalability - 11 requirements
 4. Phase 35: Code Quality & Architecture - 5 requirements
@@ -63,6 +63,10 @@ Progress: v1.0 + v1.1 complete. v1.2 Phase 32 Plans 01, 02, 03, 04 complete.
 - 32-04: Startup validation throws error if JWT_REFRESH_SECRET undefined
 - 32-02: MigrationController and PolicyApprovalController secured with JWT guards and proper decorators
 - 32-02: Used optional type for decorator parameters in multipart upload endpoints
+- 32-05: organizationId removed from CreateChatDto - must come from authenticated context
+- 32-05: AiClientService accepts organizationId as separate parameter for logging
+- 32-05: Permanent demo accounts use DEMO_ACCOUNT_PASSWORD environment variable with fallback
+- 32-05: @MaxLength(72) on password fields to prevent bcrypt CPU exhaustion
 
 ### Blockers
 
@@ -70,7 +74,7 @@ None currently.
 
 ## Session Continuity
 
-Last session: 2026-02-15T19:33:04Z
-Stopped at: Completed 32-02-PLAN.md
+Last session: 2026-02-15T19:48:53Z
+Stopped at: Completed 32-05-PLAN.md
 Resume file: None
-Next action: Execute 32-05-PLAN.md, 32-06-PLAN.md, or continue to Phase 33
+Next action: Execute 32-06-PLAN.md, 32-07-PLAN.md, 32-08-PLAN.md, or continue to Phase 33

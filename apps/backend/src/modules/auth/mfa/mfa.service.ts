@@ -231,6 +231,128 @@ export class MfaService {
   }
 
   /**
+   * Verify MFA code during login and issue new token with mfaVerified: true.
+   * SEC-09: Session-bound MFA verification - the verification is cryptographically
+   * bound to the session via the new JWT token.
+   *
+   * @param userId - User ID
+   * @param code - TOTP code from authenticator app or recovery code
+   * @param currentPayload - Current JWT payload to preserve session fields
+   * @returns New access token with mfaVerified: true
+   */
+  async verifyMfaLogin(
+    userId: string,
+    code: string,
+    currentPayload: AccessTokenPayload,
+  ): Promise<MfaLoginVerifyResponseDto> {
+    const user = await this.prisma.user.findUniqueOrThrow({
+      where: { id: userId },
+    });
+
+    if (!user.mfaEnabled || !user.mfaSecret) {
+      throw new BadRequestException("MFA is not enabled for this user");
+    }
+
+    let remainingRecoveryCodes: number | undefined;
+
+    // Try TOTP verification first
+    const result = await this.totp.verify(code, { secret: user.mfaSecret });
+
+    if (!result.valid) {
+      // Try recovery code
+      const codeIndex = this.recoveryCodesService.verifyRecoveryCode(
+        code,
+        user.mfaRecoveryCodes,
+      );
+
+      if (codeIndex === -1) {
+        // Log failed attempt for security monitoring
+        // SEC-13: Log user ID instead of email (PII minimization)
+        this.logger.warn(`Failed MFA login attempt for user ${userId}`);
+        await this.auditService.log({
+          entityType: "USER",
+          entityId: userId,
+          organizationId: user.organizationId,
+          action: "MFA_LOGIN_FAILED",
+          actionDescription: "Failed MFA verification during login",
+          actionCategory: AuditActionCategory.SECURITY,
+          actorType: ActorType.USER,
+          actorUserId: userId,
+          actorName: `${user.firstName} ${user.lastName}`,
+        });
+        throw new UnauthorizedException("Invalid verification code");
+      }
+
+      // Remove used recovery code
+      const updatedCodes = [...user.mfaRecoveryCodes];
+      updatedCodes.splice(codeIndex, 1);
+      remainingRecoveryCodes = updatedCodes.length;
+
+      await this.prisma.user.update({
+        where: { id: userId },
+        data: { mfaRecoveryCodes: updatedCodes },
+      });
+
+      await this.auditService.log({
+        entityType: "USER",
+        entityId: userId,
+        organizationId: user.organizationId,
+        action: "MFA_RECOVERY_CODE_USED",
+        actionDescription: `MFA login with recovery code (${updatedCodes.length} remaining)`,
+        actionCategory: AuditActionCategory.SECURITY,
+        actorType: ActorType.USER,
+        actorUserId: userId,
+        actorName: `${user.firstName} ${user.lastName}`,
+      });
+
+      // SEC-13: Log user ID instead of email (PII minimization)
+      this.logger.warn(
+        `Recovery code used by user ${userId}, ${updatedCodes.length} remaining`,
+      );
+    }
+
+    // MFA verified - issue new token with mfaVerified: true
+    const signingOptions = this.jwtKeyService.getSigningOptions();
+
+    const newAccessToken = this.jwtService.sign(
+      {
+        sub: userId,
+        email: currentPayload.email,
+        organizationId: currentPayload.organizationId,
+        role: currentPayload.role,
+        sessionId: currentPayload.sessionId,
+        type: "access",
+        mfaVerified: true, // SEC-09: Session-bound MFA verification
+      },
+      {
+        privateKey: signingOptions.key,
+        algorithm: "RS256",
+        expiresIn: "15m",
+        keyid: signingOptions.kid,
+      },
+    );
+
+    // Log successful MFA - SEC-13: only log userId, not email
+    this.logger.log(`MFA login verified for user ${userId}`);
+    await this.auditService.log({
+      entityType: "USER",
+      entityId: userId,
+      organizationId: user.organizationId,
+      action: "MFA_LOGIN_SUCCESS",
+      actionDescription: "Successful MFA verification during login",
+      actionCategory: AuditActionCategory.SECURITY,
+      actorType: ActorType.USER,
+      actorUserId: userId,
+      actorName: `${user.firstName} ${user.lastName}`,
+    });
+
+    return {
+      accessToken: newAccessToken,
+      remainingRecoveryCodes,
+    };
+  }
+
+  /**
    * Disable MFA for a user.
    * Requires TOTP verification to prevent unauthorized disable.
    */
