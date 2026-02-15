@@ -10,6 +10,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { apiClient } from "@/lib/api";
+import { handleApiError } from "@/lib/api-error-handler";
 
 /**
  * Field type determines how the value is rendered
@@ -104,7 +105,7 @@ export function LinkedRiuFormAnswers({
           setExpandedSections(new Set([response.sections[0].id]));
         }
       } catch (err) {
-        console.error("Failed to load RIU form data:", err);
+        handleApiError(err, "Failed to load form answers");
         setError("Failed to load intake details");
       } finally {
         setLoading(false);

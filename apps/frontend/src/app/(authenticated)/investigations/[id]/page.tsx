@@ -55,6 +55,7 @@ import {
   deleteChecklist,
   type ChecklistProgress,
 } from "@/lib/checklist-api";
+import { handleApiError } from "@/lib/api-error-handler";
 import type { Investigation } from "@/types/investigation";
 
 /**
@@ -137,7 +138,7 @@ export default function InvestigationDetailPage() {
       const data = await getInvestigation(investigationId);
       setInvestigation(data);
     } catch (err) {
-      console.error("Failed to fetch investigation:", err);
+      handleApiError(err, "Failed to load investigation");
       setError("Failed to load investigation");
     } finally {
       setLoading(false);
@@ -149,9 +150,8 @@ export default function InvestigationDetailPage() {
     try {
       const progress = await getChecklistProgress(investigationId);
       setChecklistProgress(progress);
-    } catch (err) {
-      console.error("Failed to fetch checklist:", err);
-      // Not an error if no checklist exists
+    } catch {
+      // Not an error if no checklist exists - this is expected
       setChecklistProgress(null);
     }
   }, [investigationId]);
@@ -170,8 +170,7 @@ export default function InvestigationDetailPage() {
       setChecklistProgress(progress);
       setShowTemplateSelector(false);
     } catch (err) {
-      console.error("Failed to apply template:", err);
-      // TODO: Show toast error
+      handleApiError(err, "Failed to apply template");
     } finally {
       setApplyingTemplate(false);
     }
@@ -191,7 +190,7 @@ export default function InvestigationDetailPage() {
       });
       setChecklistProgress(progress);
     } catch (err) {
-      console.error("Failed to complete item:", err);
+      handleApiError(err, "Failed to complete checklist item");
     } finally {
       setChecklistLoading(false);
     }
@@ -204,7 +203,7 @@ export default function InvestigationDetailPage() {
       const progress = await skipItem(investigationId, itemId, reason);
       setChecklistProgress(progress);
     } catch (err) {
-      console.error("Failed to skip item:", err);
+      handleApiError(err, "Failed to skip checklist item");
     } finally {
       setChecklistLoading(false);
     }
@@ -217,7 +216,7 @@ export default function InvestigationDetailPage() {
       const progress = await uncompleteItem(investigationId, itemId);
       setChecklistProgress(progress);
     } catch (err) {
-      console.error("Failed to uncomplete item:", err);
+      handleApiError(err, "Failed to reopen checklist item");
     } finally {
       setChecklistLoading(false);
     }
@@ -230,7 +229,7 @@ export default function InvestigationDetailPage() {
       const progress = await addCustomItem(investigationId, sectionId, text);
       setChecklistProgress(progress);
     } catch (err) {
-      console.error("Failed to add custom item:", err);
+      handleApiError(err, "Failed to add custom checklist item");
     } finally {
       setChecklistLoading(false);
     }
@@ -255,7 +254,7 @@ export default function InvestigationDetailPage() {
       await deleteChecklist(investigationId);
       setChecklistProgress(null);
     } catch (err) {
-      console.error("Failed to remove checklist:", err);
+      handleApiError(err, "Failed to remove checklist");
     } finally {
       setChecklistLoading(false);
     }

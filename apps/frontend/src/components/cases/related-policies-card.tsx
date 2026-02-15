@@ -6,6 +6,7 @@ import { AssociationCard } from "@/components/ui/association-card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { apiClient } from "@/lib/api";
+import { handleApiError } from "@/lib/api-error-handler";
 import Link from "next/link";
 
 interface PolicyCaseLink {
@@ -38,7 +39,7 @@ export function RelatedPoliciesCard({ caseId }: RelatedPoliciesCardProps) {
         );
         setPolicies(response || []);
       } catch (error) {
-        console.error("Failed to fetch related policies:", error);
+        handleApiError(error, "Failed to load related policies");
         setPolicies([]);
       } finally {
         setLoading(false);

@@ -18,6 +18,7 @@ import {
   defaultCaseFormValues,
 } from "@/lib/validations/case-schema";
 import { casesApi } from "@/lib/cases-api";
+import { handleApiError } from "@/lib/api-error-handler";
 import {
   useCaseFormDraft,
   formatRelativeTime,
@@ -161,25 +162,7 @@ export function CaseCreationForm() {
       // Redirect to the new case detail page
       router.push(`/cases/${createdCase.id}`);
     } catch (error) {
-      console.error("Failed to create case:", error);
-
-      // Extract error message if available
-      let message = "An unexpected error occurred. Please try again.";
-      if (error && typeof error === "object" && "response" in error) {
-        const axiosError = error as {
-          response?: { data?: { message?: string | string[] } };
-        };
-        const apiMessage = axiosError.response?.data?.message;
-        if (Array.isArray(apiMessage)) {
-          message = apiMessage.join(", ");
-        } else if (apiMessage) {
-          message = apiMessage;
-        }
-      }
-
-      toast.error("Failed to create case", {
-        description: message,
-      });
+      handleApiError(error, "Failed to create case");
     } finally {
       setIsSubmitting(false);
     }

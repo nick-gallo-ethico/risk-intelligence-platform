@@ -11,6 +11,8 @@ import { CampaignAssignmentService } from "./assignments/campaign-assignment.ser
 import { CampaignTargetingService } from "./campaign-targeting.service";
 import { AudienceQueryService } from "./services/audience-query.service";
 import { AudienceDescriptionService } from "./services/audience-description.service";
+import { TargetingAttributesService } from "./services/targeting-attributes.service";
+import { SegmentConverterService } from "./services/segment-converter.service";
 import {
   CampaignSchedulingService,
   CAMPAIGN_QUEUE_NAME,
@@ -76,6 +78,8 @@ import { AttestationController } from "./attestation/attestation.controller";
     CampaignTargetingService,
     AudienceQueryService,
     AudienceDescriptionService,
+    TargetingAttributesService,
+    SegmentConverterService,
     CampaignSchedulingService,
     CampaignSchedulingProcessor,
     CampaignReminderService,

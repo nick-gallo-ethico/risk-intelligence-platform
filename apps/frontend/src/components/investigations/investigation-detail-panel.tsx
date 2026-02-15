@@ -1,20 +1,21 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from "react";
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
-} from '@/components/ui/sheet';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Skeleton } from '@/components/ui/skeleton';
-import { InvestigationHeader } from './investigation-header';
-import { InvestigationOverview } from './investigation-overview';
-import { InvestigationNotes } from './investigation-notes';
-import { InvestigationFindings } from './investigation-findings';
-import { getInvestigation } from '@/lib/investigation-api';
-import type { Investigation } from '@/types/investigation';
+} from "@/components/ui/sheet";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Skeleton } from "@/components/ui/skeleton";
+import { InvestigationHeader } from "./investigation-header";
+import { InvestigationOverview } from "./investigation-overview";
+import { InvestigationNotes } from "./investigation-notes";
+import { InvestigationFindings } from "./investigation-findings";
+import { getInvestigation } from "@/lib/investigation-api";
+import { handleApiError } from "@/lib/api-error-handler";
+import type { Investigation } from "@/types/investigation";
 
 interface InvestigationDetailPanelProps {
   /** ID of the investigation to display, null to close panel */
@@ -31,7 +32,9 @@ export function InvestigationDetailPanel({
   investigationId,
   onClose,
 }: InvestigationDetailPanelProps) {
-  const [investigation, setInvestigation] = useState<Investigation | null>(null);
+  const [investigation, setInvestigation] = useState<Investigation | null>(
+    null,
+  );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -44,8 +47,8 @@ export function InvestigationDetailPanel({
       const data = await getInvestigation(id);
       setInvestigation(data);
     } catch (err) {
-      console.error('Failed to fetch investigation:', err);
-      setError('Failed to load investigation details');
+      handleApiError(err, "Failed to load investigation details");
+      setError("Failed to load investigation details");
       setInvestigation(null);
     } finally {
       setLoading(false);
@@ -68,13 +71,13 @@ export function InvestigationDetailPanel({
         onClose();
       }
     },
-    [onClose]
+    [onClose],
   );
 
   // Determine if findings tab should be shown
   const showFindings =
-    investigation?.status === 'PENDING_REVIEW' ||
-    investigation?.status === 'CLOSED';
+    investigation?.status === "PENDING_REVIEW" ||
+    investigation?.status === "CLOSED";
 
   return (
     <Sheet open={!!investigationId} onOpenChange={handleOpenChange}>
@@ -114,7 +117,9 @@ export function InvestigationDetailPanel({
           <div className="flex flex-col items-center justify-center h-64 text-center">
             <p className="text-destructive mb-4">{error}</p>
             <button
-              onClick={() => investigationId && fetchInvestigation(investigationId)}
+              onClick={() =>
+                investigationId && fetchInvestigation(investigationId)
+              }
               className="text-sm text-primary hover:underline"
             >
               Try again

@@ -46,6 +46,7 @@ import {
 import { InjectQueue } from "@nestjs/bullmq";
 import { Queue } from "bullmq";
 import { MigrationService } from "./migration.service";
+import { MigrationTemplateService } from "./services/migration-template.service";
 import { ScreenshotToFormService } from "./screenshot-to-form.service";
 import { MappingSuggestionService } from "./mapping-suggestion.service";
 import { StorageService } from "../../../common/services/storage.service";
@@ -134,6 +135,7 @@ interface QueuedJobResponse {
 export class MigrationController {
   constructor(
     private readonly migrationService: MigrationService,
+    private readonly migrationTemplateService: MigrationTemplateService,
     private readonly screenshotService: ScreenshotToFormService,
     private readonly mappingSuggestionService: MappingSuggestionService,
     private readonly storageService: StorageService,
@@ -347,11 +349,19 @@ export class MigrationController {
   @Get(":id/mappings/suggestions")
   @ApiOperation({ summary: "Get AI-suggested field mappings" })
   @ApiParam({ name: "id", type: "string" })
-  @ApiResponse({ status: 200, description: "Suggested mappings and target fields" })
+  @ApiResponse({
+    status: 200,
+    description: "Suggested mappings and target fields",
+  })
   async getSuggestedMappings(
     @Param("id", ParseUUIDPipe) id: string,
     // @CurrentUser() user: User,
-  ): Promise<{ mappings: FieldMappingDto[]; targetFields: ReturnType<typeof MappingSuggestionService.prototype.getTargetFields> }> {
+  ): Promise<{
+    mappings: FieldMappingDto[];
+    targetFields: ReturnType<
+      typeof MappingSuggestionService.prototype.getTargetFields
+    >;
+  }> {
     const organizationId = TEMP_ORG_ID;
     const job = await this.migrationService.getJob(organizationId, id);
 
@@ -374,12 +384,16 @@ export class MigrationController {
       const buffer = Buffer.concat(chunks);
       const content = buffer.toString("utf-8");
       const lines = content.split("\n");
-      const headers = lines[0].split(",").map((h) => h.trim().replace(/"/g, ""));
+      const headers = lines[0]
+        .split(",")
+        .map((h) => h.trim().replace(/"/g, ""));
       sourceFields = headers;
 
       for (let i = 1; i < Math.min(6, lines.length); i++) {
         if (!lines[i].trim()) continue;
-        const values = lines[i].split(",").map((v) => v.trim().replace(/"/g, ""));
+        const values = lines[i]
+          .split(",")
+          .map((v) => v.trim().replace(/"/g, ""));
         const row: Record<string, unknown> = {};
         headers.forEach((h, idx) => {
           row[h] = values[idx] || "";
@@ -399,7 +413,8 @@ export class MigrationController {
         sourceField: m.sourceField,
         targetField: m.targetField,
         targetEntity: m.targetEntity,
-        transformFunction: m.transformFunction as FieldMappingDto["transformFunction"],
+        transformFunction:
+          m.transformFunction as FieldMappingDto["transformFunction"],
         isRequired: m.isRequired,
         description: m.description,
       })),
@@ -444,7 +459,7 @@ export class MigrationController {
   ): Promise<FieldMappingDto[]> {
     const organizationId = TEMP_ORG_ID;
     const job = await this.migrationService.getJob(organizationId, id);
-    return this.migrationService.loadTemplateMapping(
+    return this.migrationTemplateService.loadTemplate(
       organizationId,
       job.sourceType,
     );
@@ -535,7 +550,7 @@ export class MigrationController {
     const organizationId = TEMP_ORG_ID;
     const job = await this.migrationService.getJob(organizationId, id);
 
-    const previewData = job.previewData as unknown as PreviewRow[] || [];
+    const previewData = (job.previewData as unknown as PreviewRow[]) || [];
 
     return {
       previewData: previewData.slice(0, limit),
@@ -620,9 +635,14 @@ export class MigrationController {
     }
 
     // Check if rollback is possible
-    const canRollback = await this.migrationService.canRollback(organizationId, id);
+    const canRollback = await this.migrationService.canRollback(
+      organizationId,
+      id,
+    );
     if (!canRollback.canRollback) {
-      throw new BadRequestException(canRollback.reason || "Rollback not available");
+      throw new BadRequestException(
+        canRollback.reason || "Rollback not available",
+      );
     }
 
     // Queue for async processing
@@ -653,11 +673,11 @@ export class MigrationController {
   @Get("templates/list")
   @ApiOperation({ summary: "List saved mapping templates" })
   @ApiResponse({ status: 200, description: "Available templates" })
-  async listTemplates(
-    // @CurrentUser() user: User,
-  ): Promise<{ templates: { name: string; fieldCount: number }[] }> {
+  async listTemplates() // @CurrentUser() user: User,
+  : Promise<{ templates: { name: string; fieldCount: number }[] }> {
     const organizationId = TEMP_ORG_ID;
-    const templates = await this.mappingSuggestionService.listTemplates(organizationId);
+    const templates =
+      await this.mappingSuggestionService.listTemplates(organizationId);
     return { templates };
   }
 

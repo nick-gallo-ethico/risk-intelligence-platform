@@ -1,20 +1,24 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useCallback } from 'react';
-import { Plus, Filter, FileText } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { useState, useEffect, useCallback } from "react";
+import { Plus, Filter, FileText } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Skeleton } from '@/components/ui/skeleton';
-import { NoteCard } from './note-card';
-import { AddNoteModal } from './add-note-modal';
-import { investigationNotesApi } from '@/lib/investigation-notes-api';
-import type { InvestigationNote, NoteType } from '@/lib/investigation-notes-api';
+} from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
+import { NoteCard } from "./note-card";
+import { AddNoteModal } from "./add-note-modal";
+import { investigationNotesApi } from "@/lib/investigation-notes-api";
+import { handleApiError } from "@/lib/api-error-handler";
+import type {
+  InvestigationNote,
+  NoteType,
+} from "@/lib/investigation-notes-api";
 
 interface InvestigationNotesProps {
   investigationId: string;
@@ -24,22 +28,24 @@ interface InvestigationNotesProps {
  * Note type filter options
  */
 const NOTE_TYPE_FILTERS: { value: string; label: string }[] = [
-  { value: 'ALL', label: 'All Types' },
-  { value: 'GENERAL', label: 'General' },
-  { value: 'INTERVIEW', label: 'Interview' },
-  { value: 'EVIDENCE', label: 'Evidence' },
-  { value: 'FINDING', label: 'Finding' },
-  { value: 'RECOMMENDATION', label: 'Recommendation' },
+  { value: "ALL", label: "All Types" },
+  { value: "GENERAL", label: "General" },
+  { value: "INTERVIEW", label: "Interview" },
+  { value: "EVIDENCE", label: "Evidence" },
+  { value: "FINDING", label: "Finding" },
+  { value: "RECOMMENDATION", label: "Recommendation" },
 ];
 
 /**
  * Investigation notes tab content - shows timeline of notes
  */
-export function InvestigationNotes({ investigationId }: InvestigationNotesProps) {
+export function InvestigationNotes({
+  investigationId,
+}: InvestigationNotesProps) {
   const [notes, setNotes] = useState<InvestigationNote[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [filterType, setFilterType] = useState<string>('ALL');
+  const [filterType, setFilterType] = useState<string>("ALL");
   const [addModalOpen, setAddModalOpen] = useState(false);
 
   // Fetch notes
@@ -48,20 +54,27 @@ export function InvestigationNotes({ investigationId }: InvestigationNotesProps)
     setError(null);
 
     try {
-      const params: { noteType?: NoteType; limit?: number; sortOrder?: 'desc' } = {
+      const params: {
+        noteType?: NoteType;
+        limit?: number;
+        sortOrder?: "desc";
+      } = {
         limit: 50,
-        sortOrder: 'desc',
+        sortOrder: "desc",
       };
 
-      if (filterType !== 'ALL') {
+      if (filterType !== "ALL") {
         params.noteType = filterType as NoteType;
       }
 
-      const response = await investigationNotesApi.list(investigationId, params);
+      const response = await investigationNotesApi.list(
+        investigationId,
+        params,
+      );
       setNotes(response.items);
     } catch (err) {
-      console.error('Failed to fetch notes:', err);
-      setError('Failed to load notes');
+      handleApiError(err, "Failed to load notes");
+      setError("Failed to load notes");
     } finally {
       setLoading(false);
     }
@@ -133,7 +146,12 @@ export function InvestigationNotes({ investigationId }: InvestigationNotesProps)
           // Error state
           <div className="text-center py-8 text-destructive border border-dashed border-destructive/30 rounded-lg">
             <p className="text-sm">{error}</p>
-            <Button variant="ghost" size="sm" onClick={fetchNotes} className="mt-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={fetchNotes}
+              className="mt-2"
+            >
               Retry
             </Button>
           </div>
@@ -142,7 +160,9 @@ export function InvestigationNotes({ investigationId }: InvestigationNotesProps)
           <div className="text-center py-8 text-muted-foreground border border-dashed rounded-lg">
             <FileText className="h-10 w-10 mx-auto mb-2 text-muted-foreground/50" />
             <p className="text-sm font-medium">No notes yet</p>
-            <p className="text-xs mt-1">Add a note to document your investigation</p>
+            <p className="text-xs mt-1">
+              Add a note to document your investigation
+            </p>
             <Button
               variant="outline"
               size="sm"
@@ -155,9 +175,7 @@ export function InvestigationNotes({ investigationId }: InvestigationNotesProps)
           </div>
         ) : (
           // Notes timeline
-          notes.map((note) => (
-            <NoteCard key={note.id} note={note} />
-          ))
+          notes.map((note) => <NoteCard key={note.id} note={note} />)
         )}
       </div>
 

@@ -6,6 +6,7 @@ import { AssociationCard } from "@/components/ui/association-card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { apiClient } from "@/lib/api";
+import { handleApiError } from "@/lib/api-error-handler";
 import Link from "next/link";
 
 interface RelatedCase {
@@ -49,7 +50,7 @@ export function RelatedCasesCard({ caseId }: RelatedCasesCardProps) {
         );
         setRelatedCases(response || []);
       } catch (error) {
-        console.error("Failed to fetch related cases:", error);
+        handleApiError(error, "Failed to load related cases");
         setRelatedCases([]);
       } finally {
         setLoading(false);

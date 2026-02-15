@@ -14,6 +14,7 @@
  *   - ReportDataFetcherService: Database queries and data aggregation
  *   - ReportPdfBuilderService: HTML/PDF template rendering
  *   - ReportAiSummaryService: AI-powered executive summary generation
+ *   - ReportStorageService: File upload and signed URL generation
  *
  * Queue: flat-export
  * - Concurrency: 2 (one export per worker thread)
@@ -42,6 +43,7 @@ import {
   ReportDataFetcherService,
   ReportPdfBuilderService,
   ReportAiSummaryService,
+  ReportStorageService,
 } from "./services";
 import {
   FlatExportProcessor,
@@ -91,6 +93,7 @@ import { AiModule } from "../../ai/ai.module";
     ReportDataFetcherService,
     ReportPdfBuilderService,
     ReportAiSummaryService,
+    ReportStorageService,
     FlatExportProcessor,
     ScheduledExportProcessor,
   ],
