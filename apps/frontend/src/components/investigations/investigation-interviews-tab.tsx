@@ -22,6 +22,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { apiClient } from "@/lib/api";
+import { handleApiError } from "@/lib/api-error-handler";
 
 interface Interview {
   id: string;
@@ -79,7 +80,7 @@ export function InvestigationInterviewsTab({
       );
       setInterviews(response || []);
     } catch (err) {
-      console.error("Failed to fetch interviews:", err);
+      handleApiError(err, "Failed to load interviews");
       // Graceful fallback - endpoint might not exist yet
       setInterviews([]);
     } finally {

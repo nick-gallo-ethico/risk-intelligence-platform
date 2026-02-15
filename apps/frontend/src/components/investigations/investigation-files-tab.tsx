@@ -32,6 +32,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { apiClient } from "@/lib/api";
+import { handleApiError } from "@/lib/api-error-handler";
 
 interface InvestigationFile {
   id: string;
@@ -97,7 +98,7 @@ export function InvestigationFilesTab({
       );
       setFiles(response || []);
     } catch (err) {
-      console.error("Failed to fetch files:", err);
+      handleApiError(err, "Failed to load files");
       // Graceful fallback - endpoint might not exist yet
       setFiles([]);
     } finally {

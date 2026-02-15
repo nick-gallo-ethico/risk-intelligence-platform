@@ -32,6 +32,7 @@ import {
   type InvestigationTemplate,
   type TemplateTier,
 } from '@/lib/templates-api';
+import { handleApiError } from '@/lib/api-error-handler';
 
 interface TemplateSelectorProps {
   /** Currently selected template ID */
@@ -218,7 +219,7 @@ export function TemplateSelector({
         });
         setTemplates(response.data);
       } catch (err) {
-        console.error('Failed to load templates:', err);
+        handleApiError(err, 'Failed to load investigation templates');
         setError('Failed to load templates');
       } finally {
         setLoading(false);

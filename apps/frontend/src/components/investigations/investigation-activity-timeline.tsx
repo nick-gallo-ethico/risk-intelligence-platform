@@ -16,6 +16,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ActivityEntry } from "@/components/cases/activity-entry";
 import { groupByDate } from "@/lib/date-utils";
 import { apiClient } from "@/lib/api";
+import { handleApiError } from "@/lib/api-error-handler";
 import type { Activity, ActivityFilterType } from "@/types/activity";
 
 /**
@@ -99,7 +100,7 @@ export function InvestigationActivityTimeline({
 
       setActivities(transformed);
     } catch (err) {
-      console.error("Failed to fetch investigation activities:", err);
+      handleApiError(err, "Failed to load activity timeline");
       setError("Failed to load activities");
       setActivities([]);
     } finally {
