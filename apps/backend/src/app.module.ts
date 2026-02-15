@@ -1,4 +1,9 @@
-import { Module, MiddlewareConsumer, NestModule } from "@nestjs/common";
+import {
+  Module,
+  MiddlewareConsumer,
+  NestModule,
+  RequestMethod,
+} from "@nestjs/common";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import { ThrottlerModule, ThrottlerGuard } from "@nestjs/throttler";
 import { ThrottlerStorageRedisService } from "@nest-lab/throttler-storage-redis";
@@ -126,18 +131,34 @@ import { AppConfigModule } from "./config/config.module";
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     // Apply tenant middleware to all routes except:
-    // - health: Health check endpoints
-    // - api/v1/auth/*: Authentication endpoints
-    // - api/v1/public/*: Public endpoints (no auth required)
-    // - api/v1/operations/*: Internal operations (uses InternalUser, not tenant User)
+    // - health: Health check endpoints (system monitoring)
+    // - api/v1/auth/*: Authentication endpoints (pre-login, no tenant context)
+    // - api/v1/public/*: Public endpoints (anonymous access)
+    // - internal/*: Internal operations endpoints (uses InternalUser, cross-tenant access)
     // - admin/*: Admin endpoints
+    //
+    // SEC-12: Narrowed operations exemption - specific endpoints only
+    // Internal routes use InternalUser authentication via Azure AD SSO, not tenant User.
+    // These are Ethico staff tools (support console, implementation portal, etc.)
     consumer
       .apply(TenantMiddleware)
       .exclude(
+        // System endpoints
         "health",
+        // Authentication (pre-tenant-context)
         "api/v1/auth/(.*)",
+        // Public/anonymous endpoints
         "api/v1/public/(.*)",
-        "api/v1/operations/(.*)",
+        // Internal operations - specific endpoints that operate cross-tenant
+        // These require InternalUser authentication via Azure AD SSO
+        { path: "internal/impersonation/(.*)", method: RequestMethod.ALL },
+        { path: "internal/support/(.*)", method: RequestMethod.ALL },
+        { path: "internal/client-health/(.*)", method: RequestMethod.ALL },
+        { path: "internal/client-success/(.*)", method: RequestMethod.ALL },
+        { path: "internal/implementations/(.*)", method: RequestMethod.ALL },
+        { path: "internal/hotline-ops/(.*)", method: RequestMethod.ALL },
+        { path: "internal/training/(.*)", method: RequestMethod.ALL },
+        // Admin endpoints
         "admin/(.*)",
       )
       .forRoutes("*");
