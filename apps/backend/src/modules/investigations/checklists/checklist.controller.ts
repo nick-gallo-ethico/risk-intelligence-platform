@@ -9,15 +9,30 @@ import {
   HttpCode,
   HttpStatus,
   NotFoundException,
-} from '@nestjs/common';
-import { InvestigationChecklistService } from './checklist.service';
+  UseGuards,
+} from "@nestjs/common";
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiParam,
+  ApiBearerAuth,
+} from "@nestjs/swagger";
+import { InvestigationChecklistService } from "./checklist.service";
 import {
   ApplyTemplateDto,
   CompleteItemDto,
   SkipItemDto,
   AddCustomItemDto,
   ChecklistProgressResponse,
-} from './dto/checklist.dto';
+} from "./dto/checklist.dto";
+import { JwtAuthGuard } from "../../../common/guards/jwt-auth.guard";
+import { TenantGuard } from "../../../common/guards/tenant.guard";
+import { RolesGuard } from "../../../common/guards/roles.guard";
+import { Roles, UserRole } from "../../../common/decorators/roles.decorator";
+import { TenantId } from "../../../common/decorators/tenant-id.decorator";
+import { CurrentUser } from "../../../common/decorators/current-user.decorator";
+import { RequestUser } from "../../auth/interfaces/jwt-payload.interface";
 
 /**
  * Controller for investigation checklist progress management.
@@ -30,11 +45,11 @@ import {
  * - POST /api/v1/investigation-checklists/:investigationId/items/:itemId/uncomplete - Uncomplete item
  * - POST /api/v1/investigation-checklists/:investigationId/custom-items - Add custom item
  * - DELETE /api/v1/investigation-checklists/:investigationId - Delete checklist
- *
- * Note: In production, these endpoints should use guards for authentication
- * and organization scoping. For now, organizationId and userId are stubbed.
  */
-@Controller('investigation-checklists')
+@ApiTags("investigation-checklists")
+@ApiBearerAuth()
+@Controller("investigation-checklists")
+@UseGuards(JwtAuthGuard, TenantGuard, RolesGuard)
 export class InvestigationChecklistController {
   constructor(
     private readonly checklistService: InvestigationChecklistService,
@@ -43,18 +58,28 @@ export class InvestigationChecklistController {
   /**
    * Apply a template to an investigation, creating checklist progress.
    */
-  @Post('apply')
+  @Post("apply")
+  @Roles(
+    UserRole.SYSTEM_ADMIN,
+    UserRole.COMPLIANCE_OFFICER,
+    UserRole.INVESTIGATOR,
+    UserRole.TRIAGE_LEAD,
+  )
+  @ApiOperation({ summary: "Apply a checklist template to an investigation" })
+  @ApiResponse({
+    status: 201,
+    description: "Checklist applied successfully",
+  })
   async applyTemplate(
     @Body() dto: ApplyTemplateDto,
+    @CurrentUser() user: RequestUser,
+    @TenantId() organizationId: string,
   ): Promise<ChecklistProgressResponse> {
-    // TODO: Get from auth context when guards are implemented
-    const organizationId = 'stub-org-id';
-    const userId = 'stub-user-id';
-    const userName = 'Stub User';
+    const userName = `${user.firstName} ${user.lastName}`.trim() || user.email;
 
     return this.checklistService.applyTemplate(
       organizationId,
-      userId,
+      user.id,
       userName,
       dto,
     );
@@ -63,20 +88,31 @@ export class InvestigationChecklistController {
   /**
    * Get checklist progress for an investigation.
    */
-  @Get('by-investigation/:investigationId')
+  @Get("by-investigation/:investigationId")
+  @Roles(
+    UserRole.SYSTEM_ADMIN,
+    UserRole.COMPLIANCE_OFFICER,
+    UserRole.INVESTIGATOR,
+    UserRole.TRIAGE_LEAD,
+  )
+  @ApiOperation({ summary: "Get checklist progress for an investigation" })
+  @ApiParam({ name: "investigationId", description: "Investigation UUID" })
+  @ApiResponse({
+    status: 200,
+    description: "Checklist progress retrieved successfully",
+  })
+  @ApiResponse({ status: 404, description: "Checklist not found" })
   async getProgress(
-    @Param('investigationId', ParseUUIDPipe) investigationId: string,
+    @Param("investigationId", ParseUUIDPipe) investigationId: string,
+    @TenantId() organizationId: string,
   ): Promise<ChecklistProgressResponse> {
-    // TODO: Get from auth context when guards are implemented
-    const organizationId = 'stub-org-id';
-
     const progress = await this.checklistService.getProgress(
       organizationId,
       investigationId,
     );
 
     if (!progress) {
-      throw new NotFoundException('Checklist not found for this investigation');
+      throw new NotFoundException("Checklist not found for this investigation");
     }
 
     return progress;
@@ -85,22 +121,34 @@ export class InvestigationChecklistController {
   /**
    * Complete a checklist item with optional notes and attachments.
    */
-  @Post(':investigationId/items/:itemId/complete')
+  @Post(":investigationId/items/:itemId/complete")
+  @Roles(
+    UserRole.SYSTEM_ADMIN,
+    UserRole.COMPLIANCE_OFFICER,
+    UserRole.INVESTIGATOR,
+    UserRole.TRIAGE_LEAD,
+  )
+  @ApiOperation({ summary: "Mark a checklist item as complete" })
+  @ApiParam({ name: "investigationId", description: "Investigation UUID" })
+  @ApiParam({ name: "itemId", description: "Checklist item ID" })
+  @ApiResponse({
+    status: 200,
+    description: "Item completed successfully",
+  })
   async completeItem(
-    @Param('investigationId', ParseUUIDPipe) investigationId: string,
-    @Param('itemId') itemId: string,
+    @Param("investigationId", ParseUUIDPipe) investigationId: string,
+    @Param("itemId") itemId: string,
     @Body() dto: CompleteItemDto,
+    @CurrentUser() user: RequestUser,
+    @TenantId() organizationId: string,
   ): Promise<ChecklistProgressResponse> {
-    // TODO: Get from auth context when guards are implemented
-    const organizationId = 'stub-org-id';
-    const userId = 'stub-user-id';
-    const userName = 'Stub User';
+    const userName = `${user.firstName} ${user.lastName}`.trim() || user.email;
 
     return this.checklistService.completeItem(
       organizationId,
       investigationId,
       itemId,
-      userId,
+      user.id,
       userName,
       dto,
     );
@@ -109,22 +157,34 @@ export class InvestigationChecklistController {
   /**
    * Skip a checklist item with a reason (mark as N/A).
    */
-  @Post(':investigationId/items/:itemId/skip')
+  @Post(":investigationId/items/:itemId/skip")
+  @Roles(
+    UserRole.SYSTEM_ADMIN,
+    UserRole.COMPLIANCE_OFFICER,
+    UserRole.INVESTIGATOR,
+    UserRole.TRIAGE_LEAD,
+  )
+  @ApiOperation({ summary: "Skip a checklist item with reason" })
+  @ApiParam({ name: "investigationId", description: "Investigation UUID" })
+  @ApiParam({ name: "itemId", description: "Checklist item ID" })
+  @ApiResponse({
+    status: 200,
+    description: "Item skipped successfully",
+  })
   async skipItem(
-    @Param('investigationId', ParseUUIDPipe) investigationId: string,
-    @Param('itemId') itemId: string,
+    @Param("investigationId", ParseUUIDPipe) investigationId: string,
+    @Param("itemId") itemId: string,
     @Body() dto: SkipItemDto,
+    @CurrentUser() user: RequestUser,
+    @TenantId() organizationId: string,
   ): Promise<ChecklistProgressResponse> {
-    // TODO: Get from auth context when guards are implemented
-    const organizationId = 'stub-org-id';
-    const userId = 'stub-user-id';
-    const userName = 'Stub User';
+    const userName = `${user.firstName} ${user.lastName}`.trim() || user.email;
 
     return this.checklistService.skipItem(
       organizationId,
       investigationId,
       itemId,
-      userId,
+      user.id,
       userName,
       dto,
     );
@@ -133,40 +193,62 @@ export class InvestigationChecklistController {
   /**
    * Uncomplete a checklist item (revert completion status).
    */
-  @Post(':investigationId/items/:itemId/uncomplete')
+  @Post(":investigationId/items/:itemId/uncomplete")
+  @Roles(
+    UserRole.SYSTEM_ADMIN,
+    UserRole.COMPLIANCE_OFFICER,
+    UserRole.INVESTIGATOR,
+    UserRole.TRIAGE_LEAD,
+  )
+  @ApiOperation({ summary: "Revert a completed checklist item" })
+  @ApiParam({ name: "investigationId", description: "Investigation UUID" })
+  @ApiParam({ name: "itemId", description: "Checklist item ID" })
+  @ApiResponse({
+    status: 200,
+    description: "Item uncompleted successfully",
+  })
   async uncompleteItem(
-    @Param('investigationId', ParseUUIDPipe) investigationId: string,
-    @Param('itemId') itemId: string,
+    @Param("investigationId", ParseUUIDPipe) investigationId: string,
+    @Param("itemId") itemId: string,
+    @CurrentUser() user: RequestUser,
+    @TenantId() organizationId: string,
   ): Promise<ChecklistProgressResponse> {
-    // TODO: Get from auth context when guards are implemented
-    const organizationId = 'stub-org-id';
-    const userId = 'stub-user-id';
-
     return this.checklistService.uncompleteItem(
       organizationId,
       investigationId,
       itemId,
-      userId,
+      user.id,
     );
   }
 
   /**
    * Add a custom item to a section.
    */
-  @Post(':investigationId/custom-items')
+  @Post(":investigationId/custom-items")
+  @Roles(
+    UserRole.SYSTEM_ADMIN,
+    UserRole.COMPLIANCE_OFFICER,
+    UserRole.INVESTIGATOR,
+    UserRole.TRIAGE_LEAD,
+  )
+  @ApiOperation({ summary: "Add a custom checklist item" })
+  @ApiParam({ name: "investigationId", description: "Investigation UUID" })
+  @ApiResponse({
+    status: 201,
+    description: "Custom item added successfully",
+  })
   async addCustomItem(
-    @Param('investigationId', ParseUUIDPipe) investigationId: string,
+    @Param("investigationId", ParseUUIDPipe) investigationId: string,
     @Body() dto: AddCustomItemDto,
+    @CurrentUser() user: RequestUser,
+    @TenantId() organizationId: string,
   ): Promise<ChecklistProgressResponse> {
-    // TODO: Get from auth context when guards are implemented
-    const organizationId = 'stub-org-id';
-    const userId = 'stub-user-id';
-    const userName = 'Stub User';
+    const userName = `${user.firstName} ${user.lastName}`.trim() || user.email;
 
     return this.checklistService.addCustomItem(
       organizationId,
       investigationId,
-      userId,
+      user.id,
       userName,
       dto,
     );
@@ -175,19 +257,24 @@ export class InvestigationChecklistController {
   /**
    * Delete checklist progress for an investigation.
    */
-  @Delete(':investigationId')
+  @Delete(":investigationId")
   @HttpCode(HttpStatus.NO_CONTENT)
+  @Roles(UserRole.SYSTEM_ADMIN, UserRole.COMPLIANCE_OFFICER)
+  @ApiOperation({ summary: "Delete checklist for an investigation" })
+  @ApiParam({ name: "investigationId", description: "Investigation UUID" })
+  @ApiResponse({
+    status: 204,
+    description: "Checklist deleted successfully",
+  })
   async deleteChecklist(
-    @Param('investigationId', ParseUUIDPipe) investigationId: string,
+    @Param("investigationId", ParseUUIDPipe) investigationId: string,
+    @CurrentUser() user: RequestUser,
+    @TenantId() organizationId: string,
   ): Promise<void> {
-    // TODO: Get from auth context when guards are implemented
-    const organizationId = 'stub-org-id';
-    const userId = 'stub-user-id';
-
     await this.checklistService.deleteChecklist(
       organizationId,
       investigationId,
-      userId,
+      user.id,
     );
   }
 }
