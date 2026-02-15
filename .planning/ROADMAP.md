@@ -1097,18 +1097,16 @@ Plans:
 4. Non-null assertions replaced with explicit null checks or runtime guards
 5. Forms controller uses matching DTO types (no as any casts)
 
-**Plans**: 8 plans in 3 waves
+**Plans**: 6 plans in 4 waves
 
 Plans:
 
-- [ ] 32-01-PLAN.md (Wave 1) — Secure 4 controllers: campaigns, attestation, conflict, checklist with JwtAuthGuard + TenantGuard + RolesGuard
-- [ ] 32-02-PLAN.md (Wave 1) — Secure remaining 2 controllers: migration, policy-approval with guards and decorators
-- [ ] 32-03-PLAN.md (Wave 1) — Fix WebSocket AI gateway: verify JWT on connection, extract context from verified payload
-- [ ] 32-04-PLAN.md (Wave 1) — Pin JWT algorithm to RS256 only, validate JWT_REFRESH_SECRET on startup
-- [ ] 32-05-PLAN.md (Wave 2) — Fix DTOs: remove organizationId from chat DTO, add @MaxLength(72) to password, random demo passwords
-- [ ] 32-06-PLAN.md (Wave 2) — Add mfaVerified to JWT payload for session-bound MFA verification
-- [ ] 32-07-PLAN.md (Wave 2) — Add audit logging to relay service, minimize PII in logs, narrow operations middleware exemption
-- [ ] 32-08-PLAN.md (Wave 3) — Human verification checkpoint for all security fixes
+- [ ] 35-01-PLAN.md (Wave 1) — Split Level 0 services (schema-introspection, mapping-suggestion, query-to-prisma)
+- [ ] 35-02-PLAN.md (Wave 2) — Split Level 1 services (ai-query, migration-parser)
+- [ ] 35-03-PLAN.md (Wave 2) — Split Level 2 standalone services (ai-triage, user-table, project-template, context-loader)
+- [ ] 35-04-PLAN.md (Wave 3) — Split final Level 2 services (policy-case-association, notification, campaign-scheduling)
+- [ ] 35-05-PLAN.md (Wave 3) — Replace any types, create type definitions, fix forms.controller.ts
+- [ ] 35-06-PLAN.md (Wave 4) — Enable strict mode, fix non-null assertions, verification
 
 ### Phase 36: Test Coverage Expansion (v1.2)
 
@@ -1123,7 +1121,7 @@ Plans:
 4. 12+ modules have tenant isolation E2E tests
 5. Overall backend service coverage reaches 60%+ (from 7.9%)
 
-**Plans**: 8 plans in 3 waves
+**Plans**: 13 plans in 5 waves
 
 Plans:
 
@@ -1187,13 +1185,13 @@ Plans:
 | 32. Security & SOC 2 Fixes              | v1.2      | 0/8            | Planned     | -          |
 | 33. Slop Cleanup & Production Readiness | v1.2      | 0/TBD          | Not started | -          |
 | 34. Performance & Scalability           | v1.2      | 0/5            | Planned     | -          |
-| 35. Code Quality & Architecture         | v1.2      | 0/TBD          | Not started | -          |
-| 36. Test Coverage Expansion             | v1.2      | 0/TBD          | Not started | -          |
+| 35. Code Quality & Architecture         | v1.2      | 0/6            | Planned     | -          |
+| 36. Test Coverage Expansion             | v1.2      | 0/13           | Planned     | -          |
 
 ---
 
 _Roadmap created: 2026-02-02_
-_Updated: 2026-02-15 (Phase 32 plans created)_
+_Updated: 2026-02-15 (Phase 36 plans created)_
 _Total phases: 36 (+ decimal insertions)_
 _Total plans: 285+ completed across v1.0 and v1.1, TBD for v1.2_
 _Total requirements: 149 (v1.0) + 36 (v1.1) + 77 (v1.2) = 262_
