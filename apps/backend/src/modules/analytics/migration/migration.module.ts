@@ -14,6 +14,9 @@ import { PrismaModule } from "../../prisma/prisma.module";
 import { NavexConnector } from "./connectors/navex.connector";
 import { EqsConnector } from "./connectors/eqs.connector";
 import { CsvConnector } from "./connectors/csv.connector";
+import { MigrationParserService } from "./services/migration-parser.service";
+import { MigrationValidatorService } from "./services/migration-validator.service";
+import { MigrationExecutorService } from "./services/migration-executor.service";
 
 /**
  * MigrationModule provides data import capabilities for competitor system migrations.
@@ -45,11 +48,17 @@ import { CsvConnector } from "./connectors/csv.connector";
   ],
   controllers: [MigrationController, MigrationUploadController],
   providers: [
+    // Core services
     MigrationService,
     MigrationUploadService,
     ScreenshotToFormService,
     MappingSuggestionService,
     MigrationProcessor,
+    // Sub-services (thin coordinator pattern)
+    MigrationParserService,
+    MigrationValidatorService,
+    MigrationExecutorService,
+    // Connectors
     NavexConnector,
     EqsConnector,
     CsvConnector,
