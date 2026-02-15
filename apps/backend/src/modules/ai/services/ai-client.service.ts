@@ -66,16 +66,20 @@ export class AiClientService implements OnModuleInit {
    * Use this for simple requests where you need the full response at once.
    *
    * @param params - Chat parameters including message, history, and optional system prompt
+   * @param organizationId - Organization ID for logging (from authenticated context, not request body)
    * @returns AI response with content and token usage
    * @throws Error if AI service is not configured
    */
-  async createChat(params: CreateChatDto): Promise<AiResponse> {
+  async createChat(
+    params: CreateChatDto,
+    organizationId?: string,
+  ): Promise<AiResponse> {
     this.ensureConfigured();
 
     const messages = this.buildMessages(params);
 
     this.logger.debug(
-      `Creating chat completion for org=${params.organizationId}, entity=${params.entityType || "none"}/${params.entityId || "none"}`,
+      `Creating chat completion for org=${organizationId || "unknown"}, entity=${params.entityType || "none"}/${params.entityId || "none"}`,
     );
 
     try {
@@ -116,6 +120,7 @@ export class AiClientService implements OnModuleInit {
    *
    * @param params - Chat parameters including message, history, and optional system prompt
    * @param streamId - Unique ID to track this stream for abort support
+   * @param organizationId - Organization ID for logging (from authenticated context, not request body)
    * @yields StreamEvent objects with text deltas and completion signals
    *
    * @example
@@ -131,6 +136,7 @@ export class AiClientService implements OnModuleInit {
   async *streamChat(
     params: CreateChatDto,
     streamId: string,
+    organizationId?: string,
   ): AsyncGenerator<StreamEvent> {
     this.ensureConfigured();
 
@@ -139,7 +145,7 @@ export class AiClientService implements OnModuleInit {
     this.activeStreams.set(streamId, abortController);
 
     this.logger.debug(
-      `Starting stream ${streamId} for org=${params.organizationId}`,
+      `Starting stream ${streamId} for org=${organizationId || "unknown"}`,
     );
 
     try {

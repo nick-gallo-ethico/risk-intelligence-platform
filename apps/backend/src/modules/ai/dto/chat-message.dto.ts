@@ -4,6 +4,7 @@ import {
   IsEnum,
   IsArray,
   MaxLength,
+  IsUUID,
 } from "class-validator";
 
 export enum MessageRole {
@@ -21,14 +22,13 @@ export class ChatMessageDto {
 }
 
 export class CreateChatDto {
-  @IsString()
-  organizationId: string;
+  // SEC-05: organizationId removed - must come from authenticated context, not request body
 
   @IsString()
   @IsOptional()
   entityType?: string;
 
-  @IsString()
+  @IsUUID("4", { message: "entityId must be a valid UUID" }) // SEC-08: Prevent injection
   @IsOptional()
   entityId?: string;
 

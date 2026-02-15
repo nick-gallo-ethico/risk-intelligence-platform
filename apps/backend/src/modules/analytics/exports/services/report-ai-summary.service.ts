@@ -106,11 +106,13 @@ Keep each bullet point to 1-2 sentences. Use clear, executive-friendly language.
     const prompt = this.buildSummaryPrompt(data, dateRange, config);
 
     try {
-      const response = await this.aiClient.createChat({
-        organizationId: orgId,
-        message: prompt,
-        systemPrompt: this.SUMMARY_SYSTEM_PROMPT,
-      });
+      const response = await this.aiClient.createChat(
+        {
+          message: prompt,
+          systemPrompt: this.SUMMARY_SYSTEM_PROMPT,
+        },
+        orgId,
+      );
 
       return {
         summary: response.content,
@@ -149,12 +151,14 @@ Keep each bullet point to 1-2 sentences. Use clear, executive-friendly language.
     const prompt = this.buildRecommendationsPrompt(data);
 
     try {
-      const response = await this.aiClient.createChat({
-        organizationId: orgId,
-        message: prompt,
-        systemPrompt:
-          "You are a compliance advisor. Generate 3-5 specific, actionable recommendations based on the metrics provided. Each recommendation should be one sentence.",
-      });
+      const response = await this.aiClient.createChat(
+        {
+          message: prompt,
+          systemPrompt:
+            "You are a compliance advisor. Generate 3-5 specific, actionable recommendations based on the metrics provided. Each recommendation should be one sentence.",
+        },
+        orgId,
+      );
 
       return this.parseRecommendations(response.content);
     } catch (error) {
@@ -320,11 +324,7 @@ Generate 3-5 specific, actionable recommendations to improve compliance posture.
   private parseRecommendations(content: string): string[] {
     return content
       .split(/\n+/)
-      .map((line) =>
-        line
-          .replace(/^[-*\d.)\s]+/, "")
-          .trim(),
-      )
+      .map((line) => line.replace(/^[-*\d.)\s]+/, "").trim())
       .filter((line) => line.length > 10); // Filter out too-short items
   }
 
