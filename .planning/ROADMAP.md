@@ -1045,22 +1045,21 @@ Plans:
 
 1. All 3 orphaned modules are either registered in AppModule or deleted
 2. Document processing returns real results or honest errors (no fake success:false)
-3. 384 section-separator comments removed across 84 files
-4. All 38 TODO comments triaged (resolved or converted to tracked issues)
+3. 820+ section-separator comments removed across codebase
+4. All 54 TODO comments triaged (resolved or converted to tracked issues)
 5. File uploads validate magic bytes before processing (not just MIME header)
 
-**Plans**: 8 plans in 3 waves
+**Plans**: 7 plans in 3 waves
 
 Plans:
 
-- [ ] 32-01-PLAN.md (Wave 1) — Secure 4 controllers: campaigns, attestation, conflict, checklist with JwtAuthGuard + TenantGuard + RolesGuard
-- [ ] 32-02-PLAN.md (Wave 1) — Secure remaining 2 controllers: migration, policy-approval with guards and decorators
-- [ ] 32-03-PLAN.md (Wave 1) — Fix WebSocket AI gateway: verify JWT on connection, extract context from verified payload
-- [ ] 32-04-PLAN.md (Wave 1) — Pin JWT algorithm to RS256 only, validate JWT_REFRESH_SECRET on startup
-- [ ] 32-05-PLAN.md (Wave 2) — Fix DTOs: remove organizationId from chat DTO, add @MaxLength(72) to password, random demo passwords
-- [ ] 32-06-PLAN.md (Wave 2) — Add mfaVerified to JWT payload for session-bound MFA verification
-- [ ] 32-07-PLAN.md (Wave 2) — Add audit logging to relay service, minimize PII in logs, narrow operations middleware exemption
-- [ ] 32-08-PLAN.md (Wave 3) — Human verification checkpoint for all security fixes
+- [ ] 33-01-PLAN.md (Wave 1) - Register orphaned modules, ConfigService migration, Logger migration, faker devDep
+- [ ] 33-02-PLAN.md (Wave 1) - Document processing implementation with pdf-parse/mammoth, magic-byte validation
+- [ ] 33-03-PLAN.md (Wave 2) - Fix stub implementations (escalation, AI actions, support tickets, PDF export)
+- [ ] 33-04-PLAN.md (Wave 2) - Section separator removal (common/, config/, modules A-D)
+- [ ] 33-05-PLAN.md (Wave 2) - Section separator removal (modules E-W)
+- [ ] 33-06-PLAN.md (Wave 3) - TODO triage, JSDoc cleanup
+- [ ] 33-07-PLAN.md (Wave 3) - DTO splits, SLOP-09 documentation
 
 ### Phase 34: Performance & Scalability (v1.2)
 
@@ -1188,7 +1187,7 @@ Plans:
 | 30. Test Coverage Foundation            | v1.1      | 5/5            | Verified    | 2026-02-15 |
 | 31. Code Quality & Performance          | v1.1      | 22/22          | Verified    | 2026-02-15 |
 | 32. Security & SOC 2 Fixes              | v1.2      | 0/8            | Planned     | -          |
-| 33. Slop Cleanup & Production Readiness | v1.2      | 0/TBD          | Not started | -          |
+| 33. Slop Cleanup & Production Readiness | v1.2      | 0/7            | Planned     | -          |
 | 34. Performance & Scalability           | v1.2      | 0/5            | Planned     | -          |
 | 35. Code Quality & Architecture         | v1.2      | 0/6            | Planned     | -          |
 | 36. Test Coverage Expansion             | v1.2      | 0/13           | Planned     | -          |
@@ -1196,7 +1195,7 @@ Plans:
 ---
 
 _Roadmap created: 2026-02-02_
-_Updated: 2026-02-15 (Phase 36 plans created)_
+_Updated: 2026-02-15 (Phase 33 plans created)_
 _Total phases: 36 (+ decimal insertions)_
 _Total plans: 285+ completed across v1.0 and v1.1, TBD for v1.2_
 _Total requirements: 149 (v1.0) + 36 (v1.1) + 77 (v1.2) = 262_
