@@ -135,9 +135,91 @@ Dual-track milestone: (1) Remediate all findings from pre-Series A code review a
 | Case Detail Vision   | 10 (CASE-01 through CASE-10)  | MEDIUM   |
 | **Total**            | **77**                        |          |
 
+---
+
 ## Traceability
 
-_Filled by roadmap creation — maps REQ-IDs to phases._
+| Requirement | Phase      | Status  |
+| ----------- | ---------- | ------- |
+| SEC-01      | Phase 32   | Pending |
+| SEC-02      | Phase 32   | Pending |
+| SEC-03      | Phase 32   | Pending |
+| SEC-04      | Phase 32   | Pending |
+| SEC-05      | Phase 32   | Pending |
+| SEC-06      | Phase 32   | Pending |
+| SEC-07      | Phase 32   | Pending |
+| SEC-08      | Phase 32   | Pending |
+| SEC-09      | Phase 32   | Pending |
+| SEC-10      | Phase 32   | Pending |
+| SEC-11      | Phase 32   | Pending |
+| SEC-12      | Phase 32   | Pending |
+| SEC-13      | Phase 32   | Pending |
+| SLOP-01     | Phase 33   | Pending |
+| SLOP-02     | Phase 33   | Pending |
+| SLOP-03     | Phase 33   | Pending |
+| SLOP-04     | Phase 33   | Pending |
+| SLOP-05     | Phase 33   | Pending |
+| SLOP-06     | Phase 33   | Pending |
+| SLOP-07     | Phase 33   | Pending |
+| SLOP-08     | Phase 33   | Pending |
+| SLOP-09     | Phase 33   | Pending |
+| SLOP-10     | Phase 33   | Pending |
+| SLOP-11     | Phase 33   | Pending |
+| PROD-01     | Phase 33   | Pending |
+| PROD-02     | Phase 33   | Pending |
+| PROD-03     | Phase 33   | Pending |
+| PROD-04     | Phase 33   | Pending |
+| PROD-05     | Phase 33   | Pending |
+| PERF-01     | Phase 34   | Pending |
+| PERF-02     | Phase 34   | Pending |
+| PERF-03     | Phase 34   | Pending |
+| PERF-04     | Phase 34   | Pending |
+| PERF-05     | Phase 34   | Pending |
+| PERF-06     | Phase 34   | Pending |
+| PERF-07     | Phase 34   | Pending |
+| PERF-08     | Phase 34   | Pending |
+| PERF-09     | Phase 34   | Pending |
+| PERF-10     | Phase 34   | Pending |
+| PERF-11     | Phase 34   | Pending |
+| QUAL-01     | Phase 35   | Pending |
+| QUAL-02     | Phase 35   | Pending |
+| QUAL-03     | Phase 35   | Pending |
+| QUAL-04     | Phase 35   | Pending |
+| QUAL-05     | Phase 35   | Pending |
+| TEST-01     | Phase 36   | Pending |
+| TEST-02     | Phase 36   | Pending |
+| TEST-03     | Phase 36   | Pending |
+| TEST-04     | Phase 36   | Pending |
+| TEST-05     | Phase 36   | Pending |
+| TEST-06     | Phase 36   | Pending |
+| TEST-07     | Phase 36   | Pending |
+| TEST-08     | Phase 36   | Pending |
+| TEST-09     | Phase 36   | Pending |
+| TEST-10     | Phase 36   | Pending |
+| THEME-01    | Phase 22   | Pending |
+| THEME-02    | Phase 22   | Pending |
+| THEME-03    | Phase 22   | Pending |
+| THEME-04    | Phase 22   | Pending |
+| THEME-05    | Phase 22   | Pending |
+| THEME-06    | Phase 22   | Pending |
+| THEME-07    | Phase 22   | Pending |
+| HELP-01     | Phase 23   | Pending |
+| HELP-02     | Phase 23   | Pending |
+| HELP-03     | Phase 23   | Pending |
+| HELP-04     | Phase 23   | Pending |
+| HELP-05     | Phase 23   | Pending |
+| CASE-01     | Phase 25.1 | Pending |
+| CASE-02     | Phase 25.1 | Pending |
+| CASE-03     | Phase 25.1 | Pending |
+| CASE-04     | Phase 25.1 | Pending |
+| CASE-05     | Phase 25.1 | Pending |
+| CASE-06     | Phase 25.1 | Pending |
+| CASE-07     | Phase 25.1 | Pending |
+| CASE-08     | Phase 25.1 | Pending |
+| CASE-09     | Phase 25.1 | Pending |
+| CASE-10     | Phase 25.1 | Pending |
+
+---
 
 ## Future Requirements
 

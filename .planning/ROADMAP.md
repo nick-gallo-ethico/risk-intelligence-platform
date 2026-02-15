@@ -56,11 +56,22 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 19: Workflow Engine UI** - Visual workflow builder, workflow management section, apply to cases/approvals/disclosures
 - [x] **Phase 20: Settings Overhaul (HubSpot-Style)** - Preferences, account management, data management, properties, permission sets
 - [x] **Phase 21: Project Management (Monday.com-Style)** - Kanban boards, task views, timelines, project tracking
-- [ ] **Phase 22: Dark Mode & Theme** - Dark mode toggle, consistent nav theming, theme system
-- [x] **Phase 23: Help & Support System** - Knowledge base, in-platform ticket filing, real-time support
+- [ ] **Phase 22: Dark Mode & Theme** - Dark mode toggle, consistent nav theming, theme system (v1.2 continued)
+- [ ] **Phase 23: Help & Support System** - Knowledge base, in-platform ticket filing, real-time support (v1.2 continued)
 - [x] **Phase 24: Policy Content & Seed Data** - Populate policies with properly formatted text, improve case seed data
 - [x] **Phase 25: Case & Investigation Page Redesign** - HubSpot three-column record pattern for case and investigation detail pages
-- [x] **Phase 25.1: Case Detail Page Vision Revision** - Rebuild case detail page to match revised HubSpot-style spec with pipeline bar, collapsible property cards, Activities tab pattern, and config-driven architecture (INSERTED)
+- [ ] **Phase 25.1: Case Detail Page Vision Revision** - Rebuild case detail page to match revised HubSpot-style spec with pipeline bar, collapsible property cards, Activities tab pattern, and config-driven architecture (v1.2 continued)
+- [x] **Phase 26: Emergency Fixes** - Critical import errors blocking startup (v1.1)
+- [x] **Phase 27: Security Hardening** - Auth guards, session management, CORS, body limits (v1.1)
+- [x] **Phase 28: Production Readiness** - Container, health checks, Key Vault, graceful shutdown (v1.1)
+- [x] **Phase 29: Error Handling & Reliability** - NestJS exceptions, error boundaries, toast notifications (v1.1)
+- [x] **Phase 30: Test Coverage Foundation** - Auth, core entities, campaigns/policies, frontend MSW (v1.1)
+- [x] **Phase 31: Code Quality & Performance** - Service decomposition, JWT RS256, Elasticsearch circuit breaker (v1.1)
+- [ ] **Phase 32: Security & SOC 2 Fixes** - Auth bypass fixes, JWT algorithm pinning, WebSocket auth, MFA persistence (v1.2)
+- [ ] **Phase 33: Slop Cleanup & Production Readiness** - Orphaned modules, dead code, MIME validation, placeholder removal (v1.2)
+- [ ] **Phase 34: Performance & Scalability** - Unbounded queries, Redis caching, connection pooling, N+1 fixes (v1.2)
+- [ ] **Phase 35: Code Quality & Architecture** - Fat service splits, any type replacement, strict mode, null safety (v1.2)
+- [ ] **Phase 36: Test Coverage Expansion** - Auth guards/strategies, impersonation, E2E isolation, 60%+ backend coverage (v1.2)
 
 ## Phase Details
 
@@ -859,11 +870,11 @@ Plans:
 - [x] 21-09-PLAN.md (Wave 7) — Workload view (team capacity bars) and project dashboard (KPI cards, status chart, completion trend, group progress), backend stats endpoint, all 5 view modes integrated
 - [x] 21-10-PLAN.md (Wave 8) — Demo data seeder (5 projects with custom columns; 6 templates). Note: conversation/dependency/subscriber seeding skipped (missing Prisma models)
 
-### Phase 22: Dark Mode & Theme
+### Phase 22: Dark Mode & Theme (v1.2 continued)
 
 **Goal**: Implement a working dark mode toggle and ensure consistent theming across the entire application. User explicitly flagged this as required for V1.
 **Depends on**: Phase 14 (nav color fixes), Phase 20 (settings area for theme toggle placement)
-**Requirements**: Issues documented in `.planning/V1-ISSUES-AND-GAPS.md` Phase 22 section
+**Requirements**: THEME-01, THEME-02, THEME-03, THEME-04, THEME-05, THEME-06, THEME-07
 **Success Criteria** (what must be TRUE):
 
 1. Dark mode toggle accessible from user menu and settings
@@ -873,7 +884,7 @@ Plans:
 5. Top navigation bar and side navigation bar are visually consistent in both light and dark modes
 6. Charts, tables, modals, and form elements all respect the active theme
 7. Theme transition is smooth (no flash of wrong theme on page load)
-   **Plans**: 15 plans in 5 waves
+   **Plans**: 15 plans in 5 waves (existing from v1.0)
 
 Plans:
 
@@ -893,11 +904,11 @@ Plans:
 - [ ] 22-14-PLAN.md (Wave 5) — Verification checkpoint: TypeScript compilation, all 7 success criteria verified
 - [ ] 22-15-PLAN.md (Wave 5) — Fix DataTable column width flexibility (allow columns to expand and shrink dynamically)
 
-### Phase 23: Help & Support System
+### Phase 23: Help & Support System (v1.2 continued)
 
 **Goal**: Build a help and support system so users can access a knowledge base and file support tickets directly from the platform.
 **Depends on**: Phase 14 (routes working for Help & Support navigation)
-**Requirements**: Issues documented in `.planning/V1-ISSUES-AND-GAPS.md` Phase 23 section
+**Requirements**: HELP-01, HELP-02, HELP-03, HELP-04, HELP-05
 **Success Criteria** (what must be TRUE):
 
 1. Help & Support accessible from sidebar and user menu
@@ -906,7 +917,7 @@ Plans:
 4. Support ticket submission sends confirmation email and creates ticket in support system
 5. Users can view their open tickets and status from the Help section
 6. Contextual help links from relevant pages (e.g., case detail page links to "Working with Cases" articles)
-   **Plans**: 5 plans in 4 waves
+   **Plans**: 5 plans in 4 waves (existing from v1.0)
 
 Plans:
 
@@ -957,18 +968,18 @@ Plans:
 
 Plans:
 
-- [ ] 25-01-PLAN.md (Wave 1) — Case tabs/activity timeline enhancement: reorder tabs, Activities default, search bar, upcoming section, date grouping, user/team filters
-- [ ] 25-02-PLAN.md (Wave 1) — Quick actions grid and properties polish: QuickActionGrid shared component, LogCallModal, gear icons and chevron toggles
-- [ ] 25-03-PLAN.md (Wave 2) — Right sidebar association cards: AssociationCard wrapper, RelatedCasesCard, RelatedPoliciesCard, LinkedRiusCard, refactor ConnectedPeopleCard/ConnectedDocumentsCard
-- [ ] 25-04-PLAN.md (Wave 3) — Investigation three-column layout conversion: grid layout, header with breadcrumbs/badges, InvestigationInfoSummary, InvestigationActionButtons, InvestigationPropertiesPanel
-- [ ] 25-05-PLAN.md (Wave 4) — Investigation activity timeline and tabs: InvestigationActivityTimeline, Activities default tab, InvestigationInterviewsTab, InvestigationFilesTab
-- [ ] 25-06-PLAN.md (Wave 5) — Investigation right sidebar with human verification: ParentCaseCard, InvestigationEvidenceCard, ConnectedPeopleCard adaptation, AI Assistant button
+- [x] 25-01-PLAN.md (Wave 1) — Case tabs/activity timeline enhancement: reorder tabs, Activities default, search bar, upcoming section, date grouping, user/team filters
+- [x] 25-02-PLAN.md (Wave 1) — Quick actions grid and properties polish: QuickActionGrid shared component, LogCallModal, gear icons and chevron toggles
+- [x] 25-03-PLAN.md (Wave 2) — Right sidebar association cards: AssociationCard wrapper, RelatedCasesCard, RelatedPoliciesCard, LinkedRiusCard, refactor ConnectedPeopleCard/ConnectedDocumentsCard
+- [x] 25-04-PLAN.md (Wave 3) — Investigation three-column layout conversion: grid layout, header with breadcrumbs/badges, InvestigationInfoSummary, InvestigationActionButtons, InvestigationPropertiesPanel
+- [x] 25-05-PLAN.md (Wave 4) — Investigation activity timeline and tabs: InvestigationActivityTimeline, Activities default tab, InvestigationInterviewsTab, InvestigationFilesTab
+- [x] 25-06-PLAN.md (Wave 5) — Investigation right sidebar with human verification: ParentCaseCard, InvestigationEvidenceCard, ConnectedPeopleCard adaptation, AI Assistant button
 
-### Phase 25.1: Case Detail Page Vision Revision (INSERTED)
+### Phase 25.1: Case Detail Page Vision Revision (v1.2 continued)
 
-**Goal**: Rebuild the Case Detail Page to match the revised HubSpot-style specification. Phase 25 delivered incremental improvements but does not match the owner's vision. This phase implements the full spec: sticky pipeline stage bar, collapsible left-sidebar property cards (About, Intake, Classification), HubSpot-exact Activities tab with type checkboxes/user filters/search/pinning, config-driven module architecture, proper Actions dropdown, Overview tab with lifecycle metrics and editable summary, and tenant-configurable pipeline stages (New → Assigned → Active → Review → Closed → Remediation → Archived).
+**Goal**: Rebuild the Case Detail Page to match the revised HubSpot-style specification. Phase 25 delivered incremental improvements but does not match the owner's vision. This phase implements the full spec: sticky pipeline stage bar, collapsible left-sidebar property cards (About, Intake, Classification), HubSpot-exact Activities tab with type checkboxes/user filters/search/pinning, config-driven module architecture, proper Actions dropdown, Overview tab with lifecycle metrics and editable summary, and tenant-configurable pipeline stages (New -> Assigned -> Active -> Review -> Closed -> Remediation -> Archived).
 **Depends on**: Phase 25 (base components exist)
-**Requirements**: Full specification in `.planning/hubspot-view-system-spec.md` (Sections 12-23)
+**Requirements**: CASE-01, CASE-02, CASE-03, CASE-04, CASE-05, CASE-06, CASE-07, CASE-08, CASE-09, CASE-10
 **Success Criteria** (what must be TRUE):
 
 1. Sticky pipeline stage bar at top of center column showing current stage with click-to-advance
@@ -981,10 +992,10 @@ Plans:
 8. Messages tab handles official communications (reporter messages, platform emails, forwarded emails)
 9. Right sidebar has 9 cards: Workflow, People, RIUs, Cases, Policies, Documents, Tasks, Remediation Status, AI Assistant
 10. Config-driven architecture using module config objects (CASES_DETAIL_CONFIG pattern)
-11. Pipeline stages configurable per tenant with default: New → Assigned → Active → Review → Closed → Remediation → Archived
+11. Pipeline stages configurable per tenant with default: New -> Assigned -> Active -> Review -> Closed -> Remediation -> Archived
 12. Admin-only left sidebar field customization support
 
-**Plans**: 10 plans in 4 waves
+**Plans**: 10 plans in 4 waves (existing from v1.0)
 
 Plans:
 
@@ -999,58 +1010,134 @@ Plans:
 - [ ] 25.1-09-PLAN.md (Wave 4) — Responsive & polish: tablet/mobile drawer sidebars, loading/error states, collapsible state persistence
 - [ ] 25.1-10-PLAN.md (Wave 1) — Backend API integration: Pipeline configuration endpoint, activity pinning, activity type verification, status history
 
+### Phase 32: Security & SOC 2 Fixes (v1.2)
+
+**Goal**: Fix all CRITICAL security vulnerabilities identified in the pre-Series A code review. These fixes block production deployment and must be addressed first.
+**Depends on**: Phase 31 (v1.1 complete)
+**Requirements**: SEC-01, SEC-02, SEC-03, SEC-04, SEC-05, SEC-06, SEC-07, SEC-08, SEC-09, SEC-10, SEC-11, SEC-12, SEC-13
+**Success Criteria** (what must be TRUE):
+
+1. All 7 unauthenticated controllers require valid JWT and tenant context (no more TEMP_ORG_ID)
+2. WebSocket AI gateway validates JWT before accepting messages (no client-trust bypass)
+3. JWT tokens use RS256 algorithm only (algorithm confusion attack prevented)
+4. Application fails startup if JWT_REFRESH_SECRET is undefined
+5. MFA verification persists in JWT payload (session-bound, not per-request)
+   **Plans**: TBD (created during plan-phase)
+
+### Phase 33: Slop Cleanup & Production Readiness (v1.2)
+
+**Goal**: Remove dead code, implement or delete stubs, and add production-grade file validation. Clean the codebase before writing tests.
+**Depends on**: Phase 32 (security fixes complete)
+**Requirements**: SLOP-01, SLOP-02, SLOP-03, SLOP-04, SLOP-05, SLOP-06, SLOP-07, SLOP-08, SLOP-09, SLOP-10, SLOP-11, PROD-01, PROD-02, PROD-03, PROD-04, PROD-05
+**Success Criteria** (what must be TRUE):
+
+1. All 3 orphaned modules are either registered in AppModule or deleted
+2. Document processing returns real results or honest errors (no fake success:false)
+3. 384 section-separator comments removed across 84 files
+4. All 38 TODO comments triaged (resolved or converted to tracked issues)
+5. File uploads validate magic bytes before processing (not just MIME header)
+   **Plans**: TBD (created during plan-phase)
+
+### Phase 34: Performance & Scalability (v1.2)
+
+**Goal**: Fix unbounded queries, add caching for hot paths, configure connection pooling, and resolve N+1 patterns. Prepare for production-scale load.
+**Depends on**: Phase 33 (code cleanup complete)
+**Requirements**: PERF-01, PERF-02, PERF-03, PERF-04, PERF-05, PERF-06, PERF-07, PERF-08, PERF-09, PERF-10, PERF-11
+**Success Criteria** (what must be TRUE):
+
+1. Campaign reminder queries use cursor-based pagination (no unbounded fetches)
+2. User permissions, categories, branding load from Redis cache (sub-10ms on cache hit)
+3. Prisma connection pool configured with limits and timeouts
+4. Persons createFromEmployee and getManagerChain batch-fetch relations (no N+1)
+5. Dashboard cache uses Redis store (multi-instance safe)
+   **Plans**: TBD (created during plan-phase)
+
+### Phase 35: Code Quality & Architecture (v1.2)
+
+**Goal**: Split bloated services, replace any types with proper interfaces, enable strict TypeScript mode, and fix null safety issues. Improve code before testing it.
+**Depends on**: Phase 34 (performance fixes complete)
+**Requirements**: QUAL-01, QUAL-02, QUAL-03, QUAL-04, QUAL-05
+**Success Criteria** (what must be TRUE):
+
+1. All 12 fat services (800+ LOC) split into focused sub-services
+2. 90+ explicit any types replaced with proper TypeScript interfaces
+3. Backend tsconfig.json has strict: true with all code compiling
+4. Non-null assertions replaced with explicit null checks or runtime guards
+5. Forms controller uses matching DTO types (no as any casts)
+   **Plans**: TBD (created during plan-phase)
+
+### Phase 36: Test Coverage Expansion (v1.2)
+
+**Goal**: Expand test coverage from 7.9% to 60%+ on backend services. Test the now-clean, well-typed code.
+**Depends on**: Phase 35 (code quality fixes complete)
+**Requirements**: TEST-01, TEST-02, TEST-03, TEST-04, TEST-05, TEST-06, TEST-07, TEST-08, TEST-09, TEST-10
+**Success Criteria** (what must be TRUE):
+
+1. All 6 auth guards have 90%+ unit test coverage
+2. All 4 auth strategies have 90%+ unit test coverage
+3. Impersonation service, middleware, and guard have 90%+ unit test coverage
+4. 12+ modules have tenant isolation E2E tests
+5. Overall backend service coverage reaches 60%+ (from 7.9%)
+   **Plans**: TBD (created during plan-phase)
+
 ---
 
 ## Milestones
 
 - **v1.0 Feature Build** — Phases 1-25.1, 242+ plans (shipped 2026-02-13) — See `milestones/v1.0-ROADMAP.md`
 - **v1.1 Code Review Remediation** — Phases 26-31, 43 plans (shipped 2026-02-15) — See `milestones/v1.1-ROADMAP.md`
+- **v1.2 Production Hardening & Feature Completion** — Phases 32-36 + Phases 22, 23, 25.1 continued (in progress)
 
 ## Progress
 
-| Phase                                   | Milestone | Plans Complete | Status   | Completed  |
-| --------------------------------------- | --------- | -------------- | -------- | ---------- |
-| 1. Foundation Infrastructure            | v1.0      | 9/9            | Complete | 2026-02-02 |
-| 2. Demo Tenant & Seed Data              | v1.0      | 7/7            | Complete | 2026-02-03 |
-| 3. Authentication & SSO                 | v1.0      | 8/8            | Complete | 2026-02-03 |
-| 4. Core Entities                        | v1.0      | 10/10          | Complete | 2026-02-03 |
-| 5. AI Infrastructure                    | v1.0      | 11/11          | Complete | 2026-02-03 |
-| 6. Case Management                      | v1.0      | 11/17          | Complete | 2026-02-04 |
-| 7. Notifications & Email                | v1.0      | 8/8            | Complete | 2026-02-04 |
-| 8. Portals                              | v1.0      | 17/17          | Complete | 2026-02-04 |
-| 9. Campaigns & Disclosures              | v1.0      | 17/17          | Complete | 2026-02-04 |
-| 10. Policy Management                   | v1.0      | 11/11          | Complete | 2026-02-05 |
-| 11. Analytics & Reporting               | v1.0      | 21/21          | Complete | 2026-02-05 |
-| 11.1. Frontend Navigation (INSERTED)    | v1.0      | 6/6            | Complete | 2026-02-05 |
-| 12. Internal Operations Portal          | v1.0      | 19/19          | Complete | 2026-02-06 |
-| 13. HubSpot-Style Saved Views           | v1.0      | 15/15          | Complete | 2026-02-07 |
-| 13.1. Saved Views Fixes (INSERTED)      | v1.0      | 1/1            | Verified | 2026-02-09 |
-| 14. Critical Bug Fixes & Navigation     | v1.0      | 5/5            | Complete | 2026-02-09 |
-| 14.1. Data & Config Fixes (INSERTED)    | v1.0      | 4/4            | Complete | 2026-02-09 |
-| 14.2. Case Creation & Search (INSERTED) | v1.0      | 3/3            | Complete | 2026-02-10 |
-| 15. Case Detail Page Overhaul           | v1.0      | 11/11          | Verified | 2026-02-11 |
-| 16. AI Integration Fix                  | v1.0      | 8/8            | Complete | 2026-02-11 |
-| 17. Campaigns Hub                       | v1.0      | 4/4            | Complete | 2026-02-11 |
-| 18. Reports & Data Management           | v1.0      | 9/9            | Complete | 2026-02-11 |
-| 19. Workflow Engine UI                  | v1.0      | 7/7            | Complete | 2026-02-11 |
-| 20. Settings Overhaul (HubSpot)         | v1.0      | 6/6            | Complete | 2026-02-12 |
-| 21. Project Management (Monday.com)     | v1.0      | 10/10          | Complete | 2026-02-12 |
-| 22. Dark Mode & Theme                   | v1.0      | 0/14           | Planned  | -          |
-| 23. Help & Support System               | v1.0      | 0/5            | Planned  | -          |
-| 24. Policy Content & Seed Data          | v1.0      | 3/3            | Complete | 2026-02-12 |
-| 25. Case & Investigation Redesign       | v1.0      | 6/6            | Complete | 2026-02-13 |
-| 25.1. Case Detail Vision Revision       | v1.0      | 0/10           | Planned  | -          |
-| 26. Emergency Fixes                     | v1.1      | 2/2            | Verified | 2026-02-14 |
-| 27. Security Hardening                  | v1.1      | 4/4            | Verified | 2026-02-14 |
-| 28. Production Readiness                | v1.1      | 5/5            | Verified | 2026-02-14 |
-| 29. Error Handling & Reliability        | v1.1      | 5/5            | Verified | 2026-02-14 |
-| 30. Test Coverage Foundation            | v1.1      | 5/5            | Verified | 2026-02-15 |
-| 31. Code Quality & Performance          | v1.1      | 22/22          | Verified | 2026-02-15 |
+| Phase                                   | Milestone | Plans Complete | Status      | Completed  |
+| --------------------------------------- | --------- | -------------- | ----------- | ---------- |
+| 1. Foundation Infrastructure            | v1.0      | 9/9            | Complete    | 2026-02-02 |
+| 2. Demo Tenant & Seed Data              | v1.0      | 7/7            | Complete    | 2026-02-03 |
+| 3. Authentication & SSO                 | v1.0      | 8/8            | Complete    | 2026-02-03 |
+| 4. Core Entities                        | v1.0      | 10/10          | Complete    | 2026-02-03 |
+| 5. AI Infrastructure                    | v1.0      | 11/11          | Complete    | 2026-02-03 |
+| 6. Case Management                      | v1.0      | 11/17          | Complete    | 2026-02-04 |
+| 7. Notifications & Email                | v1.0      | 8/8            | Complete    | 2026-02-04 |
+| 8. Portals                              | v1.0      | 17/17          | Complete    | 2026-02-04 |
+| 9. Campaigns & Disclosures              | v1.0      | 17/17          | Complete    | 2026-02-04 |
+| 10. Policy Management                   | v1.0      | 11/11          | Complete    | 2026-02-05 |
+| 11. Analytics & Reporting               | v1.0      | 21/21          | Complete    | 2026-02-05 |
+| 11.1. Frontend Navigation (INSERTED)    | v1.0      | 6/6            | Complete    | 2026-02-05 |
+| 12. Internal Operations Portal          | v1.0      | 19/19          | Complete    | 2026-02-06 |
+| 13. HubSpot-Style Saved Views           | v1.0      | 15/15          | Complete    | 2026-02-07 |
+| 13.1. Saved Views Fixes (INSERTED)      | v1.0      | 1/1            | Verified    | 2026-02-09 |
+| 14. Critical Bug Fixes & Navigation     | v1.0      | 5/5            | Complete    | 2026-02-09 |
+| 14.1. Data & Config Fixes (INSERTED)    | v1.0      | 4/4            | Complete    | 2026-02-09 |
+| 14.2. Case Creation & Search (INSERTED) | v1.0      | 3/3            | Complete    | 2026-02-10 |
+| 15. Case Detail Page Overhaul           | v1.0      | 11/11          | Verified    | 2026-02-11 |
+| 16. AI Integration Fix                  | v1.0      | 8/8            | Complete    | 2026-02-11 |
+| 17. Campaigns Hub                       | v1.0      | 4/4            | Complete    | 2026-02-11 |
+| 18. Reports & Data Management           | v1.0      | 9/9            | Complete    | 2026-02-11 |
+| 19. Workflow Engine UI                  | v1.0      | 7/7            | Complete    | 2026-02-11 |
+| 20. Settings Overhaul (HubSpot)         | v1.0      | 6/6            | Complete    | 2026-02-12 |
+| 21. Project Management (Monday.com)     | v1.0      | 10/10          | Complete    | 2026-02-12 |
+| 22. Dark Mode & Theme                   | v1.2      | 0/15           | Not started | -          |
+| 23. Help & Support System               | v1.2      | 0/5            | Not started | -          |
+| 24. Policy Content & Seed Data          | v1.0      | 3/3            | Complete    | 2026-02-12 |
+| 25. Case & Investigation Redesign       | v1.0      | 6/6            | Complete    | 2026-02-13 |
+| 25.1. Case Detail Vision Revision       | v1.2      | 0/10           | Not started | -          |
+| 26. Emergency Fixes                     | v1.1      | 2/2            | Verified    | 2026-02-14 |
+| 27. Security Hardening                  | v1.1      | 4/4            | Verified    | 2026-02-14 |
+| 28. Production Readiness                | v1.1      | 5/5            | Verified    | 2026-02-14 |
+| 29. Error Handling & Reliability        | v1.1      | 5/5            | Verified    | 2026-02-14 |
+| 30. Test Coverage Foundation            | v1.1      | 5/5            | Verified    | 2026-02-15 |
+| 31. Code Quality & Performance          | v1.1      | 22/22          | Verified    | 2026-02-15 |
+| 32. Security & SOC 2 Fixes              | v1.2      | 0/TBD          | Not started | -          |
+| 33. Slop Cleanup & Production Readiness | v1.2      | 0/TBD          | Not started | -          |
+| 34. Performance & Scalability           | v1.2      | 0/TBD          | Not started | -          |
+| 35. Code Quality & Architecture         | v1.2      | 0/TBD          | Not started | -          |
+| 36. Test Coverage Expansion             | v1.2      | 0/TBD          | Not started | -          |
 
 ---
 
 _Roadmap created: 2026-02-02_
-_Updated: 2026-02-15 (v1.1 shipped, milestone archived)_
-_Total phases: 31 (+ decimal insertions)_
-_Total plans: 285+ completed across v1.0 and v1.1_
-_Total requirements: 149 (v1.0) + 36 (v1.1) = 185_
+_Updated: 2026-02-15 (v1.2 phases added)_
+_Total phases: 36 (+ decimal insertions)_
+_Total plans: 285+ completed across v1.0 and v1.1, TBD for v1.2_
+_Total requirements: 149 (v1.0) + 36 (v1.1) + 77 (v1.2) = 262_

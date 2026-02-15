@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-02-15)
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-02-15 — Milestone v1.2 started
+Phase: 32 of 36 (Security & SOC 2 Fixes) + Phases 22, 23, 25.1 continued
+Plan: Ready to plan
+Status: Roadmap created, ready to plan first phase
+Last activity: 2026-02-15 — v1.2 roadmap created with 8 phases (5 new + 3 continued)
 
-Progress: v1.0 + v1.1 complete. v1.2 requirements being defined.
+Progress: v1.0 + v1.1 complete. v1.2 roadmap created.
 
 ## Shipped Milestones
 
@@ -23,15 +23,37 @@ Progress: v1.0 + v1.1 complete. v1.2 requirements being defined.
 | v1.0 Feature Build           | 1-25.1 | 242+  | 149          | 2026-02-13 |
 | v1.1 Code Review Remediation | 26-31  | 43    | 36           | 2026-02-15 |
 
+## v1.2 Milestone Overview
+
+**Phases:** 8 total (5 new remediation + 3 continued feature)
+**Requirements:** 77 (55 Track 1 + 22 Track 2)
+**Target:** D+ to B+ overall code quality grade
+
+| Track                | Phases             | Requirements | Focus                                |
+| -------------------- | ------------------ | ------------ | ------------------------------------ |
+| Track 1: Remediation | 32, 33, 34, 35, 36 | 55           | Security, slop, perf, quality, tests |
+| Track 2: Features    | 22, 23, 25.1       | 22           | Dark mode, help system, case detail  |
+
+**Execution Order:**
+
+1. Phase 32: Security & SOC 2 (CRITICAL) - 13 requirements
+2. Phase 33: Slop Cleanup + Production - 16 requirements
+3. Phase 34: Performance & Scalability - 11 requirements
+4. Phase 35: Code Quality & Architecture - 5 requirements
+5. Phase 36: Test Coverage Expansion - 10 requirements
+6. Phase 22: Dark Mode & Theme - 7 requirements (existing plans)
+7. Phase 23: Help & Support System - 5 requirements (existing plans)
+8. Phase 25.1: Case Detail Vision - 10 requirements (existing plans)
+
 ## Accumulated Context
 
 ### Key Decisions
 
-- v1.1 closed with architectural exemption for AI orchestration services (>500 LOC)
-- ESLint max-lines guardrail added (warn at 500 LOC) to prevent service bloat
-- Systematic LOC reduction deferred — address opportunistically when touching files for feature work
 - v1.2 dual-track: code review remediation (6 dimensions, B+ target) + unfinished feature phases
-- Pre-Series A code review found D+ overall grade — security D+, tests F, performance C
+- Pre-Series A code review found D+ overall grade - security D+, tests F, performance C
+- Track 2 phases (22, 23, 25.1) use existing plans from v1.0 - do NOT re-plan
+- Phase ordering: Security FIRST, then cleanup, perf, quality, tests, then features
+- ESLint max-lines guardrail (warn at 500 LOC) prevents service bloat
 
 ### Blockers
 
@@ -39,7 +61,7 @@ None currently.
 
 ## Session Continuity
 
-Last session: 2026-02-15 — v1.2 milestone started
-Stopped at: Defining requirements
+Last session: 2026-02-15 — v1.2 roadmap created
+Stopped at: Roadmap creation complete
 Resume file: None
-Next action: Complete requirements definition and roadmap creation
+Next action: `/gsd:plan-phase 32` to plan Security & SOC 2 Fixes
