@@ -3,6 +3,7 @@ import { ConfigModule } from "@nestjs/config";
 import { CacheModule } from "@nestjs/cache-manager";
 import { PrismaModule } from "../prisma/prisma.module";
 import { EventsModule } from "../events/events.module";
+import { AuthModule } from "../auth/auth.module";
 
 // Services
 import { AiClientService } from "./services/ai-client.service";
@@ -53,6 +54,7 @@ import { AiController } from "./ai.controller";
     ConfigModule,
     PrismaModule,
     EventsModule,
+    AuthModule, // For JwtService and JwtKeyService (WebSocket JWT verification)
     CacheModule.register({
       ttl: 300000, // 5 minutes default (in ms)
     }),

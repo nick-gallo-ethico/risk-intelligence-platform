@@ -3,6 +3,7 @@ import { ConfigService } from "@nestjs/config";
 import { Request, Response, NextFunction } from "express";
 import * as jwt from "jsonwebtoken";
 import { PrismaService } from "../../modules/prisma/prisma.service";
+import { JwtKeyService } from "../../modules/auth/services/jwt-key.service";
 
 /**
  * TenantMiddleware extracts the organization (tenant) context from the JWT token
@@ -36,6 +37,7 @@ export class TenantMiddleware implements NestMiddleware {
   constructor(
     private prisma: PrismaService,
     private configService: ConfigService,
+    private jwtKeyService: JwtKeyService,
   ) {}
 
   async use(req: Request, res: Response, next: NextFunction) {
@@ -58,10 +60,34 @@ export class TenantMiddleware implements NestMiddleware {
 
     try {
       const token = authHeader.substring(7);
-      const secret = this.configService.get<string>("jwt.secret");
 
-      // Decode and verify the token
-      const payload = jwt.verify(token, secret!) as JwtPayload;
+      // SEC-10: Decode header to determine algorithm and get appropriate key
+      const decodedHeader = jwt.decode(token, { complete: true });
+      if (!decodedHeader || typeof decodedHeader === "string") {
+        throw new Error("Invalid token format");
+      }
+
+      const header = decodedHeader.header;
+      let verificationKey: string;
+
+      if (header.alg === "RS256") {
+        // Use JwtKeyService for RS256 tokens
+        verificationKey = this.jwtKeyService.getVerificationKey(
+          header.kid as string | undefined,
+        );
+      } else {
+        // SECURITY: Reject non-RS256 tokens (CVE-2015-9235 mitigation)
+        this.logger.warn(
+          `JWT rejected in tenant middleware: unsupported algorithm ${header.alg}`,
+        );
+        throw new Error("Invalid token algorithm");
+      }
+
+      // Verify with pinned algorithm
+      // SEC-03: Pin to RS256 only - prevents algorithm confusion attack
+      const payload = jwt.verify(token, verificationKey, {
+        algorithms: ["RS256"],
+      }) as JwtPayload;
 
       // Only process access tokens
       if (payload.type !== "access") {
