@@ -35,11 +35,9 @@ import { JwtAuthGuard } from "../../../common/guards/jwt-auth.guard";
 import { TenantGuard } from "../../../common/guards/tenant.guard";
 import { RolesGuard } from "../../../common/guards/roles.guard";
 import { Roles, UserRole } from "../../../common/decorators/roles.decorator";
-
-// TODO: Add proper CurrentUser and TenantId decorators when auth is fully integrated
-// For now, using temporary hardcoded values for development
-const TEMP_ORG_ID = "00000000-0000-0000-0000-000000000001";
-const TEMP_USER_ID = "00000000-0000-0000-0000-000000000001";
+import { TenantId } from "../../../common/decorators/tenant-id.decorator";
+import { CurrentUser } from "../../../common/decorators/current-user.decorator";
+import { RequestUser } from "../../auth/interfaces/jwt-payload.interface";
 
 @ApiTags("policies")
 @ApiBearerAuth()
@@ -85,15 +83,15 @@ export class PolicyApprovalController {
   async submitForApproval(
     @Param("id", ParseUUIDPipe) id: string,
     @Body() dto: SubmitForApprovalDto,
-    // @CurrentUser() user: RequestUser,
-    // @TenantId() organizationId: string,
+    @CurrentUser() user: RequestUser,
+    @TenantId() organizationId: string,
   ) {
     return this.approvalService.submitForApproval(
       id,
       dto.workflowTemplateId || null,
       dto.submissionNotes,
-      TEMP_USER_ID, // user.id
-      TEMP_ORG_ID, // organizationId
+      user.id,
+      organizationId,
     );
   }
 
@@ -123,14 +121,14 @@ export class PolicyApprovalController {
   async cancelApproval(
     @Param("id", ParseUUIDPipe) id: string,
     @Body() dto: CancelApprovalDto,
-    // @CurrentUser() user: RequestUser,
-    // @TenantId() organizationId: string,
+    @CurrentUser() user: RequestUser,
+    @TenantId() organizationId: string,
   ) {
     return this.approvalService.cancelApproval(
       id,
       dto.reason,
-      TEMP_USER_ID, // user.id
-      TEMP_ORG_ID, // organizationId
+      user.id,
+      organizationId,
     );
   }
 
@@ -163,12 +161,9 @@ export class PolicyApprovalController {
   @ApiResponse({ status: 404, description: "Policy not found" })
   async getApprovalStatus(
     @Param("id", ParseUUIDPipe) id: string,
-    // @TenantId() organizationId: string,
+    @TenantId() organizationId: string,
   ) {
-    return this.approvalService.getApprovalStatus(
-      id,
-      TEMP_ORG_ID, // organizationId
-    );
+    return this.approvalService.getApprovalStatus(id, organizationId);
   }
 
   // =========================================================================
@@ -194,10 +189,7 @@ export class PolicyApprovalController {
     status: 200,
     description: "Workflow templates retrieved successfully",
   })
-  async getWorkflowTemplates() {
-    // @TenantId() organizationId: string,
-    return this.approvalService.getAvailableWorkflowTemplates(
-      TEMP_ORG_ID, // organizationId
-    );
+  async getWorkflowTemplates(@TenantId() organizationId: string) {
+    return this.approvalService.getAvailableWorkflowTemplates(organizationId);
   }
 }
