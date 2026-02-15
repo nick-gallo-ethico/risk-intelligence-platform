@@ -12,19 +12,19 @@ Dual-track milestone: (1) Remediate all findings from pre-Series A code review a
 
 ### Security & SOC 2 (Grade: D+ → Target: B+)
 
-- [ ] **SEC-01**: Fix 7 unauthenticated controllers — replace hardcoded TEMP_ORG_ID/TEMP_USER_ID/stub-org-id with @UseGuards(JwtAuthGuard, TenantGuard, RolesGuard) + @Roles decorators on migration, conflict, attestation, campaigns, policy-approval, checklist controllers
-- [ ] **SEC-02**: Fix WebSocket auth bypass — AI gateway extractContext() must verify JWT instead of trusting client-provided organizationId/userId/userRole from handshake
-- [ ] **SEC-03**: Pin JWT algorithm to RS256 only — remove HS256 from algorithms array in auth.module.ts to prevent algorithm confusion attack (CVE-2015-9235)
-- [ ] **SEC-04**: Validate JWT_REFRESH_SECRET on startup — fail startup if undefined instead of signing tokens with undefined secret
-- [ ] **SEC-05**: Remove organizationId from ChatMessage DTO — derive from @TenantId() instead of accepting from request body
-- [ ] **SEC-06**: Fix hardcoded demo password — generate unique random passwords per demo account instead of Password123!
-- [ ] **SEC-07**: Add @MaxLength() validation on login DTO — prevent CPU exhaustion via 1MB+ strings during bcrypt
-- [ ] **SEC-08**: Replace @IsString() with @IsUUID() on all ID fields across DTOs
-- [ ] **SEC-09**: Persist MFA verification in JWT payload — add mfaVerified boolean to AccessTokenPayload, issue new token post-MFA
-- [ ] **SEC-10**: Fix tenant middleware JWT verification — use JwtKeyService.getVerificationKey() with algorithm detection instead of HS256-only
-- [ ] **SEC-11**: Add audit logging to messaging relay service — SOC 2 requires all mutation paths logged
-- [ ] **SEC-12**: Narrow Operations module TenantMiddleware exemption — restrict to specific endpoints instead of blanket api/v1/operations/(.\*)
-- [ ] **SEC-13**: Minimize PII in logs — log user ID instead of email in MFA service, review Sentry body logging
+- [x] **SEC-01**: Fix 7 unauthenticated controllers — replace hardcoded TEMP_ORG_ID/TEMP_USER_ID/stub-org-id with @UseGuards(JwtAuthGuard, TenantGuard, RolesGuard) + @Roles decorators on migration, conflict, attestation, campaigns, policy-approval, checklist controllers
+- [x] **SEC-02**: Fix WebSocket auth bypass — AI gateway extractContext() must verify JWT instead of trusting client-provided organizationId/userId/userRole from handshake
+- [x] **SEC-03**: Pin JWT algorithm to RS256 only — remove HS256 from algorithms array in auth.module.ts to prevent algorithm confusion attack (CVE-2015-9235)
+- [x] **SEC-04**: Validate JWT_REFRESH_SECRET on startup — fail startup if undefined instead of signing tokens with undefined secret
+- [x] **SEC-05**: Remove organizationId from ChatMessage DTO — derive from @TenantId() instead of accepting from request body
+- [x] **SEC-06**: Fix hardcoded demo password — generate unique random passwords per demo account instead of Password123!
+- [x] **SEC-07**: Add @MaxLength() validation on login DTO — prevent CPU exhaustion via 1MB+ strings during bcrypt
+- [x] **SEC-08**: Replace @IsString() with @IsUUID() on all ID fields across DTOs
+- [x] **SEC-09**: Persist MFA verification in JWT payload — add mfaVerified boolean to AccessTokenPayload, issue new token post-MFA
+- [x] **SEC-10**: Fix tenant middleware JWT verification — use JwtKeyService.getVerificationKey() with algorithm detection instead of HS256-only
+- [x] **SEC-11**: Add audit logging to messaging relay service — SOC 2 requires all mutation paths logged
+- [x] **SEC-12**: Narrow Operations module TenantMiddleware exemption — restrict to specific endpoints instead of blanket api/v1/operations/(.\*)
+- [x] **SEC-13**: Minimize PII in logs — log user ID instead of email in MFA service, review Sentry body logging
 
 ### AI Code Slop Cleanup (Grade: C- → Target: B+)
 
@@ -139,85 +139,85 @@ Dual-track milestone: (1) Remediate all findings from pre-Series A code review a
 
 ## Traceability
 
-| Requirement | Phase      | Status  |
-| ----------- | ---------- | ------- |
-| SEC-01      | Phase 32   | Pending |
-| SEC-02      | Phase 32   | Pending |
-| SEC-03      | Phase 32   | Pending |
-| SEC-04      | Phase 32   | Pending |
-| SEC-05      | Phase 32   | Pending |
-| SEC-06      | Phase 32   | Pending |
-| SEC-07      | Phase 32   | Pending |
-| SEC-08      | Phase 32   | Pending |
-| SEC-09      | Phase 32   | Pending |
-| SEC-10      | Phase 32   | Pending |
-| SEC-11      | Phase 32   | Pending |
-| SEC-12      | Phase 32   | Pending |
-| SEC-13      | Phase 32   | Pending |
-| SLOP-01     | Phase 33   | Pending |
-| SLOP-02     | Phase 33   | Pending |
-| SLOP-03     | Phase 33   | Pending |
-| SLOP-04     | Phase 33   | Pending |
-| SLOP-05     | Phase 33   | Pending |
-| SLOP-06     | Phase 33   | Pending |
-| SLOP-07     | Phase 33   | Pending |
-| SLOP-08     | Phase 33   | Pending |
-| SLOP-09     | Phase 33   | Pending |
-| SLOP-10     | Phase 33   | Pending |
-| SLOP-11     | Phase 33   | Pending |
-| PROD-01     | Phase 33   | Pending |
-| PROD-02     | Phase 33   | Pending |
-| PROD-03     | Phase 33   | Pending |
-| PROD-04     | Phase 33   | Pending |
-| PROD-05     | Phase 33   | Pending |
-| PERF-01     | Phase 34   | Pending |
-| PERF-02     | Phase 34   | Pending |
-| PERF-03     | Phase 34   | Pending |
-| PERF-04     | Phase 34   | Pending |
-| PERF-05     | Phase 34   | Pending |
-| PERF-06     | Phase 34   | Pending |
-| PERF-07     | Phase 34   | Pending |
-| PERF-08     | Phase 34   | Pending |
-| PERF-09     | Phase 34   | Pending |
-| PERF-10     | Phase 34   | Pending |
-| PERF-11     | Phase 34   | Pending |
-| QUAL-01     | Phase 35   | Pending |
-| QUAL-02     | Phase 35   | Pending |
-| QUAL-03     | Phase 35   | Pending |
-| QUAL-04     | Phase 35   | Pending |
-| QUAL-05     | Phase 35   | Pending |
-| TEST-01     | Phase 36   | Pending |
-| TEST-02     | Phase 36   | Pending |
-| TEST-03     | Phase 36   | Pending |
-| TEST-04     | Phase 36   | Pending |
-| TEST-05     | Phase 36   | Pending |
-| TEST-06     | Phase 36   | Pending |
-| TEST-07     | Phase 36   | Pending |
-| TEST-08     | Phase 36   | Pending |
-| TEST-09     | Phase 36   | Pending |
-| TEST-10     | Phase 36   | Pending |
-| THEME-01    | Phase 22   | Pending |
-| THEME-02    | Phase 22   | Pending |
-| THEME-03    | Phase 22   | Pending |
-| THEME-04    | Phase 22   | Pending |
-| THEME-05    | Phase 22   | Pending |
-| THEME-06    | Phase 22   | Pending |
-| THEME-07    | Phase 22   | Pending |
-| HELP-01     | Phase 23   | Pending |
-| HELP-02     | Phase 23   | Pending |
-| HELP-03     | Phase 23   | Pending |
-| HELP-04     | Phase 23   | Pending |
-| HELP-05     | Phase 23   | Pending |
-| CASE-01     | Phase 25.1 | Pending |
-| CASE-02     | Phase 25.1 | Pending |
-| CASE-03     | Phase 25.1 | Pending |
-| CASE-04     | Phase 25.1 | Pending |
-| CASE-05     | Phase 25.1 | Pending |
-| CASE-06     | Phase 25.1 | Pending |
-| CASE-07     | Phase 25.1 | Pending |
-| CASE-08     | Phase 25.1 | Pending |
-| CASE-09     | Phase 25.1 | Pending |
-| CASE-10     | Phase 25.1 | Pending |
+| Requirement | Phase      | Status   |
+| ----------- | ---------- | -------- |
+| SEC-01      | Phase 32   | Complete |
+| SEC-02      | Phase 32   | Complete |
+| SEC-03      | Phase 32   | Complete |
+| SEC-04      | Phase 32   | Complete |
+| SEC-05      | Phase 32   | Complete |
+| SEC-06      | Phase 32   | Complete |
+| SEC-07      | Phase 32   | Complete |
+| SEC-08      | Phase 32   | Complete |
+| SEC-09      | Phase 32   | Complete |
+| SEC-10      | Phase 32   | Complete |
+| SEC-11      | Phase 32   | Complete |
+| SEC-12      | Phase 32   | Complete |
+| SEC-13      | Phase 32   | Complete |
+| SLOP-01     | Phase 33   | Pending  |
+| SLOP-02     | Phase 33   | Pending  |
+| SLOP-03     | Phase 33   | Pending  |
+| SLOP-04     | Phase 33   | Pending  |
+| SLOP-05     | Phase 33   | Pending  |
+| SLOP-06     | Phase 33   | Pending  |
+| SLOP-07     | Phase 33   | Pending  |
+| SLOP-08     | Phase 33   | Pending  |
+| SLOP-09     | Phase 33   | Pending  |
+| SLOP-10     | Phase 33   | Pending  |
+| SLOP-11     | Phase 33   | Pending  |
+| PROD-01     | Phase 33   | Pending  |
+| PROD-02     | Phase 33   | Pending  |
+| PROD-03     | Phase 33   | Pending  |
+| PROD-04     | Phase 33   | Pending  |
+| PROD-05     | Phase 33   | Pending  |
+| PERF-01     | Phase 34   | Pending  |
+| PERF-02     | Phase 34   | Pending  |
+| PERF-03     | Phase 34   | Pending  |
+| PERF-04     | Phase 34   | Pending  |
+| PERF-05     | Phase 34   | Pending  |
+| PERF-06     | Phase 34   | Pending  |
+| PERF-07     | Phase 34   | Pending  |
+| PERF-08     | Phase 34   | Pending  |
+| PERF-09     | Phase 34   | Pending  |
+| PERF-10     | Phase 34   | Pending  |
+| PERF-11     | Phase 34   | Pending  |
+| QUAL-01     | Phase 35   | Pending  |
+| QUAL-02     | Phase 35   | Pending  |
+| QUAL-03     | Phase 35   | Pending  |
+| QUAL-04     | Phase 35   | Pending  |
+| QUAL-05     | Phase 35   | Pending  |
+| TEST-01     | Phase 36   | Pending  |
+| TEST-02     | Phase 36   | Pending  |
+| TEST-03     | Phase 36   | Pending  |
+| TEST-04     | Phase 36   | Pending  |
+| TEST-05     | Phase 36   | Pending  |
+| TEST-06     | Phase 36   | Pending  |
+| TEST-07     | Phase 36   | Pending  |
+| TEST-08     | Phase 36   | Pending  |
+| TEST-09     | Phase 36   | Pending  |
+| TEST-10     | Phase 36   | Pending  |
+| THEME-01    | Phase 22   | Pending  |
+| THEME-02    | Phase 22   | Pending  |
+| THEME-03    | Phase 22   | Pending  |
+| THEME-04    | Phase 22   | Pending  |
+| THEME-05    | Phase 22   | Pending  |
+| THEME-06    | Phase 22   | Pending  |
+| THEME-07    | Phase 22   | Pending  |
+| HELP-01     | Phase 23   | Pending  |
+| HELP-02     | Phase 23   | Pending  |
+| HELP-03     | Phase 23   | Pending  |
+| HELP-04     | Phase 23   | Pending  |
+| HELP-05     | Phase 23   | Pending  |
+| CASE-01     | Phase 25.1 | Pending  |
+| CASE-02     | Phase 25.1 | Pending  |
+| CASE-03     | Phase 25.1 | Pending  |
+| CASE-04     | Phase 25.1 | Pending  |
+| CASE-05     | Phase 25.1 | Pending  |
+| CASE-06     | Phase 25.1 | Pending  |
+| CASE-07     | Phase 25.1 | Pending  |
+| CASE-08     | Phase 25.1 | Pending  |
+| CASE-09     | Phase 25.1 | Pending  |
+| CASE-10     | Phase 25.1 | Pending  |
 
 ---
 

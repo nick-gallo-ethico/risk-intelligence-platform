@@ -67,7 +67,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 29: Error Handling & Reliability** - NestJS exceptions, error boundaries, toast notifications (v1.1)
 - [x] **Phase 30: Test Coverage Foundation** - Auth, core entities, campaigns/policies, frontend MSW (v1.1)
 - [x] **Phase 31: Code Quality & Performance** - Service decomposition, JWT RS256, Elasticsearch circuit breaker (v1.1)
-- [ ] **Phase 32: Security & SOC 2 Fixes** - Auth bypass fixes, JWT algorithm pinning, WebSocket auth, MFA persistence (v1.2)
+- [x] **Phase 32: Security & SOC 2 Fixes** - Auth bypass fixes, JWT algorithm pinning, WebSocket auth, MFA persistence (v1.2)
 - [ ] **Phase 33: Slop Cleanup & Production Readiness** - Orphaned modules, dead code, MIME validation, placeholder removal (v1.2)
 - [ ] **Phase 34: Performance & Scalability** - Unbounded queries, Redis caching, connection pooling, N+1 fixes (v1.2)
 - [ ] **Phase 35: Code Quality & Architecture** - Fat service splits, any type replacement, strict mode, null safety (v1.2)
@@ -1027,14 +1027,14 @@ Plans:
 
 Plans:
 
-- [ ] 32-01-PLAN.md (Wave 1) — Secure 4 controllers: campaigns, attestation, conflict, checklist with JwtAuthGuard + TenantGuard + RolesGuard
-- [ ] 32-02-PLAN.md (Wave 1) — Secure remaining 2 controllers: migration, policy-approval with guards and decorators
-- [ ] 32-03-PLAN.md (Wave 1) — Fix WebSocket AI gateway: verify JWT on connection, extract context from verified payload
-- [ ] 32-04-PLAN.md (Wave 1) — Pin JWT algorithm to RS256 only, validate JWT_REFRESH_SECRET on startup
-- [ ] 32-05-PLAN.md (Wave 2) — Fix DTOs: remove organizationId from chat DTO, add @MaxLength(72) to password, random demo passwords
-- [ ] 32-06-PLAN.md (Wave 2) — Add mfaVerified to JWT payload for session-bound MFA verification
-- [ ] 32-07-PLAN.md (Wave 2) — Add audit logging to relay service, minimize PII in logs, narrow operations middleware exemption
-- [ ] 32-08-PLAN.md (Wave 3) — Human verification checkpoint for all security fixes
+- [x] 32-01-PLAN.md (Wave 1) — Secure 4 controllers: campaigns, attestation, conflict, checklist with JwtAuthGuard + TenantGuard + RolesGuard
+- [x] 32-02-PLAN.md (Wave 1) — Secure remaining 2 controllers: migration, policy-approval with guards and decorators
+- [x] 32-03-PLAN.md (Wave 1) — Fix WebSocket AI gateway: verify JWT on connection, extract context from verified payload
+- [x] 32-04-PLAN.md (Wave 1) — Pin JWT algorithm to RS256 only, validate JWT_REFRESH_SECRET on startup
+- [x] 32-05-PLAN.md (Wave 2) — Fix DTOs: remove organizationId from chat DTO, add @MaxLength(72) to password, random demo passwords
+- [x] 32-06-PLAN.md (Wave 2) — Add mfaVerified to JWT payload for session-bound MFA verification
+- [x] 32-07-PLAN.md (Wave 2) — Add audit logging to relay service, minimize PII in logs, narrow operations middleware exemption
+- [x] 32-08-PLAN.md (Wave 3) — Human verification checkpoint for all security fixes
 
 ### Phase 33: Slop Cleanup & Production Readiness (v1.2)
 
