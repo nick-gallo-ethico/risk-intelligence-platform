@@ -11,5 +11,3 @@
  */
 
 export * from "./report-data-fetcher.service";
-export * from "./report-pdf-builder.service";
-export * from "./report-ai-summary.service";
