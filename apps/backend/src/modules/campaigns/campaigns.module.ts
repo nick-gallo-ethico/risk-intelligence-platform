@@ -1,4 +1,4 @@
-import { Module, forwardRef } from "@nestjs/common";
+import { Module } from "@nestjs/common";
 import { BullModule } from "@nestjs/bullmq";
 import { PrismaModule } from "../prisma/prisma.module";
 import { RiusModule } from "../rius/rius.module";
@@ -9,6 +9,8 @@ import { SegmentService } from "./targeting/segment.service";
 import { SegmentQueryBuilder } from "./targeting/segment-query.builder";
 import { CampaignAssignmentService } from "./assignments/campaign-assignment.service";
 import { CampaignTargetingService } from "./campaign-targeting.service";
+import { AudienceQueryService } from "./services/audience-query.service";
+import { AudienceDescriptionService } from "./services/audience-description.service";
 import {
   CampaignSchedulingService,
   CAMPAIGN_QUEUE_NAME,
@@ -72,6 +74,8 @@ import { AttestationController } from "./attestation/attestation.controller";
     SegmentQueryBuilder,
     CampaignAssignmentService,
     CampaignTargetingService,
+    AudienceQueryService,
+    AudienceDescriptionService,
     CampaignSchedulingService,
     CampaignSchedulingProcessor,
     CampaignReminderService,
