@@ -23,5 +23,6 @@ module.exports = {
     '@typescript-eslint/no-explicit-any': 'warn',
     '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
     '@typescript-eslint/no-namespace': 'off', // Allow namespaces for Express augmentation
+    'max-lines': ['warn', { max: 500, skipBlankLines: true, skipComments: true }],
   },
 };
