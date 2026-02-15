@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-13)
 ## Current Position
 
 Phase: 31 of 31 (Code Quality & Performance) — Gap Closure Round 2
-Plan: 13 of 17 complete
+Plan: 16 of 17 complete
 Status: Executing gap closure
-Last activity: 2026-02-15 — Completed 31-13 widget-data.service decomposition
+Last activity: 2026-02-15 — Completed 31-16 task-aggregator.service decomposition
 
-Progress: [████████░░] 82% (12 original + 1 gap closure round 2 complete)
+Progress: [█████████░] 88% (13 original + 3 gap closure round 2 complete)
 
 ## Milestone v1.1: Code Review Remediation
 
@@ -60,7 +60,7 @@ Progress: [████████░░] 82% (12 original + 1 gap closure roun
 | 31-13 | 2    | Gap closure: widget-data.service decomposition   | Yes        | Complete |
 | 31-14 | 2    | Gap closure: board-report.service decomposition  | Yes        | Planned  |
 | 31-15 | 2    | Gap closure: migration.service decomposition     | Yes        | Planned  |
-| 31-16 | 2    | Gap closure: task-aggregator decomposition       | Yes        | Planned  |
+| 31-16 | 2    | Gap closure: task-aggregator decomposition       | Yes        | Complete |
 | 31-17 | 2    | Gap closure: campaign-targeting decomposition    | Yes        | Planned  |
 
 ## Gap Closure Context (Round 2)
@@ -71,11 +71,11 @@ Progress: [████████░░] 82% (12 original + 1 gap closure roun
 **Remaining Gaps:**
 
 1. **QUAL-01 (Service decomposition):** Top 5 services still >300 LOC
-   - widget-data.service.ts (1240 LOC)
-   - board-report.service.ts (1189 LOC)
-   - migration.service.ts (1159 LOC)
-   - task-aggregator.service.ts (1099 LOC)
-   - campaign-targeting.service.ts (1007 LOC)
+   - widget-data.service.ts (1240 LOC) - COMPLETE (31-13)
+   - board-report.service.ts (1189 LOC) - Planned (31-14)
+   - migration.service.ts (1159 LOC) - Planned (31-15)
+   - task-aggregator.service.ts (1099 LOC) - COMPLETE (31-16, now 291 LOC)
+   - campaign-targeting.service.ts (1007 LOC) - Planned (31-17)
 
 2. **QUAL-03 (Controller refactoring):** Controllers >200 LOC — BUT analysis shows LOC is Swagger decorator overhead, not business logic. Controllers already delegate to services. Plan 31-12 documents this as acceptable closure.
 
@@ -158,6 +158,7 @@ Key outcomes:
 - CasesService 795 -> 363 LOC (54% reduction)
 - RiusService 460 -> 349 LOC with RiuUpdateService extraction
 - WidgetDataService 1240 -> 277 LOC with 3 sub-services (78% reduction)
+- TaskAggregatorService 1099 -> 291 LOC with 3 sub-services (73% reduction)
 
 ### Blockers
 
@@ -165,7 +166,7 @@ None currently.
 
 ## Session Continuity
 
-Last session: 2026-02-15 — Completed 31-13 widget-data.service decomposition
-Stopped at: Completed 31-13-PLAN.md
+Last session: 2026-02-15 — Completed 31-16 task-aggregator.service decomposition
+Stopped at: Completed 31-16-PLAN.md
 Resume file: None
-Next action: Execute 31-14 (board-report.service decomposition)
+Next action: Execute 31-17 (campaign-targeting.service decomposition)
