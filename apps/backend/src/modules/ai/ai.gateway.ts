@@ -9,10 +9,12 @@ import {
 } from "@nestjs/websockets";
 import { Server, Socket } from "socket.io";
 import { Logger } from "@nestjs/common";
+import { JwtService } from "@nestjs/jwt";
 import { AgentRegistry } from "./agents/agent.registry";
 import { ConversationService } from "./services/conversation.service";
 import { SkillRegistry } from "./skills/skill.registry";
 import { ActionExecutorService } from "./actions/action-executor.service";
+import { JwtKeyService } from "../auth/services/jwt-key.service";
 import {
   ChatPayload,
   StopPayload,
@@ -34,17 +36,16 @@ if (!corsOriginAi) {
 /**
  * AiGateway provides WebSocket connectivity for real-time AI streaming.
  *
+ * SECURITY: All connections are authenticated via JWT verification.
+ * Client must provide a valid access token in handshake.auth.token or
+ * the Authorization header. Context (organizationId, userId, role) is
+ * extracted from the VERIFIED JWT payload, not from client claims.
+ *
  * Mounted at /ai namespace, this gateway handles:
  * - Streaming chat with agents
  * - Stop/pause/resume conversation control
  * - Real-time skill execution
  * - Real-time action execution
- *
- * Client connection requires auth handshake with:
- * - organizationId
- * - userId
- * - userRole
- * - permissions[]
  *
  * Events emitted to client:
  * - message_start: Streaming begins
@@ -59,14 +60,11 @@ if (!corsOriginAi) {
  * - skill_result: Skill execution result
  * - action_result: Action execution result (manual action request)
  *
- * Usage (client-side):
+ * Client connection example:
  * ```javascript
  * const socket = io('/ai', {
  *   auth: {
- *     organizationId: 'org-123',
- *     userId: 'user-456',
- *     userRole: 'INVESTIGATOR',
- *     permissions: ['ai:skills:note-cleanup'],
+ *     token: 'your-jwt-access-token',
  *   }
  * });
  *
@@ -102,17 +100,19 @@ export class AiGateway implements OnGatewayConnection, OnGatewayDisconnect {
     private readonly conversationService: ConversationService,
     private readonly skillRegistry: SkillRegistry,
     private readonly actionExecutor: ActionExecutorService,
+    private readonly jwtService: JwtService,
+    private readonly jwtKeyService: JwtKeyService,
   ) {}
 
   /**
    * Handle new WebSocket connection.
-   * Extracts auth context from handshake and validates.
+   * SECURITY: Verifies JWT and extracts auth context from verified payload.
    */
   async handleConnection(client: Socket): Promise<void> {
     try {
-      const context = this.extractContext(client);
+      const context = await this.extractContext(client);
       if (!context) {
-        this.logger.warn(`Connection rejected: missing auth context`);
+        this.logger.warn(`Connection rejected: invalid or missing JWT`);
         client.disconnect(true);
         return;
       }
@@ -407,31 +407,64 @@ export class AiGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   /**
    * Extract authentication context from WebSocket handshake.
-   * In production, this would verify a JWT token.
+   * SECURITY: Verifies JWT token instead of trusting client-provided claims.
+   * This prevents tenant isolation bypass attacks.
    *
    * @param client - Socket client
-   * @returns SocketContext or null if invalid
+   * @returns SocketContext or null if invalid/missing JWT
    */
-  private extractContext(client: Socket): SocketContext | null {
-    const auth = client.handshake.auth;
+  private async extractContext(client: Socket): Promise<SocketContext | null> {
+    // Extract token from auth.token or Authorization header
+    const token =
+      client.handshake.auth?.token ||
+      client.handshake.headers?.authorization?.replace("Bearer ", "");
 
-    // Require organizationId and userId at minimum
-    if (!auth?.organizationId || !auth?.userId) {
+    if (!token) {
+      this.logger.warn("WebSocket connection rejected: no token provided");
       return null;
     }
 
-    const role = auth.userRole || "EMPLOYEE";
-    const permissions =
-      auth.permissions?.length > 0
-        ? auth.permissions
-        : this.getDefaultPermissionsForRole(role);
+    try {
+      // Get verification key (handles RS256/HS256 based on config)
+      const verificationKey = this.jwtKeyService.getVerificationKey();
+      const algorithm = this.jwtKeyService.getAlgorithm();
 
-    return {
-      organizationId: auth.organizationId,
-      userId: auth.userId,
-      userRole: role,
-      permissions,
-    };
+      // Verify JWT - CRITICAL: This validates signature, expiry, and payload
+      const payload = await this.jwtService.verifyAsync(token, {
+        secret: verificationKey,
+        algorithms: [algorithm],
+      });
+
+      // Verify this is an access token (not a refresh token)
+      if (payload.type && payload.type !== "access") {
+        this.logger.warn("WebSocket connection rejected: not an access token");
+        return null;
+      }
+
+      // Verify required claims exist
+      if (!payload.organizationId || !payload.sub) {
+        this.logger.warn(
+          "WebSocket connection rejected: missing required JWT claims",
+        );
+        return null;
+      }
+
+      // Extract context from VERIFIED payload
+      const role = payload.role || "EMPLOYEE";
+      const permissions = this.getDefaultPermissionsForRole(role);
+
+      return {
+        organizationId: payload.organizationId,
+        userId: payload.sub,
+        userRole: role,
+        permissions,
+      };
+    } catch (error) {
+      this.logger.warn(
+        `WebSocket JWT verification failed: ${(error as Error).message}`,
+      );
+      return null;
+    }
   }
 
   /**
