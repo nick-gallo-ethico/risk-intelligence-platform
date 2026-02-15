@@ -43,30 +43,30 @@ Progress: [██████████] 100% (Base plans complete, gap closur
 
 ## Phase 31 Plans
 
-| Plan  | Wave | Objective                                            | Autonomous | Status   |
-| ----- | ---- | ---------------------------------------------------- | ---------- | -------- |
-| 31-01 | 1    | QUAL-01: Response compression and DB pool size       | Yes        | Complete |
-| 31-02 | 1    | QUAL-02: Frontend environment URL centralization     | Yes        | Complete |
-| 31-03 | 1    | QUAL-03: Elasticsearch circuit breaker               | Yes        | Complete |
-| 31-04 | 2    | QUAL-04: BaseAssociationService extraction           | Yes        | Complete |
-| 31-05 | 2    | QUAL-05: Frontend toast notifications                | Yes        | Complete |
-| 31-06 | 3    | QUAL-06: Controller logic extraction                 | Yes        | Complete |
-| 31-07 | 4    | QUAL-07: Service decomposition (1000+ LOC)           | Yes        | Complete |
-| 31-08 | 5    | QUAL-08: JWT RS256 with key rotation                 | Yes        | Complete |
-| 31-09 | -    | Gap closure: cases.service.ts decomposition          | Yes        | Complete |
-| 31-10 | -    | Gap closure: VERIFICATION.md false positive fix      | Yes        | Complete |
-| 31-11 | -    | Gap closure: RiuUpdateService extraction             | Yes        | Complete |
-| 31-12 | 1    | Gap closure: Controller analysis (doc closure)       | Yes        | Complete |
-| 31-13 | 2    | Gap closure: widget-data.service decomposition       | Yes        | Complete |
-| 31-14 | 2    | Gap closure: board-report.service decomposition      | Yes        | Complete |
-| 31-15 | 2    | Gap closure: migration.service decomposition         | Yes        | Complete |
-| 31-16 | 2    | Gap closure: task-aggregator decomposition           | Yes        | Complete |
-| 31-17 | 2    | Gap closure: campaign-targeting decomposition        | Yes        | Complete |
-| 31-18 | 3    | Gap closure: report-builder.service decomposition    | Yes        | Complete |
-| 31-19 | 3    | Gap closure: disclosure services decomposition       | Yes        | Complete |
-| 31-20 | 3    | Gap closure: segment-query.builder decomposition     | Yes        | Complete |
-| 31-21 | 3    | Gap closure: case components error handling          | Yes        | Complete |
-| 31-22 | 3    | Gap closure: investigation components error handling | Yes        | Complete |
+| Plan  | Wave | Objective                                             | Autonomous | Status   |
+| ----- | ---- | ----------------------------------------------------- | ---------- | -------- |
+| 31-01 | 1    | QUAL-01: Response compression and DB pool size        | Yes        | Complete |
+| 31-02 | 1    | QUAL-02: Frontend environment URL centralization      | Yes        | Complete |
+| 31-03 | 1    | QUAL-03: Elasticsearch circuit breaker                | Yes        | Complete |
+| 31-04 | 2    | QUAL-04: BaseAssociationService extraction            | Yes        | Complete |
+| 31-05 | 2    | QUAL-05: Frontend toast notifications                 | Yes        | Complete |
+| 31-06 | 3    | QUAL-06: Controller logic extraction                  | Yes        | Complete |
+| 31-07 | 4    | QUAL-07: Service decomposition (1000+ LOC)            | Yes        | Complete |
+| 31-08 | 5    | QUAL-08: JWT RS256 with key rotation                  | Yes        | Complete |
+| 31-09 | -    | Gap closure: cases.service.ts decomposition           | Yes        | Complete |
+| 31-10 | -    | Gap closure: VERIFICATION.md false positive fix       | Yes        | Complete |
+| 31-11 | -    | Gap closure: RiuUpdateService extraction              | Yes        | Complete |
+| 31-12 | 1    | Gap closure: Controller analysis (doc closure)        | Yes        | Complete |
+| 31-13 | 2    | Gap closure: widget-data.service decomposition        | Yes        | Complete |
+| 31-14 | 2    | Gap closure: board-report.service decomposition       | Yes        | Complete |
+| 31-15 | 2    | Gap closure: migration.service decomposition          | Yes        | Complete |
+| 31-16 | 2    | Gap closure: task-aggregator decomposition            | Yes        | Complete |
+| 31-17 | 2    | Gap closure: campaign-targeting decomposition         | Yes        | Complete |
+| 31-18 | 3    | Gap closure: report-builder.service decomposition     | Yes        | Complete |
+| 31-19 | 3    | Gap closure: disclosure services decomposition        | Yes        | Complete |
+| 31-20 | 3    | Gap closure: campaign-targeting further decomposition | Yes        | Complete |
+| 31-21 | 3    | Gap closure: case components error handling           | Yes        | Complete |
+| 31-22 | 3    | Gap closure: investigation components error handling  | Yes        | Complete |
 
 ## Gap Closure Summary (Round 3 - QUAL-05 Frontend)
 
@@ -92,7 +92,7 @@ Progress: [██████████] 100% (Base plans complete, gap closur
 | board-report.service.ts       | 1189   | 448   | 62%       |
 | migration.service.ts          | 1159   | 405   | 65%       |
 | task-aggregator.service.ts    | 1099   | 291   | 73%       |
-| campaign-targeting.service.ts | 1007   | 578   | 43%       |
+| campaign-targeting.service.ts | 1007   | 311   | 69%       |
 
 **Controller Analysis:** Controllers >200 LOC confirmed as Swagger decorator overhead, not business logic. Documented as acceptable closure.
 
@@ -160,7 +160,7 @@ Key outcomes:
 - Service decomposition targets 5 analytics services (1007-1240 LOC each)
 - Thin coordinator pattern: Main services delegate to domain-specific sub-services
 - One plan per service to stay within context budget
-- CampaignTargetingService at 578 LOC (not 400 target) - remaining code is coordinator logic
+- CampaignTargetingService 578 -> 311 LOC with TargetingAttributesService and SegmentConverterService extraction
 
 ### Key Decisions (31-01 through 31-11)
 
@@ -186,7 +186,7 @@ None currently.
 
 ## Session Continuity
 
-Last session: 2026-02-15 — Completed 31-21 case components error handling
-Stopped at: Plan 31-21 complete
+Last session: 2026-02-15 — Completed 31-20 campaign-targeting further decomposition
+Stopped at: Plan 31-20 complete
 Resume file: None
 Next action: Continue with remaining gap closure plans if any
