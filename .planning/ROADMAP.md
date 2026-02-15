@@ -1001,208 +1001,56 @@ Plans:
 
 ---
 
-## Milestone v1.1: Code Review Remediation
+## Milestones
 
-**Source:** `03-DEVELOPMENT/UNIFIED-AUDIT-REPORT.md` (36 findings, commit `9ac072f`)
-**Started:** 2026-02-13
+- **v1.0 Feature Build** — Phases 1-25.1, 242+ plans (shipped 2026-02-13) — See `milestones/v1.0-ROADMAP.md`
+- **v1.1 Code Review Remediation** — Phases 26-31, 43 plans (shipped 2026-02-15) — See `milestones/v1.1-ROADMAP.md`
 
-Phases 26-31 address all findings from the unified code review and silent failure audit. Ordered by severity: emergency fixes first, then security, production readiness, error handling, test coverage, and code quality.
+## Progress
 
-- [x] **Phase 26: Emergency Fixes** — RLS bypass safety, API key rotation, global exception filter registration
-- [x] **Phase 27: Security Hardening** — Guard/middleware tests, CORS fixes, nullable orgId, CSRF, body limits
-- [x] **Phase 28: Production Readiness** — Dockerfile, health checks, fail-fast storage, Key Vault, env validation, graceful shutdown
-- [x] **Phase 29: Error Handling & Reliability** — NestJS exceptions, audit alerting, orphan prevention, error boundaries, auth fixes
-- [x] **Phase 30: Test Coverage Foundation** — Auth module tests, core service tests, campaign/policy tests, frontend test infrastructure
-- [x] **Phase 31: Code Quality & Performance** — Service decomposition, association base class, controller cleanup, localhost URLs, toast errors, DB pool, JWT rotation
-
-## Phase Details (v1.1)
-
-### Phase 26: Emergency Fixes
-
-**Goal**: Resolve the three most dangerous issues immediately — a tenant data isolation vulnerability, an exposed API key, and unregistered exception filters that cause unstructured 500 responses.
-**Depends on**: Nothing (first phase of v1.1, can start immediately)
-**Requirements**: EMER-01, EMER-02, EMER-03
-**Success Criteria** (what must be TRUE):
-
-1. `withBypassRLS()` destroys tainted connections on `disableBypassRLS()` failure (no pooled connections with RLS bypass stuck open)
-2. Anthropic API key has been rotated in the dashboard; old key is invalidated
-3. `HttpExceptionFilter` and `SentryExceptionFilter` are registered globally via `app.useGlobalFilters()` in `main.ts`
-4. All unhandled exceptions produce structured JSON error responses (no stack trace leakage)
-5. Non-Error exceptions in `HttpExceptionFilter` else branch are logged (not silently dropped)
-
-### Phase 27: Security Hardening
-
-**Goal**: Harden the security layer with comprehensive tests for auth guards/middleware, fix CORS misconfigurations, close RLS gaps from nullable organizationId, and add CSRF/body-size protections.
-**Depends on**: Phase 26 (exception filters must work before testing guards)
-**Requirements**: SEC-01, SEC-02, SEC-03, SEC-04, SEC-05, SEC-06
-**Plans**: 4 plans in 2 waves
-**Success Criteria** (what must be TRUE):
-
-1. Unit tests exist for `tenant.guard`, `tenant.middleware`, `jwt-auth.guard`, `roles.guard` — covering valid/invalid/expired tokens, wrong-tenant rejection, role enforcement, RLS session variable verification
-2. All 3 WebSocket gateways throw on missing `CORS_ORIGIN` config (no wildcard fallback with credentials)
-3. All 7 models with nullable `organizationId` either have it required or are documented as system-wide with application-level access control
-4. CSRF protection mitigated by architecture (JWT in Authorization header) and documented
-5. Request body size limits configured (10MB JSON/URL-encoded)
-
-Plans:
-
-- [ ] 27-01-PLAN.md (Wave 1) — Guard/middleware unit tests: tenant.guard, jwt-auth.guard, roles.guard, tenant.middleware
-- [ ] 27-02-PLAN.md (Wave 1) — WebSocket CORS fixes + HttpExceptionFilter non-Error logging
-- [ ] 27-03-PLAN.md (Wave 2) — Body size limits + CSRF mitigation documentation
-- [ ] 27-04-PLAN.md (Wave 2) — Nullable organizationId documentation for system-wide entities
-
-### Phase 28: Production Readiness
-
-**Goal**: Make the application deployable — containerized with a multi-stage Dockerfile, deep health checks, fail-fast storage initialization, secrets vaulted via Azure Key Vault, environment validation, database connection resilience, and graceful shutdown.
-**Depends on**: Phase 27 (security layer must be solid before production deployment concerns)
-**Requirements**: PROD-01, PROD-02, PROD-03, PROD-04, PROD-05, PROD-06, PROD-07
-**Success Criteria** (what must be TRUE):
-
-1. `docker build` produces a working container image with Node.js 20 Alpine, non-root user, and HEALTHCHECK instruction
-2. `/health` endpoint checks database, Redis, and Elasticsearch connectivity — returns degraded status with specifics on failure
-3. Application refuses to start if storage provider initialization fails (LocalStorage or AzureBlob)
-4. Production environment reads secrets from Azure Key Vault; local dev falls back to env vars
-5. Application startup validates all required environment variables and fails with clear error messages listing missing vars
-6. PrismaService retries connection with exponential backoff (3 attempts, 1s/2s/4s delays)
-7. `SIGTERM` triggers graceful shutdown: in-flight requests drain, DB/Redis connections close cleanly
-
-**Plans**: 5 plans in 2 waves
-
-Plans:
-
-- [ ] 28-01-PLAN.md (Wave 1) — Environment validation, Prisma connection retry, graceful shutdown
-- [ ] 28-02-PLAN.md (Wave 1) — Storage providers fail-fast on initialization
-- [ ] 28-03-PLAN.md (Wave 1) — Azure Key Vault integration for secrets
-- [ ] 28-04-PLAN.md (Wave 2) — Deep health checks with @nestjs/terminus (DB, Redis, ES)
-- [ ] 28-05-PLAN.md (Wave 2) — Multi-stage Dockerfile with Node.js 20 Alpine
-
-### Phase 29: Error Handling & Reliability
-
-**Goal**: Eliminate silent failures throughout the stack
-**Depends on**: Phase 28 (production infrastructure must exist for alerting/monitoring hooks)
-
-1. Top 10 files with bare `throw new Error()` (100 of 133 instances) use NestJS exceptions (`BadRequestException`, `NotFoundException`, etc.)
-2. AuditService counts consecutive failures; after 5, emits a monitoring alert event
-3. Attachment deletion does NOT remove DB record if storage deletion fails (unless file already missing)
-4. Offline draft decryption failure shows user-visible error message (not silent empty data)
-5. Error boundary components exist for all top-level route segments (not just `/cases/[id]`)
-6. Auth logout logs server-side session invalidation failures to console.warn
-
-**Plans**: 5 plans in 1 wave
-
-Plans:
-
-- [x] 29-01-PLAN.md (Wave 1) — Backend service reliability: AuditService failure counting, safe attachment deletion, AI provider error logging
-- [x] 29-02-PLAN.md (Wave 1) — Async event handler error boundaries with try-catch and context logging
-- [x] 29-03-PLAN.md (Wave 1) — Frontend error boundaries for all route segments (22+ error.tsx files)
-- [x] 29-04-PLAN.md (Wave 1) — Frontend error surfacing: offline draft decryption flag, auth logout logging, storage corruption handling
-- [x] 29-05-PLAN.md (Wave 1) — Replace bare throw new Error() with NestJS HTTP exceptions in service/controller files (31 instances across 11 files)
-
-### Phase 30: Test Coverage Foundation
-
-**Goal**: Build test coverage from ~2.5% toward the 80% target, starting with the most critical paths — security/auth services, core entity services (cases, RIUs, investigations), campaigns/policies, and frontend test infrastructure.
-**Depends on**: Phase 29 (error handling fixed so tests don't fight broken exception paths)
-**Requirements**: TEST-01, TEST-02, TEST-03, TEST-04
-**Success Criteria** (what must be TRUE):
-
-1. Auth module has unit tests for all 8 services — login, registration, token refresh, SSO callback, MFA setup/verify, password reset, session management
-2. Core services have unit tests: CasesService (CRUD, status transitions, merge), RiusService (creation, immutability enforcement), InvestigationsService (CRUD, template application)
-3. Campaign and Policy services have unit tests covering CRUD, workflow transitions, and event emission
-4. Frontend has MSW mock setup, at least 3 error boundary components, and component tests for dashboard, case list, and case detail
-
-**Plans**: 5 plans in 1 wave
-
-Plans:
-
-- [ ] 30-01-PLAN.md (Wave 1) — Auth core tests: AuthService, MfaService, TokenRefreshService, RecoveryCodesService
-- [ ] 30-02-PLAN.md (Wave 1) — Auth SSO/domain tests: SsoService, SsoConfigService, DomainService, DomainVerificationService
-- [ ] 30-03-PLAN.md (Wave 1) — Core service tests: CasesService, RiusService (with immutability enforcement)
-- [ ] 30-04-PLAN.md (Wave 1) — Campaign and policy tests: CampaignsService, PoliciesService (with versioning)
-- [ ] 30-05-PLAN.md (Wave 1) — Frontend infrastructure: MSW setup, 3 error boundaries, dashboard component tests
-
-### Phase 31: Code Quality & Performance
-
-**Goal**: Improve maintainability and performance — decompose monolithic services, extract shared patterns, clean up controllers, fix hardcoded URLs, add user-facing error feedback, tune database connections, and implement JWT key rotation.
-**Depends on**: Phase 30 (test coverage must exist before safe refactoring)
-**Requirements**: QUAL-01, QUAL-02, QUAL-03, QUAL-04, QUAL-05, QUAL-06, QUAL-07, QUAL-08
-**Success Criteria** (what must be TRUE):
-
-1. Top 5 services by LOC are each under 300 lines (decomposed into focused sub-services)
-2. `BaseAssociationService<T>` generic base class shared by all 4 association services
-3. Business logic extracted from 4 oversized controllers (report, projects, cases, ai) into services
-4. Zero hardcoded `localhost` URLs remain in frontend — all use environment config
-5. API errors in 30+ frontend components show toast notifications (not just console.error)
-6. DB connection pool size configurable (default 50), response compression enabled
-7. Elasticsearch timeout reduced to 5s with circuit breaker fallback
-8. JWT uses RS256 with key rotation mechanism (old keys valid until expiry, new keys for signing)
-
-**Plans**: 8 plans in 5 waves
-
-Plans:
-
-- [x] 31-01-PLAN.md (Wave 1) — Response compression and DB pool config
-- [x] 31-02-PLAN.md (Wave 1) — Replace hardcoded localhost URLs with env config
-- [x] 31-03-PLAN.md (Wave 1) — Elasticsearch timeout reduction with circuit breaker
-- [x] 31-04-PLAN.md (Wave 2) — Extract BaseAssociationService generic base class
-- [x] 31-05-PLAN.md (Wave 2) — Toast notification system for API errors
-- [x] 31-06-PLAN.md (Wave 3) — Controller logic extraction to services
-- [x] 31-07-PLAN.md (Wave 4) — Service decomposition (<300 LOC)
-- [x] 31-08-PLAN.md (Wave 5) — JWT RS256 with key rotation
-      **Execution Order:**
-      Phases execute in dependency order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11 → 11.1 → 12 → 13 → 13.1 → 14 → 14.1 → 14.2 → 15 → 16 → 17 → 18 → 19 → 20 → 21 → 22 → 23 → 24 → 25 → 25.1 → 26 → 27 → 28 → 29 → 30 → 31
-
-> **Note on order**: Phase 13.1 fixes UAT gaps from Phase 13. Phase 14.1 fixes data seeding gaps from Phase 14. Phase 15 gap closure plans address verification failures.
-
-| Phase                                   | Plans Complete | Status   | Completed  |
-| --------------------------------------- | -------------- | -------- | ---------- |
-| 1. Foundation Infrastructure            | 9/9            | Complete | 2026-02-02 |
-| 2. Demo Tenant & Seed Data              | 7/7            | Complete | 2026-02-03 |
-| 3. Authentication & SSO                 | 8/8            | Complete | 2026-02-03 |
-| 4. Core Entities                        | 10/10          | Complete | 2026-02-03 |
-| 5. AI Infrastructure                    | 11/11          | Complete | 2026-02-03 |
-| 6. Case Management                      | 11/17          | Complete | 2026-02-04 |
-| 7. Notifications & Email                | 8/8            | Complete | 2026-02-04 |
-| 8. Portals                              | 17/17          | Complete | 2026-02-04 |
-| 9. Campaigns & Disclosures              | 17/17          | Complete | 2026-02-04 |
-| 10. Policy Management                   | 11/11          | Complete | 2026-02-05 |
-| 11. Analytics & Reporting               | 21/21          | Complete | 2026-02-05 |
-| 11.1. Frontend Navigation (INSERTED)    | 6/6            | Complete | 2026-02-05 |
-| 12. Internal Operations Portal          | 19/19          | Complete | 2026-02-06 |
-| 13. HubSpot-Style Saved Views           | 15/15          | Complete | 2026-02-07 |
-| 13.1. Saved Views Fixes (INSERTED)      | 1/1            | Verified | 2026-02-09 |
-| 14. Critical Bug Fixes & Navigation     | 5/5            | Complete | 2026-02-09 |
-| 14.1. Data & Config Fixes (INSERTED)    | 4/4            | Complete | 2026-02-09 |
-| 14.2. Case Creation & Search (INSERTED) | 3/3            | Complete | 2026-02-10 |
-| 15. Case Detail Page Overhaul           | 11/11          | Verified | 2026-02-11 |
-| 16. AI Integration Fix                  | 8/8            | Complete | 2026-02-11 |
-| 17. Campaigns Hub                       | 4/4            | Complete | 2026-02-11 |
-| 18. Reports & Data Management           | 9/9            | Complete | 2026-02-11 |
-| 19. Workflow Engine UI                  | 7/7            | Complete | 2026-02-11 |
-| 20. Settings Overhaul (HubSpot)         | 6/6            | Complete | 2026-02-12 |
-| 21. Project Management (Monday.com)     | 10/10          | Complete | 2026-02-12 |
-| 22. Dark Mode & Theme                   | 0/14           | Planned  | -          |
-| 23. Help & Support System               | 0/5            | Planned  | -          |
-| 24. Policy Content & Seed Data          | 3/3            | Complete | 2026-02-12 |
-| 25. Case & Investigation Redesign       | 6/6            | Complete | 2026-02-13 |
-| 25.1. Case Detail Vision Revision       | 0/10           | Planned  | -          |
-
-**v1.1 Code Review Remediation (Phases 26-31):**
-
-| Phase                            | Plans Complete | Status   | Completed  |
-| -------------------------------- | -------------- | -------- | ---------- |
-| 26. Emergency Fixes              | 2/2            | Verified | 2026-02-14 |
-| 27. Security Hardening           | 4/4            | Verified | 2026-02-14 |
-| 28. Production Readiness         | 5/5            | Verified | 2026-02-14 |
-| 29. Error Handling & Reliability | 5/5            | Verified | 2026-02-14 |
-| 30. Test Coverage Foundation     | 5/5            | Verified | 2026-02-15 |
-| 31. Code Quality & Performance   | 22/22          | Verified | 2026-02-15 |
+| Phase                                   | Milestone | Plans Complete | Status   | Completed  |
+| --------------------------------------- | --------- | -------------- | -------- | ---------- |
+| 1. Foundation Infrastructure            | v1.0      | 9/9            | Complete | 2026-02-02 |
+| 2. Demo Tenant & Seed Data              | v1.0      | 7/7            | Complete | 2026-02-03 |
+| 3. Authentication & SSO                 | v1.0      | 8/8            | Complete | 2026-02-03 |
+| 4. Core Entities                        | v1.0      | 10/10          | Complete | 2026-02-03 |
+| 5. AI Infrastructure                    | v1.0      | 11/11          | Complete | 2026-02-03 |
+| 6. Case Management                      | v1.0      | 11/17          | Complete | 2026-02-04 |
+| 7. Notifications & Email                | v1.0      | 8/8            | Complete | 2026-02-04 |
+| 8. Portals                              | v1.0      | 17/17          | Complete | 2026-02-04 |
+| 9. Campaigns & Disclosures              | v1.0      | 17/17          | Complete | 2026-02-04 |
+| 10. Policy Management                   | v1.0      | 11/11          | Complete | 2026-02-05 |
+| 11. Analytics & Reporting               | v1.0      | 21/21          | Complete | 2026-02-05 |
+| 11.1. Frontend Navigation (INSERTED)    | v1.0      | 6/6            | Complete | 2026-02-05 |
+| 12. Internal Operations Portal          | v1.0      | 19/19          | Complete | 2026-02-06 |
+| 13. HubSpot-Style Saved Views           | v1.0      | 15/15          | Complete | 2026-02-07 |
+| 13.1. Saved Views Fixes (INSERTED)      | v1.0      | 1/1            | Verified | 2026-02-09 |
+| 14. Critical Bug Fixes & Navigation     | v1.0      | 5/5            | Complete | 2026-02-09 |
+| 14.1. Data & Config Fixes (INSERTED)    | v1.0      | 4/4            | Complete | 2026-02-09 |
+| 14.2. Case Creation & Search (INSERTED) | v1.0      | 3/3            | Complete | 2026-02-10 |
+| 15. Case Detail Page Overhaul           | v1.0      | 11/11          | Verified | 2026-02-11 |
+| 16. AI Integration Fix                  | v1.0      | 8/8            | Complete | 2026-02-11 |
+| 17. Campaigns Hub                       | v1.0      | 4/4            | Complete | 2026-02-11 |
+| 18. Reports & Data Management           | v1.0      | 9/9            | Complete | 2026-02-11 |
+| 19. Workflow Engine UI                  | v1.0      | 7/7            | Complete | 2026-02-11 |
+| 20. Settings Overhaul (HubSpot)         | v1.0      | 6/6            | Complete | 2026-02-12 |
+| 21. Project Management (Monday.com)     | v1.0      | 10/10          | Complete | 2026-02-12 |
+| 22. Dark Mode & Theme                   | v1.0      | 0/14           | Planned  | -          |
+| 23. Help & Support System               | v1.0      | 0/5            | Planned  | -          |
+| 24. Policy Content & Seed Data          | v1.0      | 3/3            | Complete | 2026-02-12 |
+| 25. Case & Investigation Redesign       | v1.0      | 6/6            | Complete | 2026-02-13 |
+| 25.1. Case Detail Vision Revision       | v1.0      | 0/10           | Planned  | -          |
+| 26. Emergency Fixes                     | v1.1      | 2/2            | Verified | 2026-02-14 |
+| 27. Security Hardening                  | v1.1      | 4/4            | Verified | 2026-02-14 |
+| 28. Production Readiness                | v1.1      | 5/5            | Verified | 2026-02-14 |
+| 29. Error Handling & Reliability        | v1.1      | 5/5            | Verified | 2026-02-14 |
+| 30. Test Coverage Foundation            | v1.1      | 5/5            | Verified | 2026-02-15 |
+| 31. Code Quality & Performance          | v1.1      | 22/22          | Verified | 2026-02-15 |
 
 ---
 
 _Roadmap created: 2026-02-02_
-_Updated: 2026-02-13 (v1.1 Code Review Remediation — Phases 26-31 added, 36 requirements)_
-_Depth: Comprehensive_
+_Updated: 2026-02-15 (v1.1 shipped, milestone archived)_
 _Total phases: 31 (+ decimal insertions)_
-_Total plans: 242+ completed (v1.0), ~29 remaining (v1.0), 29 completed (v1.1)_
+_Total plans: 285+ completed across v1.0 and v1.1_
 _Total requirements: 149 (v1.0) + 36 (v1.1) = 185_
-_Audit source: 03-DEVELOPMENT/UNIFIED-AUDIT-REPORT.md_

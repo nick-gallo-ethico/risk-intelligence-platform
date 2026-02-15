@@ -10,17 +10,21 @@ A unified, AI-native compliance management SaaS platform ("HubSpot for Complianc
 
 If everything else fails, this must work: the RIU→Case pipeline with AI-assisted investigations.
 
-## Current Milestone: v1.1 Code Review Remediation
+## Current State
 
-**Goal:** Harden the platform for production deployment by resolving all 36 findings from the unified code review and silent failure audit — covering security vulnerabilities, production readiness gaps, error handling, test coverage, and code quality.
+**Shipped:** v1.1 Code Review Remediation (2026-02-15)
+**Previous:** v1.0 Feature Build (2026-02-13)
 
-**Target outcomes:**
+The platform is production-hardened with all 36 audit findings resolved:
 
-- Pen-test ready (security layer hardened and tested)
-- Deploy ready (containerized, health-checked, secrets-vaulted)
-- CTO-presentable (clean error handling, no silent failures)
-- SOC 2 prep (auditable test coverage, complete audit trail)
-- Production quality (maintainable, performant, fully tested)
+- Security layer tested and hardened (RLS, guards, CORS, body limits)
+- Containerized with Dockerfile, health checks, Azure Key Vault, graceful shutdown
+- Silent failures eliminated (NestJS exceptions, error boundaries, toast notifications)
+- Test coverage foundation (auth, core entities, campaigns/policies, frontend MSW)
+- Monolithic services decomposed, JWT RS256 with key rotation, Elasticsearch circuit breaker
+- ESLint max-lines guardrail (warn at 500 LOC) prevents service bloat
+
+**Next milestone:** TBD — run `/gsd:new-milestone` to define scope
 
 ## Requirements
 
@@ -216,17 +220,20 @@ Explicitly excluded from v1:
 
 ## Key Decisions
 
-| Decision                          | Rationale                                                        | Outcome   |
-| --------------------------------- | ---------------------------------------------------------------- | --------- |
-| RIU→Case separation               | Immutable inputs enable audit trail, merging, pattern detection  | — Pending |
-| Strategic differentiation for v1  | Q1 deadline requires focus on differentiators vs. feature parity | — Pending |
-| AI as core differentiator         | Market gap: competitors have limited/add-on AI                   | — Pending |
-| Unified "My Work" queue           | Reduces context switching, improves completion rates             | — Pending |
-| Scoped AI agents                  | Better context, specialized skills per domain                    | — Pending |
-| All migration paths supported     | Customer flexibility > implementation simplicity                 | — Pending |
-| Code review before production     | Unified audit identified 36 findings; remediate before deploy    | — Pending |
-| All 5 remediation phases in scope | Full hardening vs. incremental; chose comprehensive              | — Pending |
+| Decision                          | Rationale                                                        | Outcome       |
+| --------------------------------- | ---------------------------------------------------------------- | ------------- |
+| RIU→Case separation               | Immutable inputs enable audit trail, merging, pattern detection  | ✓ Good        |
+| Strategic differentiation for v1  | Q1 deadline requires focus on differentiators vs. feature parity | ✓ Good        |
+| AI as core differentiator         | Market gap: competitors have limited/add-on AI                   | ✓ Good        |
+| Unified "My Work" queue           | Reduces context switching, improves completion rates             | ✓ Good        |
+| Scoped AI agents                  | Better context, specialized skills per domain                    | ✓ Good        |
+| All migration paths supported     | Customer flexibility > implementation simplicity                 | — Pending     |
+| Code review before production     | Unified audit identified 36 findings; remediate before deploy    | ✓ Good — v1.1 |
+| All 5 remediation phases in scope | Full hardening vs. incremental; chose comprehensive              | ✓ Good — v1.1 |
+| Thin coordinator pattern          | Main services delegate to domain-specific sub-services           | ✓ Good — v1.1 |
+| AI services exempt from 300 LOC   | Complex orchestration logic needs different decomposition        | ✓ Good — v1.1 |
+| ESLint max-lines guardrail        | Warn at 500 LOC prevents growth; decompose opportunistically     | ✓ Good — v1.1 |
 
 ---
 
-_Last updated: 2026-02-13 after milestone v1.1 Code Review Remediation started_
+_Last updated: 2026-02-15 after v1.1 Code Review Remediation shipped_
