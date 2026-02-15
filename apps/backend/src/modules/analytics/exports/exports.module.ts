@@ -10,7 +10,10 @@
  * - ScheduledExportProcessor: Cron-based processor for recurring exports
  * - PdfGeneratorService: Puppeteer-based PDF generation
  * - PptxGeneratorService: pptxgenjs-based PowerPoint generation
- * - BoardReportService: Board report generation orchestrator
+ * - BoardReportService: Board report generation coordinator (thin)
+ *   - ReportDataFetcherService: Database queries and data aggregation
+ *   - ReportPdfBuilderService: HTML/PDF template rendering
+ *   - ReportAiSummaryService: AI-powered executive summary generation
  *
  * Queue: flat-export
  * - Concurrency: 2 (one export per worker thread)
@@ -35,6 +38,11 @@ import { ExcelExportService } from "./excel-export.service";
 import { PdfGeneratorService } from "./pdf-generator.service";
 import { PptxGeneratorService } from "./pptx-generator.service";
 import { BoardReportService } from "./board-report.service";
+import {
+  ReportDataFetcherService,
+  ReportPdfBuilderService,
+  ReportAiSummaryService,
+} from "./services";
 import {
   FlatExportProcessor,
   FLAT_EXPORT_QUEUE_NAME,
@@ -80,6 +88,9 @@ import { AiModule } from "../../ai/ai.module";
     PdfGeneratorService,
     PptxGeneratorService,
     BoardReportService,
+    ReportDataFetcherService,
+    ReportPdfBuilderService,
+    ReportAiSummaryService,
     FlatExportProcessor,
     ScheduledExportProcessor,
   ],
