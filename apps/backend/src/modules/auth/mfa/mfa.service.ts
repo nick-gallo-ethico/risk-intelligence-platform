@@ -3,23 +3,23 @@ import {
   BadRequestException,
   UnauthorizedException,
   Logger,
-} from '@nestjs/common';
-import {
-  TOTP,
-  NobleCryptoPlugin,
-  ScureBase32Plugin,
-} from 'otplib';
-import * as QRCode from 'qrcode';
-import { PrismaService } from '../../prisma/prisma.service';
-import { AuditService } from '../../audit/audit.service';
-import { RecoveryCodesService } from './recovery-codes.service';
+} from "@nestjs/common";
+import { JwtService } from "@nestjs/jwt";
+import { TOTP, NobleCryptoPlugin, ScureBase32Plugin } from "otplib";
+import * as QRCode from "qrcode";
+import { PrismaService } from "../../prisma/prisma.service";
+import { AuditService } from "../../audit/audit.service";
+import { RecoveryCodesService } from "./recovery-codes.service";
+import { JwtKeyService } from "../services/jwt-key.service";
+import { AccessTokenPayload } from "../interfaces/jwt-payload.interface";
 import {
   MfaSetupResponseDto,
   MfaEnabledResponseDto,
   MfaVerifyResponseDto,
   MfaStatusResponseDto,
-} from './dto/mfa.dto';
-import { AuditActionCategory, ActorType } from '@prisma/client';
+  MfaLoginVerifyResponseDto,
+} from "./dto/mfa.dto";
+import { AuditActionCategory, ActorType } from "@prisma/client";
 
 /**
  * Service for TOTP-based multi-factor authentication.
@@ -36,13 +36,15 @@ import { AuditActionCategory, ActorType } from '@prisma/client';
 @Injectable()
 export class MfaService {
   private readonly logger = new Logger(MfaService.name);
-  private readonly APP_NAME = 'Ethico Platform';
+  private readonly APP_NAME = "Ethico Platform";
   private readonly totp: TOTP;
 
   constructor(
     private prisma: PrismaService,
     private auditService: AuditService,
     private recoveryCodesService: RecoveryCodesService,
+    private jwtService: JwtService,
+    private jwtKeyService: JwtKeyService,
   ) {
     // Configure TOTP with otplib v13 plugins
     this.totp = new TOTP({
@@ -65,7 +67,7 @@ export class MfaService {
 
     if (user.mfaEnabled) {
       throw new BadRequestException(
-        'MFA is already enabled. Disable it first to set up again.',
+        "MFA is already enabled. Disable it first to set up again.",
       );
     }
 
@@ -89,7 +91,8 @@ export class MfaService {
     });
     const qrCode = await QRCode.toDataURL(otpAuthUrl);
 
-    this.logger.log(`MFA setup initiated for user ${user.email}`);
+    // SEC-13: Log user ID instead of email (PII minimization)
+    this.logger.log(`MFA setup initiated for user ${user.id}`);
 
     return {
       secret, // Show to user for manual entry
@@ -111,12 +114,12 @@ export class MfaService {
     });
 
     if (user.mfaEnabled) {
-      throw new BadRequestException('MFA is already enabled');
+      throw new BadRequestException("MFA is already enabled");
     }
 
     if (!user.mfaSecret) {
       throw new BadRequestException(
-        'MFA setup not initiated. Call setup endpoint first.',
+        "MFA setup not initiated. Call setup endpoint first.",
       );
     }
 
@@ -124,7 +127,7 @@ export class MfaService {
     const result = await this.totp.verify(code, { secret: user.mfaSecret });
 
     if (!result.valid) {
-      throw new UnauthorizedException('Invalid verification code');
+      throw new UnauthorizedException("Invalid verification code");
     }
 
     // Generate recovery codes
@@ -143,10 +146,10 @@ export class MfaService {
     });
 
     await this.auditService.log({
-      entityType: 'USER',
+      entityType: "USER",
       entityId: userId,
       organizationId: user.organizationId,
-      action: 'MFA_ENABLED',
+      action: "MFA_ENABLED",
       actionDescription: `User ${user.email} enabled two-factor authentication`,
       actionCategory: AuditActionCategory.SECURITY,
       actorType: ActorType.USER,
@@ -154,13 +157,14 @@ export class MfaService {
       actorName: `${user.firstName} ${user.lastName}`,
     });
 
-    this.logger.log(`MFA enabled for user ${user.email}`);
+    // SEC-13: Log user ID instead of email (PII minimization)
+    this.logger.log(`MFA enabled for user ${user.id}`);
 
     // Return plain recovery codes (only time user sees them)
     return {
       recoveryCodes,
       message:
-        'MFA enabled successfully. Save your recovery codes in a safe place.',
+        "MFA enabled successfully. Save your recovery codes in a safe place.",
     };
   }
 
@@ -174,7 +178,7 @@ export class MfaService {
     });
 
     if (!user.mfaEnabled || !user.mfaSecret) {
-      throw new BadRequestException('MFA is not enabled for this user');
+      throw new BadRequestException("MFA is not enabled for this user");
     }
 
     // Try TOTP verification first
@@ -191,7 +195,7 @@ export class MfaService {
     );
 
     if (codeIndex === -1) {
-      throw new UnauthorizedException('Invalid MFA code');
+      throw new UnauthorizedException("Invalid MFA code");
     }
 
     // Remove used recovery code
@@ -204,10 +208,10 @@ export class MfaService {
     });
 
     await this.auditService.log({
-      entityType: 'USER',
+      entityType: "USER",
       entityId: userId,
       organizationId: user.organizationId,
-      action: 'MFA_RECOVERY_CODE_USED',
+      action: "MFA_RECOVERY_CODE_USED",
       actionDescription: `User ${user.email} used MFA recovery code (${updatedCodes.length} remaining)`,
       actionCategory: AuditActionCategory.SECURITY,
       actorType: ActorType.USER,
@@ -215,8 +219,9 @@ export class MfaService {
       actorName: `${user.firstName} ${user.lastName}`,
     });
 
+    // SEC-13: Log user ID instead of email (PII minimization)
     this.logger.warn(
-      `Recovery code used by ${user.email}, ${updatedCodes.length} remaining`,
+      `Recovery code used by user ${user.id}, ${updatedCodes.length} remaining`,
     );
 
     return {
@@ -235,14 +240,14 @@ export class MfaService {
     });
 
     if (!user.mfaEnabled || !user.mfaSecret) {
-      throw new BadRequestException('MFA is not enabled');
+      throw new BadRequestException("MFA is not enabled");
     }
 
     // Verify TOTP code before disabling
     const result = await this.totp.verify(code, { secret: user.mfaSecret });
 
     if (!result.valid) {
-      throw new UnauthorizedException('Invalid verification code');
+      throw new UnauthorizedException("Invalid verification code");
     }
 
     await this.prisma.user.update({
@@ -256,10 +261,10 @@ export class MfaService {
     });
 
     await this.auditService.log({
-      entityType: 'USER',
+      entityType: "USER",
       entityId: userId,
       organizationId: user.organizationId,
-      action: 'MFA_DISABLED',
+      action: "MFA_DISABLED",
       actionDescription: `User ${user.email} disabled two-factor authentication`,
       actionCategory: AuditActionCategory.SECURITY,
       actorType: ActorType.USER,
@@ -267,7 +272,8 @@ export class MfaService {
       actorName: `${user.firstName} ${user.lastName}`,
     });
 
-    this.logger.log(`MFA disabled for user ${user.email}`);
+    // SEC-13: Log user ID instead of email (PII minimization)
+    this.logger.log(`MFA disabled for user ${user.id}`);
   }
 
   /**
@@ -283,14 +289,14 @@ export class MfaService {
     });
 
     if (!user.mfaEnabled || !user.mfaSecret) {
-      throw new BadRequestException('MFA is not enabled');
+      throw new BadRequestException("MFA is not enabled");
     }
 
     // Verify TOTP code
     const result = await this.totp.verify(code, { secret: user.mfaSecret });
 
     if (!result.valid) {
-      throw new UnauthorizedException('Invalid verification code');
+      throw new UnauthorizedException("Invalid verification code");
     }
 
     // Generate new recovery codes
@@ -304,10 +310,10 @@ export class MfaService {
     });
 
     await this.auditService.log({
-      entityType: 'USER',
+      entityType: "USER",
       entityId: userId,
       organizationId: user.organizationId,
-      action: 'MFA_RECOVERY_CODES_REGENERATED',
+      action: "MFA_RECOVERY_CODES_REGENERATED",
       actionDescription: `User ${user.email} regenerated MFA recovery codes`,
       actionCategory: AuditActionCategory.SECURITY,
       actorType: ActorType.USER,
@@ -315,7 +321,8 @@ export class MfaService {
       actorName: `${user.firstName} ${user.lastName}`,
     });
 
-    this.logger.log(`Recovery codes regenerated for user ${user.email}`);
+    // SEC-13: Log user ID instead of email (PII minimization)
+    this.logger.log(`Recovery codes regenerated for user ${user.id}`);
 
     return recoveryCodes;
   }
