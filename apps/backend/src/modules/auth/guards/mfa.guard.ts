@@ -3,13 +3,15 @@ import {
   CanActivate,
   ExecutionContext,
   UnauthorizedException,
-} from '@nestjs/common';
-import { MfaService } from '../mfa/mfa.service';
+} from "@nestjs/common";
+import { MfaService } from "../mfa/mfa.service";
+import { RequestUser } from "../interfaces/jwt-payload.interface";
 
 /**
  * Guard that requires MFA verification for protected operations.
  *
- * Use on sensitive endpoints that require MFA even after JWT authentication.
+ * SEC-09: Checks mfaVerified field in JWT payload, which is set to true
+ * only after successful TOTP verification. This makes MFA session-bound.
  *
  * Behavior:
  * - If user has MFA disabled: allows access
@@ -26,24 +28,24 @@ export class MfaGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
-    const user = request.user;
+    const user: RequestUser = request.user;
 
     if (!user) {
-      throw new UnauthorizedException('Authentication required');
+      throw new UnauthorizedException("Authentication required");
     }
 
     // Check if user has MFA enabled
-    const mfaEnabled = await this.mfaService.isMfaEnabled(user.sub);
+    const mfaEnabled = await this.mfaService.isMfaEnabled(user.id);
 
     if (!mfaEnabled) {
       // MFA not enabled, allow access
       return true;
     }
 
-    // Check if this session has MFA verified
+    // SEC-09: Check if this session has MFA verified
     // The JWT should contain mfaVerified: true after MFA verification
     if (!user.mfaVerified) {
-      throw new UnauthorizedException('MFA verification required');
+      throw new UnauthorizedException("MFA verification required");
     }
 
     return true;
