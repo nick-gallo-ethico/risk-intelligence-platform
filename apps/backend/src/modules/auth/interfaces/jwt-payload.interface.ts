@@ -11,6 +11,12 @@ export interface AccessTokenPayload {
   role: UserRole;
   sessionId: string;
   type: "access";
+  /**
+   * MFA verification status - set to true after successful TOTP verification.
+   * SEC-09: Session-bound MFA - verification persists in JWT, not separate store.
+   * Initial login sets this to false if user has MFA enabled.
+   */
+  mfaVerified: boolean;
   iat?: number;
   exp?: number;
 }
@@ -24,6 +30,11 @@ export interface RefreshTokenPayload {
   organizationId: string;
   sessionId: string;
   type: "refresh";
+  /**
+   * SEC-09: MFA verification status to preserve across token refresh.
+   * When refreshing tokens, this value is carried forward to the new access token.
+   */
+  mfaVerified: boolean;
   iat?: number;
   exp?: number;
 }
@@ -39,4 +50,9 @@ export interface RequestUser {
   sessionId: string;
   firstName: string;
   lastName: string;
+  /**
+   * MFA verification status from JWT payload.
+   * SEC-09: true after successful TOTP verification, false otherwise.
+   */
+  mfaVerified: boolean;
 }

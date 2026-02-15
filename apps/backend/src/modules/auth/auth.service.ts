@@ -82,8 +82,12 @@ export class AuthService {
         ipAddress,
       );
 
+      // SEC-09: mfaVerified is false if user has MFA enabled (needs verification)
+      // If MFA is disabled, mfaVerified is true (no verification needed)
+      const mfaVerified = !user.mfaEnabled;
+
       // Generate tokens
-      const tokens = await this.generateTokens(user, session.id);
+      const tokens = await this.generateTokens(user, session.id, mfaVerified);
 
       // Update last login
       await this.prisma.user.update({
@@ -158,8 +162,16 @@ export class AuthService {
           session.id, // Link to previous session
         );
 
+        // SEC-09: Preserve MFA verification status from refresh token
+        // This ensures MFA status persists across token refresh without re-verification
+        const mfaVerified = payload.mfaVerified ?? !session.user.mfaEnabled;
+
         // Generate new tokens
-        const tokens = await this.generateTokens(session.user, newSession.id);
+        const tokens = await this.generateTokens(
+          session.user,
+          newSession.id,
+          mfaVerified,
+        );
 
         return {
           ...tokens,
@@ -221,6 +233,7 @@ export class AuthService {
       lastName: string;
       role: string;
       organizationId: string;
+      mfaEnabled?: boolean;
     },
     userAgent?: string,
     ipAddress?: string,
@@ -233,8 +246,12 @@ export class AuthService {
       ipAddress,
     );
 
+    // SEC-09: mfaVerified is false if user has MFA enabled (needs verification)
+    // If MFA is disabled, mfaVerified is true (no verification needed)
+    const mfaVerified = !user.mfaEnabled;
+
     // Generate tokens
-    const tokens = await this.generateTokens(user, session.id);
+    const tokens = await this.generateTokens(user, session.id, mfaVerified);
 
     return {
       ...tokens,
@@ -293,6 +310,10 @@ export class AuthService {
   /**
    * Generates access and refresh tokens for a user.
    * Uses RS256 if configured, falls back to HS256.
+   *
+   * @param user - User information for token payload
+   * @param sessionId - Session ID for token binding
+   * @param mfaVerified - SEC-09: MFA verification status (true if MFA disabled or verified)
    */
   private async generateTokens(
     user: {
@@ -302,6 +323,7 @@ export class AuthService {
       role: string;
     },
     sessionId: string,
+    mfaVerified: boolean,
   ): Promise<{ accessToken: string; refreshToken: string; expiresIn: number }> {
     const accessPayload: AccessTokenPayload = {
       sub: user.id,
@@ -310,6 +332,7 @@ export class AuthService {
       role: user.role as any,
       sessionId,
       type: "access",
+      mfaVerified, // SEC-09: Session-bound MFA verification
     };
 
     const refreshPayload: RefreshTokenPayload = {
@@ -317,6 +340,7 @@ export class AuthService {
       organizationId: user.organizationId,
       sessionId,
       type: "refresh",
+      mfaVerified, // SEC-09: Preserve MFA status across token refresh
     };
 
     // Get signing options from JwtKeyService

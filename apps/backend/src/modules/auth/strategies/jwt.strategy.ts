@@ -146,6 +146,9 @@ export class JwtStrategy extends PassportStrategy(Strategy, "jwt") {
         organizationId: user.organizationId,
         role: user.role,
         sessionId: payload.sessionId,
+        // SEC-09: Include MFA verification status from JWT payload
+        // Default to false for tokens issued before this change
+        mfaVerified: payload.mfaVerified ?? false,
       };
     });
   }
