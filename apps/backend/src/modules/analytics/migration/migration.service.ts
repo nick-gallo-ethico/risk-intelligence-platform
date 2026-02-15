@@ -21,13 +21,12 @@ import {
   RollbackCheckResponseDto,
   RollbackResultResponseDto,
   MigrationJobQueryDto,
-  TargetEntityType,
 } from "./dto/migration.dto";
 import { MigrationParserService } from "./services/migration-parser.service";
 import { MigrationValidatorService } from "./services/migration-validator.service";
 import { MigrationExecutorService } from "./services/migration-executor.service";
+import { MigrationTemplateService } from "./services/migration-template.service";
 
-// Max rows for preview
 const PREVIEW_LIMIT = 10;
 
 /**
@@ -38,6 +37,7 @@ const PREVIEW_LIMIT = 10;
  * - Parsing/format detection -> MigrationParserService
  * - Validation/preview -> MigrationValidatorService
  * - Import execution/rollback -> MigrationExecutorService
+ * - Template management -> MigrationTemplateService
  */
 @Injectable()
 export class MigrationService {
@@ -48,15 +48,13 @@ export class MigrationService {
     private readonly migrationParserService: MigrationParserService,
     private readonly migrationValidatorService: MigrationValidatorService,
     private readonly migrationExecutorService: MigrationExecutorService,
+    private readonly migrationTemplateService: MigrationTemplateService,
   ) {}
 
   // ===========================================
   // Job Management (CRUD)
   // ===========================================
 
-  /**
-   * Create a new migration job
-   */
   async createJob(
     organizationId: string,
     userId: string,
@@ -65,7 +63,6 @@ export class MigrationService {
     this.logger.log(
       `Creating migration job for ${dto.sourceType} from ${dto.fileName}`,
     );
-
     return this.prisma.migrationJob.create({
       data: {
         organizationId,
@@ -79,9 +76,6 @@ export class MigrationService {
     });
   }
 
-  /**
-   * Get a migration job by ID
-   */
   async getJob(organizationId: string, jobId: string): Promise<MigrationJob> {
     const job = await this.prisma.migrationJob.findFirst({
       where: { id: jobId, organizationId },
@@ -89,23 +83,15 @@ export class MigrationService {
         createdBy: {
           select: { id: true, firstName: true, lastName: true, email: true },
         },
-        migrationRecords: {
-          select: { id: true },
-          take: 1, // Just to check if records exist
-        },
+        migrationRecords: { select: { id: true }, take: 1 },
       },
     });
-
     if (!job) {
       throw new NotFoundException(`Migration job ${jobId} not found`);
     }
-
     return job;
   }
 
-  /**
-   * List migration jobs for an organization
-   */
   async listJobs(
     organizationId: string,
     query: MigrationJobQueryDto,
@@ -115,7 +101,6 @@ export class MigrationService {
       ...(query.status && { status: query.status }),
       ...(query.sourceType && { sourceType: query.sourceType }),
     };
-
     const [jobs, total] = await Promise.all([
       this.prisma.migrationJob.findMany({
         where,
@@ -123,20 +108,14 @@ export class MigrationService {
         skip: ((query.page || 1) - 1) * (query.limit || 20),
         take: query.limit || 20,
         include: {
-          createdBy: {
-            select: { id: true, firstName: true, lastName: true },
-          },
+          createdBy: { select: { id: true, firstName: true, lastName: true } },
         },
       }),
       this.prisma.migrationJob.count({ where }),
     ]);
-
     return { jobs, total };
   }
 
-  /**
-   * Update job status
-   */
   async updateJobStatus(
     jobId: string,
     status: MigrationJobStatus,
@@ -157,9 +136,6 @@ export class MigrationService {
   // Format Detection (delegated to ParserService)
   // ===========================================
 
-  /**
-   * Detect file format and suggest field mappings
-   */
   async detectFormat(
     organizationId: string,
     jobId: string,
@@ -175,29 +151,27 @@ export class MigrationService {
   }
 
   // ===========================================
-  // Field Mapping
+  // Field Mapping (delegated to TemplateService)
   // ===========================================
 
-  /** Get suggested mappings for a job */
   async getSuggestedMappings(
     orgId: string,
     jobId: string,
   ): Promise<FieldMappingDto[]> {
     const job = await this.getJob(orgId, jobId);
-    if (job.fieldMappings)
+    if (job.fieldMappings) {
       return job.fieldMappings as unknown as FieldMappingDto[];
-    return this.loadTemplateMapping(orgId, job.sourceType);
+    }
+    return this.migrationTemplateService.loadTemplate(orgId, job.sourceType);
   }
 
-  /** Save field mappings to a job */
   async saveMappings(
     orgId: string,
     jobId: string,
     userId: string,
     dto: SaveFieldMappingsDto,
   ): Promise<void> {
-    const errors = this.collectMappingErrors(dto.mappings);
-    if (errors.length > 0) throw new BadRequestException(errors.join("; "));
+    this.migrationTemplateService.validateMappingsOrThrow(dto.mappings);
     await this.migrationParserService.saveFieldMappings(
       orgId,
       jobId,
@@ -205,7 +179,7 @@ export class MigrationService {
     );
     if (dto.saveAsTemplate && dto.templateName) {
       const job = await this.getJob(orgId, jobId);
-      await this.saveTemplate(
+      await this.migrationTemplateService.saveTemplate(
         orgId,
         job.sourceType,
         dto.templateName,
@@ -215,58 +189,17 @@ export class MigrationService {
     }
   }
 
-  /** Load a saved field mapping template */
   async loadTemplateMapping(
     orgId: string,
     sourceType: MigrationSourceType,
   ): Promise<FieldMappingDto[]> {
-    const template = await this.prisma.migrationFieldTemplate.findFirst({
-      where: { organizationId: orgId, sourceType },
-      orderBy: { updatedAt: "desc" },
-    });
-    return template ? (template.mappings as unknown as FieldMappingDto[]) : [];
-  }
-
-  private collectMappingErrors(mappings: FieldMappingDto[]): string[] {
-    return Object.values(TargetEntityType).flatMap((entityType) =>
-      this.migrationParserService.validateMapping(
-        mappings.filter((m) => m.targetEntity === entityType),
-        entityType,
-      ),
-    );
-  }
-
-  private async saveTemplate(
-    orgId: string,
-    sourceType: MigrationSourceType,
-    name: string,
-    mappings: FieldMappingDto[],
-    userId: string,
-  ): Promise<void> {
-    await this.prisma.migrationFieldTemplate.upsert({
-      where: {
-        organizationId_sourceType_name: {
-          organizationId: orgId,
-          sourceType,
-          name,
-        },
-      },
-      create: {
-        organizationId: orgId,
-        sourceType,
-        name,
-        mappings: JSON.parse(JSON.stringify(mappings)),
-        createdById: userId,
-      },
-      update: { mappings: JSON.parse(JSON.stringify(mappings)) },
-    });
+    return this.migrationTemplateService.loadTemplate(orgId, sourceType);
   }
 
   // ===========================================
   // Validation & Preview (delegated to ValidatorService)
   // ===========================================
 
-  /** Validate data against mappings */
   async validate(
     orgId: string,
     jobId: string,
@@ -285,7 +218,6 @@ export class MigrationService {
     );
   }
 
-  /** Generate preview of transformed data */
   async generatePreview(
     orgId: string,
     jobId: string,
@@ -308,10 +240,11 @@ export class MigrationService {
     operation: string,
   ): Promise<FieldMappingDto[]> {
     const job = await this.getJob(orgId, jobId);
-    if (!job.fieldMappings)
+    if (!job.fieldMappings) {
       throw new BadRequestException(
         `Field mappings must be configured before ${operation}`,
       );
+    }
     return job.fieldMappings as unknown as FieldMappingDto[];
   }
 
@@ -319,21 +252,22 @@ export class MigrationService {
   // Import Execution (delegated to ExecutorService)
   // ===========================================
 
-  /** Start the import process */
   async startImport(
     orgId: string,
     jobId: string,
     _userId: string,
   ): Promise<void> {
     const job = await this.getJob(orgId, jobId);
-    if (job.status !== MigrationJobStatus.PREVIEW)
+    if (job.status !== MigrationJobStatus.PREVIEW) {
       throw new BadRequestException(
         `Cannot start import from status ${job.status}`,
       );
-    if (!job.fieldMappings)
+    }
+    if (!job.fieldMappings) {
       throw new BadRequestException(
         "Field mappings must be configured before import",
       );
+    }
     await this.updateJobStatus(
       jobId,
       MigrationJobStatus.IMPORTING,
@@ -341,25 +275,22 @@ export class MigrationService {
       0,
     );
     this.logger.log(`Starting import for job ${jobId}`);
-    // Actual import handled by background job processor
   }
 
-  /** Cancel an in-progress import */
   async cancelImport(orgId: string, jobId: string): Promise<void> {
     const job = await this.getJob(orgId, jobId);
-    if (job.status !== MigrationJobStatus.IMPORTING)
+    if (job.status !== MigrationJobStatus.IMPORTING) {
       throw new BadRequestException(
         `Cannot cancel import with status ${job.status}`,
       );
+    }
     await this.migrationExecutorService.cancelImport(jobId);
   }
 
-  /** Mark job as completed (called by import processor) */
   async completeImport(jobId: string, importedRows: number): Promise<void> {
     await this.migrationExecutorService.completeImport(jobId, importedRows);
   }
 
-  /** Mark job as failed (called by import processor) */
   async failImport(
     jobId: string,
     error: string,
@@ -372,7 +303,6 @@ export class MigrationService {
   // Rollback (delegated to ExecutorService)
   // ===========================================
 
-  /** Check if a job can be rolled back */
   async canRollback(
     orgId: string,
     jobId: string,
@@ -385,7 +315,6 @@ export class MigrationService {
     );
   }
 
-  /** Rollback a completed import */
   async rollback(
     orgId: string,
     userId: string,
@@ -393,8 +322,9 @@ export class MigrationService {
     confirmText: string,
   ): Promise<RollbackResultResponseDto> {
     const canRollbackResult = await this.canRollback(orgId, jobId);
-    if (!canRollbackResult.canRollback)
+    if (!canRollbackResult.canRollback) {
       throw new BadRequestException(canRollbackResult.reason);
+    }
     return this.migrationExecutorService.executeRollback(
       orgId,
       jobId,

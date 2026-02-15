@@ -17,6 +17,7 @@ import { CsvConnector } from "./connectors/csv.connector";
 import { MigrationParserService } from "./services/migration-parser.service";
 import { MigrationValidatorService } from "./services/migration-validator.service";
 import { MigrationExecutorService } from "./services/migration-executor.service";
+import { MigrationTemplateService } from "./services/migration-template.service";
 
 /**
  * MigrationModule provides data import capabilities for competitor system migrations.
@@ -58,6 +59,7 @@ import { MigrationExecutorService } from "./services/migration-executor.service"
     MigrationParserService,
     MigrationValidatorService,
     MigrationExecutorService,
+    MigrationTemplateService,
     // Connectors
     NavexConnector,
     EqsConnector,

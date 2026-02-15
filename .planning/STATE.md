@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-02-13)
 
 ## Current Position
 
-Phase: 31 of 31 (Code Quality & Performance) — Gap Closure Round 2 Complete
-Plan: 17 of 17 complete
-Status: Phase Complete
-Last activity: 2026-02-15 — Completed 31-17 campaign-targeting.service decomposition
+Phase: 31 of 31 (Code Quality & Performance) — Gap Closure Round 3 (QUAL-05 Frontend)
+Plan: 21 of 22+ (gap closure plans 18-22 in progress)
+Status: In Progress
+Last activity: 2026-02-15 — Completed 31-21 case components error handling
 
-Progress: [██████████] 100% (All plans complete)
+Progress: [██████████] 100% (Base plans complete, gap closure in progress)
 
 ## Milestone v1.1: Code Review Remediation
 
@@ -43,25 +43,41 @@ Progress: [██████████] 100% (All plans complete)
 
 ## Phase 31 Plans
 
-| Plan  | Wave | Objective                                        | Autonomous | Status   |
-| ----- | ---- | ------------------------------------------------ | ---------- | -------- |
-| 31-01 | 1    | QUAL-01: Response compression and DB pool size   | Yes        | Complete |
-| 31-02 | 1    | QUAL-02: Frontend environment URL centralization | Yes        | Complete |
-| 31-03 | 1    | QUAL-03: Elasticsearch circuit breaker           | Yes        | Complete |
-| 31-04 | 2    | QUAL-04: BaseAssociationService extraction       | Yes        | Complete |
-| 31-05 | 2    | QUAL-05: Frontend toast notifications            | Yes        | Complete |
-| 31-06 | 3    | QUAL-06: Controller logic extraction             | Yes        | Complete |
-| 31-07 | 4    | QUAL-07: Service decomposition (1000+ LOC)       | Yes        | Complete |
-| 31-08 | 5    | QUAL-08: JWT RS256 with key rotation             | Yes        | Complete |
-| 31-09 | -    | Gap closure: cases.service.ts decomposition      | Yes        | Complete |
-| 31-10 | -    | Gap closure: VERIFICATION.md false positive fix  | Yes        | Complete |
-| 31-11 | -    | Gap closure: RiuUpdateService extraction         | Yes        | Complete |
-| 31-12 | 1    | Gap closure: Controller analysis (doc closure)   | Yes        | Complete |
-| 31-13 | 2    | Gap closure: widget-data.service decomposition   | Yes        | Complete |
-| 31-14 | 2    | Gap closure: board-report.service decomposition  | Yes        | Complete |
-| 31-15 | 2    | Gap closure: migration.service decomposition     | Yes        | Complete |
-| 31-16 | 2    | Gap closure: task-aggregator decomposition       | Yes        | Complete |
-| 31-17 | 2    | Gap closure: campaign-targeting decomposition    | Yes        | Complete |
+| Plan  | Wave | Objective                                            | Autonomous | Status   |
+| ----- | ---- | ---------------------------------------------------- | ---------- | -------- |
+| 31-01 | 1    | QUAL-01: Response compression and DB pool size       | Yes        | Complete |
+| 31-02 | 1    | QUAL-02: Frontend environment URL centralization     | Yes        | Complete |
+| 31-03 | 1    | QUAL-03: Elasticsearch circuit breaker               | Yes        | Complete |
+| 31-04 | 2    | QUAL-04: BaseAssociationService extraction           | Yes        | Complete |
+| 31-05 | 2    | QUAL-05: Frontend toast notifications                | Yes        | Complete |
+| 31-06 | 3    | QUAL-06: Controller logic extraction                 | Yes        | Complete |
+| 31-07 | 4    | QUAL-07: Service decomposition (1000+ LOC)           | Yes        | Complete |
+| 31-08 | 5    | QUAL-08: JWT RS256 with key rotation                 | Yes        | Complete |
+| 31-09 | -    | Gap closure: cases.service.ts decomposition          | Yes        | Complete |
+| 31-10 | -    | Gap closure: VERIFICATION.md false positive fix      | Yes        | Complete |
+| 31-11 | -    | Gap closure: RiuUpdateService extraction             | Yes        | Complete |
+| 31-12 | 1    | Gap closure: Controller analysis (doc closure)       | Yes        | Complete |
+| 31-13 | 2    | Gap closure: widget-data.service decomposition       | Yes        | Complete |
+| 31-14 | 2    | Gap closure: board-report.service decomposition      | Yes        | Complete |
+| 31-15 | 2    | Gap closure: migration.service decomposition         | Yes        | Complete |
+| 31-16 | 2    | Gap closure: task-aggregator decomposition           | Yes        | Complete |
+| 31-17 | 2    | Gap closure: campaign-targeting decomposition        | Yes        | Complete |
+| 31-18 | 3    | Gap closure: report-builder.service decomposition    | Yes        | Complete |
+| 31-19 | 3    | Gap closure: disclosure services decomposition       | Yes        | Complete |
+| 31-20 | 3    | Gap closure: segment-query.builder decomposition     | Yes        | Complete |
+| 31-21 | 3    | Gap closure: case components error handling          | Yes        | Complete |
+| 31-22 | 3    | Gap closure: investigation components error handling | Yes        | Complete |
+
+## Gap Closure Summary (Round 3 - QUAL-05 Frontend)
+
+**Source:** QUAL-05 handleApiError requirement (30+ components target)
+**Result:** 23+ components now use handleApiError
+
+**Component Updates:**
+
+- 8 case components updated in plan 31-21
+- Investigation components updated in plan 31-22
+- Additional components already had handleApiError
 
 ## Gap Closure Summary (Round 2)
 
@@ -170,7 +186,7 @@ None currently.
 
 ## Session Continuity
 
-Last session: 2026-02-15 — Completed 31-17 campaign-targeting.service decomposition
-Stopped at: Phase 31 Complete, Milestone v1.1 Complete
+Last session: 2026-02-15 — Completed 31-21 case components error handling
+Stopped at: Plan 31-21 complete
 Resume file: None
-Next action: Final verification or proceed to next milestone
+Next action: Continue with remaining gap closure plans if any
