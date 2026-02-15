@@ -1125,14 +1125,19 @@ Plans:
 
 Plans:
 
-- [ ] 32-01-PLAN.md (Wave 1) — Secure 4 controllers: campaigns, attestation, conflict, checklist with JwtAuthGuard + TenantGuard + RolesGuard
-- [ ] 32-02-PLAN.md (Wave 1) — Secure remaining 2 controllers: migration, policy-approval with guards and decorators
-- [ ] 32-03-PLAN.md (Wave 1) — Fix WebSocket AI gateway: verify JWT on connection, extract context from verified payload
-- [ ] 32-04-PLAN.md (Wave 1) — Pin JWT algorithm to RS256 only, validate JWT_REFRESH_SECRET on startup
-- [ ] 32-05-PLAN.md (Wave 2) — Fix DTOs: remove organizationId from chat DTO, add @MaxLength(72) to password, random demo passwords
-- [ ] 32-06-PLAN.md (Wave 2) — Add mfaVerified to JWT payload for session-bound MFA verification
-- [ ] 32-07-PLAN.md (Wave 2) — Add audit logging to relay service, minimize PII in logs, narrow operations middleware exemption
-- [ ] 32-08-PLAN.md (Wave 3) — Human verification checkpoint for all security fixes
+- [ ] 36-01-PLAN.md (Wave 1) — Auth guard tests: jwt-ws, mfa, throttle-behind-proxy guards with 90%+ coverage
+- [ ] 36-02-PLAN.md (Wave 1) — Auth strategy tests: jwt, azure-ad, google, saml strategies with 90%+ coverage
+- [ ] 36-03-PLAN.md (Wave 1) — Impersonation tests: service, middleware, guard with 90%+ coverage
+- [ ] 36-04-PLAN.md (Wave 2) — Tenant isolation E2E: auth, campaigns, disclosures, policies modules
+- [ ] 36-05-PLAN.md (Wave 2) — Tenant isolation E2E: reporting, AI, forms, notifications modules
+- [ ] 36-06-PLAN.md (Wave 2) — Tenant isolation E2E: HRIS, workflow, search, projects modules
+- [ ] 36-07-PLAN.md (Wave 3) — Case merge and conflict detection service tests with 80%+ coverage
+- [ ] 36-08-PLAN.md (Wave 3) — AI services tests: ai-client, ai-orchestration, context-loader, conversation
+- [ ] 36-09-PLAN.md (Wave 3) — AI services tests: prompt, rate-limiter, action-executor
+- [ ] 36-10-PLAN.md (Wave 3) — Workflow engine and assignment strategy tests with 70%+ coverage
+- [ ] 36-11-PLAN.md (Wave 4) — Frontend tests: auth pages (login, MFA) and settings (profile, notifications)
+- [ ] 36-12-PLAN.md (Wave 4) — Frontend tests: form builder/renderer and workflow builder/canvas
+- [ ] 36-13-PLAN.md (Wave 5) — Coverage verification checkpoint with human verification
 
 ---
 
