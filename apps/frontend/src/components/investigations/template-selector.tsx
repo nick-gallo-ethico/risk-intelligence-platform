@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from "react";
 import {
   Check,
   ChevronDown,
@@ -10,10 +10,10 @@ import {
   Shield,
   Clock,
   Loader2,
-} from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -21,18 +21,18 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-} from '@/components/ui/dialog';
+} from "@/components/ui/dialog";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from '@/components/ui/collapsible';
+} from "@/components/ui/collapsible";
 import {
   getTemplates,
   type InvestigationTemplate,
   type TemplateTier,
-} from '@/lib/templates-api';
-import { handleApiError } from '@/lib/api-error-handler';
+} from "@/lib/templates-api";
+import { handleApiError } from "@/lib/api-error-handler";
 
 interface TemplateSelectorProps {
   /** Currently selected template ID */
@@ -68,19 +68,19 @@ function TemplateTierGroup({
     { label: string; icon: React.ReactNode; color: string }
   > = {
     OFFICIAL: {
-      label: 'Official Templates',
+      label: "Official Templates",
       icon: <Shield className="h-4 w-4" />,
-      color: 'text-blue-600',
+      color: "text-blue-600",
     },
     TEAM: {
-      label: 'Team Templates',
+      label: "Team Templates",
       icon: <Building2 className="h-4 w-4" />,
-      color: 'text-purple-600',
+      color: "text-purple-600",
     },
     PERSONAL: {
-      label: 'My Templates',
+      label: "My Templates",
       icon: <User className="h-4 w-4" />,
-      color: 'text-green-600',
+      color: "text-green-600",
     },
   };
 
@@ -91,7 +91,7 @@ function TemplateTierGroup({
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
       <CollapsibleTrigger className="flex items-center justify-between w-full py-2 px-3 hover:bg-gray-50 rounded-md">
-        <div className={cn('flex items-center gap-2', config.color)}>
+        <div className={cn("flex items-center gap-2", config.color)}>
           {config.icon}
           <span className="font-medium text-sm">{config.label}</span>
           <Badge variant="secondary" className="text-xs">
@@ -100,8 +100,8 @@ function TemplateTierGroup({
         </div>
         <ChevronDown
           className={cn(
-            'h-4 w-4 text-gray-500 transition-transform',
-            isOpen && 'rotate-180'
+            "h-4 w-4 text-gray-500 transition-transform",
+            isOpen && "rotate-180",
           )}
         />
       </CollapsibleTrigger>
@@ -114,10 +114,10 @@ function TemplateTierGroup({
               onMouseEnter={() => previewTemplate(template)}
               onMouseLeave={() => previewTemplate(null)}
               className={cn(
-                'w-full flex items-center justify-between px-3 py-2 rounded-md text-left transition-colors',
+                "w-full flex items-center justify-between px-3 py-2 rounded-md text-left transition-colors",
                 selectedTemplateId === template.id
-                  ? 'bg-primary/10 text-primary'
-                  : 'hover:bg-gray-100'
+                  ? "bg-primary/10 text-primary"
+                  : "hover:bg-gray-100",
               )}
             >
               <div className="flex items-center gap-2 min-w-0">
@@ -150,7 +150,7 @@ function TemplatePreview({ template }: { template: InvestigationTemplate }) {
   const totalItems = useMemo(() => {
     return template.sections.reduce(
       (sum, section) => sum + section.items.length,
-      0
+      0,
     );
   }, [template.sections]);
 
@@ -214,13 +214,13 @@ export function TemplateSelector({
       setError(null);
       try {
         const response = await getTemplates({
-          status: 'PUBLISHED',
+          status: "PUBLISHED",
           limit: 100,
         });
         setTemplates(response.data);
       } catch (err) {
-        handleApiError(err, 'Failed to load investigation templates');
-        setError('Failed to load templates');
+        handleApiError(err, "Failed to load investigation templates");
+        setError("Failed to load templates");
       } finally {
         setLoading(false);
       }
@@ -291,7 +291,7 @@ export function TemplateSelector({
     <div className="flex">
       {/* Template list */}
       <div className="flex-1 space-y-2 min-w-0">
-        {(['OFFICIAL', 'TEAM', 'PERSONAL'] as TemplateTier[]).map((tier) => (
+        {(["OFFICIAL", "TEAM", "PERSONAL"] as TemplateTier[]).map((tier) => (
           <TemplateTierGroup
             key={tier}
             tier={tier}
@@ -326,7 +326,7 @@ export function TemplateSelectorDialog({
   loading?: boolean;
 }) {
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(
-    null
+    null,
   );
 
   const handleApply = () => {
@@ -369,7 +369,7 @@ export function TemplateSelectorDialog({
                 Applying...
               </>
             ) : (
-              'Apply Template'
+              "Apply Template"
             )}
           </Button>
         </DialogFooter>

@@ -33,6 +33,7 @@ import {
 } from "@/components/ui/dialog";
 import { toast } from "@/components/ui/toaster";
 import { cn } from "@/lib/utils";
+import { handleApiError } from "@/lib/api-error-handler";
 import { EmptyState } from "@/components/common/empty-state";
 import { InvestigationCard } from "./investigation-card";
 import { CreateInvestigationDialog } from "./create-investigation-dialog";
@@ -317,7 +318,7 @@ export function CaseInvestigationsPanel({
       const response = await getInvestigationsForCase(caseData.id);
       setInvestigations(response.data);
     } catch (error) {
-      console.error("Failed to fetch investigations:", error);
+      handleApiError(error, "Failed to load investigations");
       setInvestigationsError("Failed to load investigations");
       setInvestigations([]);
     } finally {

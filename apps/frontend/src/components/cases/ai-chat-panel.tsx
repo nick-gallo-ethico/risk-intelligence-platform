@@ -20,6 +20,7 @@ import { authStorage } from "@/lib/auth-storage";
 import { apiClient } from "@/lib/api";
 import { config } from "@/config/env";
 import { cn } from "@/lib/utils";
+import { handleApiError } from "@/lib/api-error-handler";
 
 interface AiChatPanelProps {
   entityType: string;
@@ -219,7 +220,7 @@ export function AiChatPanel({
 
     const onConnectError = (err: Error) => {
       if (handlerIdRef.current !== currentHandlerId) return;
-      console.error("AI WebSocket connection error:", err);
+      handleApiError(err, "AI connection error");
       setConnectionStatus("error");
       setError("AI service unavailable. Please try again later.");
     };

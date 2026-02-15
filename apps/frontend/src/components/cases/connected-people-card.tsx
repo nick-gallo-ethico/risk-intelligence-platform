@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Users, Mail, Copy, Check } from "lucide-react";
 import { AssociationCard } from "@/components/ui/association-card";
 import { AddPersonModal } from "./add-person-modal";
+import { handleApiError } from "@/lib/api-error-handler";
 
 /**
  * Person-case association label types from backend
@@ -218,7 +219,7 @@ export function ConnectedPeopleCard({
 
       setAssociations(data || []);
     } catch (err) {
-      console.error("Failed to fetch connected people:", err);
+      handleApiError(err, "Failed to load connected people");
       setError("Failed to load connected people");
     } finally {
       setLoading(false);
@@ -389,7 +390,7 @@ function PersonRow({
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
-      console.error("Failed to copy email:", err);
+      handleApiError(err, "Failed to copy email");
     }
   };
 

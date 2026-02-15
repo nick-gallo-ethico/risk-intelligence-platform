@@ -16,6 +16,7 @@ import {
   Download,
 } from "lucide-react";
 import { AssociationCard } from "@/components/ui/association-card";
+import { handleApiError } from "@/lib/api-error-handler";
 
 /**
  * Attachment entity from GET /attachments?entityType=CASE&entityId=xxx
@@ -145,7 +146,7 @@ export function ConnectedDocumentsCard({
       // apiClient returns the response data directly, so response IS the AttachmentListResponse
       setAttachments(response?.data || []);
     } catch (err) {
-      console.error("Failed to fetch documents:", err);
+      handleApiError(err, "Failed to load documents");
       setError("Failed to load documents");
     } finally {
       setLoading(false);
