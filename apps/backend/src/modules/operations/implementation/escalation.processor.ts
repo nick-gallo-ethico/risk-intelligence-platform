@@ -21,6 +21,8 @@ import { Logger } from "@nestjs/common";
 import { Job } from "bullmq";
 import { BlockerCategory, BlockerStatus } from "@prisma/client";
 import { PrismaService } from "../../prisma/prisma.service";
+import { NotificationService } from "../../notifications/services/notification.service";
+import { NotificationCategory } from "../../notifications/entities/notification.types";
 import { ESCALATION_TIMING } from "../types/implementation.types";
 
 /**
@@ -56,7 +58,10 @@ function differenceInDays(date1: Date, date2: Date): number {
 export class EscalationProcessor extends WorkerHost {
   private readonly logger = new Logger(EscalationProcessor.name);
 
-  constructor(private readonly prisma: PrismaService) {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly notificationService: NotificationService,
+  ) {
     super();
   }
 
@@ -84,13 +89,7 @@ export class EscalationProcessor extends WorkerHost {
         ],
       },
       include: {
-        project: {
-          select: {
-            id: true,
-            leadImplementerId: true,
-            assignedUserIds: true,
-          },
-        },
+        project: true,
       },
     });
 
@@ -113,7 +112,12 @@ export class EscalationProcessor extends WorkerHost {
       const blockerWithProject = {
         id: blocker.id,
         title: blocker.title,
-        project: blocker.project,
+        project: {
+          id: blocker.project.id,
+          leadImplementerId: blocker.project.leadImplementerId,
+          assignedUserIds: blocker.project.assignedUserIds,
+          organizationId: blocker.project.clientOrganizationId,
+        },
       };
 
       // Check if needs escalation to director (highest priority)
@@ -149,7 +153,7 @@ export class EscalationProcessor extends WorkerHost {
   /**
    * Escalate blocker to manager level.
    *
-   * Updates the escalatedToManagerAt timestamp and would send notification.
+   * Updates the escalatedToManagerAt timestamp and sends notification.
    *
    * @param blocker - Blocker to escalate
    */
@@ -160,6 +164,7 @@ export class EscalationProcessor extends WorkerHost {
       id: string;
       leadImplementerId: string;
       assignedUserIds: string[];
+      organizationId?: string;
     };
   }): Promise<void> {
     await this.prisma.implementationBlocker.update({
@@ -182,8 +187,27 @@ export class EscalationProcessor extends WorkerHost {
       },
     });
 
-    // TODO: Send notification to manager (notification service integration)
-    // await this.notificationService.notifyBlockerEscalation(blocker, 'manager');
+    // Send notification to lead implementer about escalation
+    if (blocker.project.leadImplementerId && blocker.project.organizationId) {
+      await this.notificationService.notify({
+        organizationId: blocker.project.organizationId,
+        recipientUserId: blocker.project.leadImplementerId,
+        category: "ESCALATION" as NotificationCategory,
+        type: "ESCALATION",
+        templateId: "escalation/blocker-manager",
+        context: {
+          blockerTitle: blocker.title,
+          blockerId: blocker.id,
+          projectId: blocker.project.id,
+          escalationLevel: "manager",
+        },
+        title: `Blocker Escalated: ${blocker.title}`,
+        body: `Blocker "${blocker.title}" has been escalated to manager level due to aging.`,
+        entityType: "IMPLEMENTATION_PROJECT",
+        entityId: blocker.project.id,
+        isUrgent: true,
+      });
+    }
 
     this.logger.log(`Blocker ${blocker.id} escalated to manager`);
   }
@@ -191,7 +215,7 @@ export class EscalationProcessor extends WorkerHost {
   /**
    * Escalate blocker to director level.
    *
-   * Updates the escalatedToDirectorAt timestamp and would send notification.
+   * Updates the escalatedToDirectorAt timestamp and sends notification.
    *
    * @param blocker - Blocker to escalate
    */
@@ -202,6 +226,7 @@ export class EscalationProcessor extends WorkerHost {
       id: string;
       leadImplementerId: string;
       assignedUserIds: string[];
+      organizationId?: string;
     };
   }): Promise<void> {
     await this.prisma.implementationBlocker.update({
@@ -224,8 +249,27 @@ export class EscalationProcessor extends WorkerHost {
       },
     });
 
-    // TODO: Send notification to director (notification service integration)
-    // await this.notificationService.notifyBlockerEscalation(blocker, 'director');
+    // Send notification to lead implementer about director-level escalation
+    if (blocker.project.leadImplementerId && blocker.project.organizationId) {
+      await this.notificationService.notify({
+        organizationId: blocker.project.organizationId,
+        recipientUserId: blocker.project.leadImplementerId,
+        category: "ESCALATION" as NotificationCategory,
+        type: "ESCALATION",
+        templateId: "escalation/blocker-director",
+        context: {
+          blockerTitle: blocker.title,
+          blockerId: blocker.id,
+          projectId: blocker.project.id,
+          escalationLevel: "director",
+        },
+        title: `URGENT: Blocker Escalated to Director: ${blocker.title}`,
+        body: `Blocker "${blocker.title}" has been escalated to director level due to extended aging. Immediate attention required.`,
+        entityType: "IMPLEMENTATION_PROJECT",
+        entityId: blocker.project.id,
+        isUrgent: true,
+      });
+    }
 
     this.logger.log(`Blocker ${blocker.id} escalated to director`);
   }
@@ -244,10 +288,29 @@ export class EscalationProcessor extends WorkerHost {
       id: string;
       leadImplementerId: string;
       assignedUserIds: string[];
+      organizationId?: string;
     };
   }): Promise<void> {
-    // TODO: Send reminder notification to lead implementer
-    // await this.notificationService.sendBlockerReminder(blocker);
+    // Send reminder notification to lead implementer
+    if (blocker.project.leadImplementerId && blocker.project.organizationId) {
+      await this.notificationService.notify({
+        organizationId: blocker.project.organizationId,
+        recipientUserId: blocker.project.leadImplementerId,
+        category: "DEADLINE" as NotificationCategory,
+        type: "DEADLINE",
+        templateId: "deadline/blocker-reminder",
+        context: {
+          blockerTitle: blocker.title,
+          blockerId: blocker.id,
+          projectId: blocker.project.id,
+        },
+        title: `Reminder: Blocker Needs Attention`,
+        body: `Blocker "${blocker.title}" is aging and may be escalated soon if not resolved.`,
+        entityType: "IMPLEMENTATION_PROJECT",
+        entityId: blocker.project.id,
+        isUrgent: false,
+      });
+    }
 
     this.logger.log(`Reminder sent for blocker ${blocker.id}`);
   }
