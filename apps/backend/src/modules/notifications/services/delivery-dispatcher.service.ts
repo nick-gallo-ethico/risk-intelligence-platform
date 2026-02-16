@@ -302,7 +302,10 @@ export class DeliveryDispatcherService {
    * @param userId - User ID
    * @returns Unread count
    */
-  async getUnreadCount(organizationId: string, userId: string): Promise<number> {
+  async getUnreadCount(
+    organizationId: string,
+    userId: string,
+  ): Promise<number> {
     return this.prisma.notification.count({
       where: {
         organizationId,

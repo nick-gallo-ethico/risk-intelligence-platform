@@ -1,4 +1,9 @@
-import { Injectable, Logger, NotFoundException, BadRequestException } from "@nestjs/common";
+import {
+  Injectable,
+  Logger,
+  NotFoundException,
+  BadRequestException,
+} from "@nestjs/common";
 import { InjectQueue } from "@nestjs/bullmq";
 import { Queue } from "bullmq";
 import { EventEmitter2 } from "@nestjs/event-emitter";
@@ -84,19 +89,29 @@ export class WaveSchedulerService {
     }
 
     if (campaign.status !== CampaignStatus.DRAFT) {
-      throw new BadRequestException(`Cannot schedule campaign in ${campaign.status} status`);
+      throw new BadRequestException(
+        `Cannot schedule campaign in ${campaign.status} status`,
+      );
     }
 
     // Check blackouts
-    const inBlackout = await this.blackoutManager.checkBlackouts(scheduledAt, organizationId);
+    const inBlackout = await this.blackoutManager.checkBlackouts(
+      scheduledAt,
+      organizationId,
+    );
     if (inBlackout) {
-      const nextAvailable = await this.blackoutManager.getNextAvailableDate(scheduledAt, organizationId);
+      const nextAvailable = await this.blackoutManager.getNextAvailableDate(
+        scheduledAt,
+        organizationId,
+      );
       throw new BadRequestException(
         `Scheduled date ${scheduledAt.toISOString()} falls within a blackout period. Next available: ${nextAvailable.toISOString()}`,
       );
     }
 
-    const rolloutStrategy = rolloutConfig ? CampaignRolloutStrategy.STAGGERED : CampaignRolloutStrategy.IMMEDIATE;
+    const rolloutStrategy = rolloutConfig
+      ? CampaignRolloutStrategy.STAGGERED
+      : CampaignRolloutStrategy.IMMEDIATE;
 
     await this.prisma.campaign.update({
       where: { id: campaignId },
@@ -110,8 +125,16 @@ export class WaveSchedulerService {
     });
 
     let waves: CampaignWave[] = [];
-    if (rolloutConfig && rolloutStrategy !== CampaignRolloutStrategy.IMMEDIATE) {
-      waves = await this.createWavesFromConfig(campaignId, rolloutConfig, scheduledAt, organizationId);
+    if (
+      rolloutConfig &&
+      rolloutStrategy !== CampaignRolloutStrategy.IMMEDIATE
+    ) {
+      waves = await this.createWavesFromConfig(
+        campaignId,
+        rolloutConfig,
+        scheduledAt,
+        organizationId,
+      );
     }
 
     const delay = scheduledAt.getTime() - Date.now();
@@ -122,7 +145,12 @@ export class WaveSchedulerService {
     await this.campaignQueue.add(
       "launch-campaign",
       { campaignId, organizationId, userId },
-      { delay, jobId: `launch-campaign-${campaignId}`, removeOnComplete: true, removeOnFail: false },
+      {
+        delay,
+        jobId: `launch-campaign-${campaignId}`,
+        removeOnComplete: true,
+        removeOnFail: false,
+      },
     );
 
     await this.auditService.log({
@@ -137,26 +165,52 @@ export class WaveSchedulerService {
     });
 
     this.eventEmitter.emit("campaign.scheduled", {
-      organizationId, campaignId, scheduledAt, rolloutStrategy, waveCount: waves.length || 1,
+      organizationId,
+      campaignId,
+      scheduledAt,
+      rolloutStrategy,
+      waveCount: waves.length || 1,
     });
 
-    this.logger.log(`Campaign ${campaignId} scheduled for ${scheduledAt.toISOString()} with ${rolloutStrategy} rollout`);
+    this.logger.log(
+      `Campaign ${campaignId} scheduled for ${scheduledAt.toISOString()} with ${rolloutStrategy} rollout`,
+    );
 
     return {
-      campaignId, scheduledAt, rolloutStrategy, waveCount: waves.length || 1,
-      waves: waves.map((w) => ({ waveNumber: w.waveNumber, scheduledAt: w.scheduledAt, employeeCount: w.employeeIds.length })),
+      campaignId,
+      scheduledAt,
+      rolloutStrategy,
+      waveCount: waves.length || 1,
+      waves: waves.map((w) => ({
+        waveNumber: w.waveNumber,
+        scheduledAt: w.scheduledAt,
+        employeeCount: w.employeeIds.length,
+      })),
     };
   }
 
   /**
    * Cancel a scheduled campaign launch.
    */
-  async cancelScheduledLaunch(campaignId: string, userId: string, organizationId: string, reason?: string): Promise<Campaign> {
-    const campaign = await this.prisma.campaign.findFirst({ where: { id: campaignId, organizationId } });
-    if (!campaign) throw new NotFoundException(`Campaign with ID ${campaignId} not found`);
-    if (campaign.status !== CampaignStatus.SCHEDULED) throw new BadRequestException("Only scheduled campaigns can have their launch cancelled");
+  async cancelScheduledLaunch(
+    campaignId: string,
+    userId: string,
+    organizationId: string,
+    reason?: string,
+  ): Promise<Campaign> {
+    const campaign = await this.prisma.campaign.findFirst({
+      where: { id: campaignId, organizationId },
+    });
+    if (!campaign)
+      throw new NotFoundException(`Campaign with ID ${campaignId} not found`);
+    if (campaign.status !== CampaignStatus.SCHEDULED)
+      throw new BadRequestException(
+        "Only scheduled campaigns can have their launch cancelled",
+      );
 
-    const job = await this.campaignQueue.getJob(`launch-campaign-${campaignId}`);
+    const job = await this.campaignQueue.getJob(
+      `launch-campaign-${campaignId}`,
+    );
     if (job) await job.remove();
 
     await this.prisma.campaignWave.updateMany({
@@ -166,14 +220,23 @@ export class WaveSchedulerService {
 
     const updated = await this.prisma.campaign.update({
       where: { id: campaignId },
-      data: { status: CampaignStatus.DRAFT, launchAt: null, statusNote: reason, updatedById: userId },
+      data: {
+        status: CampaignStatus.DRAFT,
+        launchAt: null,
+        statusNote: reason,
+        updatedById: userId,
+      },
     });
 
     await this.auditService.log({
-      organizationId, entityType: AuditEntityType.CAMPAIGN, entityId: campaignId,
-      action: "schedule_cancelled", actionCategory: AuditActionCategory.UPDATE,
+      organizationId,
+      entityType: AuditEntityType.CAMPAIGN,
+      entityId: campaignId,
+      action: "schedule_cancelled",
+      actionCategory: AuditActionCategory.UPDATE,
       actionDescription: `Cancelled scheduled launch for campaign "${campaign.name}"${reason ? `: ${reason}` : ""}`,
-      actorUserId: userId, actorType: ActorType.USER,
+      actorUserId: userId,
+      actorType: ActorType.USER,
     });
 
     return updated;
@@ -195,13 +258,21 @@ export class WaveSchedulerService {
       const waveScheduledAt = new Date(startDate);
       waveScheduledAt.setDate(waveScheduledAt.getDate() + i * waveDayGap);
 
-      const adjustedDate = await this.blackoutManager.getNextAvailableDate(waveScheduledAt, organizationId);
+      const adjustedDate = await this.blackoutManager.getNextAvailableDate(
+        waveScheduledAt,
+        organizationId,
+      );
 
       const wave = await this.prisma.campaignWave.create({
         data: {
-          organizationId, campaignId, waveNumber: i + 1, scheduledAt: adjustedDate,
-          audiencePercentage: config.type === "percentage" ? config.values[i] : null,
-          employeeIds: [], status: CampaignWaveStatus.PENDING,
+          organizationId,
+          campaignId,
+          waveNumber: i + 1,
+          scheduledAt: adjustedDate,
+          audiencePercentage:
+            config.type === "percentage" ? config.values[i] : null,
+          employeeIds: [],
+          status: CampaignWaveStatus.PENDING,
         },
       });
 
@@ -215,31 +286,57 @@ export class WaveSchedulerService {
   /**
    * Create waves with explicit employee assignments.
    */
-  async createWaves(campaignId: string, config: RolloutConfig, employeeIds: string[], organizationId: string): Promise<CampaignWave[]> {
-    const campaign = await this.prisma.campaign.findFirst({ where: { id: campaignId, organizationId } });
-    if (!campaign) throw new NotFoundException(`Campaign with ID ${campaignId} not found`);
+  async createWaves(
+    campaignId: string,
+    config: RolloutConfig,
+    employeeIds: string[],
+    organizationId: string,
+  ): Promise<CampaignWave[]> {
+    const campaign = await this.prisma.campaign.findFirst({
+      where: { id: campaignId, organizationId },
+    });
+    if (!campaign)
+      throw new NotFoundException(`Campaign with ID ${campaignId} not found`);
 
-    const startDate = config.startDate ? new Date(config.startDate) : new Date();
+    const startDate = config.startDate
+      ? new Date(config.startDate)
+      : new Date();
     const waveDayGap = config.waveDayGap ?? 1;
     const waves: CampaignWave[] = [];
-    const employeesPerWave = this.distributeEmployees(employeeIds, config.values, config.type);
+    const employeesPerWave = this.distributeEmployees(
+      employeeIds,
+      config.values,
+      config.type,
+    );
 
     for (let i = 0; i < config.values.length; i++) {
       const waveScheduledAt = new Date(startDate);
       waveScheduledAt.setDate(waveScheduledAt.getDate() + i * waveDayGap);
-      const adjustedDate = await this.blackoutManager.getNextAvailableDate(waveScheduledAt, organizationId);
+      const adjustedDate = await this.blackoutManager.getNextAvailableDate(
+        waveScheduledAt,
+        organizationId,
+      );
 
       const wave = await this.prisma.campaignWave.create({
         data: {
-          organizationId, campaignId, waveNumber: i + 1, scheduledAt: adjustedDate,
-          audiencePercentage: config.type === "percentage" ? config.values[i] : null,
-          employeeIds: employeesPerWave[i], status: CampaignWaveStatus.PENDING,
+          organizationId,
+          campaignId,
+          waveNumber: i + 1,
+          scheduledAt: adjustedDate,
+          audiencePercentage:
+            config.type === "percentage" ? config.values[i] : null,
+          employeeIds: employeesPerWave[i],
+          status: CampaignWaveStatus.PENDING,
         },
       });
 
       waves.push(wave);
       this.eventEmitter.emit("campaign.wave.scheduled", {
-        organizationId, campaignId, waveNumber: i + 1, scheduledAt: adjustedDate, employeeCount: employeesPerWave[i].length,
+        organizationId,
+        campaignId,
+        waveNumber: i + 1,
+        scheduledAt: adjustedDate,
+        employeeCount: employeesPerWave[i].length,
       });
     }
 
@@ -249,7 +346,11 @@ export class WaveSchedulerService {
   /**
    * Distribute employees across waves.
    */
-  private distributeEmployees(employeeIds: string[], values: number[], type: "percentage" | "daily_count"): string[][] {
+  private distributeEmployees(
+    employeeIds: string[],
+    values: number[],
+    type: "percentage" | "daily_count",
+  ): string[][] {
     const result: string[][] = [];
     const shuffled = [...employeeIds].sort(() => Math.random() - 0.5);
     let remaining = [...shuffled];
@@ -283,7 +384,10 @@ export class WaveSchedulerService {
   /**
    * Get waves for a campaign.
    */
-  async getWaves(campaignId: string, organizationId: string): Promise<CampaignWave[]> {
+  async getWaves(
+    campaignId: string,
+    organizationId: string,
+  ): Promise<CampaignWave[]> {
     return this.prisma.campaignWave.findMany({
       where: { campaignId, organizationId },
       orderBy: { waveNumber: "asc" },
@@ -293,19 +397,34 @@ export class WaveSchedulerService {
   /**
    * Extend campaign deadlines by blackout days.
    */
-  async extendDeadlines(campaignId: string, blackoutDays: number, userId: string, organizationId: string): Promise<Campaign> {
-    const campaign = await this.prisma.campaign.findFirst({ where: { id: campaignId, organizationId } });
-    if (!campaign) throw new NotFoundException(`Campaign with ID ${campaignId} not found`);
+  async extendDeadlines(
+    campaignId: string,
+    blackoutDays: number,
+    userId: string,
+    organizationId: string,
+  ): Promise<Campaign> {
+    const campaign = await this.prisma.campaign.findFirst({
+      where: { id: campaignId, organizationId },
+    });
+    if (!campaign)
+      throw new NotFoundException(`Campaign with ID ${campaignId} not found`);
 
     const newDueDate = new Date(campaign.dueDate);
     newDueDate.setDate(newDueDate.getDate() + blackoutDays);
 
-    const newExpiresAt = campaign.expiresAt ? new Date(campaign.expiresAt) : null;
-    if (newExpiresAt) newExpiresAt.setDate(newExpiresAt.getDate() + blackoutDays);
+    const newExpiresAt = campaign.expiresAt
+      ? new Date(campaign.expiresAt)
+      : null;
+    if (newExpiresAt)
+      newExpiresAt.setDate(newExpiresAt.getDate() + blackoutDays);
 
     const updated = await this.prisma.campaign.update({
       where: { id: campaignId },
-      data: { dueDate: newDueDate, expiresAt: newExpiresAt, updatedById: userId },
+      data: {
+        dueDate: newDueDate,
+        expiresAt: newExpiresAt,
+        updatedById: userId,
+      },
     });
 
     await this.prisma.campaignAssignment.updateMany({
@@ -314,10 +433,14 @@ export class WaveSchedulerService {
     });
 
     await this.auditService.log({
-      organizationId, entityType: AuditEntityType.CAMPAIGN, entityId: campaignId,
-      action: "deadline_extended", actionCategory: AuditActionCategory.UPDATE,
+      organizationId,
+      entityType: AuditEntityType.CAMPAIGN,
+      entityId: campaignId,
+      action: "deadline_extended",
+      actionCategory: AuditActionCategory.UPDATE,
       actionDescription: `Extended deadlines for campaign "${campaign.name}" by ${blackoutDays} days due to blackout period`,
-      actorUserId: userId, actorType: ActorType.USER,
+      actorUserId: userId,
+      actorType: ActorType.USER,
     });
 
     return updated;

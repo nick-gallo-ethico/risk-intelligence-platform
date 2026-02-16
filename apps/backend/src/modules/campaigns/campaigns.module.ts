@@ -13,7 +13,10 @@ import { AudienceQueryService } from "./services/audience-query.service";
 import { AudienceDescriptionService } from "./services/audience-description.service";
 import { TargetingAttributesService } from "./services/targeting-attributes.service";
 import { SegmentConverterService } from "./services/segment-converter.service";
-import { WaveSchedulerService, CAMPAIGN_QUEUE_NAME } from "./services/wave-scheduler.service";
+import {
+  WaveSchedulerService,
+  CAMPAIGN_QUEUE_NAME,
+} from "./services/wave-scheduler.service";
 import { BlackoutManagerService } from "./services/blackout-manager.service";
 import { CampaignSchedulingService } from "./campaign-scheduling.service";
 import { CampaignSchedulingProcessor } from "./campaign-scheduling.processor";

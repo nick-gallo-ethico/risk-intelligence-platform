@@ -125,7 +125,12 @@ export class NotificationRouterService {
 
     // Determine email routing
     let shouldSendEmail = prefs.email || prefs.isEnforcedByOrg;
-    if (shouldSendEmail && prefs.isQuietHours && !isUrgent && !prefs.isEnforcedByOrg) {
+    if (
+      shouldSendEmail &&
+      prefs.isQuietHours &&
+      !isUrgent &&
+      !prefs.isEnforcedByOrg
+    ) {
       shouldSendEmail = false;
       this.logger.debug(
         `Skipping email for user ${actualRecipientId}: in quiet hours`,

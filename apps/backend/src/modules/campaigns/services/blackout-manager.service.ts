@@ -1,7 +1,17 @@
-import { Injectable, Logger, NotFoundException, BadRequestException } from "@nestjs/common";
+import {
+  Injectable,
+  Logger,
+  NotFoundException,
+  BadRequestException,
+} from "@nestjs/common";
 import { PrismaService } from "../../prisma/prisma.service";
 import { AuditService } from "../../audit/audit.service";
-import { OrgBlackoutDate, AuditEntityType, AuditActionCategory, ActorType } from "@prisma/client";
+import {
+  OrgBlackoutDate,
+  AuditEntityType,
+  AuditActionCategory,
+  ActorType,
+} from "@prisma/client";
 
 /**
  * Blackout date input for creating or updating blackout periods.
@@ -37,7 +47,11 @@ export class BlackoutManagerService {
   /**
    * Check if a date falls within any active blackout period.
    */
-  async checkBlackouts(date: Date, organizationId: string, locationId?: string): Promise<boolean> {
+  async checkBlackouts(
+    date: Date,
+    organizationId: string,
+    locationId?: string,
+  ): Promise<boolean> {
     const blackouts = await this.getActiveBlackouts(organizationId);
 
     for (const blackout of blackouts) {
@@ -52,7 +66,11 @@ export class BlackoutManagerService {
   /**
    * Get the next available date that's not in a blackout period.
    */
-  async getNextAvailableDate(fromDate: Date, organizationId: string, locationId?: string): Promise<Date> {
+  async getNextAvailableDate(
+    fromDate: Date,
+    organizationId: string,
+    locationId?: string,
+  ): Promise<Date> {
     const blackouts = await this.getActiveBlackouts(organizationId);
     let currentDate = new Date(fromDate);
     let attempts = 0;
@@ -74,16 +92,26 @@ export class BlackoutManagerService {
       attempts++;
     }
 
-    this.logger.warn(`Could not find available date after ${maxAttempts} attempts for org ${organizationId}`);
+    this.logger.warn(
+      `Could not find available date after ${maxAttempts} attempts for org ${organizationId}`,
+    );
     return fromDate;
   }
 
   /**
    * Check if a specific date falls within a blackout (handles recurring).
    */
-  isDateInBlackout(date: Date, blackout: OrgBlackoutDate, locationId?: string): boolean {
+  isDateInBlackout(
+    date: Date,
+    blackout: OrgBlackoutDate,
+    locationId?: string,
+  ): boolean {
     // Check location scope
-    if (blackout.affectsLocations.length > 0 && locationId && !blackout.affectsLocations.includes(locationId)) {
+    if (
+      blackout.affectsLocations.length > 0 &&
+      locationId &&
+      !blackout.affectsLocations.includes(locationId)
+    ) {
       return false;
     }
 
@@ -103,7 +131,9 @@ export class BlackoutManagerService {
     switch (blackout.recurringPattern) {
       case "YEARLY":
         if (startMonth === endMonth) {
-          return dateMonth === startMonth && dateDay >= startDay && dateDay <= endDay;
+          return (
+            dateMonth === startMonth && dateDay >= startDay && dateDay <= endDay
+          );
         } else if (startMonth < endMonth) {
           return (
             (dateMonth === startMonth && dateDay >= startDay) ||
@@ -126,7 +156,8 @@ export class BlackoutManagerService {
         const endOffset = blackout.endDate.getMonth() % 3;
         if (quarterOffset === startOffset && dateDay >= startDay) return true;
         if (quarterOffset === endOffset && dateDay <= endDay) return true;
-        if (quarterOffset > startOffset && quarterOffset < endOffset) return true;
+        if (quarterOffset > startOffset && quarterOffset < endOffset)
+          return true;
         return false;
 
       case "MONTHLY":
@@ -150,7 +181,11 @@ export class BlackoutManagerService {
   /**
    * Create a new blackout date.
    */
-  async createBlackout(input: BlackoutDateInput, userId: string, organizationId: string): Promise<OrgBlackoutDate> {
+  async createBlackout(
+    input: BlackoutDateInput,
+    userId: string,
+    organizationId: string,
+  ): Promise<OrgBlackoutDate> {
     if (input.startDate >= input.endDate) {
       throw new BadRequestException("Start date must be before end date");
     }
@@ -180,16 +215,26 @@ export class BlackoutManagerService {
       actorType: ActorType.USER,
     });
 
-    this.logger.log(`Created blackout ${blackout.id} for org ${organizationId}`);
+    this.logger.log(
+      `Created blackout ${blackout.id} for org ${organizationId}`,
+    );
     return blackout;
   }
 
   /**
    * Update an existing blackout date.
    */
-  async updateBlackout(blackoutId: string, input: Partial<BlackoutDateInput>, userId: string, organizationId: string): Promise<OrgBlackoutDate> {
-    const existing = await this.prisma.orgBlackoutDate.findFirst({ where: { id: blackoutId, organizationId } });
-    if (!existing) throw new NotFoundException(`Blackout with ID ${blackoutId} not found`);
+  async updateBlackout(
+    blackoutId: string,
+    input: Partial<BlackoutDateInput>,
+    userId: string,
+    organizationId: string,
+  ): Promise<OrgBlackoutDate> {
+    const existing = await this.prisma.orgBlackoutDate.findFirst({
+      where: { id: blackoutId, organizationId },
+    });
+    if (!existing)
+      throw new NotFoundException(`Blackout with ID ${blackoutId} not found`);
 
     if (input.startDate && input.endDate && input.startDate >= input.endDate) {
       throw new BadRequestException("Start date must be before end date");
@@ -199,12 +244,20 @@ export class BlackoutManagerService {
       where: { id: blackoutId },
       data: {
         ...(input.name !== undefined && { name: input.name }),
-        ...(input.description !== undefined && { description: input.description }),
+        ...(input.description !== undefined && {
+          description: input.description,
+        }),
         ...(input.startDate !== undefined && { startDate: input.startDate }),
         ...(input.endDate !== undefined && { endDate: input.endDate }),
-        ...(input.affectsLocations !== undefined && { affectsLocations: input.affectsLocations }),
-        ...(input.isRecurring !== undefined && { isRecurring: input.isRecurring }),
-        ...(input.recurringPattern !== undefined && { recurringPattern: input.recurringPattern }),
+        ...(input.affectsLocations !== undefined && {
+          affectsLocations: input.affectsLocations,
+        }),
+        ...(input.isRecurring !== undefined && {
+          isRecurring: input.isRecurring,
+        }),
+        ...(input.recurringPattern !== undefined && {
+          recurringPattern: input.recurringPattern,
+        }),
       },
     });
 
@@ -225,9 +278,16 @@ export class BlackoutManagerService {
   /**
    * Delete (soft-delete) a blackout date.
    */
-  async deleteBlackout(blackoutId: string, userId: string, organizationId: string): Promise<void> {
-    const existing = await this.prisma.orgBlackoutDate.findFirst({ where: { id: blackoutId, organizationId } });
-    if (!existing) throw new NotFoundException(`Blackout with ID ${blackoutId} not found`);
+  async deleteBlackout(
+    blackoutId: string,
+    userId: string,
+    organizationId: string,
+  ): Promise<void> {
+    const existing = await this.prisma.orgBlackoutDate.findFirst({
+      where: { id: blackoutId, organizationId },
+    });
+    if (!existing)
+      throw new NotFoundException(`Blackout with ID ${blackoutId} not found`);
 
     await this.prisma.orgBlackoutDate.update({
       where: { id: blackoutId },
@@ -245,13 +305,18 @@ export class BlackoutManagerService {
       actorType: ActorType.USER,
     });
 
-    this.logger.log(`Soft-deleted blackout ${blackoutId} for org ${organizationId}`);
+    this.logger.log(
+      `Soft-deleted blackout ${blackoutId} for org ${organizationId}`,
+    );
   }
 
   /**
    * List all blackout dates for an organization.
    */
-  async listBlackouts(organizationId: string, options?: { includeInactive?: boolean }): Promise<OrgBlackoutDate[]> {
+  async listBlackouts(
+    organizationId: string,
+    options?: { includeInactive?: boolean },
+  ): Promise<OrgBlackoutDate[]> {
     return this.prisma.orgBlackoutDate.findMany({
       where: {
         organizationId,
@@ -264,9 +329,15 @@ export class BlackoutManagerService {
   /**
    * Get a single blackout by ID.
    */
-  async getBlackout(blackoutId: string, organizationId: string): Promise<OrgBlackoutDate> {
-    const blackout = await this.prisma.orgBlackoutDate.findFirst({ where: { id: blackoutId, organizationId } });
-    if (!blackout) throw new NotFoundException(`Blackout with ID ${blackoutId} not found`);
+  async getBlackout(
+    blackoutId: string,
+    organizationId: string,
+  ): Promise<OrgBlackoutDate> {
+    const blackout = await this.prisma.orgBlackoutDate.findFirst({
+      where: { id: blackoutId, organizationId },
+    });
+    if (!blackout)
+      throw new NotFoundException(`Blackout with ID ${blackoutId} not found`);
     return blackout;
   }
 }
