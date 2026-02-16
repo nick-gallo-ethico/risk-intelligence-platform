@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-15)
 ## Current Position
 
 Phase: 36 of 36 (Test Coverage Expansion)
-Plan: 1 of 13 complete (36-03)
+Plan: 2 of 13 complete (36-01, 36-03)
 Status: Phase 36 In Progress
-Last activity: 2026-02-16 - Completed 36-03 (Impersonation Module Unit Tests)
+Last activity: 2026-02-16 - Completed 36-01 (Auth Guards Unit Tests)
 
-Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10 plans), Phase 34 COMPLETE (5/5 plans), Phase 35 COMPLETE (6/6 plans), Phase 36 started (1/13 plans).
+Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10 plans), Phase 34 COMPLETE (5/5 plans), Phase 35 COMPLETE (6/6 plans), Phase 36 started (2/13 plans).
 
 ## Shipped Milestones
 
@@ -132,6 +132,8 @@ Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10
 - 35-06: Type assertions for generic contravariant registries (ActionCatalog, SkillRegistry)
 - 36-03: Fail-fast error propagation for impersonation middleware (security pattern, not fail-open)
 - 36-03: Comprehensive InternalRole permission testing for cross-tenant impersonation
+- 36-01: jest.mock() for MfaService to avoid ESM import issues with otplib
+- 36-01: TestableGuard subclass pattern to expose protected methods for ThrottlerGuard testing
 
 ### Blockers
 
@@ -139,7 +141,7 @@ None currently.
 
 ## Session Continuity
 
-Last session: 2026-02-16T20:02:47Z
-Stopped at: Completed 36-03-PLAN.md (Impersonation Module Unit Tests)
+Last session: 2026-02-16T20:15:05Z
+Stopped at: Completed 36-01-PLAN.md (Auth Guards Unit Tests)
 Resume file: None
-Next action: Continue Phase 36 (remaining 12 plans)
+Next action: Continue Phase 36 (remaining 11 plans)
