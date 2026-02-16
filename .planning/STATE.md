@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-15)
 ## Current Position
 
 Phase: 35 of 36 (Code Quality & Architecture)
-Plan: 2 of ? complete
+Plan: 3 of ? complete
 Status: Phase 35 in progress, Phase 34 COMPLETE, Phase 33 COMPLETE
-Last activity: 2026-02-16 - Completed 35-02 (Level 1 service splits)
+Last activity: 2026-02-16 - Completed 35-03 (Level 2 service splits)
 
-Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10 plans), Phase 34 COMPLETE (5/5 plans), Phase 35 in progress (2/? plans).
+Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10 plans), Phase 34 COMPLETE (5/5 plans), Phase 35 in progress (3/? plans).
 
 ## Shipped Milestones
 
@@ -113,6 +113,12 @@ Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10
 - 35-02: FormatDetectorService groups all file format concerns (delimiter, encoding, source type)
 - 35-02: MappingGeneratorService uses FieldMatcherService for fuzzy matching
 - 35-02: Transform methods added to existing TransformApplierService (not new service)
+- 35-03: Three-stage pipeline for triage: interpret -> preview -> execute
+- 35-03: TableDeliveryService handles BullMQ job scheduling for email delivery
+- 35-03: TemplateRegistryService contains static SYSTEM_TEMPLATES definitions
+- 35-03: ContextCacheService uses @nestjs/cache-manager with per-context-type TTLs
+- 35-03: HierarchyLoaderService provides fallback contexts for missing entities
+- 35-03: PromptBuilderService includes agent-specific instructions by agent type
 
 ### Blockers
 
@@ -120,7 +126,7 @@ None currently.
 
 ## Session Continuity
 
-Last session: 2026-02-16T16:15:00Z
-Stopped at: Completed 35-02-PLAN.md (Level 1 service splits)
+Last session: 2026-02-16T17:10:00Z
+Stopped at: Completed 35-03-PLAN.md (Level 2 service splits)
 Resume file: None
 Next action: Continue Phase 35 with remaining plans
