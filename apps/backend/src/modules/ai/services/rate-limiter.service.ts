@@ -103,13 +103,16 @@ export class AiRateLimiterService {
     pipeline.get(dailyTpmKey);
 
     const results = await pipeline.exec();
+    if (!results) {
+      throw new Error("Redis pipeline returned null");
+    }
 
     // Parse results
-    const currentRpm = (results![1][1] as number) || 0;
-    const tpmEntries = (results![3][1] as string[]) || [];
+    const currentRpm = (results[1]?.[1] as number) || 0;
+    const tpmEntries = (results[3]?.[1] as string[]) || [];
     const currentTpm = this.sumTokensFromEntries(tpmEntries);
-    const dailyRpm = parseInt((results![4][1] as string) || "0", 10);
-    const dailyTpm = parseInt((results![5][1] as string) || "0", 10);
+    const dailyRpm = parseInt((results[4]?.[1] as string) || "0", 10);
+    const dailyTpm = parseInt((results[5]?.[1] as string) || "0", 10);
 
     // Check RPM limit
     if (currentRpm >= limits.requestsPerMinute) {
@@ -406,12 +409,15 @@ export class AiRateLimiterService {
     pipeline.get(dailyTpmKey);
 
     const results = await pipeline.exec();
+    if (!results) {
+      throw new Error("Redis pipeline returned null");
+    }
 
-    const currentRpm = (results![1][1] as number) || 0;
-    const tpmEntries = (results![3][1] as string[]) || [];
+    const currentRpm = (results[1]?.[1] as number) || 0;
+    const tpmEntries = (results[3]?.[1] as string[]) || [];
     const currentTpm = this.sumTokensFromEntries(tpmEntries);
-    const dailyRpm = parseInt((results![4][1] as string) || "0", 10);
-    const dailyTpm = parseInt((results![5][1] as string) || "0", 10);
+    const dailyRpm = parseInt((results[4]?.[1] as string) || "0", 10);
+    const dailyTpm = parseInt((results[5]?.[1] as string) || "0", 10);
 
     return {
       limits,

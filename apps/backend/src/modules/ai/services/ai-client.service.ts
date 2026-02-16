@@ -74,7 +74,7 @@ export class AiClientService implements OnModuleInit {
     params: CreateChatDto,
     organizationId?: string,
   ): Promise<AiResponse> {
-    this.ensureConfigured();
+    const client = this.ensureClient();
 
     const messages = this.buildMessages(params);
 
@@ -83,7 +83,7 @@ export class AiClientService implements OnModuleInit {
     );
 
     try {
-      const response = await this.client!.messages.create({
+      const response = await client.messages.create({
         model: this.defaultModel,
         max_tokens: this.maxTokens,
         system: params.systemPrompt || this.getDefaultSystemPrompt(),
@@ -138,7 +138,7 @@ export class AiClientService implements OnModuleInit {
     streamId: string,
     organizationId?: string,
   ): AsyncGenerator<StreamEvent> {
-    this.ensureConfigured();
+    const client = this.ensureClient();
 
     const messages = this.buildMessages(params);
     const abortController = new AbortController();
@@ -149,7 +149,7 @@ export class AiClientService implements OnModuleInit {
     );
 
     try {
-      const stream = this.client!.messages.stream(
+      const stream = client.messages.stream(
         {
           model: this.defaultModel,
           max_tokens: this.maxTokens,
@@ -240,13 +240,15 @@ export class AiClientService implements OnModuleInit {
   }
 
   /**
-   * Ensure the client is configured before making API calls.
+   * Ensure the client is configured and return it.
+   * This pattern allows TypeScript to narrow the type after the check.
    * @throws Error if ANTHROPIC_API_KEY is not set
    */
-  private ensureConfigured(): void {
+  private ensureClient(): Anthropic {
     if (!this.client) {
       throw new Error("AI service not configured - ANTHROPIC_API_KEY not set");
     }
+    return this.client;
   }
 
   /**

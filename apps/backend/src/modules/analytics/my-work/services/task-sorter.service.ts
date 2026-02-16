@@ -139,18 +139,21 @@ export class TaskSorterService {
     let result = [...tasks];
 
     // Filter by task types
-    if (filters.types && filters.types.length > 0) {
-      result = result.filter((t) => filters.types!.includes(t.type));
+    const types = filters.types;
+    if (types && types.length > 0) {
+      result = result.filter((t) => types.includes(t.type));
     }
 
     // Filter by priorities
-    if (filters.priorities && filters.priorities.length > 0) {
-      result = result.filter((t) => filters.priorities!.includes(t.priority));
+    const priorities = filters.priorities;
+    if (priorities && priorities.length > 0) {
+      result = result.filter((t) => priorities.includes(t.priority));
     }
 
     // Filter by statuses
-    if (filters.statuses && filters.statuses.length > 0) {
-      result = result.filter((t) => filters.statuses!.includes(t.status));
+    const statuses = filters.statuses;
+    if (statuses && statuses.length > 0) {
+      result = result.filter((t) => statuses.includes(t.status));
     }
 
     return result;

@@ -103,8 +103,9 @@ export function isImpersonating(req: Request): boolean {
  * @returns Organization ID (impersonated or original)
  */
 export function getEffectiveOrganizationId(req: Request): string | undefined {
-  if (isImpersonating(req)) {
-    return req.impersonation!.targetOrganizationId;
+  // isImpersonating already checks req.impersonation is defined and not expired
+  if (isImpersonating(req) && req.impersonation) {
+    return req.impersonation.targetOrganizationId;
   }
   return req.organizationId;
 }

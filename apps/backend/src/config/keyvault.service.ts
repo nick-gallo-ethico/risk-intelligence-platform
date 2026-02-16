@@ -90,12 +90,13 @@ export class KeyVaultService implements OnModuleInit {
    * Secrets that don't exist are silently skipped.
    */
   private async loadSecrets(names: string[]): Promise<void> {
-    if (!this.client) return;
+    const client = this.client;
+    if (!client) return;
 
     const results = await Promise.allSettled(
       names.map(async (name) => {
         try {
-          const secret = await this.client!.getSecret(name);
+          const secret = await client.getSecret(name);
           if (secret.value) {
             this.secrets.set(name, secret.value);
           }

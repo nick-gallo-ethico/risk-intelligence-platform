@@ -430,21 +430,24 @@ export class TaggedFieldService {
     let fields = [...PLATFORM_FIELDS];
 
     // Filter by entity if specified
-    if (config.entities && config.entities.length > 0) {
-      fields = fields.filter((f) => config.entities!.includes(f.entity));
+    const entities = config.entities;
+    if (entities && entities.length > 0) {
+      fields = fields.filter((f) => entities.includes(f.entity));
     }
 
     // Include fields with any of includeTags
-    if (config.includeTags && config.includeTags.length > 0) {
+    const includeTags = config.includeTags;
+    if (includeTags && includeTags.length > 0) {
       fields = fields.filter((f) =>
-        f.tags.some((t) => config.includeTags!.includes(t)),
+        f.tags.some((t) => includeTags.includes(t)),
       );
     }
 
     // Exclude fields with any of excludeTags
-    if (config.excludeTags && config.excludeTags.length > 0) {
+    const excludeTags = config.excludeTags;
+    if (excludeTags && excludeTags.length > 0) {
       fields = fields.filter(
-        (f) => !f.tags.some((t) => config.excludeTags!.includes(t)),
+        (f) => !f.tags.some((t) => excludeTags.includes(t)),
       );
     }
 
@@ -505,8 +508,9 @@ export class TaggedFieldService {
     // Apply overrides to base fields
     const fieldsWithOverrides = PLATFORM_FIELDS.map((field) => {
       const key = `${field.entity}.${field.field}`;
-      if (overrides.has(key)) {
-        return { ...field, tags: overrides.get(key)! };
+      const overrideTags = overrides.get(key);
+      if (overrideTags) {
+        return { ...field, tags: overrideTags };
       }
       return field;
     });
@@ -518,15 +522,17 @@ export class TaggedFieldService {
 
     let result = fieldsWithOverrides;
 
-    if (config.includeTags && config.includeTags.length > 0) {
+    const includeTags = config.includeTags;
+    if (includeTags && includeTags.length > 0) {
       result = result.filter((f) =>
-        f.tags.some((t) => config.includeTags!.includes(t)),
+        f.tags.some((t) => includeTags.includes(t)),
       );
     }
 
-    if (config.excludeTags && config.excludeTags.length > 0) {
+    const excludeTags = config.excludeTags;
+    if (excludeTags && excludeTags.length > 0) {
       result = result.filter(
-        (f) => !f.tags.some((t) => config.excludeTags!.includes(t)),
+        (f) => !f.tags.some((t) => excludeTags.includes(t)),
       );
     }
 

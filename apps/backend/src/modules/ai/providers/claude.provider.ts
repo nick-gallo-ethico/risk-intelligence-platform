@@ -65,7 +65,7 @@ export class ClaudeProvider implements AIProvider, OnModuleInit {
   }
 
   async createMessage(params: CreateMessageParams): Promise<AIMessageResponse> {
-    this.ensureReady();
+    const client = this.ensureClient();
 
     const { system, userMessages } = this.separateSystemMessage(
       params.messages,
@@ -74,7 +74,7 @@ export class ClaudeProvider implements AIProvider, OnModuleInit {
       ? this.convertTools(params.tools)
       : undefined;
 
-    const response = await this.client!.messages.create({
+    const response = await client.messages.create({
       model: params.model || this.defaultModel,
       max_tokens: params.maxTokens || 4096,
       system: params.system || system || undefined,
@@ -90,7 +90,7 @@ export class ClaudeProvider implements AIProvider, OnModuleInit {
     params: CreateMessageParams,
     abortSignal?: AbortSignal,
   ): AsyncIterable<AIStreamEvent> {
-    this.ensureReady();
+    const client = this.ensureClient();
 
     const { system, userMessages } = this.separateSystemMessage(
       params.messages,
@@ -99,7 +99,7 @@ export class ClaudeProvider implements AIProvider, OnModuleInit {
       ? this.convertTools(params.tools)
       : undefined;
 
-    const stream = this.client!.messages.stream(
+    const stream = client.messages.stream(
       {
         model: params.model || this.defaultModel,
         max_tokens: params.maxTokens || 4096,
@@ -191,12 +191,17 @@ export class ClaudeProvider implements AIProvider, OnModuleInit {
     return Math.ceil(text.length / 4);
   }
 
-  private ensureReady(): void {
+  /**
+   * Ensure client is initialized and return it.
+   * This pattern allows TypeScript to narrow the type after the check.
+   */
+  private ensureClient(): Anthropic {
     if (!this.client) {
       throw new Error(
         "Claude provider not initialized - ANTHROPIC_API_KEY not set",
       );
     }
+    return this.client;
   }
 
   private separateSystemMessage(messages: AIMessage[]): {
