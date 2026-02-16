@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-15)
 ## Current Position
 
 Phase: 35 of 36 (Code Quality & Architecture)
-Plan: 4 of ? complete
+Plan: 5 of ? complete
 Status: Phase 35 in progress, Phase 34 COMPLETE, Phase 33 COMPLETE
-Last activity: 2026-02-16 - Completed 35-04 (Final Level 2 service splits)
+Last activity: 2026-02-16 - Completed 35-05 (Type Safety Improvements)
 
-Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10 plans), Phase 34 COMPLETE (5/5 plans), Phase 35 in progress (4/? plans).
+Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10 plans), Phase 34 COMPLETE (5/5 plans), Phase 35 in progress (5/? plans).
 
 ## Shipped Milestones
 
@@ -123,6 +123,10 @@ Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10
 - 35-04: High-impact services (13+ dependents) preserve exact public API method signatures
 - 35-04: notification.types.ts pattern for interface-heavy services
 - 35-04: All 12 original fat services now under 400 LOC
+- 35-05: getDynamicPrismaModel() wrapper for type-safe dynamic Prisma model access
+- 35-05: as unknown as Type double-cast pattern for Prisma JSON fields
+- 35-05: UserRole enum from @prisma/client instead of string literals for role typing
+- 35-05: SsoAuthenticatedUser type for SSO callback handlers
 
 ### Blockers
 
@@ -130,7 +134,7 @@ None currently.
 
 ## Session Continuity
 
-Last session: 2026-02-16T17:00:00Z
-Stopped at: Completed 35-04-PLAN.md (Final Level 2 service splits)
+Last session: 2026-02-16T19:00:00Z
+Stopped at: Completed 35-05-PLAN.md (Type Safety Improvements)
 Resume file: None
 Next action: Continue Phase 35 with remaining plans (if any) or proceed to Phase 36
