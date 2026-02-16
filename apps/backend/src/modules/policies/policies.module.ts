@@ -16,6 +16,8 @@ import { PolicyTranslationService } from "./translations/policy-translation.serv
 import { PolicyTranslationController } from "./translations/policy-translation.controller";
 import { PolicyCaseAssociationService } from "./associations/policy-case-association.service";
 import { PolicyCaseAssociationController } from "./associations/policy-case-association.controller";
+import { AssociationCrudService } from "./associations/services/association-crud.service";
+import { ViolationAnalyticsService } from "./associations/services/violation-analytics.service";
 
 /**
  * PoliciesModule provides policy management functionality.
@@ -84,6 +86,9 @@ import { PolicyCaseAssociationController } from "./associations/policy-case-asso
     TranslationStaleListener,
     PolicySearchIndexListener,
     PolicyTranslationService,
+    // Policy-Case Association services
+    AssociationCrudService,
+    ViolationAnalyticsService,
     PolicyCaseAssociationService,
   ],
   exports: [
@@ -91,6 +96,9 @@ import { PolicyCaseAssociationController } from "./associations/policy-case-asso
     PolicyApprovalService,
     PolicyTranslationService,
     PolicyCaseAssociationService,
+    // Export sub-services for direct use if needed
+    AssociationCrudService,
+    ViolationAnalyticsService,
   ],
 })
 export class PoliciesModule {}
