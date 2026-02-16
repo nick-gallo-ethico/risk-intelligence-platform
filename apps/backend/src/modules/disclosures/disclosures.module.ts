@@ -13,6 +13,9 @@ import { DisclosureDraftService } from "./services/disclosure-draft.service";
 import { DisclosureQueryService } from "./services/disclosure-query.service";
 import { DisclosureSubmissionService } from "./disclosure-submission.service";
 import { AiTriageService } from "./ai-triage.service";
+import { TriageInterpreterService } from "./services/triage-interpreter.service";
+import { TriagePreviewService } from "./services/triage-preview.service";
+import { TriageExecutorService } from "./services/triage-executor.service";
 import { TriageController } from "./triage.controller";
 import { ConflictController } from "./conflict.controller";
 
@@ -56,6 +59,10 @@ import { ConflictController } from "./conflict.controller";
     DisclosureDraftService,
     DisclosureQueryService,
     DisclosureSubmissionService,
+    // Triage services (split from ai-triage.service.ts)
+    TriageInterpreterService,
+    TriagePreviewService,
+    TriageExecutorService,
     AiTriageService,
   ],
   exports: [
