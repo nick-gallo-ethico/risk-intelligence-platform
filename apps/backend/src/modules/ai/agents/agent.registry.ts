@@ -1,4 +1,5 @@
 import { Injectable, Logger, OnModuleInit } from "@nestjs/common";
+import { LRUCache } from "lru-cache";
 import { ProviderRegistryService } from "../services/provider-registry.service";
 import { ContextLoaderService } from "../services/context-loader.service";
 import { ConversationService } from "../services/conversation.service";
@@ -24,6 +25,10 @@ type AgentConstructor = new (
   actionExecutor?: ActionExecutorService,
 ) => BaseAgent;
 
+/** Cache configuration constants */
+const AGENT_CACHE_MAX_SIZE = 1000;
+const AGENT_CACHE_TTL_MS = 1000 * 60 * 30; // 30 minutes
+
 /**
  * AgentRegistry manages agent type registration and instance creation.
  *
@@ -33,9 +38,10 @@ type AgentConstructor = new (
  *
  * Key features:
  * - Agent type registration at module init
- * - Context-based agent instance caching
+ * - Context-based agent instance caching with LRU eviction
  * - Entity type to agent type mapping
  * - Agent lifecycle management
+ * - Bounded memory usage (max 1000 instances, 30-minute TTL)
  *
  * Usage:
  * ```typescript
@@ -56,6 +62,9 @@ type AgentConstructor = new (
  *
  * // Get appropriate agent for an entity
  * const agentType = agentRegistry.getAgentTypeForEntity('case');
+ *
+ * // Monitor cache usage
+ * const stats = agentRegistry.getCacheStats();
  * ```
  */
 @Injectable()
@@ -65,8 +74,8 @@ export class AgentRegistry implements OnModuleInit {
   /** Registered agent constructors by type */
   private readonly agents = new Map<string, AgentConstructor>();
 
-  /** Cached agent instances by context key */
-  private readonly agentInstances = new Map<string, BaseAgent>();
+  /** Cached agent instances with LRU eviction */
+  private readonly agentInstances: LRUCache<string, BaseAgent>;
 
   constructor(
     private readonly providerRegistry: ProviderRegistryService,
@@ -76,7 +85,18 @@ export class AgentRegistry implements OnModuleInit {
     private readonly rateLimiter: AiRateLimiterService,
     private readonly actionCatalog: ActionCatalog,
     private readonly actionExecutor: ActionExecutorService,
-  ) {}
+  ) {
+    // Initialize LRU cache with size and TTL limits to prevent memory exhaustion
+    this.agentInstances = new LRUCache<string, BaseAgent>({
+      max: AGENT_CACHE_MAX_SIZE,
+      ttl: AGENT_CACHE_TTL_MS,
+      updateAgeOnGet: true, // Reset TTL on access
+      allowStale: false, // Don't return stale items
+      dispose: (value, key) => {
+        this.logger.debug(`Evicting agent instance: ${key}`);
+      },
+    });
+  }
 
   onModuleInit() {
     // Register built-in agent types
@@ -255,6 +275,18 @@ export class AgentRegistry implements OnModuleInit {
    */
   getInstanceCount(): number {
     return this.agentInstances.size;
+  }
+
+  /**
+   * Get cache statistics for monitoring.
+   * Returns current size, max size, and TTL configuration.
+   */
+  getCacheStats(): { size: number; max: number; ttl: number } {
+    return {
+      size: this.agentInstances.size,
+      max: AGENT_CACHE_MAX_SIZE,
+      ttl: AGENT_CACHE_TTL_MS,
+    };
   }
 
   /**
