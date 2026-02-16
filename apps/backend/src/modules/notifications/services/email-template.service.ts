@@ -183,7 +183,9 @@ export class EmailTemplateService implements OnModuleInit {
     if (!mjmlContent) {
       const rawTemplate = this.rawTemplates.get(templateName);
       if (!rawTemplate) {
-        throw new NotFoundException(`Email template not found: ${templateName}`);
+        throw new NotFoundException(
+          `Email template not found: ${templateName}`,
+        );
       }
       mjmlContent = rawTemplate;
     }
@@ -195,7 +197,9 @@ export class EmailTemplateService implements OnModuleInit {
     } else {
       const compiledSubject = this.subjectTemplates.get(templateName);
       if (!compiledSubject) {
-        throw new NotFoundException(`Subject template not found: ${templateName}`);
+        throw new NotFoundException(
+          `Subject template not found: ${templateName}`,
+        );
       }
       renderedSubject = compiledSubject(context);
     }
@@ -291,7 +295,9 @@ export class EmailTemplateService implements OnModuleInit {
     });
 
     if (errors && errors.length > 0) {
-      throw new BadRequestException(`Invalid MJML template: ${JSON.stringify(errors)}`);
+      throw new BadRequestException(
+        `Invalid MJML template: ${JSON.stringify(errors)}`,
+      );
     }
 
     // Get current version

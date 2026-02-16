@@ -9,9 +9,7 @@ import {
 import { Type } from "class-transformer";
 import { MilestoneCategory } from "@prisma/client";
 
-// ===========================================
 // Create DTOs
-// ===========================================
 
 /**
  * DTO for creating a new project template.
@@ -46,9 +44,7 @@ export class CreateProjectTemplateDto {
   templateData: Record<string, unknown>;
 }
 
-// ===========================================
 // Apply Template DTO
-// ===========================================
 
 /**
  * DTO for applying a template to create a new project.
@@ -69,9 +65,7 @@ export class ApplyTemplateDto {
   ownerId?: string;
 }
 
-// ===========================================
 // Response DTOs
-// ===========================================
 
 /**
  * Response DTO for project template data.

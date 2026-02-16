@@ -1,18 +1,17 @@
-// =============================================================================
-// POLICY TRANSLATION SERVICE - AI and manual translation management
-// =============================================================================
-//
-// This service manages translations for policy versions using either:
-// - AI translation via the existing translate skill from Phase 5
-// - Manual translation with human-provided content
-//
-// KEY BEHAVIORS:
-// - Translations are linked to specific PolicyVersion (immutable source)
-// - AI translation uses SkillRegistry.executeSkill('translate', ...)
-// - When source policy updates, translations marked stale (handled by listener)
-// - Side-by-side editing preserves original while editing translation
-// - Review workflow: PENDING_REVIEW -> APPROVED/NEEDS_REVISION -> PUBLISHED
-// =============================================================================
+/**
+ * Policy Translation Service - AI and manual translation management
+ *
+ * This service manages translations for policy versions using either:
+ * - AI translation via the existing translate skill from Phase 5
+ * - Manual translation with human-provided content
+ *
+ * KEY BEHAVIORS:
+ * - Translations are linked to specific PolicyVersion (immutable source)
+ * - AI translation uses SkillRegistry.executeSkill('translate', ...)
+ * - When source policy updates, translations marked stale (handled by listener)
+ * - Side-by-side editing preserves original while editing translation
+ * - Review workflow: PENDING_REVIEW -> APPROVED/NEEDS_REVISION -> PUBLISHED
+ */
 
 import {
   Injectable,
@@ -42,9 +41,7 @@ import {
   getSupportedLanguageCodes,
 } from "./dto";
 
-// =============================================================================
 // Events
-// =============================================================================
 
 /**
  * Emitted when a translation is created.
@@ -77,9 +74,7 @@ export class PolicyTranslationReviewedEvent {
   ) {}
 }
 
-// =============================================================================
 // Service
-// =============================================================================
 
 @Injectable()
 export class PolicyTranslationService {
@@ -92,9 +87,7 @@ export class PolicyTranslationService {
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
-  // =========================================================================
   // TRANSLATE - Create new translation (AI or manual)
-  // =========================================================================
 
   /**
    * Creates a translation for a policy version.
@@ -297,9 +290,7 @@ export class PolicyTranslationService {
     return translation;
   }
 
-  // =========================================================================
   // UPDATE - Edit existing translation
-  // =========================================================================
 
   /**
    * Updates an existing translation's content.
@@ -384,9 +375,7 @@ export class PolicyTranslationService {
     return updated;
   }
 
-  // =========================================================================
   // REVIEW - Change review status
-  // =========================================================================
 
   /**
    * Reviews a translation, updating its review status.
@@ -473,9 +462,7 @@ export class PolicyTranslationService {
     return updated;
   }
 
-  // =========================================================================
   // REFRESH - Re-translate stale translation
-  // =========================================================================
 
   /**
    * Re-translates a stale translation using AI.
@@ -608,9 +595,7 @@ export class PolicyTranslationService {
     return updated;
   }
 
-  // =========================================================================
   // FIND - Query translations
-  // =========================================================================
 
   /**
    * Returns all translations for a policy version.
@@ -695,9 +680,7 @@ export class PolicyTranslationService {
     });
   }
 
-  // =========================================================================
   // LANGUAGES - Available languages
-  // =========================================================================
 
   /**
    * Returns list of available language codes.
@@ -709,9 +692,7 @@ export class PolicyTranslationService {
     }));
   }
 
-  // =========================================================================
   // PRIVATE HELPERS
-  // =========================================================================
 
   /**
    * Extracts plain text from HTML content for search indexing.

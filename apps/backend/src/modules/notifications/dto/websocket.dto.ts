@@ -5,9 +5,17 @@
  * the Notification WebSocket gateway for real-time notifications.
  */
 
-import { IsString, IsOptional, IsArray, IsInt, Min, Max, IsDateString } from 'class-validator';
-import { Type } from 'class-transformer';
-import { InAppNotification } from '../entities/notification.types';
+import {
+  IsString,
+  IsOptional,
+  IsArray,
+  IsInt,
+  Min,
+  Max,
+  IsDateString,
+} from "class-validator";
+import { Type } from "class-transformer";
+import { InAppNotification } from "../entities/notification.types";
 
 /**
  * Context extracted from WebSocket authentication handshake.
@@ -23,7 +31,7 @@ export interface SocketContext {
   permissions: string[];
 }
 
-// ============ Inbound Payloads (Client -> Server) ============
+// Inbound Payloads (Client -> Server)
 
 /**
  * Payload for marking notifications as read.
@@ -51,7 +59,7 @@ export class GetRecentPayload {
   since?: string;
 }
 
-// ============ Outbound Events (Server -> Client) ============
+// Outbound Events (Server -> Client)
 
 /**
  * Event emitted when a new notification is received.

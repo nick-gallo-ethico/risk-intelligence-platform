@@ -1,16 +1,15 @@
-// =============================================================================
-// POLICY APPROVAL SERVICE - Integrates policies with workflow engine
-// =============================================================================
-//
-// This service handles policy approval workflows by delegating to the existing
-// WorkflowEngineService. It does NOT implement its own approval logic.
-//
-// KEY BEHAVIORS:
-// - Submit policy for approval -> starts workflow instance
-// - Cancel approval -> cancels workflow instance
-// - Get approval status -> queries workflow instance state
-// - All status changes come via workflow events (see PolicyWorkflowListener)
-// =============================================================================
+/**
+ * Policy Approval Service - Integrates policies with workflow engine
+ *
+ * This service handles policy approval workflows by delegating to the existing
+ * WorkflowEngineService. It does NOT implement its own approval logic.
+ *
+ * KEY BEHAVIORS:
+ * - Submit policy for approval -> starts workflow instance
+ * - Cancel approval -> cancels workflow instance
+ * - Get approval status -> queries workflow instance state
+ * - All status changes come via workflow events (see PolicyWorkflowListener)
+ */
 
 import {
   Injectable,
@@ -110,9 +109,7 @@ export class PolicyApprovalService {
     private eventEmitter: EventEmitter2,
   ) {}
 
-  // -------------------------------------------------------------------------
   // SUBMIT FOR APPROVAL
-  // -------------------------------------------------------------------------
 
   /**
    * Submits a policy for approval by starting a workflow instance.
@@ -223,9 +220,7 @@ export class PolicyApprovalService {
     return { policy: updatedPolicy, workflowInstanceId };
   }
 
-  // -------------------------------------------------------------------------
   // CANCEL APPROVAL
-  // -------------------------------------------------------------------------
 
   /**
    * Cancels an active approval workflow for a policy.
@@ -315,9 +310,7 @@ export class PolicyApprovalService {
     return updatedPolicy;
   }
 
-  // -------------------------------------------------------------------------
   // GET APPROVAL STATUS
-  // -------------------------------------------------------------------------
 
   /**
    * Gets the current approval status for a policy.
@@ -409,9 +402,7 @@ export class PolicyApprovalService {
     };
   }
 
-  // -------------------------------------------------------------------------
   // GET DEFAULT WORKFLOW TEMPLATE
-  // -------------------------------------------------------------------------
 
   /**
    * Gets the default workflow template for policies.
@@ -441,9 +432,7 @@ export class PolicyApprovalService {
     return null;
   }
 
-  // -------------------------------------------------------------------------
   // GET AVAILABLE WORKFLOW TEMPLATES
-  // -------------------------------------------------------------------------
 
   /**
    * Gets all workflow templates available for policy approval.
@@ -467,9 +456,7 @@ export class PolicyApprovalService {
     return templates;
   }
 
-  // -------------------------------------------------------------------------
   // PRIVATE HELPERS
-  // -------------------------------------------------------------------------
 
   /**
    * Emits an event safely, catching and logging any errors.

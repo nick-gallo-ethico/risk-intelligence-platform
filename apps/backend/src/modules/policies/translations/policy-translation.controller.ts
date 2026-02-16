@@ -1,16 +1,15 @@
-// =============================================================================
-// POLICY TRANSLATION CONTROLLER - REST API for translation management
-// =============================================================================
-//
-// Endpoints:
-// - POST /policies/versions/:versionId/translations - Create translation
-// - GET /policies/versions/:versionId/translations - Get translations for version
-// - PUT /policies/translations/:id - Update translation content
-// - POST /policies/translations/:id/review - Review translation
-// - POST /policies/translations/:id/refresh - Re-translate stale translation
-// - GET /policies/translations/stale - Get all stale translations
-// - GET /policies/translations/languages - Get available languages
-// =============================================================================
+/**
+ * Policy Translation Controller - REST API for translation management
+ *
+ * Endpoints:
+ * - POST /policies/versions/:versionId/translations - Create translation
+ * - GET /policies/versions/:versionId/translations - Get translations for version
+ * - PUT /policies/translations/:id - Update translation content
+ * - POST /policies/translations/:id/review - Review translation
+ * - POST /policies/translations/:id/refresh - Re-translate stale translation
+ * - GET /policies/translations/stale - Get all stale translations
+ * - GET /policies/translations/languages - Get available languages
+ */
 
 import {
   Controller,
@@ -56,9 +55,7 @@ export class PolicyTranslationController {
     private readonly policyTranslationService: PolicyTranslationService,
   ) {}
 
-  // =========================================================================
   // CREATE TRANSLATION
-  // =========================================================================
 
   /**
    * Create a translation for a policy version.
@@ -104,9 +101,7 @@ export class PolicyTranslationController {
     return this.policyTranslationService.translate(dto, userId, organizationId);
   }
 
-  // =========================================================================
   // GET TRANSLATIONS BY VERSION
-  // =========================================================================
 
   /**
    * Get all translations for a policy version.
@@ -141,9 +136,7 @@ export class PolicyTranslationController {
     );
   }
 
-  // =========================================================================
   // UPDATE TRANSLATION
-  // =========================================================================
 
   /**
    * Update an existing translation's content.
@@ -184,9 +177,7 @@ export class PolicyTranslationController {
     );
   }
 
-  // =========================================================================
   // REVIEW TRANSLATION
-  // =========================================================================
 
   /**
    * Review a translation, changing its review status.
@@ -225,9 +216,7 @@ export class PolicyTranslationController {
     );
   }
 
-  // =========================================================================
   // REFRESH STALE TRANSLATION
-  // =========================================================================
 
   /**
    * Re-translate a stale translation using AI.
@@ -272,9 +261,7 @@ export class PolicyTranslationController {
     );
   }
 
-  // =========================================================================
   // GET STALE TRANSLATIONS
-  // =========================================================================
 
   /**
    * Get all stale translations for the organization.
@@ -293,9 +280,7 @@ export class PolicyTranslationController {
     return this.policyTranslationService.findStale(organizationId);
   }
 
-  // =========================================================================
   // GET AVAILABLE LANGUAGES
-  // =========================================================================
 
   /**
    * Get list of available languages for translation.

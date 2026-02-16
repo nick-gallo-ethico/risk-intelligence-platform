@@ -17,13 +17,13 @@ import {
   Min,
   Max,
   Matches,
-} from 'class-validator';
-import { Type } from 'class-transformer';
+} from "class-validator";
+import { Type } from "class-transformer";
 import {
   NotificationChannel,
   NotificationType,
   PreferenceSettings,
-} from '../entities/notification.types';
+} from "../entities/notification.types";
 
 // Enum values for validation
 const NOTIFICATION_CHANNELS = Object.values(NotificationChannel);
@@ -76,14 +76,14 @@ export class UpdatePreferencesDto {
   @IsString()
   @IsOptional()
   @Matches(/^([01]\d|2[0-3]):([0-5]\d)$/, {
-    message: 'quietHoursStart must be in HH:MM format (24-hour)',
+    message: "quietHoursStart must be in HH:MM format (24-hour)",
   })
   quietHoursStart?: string;
 
   @IsString()
   @IsOptional()
   @Matches(/^([01]\d|2[0-3]):([0-5]\d)$/, {
-    message: 'quietHoursEnd must be in HH:MM format (24-hour)',
+    message: "quietHoursEnd must be in HH:MM format (24-hour)",
   })
   quietHoursEnd?: string;
 
@@ -135,7 +135,7 @@ export class NotificationQueryDto {
  */
 export class MarkReadDto {
   @IsArray()
-  @IsUUID('4', { each: true })
+  @IsUUID("4", { each: true })
   notificationIds: string[];
 }
 
@@ -144,7 +144,7 @@ export class MarkReadDto {
  */
 export class ArchiveNotificationsDto {
   @IsArray()
-  @IsUUID('4', { each: true })
+  @IsUUID("4", { each: true })
   notificationIds: string[];
 }
 
@@ -160,21 +160,21 @@ export class UpdateOrgNotificationSettingsDto {
   @IsString()
   @IsOptional()
   @Matches(/^([01]\d|2[0-3]):([0-5]\d)$/, {
-    message: 'defaultQuietHoursStart must be in HH:MM format (24-hour)',
+    message: "defaultQuietHoursStart must be in HH:MM format (24-hour)",
   })
   defaultQuietHoursStart?: string;
 
   @IsString()
   @IsOptional()
   @Matches(/^([01]\d|2[0-3]):([0-5]\d)$/, {
-    message: 'defaultQuietHoursEnd must be in HH:MM format (24-hour)',
+    message: "defaultQuietHoursEnd must be in HH:MM format (24-hour)",
   })
   defaultQuietHoursEnd?: string;
 
   @IsString()
   @IsOptional()
   @Matches(/^([01]\d|2[0-3]):([0-5]\d)$/, {
-    message: 'digestTime must be in HH:MM format (24-hour)',
+    message: "digestTime must be in HH:MM format (24-hour)",
   })
   digestTime?: string;
 }

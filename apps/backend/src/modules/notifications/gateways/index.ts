@@ -4,4 +4,4 @@
  * Re-exports all notification WebSocket gateways.
  */
 
-export { NotificationGateway } from './notification.gateway';
+export { NotificationGateway } from "./notification.gateway";

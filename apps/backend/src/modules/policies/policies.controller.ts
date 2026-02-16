@@ -59,9 +59,7 @@ export class PoliciesController {
     private readonly excelExportService: ExcelExportService,
   ) {}
 
-  // =========================================================================
   // CREATE
-  // =========================================================================
 
   /**
    * POST /api/v1/policies
@@ -95,9 +93,7 @@ export class PoliciesController {
     return this.policiesService.create(dto, user.id, organizationId);
   }
 
-  // =========================================================================
   // READ
-  // =========================================================================
 
   /**
    * GET /api/v1/policies
@@ -139,9 +135,7 @@ export class PoliciesController {
     return this.policiesService.findByIdOrFail(id, organizationId);
   }
 
-  // =========================================================================
   // UPDATE
-  // =========================================================================
 
   /**
    * PUT /api/v1/policies/:id
@@ -177,9 +171,7 @@ export class PoliciesController {
     return this.policiesService.updateDraft(id, dto, user.id, organizationId);
   }
 
-  // =========================================================================
   // PUBLISH
-  // =========================================================================
 
   /**
    * POST /api/v1/policies/:id/publish
@@ -212,9 +204,7 @@ export class PoliciesController {
     return this.policiesService.publish(id, dto, user.id, organizationId);
   }
 
-  // =========================================================================
   // RETIRE
-  // =========================================================================
 
   /**
    * POST /api/v1/policies/:id/retire
@@ -242,9 +232,7 @@ export class PoliciesController {
     return this.policiesService.retire(id, user.id, organizationId);
   }
 
-  // =========================================================================
   // VERSIONS
-  // =========================================================================
 
   /**
    * GET /api/v1/policies/:id/versions
@@ -287,9 +275,7 @@ export class PoliciesController {
     return this.policiesService.getVersion(versionId, organizationId);
   }
 
-  // =========================================================================
   // EXPORT
-  // =========================================================================
 
   /**
    * POST /api/v1/policies/export

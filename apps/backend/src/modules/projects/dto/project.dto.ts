@@ -12,9 +12,7 @@ import {
   ProjectColumnType,
 } from "@prisma/client";
 
-// ===========================================
 // Response DTOs
-// ===========================================
 
 /**
  * Response DTO for project group data.
@@ -91,9 +89,7 @@ export class ProjectDetailResponseDto extends MilestoneResponseDto {
   tasks?: ProjectTaskSummaryDto[];
 }
 
-// ===========================================
 // Query DTOs
-// ===========================================
 
 /**
  * Query DTO for listing projects with filtering.

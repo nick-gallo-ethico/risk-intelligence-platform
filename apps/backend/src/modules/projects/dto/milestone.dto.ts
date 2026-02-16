@@ -18,9 +18,7 @@ import {
   MilestoneItemType,
 } from "@prisma/client";
 
-// ===========================================
 // Create DTOs
-// ===========================================
 
 /**
  * DTO for creating a milestone item within a milestone.
@@ -82,9 +80,7 @@ export class CreateMilestoneDto {
   items?: CreateMilestoneItemDto[];
 }
 
-// ===========================================
 // Update DTOs
-// ===========================================
 
 /**
  * DTO for updating a milestone.
@@ -148,9 +144,7 @@ export class UpdateMilestoneItemDto {
   customTitle?: string;
 }
 
-// ===========================================
 // Query DTOs
-// ===========================================
 
 /**
  * DTO for querying milestones with filtering and pagination.
@@ -192,9 +186,7 @@ export class MilestoneQueryDto {
   limit?: number = 20;
 }
 
-// ===========================================
 // Response DTOs
-// ===========================================
 
 /**
  * Response DTO for milestone item data.

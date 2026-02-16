@@ -1,19 +1,18 @@
-// =============================================================================
-// POLICY WORKFLOW LISTENER - Syncs workflow events to policy status
-// =============================================================================
-//
-// This listener subscribes to workflow events and updates policy status
-// accordingly. It ensures policy status stays in sync with workflow state.
-//
-// EVENT MAPPINGS:
-// - workflow.completed (POLICY) -> Policy status = APPROVED
-// - workflow.cancelled (POLICY) -> Policy status = DRAFT
-//
-// KEY BEHAVIORS:
-// - All handlers check entityType === 'POLICY' before processing
-// - Errors are caught and logged, not thrown (per project pattern)
-// - All changes emit policy-specific events for downstream consumers
-// =============================================================================
+/**
+ * Policy Workflow Listener - Syncs workflow events to policy status
+ *
+ * This listener subscribes to workflow events and updates policy status
+ * accordingly. It ensures policy status stays in sync with workflow state.
+ *
+ * EVENT MAPPINGS:
+ * - workflow.completed (POLICY) -> Policy status = APPROVED
+ * - workflow.cancelled (POLICY) -> Policy status = DRAFT
+ *
+ * KEY BEHAVIORS:
+ * - All handlers check entityType === 'POLICY' before processing
+ * - Errors are caught and logged, not thrown (per project pattern)
+ * - All changes emit policy-specific events for downstream consumers
+ */
 
 import { Injectable, Logger } from "@nestjs/common";
 import { OnEvent } from "@nestjs/event-emitter";
@@ -96,9 +95,7 @@ export class PolicyWorkflowListener {
     private auditService: AuditService,
   ) {}
 
-  // -------------------------------------------------------------------------
   // WORKFLOW COMPLETED - Policy approved
-  // -------------------------------------------------------------------------
 
   /**
    * Handles workflow completion for policies.
@@ -179,9 +176,7 @@ export class PolicyWorkflowListener {
     }
   }
 
-  // -------------------------------------------------------------------------
   // WORKFLOW CANCELLED - Policy returned to draft
-  // -------------------------------------------------------------------------
 
   /**
    * Handles workflow cancellation for policies.
@@ -266,9 +261,7 @@ export class PolicyWorkflowListener {
     }
   }
 
-  // -------------------------------------------------------------------------
   // WORKFLOW TRANSITIONED - Log step progress
-  // -------------------------------------------------------------------------
 
   /**
    * Handles workflow transitions for policies.
@@ -342,9 +335,7 @@ export class PolicyWorkflowListener {
     }
   }
 
-  // -------------------------------------------------------------------------
   // PRIVATE HELPERS
-  // -------------------------------------------------------------------------
 
   /**
    * Emits an event safely, catching and logging any errors.

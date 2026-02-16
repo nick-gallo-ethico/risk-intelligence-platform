@@ -10,8 +10,8 @@
  * Mirrors Prisma NotificationChannel enum.
  */
 export const NotificationChannel = {
-  EMAIL: 'EMAIL',
-  IN_APP: 'IN_APP',
+  EMAIL: "EMAIL",
+  IN_APP: "IN_APP",
 } as const;
 
 export type NotificationChannel =
@@ -22,16 +22,16 @@ export type NotificationChannel =
  * Mirrors Prisma NotificationType enum.
  */
 export const NotificationType = {
-  ASSIGNMENT: 'ASSIGNMENT',
-  DEADLINE: 'DEADLINE',
-  APPROVAL: 'APPROVAL',
-  MENTION: 'MENTION',
-  INTERVIEW: 'INTERVIEW',
-  STATUS_UPDATE: 'STATUS_UPDATE',
-  COMMENT: 'COMMENT',
-  COMPLETION: 'COMPLETION',
-  ESCALATION: 'ESCALATION',
-  DIGEST: 'DIGEST',
+  ASSIGNMENT: "ASSIGNMENT",
+  DEADLINE: "DEADLINE",
+  APPROVAL: "APPROVAL",
+  MENTION: "MENTION",
+  INTERVIEW: "INTERVIEW",
+  STATUS_UPDATE: "STATUS_UPDATE",
+  COMMENT: "COMMENT",
+  COMPLETION: "COMPLETION",
+  ESCALATION: "ESCALATION",
+  DIGEST: "DIGEST",
 } as const;
 
 export type NotificationType =
@@ -42,12 +42,12 @@ export type NotificationType =
  * Mirrors Prisma NotificationStatus enum.
  */
 export const NotificationStatus = {
-  QUEUED: 'QUEUED',
-  SENT: 'SENT',
-  DELIVERED: 'DELIVERED',
-  FAILED: 'FAILED',
-  READ: 'READ',
-  ARCHIVED: 'ARCHIVED',
+  QUEUED: "QUEUED",
+  SENT: "SENT",
+  DELIVERED: "DELIVERED",
+  FAILED: "FAILED",
+  READ: "READ",
+  ARCHIVED: "ARCHIVED",
 } as const;
 
 export type NotificationStatus =
@@ -58,12 +58,12 @@ export type NotificationStatus =
  * Mirrors Prisma DeliveryStatus enum.
  */
 export const DeliveryStatus = {
-  PENDING: 'PENDING',
-  SENT: 'SENT',
-  DELIVERED: 'DELIVERED',
-  BOUNCED: 'BOUNCED',
-  FAILED: 'FAILED',
-  DEFERRED: 'DEFERRED',
+  PENDING: "PENDING",
+  SENT: "SENT",
+  DELIVERED: "DELIVERED",
+  BOUNCED: "BOUNCED",
+  FAILED: "FAILED",
+  DEFERRED: "DEFERRED",
 } as const;
 
 export type DeliveryStatus =
@@ -74,15 +74,15 @@ export type DeliveryStatus =
  * Maps to NotificationType but grouped by user-facing category.
  */
 export type NotificationCategory =
-  | 'ASSIGNMENT' // Task/case assigned
-  | 'DEADLINE' // SLA warnings, due dates
-  | 'APPROVAL' // Approval requests
-  | 'MENTION' // @mentioned in comments
-  | 'INTERVIEW' // Interview scheduling
-  | 'STATUS_UPDATE' // Entity status changes
-  | 'COMMENT' // New comments
-  | 'COMPLETION' // Task/investigation complete
-  | 'ESCALATION'; // SLA breach escalation
+  | "ASSIGNMENT" // Task/case assigned
+  | "DEADLINE" // SLA warnings, due dates
+  | "APPROVAL" // Approval requests
+  | "MENTION" // @mentioned in comments
+  | "INTERVIEW" // Interview scheduling
+  | "STATUS_UPDATE" // Entity status changes
+  | "COMMENT" // New comments
+  | "COMPLETION" // Task/investigation complete
+  | "ESCALATION"; // SLA breach escalation
 
 /**
  * User preference settings for each notification category.
@@ -123,21 +123,21 @@ export const DEFAULT_PREFERENCES: PreferenceSettings = {
  * Per CONTEXT.md: assignments, SLA warnings, mentions, approvals, escalations
  */
 export const REAL_TIME_CATEGORIES: NotificationCategory[] = [
-  'ASSIGNMENT',
-  'DEADLINE',
-  'APPROVAL',
-  'MENTION',
-  'INTERVIEW',
-  'ESCALATION',
+  "ASSIGNMENT",
+  "DEADLINE",
+  "APPROVAL",
+  "MENTION",
+  "INTERVIEW",
+  "ESCALATION",
 ];
 
 /**
  * Categories that can be batched into daily digest.
  */
 export const DIGEST_CATEGORIES: NotificationCategory[] = [
-  'STATUS_UPDATE',
-  'COMMENT',
-  'COMPLETION',
+  "STATUS_UPDATE",
+  "COMMENT",
+  "COMPLETION",
 ];
 
 /**

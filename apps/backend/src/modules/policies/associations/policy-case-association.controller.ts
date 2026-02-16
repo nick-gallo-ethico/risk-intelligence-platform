@@ -53,9 +53,7 @@ export class PolicyCaseAssociationController {
     private readonly associationService: PolicyCaseAssociationService,
   ) {}
 
-  // =========================================================================
   // CREATE
-  // =========================================================================
 
   /**
    * POST /api/v1/policy-case-associations
@@ -95,9 +93,7 @@ export class PolicyCaseAssociationController {
     return this.associationService.create(dto, user.id, organizationId);
   }
 
-  // =========================================================================
   // READ
-  // =========================================================================
 
   /**
    * GET /api/v1/policy-case-associations
@@ -219,9 +215,7 @@ export class PolicyCaseAssociationController {
     return this.associationService.findByCase(caseId, organizationId);
   }
 
-  // =========================================================================
   // STATISTICS
-  // =========================================================================
 
   /**
    * GET /api/v1/policy-case-associations/violation-stats
@@ -252,9 +246,7 @@ export class PolicyCaseAssociationController {
     });
   }
 
-  // =========================================================================
   // UPDATE
-  // =========================================================================
 
   /**
    * PUT /api/v1/policy-case-associations/:id
@@ -287,9 +279,7 @@ export class PolicyCaseAssociationController {
     return this.associationService.update(id, dto, user.id, organizationId);
   }
 
-  // =========================================================================
   // DELETE
-  // =========================================================================
 
   /**
    * DELETE /api/v1/policy-case-associations/:id

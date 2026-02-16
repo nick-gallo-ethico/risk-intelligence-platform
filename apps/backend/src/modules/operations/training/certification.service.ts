@@ -375,9 +375,7 @@ export class CertificationService {
     return this.toCertificateResponse(certificate);
   }
 
-  // ========================
   // Private Helper Methods
-  // ========================
 
   /**
    * Check if a quiz answer is correct.

@@ -24,23 +24,34 @@ import {
   HttpStatus,
   ForbiddenException,
   Logger,
-} from '@nestjs/common';
+} from "@nestjs/common";
 import {
   ApiTags,
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
-} from '@nestjs/swagger';
-import { JwtAuthGuard, TenantGuard, RolesGuard } from '../../../common/guards';
-import { CurrentUser, TenantId, Roles, UserRole } from '../../../common/decorators';
-import { PreferenceService, UserPreferences } from '../services/preference.service';
-import { OrgNotificationSettingsService, OrgNotificationSettings } from '../services/org-settings.service';
+} from "@nestjs/swagger";
+import { JwtAuthGuard, TenantGuard, RolesGuard } from "../../../common/guards";
+import {
+  CurrentUser,
+  TenantId,
+  Roles,
+  UserRole,
+} from "../../../common/decorators";
+import {
+  PreferenceService,
+  UserPreferences,
+} from "../services/preference.service";
+import {
+  OrgNotificationSettingsService,
+  OrgNotificationSettings,
+} from "../services/org-settings.service";
 import {
   UpdatePreferencesDto,
   UpdateOrgNotificationSettingsDto,
   PreferencesResponseDto,
-} from '../dto/notification.dto';
-import { IsString, IsUUID, IsDateString } from 'class-validator';
+} from "../dto/notification.dto";
+import { IsString, IsUUID, IsDateString } from "class-validator";
 
 /**
  * DTO for setting out-of-office status.
@@ -82,8 +93,8 @@ interface JwtUser {
   role: string;
 }
 
-@Controller('notifications/preferences')
-@ApiTags('Notification Preferences')
+@Controller("notifications/preferences")
+@ApiTags("Notification Preferences")
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, TenantGuard)
 export class PreferencesController {
@@ -101,10 +112,10 @@ export class PreferencesController {
    * GET /api/v1/notifications/preferences
    */
   @Get()
-  @ApiOperation({ summary: 'Get user notification preferences' })
+  @ApiOperation({ summary: "Get user notification preferences" })
   @ApiResponse({
     status: 200,
-    description: 'User preferences with enforced categories',
+    description: "User preferences with enforced categories",
     type: PreferencesResponseDto,
   })
   async getPreferences(
@@ -122,7 +133,10 @@ export class PreferencesController {
       userPrefs.quietHoursStart && userPrefs.quietHoursEnd
         ? { start: userPrefs.quietHoursStart, end: userPrefs.quietHoursEnd }
         : orgSettings.defaultQuietHoursStart && orgSettings.defaultQuietHoursEnd
-          ? { start: orgSettings.defaultQuietHoursStart, end: orgSettings.defaultQuietHoursEnd }
+          ? {
+              start: orgSettings.defaultQuietHoursStart,
+              end: orgSettings.defaultQuietHoursEnd,
+            }
           : undefined;
 
     return {
@@ -144,17 +158,21 @@ export class PreferencesController {
    */
   @Put()
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Update user notification preferences' })
+  @ApiOperation({ summary: "Update user notification preferences" })
   @ApiResponse({
     status: 200,
-    description: 'Preferences updated successfully',
+    description: "Preferences updated successfully",
   })
   async updatePreferences(
     @CurrentUser() user: JwtUser,
     @TenantId() organizationId: string,
     @Body() dto: UpdatePreferencesDto,
   ): Promise<{ success: boolean }> {
-    await this.preferenceService.updatePreferences(user.id, organizationId, dto);
+    await this.preferenceService.updatePreferences(
+      user.id,
+      organizationId,
+      dto,
+    );
 
     this.logger.log(`Updated preferences for user ${user.id}`);
 
@@ -167,15 +185,15 @@ export class PreferencesController {
    *
    * POST /api/v1/notifications/preferences/ooo
    */
-  @Post('ooo')
+  @Post("ooo")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Set out-of-office status' })
+  @ApiOperation({ summary: "Set out-of-office status" })
   @ApiResponse({
     status: 200,
-    description: 'OOO status set successfully',
+    description: "OOO status set successfully",
     type: OOOResponseDto,
   })
-  @ApiResponse({ status: 400, description: 'Invalid backup user' })
+  @ApiResponse({ status: 400, description: "Invalid backup user" })
   async setOOO(
     @CurrentUser() user: JwtUser,
     @TenantId() organizationId: string,
@@ -206,12 +224,12 @@ export class PreferencesController {
    *
    * DELETE /api/v1/notifications/preferences/ooo
    */
-  @Delete('ooo')
+  @Delete("ooo")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Clear out-of-office status' })
+  @ApiOperation({ summary: "Clear out-of-office status" })
   @ApiResponse({
     status: 200,
-    description: 'OOO status cleared',
+    description: "OOO status cleared",
     type: OOOResponseDto,
   })
   async clearOOO(
@@ -231,11 +249,11 @@ export class PreferencesController {
    *
    * GET /api/v1/notifications/preferences/org-settings
    */
-  @Get('org-settings')
-  @ApiOperation({ summary: 'Get organization notification settings' })
+  @Get("org-settings")
+  @ApiOperation({ summary: "Get organization notification settings" })
   @ApiResponse({
     status: 200,
-    description: 'Organization notification settings',
+    description: "Organization notification settings",
     type: OrgSettingsResponseDto,
   })
   async getOrgSettings(
@@ -257,16 +275,21 @@ export class PreferencesController {
    *
    * PUT /api/v1/notifications/preferences/org-settings
    */
-  @Put('org-settings')
+  @Put("org-settings")
   @HttpCode(HttpStatus.OK)
   @UseGuards(RolesGuard)
   @Roles(UserRole.SYSTEM_ADMIN)
-  @ApiOperation({ summary: 'Update organization notification settings (admin only)' })
+  @ApiOperation({
+    summary: "Update organization notification settings (admin only)",
+  })
   @ApiResponse({
     status: 200,
-    description: 'Settings updated successfully',
+    description: "Settings updated successfully",
   })
-  @ApiResponse({ status: 403, description: 'Forbidden - requires SYSTEM_ADMIN role' })
+  @ApiResponse({
+    status: 403,
+    description: "Forbidden - requires SYSTEM_ADMIN role",
+  })
   async updateOrgSettings(
     @CurrentUser() user: JwtUser,
     @TenantId() organizationId: string,
@@ -274,7 +297,9 @@ export class PreferencesController {
   ): Promise<{ success: boolean }> {
     // Double-check role (belt and suspenders with RolesGuard)
     if (user.role !== UserRole.SYSTEM_ADMIN) {
-      throw new ForbiddenException('Only SYSTEM_ADMIN can update organization settings');
+      throw new ForbiddenException(
+        "Only SYSTEM_ADMIN can update organization settings",
+      );
     }
 
     await this.orgSettingsService.updateSettings(organizationId, dto);

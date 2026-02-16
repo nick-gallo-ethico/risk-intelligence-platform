@@ -22,9 +22,7 @@ import {
 } from "./dto/association.dto";
 import { BaseEvent } from "../../events/events/base.event";
 
-// ===========================================
 // Events
-// ===========================================
 
 /**
  * Emitted when a policy is linked to a case.
@@ -89,9 +87,7 @@ export class PolicyUnlinkedFromCaseEvent extends BaseEvent {
   }
 }
 
-// ===========================================
 // Service
-// ===========================================
 
 /**
  * Service for managing policy-to-case associations.
@@ -113,9 +109,7 @@ export class PolicyCaseAssociationService {
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
-  // =========================================================================
   // CREATE
-  // =========================================================================
 
   /**
    * Creates a policy-to-case association.
@@ -307,9 +301,7 @@ export class PolicyCaseAssociationService {
     return association;
   }
 
-  // =========================================================================
   // UPDATE
-  // =========================================================================
 
   /**
    * Updates a policy-case association.
@@ -434,9 +426,7 @@ export class PolicyCaseAssociationService {
     return updated;
   }
 
-  // =========================================================================
   // DELETE
-  // =========================================================================
 
   /**
    * Deletes a policy-case association.
@@ -515,9 +505,7 @@ export class PolicyCaseAssociationService {
     this.logger.log(`Deleted policy-case association: ${id}`);
   }
 
-  // =========================================================================
   // READ
-  // =========================================================================
 
   /**
    * Finds all associations for a policy.
@@ -771,9 +759,7 @@ export class PolicyCaseAssociationService {
     return { data, total };
   }
 
-  // =========================================================================
   // STATISTICS
-  // =========================================================================
 
   /**
    * Returns violation statistics aggregated by policy.
@@ -858,9 +844,7 @@ export class PolicyCaseAssociationService {
       .filter((item): item is ViolationStatItem => item !== null);
   }
 
-  // =========================================================================
   // HELPER METHODS
-  // =========================================================================
 
   /**
    * Safely emits an event. Failures are logged but don't crash the request.

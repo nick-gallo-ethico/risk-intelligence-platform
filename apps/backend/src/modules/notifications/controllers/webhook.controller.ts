@@ -25,17 +25,17 @@ import {
   HttpCode,
   Logger,
   BadRequestException,
-} from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { ApiTags, ApiOperation, ApiResponse, ApiBody } from '@nestjs/swagger';
-import { Throttle } from '@nestjs/throttler';
-import * as crypto from 'crypto';
+} from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { ApiTags, ApiOperation, ApiResponse, ApiBody } from "@nestjs/swagger";
+import { Throttle } from "@nestjs/throttler";
+import * as crypto from "crypto";
 import {
   DeliveryTrackerService,
   WebhookEvent,
   WebhookEventType,
   BounceType,
-} from '../services/delivery-tracker.service';
+} from "../services/delivery-tracker.service";
 
 /**
  * SendGrid event payload structure.
@@ -54,13 +54,13 @@ interface SendGridEvent {
  * AWS SES notification structure (via SNS).
  */
 interface SesNotification {
-  notificationType: 'Bounce' | 'Complaint' | 'Delivery';
+  notificationType: "Bounce" | "Complaint" | "Delivery";
   mail: {
     messageId: string;
     destination: string[];
   };
   bounce?: {
-    bounceType: 'Permanent' | 'Transient';
+    bounceType: "Permanent" | "Transient";
     bounceSubType: string;
     bouncedRecipients: Array<{
       emailAddress: string;
@@ -85,8 +85,8 @@ class SendGridWebhookDto {
   events: SendGridEvent[];
 }
 
-@Controller('webhooks')
-@ApiTags('Webhooks')
+@Controller("webhooks")
+@ApiTags("Webhooks")
 export class WebhookController {
   private readonly logger = new Logger(WebhookController.name);
   private readonly sendGridSigningKey: string | undefined;
@@ -96,14 +96,19 @@ export class WebhookController {
     private readonly deliveryTracker: DeliveryTrackerService,
     private readonly configService: ConfigService,
   ) {
-    this.sendGridSigningKey = this.configService.get<string>('SENDGRID_WEBHOOK_SIGNING_KEY');
-    this.sesVerificationEnabled = this.configService.get<boolean>('SES_WEBHOOK_VERIFY', false);
+    this.sendGridSigningKey = this.configService.get<string>(
+      "SENDGRID_WEBHOOK_SIGNING_KEY",
+    );
+    this.sesVerificationEnabled = this.configService.get<boolean>(
+      "SES_WEBHOOK_VERIFY",
+      false,
+    );
 
     if (this.sendGridSigningKey) {
-      this.logger.log('SendGrid webhook signature verification enabled');
+      this.logger.log("SendGrid webhook signature verification enabled");
     }
     if (this.sesVerificationEnabled) {
-      this.logger.log('SES webhook verification enabled');
+      this.logger.log("SES webhook verification enabled");
     }
   }
 
@@ -113,24 +118,28 @@ export class WebhookController {
    *
    * @see https://docs.sendgrid.com/for-developers/tracking-events/event
    */
-  @Post('email-events')
+  @Post("email-events")
   @HttpCode(200)
   @Throttle({ default: { ttl: 60000, limit: 100 } }) // 100 events per minute
-  @ApiOperation({ summary: 'Receive email delivery events from SendGrid' })
+  @ApiOperation({ summary: "Receive email delivery events from SendGrid" })
   @ApiBody({ type: SendGridWebhookDto })
-  @ApiResponse({ status: 200, description: 'Events processed successfully' })
-  @ApiResponse({ status: 400, description: 'Invalid payload or signature' })
+  @ApiResponse({ status: 200, description: "Events processed successfully" })
+  @ApiResponse({ status: 400, description: "Invalid payload or signature" })
   async handleSendGridEvents(
     @Body() events: SendGridEvent[],
-    @Headers('x-twilio-email-event-webhook-signature') signature?: string,
-    @Headers('x-twilio-email-event-webhook-timestamp') timestamp?: string,
+    @Headers("x-twilio-email-event-webhook-signature") signature?: string,
+    @Headers("x-twilio-email-event-webhook-timestamp") timestamp?: string,
   ): Promise<{ processed: number; errors: number }> {
     // Verify signature if configured
     if (this.sendGridSigningKey && signature && timestamp) {
-      const isValid = this.verifySendGridSignature(events, signature, timestamp);
+      const isValid = this.verifySendGridSignature(
+        events,
+        signature,
+        timestamp,
+      );
       if (!isValid) {
-        this.logger.warn('Invalid SendGrid webhook signature');
-        throw new BadRequestException('Invalid webhook signature');
+        this.logger.warn("Invalid SendGrid webhook signature");
+        throw new BadRequestException("Invalid webhook signature");
       }
     }
 
@@ -156,7 +165,9 @@ export class WebhookController {
 
     await Promise.all(processPromises);
 
-    this.logger.log(`Processed ${processed} SendGrid events (${errors} errors)`);
+    this.logger.log(
+      `Processed ${processed} SendGrid events (${errors} errors)`,
+    );
 
     return { processed, errors };
   }
@@ -167,26 +178,30 @@ export class WebhookController {
    *
    * @see https://docs.aws.amazon.com/ses/latest/dg/event-publishing-retrieving-sns-examples.html
    */
-  @Post('ses-events')
+  @Post("ses-events")
   @HttpCode(200)
   @Throttle({ default: { ttl: 60000, limit: 100 } }) // 100 events per minute
-  @ApiOperation({ summary: 'Receive email delivery events from AWS SES via SNS' })
-  @ApiResponse({ status: 200, description: 'Event processed successfully' })
-  @ApiResponse({ status: 400, description: 'Invalid payload' })
+  @ApiOperation({
+    summary: "Receive email delivery events from AWS SES via SNS",
+  })
+  @ApiResponse({ status: 200, description: "Event processed successfully" })
+  @ApiResponse({ status: 400, description: "Invalid payload" })
   async handleSesEvents(
     @Body() body: unknown,
-    @Headers('x-amz-sns-message-type') messageType?: string,
+    @Headers("x-amz-sns-message-type") messageType?: string,
   ): Promise<{ status: string }> {
     // Handle SNS subscription confirmation
-    if (messageType === 'SubscriptionConfirmation') {
-      this.logger.log('SNS subscription confirmation request - manual confirmation required');
-      return { status: 'subscription_confirmation_required' };
+    if (messageType === "SubscriptionConfirmation") {
+      this.logger.log(
+        "SNS subscription confirmation request - manual confirmation required",
+      );
+      return { status: "subscription_confirmation_required" };
     }
 
     // Parse SNS notification
-    if (messageType !== 'Notification') {
+    if (messageType !== "Notification") {
       this.logger.debug(`Ignoring SNS message type: ${messageType}`);
-      return { status: 'ignored' };
+      return { status: "ignored" };
     }
 
     try {
@@ -198,13 +213,13 @@ export class WebhookController {
         await this.deliveryTracker.processWebhookEvent(normalizedEvent);
       }
 
-      return { status: 'processed' };
+      return { status: "processed" };
     } catch (error) {
       this.logger.error(
         `Error processing SES event: ${error instanceof Error ? error.message : String(error)}`,
         { body },
       );
-      throw new BadRequestException('Invalid SES notification payload');
+      throw new BadRequestException("Invalid SES notification payload");
     }
   }
 
@@ -225,9 +240,9 @@ export class WebhookController {
     try {
       const payload = JSON.stringify(events) + timestamp;
       const expectedSignature = crypto
-        .createHmac('sha256', this.sendGridSigningKey)
+        .createHmac("sha256", this.sendGridSigningKey)
         .update(payload)
-        .digest('base64');
+        .digest("base64");
 
       return crypto.timingSafeEqual(
         Buffer.from(signature),
@@ -244,14 +259,14 @@ export class WebhookController {
   private normalizeSendGridEvent(event: SendGridEvent): WebhookEvent | null {
     // Map SendGrid event types to our normalized types
     const eventTypeMap: Record<string, WebhookEventType | null> = {
-      delivered: 'delivered',
-      bounce: 'bounce',
-      dropped: 'dropped',
-      deferred: 'deferred',
-      open: 'open',
-      click: 'click',
-      spamreport: 'spam_report',
-      unsubscribe: 'unsubscribe',
+      delivered: "delivered",
+      bounce: "bounce",
+      dropped: "dropped",
+      deferred: "deferred",
+      open: "open",
+      click: "click",
+      spamreport: "spam_report",
+      unsubscribe: "unsubscribe",
       processed: null, // We track sent via our own processor
       group_unsubscribe: null,
       group_resubscribe: null,
@@ -264,16 +279,22 @@ export class WebhookController {
 
     // Map bounce classification to our type
     let bounceType: BounceType | undefined;
-    if (event.event === 'bounce') {
-      const classification = event.bounce_classification || event.type || '';
-      if (classification.includes('hard') || classification.includes('invalid')) {
-        bounceType = 'hard';
-      } else if (classification.includes('soft') || classification.includes('full')) {
-        bounceType = 'soft';
-      } else if (classification.includes('block')) {
-        bounceType = 'blocked';
+    if (event.event === "bounce") {
+      const classification = event.bounce_classification || event.type || "";
+      if (
+        classification.includes("hard") ||
+        classification.includes("invalid")
+      ) {
+        bounceType = "hard";
+      } else if (
+        classification.includes("soft") ||
+        classification.includes("full")
+      ) {
+        bounceType = "soft";
+      } else if (classification.includes("block")) {
+        bounceType = "blocked";
       } else {
-        bounceType = 'unknown';
+        bounceType = "unknown";
       }
     }
 
@@ -291,29 +312,31 @@ export class WebhookController {
   /**
    * Normalize AWS SES notification to WebhookEvent format.
    */
-  private normalizeSesNotification(notification: SesNotification): WebhookEvent | null {
+  private normalizeSesNotification(
+    notification: SesNotification,
+  ): WebhookEvent | null {
     const messageId = notification.mail.messageId;
 
     switch (notification.notificationType) {
-      case 'Delivery':
+      case "Delivery":
         return {
-          eventType: 'delivered',
+          eventType: "delivered",
           messageId,
           timestamp: notification.delivery
             ? new Date(notification.delivery.timestamp)
             : new Date(),
         };
 
-      case 'Bounce':
+      case "Bounce":
         if (!notification.bounce) return null;
 
         const bounceType: BounceType =
-          notification.bounce.bounceType === 'Permanent' ? 'hard' : 'soft';
+          notification.bounce.bounceType === "Permanent" ? "hard" : "soft";
 
         const reason = notification.bounce.bouncedRecipients[0]?.diagnosticCode;
 
         return {
-          eventType: 'bounce',
+          eventType: "bounce",
           messageId,
           timestamp: new Date(),
           reason,
@@ -321,9 +344,9 @@ export class WebhookController {
           rawEvent: notification as unknown as Record<string, unknown>,
         };
 
-      case 'Complaint':
+      case "Complaint":
         return {
-          eventType: 'spam_report',
+          eventType: "spam_report",
           messageId,
           timestamp: new Date(),
           rawEvent: notification as unknown as Record<string, unknown>,

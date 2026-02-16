@@ -13,9 +13,7 @@ import { Transform } from "class-transformer";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { PolicyCaseLinkType, PolicyType } from "@prisma/client";
 
-// ===========================================
 // Create Policy-Case Association DTO
-// ===========================================
 
 /**
  * DTO for creating a policy-to-case association.
@@ -74,9 +72,7 @@ export class CreatePolicyCaseAssociationDto {
   violationDate?: string;
 }
 
-// ===========================================
 // Update Policy-Case Association DTO
-// ===========================================
 
 /**
  * DTO for updating a policy-to-case association.
@@ -111,18 +107,14 @@ export class UpdatePolicyCaseAssociationDto {
   violationDate?: string;
 }
 
-// ===========================================
 // Policy-Case Query DTO
-// ===========================================
 
 /**
  * DTO for querying/filtering policy-case associations.
  * Supports pagination, filtering by policy, case, or link type.
  */
 export class PolicyCaseQueryDto {
-  // ===========================================
   // Filters
-  // ===========================================
 
   @ApiPropertyOptional({
     description: "Filter by policy ID",
@@ -149,9 +141,7 @@ export class PolicyCaseQueryDto {
   @IsOptional()
   linkType?: PolicyCaseLinkType;
 
-  // ===========================================
   // Pagination
-  // ===========================================
 
   @ApiPropertyOptional({
     description: "Page number (1-indexed)",
@@ -180,9 +170,7 @@ export class PolicyCaseQueryDto {
   limit?: number = 20;
 }
 
-// ===========================================
 // Violation Stats Query DTO
-// ===========================================
 
 /**
  * DTO for querying violation statistics.
@@ -215,9 +203,7 @@ export class ViolationStatsQueryDto {
   policyType?: PolicyType;
 }
 
-// ===========================================
 // Response Types (for documentation)
-// ===========================================
 
 /**
  * Violation statistics response item.

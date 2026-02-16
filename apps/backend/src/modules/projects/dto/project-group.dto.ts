@@ -9,9 +9,7 @@ import {
   Matches,
 } from "class-validator";
 
-// ===========================================
 // Create DTOs
-// ===========================================
 
 /**
  * DTO for creating a new project group.
@@ -33,9 +31,7 @@ export class CreateProjectGroupDto {
   sortOrder?: number;
 }
 
-// ===========================================
 // Update DTOs
-// ===========================================
 
 /**
  * DTO for updating a project group.

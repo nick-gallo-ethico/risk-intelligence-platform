@@ -27,7 +27,7 @@ import {
   ParseUUIDPipe,
   NotFoundException,
   Logger,
-} from '@nestjs/common';
+} from "@nestjs/common";
 import {
   ApiTags,
   ApiOperation,
@@ -35,17 +35,17 @@ import {
   ApiBearerAuth,
   ApiParam,
   ApiQuery,
-} from '@nestjs/swagger';
-import { JwtAuthGuard, TenantGuard } from '../../../common/guards';
-import { CurrentUser, TenantId } from '../../../common/decorators';
-import { NotificationService } from '../services/notification.service';
+} from "@nestjs/swagger";
+import { JwtAuthGuard, TenantGuard } from "../../../common/guards";
+import { CurrentUser, TenantId } from "../../../common/decorators";
+import { NotificationService } from "../services/notification.service";
 import {
   NotificationQueryDto,
   MarkReadDto,
   NotificationListResponseDto,
   NotificationResponseDto,
-} from '../dto/notification.dto';
-import { NotificationChannel } from '../entities/notification.types';
+} from "../dto/notification.dto";
+import { NotificationChannel } from "../entities/notification.types";
 
 /**
  * Response DTO for unread count.
@@ -79,8 +79,8 @@ interface JwtUser {
   role: string;
 }
 
-@Controller('notifications')
-@ApiTags('Notifications')
+@Controller("notifications")
+@ApiTags("Notifications")
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, TenantGuard)
 export class NotificationsController {
@@ -101,10 +101,10 @@ export class NotificationsController {
    * - offset: Pagination offset
    */
   @Get()
-  @ApiOperation({ summary: 'List user notifications' })
+  @ApiOperation({ summary: "List user notifications" })
   @ApiResponse({
     status: 200,
-    description: 'Paginated list of notifications',
+    description: "Paginated list of notifications",
     type: NotificationListResponseDto,
   })
   async listNotifications(
@@ -134,11 +134,11 @@ export class NotificationsController {
    *
    * GET /api/v1/notifications/unread-count
    */
-  @Get('unread-count')
-  @ApiOperation({ summary: 'Get unread notification count' })
+  @Get("unread-count")
+  @ApiOperation({ summary: "Get unread notification count" })
   @ApiResponse({
     status: 200,
-    description: 'Unread count',
+    description: "Unread count",
     type: UnreadCountResponseDto,
   })
   async getUnreadCount(
@@ -163,20 +163,20 @@ export class NotificationsController {
    * - limit: Max notifications to return (default 20)
    * - since: ISO date string to filter notifications created after this time
    */
-  @Get('recent')
-  @ApiOperation({ summary: 'Get recent notifications (polling fallback)' })
-  @ApiQuery({ name: 'limit', required: false, type: Number })
-  @ApiQuery({ name: 'since', required: false, type: String })
+  @Get("recent")
+  @ApiOperation({ summary: "Get recent notifications (polling fallback)" })
+  @ApiQuery({ name: "limit", required: false, type: Number })
+  @ApiQuery({ name: "since", required: false, type: String })
   @ApiResponse({
     status: 200,
-    description: 'Recent notifications',
+    description: "Recent notifications",
     type: [NotificationResponseDto],
   })
   async getRecentNotifications(
     @CurrentUser() user: JwtUser,
     @TenantId() organizationId: string,
-    @Query('limit') limit?: number,
-    @Query('since') since?: string,
+    @Query("limit") limit?: number,
+    @Query("since") since?: string,
   ): Promise<NotificationResponseDto[]> {
     const sinceDate = since ? new Date(since) : undefined;
     const notifications = await this.notificationService.getRecentNotifications(
@@ -204,12 +204,12 @@ export class NotificationsController {
    *
    * POST /api/v1/notifications/mark-read
    */
-  @Post('mark-read')
+  @Post("mark-read")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Mark notifications as read' })
+  @ApiOperation({ summary: "Mark notifications as read" })
   @ApiResponse({
     status: 200,
-    description: 'Notifications marked as read',
+    description: "Notifications marked as read",
     type: MarkReadResponseDto,
   })
   async markAsRead(
@@ -238,12 +238,12 @@ export class NotificationsController {
    *
    * POST /api/v1/notifications/mark-all-read
    */
-  @Post('mark-all-read')
+  @Post("mark-all-read")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Mark all notifications as read' })
+  @ApiOperation({ summary: "Mark all notifications as read" })
   @ApiResponse({
     status: 200,
-    description: 'All notifications marked as read',
+    description: "All notifications marked as read",
     type: MarkReadResponseDto,
   })
   async markAllAsRead(
@@ -271,20 +271,20 @@ export class NotificationsController {
    *
    * POST /api/v1/notifications/:id/archive
    */
-  @Post(':id/archive')
+  @Post(":id/archive")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Archive a notification' })
-  @ApiParam({ name: 'id', description: 'Notification ID' })
+  @ApiOperation({ summary: "Archive a notification" })
+  @ApiParam({ name: "id", description: "Notification ID" })
   @ApiResponse({
     status: 200,
-    description: 'Notification archived',
+    description: "Notification archived",
     type: ArchiveResponseDto,
   })
-  @ApiResponse({ status: 404, description: 'Notification not found' })
+  @ApiResponse({ status: 404, description: "Notification not found" })
   async archiveNotification(
     @CurrentUser() user: JwtUser,
     @TenantId() organizationId: string,
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param("id", ParseUUIDPipe) id: string,
   ): Promise<ArchiveResponseDto> {
     await this.notificationService.archiveNotification(
       organizationId,
@@ -302,19 +302,19 @@ export class NotificationsController {
    *
    * GET /api/v1/notifications/:id
    */
-  @Get(':id')
-  @ApiOperation({ summary: 'Get a notification by ID' })
-  @ApiParam({ name: 'id', description: 'Notification ID' })
+  @Get(":id")
+  @ApiOperation({ summary: "Get a notification by ID" })
+  @ApiParam({ name: "id", description: "Notification ID" })
   @ApiResponse({
     status: 200,
-    description: 'Notification details',
+    description: "Notification details",
     type: NotificationResponseDto,
   })
-  @ApiResponse({ status: 404, description: 'Notification not found' })
+  @ApiResponse({ status: 404, description: "Notification not found" })
   async getNotification(
     @CurrentUser() user: JwtUser,
     @TenantId() organizationId: string,
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param("id", ParseUUIDPipe) id: string,
   ): Promise<NotificationResponseDto> {
     const notification = await this.notificationService.getNotification(
       organizationId,
@@ -323,7 +323,7 @@ export class NotificationsController {
     );
 
     if (!notification) {
-      throw new NotFoundException('Notification not found');
+      throw new NotFoundException("Notification not found");
     }
 
     return notification;

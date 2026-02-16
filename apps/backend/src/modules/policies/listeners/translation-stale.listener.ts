@@ -1,17 +1,16 @@
-// =============================================================================
-// TRANSLATION STALE LISTENER - Marks translations stale on version publish
-// =============================================================================
-//
-// This listener subscribes to policy.published events and marks translations
-// of the PREVIOUS version as stale. This notifies translators that the source
-// content has changed and translations may need updating.
-//
-// KEY BEHAVIORS:
-// - Only marks stale if there IS a previous version (version > 1)
-// - Marks isStale: true on all translations of the previous version
-// - Does NOT throw on errors (per project pattern - logged only)
-// - Emits translations.marked_stale event for downstream consumers
-// =============================================================================
+/**
+ * Translation Stale Listener - Marks translations stale on version publish
+ *
+ * This listener subscribes to policy.published events and marks translations
+ * of the PREVIOUS version as stale. This notifies translators that the source
+ * content has changed and translations may need updating.
+ *
+ * KEY BEHAVIORS:
+ * - Only marks stale if there IS a previous version (version > 1)
+ * - Marks isStale: true on all translations of the previous version
+ * - Does NOT throw on errors (per project pattern - logged only)
+ * - Emits translations.marked_stale event for downstream consumers
+ */
 
 import { Injectable, Logger } from "@nestjs/common";
 import { OnEvent } from "@nestjs/event-emitter";

@@ -14,9 +14,7 @@ import { Transform } from "class-transformer";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { TranslationReviewStatus } from "@prisma/client";
 
-// =============================================================================
 // Language Constants
-// =============================================================================
 
 /**
  * Supported languages for policy translation.
@@ -53,9 +51,7 @@ export function getSupportedLanguageCodes(): string[] {
   return Object.keys(LANGUAGE_NAMES);
 }
 
-// =============================================================================
 // Create Translation DTO
-// =============================================================================
 
 /**
  * DTO for creating a policy translation.
@@ -109,9 +105,7 @@ export class CreateTranslationDto {
   title?: string;
 }
 
-// =============================================================================
 // Update Translation DTO
-// =============================================================================
 
 /**
  * DTO for updating an existing translation.
@@ -146,9 +140,7 @@ export class UpdateTranslationDto {
   reviewNotes?: string;
 }
 
-// =============================================================================
 // Review Translation DTO
-// =============================================================================
 
 /**
  * Review status options for translations.
@@ -191,9 +183,7 @@ export class ReviewTranslationDto {
   reviewNotes?: string;
 }
 
-// =============================================================================
 // Translation Query DTO
-// =============================================================================
 
 /**
  * DTO for querying translations with filtering and pagination.

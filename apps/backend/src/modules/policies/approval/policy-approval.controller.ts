@@ -1,15 +1,14 @@
-// =============================================================================
-// POLICY APPROVAL CONTROLLER - Endpoints for policy approval workflows
-// =============================================================================
-//
-// This controller exposes endpoints for:
-// - Submitting policies for approval
-// - Cancelling approval workflows
-// - Getting approval status
-// - Listing available workflow templates
-//
-// All endpoints are protected with role-based guards.
-// =============================================================================
+/**
+ * Policy Approval Controller - Endpoints for policy approval workflows
+ *
+ * This controller exposes endpoints for:
+ * - Submitting policies for approval
+ * - Cancelling approval workflows
+ * - Getting approval status
+ * - Listing available workflow templates
+ *
+ * All endpoints are protected with role-based guards.
+ */
 
 import {
   Controller,
@@ -46,9 +45,7 @@ import { RequestUser } from "../../auth/interfaces/jwt-payload.interface";
 export class PolicyApprovalController {
   constructor(private readonly approvalService: PolicyApprovalService) {}
 
-  // =========================================================================
   // SUBMIT FOR APPROVAL
-  // =========================================================================
 
   /**
    * Submit a policy for approval.
@@ -95,9 +92,7 @@ export class PolicyApprovalController {
     );
   }
 
-  // =========================================================================
   // CANCEL APPROVAL
-  // =========================================================================
 
   /**
    * Cancel an active approval workflow.
@@ -132,9 +127,7 @@ export class PolicyApprovalController {
     );
   }
 
-  // =========================================================================
   // GET APPROVAL STATUS
-  // =========================================================================
 
   /**
    * Get the approval status for a policy.
@@ -166,9 +159,7 @@ export class PolicyApprovalController {
     return this.approvalService.getApprovalStatus(id, organizationId);
   }
 
-  // =========================================================================
   // GET WORKFLOW TEMPLATES
-  // =========================================================================
 
   /**
    * Get available workflow templates for policy approval.

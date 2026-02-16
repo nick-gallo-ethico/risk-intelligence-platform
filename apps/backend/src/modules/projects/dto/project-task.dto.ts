@@ -14,9 +14,7 @@ import { Type, Transform } from "class-transformer";
 import { PartialType } from "@nestjs/mapped-types";
 import { ProjectTaskStatus, ProjectTaskPriority } from "@prisma/client";
 
-// ===========================================
 // Create DTOs
-// ===========================================
 
 /**
  * DTO for creating a new project task.
@@ -69,9 +67,7 @@ export class CreateProjectTaskDto {
   customFields?: Record<string, unknown>;
 }
 
-// ===========================================
 // Update DTOs
-// ===========================================
 
 /**
  * DTO for updating a project task.
@@ -114,9 +110,7 @@ export class ReorderTasksDto {
   orderedIds: string[];
 }
 
-// ===========================================
 // Query DTOs
-// ===========================================
 
 /**
  * DTO for querying project tasks with filtering and pagination.
@@ -170,9 +164,7 @@ export class ProjectTaskQueryDto {
   limit?: number = 50;
 }
 
-// ===========================================
 // Response DTOs
-// ===========================================
 
 /**
  * Response DTO for project task data.

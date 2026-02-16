@@ -18,9 +18,9 @@ describe("PoliciesService", () => {
   let activityService: jest.Mocked<ActivityService>;
   let eventEmitter: jest.Mocked<EventEmitter2>;
 
-  // -------------------------------------------------------------------------
+  //
   // Test Data Fixtures
-  // -------------------------------------------------------------------------
+  //
   const mockOrgId = "org-test-123";
   const mockOtherOrgId = "org-other-456";
   const mockUserId = "user-test-123";
@@ -84,9 +84,9 @@ describe("PoliciesService", () => {
     content: "<p>Policy content here</p>",
   };
 
-  // -------------------------------------------------------------------------
+  //
   // Mock Setup
-  // -------------------------------------------------------------------------
+  //
   const mockPrismaService = {
     policy: {
       create: jest.fn(),
@@ -112,9 +112,9 @@ describe("PoliciesService", () => {
     emit: jest.fn(),
   };
 
-  // -------------------------------------------------------------------------
+  //
   // Module Setup
-  // -------------------------------------------------------------------------
+  //
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -134,9 +134,9 @@ describe("PoliciesService", () => {
     jest.clearAllMocks();
   });
 
-  // -------------------------------------------------------------------------
+  //
   // describe('create')
-  // -------------------------------------------------------------------------
+  //
   describe("create", () => {
     it("should create policy with correct organizationId", async () => {
       // Arrange
@@ -249,9 +249,9 @@ describe("PoliciesService", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
+  //
   // describe('findById')
-  // -------------------------------------------------------------------------
+  //
   describe("findById", () => {
     it("should return policy when found in organization", async () => {
       // Arrange
@@ -301,9 +301,9 @@ describe("PoliciesService", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
+  //
   // describe('findByIdOrFail')
-  // -------------------------------------------------------------------------
+  //
   describe("findByIdOrFail", () => {
     it("should return policy when found", async () => {
       // Arrange
@@ -327,9 +327,9 @@ describe("PoliciesService", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
+  //
   // describe('findAll')
-  // -------------------------------------------------------------------------
+  //
   describe("findAll", () => {
     it("should return paginated results", async () => {
       // Arrange
@@ -443,9 +443,9 @@ describe("PoliciesService", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
+  //
   // describe('updateDraft')
-  // -------------------------------------------------------------------------
+  //
   describe("updateDraft", () => {
     it("should update draft policy fields", async () => {
       // Arrange
@@ -499,12 +499,7 @@ describe("PoliciesService", () => {
       });
 
       // Act
-      await service.updateDraft(
-        mockPolicyId,
-        updateDto,
-        mockUserId,
-        mockOrgId,
-      );
+      await service.updateDraft(mockPolicyId, updateDto, mockUserId, mockOrgId);
 
       // Assert
       expect(activityService.log).toHaveBeenCalledWith(
@@ -530,12 +525,7 @@ describe("PoliciesService", () => {
       });
 
       // Act
-      await service.updateDraft(
-        mockPolicyId,
-        updateDto,
-        mockUserId,
-        mockOrgId,
-      );
+      await service.updateDraft(mockPolicyId, updateDto, mockUserId, mockOrgId);
 
       // Assert
       expect(eventEmitter.emit).toHaveBeenCalledWith(
@@ -559,7 +549,9 @@ describe("PoliciesService", () => {
       };
 
       mockPrismaService.policy.findFirst.mockResolvedValue(publishedPolicy);
-      mockPrismaService.policyVersion.findFirst.mockResolvedValue(latestVersion);
+      mockPrismaService.policyVersion.findFirst.mockResolvedValue(
+        latestVersion,
+      );
       mockPrismaService.policy.update.mockResolvedValue({
         ...publishedPolicy,
         draftContent: latestVersion.content,
@@ -584,9 +576,9 @@ describe("PoliciesService", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
+  //
   // describe('publish') - VERSION-ON-PUBLISH PATTERN
-  // -------------------------------------------------------------------------
+  //
   describe("publish", () => {
     it("should transition status from DRAFT to PUBLISHED", async () => {
       // Arrange
@@ -864,9 +856,9 @@ describe("PoliciesService", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
+  //
   // describe('retire')
-  // -------------------------------------------------------------------------
+  //
   describe("retire", () => {
     it("should transition status to RETIRED", async () => {
       // Arrange
@@ -978,9 +970,9 @@ describe("PoliciesService", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
+  //
   // describe('getVersions')
-  // -------------------------------------------------------------------------
+  //
   describe("getVersions", () => {
     it("should return all versions for a policy", async () => {
       // Arrange
@@ -1043,9 +1035,9 @@ describe("PoliciesService", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
+  //
   // describe('getVersion')
-  // -------------------------------------------------------------------------
+  //
   describe("getVersion", () => {
     it("should return specific version by ID", async () => {
       // Arrange
@@ -1089,9 +1081,9 @@ describe("PoliciesService", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
+  //
   // describe('workflow transitions - state machine verification')
-  // -------------------------------------------------------------------------
+  //
   describe("workflow transitions", () => {
     it("should support DRAFT -> PUBLISHED transition via publish", async () => {
       // Arrange
@@ -1160,9 +1152,9 @@ describe("PoliciesService", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
+  //
   // describe('version-on-publish pattern verification')
-  // -------------------------------------------------------------------------
+  //
   describe("version-on-publish pattern", () => {
     it("should create immutable version snapshot with content", async () => {
       // Arrange

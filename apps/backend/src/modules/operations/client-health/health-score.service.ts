@@ -190,7 +190,7 @@ export class HealthScoreService {
     });
   }
 
-  // --- Component Calculators ---
+  // Component Calculators
 
   /**
    * Calculate login score (0-100).

@@ -47,9 +47,7 @@ export class PoliciesService {
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
-  // =========================================================================
   // CREATE
-  // =========================================================================
 
   /**
    * Creates a new policy in DRAFT status.
@@ -114,9 +112,7 @@ export class PoliciesService {
     return policy;
   }
 
-  // =========================================================================
   // READ
-  // =========================================================================
 
   /**
    * Returns a single policy by ID.
@@ -224,9 +220,7 @@ export class PoliciesService {
     return { data, total, page, limit };
   }
 
-  // =========================================================================
   // UPDATE DRAFT
-  // =========================================================================
 
   /**
    * Updates the draft content of a policy.
@@ -373,9 +367,7 @@ export class PoliciesService {
     return updated;
   }
 
-  // =========================================================================
   // PUBLISH
-  // =========================================================================
 
   /**
    * Publishes the current draft as a new immutable PolicyVersion.
@@ -506,9 +498,7 @@ export class PoliciesService {
     return policyVersion;
   }
 
-  // =========================================================================
   // RETIRE
-  // =========================================================================
 
   /**
    * Retires a policy, setting status to RETIRED and recording retiredAt.
@@ -567,9 +557,7 @@ export class PoliciesService {
     return updated;
   }
 
-  // =========================================================================
   // VERSIONS
-  // =========================================================================
 
   /**
    * Returns all versions of a policy, ordered by version number descending.
@@ -624,9 +612,7 @@ export class PoliciesService {
     return version;
   }
 
-  // =========================================================================
   // HELPER METHODS
-  // =========================================================================
 
   /**
    * Generates a unique slug from the title within the organization.
