@@ -13,6 +13,8 @@
 import { Module, forwardRef } from "@nestjs/common";
 import { AiQueryService } from "./ai-query.service";
 import { QueryToPrismaService } from "./query-to-prisma.service";
+import { FieldWhitelistService } from "./services/field-whitelist.service";
+import { PrismaQueryBuilderService } from "./services/prisma-query-builder.service";
 import { AiModule } from "../../ai/ai.module";
 
 @Module({
@@ -20,7 +22,17 @@ import { AiModule } from "../../ai/ai.module";
     // AiModule provides ClaudeProvider and AiRateLimiterService
     forwardRef(() => AiModule),
   ],
-  providers: [AiQueryService, QueryToPrismaService],
-  exports: [AiQueryService, QueryToPrismaService],
+  providers: [
+    AiQueryService,
+    QueryToPrismaService,
+    FieldWhitelistService,
+    PrismaQueryBuilderService,
+  ],
+  exports: [
+    AiQueryService,
+    QueryToPrismaService,
+    FieldWhitelistService,
+    PrismaQueryBuilderService,
+  ],
 })
 export class AiQueryModule {}
