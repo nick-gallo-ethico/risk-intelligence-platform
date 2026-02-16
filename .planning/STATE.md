@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-15)
 ## Current Position
 
 Phase: 33 of 36 (Slop Cleanup & Production Readiness)
-Plan: 6 of 7 complete
-Status: In progress
-Last activity: 2026-02-16 - Completed 33-06-PLAN.md (TODO Triage and JSDoc Cleanup)
+Plan: 7 of 7 complete
+Status: Phase 33 COMPLETE
+Last activity: 2026-02-16 - Completed 33-07-PLAN.md (DTO File Splitting & SLOP-09)
 
-Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 IN PROGRESS (6/7 plans).
+Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (7/7 plans).
 
 ## Shipped Milestones
 
@@ -37,7 +37,7 @@ Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 IN PROGRESS (6/
 **Execution Order:**
 
 1. Phase 32: Security & SOC 2 (CRITICAL) - 13 requirements [COMPLETE - 8/8 plans]
-2. Phase 33: Slop Cleanup + Production - 16 requirements
+2. Phase 33: Slop Cleanup + Production - 16 requirements [COMPLETE - 7/7 plans]
 3. Phase 34: Performance & Scalability - 11 requirements
 4. Phase 35: Code Quality & Architecture - 5 requirements
 5. Phase 36: Test Coverage Expansion - 10 requirements
@@ -86,6 +86,9 @@ Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 IN PROGRESS (6/
 - 33-06: AUTH-TODO prefix for internal operations auth TODOs (InternalAuthGuard, InternalUserGuard)
 - 33-06: STUB-TODO prefix for integration stubs (email service, message attachments)
 - 33-06: Conservative JSDoc removal - only remove if zero additional context beyond name
+- 33-07: DTO splitting: group by concern (field metadata, filters, queries, responses)
+- 33-07: Barrel re-exports maintain backward compatibility for existing imports
+- 33-07: SLOP-09 resolved - PipelineService and CasePipelineService are complementary, not duplicates
 
 ### Blockers
 
@@ -93,7 +96,7 @@ None currently.
 
 ## Session Continuity
 
-Last session: 2026-02-16T02:10:00Z
-Stopped at: Completed 33-06-PLAN.md (TODO Triage and JSDoc Cleanup)
+Last session: 2026-02-16T01:58:00Z
+Stopped at: Completed 33-07-PLAN.md (DTO File Splitting & SLOP-09)
 Resume file: None
-Next action: Execute 33-07-PLAN.md (if exists)
+Next action: Phase 33 complete. Start Phase 34 (Performance & Scalability).
