@@ -6,6 +6,8 @@ export * from "./services/provider-registry.service";
 export * from "./services/prompt.service";
 export * from "./services/rate-limiter.service";
 export * from "./schema-introspection.service";
+export * from "./services/entity-schema-registry.service";
+export * from "./services/filter-validator.service";
 export * from "./skills";
 export * from "./agents";
 export * from "./actions";

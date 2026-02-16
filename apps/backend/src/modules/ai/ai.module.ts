@@ -14,6 +14,8 @@ import { PromptService } from "./services/prompt.service";
 import { AiRateLimiterService } from "./services/rate-limiter.service";
 import { AiOrchestrationService } from "./services/ai-orchestration.service";
 import { SchemaIntrospectionService } from "./schema-introspection.service";
+import { EntitySchemaRegistryService } from "./services/entity-schema-registry.service";
+import { FilterValidatorService } from "./services/filter-validator.service";
 
 // Providers
 import { ClaudeProvider } from "./providers/claude.provider";
@@ -73,6 +75,8 @@ import { AiController } from "./ai.controller";
     AiRateLimiterService,
     AiOrchestrationService,
     SchemaIntrospectionService,
+    EntitySchemaRegistryService,
+    FilterValidatorService,
 
     // Registries
     SkillRegistry,
@@ -95,6 +99,8 @@ import { AiController } from "./ai.controller";
     AiRateLimiterService,
     AiOrchestrationService,
     SchemaIntrospectionService,
+    EntitySchemaRegistryService,
+    FilterValidatorService,
     ClaudeProvider,
     SkillRegistry,
     AgentRegistry,
