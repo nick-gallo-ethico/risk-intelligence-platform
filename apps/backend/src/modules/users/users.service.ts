@@ -96,7 +96,7 @@ export class UsersService {
       metadata: { role: user.role },
     });
 
-    // TODO: Send welcome email (stub for now)
+    // STUB-TODO: Send welcome email - requires email service integration
     this.logger.debug(`Welcome email would be sent to ${user.email}`);
 
     return this.mapToResponseDto(user);

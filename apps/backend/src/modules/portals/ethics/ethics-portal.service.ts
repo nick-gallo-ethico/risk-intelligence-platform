@@ -531,10 +531,10 @@ export class EthicsPortalService {
       content,
     });
 
-    // TODO: Handle attachmentIds when message attachments are implemented
+    // STUB-TODO: Handle attachmentIds when message attachments are implemented
   }
 
-  // ============== Private Helper Methods ==============
+  // Private Helper Methods
 
   /**
    * Resolve organization from tenant slug.
