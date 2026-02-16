@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-02-15)
 
 ## Current Position
 
-Phase: 32 of 36 (Security & SOC 2 Fixes) COMPLETE + Phases 22, 23, 25.1 continued
-Plan: 8 of 8 complete
-Status: Phase 32 complete
-Last activity: 2026-02-15 — Completed 32-08-PLAN.md (Security Verification)
+Phase: 33 of 36 (Slop Cleanup & Production Readiness)
+Plan: 1 of 6 complete
+Status: In progress
+Last activity: 2026-02-15 — Completed 33-01-PLAN.md (Module Registration & Production Config)
 
-Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE (8/8 plans). Ready for Phase 33.
+Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 IN PROGRESS (1/6 plans).
 
 ## Shipped Milestones
 
@@ -72,6 +72,8 @@ Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE (8/8 plans). Ready for Ph
 - 32-07: Operations middleware exemptions are specific internal/\* routes
 - 32-06: mfaVerified stored in both access and refresh tokens for session persistence
 - 32-06: MfaGuard checks user.mfaVerified from RequestUser (JWT payload)
+- 33-01: Use ConfigService.getOrThrow for required config values (fail fast pattern)
+- 33-01: Module-level Logger for useFactory initialization logging
 
 ### Blockers
 
@@ -79,7 +81,7 @@ None currently.
 
 ## Session Continuity
 
-Last session: 2026-02-15T20:10:00Z
-Stopped at: Completed 32-08-PLAN.md (Security Verification) - Phase 32 COMPLETE
+Last session: 2026-02-16T00:33:40Z
+Stopped at: Completed 33-01-PLAN.md (Module Registration & Production Config)
 Resume file: None
-Next action: Execute Phase 33 (Slop Cleanup & Production Readiness)
+Next action: Execute 33-02-PLAN.md (Service Architecture Cleanup)
