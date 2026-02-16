@@ -8,7 +8,9 @@
  * - EmailTemplateService (07-02): Email template management and rendering
  * - PreferenceService (07-03): User notification preferences with caching
  * - OrgNotificationSettingsService (07-03): Org-level notification config
- * - NotificationService (07-04): Core notification dispatch
+ * - NotificationRouterService (35-04): Routing decisions (preferences, OOO, channels)
+ * - DeliveryDispatcherService (35-04): Actual delivery (email, in-app, digest)
+ * - NotificationService (07-04): Core notification dispatch coordinator
  * - NotificationGateway (07-05): WebSocket gateway for real-time in-app notifications
  * - DigestService (07-06): Daily digest compilation and scheduling
  * - DeliveryTrackerService (07-07): Email delivery status tracking
@@ -35,6 +37,8 @@ import { mailerConfig } from "./mailer.config";
 import { EmailTemplateService } from "./services/email-template.service";
 import { PreferenceService } from "./services/preference.service";
 import { OrgNotificationSettingsService } from "./services/org-settings.service";
+import { NotificationRouterService } from "./services/notification-router.service";
+import { DeliveryDispatcherService } from "./services/delivery-dispatcher.service";
 import { NotificationService } from "./services/notification.service";
 import { DigestService } from "./services/digest.service";
 import { DeliveryTrackerService } from "./services/delivery-tracker.service";
@@ -83,7 +87,11 @@ import { WorkflowEventListener } from "./listeners/workflow.listener";
     PreferenceService,
     OrgNotificationSettingsService,
 
-    // Core notification dispatch (07-04)
+    // Notification routing and dispatch (35-04)
+    NotificationRouterService,
+    DeliveryDispatcherService,
+
+    // Core notification dispatch coordinator (07-04)
     NotificationService,
 
     // WebSocket gateway for real-time in-app notifications (07-05)
@@ -115,6 +123,10 @@ import { WorkflowEventListener } from "./listeners/workflow.listener";
     // Preference services
     PreferenceService,
     OrgNotificationSettingsService,
+
+    // Notification routing and dispatch (35-04)
+    NotificationRouterService,
+    DeliveryDispatcherService,
 
     // Core notification dispatch
     NotificationService,

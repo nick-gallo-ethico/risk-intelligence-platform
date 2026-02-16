@@ -25,15 +25,35 @@ export type {
 export { OrgNotificationSettingsService } from "./org-settings.service";
 export type { OrgNotificationSettings } from "./org-settings.service";
 
-// Core notification dispatch (07-04)
-export { NotificationService } from "./notification.service";
+// Notification types (35-04)
 export type {
   QueueEmailParams,
   SendInAppParams,
   QueueForDigestParams,
   NotifyParams,
   PaginatedNotifications,
-} from "./notification.service";
+  NotificationItem,
+} from "./notification.types";
+
+// Notification routing (35-04)
+export { NotificationRouterService } from "./notification-router.service";
+export type {
+  RoutingDecision,
+  RecipientInfo,
+  OrgInfo,
+  RoutingParams,
+} from "./notification-router.service";
+
+// Delivery dispatch (35-04)
+export { DeliveryDispatcherService } from "./delivery-dispatcher.service";
+export type {
+  DispatchEmailParams,
+  DispatchInAppParams,
+  DispatchDigestParams,
+} from "./delivery-dispatcher.service";
+
+// Core notification dispatch (07-04)
+export { NotificationService } from "./notification.service";
 
 // Daily digest (07-06)
 export { DigestService } from "./digest.service";

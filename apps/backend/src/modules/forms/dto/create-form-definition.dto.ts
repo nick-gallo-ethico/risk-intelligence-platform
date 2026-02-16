@@ -9,9 +9,13 @@ import {
   MinLength,
 } from "class-validator";
 import { FormType } from "@prisma/client";
+import { FormSchema, UiSchema } from "../types/form.types";
 
 /**
  * DTO for creating a new form definition.
+ *
+ * Uses FormSchema and UiSchema types from form.types.ts for type safety.
+ * class-validator's @IsObject() validates these at runtime.
  */
 export class CreateFormDefinitionDto {
   /**
@@ -38,16 +42,17 @@ export class CreateFormDefinitionDto {
 
   /**
    * JSON Schema definition for the form.
+   * Must be valid JSON Schema 7 format.
    */
   @IsObject()
-  schema: Record<string, unknown>;
+  schema: FormSchema;
 
   /**
    * UI configuration (field ordering, widgets, conditionals).
    */
   @IsOptional()
   @IsObject()
-  uiSchema?: Record<string, unknown>;
+  uiSchema?: UiSchema;
 
   /**
    * Default values for form fields.
@@ -88,6 +93,8 @@ export class CreateFormDefinitionDto {
 
 /**
  * DTO for updating an existing form definition.
+ *
+ * Uses FormSchema and UiSchema types from form.types.ts for type safety.
  */
 export class UpdateFormDefinitionDto {
   @IsOptional()
@@ -103,11 +110,11 @@ export class UpdateFormDefinitionDto {
 
   @IsOptional()
   @IsObject()
-  schema?: Record<string, unknown>;
+  schema?: FormSchema;
 
   @IsOptional()
   @IsObject()
-  uiSchema?: Record<string, unknown>;
+  uiSchema?: UiSchema;
 
   @IsOptional()
   @IsObject()

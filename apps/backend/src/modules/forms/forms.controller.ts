@@ -57,7 +57,7 @@ export class FormsController {
     @CurrentUser() user: { id: string },
     @Body() dto: CreateFormDefinitionDto,
   ) {
-    return this.schemaService.create(orgId, dto as any, user.id);
+    return this.schemaService.create(orgId, dto, user.id);
   }
 
   /**
@@ -98,7 +98,7 @@ export class FormsController {
     @Param("id") id: string,
     @Body() dto: UpdateFormDefinitionDto,
   ) {
-    return this.schemaService.update(orgId, id, dto as any, user.id);
+    return this.schemaService.update(orgId, id, dto, user.id);
   }
 
   /**
