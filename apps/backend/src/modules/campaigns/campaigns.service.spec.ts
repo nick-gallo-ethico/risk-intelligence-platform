@@ -14,9 +14,7 @@ describe("CampaignsService", () => {
   let segmentService: jest.Mocked<SegmentService>;
   let assignmentService: jest.Mocked<CampaignAssignmentService>;
 
-  // -------------------------------------------------------------------------
   // Test Data Fixtures
-  // -------------------------------------------------------------------------
   const mockOrgId = "org-test-123";
   const mockOtherOrgId = "org-other-456";
   const mockUserId = "user-test-123";
@@ -67,9 +65,7 @@ describe("CampaignsService", () => {
     reminderDays: [7, 3, 1],
   };
 
-  // -------------------------------------------------------------------------
   // Mock Setup
-  // -------------------------------------------------------------------------
   const mockPrismaService = {
     campaign: {
       create: jest.fn(),
@@ -98,9 +94,7 @@ describe("CampaignsService", () => {
     syncOverdueStatus: jest.fn(),
   };
 
-  // -------------------------------------------------------------------------
   // Module Setup
-  // -------------------------------------------------------------------------
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -122,9 +116,7 @@ describe("CampaignsService", () => {
     jest.clearAllMocks();
   });
 
-  // -------------------------------------------------------------------------
   // describe('create')
-  // -------------------------------------------------------------------------
   describe("create", () => {
     it("should create campaign with correct organizationId", async () => {
       // Arrange
@@ -208,9 +200,7 @@ describe("CampaignsService", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
   // describe('findOne')
-  // -------------------------------------------------------------------------
   describe("findOne", () => {
     it("should return campaign when found in organization", async () => {
       // Arrange
@@ -260,9 +250,7 @@ describe("CampaignsService", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
   // describe('findAll')
-  // -------------------------------------------------------------------------
   describe("findAll", () => {
     it("should return paginated results", async () => {
       // Arrange
@@ -335,9 +323,7 @@ describe("CampaignsService", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
   // describe('update')
-  // -------------------------------------------------------------------------
   describe("update", () => {
     it("should update campaign fields", async () => {
       // Arrange
@@ -407,9 +393,7 @@ describe("CampaignsService", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
   // describe('launch')
-  // -------------------------------------------------------------------------
   describe("launch", () => {
     it("should transition status from DRAFT to ACTIVE", async () => {
       // Arrange
@@ -539,9 +523,7 @@ describe("CampaignsService", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
   // describe('pause')
-  // -------------------------------------------------------------------------
   describe("pause", () => {
     it("should transition status from ACTIVE to PAUSED", async () => {
       // Arrange
@@ -594,9 +576,7 @@ describe("CampaignsService", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
   // describe('resume')
-  // -------------------------------------------------------------------------
   describe("resume", () => {
     it("should transition status from PAUSED to ACTIVE", async () => {
       // Arrange
@@ -656,9 +636,7 @@ describe("CampaignsService", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
   // describe('cancel')
-  // -------------------------------------------------------------------------
   describe("cancel", () => {
     it("should transition status to CANCELLED", async () => {
       // Arrange
@@ -743,9 +721,7 @@ describe("CampaignsService", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
   // describe('complete')
-  // -------------------------------------------------------------------------
   describe("complete", () => {
     it("should transition status to COMPLETED", async () => {
       // Arrange
@@ -799,9 +775,7 @@ describe("CampaignsService", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
   // describe('remove')
-  // -------------------------------------------------------------------------
   describe("remove", () => {
     it("should delete draft campaign", async () => {
       // Arrange
@@ -847,9 +821,7 @@ describe("CampaignsService", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
   // describe('getStatistics')
-  // -------------------------------------------------------------------------
   describe("getStatistics", () => {
     it("should return campaign statistics", async () => {
       // Arrange
@@ -888,9 +860,7 @@ describe("CampaignsService", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
   // describe('workflow transitions - state machine verification')
-  // -------------------------------------------------------------------------
   describe("workflow transitions", () => {
     it("should support DRAFT -> ACTIVE transition via launch", async () => {
       // Arrange

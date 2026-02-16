@@ -1,17 +1,16 @@
-// =============================================================================
-// PIPELINE SERVICE - Manages pipeline configurations for cases
-// =============================================================================
-//
-// This service handles:
-// 1. Returning default pipeline stages for cases
-// 2. Tenant-specific pipeline customization (future)
-// 3. Pipeline stage validation
-//
-// KEY DESIGN DECISIONS:
-// - Default stages returned when no tenant-specific config exists
-// - Pipeline stages match the frontend PipelineStageBar expectations
-// - Future: Store tenant-specific overrides in database
-// =============================================================================
+/**
+ * PIPELINE SERVICE - Manages pipeline configurations for cases
+ *
+ * This service handles:
+ * 1. Returning default pipeline stages for cases
+ * 2. Tenant-specific pipeline customization (future)
+ * 3. Pipeline stage validation
+ *
+ * KEY DESIGN DECISIONS:
+ * - Default stages returned when no tenant-specific config exists
+ * - Pipeline stages match the frontend PipelineStageBar expectations
+ * - Future: Store tenant-specific overrides in database
+ */
 
 import {
   Injectable,
@@ -118,9 +117,7 @@ export class PipelineService {
 
   constructor(private readonly prisma: PrismaService) {}
 
-  // -------------------------------------------------------------------------
   // FIND ALL - Returns all pipeline configs for a tenant
-  // -------------------------------------------------------------------------
 
   /**
    * Returns all pipeline configurations for the tenant.
@@ -144,9 +141,7 @@ export class PipelineService {
     return [defaultPipeline];
   }
 
-  // -------------------------------------------------------------------------
   // FIND ONE - Returns a specific pipeline config
-  // -------------------------------------------------------------------------
 
   /**
    * Returns a specific pipeline configuration by ID.
@@ -167,9 +162,7 @@ export class PipelineService {
     throw new NotFoundException(`Pipeline with ID ${id} not found`);
   }
 
-  // -------------------------------------------------------------------------
   // UPDATE - Updates pipeline configuration
-  // -------------------------------------------------------------------------
 
   /**
    * Updates a pipeline configuration.
@@ -205,9 +198,7 @@ export class PipelineService {
     };
   }
 
-  // -------------------------------------------------------------------------
   // GET STAGE BY ID - Returns a single stage from a pipeline
-  // -------------------------------------------------------------------------
 
   /**
    * Returns a single stage from a pipeline by stage ID.
@@ -221,9 +212,7 @@ export class PipelineService {
     return pipeline.stages.find((s) => s.id === stageId) ?? null;
   }
 
-  // -------------------------------------------------------------------------
   // VALIDATE TRANSITION - Checks if a stage transition is allowed
-  // -------------------------------------------------------------------------
 
   /**
    * Validates if a transition from one stage to another is allowed.
@@ -246,9 +235,7 @@ export class PipelineService {
     return fromStage.allowedTransitions.includes(toStageId);
   }
 
-  // -------------------------------------------------------------------------
   // VALIDATE STAGES - Validates stage configuration
-  // -------------------------------------------------------------------------
 
   /**
    * Validates pipeline stages for consistency.

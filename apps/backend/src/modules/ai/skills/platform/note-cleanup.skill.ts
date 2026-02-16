@@ -60,7 +60,10 @@ export interface NoteCleanupOutput {
 function analyzeChanges(
   original: string,
   cleaned: string,
-): Array<{ type: "grammar" | "formatting" | "clarity" | "structure"; count: number }> {
+): Array<{
+  type: "grammar" | "formatting" | "clarity" | "structure";
+  count: number;
+}> {
   const changes: Array<{
     type: "grammar" | "formatting" | "clarity" | "structure";
     count: number;
@@ -70,7 +73,10 @@ function analyzeChanges(
   const originalBullets = (original.match(/^[\s]*[-*]/gm) || []).length;
   const cleanedBullets = (cleaned.match(/^[\s]*[-*]/gm) || []).length;
   if (originalBullets > cleanedBullets) {
-    changes.push({ type: "formatting", count: originalBullets - cleanedBullets });
+    changes.push({
+      type: "formatting",
+      count: originalBullets - cleanedBullets,
+    });
   }
 
   // Estimate structural changes based on length difference
@@ -154,7 +160,11 @@ export function noteCleanupSkill(
         // Render prompt
         const prompt = await promptService.render(
           "skills/note-cleanup",
-          { content: input.content, style: input.style, context: input.context },
+          {
+            content: input.content,
+            style: input.style,
+            context: input.context,
+          },
           context.organizationId,
         );
 

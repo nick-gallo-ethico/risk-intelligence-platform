@@ -1,12 +1,11 @@
-// =============================================================================
-// RecoveryCodesService Unit Tests
-// =============================================================================
-//
-// Tests for MFA recovery codes service covering:
-// - Recovery code generation (count, format)
-// - Code hashing for secure storage
-// - Code verification against stored hashes
-// =============================================================================
+/**
+ * RecoveryCodesService Unit Tests
+ *
+ * Tests for MFA recovery codes service covering:
+ * - Recovery code generation (count, format)
+ * - Code hashing for secure storage
+ * - Code verification against stored hashes
+ */
 
 import { Test, TestingModule } from "@nestjs/testing";
 import { RecoveryCodesService } from "./recovery-codes.service";
@@ -15,9 +14,7 @@ import * as crypto from "crypto";
 describe("RecoveryCodesService", () => {
   let service: RecoveryCodesService;
 
-  // -------------------------------------------------------------------------
   // Module Setup
-  // -------------------------------------------------------------------------
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [RecoveryCodesService],
@@ -26,9 +23,7 @@ describe("RecoveryCodesService", () => {
     service = module.get<RecoveryCodesService>(RecoveryCodesService);
   });
 
-  // -------------------------------------------------------------------------
   // describe('generateRecoveryCodes') - Code generation
-  // -------------------------------------------------------------------------
   describe("generateRecoveryCodes", () => {
     it("should generate 10 codes by default", () => {
       // Act
@@ -79,9 +74,7 @@ describe("RecoveryCodesService", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
   // describe('hashRecoveryCodes') - Code hashing
-  // -------------------------------------------------------------------------
   describe("hashRecoveryCodes", () => {
     it("should hash all codes using SHA-256", () => {
       // Arrange
@@ -149,9 +142,7 @@ describe("RecoveryCodesService", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
   // describe('verifyRecoveryCode') - Code verification
-  // -------------------------------------------------------------------------
   describe("verifyRecoveryCode", () => {
     it("should return index when code matches", () => {
       // Arrange
@@ -234,9 +225,7 @@ describe("RecoveryCodesService", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
   // Integration-style tests for full workflow
-  // -------------------------------------------------------------------------
   describe("full workflow", () => {
     it("should generate, hash, and verify codes correctly", () => {
       // Arrange - Generate codes

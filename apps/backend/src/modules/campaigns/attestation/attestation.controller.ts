@@ -50,7 +50,7 @@ export class AttestationController {
     private readonly attestationResponseService: AttestationResponseService,
   ) {}
 
-  // ==================== Campaign Management ====================
+  // Campaign Management
 
   @Post("campaigns")
   @Roles(UserRole.SYSTEM_ADMIN, UserRole.COMPLIANCE_OFFICER)
@@ -163,7 +163,7 @@ export class AttestationController {
     );
   }
 
-  // ==================== Attestation Submission ====================
+  // Attestation Submission
 
   @Post("submit")
   @HttpCode(HttpStatus.OK)
@@ -207,7 +207,7 @@ export class AttestationController {
     );
   }
 
-  // ==================== Employee-Facing Endpoints ====================
+  // Employee-Facing Endpoints
 
   @Get("my-pending")
   @Roles(

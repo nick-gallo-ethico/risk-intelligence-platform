@@ -197,9 +197,7 @@ export class AuthController {
     };
   }
 
-  // ===========================================
   // Azure AD SSO Endpoints
-  // ===========================================
 
   /**
    * GET /api/v1/auth/azure-ad
@@ -231,9 +229,7 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: "Azure AD SSO callback" })
   @ApiResponse({ status: 200, type: AuthResponseDto })
-  async azureAdCallback(
-    @Req() req: Request,
-  ): Promise<AuthResponseDto> {
+  async azureAdCallback(@Req() req: Request): Promise<AuthResponseDto> {
     // User is already validated by AzureAdStrategy
     const user = req.user as any;
 
@@ -249,9 +245,7 @@ export class AuthController {
     return this.authService.createSsoSession(user, userAgent, ipAddress);
   }
 
-  // ===========================================
   // Google OAuth SSO Endpoints
-  // ===========================================
 
   /**
    * GET /api/v1/auth/google
@@ -286,9 +280,7 @@ export class AuthController {
   @Public()
   @ApiOperation({ summary: "Google OAuth SSO callback" })
   @ApiResponse({ status: 200, type: AuthResponseDto })
-  async googleCallback(
-    @Req() req: Request,
-  ): Promise<AuthResponseDto> {
+  async googleCallback(@Req() req: Request): Promise<AuthResponseDto> {
     // User is already validated by GoogleStrategy
     const user = req.user as any;
 
@@ -304,9 +296,7 @@ export class AuthController {
     return this.authService.createSsoSession(user, userAgent, ipAddress);
   }
 
-  // ===========================================
   // SAML SSO Endpoints
-  // ===========================================
 
   /**
    * GET /api/v1/auth/saml/:tenant
@@ -413,9 +403,7 @@ export class AuthController {
     res.send(metadata);
   }
 
-  // ===========================================
   // SSO Configuration Endpoints
-  // ===========================================
 
   /**
    * GET /api/v1/auth/sso/config
@@ -436,7 +424,10 @@ export class AuthController {
     type: SsoConfigResponseDto,
   })
   @ApiResponse({ status: 401, description: "Unauthorized" })
-  @ApiResponse({ status: 403, description: "Forbidden - requires SYSTEM_ADMIN" })
+  @ApiResponse({
+    status: 403,
+    description: "Forbidden - requires SYSTEM_ADMIN",
+  })
   async getSsoConfig(
     @CurrentUser() user: { organizationId: string },
   ): Promise<SsoConfigResponseDto> {
@@ -462,7 +453,10 @@ export class AuthController {
     type: SsoConfigResponseDto,
   })
   @ApiResponse({ status: 401, description: "Unauthorized" })
-  @ApiResponse({ status: 403, description: "Forbidden - requires SYSTEM_ADMIN" })
+  @ApiResponse({
+    status: 403,
+    description: "Forbidden - requires SYSTEM_ADMIN",
+  })
   async updateSsoConfig(
     @Body() dto: UpdateSsoConfigDto,
     @CurrentUser() user: { sub: string; organizationId: string },

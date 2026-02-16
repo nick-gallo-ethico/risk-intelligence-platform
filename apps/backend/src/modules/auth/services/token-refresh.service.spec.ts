@@ -1,14 +1,13 @@
-// =============================================================================
-// TokenRefreshService Unit Tests
-// =============================================================================
-//
-// Tests for token refresh service covering:
-// - Access token refresh with rotation
-// - WebSocket token refresh with grace period
-// - Session validation (expired, revoked)
-// - User status validation (inactive)
-// - Session revocation
-// =============================================================================
+/**
+ * TokenRefreshService Unit Tests
+ *
+ * Tests for token refresh service covering:
+ * - Access token refresh with rotation
+ * - WebSocket token refresh with grace period
+ * - Session validation (expired, revoked)
+ * - User status validation (inactive)
+ * - Session revocation
+ */
 
 import { Test, TestingModule } from "@nestjs/testing";
 import { JwtService } from "@nestjs/jwt";
@@ -22,9 +21,7 @@ describe("TokenRefreshService", () => {
   let jwtService: jest.Mocked<JwtService>;
   let configService: jest.Mocked<ConfigService>;
 
-  // -------------------------------------------------------------------------
   // Test Data Fixtures
-  // -------------------------------------------------------------------------
   const mockOrgId = "org-test-123";
   const mockUserId = "user-test-123";
   const mockSessionId = "session-test-123";
@@ -69,9 +66,7 @@ describe("TokenRefreshService", () => {
   const mockAccessToken = "mock-access-token";
   const mockRefreshToken = "mock-refresh-token";
 
-  // -------------------------------------------------------------------------
   // Mock Setup
-  // -------------------------------------------------------------------------
   const mockPrismaService = {
     session: {
       findFirst: jest.fn(),
@@ -101,9 +96,7 @@ describe("TokenRefreshService", () => {
     }),
   };
 
-  // -------------------------------------------------------------------------
   // Module Setup
-  // -------------------------------------------------------------------------
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -123,9 +116,7 @@ describe("TokenRefreshService", () => {
     jest.clearAllMocks();
   });
 
-  // -------------------------------------------------------------------------
   // describe('refreshAccessToken') - Standard refresh flow
-  // -------------------------------------------------------------------------
   describe("refreshAccessToken", () => {
     it("should return new access token for valid session", async () => {
       // Arrange
@@ -257,9 +248,7 @@ describe("TokenRefreshService", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
   // describe('refreshWebSocketToken') - WebSocket refresh with grace period
-  // -------------------------------------------------------------------------
   describe("refreshWebSocketToken", () => {
     it("should return WebSocket token for valid session", async () => {
       // Arrange
@@ -373,9 +362,7 @@ describe("TokenRefreshService", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
   // describe('revokeAllUserSessions') - Bulk session revocation
-  // -------------------------------------------------------------------------
   describe("revokeAllUserSessions", () => {
     it("should revoke all sessions for specified user", async () => {
       // Arrange
@@ -397,9 +384,7 @@ describe("TokenRefreshService", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
   // describe('revokeSession') - Single session revocation
-  // -------------------------------------------------------------------------
   describe("revokeSession", () => {
     it("should revoke a specific session", async () => {
       // Arrange

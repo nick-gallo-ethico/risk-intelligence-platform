@@ -467,9 +467,7 @@ export class ContextLoaderService implements OnModuleInit {
     }
   }
 
-  // =========================================================================
   // Private Methods - Context Loading
-  // =========================================================================
 
   private loadPlatformContext(): PlatformContext {
     return {

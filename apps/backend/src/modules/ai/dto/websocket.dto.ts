@@ -91,7 +91,7 @@ export interface SocketContext {
   permissions: string[];
 }
 
-// ============ Outbound Events ============
+// Outbound Events
 
 /**
  * Emitted when streaming text content from AI.

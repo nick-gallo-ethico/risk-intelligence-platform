@@ -122,8 +122,7 @@ export class AttestationCampaignService {
 
         // Audience targeting
         audienceMode,
-        segmentId:
-          audienceMode === AudienceMode.SEGMENT ? dto.segmentId : null,
+        segmentId: audienceMode === AudienceMode.SEGMENT ? dto.segmentId : null,
         manualIds:
           audienceMode === AudienceMode.MANUAL ? (dto.employeeIds ?? []) : [],
 
@@ -272,7 +271,9 @@ export class AttestationCampaignService {
     });
 
     if (!campaign) {
-      throw new NotFoundException(`Attestation campaign ${campaignId} not found`);
+      throw new NotFoundException(
+        `Attestation campaign ${campaignId} not found`,
+      );
     }
 
     return campaign;
@@ -351,7 +352,8 @@ export class AttestationCampaignService {
       refused,
       overdue,
       pending,
-      completionPercentage: total > 0 ? Math.round((completed / total) * 100) : 0,
+      completionPercentage:
+        total > 0 ? Math.round((completed / total) * 100) : 0,
       refusalRate: total > 0 ? Math.round((refused / total) * 100) : 0,
     };
   }

@@ -23,7 +23,10 @@ export interface EmployeeSnapshot {
 }
 
 export interface AssignmentWithEmployee extends CampaignAssignment {
-  employee: Pick<Employee, "id" | "firstName" | "lastName" | "email" | "jobTitle">;
+  employee: Pick<
+    Employee,
+    "id" | "firstName" | "lastName" | "email" | "jobTitle"
+  >;
 }
 
 @Injectable()
@@ -438,7 +441,9 @@ export class CampaignAssignmentService {
       this.prisma.campaignAssignment.count({
         where: {
           campaignId,
-          status: { in: [AssignmentStatus.COMPLETED, AssignmentStatus.SKIPPED] },
+          status: {
+            in: [AssignmentStatus.COMPLETED, AssignmentStatus.SKIPPED],
+          },
         },
       }),
       this.prisma.campaignAssignment.count({

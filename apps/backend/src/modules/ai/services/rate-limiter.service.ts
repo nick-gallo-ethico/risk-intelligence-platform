@@ -73,7 +73,9 @@ export class AiRateLimiterService {
    * @param params - Organization ID and estimated token count
    * @returns RateLimitResult with allowed flag and remaining capacity
    */
-  async checkAndConsume(params: RateLimitCheckParams): Promise<RateLimitResult> {
+  async checkAndConsume(
+    params: RateLimitCheckParams,
+  ): Promise<RateLimitResult> {
     const { organizationId, estimatedTokens } = params;
     const limits = await this.getOrgLimits(organizationId);
     const now = Date.now();
@@ -440,9 +442,12 @@ export class AiRateLimiterService {
       where: { organizationId },
       create: {
         organizationId,
-        requestsPerMinute: newLimits.requestsPerMinute ?? DEFAULT_LIMITS.requestsPerMinute,
-        tokensPerMinute: newLimits.tokensPerMinute ?? DEFAULT_LIMITS.tokensPerMinute,
-        requestsPerDay: newLimits.requestsPerDay ?? DEFAULT_LIMITS.requestsPerDay,
+        requestsPerMinute:
+          newLimits.requestsPerMinute ?? DEFAULT_LIMITS.requestsPerMinute,
+        tokensPerMinute:
+          newLimits.tokensPerMinute ?? DEFAULT_LIMITS.tokensPerMinute,
+        requestsPerDay:
+          newLimits.requestsPerDay ?? DEFAULT_LIMITS.requestsPerDay,
         tokensPerDay: newLimits.tokensPerDay ?? DEFAULT_LIMITS.tokensPerDay,
       },
       update: {

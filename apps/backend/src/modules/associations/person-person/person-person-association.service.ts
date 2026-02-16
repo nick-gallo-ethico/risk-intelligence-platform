@@ -157,7 +157,11 @@ export class PersonPersonAssociationService extends BaseAssociationService<
       action: "relationship_created",
       actionDescription: `Relationship (${dto.label}) created with another person`,
       actionCategory: "CREATE",
-      context: { personBId: dto.personBId, label: dto.label, source: dto.source },
+      context: {
+        personBId: dto.personBId,
+        label: dto.label,
+        source: dto.source,
+      },
     };
   }
 

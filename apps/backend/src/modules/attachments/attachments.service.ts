@@ -1,17 +1,16 @@
-// =============================================================================
-// ATTACHMENTS SERVICE
-// =============================================================================
-//
-// Service for managing file attachments across multiple entity types (Cases,
-// Investigations, Investigation Notes). Handles file storage, metadata tracking,
-// and secure download URLs.
-//
-// KEY REQUIREMENTS:
-// 1. All queries filter by organizationId (tenant isolation)
-// 2. All mutations log to ActivityService
-// 3. Entity validation before attachment creation
-// 4. Secure signed URLs for downloads
-// =============================================================================
+/**
+ * ATTACHMENTS SERVICE
+ *
+ * Service for managing file attachments across multiple entity types (Cases,
+ * Investigations, Investigation Notes). Handles file storage, metadata tracking,
+ * and secure download URLs.
+ *
+ * KEY REQUIREMENTS:
+ * 1. All queries filter by organizationId (tenant isolation)
+ * 2. All mutations log to ActivityService
+ * 3. Entity validation before attachment creation
+ * 4. Secure signed URLs for downloads
+ */
 
 import {
   Injectable,
@@ -54,9 +53,7 @@ export class AttachmentsService {
     private readonly activityService: ActivityService,
   ) {}
 
-  // -------------------------------------------------------------------------
   // CREATE - Upload file and create attachment record
-  // -------------------------------------------------------------------------
 
   /**
    * Creates a new attachment by uploading file to storage and creating DB record.
@@ -156,9 +153,7 @@ export class AttachmentsService {
     return this.mapToResponseDto(attachment, downloadUrl);
   }
 
-  // -------------------------------------------------------------------------
   // FIND BY ENTITY - List attachments for a specific entity
-  // -------------------------------------------------------------------------
 
   /**
    * Returns paginated list of attachments for a specific entity.
@@ -227,9 +222,7 @@ export class AttachmentsService {
     };
   }
 
-  // -------------------------------------------------------------------------
   // FIND ALL - List attachments with flexible filters
-  // -------------------------------------------------------------------------
 
   /**
    * Returns paginated list of attachments with optional filters.
@@ -306,9 +299,7 @@ export class AttachmentsService {
     };
   }
 
-  // -------------------------------------------------------------------------
   // FIND ONE - Get single attachment by ID
-  // -------------------------------------------------------------------------
 
   /**
    * Returns a single attachment by ID.
@@ -348,9 +339,7 @@ export class AttachmentsService {
     return this.mapToResponseDto(attachment, downloadUrl);
   }
 
-  // -------------------------------------------------------------------------
   // DELETE - Remove attachment and file from storage
-  // -------------------------------------------------------------------------
 
   /**
    * Deletes an attachment: removes file from storage and record from DB.
@@ -441,9 +430,7 @@ export class AttachmentsService {
     );
   }
 
-  // -------------------------------------------------------------------------
   // HELPERS - Entity validation
-  // -------------------------------------------------------------------------
 
   /**
    * Validates that the parent entity exists and belongs to the organization.
@@ -513,9 +500,7 @@ export class AttachmentsService {
     }
   }
 
-  // -------------------------------------------------------------------------
   // HELPERS - Storage organization
-  // -------------------------------------------------------------------------
 
   /**
    * Generates storage folder path for organizing files by entity.
@@ -528,9 +513,7 @@ export class AttachmentsService {
     return `${typeFolder}/${entityId}`;
   }
 
-  // -------------------------------------------------------------------------
   // HELPERS - Type mapping
-  // -------------------------------------------------------------------------
 
   /**
    * Maps AttachmentEntityType to AuditEntityType for activity logging.
@@ -567,9 +550,7 @@ export class AttachmentsService {
     }
   }
 
-  // -------------------------------------------------------------------------
   // HELPERS - Response mapping
-  // -------------------------------------------------------------------------
 
   /**
    * Maps Prisma attachment model to response DTO.

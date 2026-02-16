@@ -184,7 +184,8 @@ export class CreateAttestationCampaignDto {
   audienceMode?: AudienceMode;
 
   @ApiPropertyOptional({
-    description: "Segment ID for audience targeting (when audienceMode is SEGMENT)",
+    description:
+      "Segment ID for audience targeting (when audienceMode is SEGMENT)",
   })
   @IsOptional()
   @IsUUID()
@@ -192,7 +193,8 @@ export class CreateAttestationCampaignDto {
   segmentId?: string;
 
   @ApiPropertyOptional({
-    description: "Employee IDs for manual targeting (when audienceMode is MANUAL)",
+    description:
+      "Employee IDs for manual targeting (when audienceMode is MANUAL)",
     type: [String],
   })
   @IsOptional()
@@ -225,7 +227,8 @@ export class CreateAttestationCampaignDto {
   autoCreateCaseOnRefusal?: boolean;
 
   @ApiPropertyOptional({
-    description: "Scheduled launch date (if null, launch immediately after creation)",
+    description:
+      "Scheduled launch date (if null, launch immediately after creation)",
   })
   @IsOptional()
   @IsDate()

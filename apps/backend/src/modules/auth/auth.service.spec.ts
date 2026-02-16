@@ -1,13 +1,12 @@
-// =============================================================================
-// AuthService Unit Tests
-// =============================================================================
-//
-// Tests for authentication service covering:
-// - Login flow (valid/invalid credentials, inactive org/user)
-// - Token refresh (valid/expired/revoked sessions)
-// - Session management (revoke single, revoke all)
-// - RLS bypass verification for cross-tenant auth operations
-// =============================================================================
+/**
+ * AuthService Unit Tests
+ *
+ * Tests for authentication service covering:
+ * - Login flow (valid/invalid credentials, inactive org/user)
+ * - Token refresh (valid/expired/revoked sessions)
+ * - Session management (revoke single, revoke all)
+ * - RLS bypass verification for cross-tenant auth operations
+ */
 
 import { Test, TestingModule } from "@nestjs/testing";
 import { UnauthorizedException } from "@nestjs/common";
@@ -28,9 +27,7 @@ describe("AuthService", () => {
   let jwtService: jest.Mocked<JwtService>;
   let configService: jest.Mocked<ConfigService>;
 
-  // -------------------------------------------------------------------------
   // Test Data Fixtures
-  // -------------------------------------------------------------------------
   const mockOrgId = "org-test-123";
   const mockUserId = "user-test-123";
   const mockSessionId = "session-test-123";
@@ -66,9 +63,7 @@ describe("AuthService", () => {
   const mockAccessToken = "mock-access-token";
   const mockRefreshToken = "mock-refresh-token";
 
-  // -------------------------------------------------------------------------
   // Mock Setup
-  // -------------------------------------------------------------------------
   const mockPrismaService = {
     user: {
       findFirst: jest.fn(),
@@ -102,9 +97,7 @@ describe("AuthService", () => {
     }),
   };
 
-  // -------------------------------------------------------------------------
   // Module Setup
-  // -------------------------------------------------------------------------
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -124,9 +117,7 @@ describe("AuthService", () => {
     jest.clearAllMocks();
   });
 
-  // -------------------------------------------------------------------------
   // describe('login') - Authentication tests
-  // -------------------------------------------------------------------------
   describe("login", () => {
     const loginDto = { email: mockEmail, password: mockPassword };
 
@@ -314,9 +305,7 @@ describe("AuthService", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
   // describe('refreshTokens') - Token refresh tests
-  // -------------------------------------------------------------------------
   describe("refreshTokens", () => {
     const validRefreshPayload = {
       sub: mockUserId,
@@ -532,9 +521,7 @@ describe("AuthService", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
   // describe('revokeSession') - Single session revocation
-  // -------------------------------------------------------------------------
   describe("revokeSession", () => {
     it("should mark session as revoked", async () => {
       // Arrange
@@ -554,9 +541,7 @@ describe("AuthService", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
   // describe('revokeAllSessions') - All sessions revocation
-  // -------------------------------------------------------------------------
   describe("revokeAllSessions", () => {
     it("should revoke all sessions for user", async () => {
       // Arrange
@@ -576,9 +561,7 @@ describe("AuthService", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
   // describe('createSsoSession') - SSO session creation
-  // -------------------------------------------------------------------------
   describe("createSsoSession", () => {
     const ssoUser = {
       id: mockUserId,
@@ -631,9 +614,7 @@ describe("AuthService", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
   // describe('getOrganizationBySlug') - Organization lookup
-  // -------------------------------------------------------------------------
   describe("getOrganizationBySlug", () => {
     const mockOrg = {
       id: mockOrgId,

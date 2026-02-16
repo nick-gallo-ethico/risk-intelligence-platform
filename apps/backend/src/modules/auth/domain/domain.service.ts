@@ -11,7 +11,11 @@ import {
   DomainResponseDto,
   VerifyDomainResponseDto,
 } from "./dto/domain.dto";
-import { AuditEntityType, AuditActionCategory, ActorType } from "@prisma/client";
+import {
+  AuditEntityType,
+  AuditActionCategory,
+  ActorType,
+} from "@prisma/client";
 
 @Injectable()
 export class DomainService {
@@ -89,7 +93,9 @@ export class DomainService {
 
     if (existingDomain) {
       if (existingDomain.organizationId === organizationId) {
-        throw new ConflictException("Domain already added to your organization");
+        throw new ConflictException(
+          "Domain already added to your organization",
+        );
       }
       throw new ConflictException(
         "Domain is already claimed by another organization",

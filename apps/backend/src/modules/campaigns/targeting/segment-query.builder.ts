@@ -336,7 +336,9 @@ export class SegmentQueryBuilder {
       !noValueOperators.includes(condition.operator) &&
       condition.value === undefined
     ) {
-      errors.push(`${path}.value is required for operator ${condition.operator}`);
+      errors.push(
+        `${path}.value is required for operator ${condition.operator}`,
+      );
     }
 
     return errors;

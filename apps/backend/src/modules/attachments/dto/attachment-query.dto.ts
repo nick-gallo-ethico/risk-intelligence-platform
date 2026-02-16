@@ -1,10 +1,9 @@
-// =============================================================================
-// ATTACHMENT QUERY DTO
-// =============================================================================
-//
-// Query parameters for listing/filtering attachments. Supports pagination
-// and filtering by entity type, entity ID, and evidence flag.
-// =============================================================================
+/**
+ * ATTACHMENT QUERY DTO
+ *
+ * Query parameters for listing/filtering attachments. Supports pagination
+ * and filtering by entity type, entity ID, and evidence flag.
+ */
 
 import {
   IsOptional,

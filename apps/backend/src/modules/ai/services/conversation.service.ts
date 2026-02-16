@@ -33,7 +33,7 @@ export class ConversationService {
    * Returns existing active conversation if one exists.
    */
   async getOrCreate(
-    params: GetOrCreateConversationDto
+    params: GetOrCreateConversationDto,
   ): Promise<AiConversation> {
     // Find existing active conversation
     const existing = await this.prisma.aiConversation.findFirst({
@@ -49,7 +49,7 @@ export class ConversationService {
 
     if (existing) {
       this.logger.debug(
-        `Found existing conversation ${existing.id} for user ${params.userId}`
+        `Found existing conversation ${existing.id} for user ${params.userId}`,
       );
       return existing;
     }
@@ -67,7 +67,7 @@ export class ConversationService {
     });
 
     this.logger.debug(
-      `Created new conversation ${conversation.id} for user ${params.userId}`
+      `Created new conversation ${conversation.id} for user ${params.userId}`,
     );
     return conversation;
   }
@@ -77,7 +77,7 @@ export class ConversationService {
    */
   async get(
     id: string,
-    organizationId: string
+    organizationId: string,
   ): Promise<AiConversation | null> {
     return this.prisma.aiConversation.findFirst({
       where: { id, organizationId },
@@ -90,7 +90,7 @@ export class ConversationService {
   async getWithMessages(
     id: string,
     organizationId: string,
-    messageLimit = 50
+    messageLimit = 50,
   ): Promise<ConversationWithMessages | null> {
     const conversation = await this.prisma.aiConversation.findFirst({
       where: { id, organizationId },
@@ -138,7 +138,7 @@ export class ConversationService {
 
     if (!conversation) {
       throw new NotFoundException(
-        `Conversation ${params.conversationId} not found`
+        `Conversation ${params.conversationId} not found`,
       );
     }
 
@@ -174,7 +174,7 @@ export class ConversationService {
     });
 
     this.logger.debug(
-      `Added ${params.role} message to conversation ${params.conversationId}`
+      `Added ${params.role} message to conversation ${params.conversationId}`,
     );
     return message;
   }
@@ -185,7 +185,7 @@ export class ConversationService {
   async getMessages(
     conversationId: string,
     limit = 50,
-    before?: Date
+    before?: Date,
   ): Promise<AiMessage[]> {
     const messages = await this.prisma.aiMessage.findMany({
       where: {
@@ -391,7 +391,7 @@ export class ConversationService {
   async updateTitle(
     id: string,
     organizationId: string,
-    title: string
+    title: string,
   ): Promise<void> {
     await this.prisma.aiConversation.updateMany({
       where: { id, organizationId },
@@ -406,7 +406,7 @@ export class ConversationService {
    */
   async getStats(
     organizationId: string,
-    userId: string
+    userId: string,
   ): Promise<{
     totalConversations: number;
     activeConversations: number;
@@ -435,7 +435,7 @@ export class ConversationService {
 
     const totalConversations = conversations.reduce(
       (sum, c) => sum + c._count,
-      0
+      0,
     );
     const activeConversations =
       conversations.find((c) => c.status === "ACTIVE")?._count || 0;

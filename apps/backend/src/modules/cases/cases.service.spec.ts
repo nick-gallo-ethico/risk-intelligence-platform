@@ -28,9 +28,7 @@ describe("CasesService", () => {
   let caseQueryService: jest.Mocked<CaseQueryService>;
   let caseStatusService: jest.Mocked<CaseStatusService>;
 
-  // -------------------------------------------------------------------------
   // Test Data Fixtures
-  // -------------------------------------------------------------------------
   const mockOrgId = "org-test-123";
   const mockOtherOrgId = "org-other-456";
   const mockUserId = "user-test-123";
@@ -69,9 +67,7 @@ describe("CasesService", () => {
     severity: Severity.MEDIUM,
   };
 
-  // -------------------------------------------------------------------------
   // Mock Setup
-  // -------------------------------------------------------------------------
   const mockPrismaService = {
     case: {
       create: jest.fn(),
@@ -109,9 +105,7 @@ describe("CasesService", () => {
     validateStatusTransition: jest.fn(),
   };
 
-  // -------------------------------------------------------------------------
   // Module Setup
-  // -------------------------------------------------------------------------
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -135,9 +129,7 @@ describe("CasesService", () => {
     jest.clearAllMocks();
   });
 
-  // -------------------------------------------------------------------------
   // describe('create')
-  // -------------------------------------------------------------------------
   describe("create", () => {
     it("should create case with correct organizationId", async () => {
       // Arrange
@@ -249,9 +241,7 @@ describe("CasesService", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
   // describe('findOne')
-  // -------------------------------------------------------------------------
   describe("findOne", () => {
     it("should delegate to CaseQueryService", async () => {
       // Arrange
@@ -307,9 +297,7 @@ describe("CasesService", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
   // describe('findByReferenceNumber')
-  // -------------------------------------------------------------------------
   describe("findByReferenceNumber", () => {
     it("should delegate to CaseQueryService", async () => {
       // Arrange
@@ -342,9 +330,7 @@ describe("CasesService", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
   // describe('findAll')
-  // -------------------------------------------------------------------------
   describe("findAll", () => {
     it("should delegate to CaseQueryService and return paginated results", async () => {
       // Arrange
@@ -452,9 +438,7 @@ describe("CasesService", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
   // describe('update')
-  // -------------------------------------------------------------------------
   describe("update", () => {
     it("should update case fields", async () => {
       // Arrange
@@ -540,9 +524,7 @@ describe("CasesService", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
   // describe('updateStatus')
-  // -------------------------------------------------------------------------
   describe("updateStatus", () => {
     it("should delegate to CaseStatusService", async () => {
       // Arrange
@@ -612,9 +594,7 @@ describe("CasesService", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
   // describe('close')
-  // -------------------------------------------------------------------------
   describe("close", () => {
     it("should delegate to CaseStatusService", async () => {
       // Arrange
@@ -674,9 +654,7 @@ describe("CasesService", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
   // describe('generateReferenceNumber')
-  // -------------------------------------------------------------------------
   describe("generateReferenceNumber", () => {
     it("should generate format ETH-YYYY-NNNNN", async () => {
       // Arrange
@@ -751,9 +729,7 @@ describe("CasesService", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
   // describe('event emission error handling')
-  // -------------------------------------------------------------------------
   describe("event emission error handling", () => {
     it("should not fail request if event emission fails", async () => {
       // Arrange

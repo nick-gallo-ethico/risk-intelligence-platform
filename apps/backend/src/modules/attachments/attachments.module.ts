@@ -1,17 +1,16 @@
-// =============================================================================
-// ATTACHMENTS MODULE
-// =============================================================================
-//
-// NestJS module for file attachments functionality. Provides file upload,
-// storage, and retrieval for Cases, Investigations, and Investigation Notes.
-//
-// EXPORTS:
-// - AttachmentsService: For use by other modules needing attachment operations
-//
-// FILE SIZE LIMITS:
-// - Maximum file size: 50 MB (configured in Multer options)
-// - Allowed types: Documents, images, audio/video, archives
-// =============================================================================
+/**
+ * ATTACHMENTS MODULE
+ *
+ * NestJS module for file attachments functionality. Provides file upload,
+ * storage, and retrieval for Cases, Investigations, and Investigation Notes.
+ *
+ * EXPORTS:
+ * - AttachmentsService: For use by other modules needing attachment operations
+ *
+ * FILE SIZE LIMITS:
+ * - Maximum file size: 50 MB (configured in Multer options)
+ * - Allowed types: Documents, images, audio/video, archives
+ */
 
 import { Module } from "@nestjs/common";
 import { MulterModule } from "@nestjs/platform-express";

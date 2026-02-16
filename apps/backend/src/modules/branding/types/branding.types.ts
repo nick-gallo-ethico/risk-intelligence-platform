@@ -10,8 +10,8 @@
  * BrandingMode determines the level of customization available to a tenant.
  */
 export const BrandingMode = {
-  TEMPLATE: 'TEMPLATE',
-  FULL_WHITE_LABEL: 'FULL_WHITE_LABEL',
+  TEMPLATE: "TEMPLATE",
+  FULL_WHITE_LABEL: "FULL_WHITE_LABEL",
 } as const;
 
 export type BrandingMode = (typeof BrandingMode)[keyof typeof BrandingMode];
@@ -20,9 +20,9 @@ export type BrandingMode = (typeof BrandingMode)[keyof typeof BrandingMode];
  * ThemeMode determines the default color scheme for the portal.
  */
 export const ThemeMode = {
-  LIGHT: 'LIGHT',
-  DARK: 'DARK',
-  SYSTEM: 'SYSTEM',
+  LIGHT: "LIGHT",
+  DARK: "DARK",
+  SYSTEM: "SYSTEM",
 } as const;
 
 export type ThemeMode = (typeof ThemeMode)[keyof typeof ThemeMode];
@@ -111,23 +111,23 @@ export interface BrandingConfig {
  * Based on shadcn/ui zinc palette with Ethico blue primary.
  */
 export const DEFAULT_COLOR_PALETTE: ColorPalette = {
-  background: '0 0% 100%',
-  foreground: '222 47% 11%',
-  card: '0 0% 100%',
-  cardForeground: '222 47% 11%',
-  primary: '221 83% 53%', // Ethico blue
-  primaryForeground: '210 40% 98%',
-  secondary: '210 40% 96%',
-  secondaryForeground: '222 47% 11%',
-  muted: '210 40% 96%',
-  mutedForeground: '215 16% 47%',
-  accent: '210 40% 96%',
-  accentForeground: '222 47% 11%',
-  destructive: '0 84% 60%',
-  destructiveForeground: '210 40% 98%',
-  border: '214 32% 91%',
-  input: '214 32% 91%',
-  ring: '221 83% 53%', // Matches primary
+  background: "0 0% 100%",
+  foreground: "222 47% 11%",
+  card: "0 0% 100%",
+  cardForeground: "222 47% 11%",
+  primary: "221 83% 53%", // Ethico blue
+  primaryForeground: "210 40% 98%",
+  secondary: "210 40% 96%",
+  secondaryForeground: "222 47% 11%",
+  muted: "210 40% 96%",
+  mutedForeground: "215 16% 47%",
+  accent: "210 40% 96%",
+  accentForeground: "222 47% 11%",
+  destructive: "0 84% 60%",
+  destructiveForeground: "210 40% 98%",
+  border: "214 32% 91%",
+  input: "214 32% 91%",
+  ring: "221 83% 53%", // Matches primary
 };
 
 /**
@@ -135,23 +135,23 @@ export const DEFAULT_COLOR_PALETTE: ColorPalette = {
  * Used when theme is DARK.
  */
 export const DEFAULT_DARK_COLOR_PALETTE: ColorPalette = {
-  background: '222 47% 11%',
-  foreground: '210 40% 98%',
-  card: '222 47% 11%',
-  cardForeground: '210 40% 98%',
-  primary: '217 91% 60%', // Lighter blue for dark mode
-  primaryForeground: '222 47% 11%',
-  secondary: '217 32% 17%',
-  secondaryForeground: '210 40% 98%',
-  muted: '217 32% 17%',
-  mutedForeground: '215 20% 65%',
-  accent: '217 32% 17%',
-  accentForeground: '210 40% 98%',
-  destructive: '0 62% 30%',
-  destructiveForeground: '210 40% 98%',
-  border: '217 32% 17%',
-  input: '217 32% 17%',
-  ring: '217 91% 60%', // Matches primary
+  background: "222 47% 11%",
+  foreground: "210 40% 98%",
+  card: "222 47% 11%",
+  cardForeground: "210 40% 98%",
+  primary: "217 91% 60%", // Lighter blue for dark mode
+  primaryForeground: "222 47% 11%",
+  secondary: "217 32% 17%",
+  secondaryForeground: "210 40% 98%",
+  muted: "217 32% 17%",
+  mutedForeground: "215 20% 65%",
+  accent: "217 32% 17%",
+  accentForeground: "210 40% 98%",
+  destructive: "0 62% 30%",
+  destructiveForeground: "210 40% 98%",
+  border: "217 32% 17%",
+  input: "217 32% 17%",
+  ring: "217 91% 60%", // Matches primary
 };
 
 /**
@@ -159,8 +159,8 @@ export const DEFAULT_DARK_COLOR_PALETTE: ColorPalette = {
  * Uses Inter as the default font family (common for SaaS applications).
  */
 export const DEFAULT_TYPOGRAPHY: Typography = {
-  fontFamily: 'Inter, sans-serif',
-  headingFontFamily: 'Inter, sans-serif',
+  fontFamily: "Inter, sans-serif",
+  headingFontFamily: "Inter, sans-serif",
 };
 
 /**
@@ -168,21 +168,21 @@ export const DEFAULT_TYPOGRAPHY: Typography = {
  * Maps ColorPalette keys to CSS custom property names.
  */
 export const CSS_VAR_MAPPING: Record<keyof ColorPalette, string> = {
-  background: '--background',
-  foreground: '--foreground',
-  card: '--card',
-  cardForeground: '--card-foreground',
-  primary: '--primary',
-  primaryForeground: '--primary-foreground',
-  secondary: '--secondary',
-  secondaryForeground: '--secondary-foreground',
-  muted: '--muted',
-  mutedForeground: '--muted-foreground',
-  accent: '--accent',
-  accentForeground: '--accent-foreground',
-  destructive: '--destructive',
-  destructiveForeground: '--destructive-foreground',
-  border: '--border',
-  input: '--input',
-  ring: '--ring',
+  background: "--background",
+  foreground: "--foreground",
+  card: "--card",
+  cardForeground: "--card-foreground",
+  primary: "--primary",
+  primaryForeground: "--primary-foreground",
+  secondary: "--secondary",
+  secondaryForeground: "--secondary-foreground",
+  muted: "--muted",
+  mutedForeground: "--muted-foreground",
+  accent: "--accent",
+  accentForeground: "--accent-foreground",
+  destructive: "--destructive",
+  destructiveForeground: "--destructive-foreground",
+  border: "--border",
+  input: "--input",
+  ring: "--ring",
 };

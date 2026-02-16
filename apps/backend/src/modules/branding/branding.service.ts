@@ -22,17 +22,17 @@ import {
   Inject,
   NotFoundException,
   BadRequestException,
-} from '@nestjs/common';
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { Cache } from 'cache-manager';
-import { EventEmitter2 } from '@nestjs/event-emitter';
-import { Prisma } from '@prisma/client';
+} from "@nestjs/common";
+import { CACHE_MANAGER } from "@nestjs/cache-manager";
+import { Cache } from "cache-manager";
+import { EventEmitter2 } from "@nestjs/event-emitter";
+import { Prisma } from "@prisma/client";
 import {
   BrandingMode as PrismaBrandingMode,
   ThemeMode as PrismaThemeMode,
-} from '@prisma/client';
-import { PrismaService } from '../prisma/prisma.service';
-import { UpdateBrandingDto, PreviewCssDto } from './dto/branding.dto';
+} from "@prisma/client";
+import { PrismaService } from "../prisma/prisma.service";
+import { UpdateBrandingDto, PreviewCssDto } from "./dto/branding.dto";
 import {
   BrandingConfig,
   BrandingMode,
@@ -43,7 +43,7 @@ import {
   DEFAULT_DARK_COLOR_PALETTE,
   DEFAULT_TYPOGRAPHY,
   CSS_VAR_MAPPING,
-} from './types/branding.types';
+} from "./types/branding.types";
 
 /** Cache TTL in milliseconds (1 hour) */
 const BRANDING_CACHE_TTL = 60 * 60 * 1000;
@@ -167,7 +167,7 @@ export class BrandingService {
       cssVars.push(`  --logo-url: url("${branding.logoUrl}");`);
     }
 
-    return `:root {\n${cssVars.join('\n')}\n}`;
+    return `:root {\n${cssVars.join("\n")}\n}`;
   }
 
   /**
@@ -186,7 +186,7 @@ export class BrandingService {
 
     if (!org) {
       // Return default CSS for unknown tenants
-      return this.generateCss(this.getDefaultBranding('unknown'));
+      return this.generateCss(this.getDefaultBranding("unknown"));
     }
 
     const cssCacheKey = `branding:css:${org.id}`;
@@ -232,7 +232,7 @@ export class BrandingService {
 
       if (!existing?.colorPalette && !dto.colorPalette) {
         throw new BadRequestException(
-          'FULL_WHITE_LABEL mode requires colorPalette to be configured',
+          "FULL_WHITE_LABEL mode requires colorPalette to be configured",
         );
       }
     }
@@ -296,7 +296,7 @@ export class BrandingService {
       mode: branding.mode as BrandingMode,
       updatedAt: branding.updatedAt,
     };
-    this.eventEmitter.emit('branding.updated', event);
+    this.eventEmitter.emit("branding.updated", event);
     this.logger.log(
       `Branding updated for org ${organizationId}, mode: ${branding.mode}`,
     );
@@ -329,8 +329,8 @@ export class BrandingService {
   previewCss(dto: PreviewCssDto): string {
     // Build a temporary branding config for CSS generation
     const tempConfig: BrandingConfig = {
-      id: 'preview',
-      organizationId: 'preview',
+      id: "preview",
+      organizationId: "preview",
       mode: dto.colorPalette
         ? BrandingMode.FULL_WHITE_LABEL
         : BrandingMode.TEMPLATE,
@@ -359,11 +359,11 @@ export class BrandingService {
   getDefaultBranding(organizationId: string): BrandingConfig {
     const now = new Date();
     return {
-      id: 'default',
+      id: "default",
       organizationId,
       mode: BrandingMode.TEMPLATE,
       logoUrl: null,
-      primaryColor: '221 83% 53%', // Ethico blue
+      primaryColor: "221 83% 53%", // Ethico blue
       theme: ThemeMode.LIGHT,
       colorPalette: null,
       typography: null,
@@ -375,7 +375,7 @@ export class BrandingService {
     };
   }
 
-  // ===== Private Helper Methods =====
+  // Private Helper Methods
 
   /**
    * Generate cache key for branding config.
@@ -432,7 +432,7 @@ export class BrandingService {
       const primaryLightness = this.extractLightness(branding.primaryColor);
       if (primaryLightness !== null) {
         basePalette.primaryForeground =
-          primaryLightness > 50 ? '222 47% 11%' : '210 40% 98%';
+          primaryLightness > 50 ? "222 47% 11%" : "210 40% 98%";
       }
     }
 

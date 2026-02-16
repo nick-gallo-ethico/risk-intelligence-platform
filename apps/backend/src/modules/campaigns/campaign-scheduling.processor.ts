@@ -1,17 +1,20 @@
-import { Processor, WorkerHost, OnWorkerEvent } from '@nestjs/bullmq';
-import { Logger, forwardRef, Inject } from '@nestjs/common';
-import { Job } from 'bullmq';
-import { InjectQueue } from '@nestjs/bullmq';
-import { Queue } from 'bullmq';
-import { EventEmitter2 } from '@nestjs/event-emitter';
-import { PrismaService } from '../prisma/prisma.service';
-import { CampaignsService } from './campaigns.service';
-import { CampaignSchedulingService, CAMPAIGN_QUEUE_NAME } from './campaign-scheduling.service';
+import { Processor, WorkerHost, OnWorkerEvent } from "@nestjs/bullmq";
+import { Logger, forwardRef, Inject } from "@nestjs/common";
+import { Job } from "bullmq";
+import { InjectQueue } from "@nestjs/bullmq";
+import { Queue } from "bullmq";
+import { EventEmitter2 } from "@nestjs/event-emitter";
+import { PrismaService } from "../prisma/prisma.service";
+import { CampaignsService } from "./campaigns.service";
+import {
+  CampaignSchedulingService,
+  CAMPAIGN_QUEUE_NAME,
+} from "./campaign-scheduling.service";
 import {
   CampaignStatus,
   CampaignWaveStatus,
   CampaignRolloutStrategy,
-} from '@prisma/client';
+} from "@prisma/client";
 
 /**
  * Job data for launching a campaign.
@@ -61,15 +64,17 @@ export class CampaignSchedulingProcessor extends WorkerHost {
   /**
    * Process incoming jobs from the campaign queue.
    */
-  async process(job: Job<LaunchCampaignJobData | LaunchWaveJobData>): Promise<unknown> {
+  async process(
+    job: Job<LaunchCampaignJobData | LaunchWaveJobData>,
+  ): Promise<unknown> {
     this.logger.log(
       `Processing job ${job.id}: ${job.name} for campaign ${job.data.campaignId}`,
     );
 
     switch (job.name) {
-      case 'launch-campaign':
+      case "launch-campaign":
         return this.handleLaunch(job as Job<LaunchCampaignJobData>);
-      case 'launch-wave':
+      case "launch-wave":
         return this.handleWaveLaunch(job as Job<LaunchWaveJobData>);
       default:
         this.logger.warn(`Unknown job type: ${job.name}`);
@@ -94,7 +99,7 @@ export class CampaignSchedulingProcessor extends WorkerHost {
       where: { id: campaignId, organizationId },
       include: {
         waves: {
-          orderBy: { waveNumber: 'asc' },
+          orderBy: { waveNumber: "asc" },
         },
       },
     });
@@ -108,7 +113,7 @@ export class CampaignSchedulingProcessor extends WorkerHost {
       this.logger.warn(
         `Campaign ${campaignId} is not in SCHEDULED status (current: ${campaign.status})`,
       );
-      return { status: 'skipped', assignmentCount: 0 };
+      return { status: "skipped", assignmentCount: 0 };
     }
 
     // Check rollout strategy
@@ -117,14 +122,14 @@ export class CampaignSchedulingProcessor extends WorkerHost {
       const updated = await this.campaignsService.launch(
         campaignId,
         {},
-        userId || 'system',
+        userId || "system",
         organizationId,
       );
 
-      this.eventEmitter.emit('campaign.launched', {
+      this.eventEmitter.emit("campaign.launched", {
         organizationId,
         campaignId,
-        strategy: 'IMMEDIATE',
+        strategy: "IMMEDIATE",
         totalAssignments: updated.totalAssignments,
       });
 
@@ -133,7 +138,7 @@ export class CampaignSchedulingProcessor extends WorkerHost {
       );
 
       return {
-        status: 'launched',
+        status: "launched",
         assignmentCount: updated.totalAssignments,
       };
     }
@@ -146,11 +151,11 @@ export class CampaignSchedulingProcessor extends WorkerHost {
       const updated = await this.campaignsService.launch(
         campaignId,
         {},
-        userId || 'system',
+        userId || "system",
         organizationId,
       );
       return {
-        status: 'launched',
+        status: "launched",
         assignmentCount: updated.totalAssignments,
       };
     }
@@ -177,7 +182,7 @@ export class CampaignSchedulingProcessor extends WorkerHost {
 
       if (delay > 0) {
         await this.campaignQueue.add(
-          'launch-wave',
+          "launch-wave",
           {
             campaignId,
             organizationId,
@@ -197,7 +202,7 @@ export class CampaignSchedulingProcessor extends WorkerHost {
       }
     }
 
-    this.eventEmitter.emit('campaign.launched', {
+    this.eventEmitter.emit("campaign.launched", {
       organizationId,
       campaignId,
       strategy: campaign.rolloutStrategy,
@@ -210,7 +215,7 @@ export class CampaignSchedulingProcessor extends WorkerHost {
     );
 
     return {
-      status: 'launched',
+      status: "launched",
       wavesQueued,
     };
   }
@@ -225,10 +230,14 @@ export class CampaignSchedulingProcessor extends WorkerHost {
   }> {
     const { campaignId, organizationId, waveNumber } = job.data;
 
-    const result = await this.launchWave(campaignId, waveNumber, organizationId);
+    const result = await this.launchWave(
+      campaignId,
+      waveNumber,
+      organizationId,
+    );
 
     return {
-      status: 'launched',
+      status: "launched",
       assignmentCount: result.assignmentCount,
     };
   }
@@ -247,7 +256,9 @@ export class CampaignSchedulingProcessor extends WorkerHost {
     });
 
     if (!wave) {
-      throw new Error(`Wave ${waveNumber} not found for campaign ${campaignId}`);
+      throw new Error(
+        `Wave ${waveNumber} not found for campaign ${campaignId}`,
+      );
     }
 
     if (wave.status !== CampaignWaveStatus.PENDING) {
@@ -359,7 +370,7 @@ export class CampaignSchedulingProcessor extends WorkerHost {
     });
 
     // Emit event
-    this.eventEmitter.emit('campaign.wave.launched', {
+    this.eventEmitter.emit("campaign.wave.launched", {
       organizationId,
       campaignId,
       waveNumber,
@@ -394,22 +405,22 @@ export class CampaignSchedulingProcessor extends WorkerHost {
     let allEmployeeIds: string[] = [];
 
     switch (campaign.audienceMode) {
-      case 'SEGMENT':
+      case "SEGMENT":
         // This would need segment evaluation - simplified for now
         const employees = await this.prisma.employee.findMany({
-          where: { organizationId, employmentStatus: 'ACTIVE' },
+          where: { organizationId, employmentStatus: "ACTIVE" },
           select: { id: true },
         });
         allEmployeeIds = employees.map((e) => e.id);
         break;
 
-      case 'MANUAL':
+      case "MANUAL":
         allEmployeeIds = campaign.manualIds;
         break;
 
-      case 'ALL':
+      case "ALL":
         const allActive = await this.prisma.employee.findMany({
-          where: { organizationId, employmentStatus: 'ACTIVE' },
+          where: { organizationId, employmentStatus: "ACTIVE" },
           select: { id: true },
         });
         allEmployeeIds = allActive.map((e) => e.id);
@@ -434,28 +445,23 @@ export class CampaignSchedulingProcessor extends WorkerHost {
     return shuffled.slice(0, count);
   }
 
-  // ===========================================================================
   // Worker Events
-  // ===========================================================================
 
-  @OnWorkerEvent('completed')
+  @OnWorkerEvent("completed")
   onCompleted(job: Job<LaunchCampaignJobData | LaunchWaveJobData>) {
     this.logger.log(
       `Campaign job ${job.id} (${job.name}) completed successfully`,
     );
   }
 
-  @OnWorkerEvent('failed')
-  onFailed(
-    job: Job<LaunchCampaignJobData | LaunchWaveJobData>,
-    error: Error,
-  ) {
+  @OnWorkerEvent("failed")
+  onFailed(job: Job<LaunchCampaignJobData | LaunchWaveJobData>, error: Error) {
     this.logger.error(
       `Campaign job ${job.id} (${job.name}) failed after ${job.attemptsMade} attempts: ${error.message}`,
     );
 
     // Emit failure event for monitoring
-    this.eventEmitter.emit('campaign.launch.failed', {
+    this.eventEmitter.emit("campaign.launch.failed", {
       jobId: job.id,
       jobName: job.name,
       campaignId: job.data.campaignId,
@@ -465,7 +471,7 @@ export class CampaignSchedulingProcessor extends WorkerHost {
     });
   }
 
-  @OnWorkerEvent('stalled')
+  @OnWorkerEvent("stalled")
   onStalled(jobId: string) {
     this.logger.warn(`Campaign job ${jobId} stalled`);
   }

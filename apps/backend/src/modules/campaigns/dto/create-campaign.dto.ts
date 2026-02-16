@@ -212,7 +212,8 @@ export class UpdateCampaignDto {
  */
 export class LaunchCampaignDto {
   @ApiPropertyOptional({
-    description: "Override launch time (ISO date). If not provided, launches immediately.",
+    description:
+      "Override launch time (ISO date). If not provided, launches immediately.",
   })
   @IsOptional()
   @IsDateString()

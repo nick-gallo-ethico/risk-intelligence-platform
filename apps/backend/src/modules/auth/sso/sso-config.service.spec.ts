@@ -1,14 +1,13 @@
-// =============================================================================
-// UNIT TESTS: SsoConfigService
-// =============================================================================
-//
-// Tests for per-tenant SSO configuration management.
-// Key behaviors:
-// - Get SSO config (create default if not exists)
-// - Update SSO config with audit logging
-// - Check if SSO is enabled
-// - Get SAML configuration for tenant
-// =============================================================================
+/**
+ * UNIT TESTS: SsoConfigService
+ *
+ * Tests for per-tenant SSO configuration management.
+ * Key behaviors:
+ * - Get SSO config (create default if not exists)
+ * - Update SSO config with audit logging
+ * - Check if SSO is enabled
+ * - Get SAML configuration for tenant
+ */
 
 import { Test, TestingModule } from "@nestjs/testing";
 import { NotFoundException } from "@nestjs/common";
@@ -24,9 +23,7 @@ describe("SsoConfigService", () => {
   let auditService: jest.Mocked<AuditService>;
   let configService: jest.Mocked<ConfigService>;
 
-  // ---------------------------------------------------------------------------
   // Test Data Fixtures
-  // ---------------------------------------------------------------------------
   const mockOrgId = "org-test-123";
   const mockUserId = "user-test-123";
   const mockOrgSlug = "test-org";
@@ -78,9 +75,7 @@ describe("SsoConfigService", () => {
     tenantSsoConfig: mockSamlConfig,
   };
 
-  // ---------------------------------------------------------------------------
   // Mock Setup
-  // ---------------------------------------------------------------------------
   const mockPrismaService = {
     tenantSsoConfig: {
       findUnique: jest.fn(),
@@ -100,9 +95,7 @@ describe("SsoConfigService", () => {
     get: jest.fn(),
   };
 
-  // ---------------------------------------------------------------------------
   // Module Setup
-  // ---------------------------------------------------------------------------
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -122,9 +115,7 @@ describe("SsoConfigService", () => {
     jest.clearAllMocks();
   });
 
-  // ---------------------------------------------------------------------------
   // describe('getConfig') - Get or create SSO configuration
-  // ---------------------------------------------------------------------------
   describe("getConfig", () => {
     it("should return existing SSO config for organization", async () => {
       // Arrange
@@ -190,9 +181,7 @@ describe("SsoConfigService", () => {
     });
   });
 
-  // ---------------------------------------------------------------------------
   // describe('updateConfig') - Update SSO configuration
-  // ---------------------------------------------------------------------------
   describe("updateConfig", () => {
     it("should update existing SSO configuration", async () => {
       // Arrange
@@ -349,9 +338,7 @@ describe("SsoConfigService", () => {
     });
   });
 
-  // ---------------------------------------------------------------------------
   // describe('isSsoEnabled') - Check SSO status
-  // ---------------------------------------------------------------------------
   describe("isSsoEnabled", () => {
     it("should return true when SSO is enabled", async () => {
       // Arrange
@@ -395,9 +382,7 @@ describe("SsoConfigService", () => {
     });
   });
 
-  // ---------------------------------------------------------------------------
   // describe('getSamlConfig') - Get SAML configuration for tenant
-  // ---------------------------------------------------------------------------
   describe("getSamlConfig", () => {
     beforeEach(() => {
       mockConfigService.get.mockReturnValue("https://api.ethico.com");

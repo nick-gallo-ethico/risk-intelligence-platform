@@ -8,42 +8,39 @@ import {
   Min,
   MinLength,
   ValidateNested,
-} from 'class-validator';
-import { Type } from 'class-transformer';
-import {
-  MigrationSourceType,
-  MigrationJobStatus,
-} from '@prisma/client';
+} from "class-validator";
+import { Type } from "class-transformer";
+import { MigrationSourceType, MigrationJobStatus } from "@prisma/client";
 
 /**
  * Target entity types for field mapping
  */
 export enum TargetEntityType {
-  CASE = 'Case',
-  RIU = 'RIU',
-  PERSON = 'Person',
-  INVESTIGATION = 'Investigation',
+  CASE = "Case",
+  RIU = "RIU",
+  PERSON = "Person",
+  INVESTIGATION = "Investigation",
 }
 
 /**
  * Transform functions available for field mapping
  */
 export enum TransformFunction {
-  UPPERCASE = 'uppercase',
-  LOWERCASE = 'lowercase',
-  TRIM = 'trim',
-  PARSE_DATE = 'parseDate',
-  PARSE_DATE_US = 'parseDateUS', // MM/DD/YYYY
-  PARSE_DATE_EU = 'parseDateEU', // DD/MM/YYYY
-  PARSE_DATE_ISO = 'parseDateISO', // YYYY-MM-DD
-  MAP_CATEGORY = 'mapCategory',
-  MAP_SEVERITY = 'mapSeverity',
-  MAP_STATUS = 'mapStatus',
-  PARSE_BOOLEAN = 'parseBoolean',
-  PARSE_NUMBER = 'parseNumber',
-  SPLIT_COMMA = 'splitComma', // Split CSV values
-  EXTRACT_EMAIL = 'extractEmail',
-  EXTRACT_PHONE = 'extractPhone',
+  UPPERCASE = "uppercase",
+  LOWERCASE = "lowercase",
+  TRIM = "trim",
+  PARSE_DATE = "parseDate",
+  PARSE_DATE_US = "parseDateUS", // MM/DD/YYYY
+  PARSE_DATE_EU = "parseDateEU", // DD/MM/YYYY
+  PARSE_DATE_ISO = "parseDateISO", // YYYY-MM-DD
+  MAP_CATEGORY = "mapCategory",
+  MAP_SEVERITY = "mapSeverity",
+  MAP_STATUS = "mapStatus",
+  PARSE_BOOLEAN = "parseBoolean",
+  PARSE_NUMBER = "parseNumber",
+  SPLIT_COMMA = "splitComma", // Split CSV values
+  EXTRACT_EMAIL = "extractEmail",
+  EXTRACT_PHONE = "extractPhone",
 }
 
 /**
@@ -138,7 +135,7 @@ export interface ValidationError {
   field: string;
   value: unknown;
   error: string;
-  severity: 'error' | 'warning';
+  severity: "error" | "warning";
 }
 
 /**

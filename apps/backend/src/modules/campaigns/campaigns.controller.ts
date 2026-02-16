@@ -57,7 +57,7 @@ export class CampaignsController {
     private reminderService: CampaignReminderService,
   ) {}
 
-  // ==================== Campaign Endpoints ====================
+  // Campaign Endpoints
 
   @Post()
   @Roles(UserRole.SYSTEM_ADMIN, UserRole.COMPLIANCE_OFFICER)
@@ -97,7 +97,7 @@ export class CampaignsController {
     });
   }
 
-  // ==================== Dashboard Endpoints ====================
+  // Dashboard Endpoints
 
   @Get("dashboard/stats")
   @Roles(
@@ -298,7 +298,7 @@ export class CampaignsController {
     return this.campaignsService.getStatistics(id, organizationId);
   }
 
-  // ==================== Assignment Endpoints ====================
+  // Assignment Endpoints
 
   @Get(":id/assignments")
   @Roles(
@@ -344,7 +344,7 @@ export class CampaignsController {
     );
   }
 
-  // ==================== Segment Endpoints ====================
+  // Segment Endpoints
 
   @Post("segments")
   @Roles(UserRole.SYSTEM_ADMIN, UserRole.COMPLIANCE_OFFICER)

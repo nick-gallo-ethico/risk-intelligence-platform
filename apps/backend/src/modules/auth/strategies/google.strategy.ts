@@ -1,9 +1,9 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { PassportStrategy } from '@nestjs/passport';
-import { Strategy, Profile, VerifyCallback } from 'passport-google-oauth20';
-import { ConfigService } from '@nestjs/config';
-import { SsoService } from '../sso/sso.service';
-import { SsoUserData } from '../interfaces';
+import { Injectable, Logger } from "@nestjs/common";
+import { PassportStrategy } from "@nestjs/passport";
+import { Strategy, Profile, VerifyCallback } from "passport-google-oauth20";
+import { ConfigService } from "@nestjs/config";
+import { SsoService } from "../sso/sso.service";
+import { SsoUserData } from "../interfaces";
 
 /**
  * Build Google OAuth 2.0 strategy options from environment configuration.
@@ -15,15 +15,21 @@ function buildGoogleOptions(configService: ConfigService): {
   callbackURL: string;
   scope: string[];
 } {
-  const clientId = configService.get<string>('GOOGLE_CLIENT_ID', 'not-configured');
-  const clientSecret = configService.get<string>('GOOGLE_CLIENT_SECRET', 'not-configured');
-  const apiUrl = configService.get<string>('API_URL', 'http://localhost:3000');
+  const clientId = configService.get<string>(
+    "GOOGLE_CLIENT_ID",
+    "not-configured",
+  );
+  const clientSecret = configService.get<string>(
+    "GOOGLE_CLIENT_SECRET",
+    "not-configured",
+  );
+  const apiUrl = configService.get<string>("API_URL", "http://localhost:3000");
 
   return {
     clientID: clientId,
     clientSecret: clientSecret,
     callbackURL: `${apiUrl}/api/v1/auth/google/callback`,
-    scope: ['email', 'profile', 'openid'],
+    scope: ["email", "profile", "openid"],
   };
 }
 
@@ -44,7 +50,7 @@ function buildGoogleOptions(configService: ConfigService): {
  * Google OAuth configuration.
  */
 @Injectable()
-export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
+export class GoogleStrategy extends PassportStrategy(Strategy, "google") {
   private readonly logger = new Logger(GoogleStrategy.name);
   private readonly isConfigured: boolean;
 
@@ -55,12 +61,14 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     super(buildGoogleOptions(configService));
 
     // Track whether strategy is actually configured
-    const clientId = configService.get<string>('GOOGLE_CLIENT_ID');
-    const clientSecret = configService.get<string>('GOOGLE_CLIENT_SECRET');
+    const clientId = configService.get<string>("GOOGLE_CLIENT_ID");
+    const clientSecret = configService.get<string>("GOOGLE_CLIENT_SECRET");
     this.isConfigured = !!(clientId && clientSecret);
 
     if (!this.isConfigured) {
-      this.logger.warn('Google OAuth strategy not configured - GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET required');
+      this.logger.warn(
+        "Google OAuth strategy not configured - GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET required",
+      );
     }
   }
 
@@ -81,7 +89,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
   ): Promise<void> {
     try {
       if (!this.isConfigured) {
-        return done(new Error('Google OAuth SSO is not configured'), false);
+        return done(new Error("Google OAuth SSO is not configured"), false);
       }
 
       const email = profile.emails?.[0]?.value;
@@ -89,21 +97,21 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
       this.logger.log(`Google OAuth callback for user: ${email}`);
 
       if (!email) {
-        this.logger.error('Google profile missing email');
-        return done(new Error('Email not provided by Google'), false);
+        this.logger.error("Google profile missing email");
+        return done(new Error("Email not provided by Google"), false);
       }
 
       if (!profile.id) {
-        this.logger.error('Google profile missing id');
-        return done(new Error('User ID not provided by Google'), false);
+        this.logger.error("Google profile missing id");
+        return done(new Error("User ID not provided by Google"), false);
       }
 
       // Extract user data from Google profile
       const ssoUser: SsoUserData = {
         email: email.toLowerCase(),
-        firstName: profile.name?.givenName || '',
-        lastName: profile.name?.familyName || '',
-        provider: 'google',
+        firstName: profile.name?.givenName || "",
+        lastName: profile.name?.familyName || "",
+        provider: "google",
         ssoId: profile.id, // Google user ID - stable unique identifier
         avatarUrl: profile.photos?.[0]?.value,
         rawProfile: profile._json,

@@ -1,15 +1,14 @@
-// =============================================================================
-// UNIT TESTS: DomainService
-// =============================================================================
-//
-// Tests for tenant domain management and organization routing.
-// Key behaviors:
-// - Find organization by verified email domain (cross-tenant lookup)
-// - Add domain with verification token generation
-// - Verify domain via DNS TXT record
-// - Remove domain from organization
-// - Set primary domain for organization
-// =============================================================================
+/**
+ * UNIT TESTS: DomainService
+ *
+ * Tests for tenant domain management and organization routing.
+ * Key behaviors:
+ * - Find organization by verified email domain (cross-tenant lookup)
+ * - Add domain with verification token generation
+ * - Verify domain via DNS TXT record
+ * - Remove domain from organization
+ * - Set primary domain for organization
+ */
 
 import { Test, TestingModule } from "@nestjs/testing";
 import { NotFoundException, ConflictException } from "@nestjs/common";
@@ -24,9 +23,7 @@ describe("DomainService", () => {
   let auditService: jest.Mocked<AuditService>;
   let verificationService: jest.Mocked<DomainVerificationService>;
 
-  // ---------------------------------------------------------------------------
   // Test Data Fixtures
-  // ---------------------------------------------------------------------------
   const mockOrgId = "org-test-123";
   const mockUserId = "user-test-123";
   const mockDomainId = "domain-test-123";
@@ -61,9 +58,7 @@ describe("DomainService", () => {
     isPrimary: false,
   };
 
-  // ---------------------------------------------------------------------------
   // Mock Setup
-  // ---------------------------------------------------------------------------
   const mockPrismaService = {
     tenantDomain: {
       findFirst: jest.fn(),
@@ -86,16 +81,17 @@ describe("DomainService", () => {
     verifyDnsTxtRecord: jest.fn(),
   };
 
-  // ---------------------------------------------------------------------------
   // Module Setup
-  // ---------------------------------------------------------------------------
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         DomainService,
         { provide: PrismaService, useValue: mockPrismaService },
         { provide: AuditService, useValue: mockAuditService },
-        { provide: DomainVerificationService, useValue: mockVerificationService },
+        {
+          provide: DomainVerificationService,
+          useValue: mockVerificationService,
+        },
       ],
     }).compile();
 
@@ -119,9 +115,7 @@ describe("DomainService", () => {
     });
   });
 
-  // ---------------------------------------------------------------------------
   // describe('findOrganizationByEmailDomain') - Cross-tenant lookup
-  // ---------------------------------------------------------------------------
   describe("findOrganizationByEmailDomain", () => {
     it("should return organization for verified domain", async () => {
       // Arrange
@@ -131,9 +125,8 @@ describe("DomainService", () => {
       });
 
       // Act
-      const result = await service.findOrganizationByEmailDomain(
-        "user@company.com",
-      );
+      const result =
+        await service.findOrganizationByEmailDomain("user@company.com");
 
       // Assert
       expect(result).toEqual(mockOrganization);
@@ -166,9 +159,8 @@ describe("DomainService", () => {
       mockPrismaService.tenantDomain.findFirst.mockResolvedValue(null);
 
       // Act
-      const result = await service.findOrganizationByEmailDomain(
-        "user@unknown.com",
-      );
+      const result =
+        await service.findOrganizationByEmailDomain("user@unknown.com");
 
       // Assert
       expect(result).toBeNull();
@@ -193,7 +185,8 @@ describe("DomainService", () => {
 
     it("should return null for invalid email without domain", async () => {
       // Arrange - No @ in email
-      const result = await service.findOrganizationByEmailDomain("invalidemail");
+      const result =
+        await service.findOrganizationByEmailDomain("invalidemail");
 
       // Assert
       expect(result).toBeNull();
@@ -201,9 +194,7 @@ describe("DomainService", () => {
     });
   });
 
-  // ---------------------------------------------------------------------------
   // describe('getDomainsForOrganization') - List domains
-  // ---------------------------------------------------------------------------
   describe("getDomainsForOrganization", () => {
     it("should return all domains for organization", async () => {
       // Arrange
@@ -250,9 +241,7 @@ describe("DomainService", () => {
     });
   });
 
-  // ---------------------------------------------------------------------------
   // describe('addDomain') - Add new domain
-  // ---------------------------------------------------------------------------
   describe("addDomain", () => {
     it("should create domain with verification token", async () => {
       // Arrange
@@ -265,7 +254,11 @@ describe("DomainService", () => {
       });
 
       // Act
-      const result = await service.addDomain(mockOrgId, addDomainDto, mockUserId);
+      const result = await service.addDomain(
+        mockOrgId,
+        addDomainDto,
+        mockUserId,
+      );
 
       // Assert
       expect(result.domain).toBe("newdomain.com");
@@ -286,7 +279,9 @@ describe("DomainService", () => {
       // Arrange
       const addDomainDto = { domain: "NewDomain.COM" };
       mockPrismaService.tenantDomain.findUnique.mockResolvedValue(null);
-      mockPrismaService.tenantDomain.create.mockResolvedValue(mockUnverifiedDomain);
+      mockPrismaService.tenantDomain.create.mockResolvedValue(
+        mockUnverifiedDomain,
+      );
 
       // Act
       await service.addDomain(mockOrgId, addDomainDto, mockUserId);
@@ -307,7 +302,9 @@ describe("DomainService", () => {
       // Act & Assert
       await expect(
         service.addDomain(mockOrgId, addDomainDto, mockUserId),
-      ).rejects.toThrow(new ConflictException("Domain already added to your organization"));
+      ).rejects.toThrow(
+        new ConflictException("Domain already added to your organization"),
+      );
     });
 
     it("should throw ConflictException if domain claimed by another org", async () => {
@@ -322,7 +319,9 @@ describe("DomainService", () => {
       await expect(
         service.addDomain(mockOrgId, addDomainDto, mockUserId),
       ).rejects.toThrow(
-        new ConflictException("Domain is already claimed by another organization"),
+        new ConflictException(
+          "Domain is already claimed by another organization",
+        ),
       );
     });
 
@@ -330,7 +329,9 @@ describe("DomainService", () => {
       // Arrange
       const addDomainDto = { domain: "newdomain.com" };
       mockPrismaService.tenantDomain.findUnique.mockResolvedValue(null);
-      mockPrismaService.tenantDomain.create.mockResolvedValue(mockUnverifiedDomain);
+      mockPrismaService.tenantDomain.create.mockResolvedValue(
+        mockUnverifiedDomain,
+      );
 
       // Act
       await service.addDomain(mockOrgId, addDomainDto, mockUserId);
@@ -366,9 +367,7 @@ describe("DomainService", () => {
     });
   });
 
-  // ---------------------------------------------------------------------------
   // describe('verifyDomain') - DNS verification flow
-  // ---------------------------------------------------------------------------
   describe("verifyDomain", () => {
     it("should mark domain as verified when TXT record matches", async () => {
       // Arrange
@@ -436,7 +435,11 @@ describe("DomainService", () => {
       mockPrismaService.tenantDomain.findFirst.mockResolvedValue(mockDomain);
 
       // Act
-      const result = await service.verifyDomain(mockOrgId, mockDomainId, mockUserId);
+      const result = await service.verifyDomain(
+        mockOrgId,
+        mockDomainId,
+        mockUserId,
+      );
 
       // Assert
       expect(result.verified).toBe(true);
@@ -452,7 +455,11 @@ describe("DomainService", () => {
       mockPrismaService.tenantDomain.update.mockResolvedValue(mockDomain);
 
       // Act
-      await service.verifyDomain(mockOrgId, mockUnverifiedDomain.id, mockUserId);
+      await service.verifyDomain(
+        mockOrgId,
+        mockUnverifiedDomain.id,
+        mockUserId,
+      );
 
       // Assert
       expect(auditService.log).toHaveBeenCalledWith(
@@ -465,9 +472,7 @@ describe("DomainService", () => {
     });
   });
 
-  // ---------------------------------------------------------------------------
   // describe('removeDomain') - Delete domain
-  // ---------------------------------------------------------------------------
   describe("removeDomain", () => {
     it("should delete domain from organization", async () => {
       // Arrange
@@ -522,9 +527,7 @@ describe("DomainService", () => {
     });
   });
 
-  // ---------------------------------------------------------------------------
   // describe('setPrimaryDomain') - Set primary domain
-  // ---------------------------------------------------------------------------
   describe("setPrimaryDomain", () => {
     it("should set verified domain as primary", async () => {
       // Arrange
@@ -567,8 +570,14 @@ describe("DomainService", () => {
 
       // Act & Assert
       await expect(
-        service.setPrimaryDomain(mockOrgId, mockUnverifiedDomain.id, mockUserId),
-      ).rejects.toThrow(new NotFoundException("Domain not found or not verified"));
+        service.setPrimaryDomain(
+          mockOrgId,
+          mockUnverifiedDomain.id,
+          mockUserId,
+        ),
+      ).rejects.toThrow(
+        new NotFoundException("Domain not found or not verified"),
+      );
     });
 
     it("should log audit event on primary domain change", async () => {

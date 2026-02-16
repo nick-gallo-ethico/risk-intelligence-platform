@@ -1,15 +1,14 @@
-// =============================================================================
-// ACTIVITY TIMELINE CONTROLLER - REST API for activity timelines
-// =============================================================================
-//
-// Provides endpoints for retrieving activity timelines for entities and users.
-// All endpoints are protected by JWT auth and tenant isolation.
-//
-// ENDPOINTS:
-// - GET /api/v1/activity/:entityType/:entityId - Get timeline for entity
-// - GET /api/v1/activity/:entityType/:entityId/summary - Get activity summary
-// - GET /api/v1/activity/my-recent - Get user's recent activity
-// =============================================================================
+/**
+ * ACTIVITY TIMELINE CONTROLLER - REST API for activity timelines
+ *
+ * Provides endpoints for retrieving activity timelines for entities and users.
+ * All endpoints are protected by JWT auth and tenant isolation.
+ *
+ * ENDPOINTS:
+ * - GET /api/v1/activity/:entityType/:entityId - Get timeline for entity
+ * - GET /api/v1/activity/:entityType/:entityId/summary - Get activity summary
+ * - GET /api/v1/activity/my-recent - Get user's recent activity
+ */
 
 import {
   Controller,
@@ -42,11 +41,7 @@ import { TenantId } from "../../common/decorators/tenant-id.decorator";
 import { ActivityTimelineService } from "./activity-timeline.service";
 
 // DTOs
-import {
-  TimelineQueryDto,
-  TimelineResponseDto,
-  EntitySummaryDto,
-} from "./dto";
+import { TimelineQueryDto, TimelineResponseDto, EntitySummaryDto } from "./dto";
 
 // Types
 import { RequestUser } from "../auth/interfaces/jwt-payload.interface";
@@ -60,9 +55,7 @@ export class ActivityTimelineController {
 
   constructor(private readonly timelineService: ActivityTimelineService) {}
 
-  // -------------------------------------------------------------------------
   // GET MY RECENT - GET /api/v1/activity/my-recent
-  // -------------------------------------------------------------------------
 
   @Get("my-recent")
   @ApiOperation({
@@ -94,9 +87,7 @@ export class ActivityTimelineController {
     });
   }
 
-  // -------------------------------------------------------------------------
   // GET ENTITY TIMELINE - GET /api/v1/activity/:entityType/:entityId
-  // -------------------------------------------------------------------------
 
   @Get(":entityType/:entityId")
   @ApiOperation({
@@ -149,9 +140,7 @@ export class ActivityTimelineController {
     );
   }
 
-  // -------------------------------------------------------------------------
   // GET ENTITY SUMMARY - GET /api/v1/activity/:entityType/:entityId/summary
-  // -------------------------------------------------------------------------
 
   @Get(":entityType/:entityId/summary")
   @ApiOperation({

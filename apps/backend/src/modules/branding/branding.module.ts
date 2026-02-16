@@ -19,11 +19,14 @@
  * @see BrandingController for API endpoints
  */
 
-import { Module } from '@nestjs/common';
-import { CacheModule } from '@nestjs/cache-manager';
-import { PrismaModule } from '../prisma/prisma.module';
-import { BrandingService } from './branding.service';
-import { BrandingController, PublicBrandingController } from './branding.controller';
+import { Module } from "@nestjs/common";
+import { CacheModule } from "@nestjs/cache-manager";
+import { PrismaModule } from "../prisma/prisma.module";
+import { BrandingService } from "./branding.service";
+import {
+  BrandingController,
+  PublicBrandingController,
+} from "./branding.controller";
 
 @Module({
   imports: [

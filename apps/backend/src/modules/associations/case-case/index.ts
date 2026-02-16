@@ -1,1 +1,1 @@
-export * from './case-case-association.service';
+export * from "./case-case-association.service";

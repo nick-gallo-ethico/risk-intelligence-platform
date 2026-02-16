@@ -1,6 +1,4 @@
-// =============================================================================
-// TIMELINE RESPONSE DTO - Response types for activity timeline endpoints
-// =============================================================================
+/** TIMELINE RESPONSE DTO - Response types for activity timeline endpoints */
 
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { AuditEntityType } from "@prisma/client";

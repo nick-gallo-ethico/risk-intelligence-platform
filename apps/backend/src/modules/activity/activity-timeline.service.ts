@@ -1,17 +1,16 @@
-// =============================================================================
-// ACTIVITY TIMELINE SERVICE - Aggregates audit events into unified timelines
-// =============================================================================
-//
-// This service provides entity-level activity timelines with related entity
-// inclusion. For example, a Case timeline includes Investigation activities.
-//
-// KEY FEATURES:
-// - Timeline aggregation from AuditLog table
-// - Related entity inclusion (Case -> Investigation, etc.)
-// - Pagination with hasMore indicator
-// - Date range filtering
-// - User's recent activity across all entities
-// =============================================================================
+/**
+ * ACTIVITY TIMELINE SERVICE - Aggregates audit events into unified timelines
+ *
+ * This service provides entity-level activity timelines with related entity
+ * inclusion. For example, a Case timeline includes Investigation activities.
+ *
+ * KEY FEATURES:
+ * - Timeline aggregation from AuditLog table
+ * - Related entity inclusion (Case -> Investigation, etc.)
+ * - Pagination with hasMore indicator
+ * - Date range filtering
+ * - User's recent activity across all entities
+ */
 
 import { Injectable, Logger } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
@@ -98,9 +97,7 @@ export class ActivityTimelineService {
 
   constructor(private readonly prisma: PrismaService) {}
 
-  // -------------------------------------------------------------------------
   // GET TIMELINE - Main entry point for entity timelines
-  // -------------------------------------------------------------------------
 
   /**
    * Gets the activity timeline for a specific entity.
@@ -232,9 +229,7 @@ export class ActivityTimelineService {
     };
   }
 
-  // -------------------------------------------------------------------------
   // GET RELATED ENTITY IDS - Find IDs of related entities
-  // -------------------------------------------------------------------------
 
   /**
    * Finds IDs of related entities for timeline inclusion.
@@ -279,9 +274,7 @@ export class ActivityTimelineService {
     return relatedIds;
   }
 
-  // -------------------------------------------------------------------------
   // GET RECENT ACTIVITY - User's recent activity across all entities
-  // -------------------------------------------------------------------------
 
   /**
    * Gets a user's recent activity across all entities.
@@ -354,9 +347,7 @@ export class ActivityTimelineService {
     };
   }
 
-  // -------------------------------------------------------------------------
   // GET ENTITY SUMMARY - Quick stats for an entity's activity
-  // -------------------------------------------------------------------------
 
   /**
    * Gets activity summary statistics for an entity.

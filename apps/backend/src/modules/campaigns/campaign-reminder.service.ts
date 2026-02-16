@@ -82,9 +82,7 @@ export class CampaignReminderService {
     @InjectQueue("campaign") private readonly campaignQueue: Queue,
   ) {}
 
-  // ===========================================
   // Reminder Configuration
-  // ===========================================
 
   /**
    * Gets the reminder sequence for a campaign.
@@ -129,9 +127,7 @@ export class CampaignReminderService {
     this.logger.log(`Updated reminder sequence for campaign ${campaignId}`);
   }
 
-  // ===========================================
   // Reminder Processing
-  // ===========================================
 
   /**
    * Finds all assignments needing reminders today.
@@ -273,9 +269,7 @@ export class CampaignReminderService {
     });
   }
 
-  // ===========================================
   // Compliance Profile Management
-  // ===========================================
 
   /**
    * Gets or creates a compliance profile for an employee.
@@ -435,9 +429,7 @@ export class CampaignReminderService {
     }
   }
 
-  // ===========================================
   // Query Methods
-  // ===========================================
 
   /**
    * Gets repeat non-responders for reporting.

@@ -14,11 +14,7 @@ import { PromptService } from "../../services/prompt.service";
  * Validates content and style options.
  */
 export const summarizeInputSchema = z.object({
-  content: z
-    .string()
-    .min(1)
-    .max(100000)
-    .describe("The content to summarize"),
+  content: z.string().min(1).max(100000).describe("The content to summarize"),
   style: z
     .enum(["brief", "comprehensive"])
     .optional()

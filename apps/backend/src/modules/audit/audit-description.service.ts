@@ -11,9 +11,7 @@ import { PrismaService } from "../prisma/prisma.service";
 export class AuditDescriptionService {
   constructor(private readonly prisma: PrismaService) {}
 
-  // ===========================================
   // Case Event Descriptions
-  // ===========================================
 
   async buildCaseCreatedDescription(event: {
     actorUserId: string | null;
@@ -75,9 +73,7 @@ export class AuditDescriptionService {
     return `${actor} viewed case ${event.referenceNumber}`;
   }
 
-  // ===========================================
   // Investigation Event Descriptions
-  // ===========================================
 
   async buildInvestigationCreatedDescription(event: {
     actorUserId: string | null;
@@ -117,9 +113,7 @@ export class AuditDescriptionService {
     return `${actor} assigned investigation to ${newInvestigator}`;
   }
 
-  // ===========================================
   // RIU Event Descriptions
-  // ===========================================
 
   async buildRiuCreatedDescription(event: {
     actorUserId: string | null;
@@ -140,9 +134,7 @@ export class AuditDescriptionService {
     return `${actor} viewed RIU ${event.referenceNumber}`;
   }
 
-  // ===========================================
   // Helper Methods
-  // ===========================================
 
   /**
    * Gets the display name for a user ID.

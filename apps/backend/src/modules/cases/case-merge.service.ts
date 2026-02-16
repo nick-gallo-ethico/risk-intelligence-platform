@@ -1,18 +1,17 @@
-// =============================================================================
-// CASE MERGE SERVICE - Handles merging of related cases
-// =============================================================================
-//
-// This service handles:
-// 1. Merging two cases atomically with full audit trail
-// 2. Moving all associations (RIUs, subjects, investigations) to primary case
-// 3. Converting source case to tombstone (isMerged=true, CLOSED status)
-//
-// KEY DESIGN DECISIONS:
-// - Merge is atomic (all-or-nothing via transaction)
-// - Source case becomes tombstone (never deleted for audit trail)
-// - RIU associations change to MERGED_FROM type
-// - Full audit trail of what was moved and why
-// =============================================================================
+/**
+ * CASE MERGE SERVICE - Handles merging of related cases
+ *
+ * This service handles:
+ * 1. Merging two cases atomically with full audit trail
+ * 2. Moving all associations (RIUs, subjects, investigations) to primary case
+ * 3. Converting source case to tombstone (isMerged=true, CLOSED status)
+ *
+ * KEY DESIGN DECISIONS:
+ * - Merge is atomic (all-or-nothing via transaction)
+ * - Source case becomes tombstone (never deleted for audit trail)
+ * - RIU associations change to MERGED_FROM type
+ * - Full audit trail of what was moved and why
+ */
 
 import {
   Injectable,
@@ -29,7 +28,11 @@ import {
 } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
 import { ActivityService } from "../../common/services/activity.service";
-import { MergeCaseDto, MergeResultDto, MergeHistoryDto } from "./dto/merge-case.dto";
+import {
+  MergeCaseDto,
+  MergeResultDto,
+  MergeHistoryDto,
+} from "./dto/merge-case.dto";
 
 /**
  * Service for merging related cases.
@@ -63,9 +66,7 @@ export class CaseMergeService {
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
-  // -------------------------------------------------------------------------
   // MERGE - Merge two cases atomically
-  // -------------------------------------------------------------------------
 
   /**
    * Merges source case into target case atomically.
@@ -101,11 +102,15 @@ export class CaseMergeService {
     ]);
 
     if (!sourceCase) {
-      throw new NotFoundException(`Source case with ID ${sourceCaseId} not found`);
+      throw new NotFoundException(
+        `Source case with ID ${sourceCaseId} not found`,
+      );
     }
 
     if (!targetCase) {
-      throw new NotFoundException(`Target case with ID ${targetCaseId} not found`);
+      throw new NotFoundException(
+        `Target case with ID ${targetCaseId} not found`,
+      );
     }
 
     // Validate: source case not already merged
@@ -266,9 +271,7 @@ export class CaseMergeService {
     };
   }
 
-  // -------------------------------------------------------------------------
   // GET MERGE HISTORY - Get cases that were merged into this case
-  // -------------------------------------------------------------------------
 
   /**
    * Gets the merge history for a case.
@@ -315,9 +318,7 @@ export class CaseMergeService {
     }));
   }
 
-  // -------------------------------------------------------------------------
   // GET PRIMARY CASE - Follow merge chain to find ultimate primary case
-  // -------------------------------------------------------------------------
 
   /**
    * Follows the merge chain to find the ultimate primary case.
@@ -327,10 +328,7 @@ export class CaseMergeService {
    * @param organizationId - Organization ID (tenant isolation)
    * @returns The ultimate primary case (non-tombstone)
    */
-  async getPrimaryCase(
-    caseId: string,
-    organizationId: string,
-  ): Promise<Case> {
+  async getPrimaryCase(caseId: string, organizationId: string): Promise<Case> {
     const initialCase = await this.prisma.case.findFirst({
       where: { id: caseId, organizationId },
     });
@@ -345,7 +343,11 @@ export class CaseMergeService {
     let iterations = 0;
     const maxIterations = 100; // Safety limit to prevent infinite loops
 
-    while (currentCase.isMerged && currentCase.mergedIntoCaseId && iterations < maxIterations) {
+    while (
+      currentCase.isMerged &&
+      currentCase.mergedIntoCaseId &&
+      iterations < maxIterations
+    ) {
       const nextCase: Case | null = await this.prisma.case.findFirst({
         where: {
           id: currentCase.mergedIntoCaseId,
@@ -366,15 +368,15 @@ export class CaseMergeService {
     }
 
     if (iterations >= maxIterations) {
-      this.logger.error(`Merge chain exceeded max iterations for case ${caseId}`);
+      this.logger.error(
+        `Merge chain exceeded max iterations for case ${caseId}`,
+      );
     }
 
     return currentCase;
   }
 
-  // -------------------------------------------------------------------------
   // CAN MERGE - Check if two cases can be merged
-  // -------------------------------------------------------------------------
 
   /**
    * Checks if two cases can be merged.
@@ -424,9 +426,7 @@ export class CaseMergeService {
     return { canMerge: true };
   }
 
-  // -------------------------------------------------------------------------
   // HELPER - Safe event emission
-  // -------------------------------------------------------------------------
 
   private emitEvent(eventName: string, payload: object): void {
     try {

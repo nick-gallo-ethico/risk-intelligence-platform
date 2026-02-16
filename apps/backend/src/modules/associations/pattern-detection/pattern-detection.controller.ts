@@ -114,7 +114,9 @@ export class PatternDetectionController {
     @Query("label") label: string,
     @Query("minCount", new DefaultValuePipe(2), ParseIntPipe) minCount: number,
     @TenantId() organizationId: string,
-  ): Promise<Array<{ personId: string; personName: string; caseCount: number }>> {
+  ): Promise<
+    Array<{ personId: string; personName: string; caseCount: number }>
+  > {
     // Validate label is a valid PersonCaseLabel
     const validLabels = Object.values(PersonCaseLabel);
     if (!validLabels.includes(label as PersonCaseLabel)) {
@@ -139,7 +141,9 @@ export class PatternDetectionController {
   async getRelatedCases(
     @Param("caseId") caseId: string,
     @TenantId() organizationId: string,
-  ): Promise<Array<{ caseId: string; referenceNumber: string; label: string }>> {
+  ): Promise<
+    Array<{ caseId: string; referenceNumber: string; label: string }>
+  > {
     return this.patternService.getRelatedCases(caseId, organizationId);
   }
 }

@@ -15,18 +15,12 @@ import { AIProvider } from "../../interfaces/ai-provider.interface";
  * Validates content and language options.
  */
 export const translateInputSchema = z.object({
-  content: z
-    .string()
-    .min(1)
-    .max(50000)
-    .describe("Content to translate"),
+  content: z.string().min(1).max(50000).describe("Content to translate"),
   sourceLanguage: z
     .string()
     .default("auto")
     .describe('Source language (or "auto" to detect)'),
-  targetLanguage: z
-    .string()
-    .describe("Target language for translation"),
+  targetLanguage: z.string().describe("Target language for translation"),
   preserveFormatting: z
     .boolean()
     .optional()
@@ -147,10 +141,7 @@ export function translateSkill(
         let detectedLanguage: string | undefined;
 
         if (sourceLanguage === "auto") {
-          const detectionResult = await detectLanguage(
-            provider,
-            input.content,
-          );
+          const detectionResult = await detectLanguage(provider, input.content);
           sourceLanguage = detectionResult.language;
           detectedLanguage = detectionResult.language;
         }

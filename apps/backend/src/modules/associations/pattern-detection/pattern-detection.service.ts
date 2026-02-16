@@ -335,7 +335,8 @@ export class PatternDetectionService {
     return {
       previousReportCount: count,
       showBadge: count > 0,
-      badgeText: count === 1 ? "1 previous report" : `${count} previous reports`,
+      badgeText:
+        count === 1 ? "1 previous report" : `${count} previous reports`,
     };
   }
 
@@ -362,7 +363,9 @@ export class PatternDetectionService {
     label: PersonCaseLabel,
     minCount: number,
     organizationId: string,
-  ): Promise<Array<{ personId: string; personName: string; caseCount: number }>> {
+  ): Promise<
+    Array<{ personId: string; personName: string; caseCount: number }>
+  > {
     const indexName = this.getIndexName(organizationId);
 
     try {
@@ -451,7 +454,9 @@ export class PatternDetectionService {
   async getRelatedCases(
     caseId: string,
     organizationId: string,
-  ): Promise<Array<{ caseId: string; referenceNumber: string; label: string }>> {
+  ): Promise<
+    Array<{ caseId: string; referenceNumber: string; label: string }>
+  > {
     // Get case-case associations from database
     const associations = await this.prisma.caseCaseAssociation.findMany({
       where: {

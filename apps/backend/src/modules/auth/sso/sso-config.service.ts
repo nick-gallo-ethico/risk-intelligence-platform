@@ -178,7 +178,8 @@ export class SsoConfigService {
       ssoEnabled: config.ssoEnabled,
       jitProvisioningEnabled: config.jitProvisioningEnabled,
       // Cast Prisma UserRole to decorator UserRole (same values, different enums)
-      defaultRole: config.defaultRole as unknown as SsoConfigResponseDto["defaultRole"],
+      defaultRole:
+        config.defaultRole as unknown as SsoConfigResponseDto["defaultRole"],
       mfaRequired: config.mfaRequired,
       azureTenantId: config.azureTenantId,
       samlIdpEntityId: config.samlIdpEntityId,

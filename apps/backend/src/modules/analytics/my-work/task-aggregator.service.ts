@@ -237,7 +237,9 @@ export class TaskAggregatorService {
     });
   }
 
-  private async countDisclosureReviews(organizationId: string): Promise<number> {
+  private async countDisclosureReviews(
+    organizationId: string,
+  ): Promise<number> {
     return this.prisma.conflictAlert.count({
       where: {
         organizationId,

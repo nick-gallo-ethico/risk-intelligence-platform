@@ -23,9 +23,7 @@ export class WidgetMetricsDataService {
     @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
   ) {}
 
-  // ===========================================
   // Public: Compliance Health Metrics
-  // ===========================================
 
   /**
    * Computes the overall compliance health score.
@@ -94,9 +92,7 @@ export class WidgetMetricsDataService {
     };
   }
 
-  // ===========================================
   // Public: SLA Metrics
-  // ===========================================
 
   /**
    * Fetches SLA metrics - counts cases at risk of breaching SLA.
@@ -139,9 +135,7 @@ export class WidgetMetricsDataService {
     };
   }
 
-  // ===========================================
   // Public: Activity Data
-  // ===========================================
 
   /**
    * Fetches recent activity from the audit log.
@@ -193,9 +187,7 @@ export class WidgetMetricsDataService {
     };
   }
 
-  // ===========================================
   // Public: Quick Actions
-  // ===========================================
 
   /**
    * Returns role-appropriate quick actions based on widget configuration.
@@ -297,9 +289,7 @@ export class WidgetMetricsDataService {
     };
   }
 
-  // ===========================================
   // Private: Helper Methods
-  // ===========================================
 
   private getActivityIcon(action: string): string {
     const iconMap: Record<string, string> = {

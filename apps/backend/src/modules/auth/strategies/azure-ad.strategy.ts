@@ -1,37 +1,46 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { PassportStrategy } from '@nestjs/passport';
+import { Injectable, Logger } from "@nestjs/common";
+import { PassportStrategy } from "@nestjs/passport";
 import {
   OIDCStrategy,
   IProfile,
   VerifyCallback,
   IOIDCStrategyOptionWithoutRequest,
-} from 'passport-azure-ad';
-import { ConfigService } from '@nestjs/config';
-import { SsoService } from '../sso/sso.service';
-import { SsoUserData } from '../interfaces';
+} from "passport-azure-ad";
+import { ConfigService } from "@nestjs/config";
+import { SsoService } from "../sso/sso.service";
+import { SsoUserData } from "../interfaces";
 
 /**
  * Build Azure AD OIDC strategy options from environment configuration.
  * Extracted to allow super() to be called with computed options.
  */
-function buildAzureAdOptions(configService: ConfigService): IOIDCStrategyOptionWithoutRequest {
-  const clientId = configService.get<string>('AZURE_AD_CLIENT_ID', 'not-configured');
-  const clientSecret = configService.get<string>('AZURE_AD_CLIENT_SECRET', 'not-configured');
-  const apiUrl = configService.get<string>('API_URL', 'http://localhost:3000');
-  const nodeEnv = configService.get<string>('NODE_ENV', 'development');
+function buildAzureAdOptions(
+  configService: ConfigService,
+): IOIDCStrategyOptionWithoutRequest {
+  const clientId = configService.get<string>(
+    "AZURE_AD_CLIENT_ID",
+    "not-configured",
+  );
+  const clientSecret = configService.get<string>(
+    "AZURE_AD_CLIENT_SECRET",
+    "not-configured",
+  );
+  const apiUrl = configService.get<string>("API_URL", "http://localhost:3000");
+  const nodeEnv = configService.get<string>("NODE_ENV", "development");
 
   return {
     // Use "common" for multi-tenant - allows any Azure AD tenant
-    identityMetadata: 'https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration',
+    identityMetadata:
+      "https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration",
     clientID: clientId,
     clientSecret: clientSecret,
-    responseType: 'code',
-    responseMode: 'form_post',
+    responseType: "code",
+    responseMode: "form_post",
     redirectUrl: `${apiUrl}/api/v1/auth/azure-ad/callback`,
-    allowHttpForRedirectUrl: nodeEnv === 'development',
-    scope: ['openid', 'profile', 'email'],
+    allowHttpForRedirectUrl: nodeEnv === "development",
+    scope: ["openid", "profile", "email"],
     passReqToCallback: false,
-    loggingLevel: nodeEnv === 'production' ? 'warn' : 'info',
+    loggingLevel: nodeEnv === "production" ? "warn" : "info",
     loggingNoPII: true, // Never log personally identifiable info
   };
 }
@@ -53,7 +62,10 @@ function buildAzureAdOptions(configService: ConfigService): IOIDCStrategyOptionW
  * Azure AD configuration.
  */
 @Injectable()
-export class AzureAdStrategy extends PassportStrategy(OIDCStrategy, 'azure-ad') {
+export class AzureAdStrategy extends PassportStrategy(
+  OIDCStrategy,
+  "azure-ad",
+) {
   private readonly logger = new Logger(AzureAdStrategy.name);
   private readonly isConfigured: boolean;
 
@@ -64,12 +76,14 @@ export class AzureAdStrategy extends PassportStrategy(OIDCStrategy, 'azure-ad') 
     super(buildAzureAdOptions(configService));
 
     // Track whether strategy is actually configured
-    const clientId = configService.get<string>('AZURE_AD_CLIENT_ID');
-    const clientSecret = configService.get<string>('AZURE_AD_CLIENT_SECRET');
+    const clientId = configService.get<string>("AZURE_AD_CLIENT_ID");
+    const clientSecret = configService.get<string>("AZURE_AD_CLIENT_SECRET");
     this.isConfigured = !!(clientId && clientSecret);
 
     if (!this.isConfigured) {
-      this.logger.warn('Azure AD strategy not configured - AZURE_AD_CLIENT_ID and AZURE_AD_CLIENT_SECRET required');
+      this.logger.warn(
+        "Azure AD strategy not configured - AZURE_AD_CLIENT_ID and AZURE_AD_CLIENT_SECRET required",
+      );
     }
   }
 
@@ -83,30 +97,32 @@ export class AzureAdStrategy extends PassportStrategy(OIDCStrategy, 'azure-ad') 
   async validate(profile: IProfile, done: VerifyCallback): Promise<void> {
     try {
       if (!this.isConfigured) {
-        return done(new Error('Azure AD SSO is not configured'), null);
+        return done(new Error("Azure AD SSO is not configured"), null);
       }
 
-      this.logger.log(`Azure AD callback for user: ${profile._json?.email || profile._json?.preferred_username}`);
+      this.logger.log(
+        `Azure AD callback for user: ${profile._json?.email || profile._json?.preferred_username}`,
+      );
 
       // Extract user data from Azure AD profile
       const ssoUser: SsoUserData = {
         email: this.extractEmail(profile),
-        firstName: profile._json?.given_name || '',
-        lastName: profile._json?.family_name || '',
-        provider: 'azure-ad',
-        ssoId: profile.oid || '', // Azure object ID - stable unique identifier
+        firstName: profile._json?.given_name || "",
+        lastName: profile._json?.family_name || "",
+        provider: "azure-ad",
+        ssoId: profile.oid || "", // Azure object ID - stable unique identifier
         azureTenantId: profile._json?.tid, // Azure tenant ID
         rawProfile: profile._json,
       };
 
       if (!ssoUser.email) {
-        this.logger.error('Azure AD profile missing email');
-        return done(new Error('Email not provided by Azure AD'), null);
+        this.logger.error("Azure AD profile missing email");
+        return done(new Error("Email not provided by Azure AD"), null);
       }
 
       if (!ssoUser.ssoId) {
-        this.logger.error('Azure AD profile missing oid');
-        return done(new Error('User ID (oid) not provided by Azure AD'), null);
+        this.logger.error("Azure AD profile missing oid");
+        return done(new Error("User ID (oid) not provided by Azure AD"), null);
       }
 
       // Use SsoService for user lookup/creation
@@ -129,7 +145,7 @@ export class AzureAdStrategy extends PassportStrategy(OIDCStrategy, 'azure-ad') 
       profile._json?.email ||
       profile._json?.preferred_username ||
       profile._json?.upn ||
-      ''
+      ""
     );
   }
 }

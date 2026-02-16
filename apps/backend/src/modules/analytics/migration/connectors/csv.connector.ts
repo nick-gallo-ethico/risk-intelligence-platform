@@ -829,7 +829,10 @@ export class CsvConnector extends BaseMigrationConnector {
    */
   mapStatus(value: string): string {
     if (!value) return "OPEN";
-    const normalized = value.toLowerCase().trim().replace(/[\s-]+/g, "_");
+    const normalized = value
+      .toLowerCase()
+      .trim()
+      .replace(/[\s-]+/g, "_");
 
     // Exact match
     if (GENERIC_STATUS_MAPPINGS[normalized]) {
@@ -854,7 +857,10 @@ export class CsvConnector extends BaseMigrationConnector {
    */
   mapCategory(value: string): string {
     if (!value) return "OTHER";
-    const normalized = value.toLowerCase().trim().replace(/[\s-]+/g, "_");
+    const normalized = value
+      .toLowerCase()
+      .trim()
+      .replace(/[\s-]+/g, "_");
 
     // Exact match
     if (GENERIC_CATEGORY_MAPPINGS[normalized]) {
@@ -869,7 +875,9 @@ export class CsvConnector extends BaseMigrationConnector {
     }
 
     // Default
-    this.logger.debug(`Unknown category value: "${value}", defaulting to OTHER`);
+    this.logger.debug(
+      `Unknown category value: "${value}", defaulting to OTHER`,
+    );
     return "OTHER";
   }
 
@@ -879,7 +887,10 @@ export class CsvConnector extends BaseMigrationConnector {
    */
   mapSeverity(value: string): string {
     if (!value) return "MEDIUM";
-    const normalized = value.toLowerCase().trim().replace(/[\s-]+/g, "_");
+    const normalized = value
+      .toLowerCase()
+      .trim()
+      .replace(/[\s-]+/g, "_");
 
     // Exact match
     if (GENERIC_SEVERITY_MAPPINGS[normalized]) {
@@ -904,7 +915,9 @@ export class CsvConnector extends BaseMigrationConnector {
     }
 
     // Default
-    this.logger.debug(`Unknown severity value: "${value}", defaulting to MEDIUM`);
+    this.logger.debug(
+      `Unknown severity value: "${value}", defaulting to MEDIUM`,
+    );
     return "MEDIUM";
   }
 
@@ -1022,7 +1035,10 @@ export class CsvConnector extends BaseMigrationConnector {
       if (result.case.status && typeof result.case.status === "string") {
         result.case.status = this.mapStatus(result.case.status);
       }
-      if (result.case.categoryName && typeof result.case.categoryName === "string") {
+      if (
+        result.case.categoryName &&
+        typeof result.case.categoryName === "string"
+      ) {
         result.case.categoryName = this.mapCategory(result.case.categoryName);
       }
       if (result.case.severity && typeof result.case.severity === "string") {
@@ -1036,7 +1052,10 @@ export class CsvConnector extends BaseMigrationConnector {
     }
 
     if (result.riu) {
-      if (result.riu.categoryName && typeof result.riu.categoryName === "string") {
+      if (
+        result.riu.categoryName &&
+        typeof result.riu.categoryName === "string"
+      ) {
         result.riu.categoryName = this.mapCategory(result.riu.categoryName);
       }
       if (result.riu.severity && typeof result.riu.severity === "string") {

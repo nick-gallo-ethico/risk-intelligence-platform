@@ -131,8 +131,7 @@ export class CaseCaseAssociationService extends BaseAssociationService<
   protected buildDeleteAuditDescription(
     entity: CaseCaseAssociationWithRelations,
   ): string {
-    const targetRef =
-      entity.targetCase?.referenceNumber || entity.targetCaseId;
+    const targetRef = entity.targetCase?.referenceNumber || entity.targetCaseId;
     return `Removed ${entity.label} association to ${targetRef}`;
   }
 

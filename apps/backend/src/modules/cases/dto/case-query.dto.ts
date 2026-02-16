@@ -42,9 +42,7 @@ class DateRangeValidator implements ValidatorConstraintInterface {
  * Supports pagination, filtering by multiple fields, full-text search, and sorting.
  */
 export class CaseQueryDto {
-  // ===========================================
   // Pagination
-  // ===========================================
 
   @ApiPropertyOptional({
     description: "Items per page",
@@ -72,9 +70,7 @@ export class CaseQueryDto {
   @Transform(({ value }) => parseInt(value, 10))
   offset?: number = 0;
 
-  // ===========================================
   // Enum Filters
-  // ===========================================
 
   @ApiPropertyOptional({
     description: "Filter by case status",
@@ -112,9 +108,7 @@ export class CaseQueryDto {
   @IsOptional()
   caseType?: CaseType;
 
-  // ===========================================
   // User Filters
-  // ===========================================
 
   @ApiPropertyOptional({
     description: "Filter by creator user ID (UUID)",
@@ -132,21 +126,18 @@ export class CaseQueryDto {
   @IsUUID("4", { message: "intakeOperatorId must be a valid UUID" })
   intakeOperatorId?: string;
 
-  // ===========================================
   // Advanced Filters (HubSpot-style saved views)
-  // ===========================================
 
   @ApiPropertyOptional({
     description: "JSON string of advanced filter conditions from saved views",
-    example: '[{"propertyId":"status","operator":"is_any_of","value":["NEW","OPEN"]}]',
+    example:
+      '[{"propertyId":"status","operator":"is_any_of","value":["NEW","OPEN"]}]',
   })
   @IsOptional()
   @IsString()
   filters?: string;
 
-  // ===========================================
   // Search
-  // ===========================================
 
   @ApiPropertyOptional({
     description: "Full-text search query",
@@ -157,9 +148,7 @@ export class CaseQueryDto {
   @MaxLength(200)
   search?: string;
 
-  // ===========================================
   // Date Range Filters
-  // ===========================================
 
   @ApiPropertyOptional({
     description: "Filter cases created on or after this date (ISO 8601)",
@@ -178,9 +167,7 @@ export class CaseQueryDto {
   @IsOptional()
   createdBefore?: string;
 
-  // ===========================================
   // Sorting
-  // ===========================================
 
   @ApiPropertyOptional({
     description: "Field to sort by",

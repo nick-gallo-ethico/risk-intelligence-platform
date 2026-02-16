@@ -1,1 +1,1 @@
-export * from './branding.dto';
+export * from "./branding.dto";

@@ -27,43 +27,48 @@ import {
   StreamableFile,
   Header,
   Logger,
-} from '@nestjs/common';
+} from "@nestjs/common";
 import {
   ApiTags,
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
-} from '@nestjs/swagger';
-import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
-import { RolesGuard } from '../../../common/guards/roles.guard';
-import { Roles, UserRole } from '../../../common/decorators/roles.decorator';
-import { CurrentUser } from '../../../common/decorators/current-user.decorator';
-import { TaggedFieldService, FieldTag, TaggedField, ExportPreset } from './tagged-field.service';
-import { AuditService, CreateAuditLogDto } from '../../audit/audit.service';
-import { PrismaService } from '../../prisma/prisma.service';
+} from "@nestjs/swagger";
+import { JwtAuthGuard } from "../../../common/guards/jwt-auth.guard";
+import { RolesGuard } from "../../../common/guards/roles.guard";
+import { Roles, UserRole } from "../../../common/decorators/roles.decorator";
+import { CurrentUser } from "../../../common/decorators/current-user.decorator";
+import {
+  TaggedFieldService,
+  FieldTag,
+  TaggedField,
+  ExportPreset,
+} from "./tagged-field.service";
+import { AuditService, CreateAuditLogDto } from "../../audit/audit.service";
+import { PrismaService } from "../../prisma/prisma.service";
 import {
   User,
   AuditEntityType,
   AuditActionCategory,
   ActorType,
-} from '@prisma/client';
-import { format } from 'date-fns';
-import * as ExcelJS from 'exceljs';
+} from "@prisma/client";
+import { format } from "date-fns";
+import * as ExcelJS from "exceljs";
 
 /**
  * Export format options.
  */
 export enum ExportFileFormat {
-  CSV = 'csv',
-  XLSX = 'xlsx',
+  CSV = "csv",
+  XLSX = "xlsx",
 }
 
 /**
  * Export mode options.
  */
 export enum ExportMode {
-  NORMALIZED = 'normalized',
-  DENORMALIZED = 'denormalized',
+  NORMALIZED = "normalized",
+  DENORMALIZED = "denormalized",
 }
 
 /**
@@ -74,8 +79,8 @@ export interface FlatExportConfigDto {
   excludeTags?: FieldTag[];
   entities?: string[];
   customFields?: string[];
-  format: 'csv' | 'xlsx';
-  mode: 'normalized' | 'denormalized';
+  format: "csv" | "xlsx";
+  mode: "normalized" | "denormalized";
   filters?: {
     dateRange?: { start: string; end: string };
     statuses?: string[];
@@ -100,10 +105,10 @@ interface PreviewData {
   sampleData: Record<string, unknown>[];
 }
 
-@Controller('exports/flat')
+@Controller("exports/flat")
 @UseGuards(JwtAuthGuard, RolesGuard)
 @ApiBearerAuth()
-@ApiTags('exports')
+@ApiTags("exports")
 export class FlatExportController {
   private readonly logger = new Logger(FlatExportController.name);
 
@@ -116,10 +121,10 @@ export class FlatExportController {
   /**
    * Get available fields with their tags.
    */
-  @Get('fields')
+  @Get("fields")
   @Roles(UserRole.SYSTEM_ADMIN, UserRole.COMPLIANCE_OFFICER)
-  @ApiOperation({ summary: 'Get available export fields with tags' })
-  @ApiResponse({ status: 200, description: 'List of fields with their tags' })
+  @ApiOperation({ summary: "Get available export fields with tags" })
+  @ApiResponse({ status: 200, description: "List of fields with their tags" })
   async getFields(
     @CurrentUser() user: User,
   ): Promise<{ fields: TaggedField[] }> {
@@ -132,10 +137,10 @@ export class FlatExportController {
   /**
    * Get preset export configurations.
    */
-  @Get('presets')
+  @Get("presets")
   @Roles(UserRole.SYSTEM_ADMIN, UserRole.COMPLIANCE_OFFICER)
-  @ApiOperation({ summary: 'Get export presets' })
-  @ApiResponse({ status: 200, description: 'List of export presets' })
+  @ApiOperation({ summary: "Get export presets" })
+  @ApiResponse({ status: 200, description: "List of export presets" })
   getPresets(): { presets: ExportPreset[] } {
     return { presets: this.taggedFieldService.getPresets() };
   }
@@ -143,42 +148,44 @@ export class FlatExportController {
   /**
    * Get available tags with descriptions.
    */
-  @Get('tags')
+  @Get("tags")
   @Roles(UserRole.SYSTEM_ADMIN, UserRole.COMPLIANCE_OFFICER)
-  @ApiOperation({ summary: 'Get available field tags' })
-  @ApiResponse({ status: 200, description: 'List of available tags' })
-  getTags(): { tags: { value: FieldTag; label: string; description: string }[] } {
+  @ApiOperation({ summary: "Get available field tags" })
+  @ApiResponse({ status: 200, description: "List of available tags" })
+  getTags(): {
+    tags: { value: FieldTag; label: string; description: string }[];
+  } {
     return {
       tags: [
         {
           value: FieldTag.AUDIT,
-          label: 'Audit',
-          description: 'Required for compliance audits',
+          label: "Audit",
+          description: "Required for compliance audits",
         },
         {
           value: FieldTag.BOARD,
-          label: 'Board',
-          description: 'Included in board reports',
+          label: "Board",
+          description: "Included in board reports",
         },
         {
           value: FieldTag.PII,
-          label: 'PII',
-          description: 'Contains personal information',
+          label: "PII",
+          description: "Contains personal information",
         },
         {
           value: FieldTag.SENSITIVE,
-          label: 'Sensitive',
-          description: 'Restricted access data',
+          label: "Sensitive",
+          description: "Restricted access data",
         },
         {
           value: FieldTag.EXTERNAL,
-          label: 'External',
-          description: 'Safe for external sharing',
+          label: "External",
+          description: "Safe for external sharing",
         },
         {
           value: FieldTag.MIGRATION,
-          label: 'Migration',
-          description: 'Included in migration exports',
+          label: "Migration",
+          description: "Included in migration exports",
         },
       ],
     };
@@ -188,10 +195,13 @@ export class FlatExportController {
    * Preview export configuration.
    * Returns columns and sample data without generating full export.
    */
-  @Post('preview')
+  @Post("preview")
   @Roles(UserRole.SYSTEM_ADMIN, UserRole.COMPLIANCE_OFFICER)
-  @ApiOperation({ summary: 'Preview export configuration' })
-  @ApiResponse({ status: 200, description: 'Preview with columns and sample data' })
+  @ApiOperation({ summary: "Preview export configuration" })
+  @ApiResponse({
+    status: 200,
+    description: "Preview with columns and sample data",
+  })
   async previewExport(
     @CurrentUser() user: User,
     @Body() config: FlatExportConfigDto,
@@ -222,7 +232,7 @@ export class FlatExportController {
 
     // Transform to flat format
     const sampleData = data.map((row) =>
-      this.flattenRow(row, columns, config.mode === 'denormalized'),
+      this.flattenRow(row, columns, config.mode === "denormalized"),
     );
 
     return {
@@ -236,11 +246,11 @@ export class FlatExportController {
    * Execute flat file export.
    * Returns file stream for download.
    */
-  @Post('export')
+  @Post("export")
   @Roles(UserRole.SYSTEM_ADMIN, UserRole.COMPLIANCE_OFFICER)
-  @Header('Content-Type', 'application/octet-stream')
-  @ApiOperation({ summary: 'Execute flat file export' })
-  @ApiResponse({ status: 200, description: 'Export file stream' })
+  @Header("Content-Type", "application/octet-stream")
+  @ApiOperation({ summary: "Execute flat file export" })
+  @ApiResponse({ status: 200, description: "Export file stream" })
   async executeExport(
     @CurrentUser() user: User,
     @Body() config: FlatExportConfigDto,
@@ -273,12 +283,13 @@ export class FlatExportController {
 
     // Audit log
     const includesPii = this.taggedFieldService.includesPii(filteredFields);
-    const includesSensitive = this.taggedFieldService.includesSensitive(filteredFields);
+    const includesSensitive =
+      this.taggedFieldService.includesSensitive(filteredFields);
 
     await this.logAudit({
       entityType: AuditEntityType.REPORT,
       entityId: `flat-export-${Date.now()}`,
-      action: 'FLAT_FILE_EXPORTED',
+      action: "FLAT_FILE_EXPORTED",
       actionCategory: AuditActionCategory.ACCESS,
       actionDescription: `${user.firstName} ${user.lastName} exported ${filteredFields.length} fields in ${config.format} format`,
       organizationId: user.organizationId,
@@ -301,14 +312,14 @@ export class FlatExportController {
       `Exported ${filteredFields.length} fields for org ${user.organizationId} in ${Date.now() - startTime}ms`,
     );
 
-    const timestamp = format(new Date(), 'yyyy-MM-dd-HHmm');
+    const timestamp = format(new Date(), "yyyy-MM-dd-HHmm");
     const filename = `case-export-${timestamp}.${config.format}`;
 
     return new StreamableFile(buffer, {
       type:
-        config.format === 'xlsx'
-          ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-          : 'text/csv',
+        config.format === "xlsx"
+          ? "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+          : "text/csv",
       disposition: `attachment; filename="${filename}"`,
     });
   }
@@ -316,10 +327,10 @@ export class FlatExportController {
   /**
    * Update field tags for organization.
    */
-  @Post('fields/tags')
+  @Post("fields/tags")
   @Roles(UserRole.SYSTEM_ADMIN)
-  @ApiOperation({ summary: 'Update field tags for organization' })
-  @ApiResponse({ status: 200, description: 'Tags updated successfully' })
+  @ApiOperation({ summary: "Update field tags for organization" })
+  @ApiResponse({ status: 200, description: "Tags updated successfully" })
   async updateFieldTags(
     @CurrentUser() user: User,
     @Body() updates: UpdateFieldTagsDto[],
@@ -334,7 +345,7 @@ export class FlatExportController {
     await this.logAudit({
       entityType: AuditEntityType.ORGANIZATION,
       entityId: user.organizationId,
-      action: 'FIELD_TAGS_UPDATED',
+      action: "FIELD_TAGS_UPDATED",
       actionCategory: AuditActionCategory.UPDATE,
       actionDescription: `${user.firstName} ${user.lastName} updated ${updates.length} field tag configurations`,
       organizationId: user.organizationId,
@@ -356,7 +367,7 @@ export class FlatExportController {
    */
   private async queryData(
     orgId: string,
-    filters?: FlatExportConfigDto['filters'],
+    filters?: FlatExportConfigDto["filters"],
     limit?: number,
   ): Promise<{ data: unknown[]; totalCount: number }> {
     const where: Record<string, unknown> = {
@@ -386,9 +397,11 @@ export class FlatExportController {
       this.prisma.case.findMany({
         where,
         take: limit,
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: "desc" },
         include: {
-          createdBy: { select: { id: true, firstName: true, lastName: true, email: true } },
+          createdBy: {
+            select: { id: true, firstName: true, lastName: true, email: true },
+          },
           primaryCategory: { select: { id: true, name: true, code: true } },
           investigations: {
             take: 3,
@@ -445,16 +458,16 @@ export class FlatExportController {
    * Resolve dot-notation path to value.
    */
   private resolvePath(obj: Record<string, unknown>, path: string): unknown {
-    const parts = path.split('.');
+    const parts = path.split(".");
     let current: unknown = obj;
 
     // Handle 'case.' prefix
-    if (parts[0] === 'case') {
+    if (parts[0] === "case") {
       parts.shift();
     }
 
     // Handle 'riu.' prefix - navigate to first RIU
-    if (parts[0] === 'riu') {
+    if (parts[0] === "riu") {
       const riuAssociations = obj.riuAssociations as Array<{
         riu: unknown;
       }>;
@@ -472,7 +485,7 @@ export class FlatExportController {
       }
 
       // Handle array notation like 'investigations[]'
-      if (part.endsWith('[]')) {
+      if (part.endsWith("[]")) {
         const arrayKey = part.slice(0, -2);
         const arr = (current as Record<string, unknown>)[arrayKey];
         if (Array.isArray(arr) && arr.length > 0) {
@@ -493,23 +506,23 @@ export class FlatExportController {
    */
   private formatValue(value: unknown, type: string): unknown {
     if (value === null || value === undefined) {
-      return '';
+      return "";
     }
 
     switch (type) {
-      case 'date':
+      case "date":
         if (value instanceof Date) {
-          return format(value, 'yyyy-MM-dd HH:mm:ss');
+          return format(value, "yyyy-MM-dd HH:mm:ss");
         }
-        if (typeof value === 'string') {
-          return format(new Date(value), 'yyyy-MM-dd HH:mm:ss');
+        if (typeof value === "string") {
+          return format(new Date(value), "yyyy-MM-dd HH:mm:ss");
         }
         return value;
 
-      case 'boolean':
-        return value ? 'Yes' : 'No';
+      case "boolean":
+        return value ? "Yes" : "No";
 
-      case 'json':
+      case "json":
         return JSON.stringify(value);
 
       default:
@@ -523,14 +536,16 @@ export class FlatExportController {
   private async generateExport(
     orgId: string,
     columns: { field: string; label: string; path: string; type: string }[],
-    filters?: FlatExportConfigDto['filters'],
-    format: 'csv' | 'xlsx' = 'xlsx',
-    mode: 'normalized' | 'denormalized' = 'denormalized',
+    filters?: FlatExportConfigDto["filters"],
+    format: "csv" | "xlsx" = "xlsx",
+    mode: "normalized" | "denormalized" = "denormalized",
   ): Promise<Buffer> {
     const { data } = await this.queryData(orgId, filters);
-    const rows = data.map((row) => this.flattenRow(row, columns, mode === 'denormalized'));
+    const rows = data.map((row) =>
+      this.flattenRow(row, columns, mode === "denormalized"),
+    );
 
-    if (format === 'csv') {
+    if (format === "csv") {
       return this.generateCsv(columns, rows);
     }
 
@@ -544,19 +559,21 @@ export class FlatExportController {
     columns: { field: string; label: string }[],
     rows: Record<string, unknown>[],
   ): Buffer {
-    const header = columns.map((c) => `"${c.label.replace(/"/g, '""')}"`).join(',');
+    const header = columns
+      .map((c) => `"${c.label.replace(/"/g, '""')}"`)
+      .join(",");
     const dataRows = rows.map((row) =>
       columns
         .map((c) => {
           const val = row[c.field];
-          if (val === null || val === undefined) return '';
+          if (val === null || val === undefined) return "";
           const str = String(val);
           return `"${str.replace(/"/g, '""')}"`;
         })
-        .join(','),
+        .join(","),
     );
 
-    return Buffer.from([header, ...dataRows].join('\n'), 'utf-8');
+    return Buffer.from([header, ...dataRows].join("\n"), "utf-8");
   }
 
   /**
@@ -567,7 +584,7 @@ export class FlatExportController {
     rows: Record<string, unknown>[],
   ): Promise<Buffer> {
     const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet('Export');
+    const worksheet = workbook.addWorksheet("Export");
 
     // Add headers
     worksheet.columns = columns.map((c) => ({
@@ -579,9 +596,9 @@ export class FlatExportController {
     // Style header row
     worksheet.getRow(1).font = { bold: true };
     worksheet.getRow(1).fill = {
-      type: 'pattern',
-      pattern: 'solid',
-      fgColor: { argb: 'FFE5E7EB' },
+      type: "pattern",
+      pattern: "solid",
+      fgColor: { argb: "FFE5E7EB" },
     };
 
     // Add data rows
@@ -596,7 +613,7 @@ export class FlatExportController {
     };
 
     // Freeze header row
-    worksheet.views = [{ state: 'frozen', ySplit: 1 }];
+    worksheet.views = [{ state: "frozen", ySplit: 1 }];
 
     return Buffer.from(await workbook.xlsx.writeBuffer());
   }
@@ -609,7 +626,7 @@ export class FlatExportController {
       await this.auditService.log(dto);
     } catch (error) {
       this.logger.warn(
-        `Failed to log audit: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        `Failed to log audit: ${error instanceof Error ? error.message : "Unknown error"}`,
       );
     }
   }

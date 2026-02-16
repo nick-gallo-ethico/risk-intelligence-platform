@@ -1,14 +1,13 @@
-// =============================================================================
-// UNIT TESTS: SsoService
-// =============================================================================
-//
-// Tests for SSO user lookup and JIT provisioning flow.
-// Key behaviors:
-// - Find existing user by SSO ID
-// - Link SSO credentials to existing email user
-// - JIT provision new users based on verified domain
-// - Enforce security guardrails (verified domains, JIT settings)
-// =============================================================================
+/**
+ * UNIT TESTS: SsoService
+ *
+ * Tests for SSO user lookup and JIT provisioning flow.
+ * Key behaviors:
+ * - Find existing user by SSO ID
+ * - Link SSO credentials to existing email user
+ * - JIT provision new users based on verified domain
+ * - Enforce security guardrails (verified domains, JIT settings)
+ */
 
 import { Test, TestingModule } from "@nestjs/testing";
 import { UnauthorizedException } from "@nestjs/common";
@@ -27,9 +26,7 @@ describe("SsoService", () => {
   let domainService: jest.Mocked<DomainService>;
   let ssoConfigService: jest.Mocked<SsoConfigService>;
 
-  // ---------------------------------------------------------------------------
   // Test Data Fixtures
-  // ---------------------------------------------------------------------------
   const mockOrgId = "org-test-123";
   const mockUserId = "user-test-123";
 
@@ -79,9 +76,7 @@ describe("SsoService", () => {
     samlSpEntityId: null,
   };
 
-  // ---------------------------------------------------------------------------
   // Mock Setup
-  // ---------------------------------------------------------------------------
   const mockPrismaService = {
     user: {
       findFirst: jest.fn(),
@@ -103,9 +98,7 @@ describe("SsoService", () => {
 
   const mockSsoConfigService = {};
 
-  // ---------------------------------------------------------------------------
   // Module Setup
-  // ---------------------------------------------------------------------------
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -127,9 +120,7 @@ describe("SsoService", () => {
     jest.clearAllMocks();
   });
 
-  // ---------------------------------------------------------------------------
   // describe('findOrCreateSsoUser') - Main entry point for SSO login
-  // ---------------------------------------------------------------------------
   describe("findOrCreateSsoUser", () => {
     it("should return existing user when SSO profile matches by SSO ID", async () => {
       // Arrange - User found by SSO provider + SSO ID
@@ -326,9 +317,7 @@ describe("SsoService", () => {
     });
   });
 
-  // ---------------------------------------------------------------------------
   // describe('jitProvisionUser') - Security guardrails
-  // ---------------------------------------------------------------------------
   describe("JIT provisioning security guardrails", () => {
     beforeEach(() => {
       mockPrismaService.user.findFirst
@@ -449,9 +438,7 @@ describe("SsoService", () => {
     });
   });
 
-  // ---------------------------------------------------------------------------
   // describe('linkSsoToExistingUser') - SSO account linking
-  // ---------------------------------------------------------------------------
   describe("linkSsoToExistingUser (implicit via findOrCreateSsoUser)", () => {
     it("should update name fields if they were empty", async () => {
       // Arrange - User found by email without name set

@@ -1,17 +1,17 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
+import { Injectable, Logger } from "@nestjs/common";
+import { PrismaService } from "../../prisma/prisma.service";
 
 /**
  * Field tag types for controlling field inclusion in different export types.
  * These semantic tags categorize fields by their sensitivity and purpose.
  */
 export enum FieldTag {
-  AUDIT = 'AUDIT', // Required for compliance audits
-  BOARD = 'BOARD', // Included in board reports
-  PII = 'PII', // Contains personal information
-  SENSITIVE = 'SENSITIVE', // Restricted access data
-  EXTERNAL = 'EXTERNAL', // Safe for external sharing
-  MIGRATION = 'MIGRATION', // Included in migration exports
+  AUDIT = "AUDIT", // Required for compliance audits
+  BOARD = "BOARD", // Included in board reports
+  PII = "PII", // Contains personal information
+  SENSITIVE = "SENSITIVE", // Restricted access data
+  EXTERNAL = "EXTERNAL", // Safe for external sharing
+  MIGRATION = "MIGRATION", // Included in migration exports
 }
 
 /**
@@ -28,7 +28,7 @@ export interface TaggedField {
   /** Dot-notation path for value extraction (e.g., 'case.assignedTo.name') */
   path: string;
   /** Data type for formatting */
-  type: 'string' | 'number' | 'date' | 'boolean' | 'json';
+  type: "string" | "number" | "date" | "boolean" | "json";
   /** Semantic tags controlling inclusion in exports */
   tags: FieldTag[];
   /** Optional description for admin UI */
@@ -42,324 +42,339 @@ export interface TaggedField {
 const PLATFORM_FIELDS: TaggedField[] = [
   // Case fields
   {
-    entity: 'Case',
-    field: 'id',
-    label: 'Case ID',
-    path: 'case.id',
-    type: 'string',
+    entity: "Case",
+    field: "id",
+    label: "Case ID",
+    path: "case.id",
+    type: "string",
     tags: [FieldTag.AUDIT, FieldTag.BOARD, FieldTag.MIGRATION],
-    description: 'Unique case identifier',
+    description: "Unique case identifier",
   },
   {
-    entity: 'Case',
-    field: 'referenceNumber',
-    label: 'Reference #',
-    path: 'case.referenceNumber',
-    type: 'string',
-    tags: [FieldTag.AUDIT, FieldTag.BOARD, FieldTag.EXTERNAL, FieldTag.MIGRATION],
-    description: 'Human-readable case reference number',
+    entity: "Case",
+    field: "referenceNumber",
+    label: "Reference #",
+    path: "case.referenceNumber",
+    type: "string",
+    tags: [
+      FieldTag.AUDIT,
+      FieldTag.BOARD,
+      FieldTag.EXTERNAL,
+      FieldTag.MIGRATION,
+    ],
+    description: "Human-readable case reference number",
   },
   {
-    entity: 'Case',
-    field: 'status',
-    label: 'Status',
-    path: 'case.status',
-    type: 'string',
-    tags: [FieldTag.AUDIT, FieldTag.BOARD, FieldTag.EXTERNAL, FieldTag.MIGRATION],
-    description: 'Current case status',
+    entity: "Case",
+    field: "status",
+    label: "Status",
+    path: "case.status",
+    type: "string",
+    tags: [
+      FieldTag.AUDIT,
+      FieldTag.BOARD,
+      FieldTag.EXTERNAL,
+      FieldTag.MIGRATION,
+    ],
+    description: "Current case status",
   },
   {
-    entity: 'Case',
-    field: 'createdAt',
-    label: 'Created Date',
-    path: 'case.createdAt',
-    type: 'date',
+    entity: "Case",
+    field: "createdAt",
+    label: "Created Date",
+    path: "case.createdAt",
+    type: "date",
     tags: [FieldTag.AUDIT, FieldTag.BOARD, FieldTag.MIGRATION],
-    description: 'Date case was created',
+    description: "Date case was created",
   },
   {
-    entity: 'Case',
-    field: 'closedAt',
-    label: 'Closed Date',
-    path: 'case.closedAt',
-    type: 'date',
+    entity: "Case",
+    field: "closedAt",
+    label: "Closed Date",
+    path: "case.closedAt",
+    type: "date",
     tags: [FieldTag.AUDIT, FieldTag.BOARD, FieldTag.MIGRATION],
-    description: 'Date case was closed',
+    description: "Date case was closed",
   },
   {
-    entity: 'Case',
-    field: 'resolution',
-    label: 'Resolution',
-    path: 'case.resolution',
-    type: 'string',
+    entity: "Case",
+    field: "resolution",
+    label: "Resolution",
+    path: "case.resolution",
+    type: "string",
     tags: [FieldTag.AUDIT, FieldTag.BOARD],
-    description: 'Case resolution outcome',
+    description: "Case resolution outcome",
   },
   {
-    entity: 'Case',
-    field: 'assignedTo',
-    label: 'Assigned To',
-    path: 'case.assignedTo.name',
-    type: 'string',
+    entity: "Case",
+    field: "assignedTo",
+    label: "Assigned To",
+    path: "case.assignedTo.name",
+    type: "string",
     tags: [FieldTag.AUDIT],
-    description: 'Name of assigned investigator',
+    description: "Name of assigned investigator",
   },
   {
-    entity: 'Case',
-    field: 'priority',
-    label: 'Priority',
-    path: 'case.priority',
-    type: 'string',
+    entity: "Case",
+    field: "priority",
+    label: "Priority",
+    path: "case.priority",
+    type: "string",
     tags: [FieldTag.AUDIT, FieldTag.BOARD, FieldTag.MIGRATION],
-    description: 'Case priority level',
+    description: "Case priority level",
   },
   {
-    entity: 'Case',
-    field: 'daysOpen',
-    label: 'Days Open',
-    path: 'case.daysOpen',
-    type: 'number',
+    entity: "Case",
+    field: "daysOpen",
+    label: "Days Open",
+    path: "case.daysOpen",
+    type: "number",
     tags: [FieldTag.AUDIT, FieldTag.BOARD],
-    description: 'Number of days case has been open',
+    description: "Number of days case has been open",
   },
 
   // RIU fields
   {
-    entity: 'RIU',
-    field: 'id',
-    label: 'RIU ID',
-    path: 'riu.id',
-    type: 'string',
+    entity: "RIU",
+    field: "id",
+    label: "RIU ID",
+    path: "riu.id",
+    type: "string",
     tags: [FieldTag.AUDIT, FieldTag.MIGRATION],
-    description: 'Unique RIU identifier',
+    description: "Unique RIU identifier",
   },
   {
-    entity: 'RIU',
-    field: 'type',
-    label: 'RIU Type',
-    path: 'riu.type',
-    type: 'string',
+    entity: "RIU",
+    field: "type",
+    label: "RIU Type",
+    path: "riu.type",
+    type: "string",
     tags: [FieldTag.AUDIT, FieldTag.BOARD, FieldTag.MIGRATION],
-    description: 'Type of risk intelligence unit',
+    description: "Type of risk intelligence unit",
   },
   {
-    entity: 'RIU',
-    field: 'details',
-    label: 'Description',
-    path: 'riu.details',
-    type: 'string',
+    entity: "RIU",
+    field: "details",
+    label: "Description",
+    path: "riu.details",
+    type: "string",
     tags: [FieldTag.AUDIT, FieldTag.SENSITIVE, FieldTag.MIGRATION],
-    description: 'Detailed description of the incident',
+    description: "Detailed description of the incident",
   },
   {
-    entity: 'RIU',
-    field: 'reporterType',
-    label: 'Reporter Type',
-    path: 'riu.reporterType',
-    type: 'string',
+    entity: "RIU",
+    field: "reporterType",
+    label: "Reporter Type",
+    path: "riu.reporterType",
+    type: "string",
     tags: [FieldTag.AUDIT, FieldTag.BOARD, FieldTag.MIGRATION],
-    description: 'Type of reporter (anonymous, confidential, identified)',
+    description: "Type of reporter (anonymous, confidential, identified)",
   },
   {
-    entity: 'RIU',
-    field: 'categoryName',
-    label: 'Category',
-    path: 'riu.category.name',
-    type: 'string',
-    tags: [FieldTag.AUDIT, FieldTag.BOARD, FieldTag.EXTERNAL, FieldTag.MIGRATION],
-    description: 'Incident category',
+    entity: "RIU",
+    field: "categoryName",
+    label: "Category",
+    path: "riu.category.name",
+    type: "string",
+    tags: [
+      FieldTag.AUDIT,
+      FieldTag.BOARD,
+      FieldTag.EXTERNAL,
+      FieldTag.MIGRATION,
+    ],
+    description: "Incident category",
   },
   {
-    entity: 'RIU',
-    field: 'severity',
-    label: 'Severity',
-    path: 'riu.severity',
-    type: 'string',
+    entity: "RIU",
+    field: "severity",
+    label: "Severity",
+    path: "riu.severity",
+    type: "string",
     tags: [FieldTag.AUDIT, FieldTag.BOARD, FieldTag.MIGRATION],
-    description: 'Severity level',
+    description: "Severity level",
   },
   {
-    entity: 'RIU',
-    field: 'incidentDate',
-    label: 'Incident Date',
-    path: 'riu.incidentDate',
-    type: 'date',
+    entity: "RIU",
+    field: "incidentDate",
+    label: "Incident Date",
+    path: "riu.incidentDate",
+    type: "date",
     tags: [FieldTag.AUDIT, FieldTag.BOARD, FieldTag.MIGRATION],
-    description: 'Date of the incident',
+    description: "Date of the incident",
   },
   {
-    entity: 'RIU',
-    field: 'sourceChannel',
-    label: 'Source Channel',
-    path: 'riu.sourceChannel',
-    type: 'string',
+    entity: "RIU",
+    field: "sourceChannel",
+    label: "Source Channel",
+    path: "riu.sourceChannel",
+    type: "string",
     tags: [FieldTag.AUDIT, FieldTag.BOARD],
-    description: 'How the report was received',
+    description: "How the report was received",
   },
   {
-    entity: 'RIU',
-    field: 'aiSummary',
-    label: 'AI Summary',
-    path: 'riu.aiSummary',
-    type: 'string',
+    entity: "RIU",
+    field: "aiSummary",
+    label: "AI Summary",
+    path: "riu.aiSummary",
+    type: "string",
     tags: [FieldTag.BOARD],
-    description: 'AI-generated summary',
+    description: "AI-generated summary",
   },
 
   // Location fields
   {
-    entity: 'Location',
-    field: 'name',
-    label: 'Location',
-    path: 'riu.location.name',
-    type: 'string',
+    entity: "Location",
+    field: "name",
+    label: "Location",
+    path: "riu.location.name",
+    type: "string",
     tags: [FieldTag.AUDIT, FieldTag.BOARD, FieldTag.EXTERNAL],
-    description: 'Location name',
+    description: "Location name",
   },
   {
-    entity: 'Location',
-    field: 'country',
-    label: 'Country',
-    path: 'riu.location.country',
-    type: 'string',
+    entity: "Location",
+    field: "country",
+    label: "Country",
+    path: "riu.location.country",
+    type: "string",
     tags: [FieldTag.AUDIT, FieldTag.BOARD, FieldTag.EXTERNAL],
-    description: 'Country',
+    description: "Country",
   },
 
   // Business Unit fields
   {
-    entity: 'BusinessUnit',
-    field: 'name',
-    label: 'Business Unit',
-    path: 'riu.businessUnit.name',
-    type: 'string',
+    entity: "BusinessUnit",
+    field: "name",
+    label: "Business Unit",
+    path: "riu.businessUnit.name",
+    type: "string",
     tags: [FieldTag.AUDIT, FieldTag.BOARD, FieldTag.EXTERNAL],
-    description: 'Business unit name',
+    description: "Business unit name",
   },
 
   // Investigation fields
   {
-    entity: 'Investigation',
-    field: 'id',
-    label: 'Investigation ID',
-    path: 'investigations[].id',
-    type: 'string',
+    entity: "Investigation",
+    field: "id",
+    label: "Investigation ID",
+    path: "investigations[].id",
+    type: "string",
     tags: [FieldTag.AUDIT],
-    description: 'Unique investigation identifier',
+    description: "Unique investigation identifier",
   },
   {
-    entity: 'Investigation',
-    field: 'status',
-    label: 'Investigation Status',
-    path: 'investigations[].status',
-    type: 'string',
+    entity: "Investigation",
+    field: "status",
+    label: "Investigation Status",
+    path: "investigations[].status",
+    type: "string",
     tags: [FieldTag.AUDIT, FieldTag.BOARD],
-    description: 'Current investigation status',
+    description: "Current investigation status",
   },
   {
-    entity: 'Investigation',
-    field: 'findings',
-    label: 'Findings',
-    path: 'investigations[].findings',
-    type: 'string',
+    entity: "Investigation",
+    field: "findings",
+    label: "Findings",
+    path: "investigations[].findings",
+    type: "string",
     tags: [FieldTag.AUDIT, FieldTag.SENSITIVE],
-    description: 'Investigation findings',
+    description: "Investigation findings",
   },
   {
-    entity: 'Investigation',
-    field: 'assignedTo',
-    label: 'Investigator',
-    path: 'investigations[].assignedTo.name',
-    type: 'string',
+    entity: "Investigation",
+    field: "assignedTo",
+    label: "Investigator",
+    path: "investigations[].assignedTo.name",
+    type: "string",
     tags: [FieldTag.AUDIT],
-    description: 'Assigned investigator name',
+    description: "Assigned investigator name",
   },
 
   // Person fields (PII)
   {
-    entity: 'Person',
-    field: 'firstName',
-    label: 'First Name',
-    path: 'subjects[].firstName',
-    type: 'string',
+    entity: "Person",
+    field: "firstName",
+    label: "First Name",
+    path: "subjects[].firstName",
+    type: "string",
     tags: [FieldTag.PII, FieldTag.SENSITIVE],
-    description: 'Subject first name',
+    description: "Subject first name",
   },
   {
-    entity: 'Person',
-    field: 'lastName',
-    label: 'Last Name',
-    path: 'subjects[].lastName',
-    type: 'string',
+    entity: "Person",
+    field: "lastName",
+    label: "Last Name",
+    path: "subjects[].lastName",
+    type: "string",
     tags: [FieldTag.PII, FieldTag.SENSITIVE],
-    description: 'Subject last name',
+    description: "Subject last name",
   },
   {
-    entity: 'Person',
-    field: 'email',
-    label: 'Email',
-    path: 'subjects[].email',
-    type: 'string',
+    entity: "Person",
+    field: "email",
+    label: "Email",
+    path: "subjects[].email",
+    type: "string",
     tags: [FieldTag.PII, FieldTag.SENSITIVE],
-    description: 'Subject email address',
+    description: "Subject email address",
   },
   {
-    entity: 'Person',
-    field: 'role',
-    label: 'Role',
-    path: 'subjects[].role',
-    type: 'string',
+    entity: "Person",
+    field: "role",
+    label: "Role",
+    path: "subjects[].role",
+    type: "string",
     tags: [FieldTag.AUDIT],
-    description: 'Subject role in case',
+    description: "Subject role in case",
   },
 
   // Remediation fields
   {
-    entity: 'Remediation',
-    field: 'status',
-    label: 'Remediation Status',
-    path: 'remediation.status',
-    type: 'string',
+    entity: "Remediation",
+    field: "status",
+    label: "Remediation Status",
+    path: "remediation.status",
+    type: "string",
     tags: [FieldTag.AUDIT, FieldTag.BOARD],
-    description: 'Remediation status',
+    description: "Remediation status",
   },
   {
-    entity: 'Remediation',
-    field: 'completedSteps',
-    label: 'Completed Steps',
-    path: 'remediation.completedSteps',
-    type: 'number',
+    entity: "Remediation",
+    field: "completedSteps",
+    label: "Completed Steps",
+    path: "remediation.completedSteps",
+    type: "number",
     tags: [FieldTag.AUDIT],
-    description: 'Number of completed remediation steps',
+    description: "Number of completed remediation steps",
   },
   {
-    entity: 'Remediation',
-    field: 'totalSteps',
-    label: 'Total Steps',
-    path: 'remediation.totalSteps',
-    type: 'number',
+    entity: "Remediation",
+    field: "totalSteps",
+    label: "Total Steps",
+    path: "remediation.totalSteps",
+    type: "number",
     tags: [FieldTag.AUDIT],
-    description: 'Total remediation steps',
+    description: "Total remediation steps",
   },
 
   // SLA fields
   {
-    entity: 'SLA',
-    field: 'dueAt',
-    label: 'SLA Due Date',
-    path: 'sla.dueAt',
-    type: 'date',
+    entity: "SLA",
+    field: "dueAt",
+    label: "SLA Due Date",
+    path: "sla.dueAt",
+    type: "date",
     tags: [FieldTag.AUDIT, FieldTag.BOARD],
-    description: 'SLA due date',
+    description: "SLA due date",
   },
   {
-    entity: 'SLA',
-    field: 'breached',
-    label: 'SLA Breached',
-    path: 'sla.breached',
-    type: 'boolean',
+    entity: "SLA",
+    field: "breached",
+    label: "SLA Breached",
+    path: "sla.breached",
+    type: "boolean",
     tags: [FieldTag.AUDIT, FieldTag.BOARD],
-    description: 'Whether SLA was breached',
+    description: "Whether SLA was breached",
   },
 ];
 
@@ -421,12 +436,16 @@ export class TaggedFieldService {
 
     // Include fields with any of includeTags
     if (config.includeTags && config.includeTags.length > 0) {
-      fields = fields.filter((f) => f.tags.some((t) => config.includeTags!.includes(t)));
+      fields = fields.filter((f) =>
+        f.tags.some((t) => config.includeTags!.includes(t)),
+      );
     }
 
     // Exclude fields with any of excludeTags
     if (config.excludeTags && config.excludeTags.length > 0) {
-      fields = fields.filter((f) => !f.tags.some((t) => config.excludeTags!.includes(t)));
+      fields = fields.filter(
+        (f) => !f.tags.some((t) => config.excludeTags!.includes(t)),
+      );
     }
 
     return fields;
@@ -448,7 +467,7 @@ export class TaggedFieldService {
 
       const map = new Map<string, FieldTag[]>();
 
-      if (org?.settings && typeof org.settings === 'object') {
+      if (org?.settings && typeof org.settings === "object") {
         const settings = org.settings as Record<string, unknown>;
         const overrides = settings.fieldTagOverrides as
           | Record<string, FieldTag[]>
@@ -464,7 +483,7 @@ export class TaggedFieldService {
       return map;
     } catch (error) {
       this.logger.warn(
-        `Failed to get org field tags: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        `Failed to get org field tags: ${error instanceof Error ? error.message : "Unknown error"}`,
       );
       return new Map();
     }
@@ -500,11 +519,15 @@ export class TaggedFieldService {
     let result = fieldsWithOverrides;
 
     if (config.includeTags && config.includeTags.length > 0) {
-      result = result.filter((f) => f.tags.some((t) => config.includeTags!.includes(t)));
+      result = result.filter((f) =>
+        f.tags.some((t) => config.includeTags!.includes(t)),
+      );
     }
 
     if (config.excludeTags && config.excludeTags.length > 0) {
-      result = result.filter((f) => !f.tags.some((t) => config.excludeTags!.includes(t)));
+      result = result.filter(
+        (f) => !f.tags.some((t) => config.excludeTags!.includes(t)),
+      );
     }
 
     return result;
@@ -577,28 +600,34 @@ export class TaggedFieldService {
   getPresets(): ExportPreset[] {
     return [
       {
-        name: 'Audit Export',
-        description: 'All fields required for compliance audits',
+        name: "Audit Export",
+        description: "All fields required for compliance audits",
         tags: { include: [FieldTag.AUDIT], exclude: [] },
       },
       {
-        name: 'Board Report Data',
-        description: 'Fields suitable for board-level reporting',
-        tags: { include: [FieldTag.BOARD], exclude: [FieldTag.PII, FieldTag.SENSITIVE] },
+        name: "Board Report Data",
+        description: "Fields suitable for board-level reporting",
+        tags: {
+          include: [FieldTag.BOARD],
+          exclude: [FieldTag.PII, FieldTag.SENSITIVE],
+        },
       },
       {
-        name: 'External Sharing',
-        description: 'Safe for external parties (no PII or sensitive data)',
-        tags: { include: [FieldTag.EXTERNAL], exclude: [FieldTag.PII, FieldTag.SENSITIVE] },
+        name: "External Sharing",
+        description: "Safe for external parties (no PII or sensitive data)",
+        tags: {
+          include: [FieldTag.EXTERNAL],
+          exclude: [FieldTag.PII, FieldTag.SENSITIVE],
+        },
       },
       {
-        name: 'Migration Export',
-        description: 'All data needed for system migration',
+        name: "Migration Export",
+        description: "All data needed for system migration",
         tags: { include: [FieldTag.MIGRATION], exclude: [] },
       },
       {
-        name: 'Full Export (Admin)',
-        description: 'All fields including PII and sensitive data',
+        name: "Full Export (Admin)",
+        description: "All fields including PII and sensitive data",
         tags: { include: [], exclude: [] },
       },
     ];

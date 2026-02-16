@@ -3,17 +3,17 @@ import {
   Logger,
   NotFoundException,
   ForbiddenException,
-} from '@nestjs/common';
-import { EventEmitter2 } from '@nestjs/event-emitter';
-import { PrismaService } from '../../prisma/prisma.service';
-import { ActionCatalog } from './action.catalog';
+} from "@nestjs/common";
+import { EventEmitter2 } from "@nestjs/event-emitter";
+import { PrismaService } from "../../prisma/prisma.service";
+import { ActionCatalog } from "./action.catalog";
 import {
   ActionContext,
   ActionPreview,
   ActionResult,
   ActionCategory,
-} from './action.types';
-import { Prisma } from '@prisma/client';
+} from "./action.types";
+import { Prisma } from "@prisma/client";
 
 /**
  * Result from executing an action.
@@ -102,7 +102,7 @@ export class ActionExecutorService {
       const canExecuteResult = await action.canExecute(validatedInput, context);
       if (!canExecuteResult.allowed) {
         throw new ForbiddenException(
-          canExecuteResult.reason || 'Action not allowed',
+          canExecuteResult.reason || "Action not allowed",
         );
       }
     }
@@ -161,7 +161,7 @@ export class ActionExecutorService {
         entityType: context.entityType,
         entityId: context.entityId,
         input: validatedInput as Prisma.JsonObject,
-        status: 'EXECUTING',
+        status: "EXECUTING",
         undoWindowSeconds: action.undoWindowSeconds,
         undoExpiresAt:
           action.undoWindowSeconds > 0
@@ -180,7 +180,7 @@ export class ActionExecutorService {
         await this.prisma.aiAction.update({
           where: { id: aiAction.id },
           data: {
-            status: 'COMPLETED',
+            status: "COMPLETED",
             result: result as unknown as Prisma.JsonObject,
             previousState: result.previousState as
               | Prisma.JsonObject
@@ -190,7 +190,7 @@ export class ActionExecutorService {
         });
 
         // Emit event for activity feed
-        this.eventEmitter.emit('ai.action.completed', {
+        this.eventEmitter.emit("ai.action.completed", {
           actionId: aiAction.id,
           organizationId: context.organizationId,
           userId: context.userId,
@@ -210,15 +210,15 @@ export class ActionExecutorService {
         await this.prisma.aiAction.update({
           where: { id: aiAction.id },
           data: {
-            status: 'FAILED',
-            error: result.message || 'Action failed',
+            status: "FAILED",
+            error: result.message || "Action failed",
           },
         });
 
         return {
           success: false,
           actionId: aiAction.id,
-          error: result.message || 'Action failed',
+          error: result.message || "Action failed",
           undoAvailable: false,
         };
       }
@@ -226,7 +226,7 @@ export class ActionExecutorService {
       await this.prisma.aiAction.update({
         where: { id: aiAction.id },
         data: {
-          status: 'FAILED',
+          status: "FAILED",
           error: error.message,
         },
       });
@@ -253,22 +253,22 @@ export class ActionExecutorService {
       where: {
         id: actionRecordId,
         organizationId: context.organizationId,
-        status: 'COMPLETED',
+        status: "COMPLETED",
       },
     });
 
     if (!aiAction) {
-      throw new NotFoundException('Action not found or not completed');
+      throw new NotFoundException("Action not found or not completed");
     }
 
     // Check undo window
     if (!aiAction.undoExpiresAt || aiAction.undoExpiresAt < new Date()) {
-      throw new ForbiddenException('Undo window has expired');
+      throw new ForbiddenException("Undo window has expired");
     }
 
     const action = this.actionCatalog.getAction(aiAction.actionType);
     if (!action || !action.undo) {
-      throw new ForbiddenException('Action is not undoable');
+      throw new ForbiddenException("Action is not undoable");
     }
 
     // Execute undo
@@ -286,14 +286,14 @@ export class ActionExecutorService {
     await this.prisma.aiAction.update({
       where: { id: actionRecordId },
       data: {
-        status: 'UNDONE',
+        status: "UNDONE",
         undoneAt: new Date(),
         undoneByUserId: context.userId,
       },
     });
 
     // Emit event
-    this.eventEmitter.emit('ai.action.undone', {
+    this.eventEmitter.emit("ai.action.undone", {
       actionId: actionRecordId,
       organizationId: context.organizationId,
       userId: context.userId,
@@ -329,7 +329,7 @@ export class ActionExecutorService {
         ...(params.entityType && { entityType: params.entityType }),
         ...(params.entityId && { entityId: params.entityId }),
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
       take: params.limit || 50,
     });
 
@@ -339,7 +339,7 @@ export class ActionExecutorService {
       status: a.status,
       createdAt: a.createdAt,
       undoAvailable:
-        a.status === 'COMPLETED' &&
+        a.status === "COMPLETED" &&
         a.undoExpiresAt !== null &&
         a.undoExpiresAt > new Date(),
     }));
@@ -360,7 +360,7 @@ export class ActionExecutorService {
       where: {
         id: actionRecordId,
         organizationId: context.organizationId,
-        status: 'COMPLETED',
+        status: "COMPLETED",
       },
     });
 
@@ -385,7 +385,9 @@ export class ActionExecutorService {
   ): void {
     const missing = required.filter((p) => !userPermissions.includes(p));
     if (missing.length > 0) {
-      throw new ForbiddenException(`Missing permissions: ${missing.join(', ')}`);
+      throw new ForbiddenException(
+        `Missing permissions: ${missing.join(", ")}`,
+      );
     }
   }
 }

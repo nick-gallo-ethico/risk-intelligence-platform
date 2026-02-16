@@ -1,5 +1,5 @@
-import { Injectable } from '@nestjs/common';
-import * as crypto from 'crypto';
+import { Injectable } from "@nestjs/common";
+import * as crypto from "crypto";
 
 /**
  * Service for generating and validating MFA recovery codes.
@@ -24,7 +24,7 @@ export class RecoveryCodesService {
     for (let i = 0; i < this.CODE_COUNT; i++) {
       // Generate 8-character uppercase hex code
       codes.push(
-        crypto.randomBytes(this.CODE_LENGTH).toString('hex').toUpperCase(),
+        crypto.randomBytes(this.CODE_LENGTH).toString("hex").toUpperCase(),
       );
     }
     return codes;
@@ -38,7 +38,7 @@ export class RecoveryCodesService {
    */
   hashRecoveryCodes(codes: string[]): string[] {
     return codes.map((code) =>
-      crypto.createHash('sha256').update(code.toUpperCase()).digest('hex'),
+      crypto.createHash("sha256").update(code.toUpperCase()).digest("hex"),
     );
   }
 
@@ -50,9 +50,9 @@ export class RecoveryCodesService {
    */
   verifyRecoveryCode(inputCode: string, hashedCodes: string[]): number {
     const hashedInput = crypto
-      .createHash('sha256')
+      .createHash("sha256")
       .update(inputCode.toUpperCase())
-      .digest('hex');
+      .digest("hex");
 
     return hashedCodes.indexOf(hashedInput);
   }

@@ -333,9 +333,7 @@ export class AudienceDescriptionService {
     return "";
   }
 
-  // ============================================
   // Name Resolution Methods
-  // ============================================
 
   /**
    * Resolve department IDs to display names.

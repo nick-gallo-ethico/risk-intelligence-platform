@@ -309,10 +309,7 @@ export class ReportService {
     }
 
     // Check permissions: only creator or SYSTEM_ADMIN can update
-    if (
-      existing.createdById !== userId &&
-      userRole !== UserRole.SYSTEM_ADMIN
-    ) {
+    if (existing.createdById !== userId && userRole !== UserRole.SYSTEM_ADMIN) {
       throw new ForbiddenException("Only the report creator can update it");
     }
 
@@ -408,10 +405,7 @@ export class ReportService {
     }
 
     // Check permissions: only creator or SYSTEM_ADMIN can delete
-    if (
-      existing.createdById !== userId &&
-      userRole !== UserRole.SYSTEM_ADMIN
-    ) {
+    if (existing.createdById !== userId && userRole !== UserRole.SYSTEM_ADMIN) {
       throw new ForbiddenException("Only the report creator can delete it");
     }
 
@@ -709,9 +703,7 @@ export class ReportService {
   /**
    * Map saved aggregation config to execution format.
    */
-  private mapAggregation(
-    aggregation: Prisma.JsonValue | null,
-  ):
+  private mapAggregation(aggregation: Prisma.JsonValue | null):
     | {
         function: "COUNT" | "SUM" | "AVG" | "MIN" | "MAX";
         field?: string;

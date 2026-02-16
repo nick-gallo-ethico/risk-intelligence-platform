@@ -1,16 +1,15 @@
-// =============================================================================
-// CREATE ATTACHMENT DTO
-// =============================================================================
-//
-// Input DTO for creating file attachments. The file itself comes from
-// multipart upload (Express.Multer.File), not from this DTO.
-//
-// KEY NOTES:
-// - entityType: Which entity this attachment belongs to (CASE, INVESTIGATION, etc.)
-// - entityId: UUID of the parent entity
-// - description: Optional user-provided description
-// - isEvidence: Flag for investigation evidence marking
-// =============================================================================
+/**
+ * CREATE ATTACHMENT DTO
+ *
+ * Input DTO for creating file attachments. The file itself comes from
+ * multipart upload (Express.Multer.File), not from this DTO.
+ *
+ * KEY NOTES:
+ * - entityType: Which entity this attachment belongs to (CASE, INVESTIGATION, etc.)
+ * - entityId: UUID of the parent entity
+ * - description: Optional user-provided description
+ * - isEvidence: Flag for investigation evidence marking
+ */
 
 import {
   IsString,

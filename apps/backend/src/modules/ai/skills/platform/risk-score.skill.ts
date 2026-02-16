@@ -23,10 +23,7 @@ export const riskScoreInputSchema = z.object({
     .string()
     .optional()
     .describe("Type of entity (case, investigation, riu)"),
-  category: z
-    .string()
-    .optional()
-    .describe("Category of the matter"),
+  category: z.string().optional().describe("Category of the matter"),
   additionalContext: z
     .string()
     .optional()
@@ -172,8 +169,7 @@ export function riskScoreSkill(
         // Calculate confidence based on evidence score
         // Lower evidence score = lower confidence in the assessment
         const evidenceScore = parsed.factors?.evidence?.score || 5;
-        const confidence =
-          evidenceScore >= 7 ? undefined : evidenceScore / 10;
+        const confidence = evidenceScore >= 7 ? undefined : evidenceScore / 10;
 
         return {
           success: true,

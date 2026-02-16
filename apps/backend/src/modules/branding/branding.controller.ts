@@ -28,8 +28,8 @@ import {
   HttpCode,
   HttpStatus,
   Logger,
-} from '@nestjs/common';
-import { Response } from 'express';
+} from "@nestjs/common";
+import { Response } from "express";
 import {
   ApiTags,
   ApiOperation,
@@ -37,15 +37,25 @@ import {
   ApiBearerAuth,
   ApiParam,
   ApiProduces,
-} from '@nestjs/swagger';
-import { JwtAuthGuard, RolesGuard, TenantGuard, Public } from '../../common/guards';
-import { CurrentUser, TenantId, Roles, UserRole } from '../../common/decorators';
-import { BrandingService } from './branding.service';
+} from "@nestjs/swagger";
+import {
+  JwtAuthGuard,
+  RolesGuard,
+  TenantGuard,
+  Public,
+} from "../../common/guards";
+import {
+  CurrentUser,
+  TenantId,
+  Roles,
+  UserRole,
+} from "../../common/decorators";
+import { BrandingService } from "./branding.service";
 import {
   UpdateBrandingDto,
   PreviewCssDto,
   BrandingResponseDto,
-} from './dto/branding.dto';
+} from "./dto/branding.dto";
 
 /**
  * User object from JWT token.
@@ -63,8 +73,8 @@ interface JwtUser {
  *
  * Route: /api/v1/public/branding
  */
-@Controller('public/branding')
-@ApiTags('Branding (Public)')
+@Controller("public/branding")
+@ApiTags("Branding (Public)")
 export class PublicBrandingController {
   private readonly logger = new Logger(PublicBrandingController.name);
 
@@ -82,30 +92,33 @@ export class PublicBrandingController {
    * @example GET /api/v1/public/branding/acme/css
    * @returns CSS string with :root { --primary: ...; --background: ...; }
    */
-  @Get(':tenantSlug/css')
+  @Get(":tenantSlug/css")
   @Public()
-  @ApiOperation({ summary: 'Get tenant branding CSS (public)' })
+  @ApiOperation({ summary: "Get tenant branding CSS (public)" })
   @ApiParam({
-    name: 'tenantSlug',
-    description: 'Organization slug',
-    example: 'acme-corp',
+    name: "tenantSlug",
+    description: "Organization slug",
+    example: "acme-corp",
   })
-  @ApiProduces('text/css')
+  @ApiProduces("text/css")
   @ApiResponse({
     status: 200,
-    description: 'CSS custom properties for theming',
+    description: "CSS custom properties for theming",
     content: {
-      'text/css': {
+      "text/css": {
         schema: {
-          type: 'string',
-          example: ':root { --primary: 221 83% 53%; --background: 0 0% 100%; }',
+          type: "string",
+          example: ":root { --primary: 221 83% 53%; --background: 0 0% 100%; }",
         },
       },
     },
   })
-  @ApiResponse({ status: 404, description: 'Tenant not found (returns default CSS)' })
+  @ApiResponse({
+    status: 404,
+    description: "Tenant not found (returns default CSS)",
+  })
   async getCss(
-    @Param('tenantSlug') tenantSlug: string,
+    @Param("tenantSlug") tenantSlug: string,
     @Res() res: Response,
   ): Promise<void> {
     this.logger.debug(`Fetching CSS for tenant: ${tenantSlug}`);
@@ -113,8 +126,8 @@ export class PublicBrandingController {
     const css = await this.brandingService.getCss(tenantSlug);
 
     // Set cache headers for CDN/browser caching (1 hour)
-    res.setHeader('Content-Type', 'text/css');
-    res.setHeader('Cache-Control', 'public, max-age=3600');
+    res.setHeader("Content-Type", "text/css");
+    res.setHeader("Cache-Control", "public, max-age=3600");
     res.send(css);
   }
 }
@@ -125,8 +138,8 @@ export class PublicBrandingController {
  *
  * Route: /api/v1/branding
  */
-@Controller('branding')
-@ApiTags('Branding (Admin)')
+@Controller("branding")
+@ApiTags("Branding (Admin)")
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard, TenantGuard)
 export class BrandingController {
@@ -146,10 +159,10 @@ export class BrandingController {
    * @example GET /api/v1/branding
    */
   @Get()
-  @ApiOperation({ summary: 'Get branding configuration' })
+  @ApiOperation({ summary: "Get branding configuration" })
   @ApiResponse({
     status: 200,
-    description: 'Current branding configuration',
+    description: "Current branding configuration",
     type: BrandingResponseDto,
   })
   async getBranding(
@@ -157,7 +170,8 @@ export class BrandingController {
   ): Promise<BrandingResponseDto> {
     this.logger.debug(`Getting branding for org: ${organizationId}`);
 
-    const branding = await this.brandingService.getBrandingByOrgId(organizationId);
+    const branding =
+      await this.brandingService.getBrandingByOrgId(organizationId);
 
     return branding as BrandingResponseDto;
   }
@@ -176,17 +190,18 @@ export class BrandingController {
   @Put()
   @UseGuards(RolesGuard)
   @Roles(UserRole.SYSTEM_ADMIN, UserRole.COMPLIANCE_OFFICER)
-  @ApiOperation({ summary: 'Update branding configuration' })
+  @ApiOperation({ summary: "Update branding configuration" })
   @ApiResponse({
     status: 200,
-    description: 'Updated branding configuration',
+    description: "Updated branding configuration",
     type: BrandingResponseDto,
   })
   @ApiResponse({
     status: 400,
-    description: 'Validation error (e.g., FULL_WHITE_LABEL requires colorPalette)',
+    description:
+      "Validation error (e.g., FULL_WHITE_LABEL requires colorPalette)",
   })
-  @ApiResponse({ status: 403, description: 'Forbidden - requires admin role' })
+  @ApiResponse({ status: 403, description: "Forbidden - requires admin role" })
   async updateBranding(
     @TenantId() organizationId: string,
     @CurrentUser() user: JwtUser,
@@ -210,31 +225,29 @@ export class BrandingController {
    * @example POST /api/v1/branding/preview-css
    *          Body: { primaryColor: "200 85% 45%", theme: "DARK" }
    */
-  @Post('preview-css')
+  @Post("preview-css")
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Preview CSS without saving' })
-  @ApiProduces('text/css')
+  @ApiOperation({ summary: "Preview CSS without saving" })
+  @ApiProduces("text/css")
   @ApiResponse({
     status: 200,
-    description: 'Generated CSS for preview',
+    description: "Generated CSS for preview",
     content: {
-      'text/css': {
+      "text/css": {
         schema: {
-          type: 'string',
-          example: ':root { --primary: 200 85% 45%; --background: 222 47% 11%; }',
+          type: "string",
+          example:
+            ":root { --primary: 200 85% 45%; --background: 222 47% 11%; }",
         },
       },
     },
   })
-  previewCss(
-    @Body() dto: PreviewCssDto,
-    @Res() res: Response,
-  ): void {
-    this.logger.debug('Generating preview CSS');
+  previewCss(@Body() dto: PreviewCssDto, @Res() res: Response): void {
+    this.logger.debug("Generating preview CSS");
 
     const css = this.brandingService.previewCss(dto);
 
-    res.setHeader('Content-Type', 'text/css');
+    res.setHeader("Content-Type", "text/css");
     res.send(css);
   }
 }

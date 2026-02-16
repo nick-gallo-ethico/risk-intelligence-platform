@@ -1,14 +1,13 @@
-// =============================================================================
-// UNIT TESTS: DomainVerificationService
-// =============================================================================
-//
-// Tests for DNS TXT record verification of domain ownership.
-// Key behaviors:
-// - Generate cryptographically secure verification tokens
-// - Build expected TXT record name and value
-// - Verify DNS TXT records match expected token
-// - Handle DNS lookup errors gracefully
-// =============================================================================
+/**
+ * UNIT TESTS: DomainVerificationService
+ *
+ * Tests for DNS TXT record verification of domain ownership.
+ * Key behaviors:
+ * - Generate cryptographically secure verification tokens
+ * - Build expected TXT record name and value
+ * - Verify DNS TXT records match expected token
+ * - Handle DNS lookup errors gracefully
+ */
 
 import { Test, TestingModule } from "@nestjs/testing";
 import { DomainVerificationService } from "./domain-verification.service";
@@ -27,15 +26,11 @@ jest.mock("dns", () => ({
 describe("DomainVerificationService", () => {
   let service: DomainVerificationService;
 
-  // ---------------------------------------------------------------------------
   // Test Data Fixtures
-  // ---------------------------------------------------------------------------
   const mockDomain = "company.com";
   const mockToken = "abc123def456";
 
-  // ---------------------------------------------------------------------------
   // Module Setup
-  // ---------------------------------------------------------------------------
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [DomainVerificationService],
@@ -47,9 +42,7 @@ describe("DomainVerificationService", () => {
     jest.clearAllMocks();
   });
 
-  // ---------------------------------------------------------------------------
   // describe('generateVerificationToken') - Token generation
-  // ---------------------------------------------------------------------------
   describe("generateVerificationToken", () => {
     it("should generate a 64-character hex token", () => {
       // Act
@@ -73,9 +66,7 @@ describe("DomainVerificationService", () => {
     });
   });
 
-  // ---------------------------------------------------------------------------
   // describe('getTxtRecordName') - Record name generation
-  // ---------------------------------------------------------------------------
   describe("getTxtRecordName", () => {
     it("should return correct TXT record name", () => {
       // Act
@@ -94,9 +85,7 @@ describe("DomainVerificationService", () => {
     });
   });
 
-  // ---------------------------------------------------------------------------
   // describe('getExpectedTxtValue') - Expected value generation
-  // ---------------------------------------------------------------------------
   describe("getExpectedTxtValue", () => {
     it("should return expected TXT value with token", () => {
       // Act
@@ -107,9 +96,7 @@ describe("DomainVerificationService", () => {
     });
   });
 
-  // ---------------------------------------------------------------------------
   // describe('verifyDnsTxtRecord') - DNS verification
-  // ---------------------------------------------------------------------------
   describe("verifyDnsTxtRecord", () => {
     it("should return true when TXT record matches", async () => {
       // Arrange
@@ -221,9 +208,7 @@ describe("DomainVerificationService", () => {
     });
   });
 
-  // ---------------------------------------------------------------------------
   // describe('getVerificationInstructions') - User-friendly instructions
-  // ---------------------------------------------------------------------------
   describe("getVerificationInstructions", () => {
     it("should return complete verification instructions", () => {
       // Act

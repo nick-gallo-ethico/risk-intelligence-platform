@@ -1,9 +1,9 @@
-import { UserRole } from '@prisma/client';
+import { UserRole } from "@prisma/client";
 
 /**
  * Domain verification methods supported
  */
-export type DomainVerificationMethod = 'DNS_TXT' | 'META_TAG' | 'FILE';
+export type DomainVerificationMethod = "DNS_TXT" | "META_TAG" | "FILE";
 
 /**
  * Domain verification status
@@ -47,5 +47,5 @@ export interface SamlConfig {
   cert: string;
   wantAssertionsSigned: boolean;
   wantAuthnResponseSigned: boolean;
-  signatureAlgorithm: 'sha256' | 'sha512';
+  signatureAlgorithm: "sha256" | "sha512";
 }

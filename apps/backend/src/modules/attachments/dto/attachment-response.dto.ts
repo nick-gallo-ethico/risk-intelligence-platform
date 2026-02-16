@@ -1,14 +1,13 @@
-// =============================================================================
-// ATTACHMENT RESPONSE DTO
-// =============================================================================
-//
-// Output DTO for attachment responses. Includes file metadata, uploader info,
-// and a signed download URL for secure access.
-//
-// KEY NOTES:
-// - downloadUrl: Time-limited signed URL for secure download
-// - uploadedBy: Denormalized user info for display efficiency
-// =============================================================================
+/**
+ * ATTACHMENT RESPONSE DTO
+ *
+ * Output DTO for attachment responses. Includes file metadata, uploader info,
+ * and a signed download URL for secure access.
+ *
+ * KEY NOTES:
+ * - downloadUrl: Time-limited signed URL for secure download
+ * - uploadedBy: Denormalized user info for display efficiency
+ */
 
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { AttachmentEntityType } from "@prisma/client";

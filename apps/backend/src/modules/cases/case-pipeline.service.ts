@@ -1,17 +1,16 @@
-// =============================================================================
-// CASE PIPELINE SERVICE - Manages case workflow stages and outcomes
-// =============================================================================
-//
-// This service handles:
-// 1. Moving cases through configurable pipeline stages
-// 2. Setting case outcomes
-// 3. Updating case classification (corrections from RIU)
-//
-// KEY DESIGN DECISIONS:
-// - Pipeline stages are tenant-configurable (stored in pipelineStage field)
-// - Classification on Case can differ from RIU (this is where corrections go)
-// - All stage/outcome changes include audit tracking with timestamps and user
-// =============================================================================
+/**
+ * CASE PIPELINE SERVICE - Manages case workflow stages and outcomes
+ *
+ * This service handles:
+ * 1. Moving cases through configurable pipeline stages
+ * 2. Setting case outcomes
+ * 3. Updating case classification (corrections from RIU)
+ *
+ * KEY DESIGN DECISIONS:
+ * - Pipeline stages are tenant-configurable (stored in pipelineStage field)
+ * - Classification on Case can differ from RIU (this is where corrections go)
+ * - All stage/outcome changes include audit tracking with timestamps and user
+ */
 
 import {
   Injectable,
@@ -97,9 +96,7 @@ export class CasePipelineService {
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
-  // -------------------------------------------------------------------------
   // MOVE TO STAGE - Move case to a new pipeline stage
-  // -------------------------------------------------------------------------
 
   /**
    * Moves a case to a new pipeline stage.
@@ -174,9 +171,7 @@ export class CasePipelineService {
     return updated;
   }
 
-  // -------------------------------------------------------------------------
   // SET OUTCOME - Set the final outcome of a case
-  // -------------------------------------------------------------------------
 
   /**
    * Sets the outcome of a case.
@@ -248,9 +243,7 @@ export class CasePipelineService {
     return updated;
   }
 
-  // -------------------------------------------------------------------------
   // UPDATE CLASSIFICATION - Update case classification (corrections from RIU)
-  // -------------------------------------------------------------------------
 
   /**
    * Updates the classification of a case.
@@ -362,9 +355,7 @@ export class CasePipelineService {
     return updated;
   }
 
-  // -------------------------------------------------------------------------
   // GET PIPELINE HISTORY - Get stage transition history for a case
-  // -------------------------------------------------------------------------
 
   /**
    * Gets the pipeline stage transition history for a case.
@@ -407,7 +398,9 @@ export class CasePipelineService {
     });
 
     return auditLogs.map((log) => {
-      const changes = log.changes as { newValue?: { pipelineStage?: string; notes?: string } } | null;
+      const changes = log.changes as {
+        newValue?: { pipelineStage?: string; notes?: string };
+      } | null;
       return {
         stage: changes?.newValue?.pipelineStage ?? "Unknown",
         changedAt: log.createdAt,
@@ -417,9 +410,7 @@ export class CasePipelineService {
     });
   }
 
-  // -------------------------------------------------------------------------
   // HELPER - Safe event emission
-  // -------------------------------------------------------------------------
 
   private emitEvent(eventName: string, payload: object): void {
     try {

@@ -5,7 +5,7 @@ export interface RateLimitCheckParams {
 
 export interface RateLimitResult {
   allowed: boolean;
-  reason?: 'RATE_LIMIT_RPM' | 'RATE_LIMIT_TPM' | 'RATE_LIMIT_DAILY';
+  reason?: "RATE_LIMIT_RPM" | "RATE_LIMIT_TPM" | "RATE_LIMIT_DAILY";
   retryAfterMs?: number;
   remaining?: {
     rpm: number;

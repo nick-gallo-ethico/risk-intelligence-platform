@@ -69,7 +69,8 @@ export class CampaignsService {
         escalationAfterDays: dto.escalationAfterDays,
         escalateToUserId: dto.escalateToUserId,
         autoCreateCase: dto.autoCreateCase ?? false,
-        caseCreationThreshold: dto.caseCreationThreshold as Prisma.InputJsonValue,
+        caseCreationThreshold:
+          dto.caseCreationThreshold as Prisma.InputJsonValue,
         createdById: userId,
         updatedById: userId,
       },
@@ -104,7 +105,9 @@ export class CampaignsService {
     const where: Prisma.CampaignWhereInput = {
       organizationId,
       ...(options?.status && { status: options.status }),
-      ...(options?.type && { type: options.type as Prisma.EnumCampaignTypeFilter }),
+      ...(options?.type && {
+        type: options.type as Prisma.EnumCampaignTypeFilter,
+      }),
     };
 
     const [campaigns, total] = await Promise.all([
@@ -164,11 +167,17 @@ export class CampaignsService {
       existing.status !== CampaignStatus.SCHEDULED
     ) {
       // Only allow limited updates for active campaigns
-      const allowedFields = ["statusNote", "reminderDays", "escalationAfterDays"];
+      const allowedFields = [
+        "statusNote",
+        "reminderDays",
+        "escalationAfterDays",
+      ];
       const attemptedFields = Object.keys(dto).filter(
         (k) => dto[k as keyof UpdateCampaignDto] !== undefined,
       );
-      const disallowed = attemptedFields.filter((f) => !allowedFields.includes(f));
+      const disallowed = attemptedFields.filter(
+        (f) => !allowedFields.includes(f),
+      );
 
       if (disallowed.length > 0) {
         throw new BadRequestException(
@@ -187,7 +196,8 @@ export class CampaignsService {
     if (dto.expiresAt !== undefined) {
       updateData.expiresAt = dto.expiresAt ? new Date(dto.expiresAt) : null;
     }
-    if (dto.reminderDays !== undefined) updateData.reminderDays = dto.reminderDays;
+    if (dto.reminderDays !== undefined)
+      updateData.reminderDays = dto.reminderDays;
     if (dto.escalationAfterDays !== undefined) {
       updateData.escalationAfterDays = dto.escalationAfterDays;
     }
@@ -237,7 +247,10 @@ export class CampaignsService {
     }
 
     // Get target employee IDs based on audience mode
-    const employeeIds = await this.getTargetEmployeeIds(campaign, organizationId);
+    const employeeIds = await this.getTargetEmployeeIds(
+      campaign,
+      organizationId,
+    );
 
     if (employeeIds.length === 0) {
       throw new BadRequestException("Campaign has no target employees");
@@ -395,10 +408,7 @@ export class CampaignsService {
   /**
    * Complete a campaign (typically called by scheduler when all done).
    */
-  async complete(
-    id: string,
-    organizationId: string,
-  ): Promise<Campaign> {
+  async complete(id: string, organizationId: string): Promise<Campaign> {
     const campaign = await this.findOne(id, organizationId);
 
     if (campaign.status !== CampaignStatus.ACTIVE) {

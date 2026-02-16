@@ -81,7 +81,8 @@ export class SimpleTargetingDto {
   divisions?: string[];
 
   @ApiPropertyOptional({
-    description: "Include all subordinates of matched employees (walks org hierarchy)",
+    description:
+      "Include all subordinates of matched employees (walks org hierarchy)",
     default: false,
   })
   @IsOptional()
@@ -137,7 +138,8 @@ export class AdvancedTargetingDto {
   jobTitles?: string[];
 
   @ApiPropertyOptional({
-    description: "Manager hierarchy depth to include (1 = direct reports, 2 = direct + skip-level, etc.)",
+    description:
+      "Manager hierarchy depth to include (1 = direct reports, 2 = direct + skip-level, etc.)",
     example: 2,
     minimum: 0,
   })
@@ -241,7 +243,8 @@ export class AdvancedTargetingDto {
 export class TargetingCriteriaDto {
   @ApiProperty({
     enum: TargetingMode,
-    description: "Targeting mode: all employees, simple (checkboxes), or advanced (rules)",
+    description:
+      "Targeting mode: all employees, simple (checkboxes), or advanced (rules)",
     example: TargetingMode.SIMPLE,
   })
   @IsEnum(TargetingMode)
@@ -308,7 +311,8 @@ export class AudiencePreviewDto {
 
   @ApiProperty({
     description: "Human-readable description of targeting criteria",
-    example: "Everyone in Finance and Legal departments, US locations only, 90+ days tenure",
+    example:
+      "Everyone in Finance and Legal departments, US locations only, 90+ days tenure",
   })
   criteriaDescription: string;
 

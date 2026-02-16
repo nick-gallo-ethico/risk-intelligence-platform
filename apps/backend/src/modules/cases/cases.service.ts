@@ -29,9 +29,7 @@ export class CasesService {
     private readonly caseStatusService: CaseStatusService,
   ) {}
 
-  // ============================================================================
   // Query Operations - Delegate to CaseQueryService
-  // ============================================================================
 
   /**
    * Returns paginated list of cases for the current organization.
@@ -65,9 +63,7 @@ export class CasesService {
     );
   }
 
-  // ============================================================================
   // Status Operations - Delegate to CaseStatusService
-  // ============================================================================
 
   /**
    * Updates case status with rationale.
@@ -101,9 +97,7 @@ export class CasesService {
     return this.caseStatusService.close(id, rationale, userId, organizationId);
   }
 
-  // ============================================================================
   // Core Operations - Retained in CasesService
-  // ============================================================================
 
   /**
    * Creates a new case with auto-generated reference number.

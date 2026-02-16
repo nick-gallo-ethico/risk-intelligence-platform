@@ -24,9 +24,7 @@ export class WidgetCampaignDataService {
     @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
   ) {}
 
-  // ===========================================
   // Public: Campaign Data Fetchers
-  // ===========================================
 
   /**
    * Fetches campaign data for KPI, table, or chart widgets.
@@ -166,9 +164,7 @@ export class WidgetCampaignDataService {
     };
   }
 
-  // ===========================================
   // Public: Campaign Assignment Data Fetchers
-  // ===========================================
 
   /**
    * Fetches campaign assignment data for KPI or chart widgets.
@@ -223,9 +219,7 @@ export class WidgetCampaignDataService {
     };
   }
 
-  // ===========================================
   // Public: Disclosure Data Fetchers
-  // ===========================================
 
   /**
    * Fetches disclosure data (RIUs of type DISCLOSURE_RESPONSE) for widgets.
@@ -355,9 +349,7 @@ export class WidgetCampaignDataService {
     return where;
   }
 
-  // ===========================================
   // Private: Helper Methods
-  // ===========================================
 
   private buildSimpleFilter(
     filters: Record<string, unknown>,

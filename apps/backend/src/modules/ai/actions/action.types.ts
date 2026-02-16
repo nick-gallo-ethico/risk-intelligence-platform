@@ -1,14 +1,14 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 /**
  * Action categories determine preview requirements and undo windows.
  * Per CONTEXT.md action handling decisions.
  */
 export enum ActionCategory {
-  QUICK = 'quick', // No preview needed, has undo (add note, change field)
-  STANDARD = 'standard', // Preview recommended, has undo (change status, assign)
-  CRITICAL = 'critical', // Preview required, limited undo (close, merge)
-  EXTERNAL = 'external', // Preview required, no undo (send email, API call)
+  QUICK = "quick", // No preview needed, has undo (add note, change field)
+  STANDARD = "standard", // Preview recommended, has undo (change status, assign)
+  CRITICAL = "critical", // Preview required, limited undo (close, merge)
+  EXTERNAL = "external", // Preview required, no undo (send email, API call)
 }
 
 /**

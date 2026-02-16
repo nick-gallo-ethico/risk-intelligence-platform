@@ -4,12 +4,12 @@ import {
   PdfGeneratorService,
   PdfGenerationOptions,
 } from "../pdf-generator.service";
+import { KpiItem, TrendData, CaseBreakdown } from "../pptx-generator.service";
 import {
-  KpiItem,
-  TrendData,
-  CaseBreakdown,
-} from "../pptx-generator.service";
-import { SlaMetrics, CampaignMetrics, RiskArea } from "./report-data-fetcher.service";
+  SlaMetrics,
+  CampaignMetrics,
+  RiskArea,
+} from "./report-data-fetcher.service";
 
 // ===========================================
 // Report Rendering Types
@@ -192,14 +192,16 @@ export class ReportPdfBuilderService {
    */
   private registerHandlebarsHelpers(): void {
     // Format date helper
-    Handlebars.registerHelper("formatDate", (date: Date) =>
-      date?.toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      }) || "",
+    Handlebars.registerHelper(
+      "formatDate",
+      (date: Date) =>
+        date?.toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        }) || "",
     );
 
     // Format number helper

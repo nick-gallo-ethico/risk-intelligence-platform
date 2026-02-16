@@ -46,14 +46,13 @@ export class SegmentService {
     // Validate criteria
     const errors = this.queryBuilder.validateCriteria(dto.criteria);
     if (errors.length > 0) {
-      throw new BadRequestException(`Invalid segment criteria: ${errors.join(", ")}`);
+      throw new BadRequestException(
+        `Invalid segment criteria: ${errors.join(", ")}`,
+      );
     }
 
     // Calculate initial audience size
-    const preview = await this.previewAudience(
-      dto.criteria,
-      organizationId,
-    );
+    const preview = await this.previewAudience(dto.criteria, organizationId);
 
     const segment = await this.prisma.segment.create({
       data: {
@@ -142,7 +141,9 @@ export class SegmentService {
     if (dto.criteria) {
       const errors = this.queryBuilder.validateCriteria(dto.criteria);
       if (errors.length > 0) {
-        throw new BadRequestException(`Invalid segment criteria: ${errors.join(", ")}`);
+        throw new BadRequestException(
+          `Invalid segment criteria: ${errors.join(", ")}`,
+        );
       }
     }
 

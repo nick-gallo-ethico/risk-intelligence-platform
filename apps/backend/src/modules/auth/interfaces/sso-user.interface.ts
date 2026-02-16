@@ -1,7 +1,7 @@
 /**
  * SSO provider identifiers
  */
-export type SsoProvider = 'azure-ad' | 'google' | 'saml';
+export type SsoProvider = "azure-ad" | "google" | "saml";
 
 /**
  * User data extracted from SSO provider callback.

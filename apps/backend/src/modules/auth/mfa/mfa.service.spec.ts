@@ -1,15 +1,14 @@
-// =============================================================================
-// MfaService Unit Tests
-// =============================================================================
-//
-// Tests for multi-factor authentication service covering:
-// - MFA setup initiation (TOTP secret and QR code generation)
-// - TOTP verification and MFA enabling
-// - MFA verification during login (TOTP and recovery codes)
-// - MFA disabling with TOTP verification
-// - Recovery code regeneration
-// - MFA status checking
-// =============================================================================
+/**
+ * MfaService Unit Tests
+ *
+ * Tests for multi-factor authentication service covering:
+ * - MFA setup initiation (TOTP secret and QR code generation)
+ * - TOTP verification and MFA enabling
+ * - MFA verification during login (TOTP and recovery codes)
+ * - MFA disabling with TOTP verification
+ * - Recovery code regeneration
+ * - MFA status checking
+ */
 
 import { Test, TestingModule } from "@nestjs/testing";
 import { BadRequestException, UnauthorizedException } from "@nestjs/common";
@@ -42,9 +41,7 @@ describe("MfaService", () => {
   let auditService: jest.Mocked<AuditService>;
   let recoveryCodesService: jest.Mocked<RecoveryCodesService>;
 
-  // -------------------------------------------------------------------------
   // Test Data Fixtures
-  // -------------------------------------------------------------------------
   const mockOrgId = "org-test-123";
   const mockUserId = "user-test-123";
   const mockEmail = "test@example.com";
@@ -92,9 +89,7 @@ describe("MfaService", () => {
 
   const mockHashedCodes = mockRecoveryCodes.map((code) => `hashed_${code}`);
 
-  // -------------------------------------------------------------------------
   // Mock Setup
-  // -------------------------------------------------------------------------
   const mockPrismaService = {
     user: {
       findUnique: jest.fn(),
@@ -113,9 +108,7 @@ describe("MfaService", () => {
     verifyRecoveryCode: jest.fn(),
   };
 
-  // -------------------------------------------------------------------------
   // Module Setup
-  // -------------------------------------------------------------------------
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -135,9 +128,7 @@ describe("MfaService", () => {
     jest.clearAllMocks();
   });
 
-  // -------------------------------------------------------------------------
   // describe('initiateMfaSetup') - MFA setup initiation
-  // -------------------------------------------------------------------------
   describe("initiateMfaSetup", () => {
     it("should generate secret and return QR code data URL", async () => {
       // Arrange
@@ -194,9 +185,7 @@ describe("MfaService", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
   // describe('verifyAndEnableMfa') - Enable MFA after verification
-  // -------------------------------------------------------------------------
   describe("verifyAndEnableMfa", () => {
     it("should enable MFA when TOTP code is valid", async () => {
       // Arrange
@@ -314,9 +303,7 @@ describe("MfaService", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
   // describe('verifyMfa') - MFA verification during login
-  // -------------------------------------------------------------------------
   describe("verifyMfa", () => {
     it("should return true for valid TOTP code", async () => {
       // Arrange
@@ -435,9 +422,7 @@ describe("MfaService", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
   // describe('disableMfa') - Disable MFA
-  // -------------------------------------------------------------------------
   describe("disableMfa", () => {
     it("should clear MFA fields on user", async () => {
       // Arrange
@@ -508,9 +493,7 @@ describe("MfaService", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
   // describe('regenerateRecoveryCodes') - Regenerate recovery codes
-  // -------------------------------------------------------------------------
   describe("regenerateRecoveryCodes", () => {
     it("should generate new recovery codes", async () => {
       // Arrange
@@ -616,9 +599,7 @@ describe("MfaService", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
   // describe('getMfaStatus') - Check MFA status
-  // -------------------------------------------------------------------------
   describe("getMfaStatus", () => {
     it("should return enabled:true when MFA configured", async () => {
       // Arrange
@@ -655,9 +636,7 @@ describe("MfaService", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
   // describe('isMfaEnabled') - Quick MFA check
-  // -------------------------------------------------------------------------
   describe("isMfaEnabled", () => {
     it("should return true when MFA enabled", async () => {
       // Arrange

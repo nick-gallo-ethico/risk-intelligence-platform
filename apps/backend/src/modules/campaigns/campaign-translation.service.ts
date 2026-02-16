@@ -27,9 +27,7 @@ export class CampaignTranslationService {
 
   constructor(private readonly prisma: PrismaService) {}
 
-  // ===========================================
   // Translation Creation
-  // ===========================================
 
   /**
    * Creates a translation of a campaign.
@@ -103,9 +101,7 @@ export class CampaignTranslationService {
     return translation;
   }
 
-  // ===========================================
   // Translation Status
-  // ===========================================
 
   /**
    * Gets translation status for all translations of a parent campaign.
@@ -193,9 +189,7 @@ export class CampaignTranslationService {
     );
   }
 
-  // ===========================================
   // Language Routing
-  // ===========================================
 
   /**
    * Gets available languages for a campaign.
@@ -339,9 +333,7 @@ export class CampaignTranslationService {
     };
   }
 
-  // ===========================================
   // Dashboard Queries
-  // ===========================================
 
   /**
    * Gets all campaigns with stale translations.

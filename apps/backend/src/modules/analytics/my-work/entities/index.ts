@@ -1,1 +1,1 @@
-export * from './unified-task.entity';
+export * from "./unified-task.entity";

@@ -1,6 +1,4 @@
-// =============================================================================
-// TIMELINE QUERY DTO - Query parameters for activity timeline endpoints
-// =============================================================================
+/** TIMELINE QUERY DTO - Query parameters for activity timeline endpoints */
 
 import {
   IsOptional,
@@ -58,7 +56,8 @@ export class TimelineQueryDto {
   endDate?: string;
 
   @ApiPropertyOptional({
-    description: "Include related entity activities (e.g., Case includes Investigation)",
+    description:
+      "Include related entity activities (e.g., Case includes Investigation)",
     default: true,
   })
   @IsOptional()

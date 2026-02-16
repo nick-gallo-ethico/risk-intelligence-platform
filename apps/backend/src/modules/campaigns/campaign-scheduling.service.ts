@@ -3,12 +3,12 @@ import {
   BadRequestException,
   NotFoundException,
   Logger,
-} from '@nestjs/common';
-import { InjectQueue } from '@nestjs/bullmq';
-import { Queue } from 'bullmq';
-import { EventEmitter2 } from '@nestjs/event-emitter';
-import { PrismaService } from '../prisma/prisma.service';
-import { AuditService } from '../audit/audit.service';
+} from "@nestjs/common";
+import { InjectQueue } from "@nestjs/bullmq";
+import { Queue } from "bullmq";
+import { EventEmitter2 } from "@nestjs/event-emitter";
+import { PrismaService } from "../prisma/prisma.service";
+import { AuditService } from "../audit/audit.service";
 import {
   Campaign,
   CampaignWave,
@@ -20,7 +20,7 @@ import {
   AuditActionCategory,
   ActorType,
   Prisma,
-} from '@prisma/client';
+} from "@prisma/client";
 
 /**
  * Rollout configuration for staggered campaigns.
@@ -28,7 +28,7 @@ import {
  */
 export interface RolloutConfig {
   /** Type of wave distribution */
-  type: 'percentage' | 'daily_count';
+  type: "percentage" | "daily_count";
   /** Values for each wave (percentages or employee counts per wave) */
   values: number[];
   /** Start date for the first wave (ISO string) */
@@ -62,10 +62,10 @@ export interface BlackoutDateInput {
   endDate: Date;
   affectsLocations?: string[];
   isRecurring?: boolean;
-  recurringPattern?: 'YEARLY' | 'QUARTERLY' | 'MONTHLY';
+  recurringPattern?: "YEARLY" | "QUARTERLY" | "MONTHLY";
 }
 
-export const CAMPAIGN_QUEUE_NAME = 'campaign';
+export const CAMPAIGN_QUEUE_NAME = "campaign";
 
 /**
  * CampaignSchedulingService
@@ -91,9 +91,7 @@ export class CampaignSchedulingService {
     @InjectQueue(CAMPAIGN_QUEUE_NAME) private campaignQueue: Queue,
   ) {}
 
-  // ===========================================================================
   // Campaign Scheduling
-  // ===========================================================================
 
   /**
    * Schedule a campaign for future launch.
@@ -136,7 +134,7 @@ export class CampaignSchedulingService {
 
     // Determine rollout strategy
     const rolloutStrategy = rolloutConfig
-      ? rolloutConfig.type === 'percentage'
+      ? rolloutConfig.type === "percentage"
         ? CampaignRolloutStrategy.STAGGERED
         : CampaignRolloutStrategy.STAGGERED
       : CampaignRolloutStrategy.IMMEDIATE;
@@ -155,7 +153,10 @@ export class CampaignSchedulingService {
 
     // Create waves if staggered rollout
     let waves: CampaignWave[] = [];
-    if (rolloutConfig && rolloutStrategy !== CampaignRolloutStrategy.IMMEDIATE) {
+    if (
+      rolloutConfig &&
+      rolloutStrategy !== CampaignRolloutStrategy.IMMEDIATE
+    ) {
       waves = await this.createWavesFromConfig(
         campaignId,
         rolloutConfig,
@@ -167,14 +168,12 @@ export class CampaignSchedulingService {
     // Calculate delay until scheduled time
     const delay = scheduledAt.getTime() - Date.now();
     if (delay <= 0) {
-      throw new BadRequestException(
-        'Scheduled time must be in the future',
-      );
+      throw new BadRequestException("Scheduled time must be in the future");
     }
 
     // Create delayed BullMQ job
     await this.campaignQueue.add(
-      'launch-campaign',
+      "launch-campaign",
       {
         campaignId,
         organizationId,
@@ -193,7 +192,7 @@ export class CampaignSchedulingService {
       organizationId,
       entityType: AuditEntityType.CAMPAIGN,
       entityId: campaignId,
-      action: 'scheduled',
+      action: "scheduled",
       actionCategory: AuditActionCategory.UPDATE,
       actionDescription: `Scheduled campaign "${campaign.name}" for ${scheduledAt.toISOString()}`,
       actorUserId: userId,
@@ -201,7 +200,7 @@ export class CampaignSchedulingService {
     });
 
     // Emit event
-    this.eventEmitter.emit('campaign.scheduled', {
+    this.eventEmitter.emit("campaign.scheduled", {
       organizationId,
       campaignId,
       scheduledAt,
@@ -245,12 +244,14 @@ export class CampaignSchedulingService {
 
     if (campaign.status !== CampaignStatus.SCHEDULED) {
       throw new BadRequestException(
-        'Only scheduled campaigns can have their launch cancelled',
+        "Only scheduled campaigns can have their launch cancelled",
       );
     }
 
     // Remove the BullMQ job
-    const job = await this.campaignQueue.getJob(`launch-campaign-${campaignId}`);
+    const job = await this.campaignQueue.getJob(
+      `launch-campaign-${campaignId}`,
+    );
     if (job) {
       await job.remove();
     }
@@ -281,9 +282,9 @@ export class CampaignSchedulingService {
       organizationId,
       entityType: AuditEntityType.CAMPAIGN,
       entityId: campaignId,
-      action: 'schedule_cancelled',
+      action: "schedule_cancelled",
       actionCategory: AuditActionCategory.UPDATE,
-      actionDescription: `Cancelled scheduled launch for campaign "${campaign.name}"${reason ? `: ${reason}` : ''}`,
+      actionDescription: `Cancelled scheduled launch for campaign "${campaign.name}"${reason ? `: ${reason}` : ""}`,
       actorUserId: userId,
       actorType: ActorType.USER,
     });
@@ -291,9 +292,7 @@ export class CampaignSchedulingService {
     return updated;
   }
 
-  // ===========================================================================
   // Wave Management
-  // ===========================================================================
 
   /**
    * Create waves based on rollout configuration.
@@ -325,7 +324,7 @@ export class CampaignSchedulingService {
           waveNumber: i + 1,
           scheduledAt: adjustedDate,
           audiencePercentage:
-            config.type === 'percentage' ? config.values[i] : null,
+            config.type === "percentage" ? config.values[i] : null,
           employeeIds: [], // Populated at launch time
           status: CampaignWaveStatus.PENDING,
         },
@@ -334,9 +333,7 @@ export class CampaignSchedulingService {
       waves.push(wave);
     }
 
-    this.logger.log(
-      `Created ${waves.length} waves for campaign ${campaignId}`,
-    );
+    this.logger.log(`Created ${waves.length} waves for campaign ${campaignId}`);
 
     return waves;
   }
@@ -390,7 +387,7 @@ export class CampaignSchedulingService {
           waveNumber: i + 1,
           scheduledAt: adjustedDate,
           audiencePercentage:
-            config.type === 'percentage' ? config.values[i] : null,
+            config.type === "percentage" ? config.values[i] : null,
           employeeIds: employeesPerWave[i],
           status: CampaignWaveStatus.PENDING,
         },
@@ -399,7 +396,7 @@ export class CampaignSchedulingService {
       waves.push(wave);
 
       // Emit event for each wave
-      this.eventEmitter.emit('campaign.wave.scheduled', {
+      this.eventEmitter.emit("campaign.wave.scheduled", {
         organizationId,
         campaignId,
         waveNumber: i + 1,
@@ -417,13 +414,13 @@ export class CampaignSchedulingService {
   private distributeEmployees(
     employeeIds: string[],
     values: number[],
-    type: 'percentage' | 'daily_count',
+    type: "percentage" | "daily_count",
   ): string[][] {
     const result: string[][] = [];
     const shuffled = [...employeeIds].sort(() => Math.random() - 0.5);
     let remaining = [...shuffled];
 
-    if (type === 'percentage') {
+    if (type === "percentage") {
       // Distribute by percentage
       for (let i = 0; i < values.length; i++) {
         const percentage = values[i];
@@ -463,13 +460,11 @@ export class CampaignSchedulingService {
   ): Promise<CampaignWave[]> {
     return this.prisma.campaignWave.findMany({
       where: { campaignId, organizationId },
-      orderBy: { waveNumber: 'asc' },
+      orderBy: { waveNumber: "asc" },
     });
   }
 
-  // ===========================================================================
   // Blackout Date Management
-  // ===========================================================================
 
   /**
    * Check if a date falls within any active blackout period.
@@ -561,7 +556,7 @@ export class CampaignSchedulingService {
     const endDay = blackout.endDate.getDate();
 
     switch (blackout.recurringPattern) {
-      case 'YEARLY':
+      case "YEARLY":
         // Check if month/day falls within the recurring annual range
         if (startMonth === endMonth) {
           return (
@@ -584,7 +579,7 @@ export class CampaignSchedulingService {
           );
         }
 
-      case 'QUARTERLY':
+      case "QUARTERLY":
         // Check if within the same offset from any quarter start
         const quarterOffset = date.getMonth() % 3;
         const startOffset = blackout.startDate.getMonth() % 3;
@@ -592,10 +587,11 @@ export class CampaignSchedulingService {
 
         if (quarterOffset === startOffset && dateDay >= startDay) return true;
         if (quarterOffset === endOffset && dateDay <= endDay) return true;
-        if (quarterOffset > startOffset && quarterOffset < endOffset) return true;
+        if (quarterOffset > startOffset && quarterOffset < endOffset)
+          return true;
         return false;
 
-      case 'MONTHLY':
+      case "MONTHLY":
         // Check if day falls within the range each month
         return dateDay >= startDay && dateDay <= endDay;
 
@@ -652,7 +648,7 @@ export class CampaignSchedulingService {
       organizationId,
       entityType: AuditEntityType.CAMPAIGN,
       entityId: campaignId,
-      action: 'deadline_extended',
+      action: "deadline_extended",
       actionCategory: AuditActionCategory.UPDATE,
       actionDescription: `Extended deadlines for campaign "${campaign.name}" by ${blackoutDays} days due to blackout period`,
       actorUserId: userId,
@@ -673,13 +669,11 @@ export class CampaignSchedulingService {
         organizationId,
         isActive: true,
       },
-      orderBy: { startDate: 'asc' },
+      orderBy: { startDate: "asc" },
     });
   }
 
-  // ===========================================================================
   // Blackout CRUD Operations
-  // ===========================================================================
 
   /**
    * Create a new blackout date.
@@ -690,7 +684,7 @@ export class CampaignSchedulingService {
     organizationId: string,
   ): Promise<OrgBlackoutDate> {
     if (input.startDate >= input.endDate) {
-      throw new BadRequestException('Start date must be before end date');
+      throw new BadRequestException("Start date must be before end date");
     }
 
     const blackout = await this.prisma.orgBlackoutDate.create({
@@ -709,16 +703,18 @@ export class CampaignSchedulingService {
 
     await this.auditService.log({
       organizationId,
-      entityType: 'ORGANIZATION' as AuditEntityType,
+      entityType: "ORGANIZATION" as AuditEntityType,
       entityId: organizationId,
-      action: 'blackout_created',
+      action: "blackout_created",
       actionCategory: AuditActionCategory.CREATE,
       actionDescription: `Created blackout period "${input.name}" from ${input.startDate.toISOString()} to ${input.endDate.toISOString()}`,
       actorUserId: userId,
       actorType: ActorType.USER,
     });
 
-    this.logger.log(`Created blackout ${blackout.id} for org ${organizationId}`);
+    this.logger.log(
+      `Created blackout ${blackout.id} for org ${organizationId}`,
+    );
 
     return blackout;
   }
@@ -741,20 +737,24 @@ export class CampaignSchedulingService {
     }
 
     if (input.startDate && input.endDate && input.startDate >= input.endDate) {
-      throw new BadRequestException('Start date must be before end date');
+      throw new BadRequestException("Start date must be before end date");
     }
 
     const updated = await this.prisma.orgBlackoutDate.update({
       where: { id: blackoutId },
       data: {
         ...(input.name !== undefined && { name: input.name }),
-        ...(input.description !== undefined && { description: input.description }),
+        ...(input.description !== undefined && {
+          description: input.description,
+        }),
         ...(input.startDate !== undefined && { startDate: input.startDate }),
         ...(input.endDate !== undefined && { endDate: input.endDate }),
         ...(input.affectsLocations !== undefined && {
           affectsLocations: input.affectsLocations,
         }),
-        ...(input.isRecurring !== undefined && { isRecurring: input.isRecurring }),
+        ...(input.isRecurring !== undefined && {
+          isRecurring: input.isRecurring,
+        }),
         ...(input.recurringPattern !== undefined && {
           recurringPattern: input.recurringPattern,
         }),
@@ -763,9 +763,9 @@ export class CampaignSchedulingService {
 
     await this.auditService.log({
       organizationId,
-      entityType: 'ORGANIZATION' as AuditEntityType,
+      entityType: "ORGANIZATION" as AuditEntityType,
       entityId: organizationId,
-      action: 'blackout_updated',
+      action: "blackout_updated",
       actionCategory: AuditActionCategory.UPDATE,
       actionDescription: `Updated blackout period "${updated.name}"`,
       actorUserId: userId,
@@ -798,9 +798,9 @@ export class CampaignSchedulingService {
 
     await this.auditService.log({
       organizationId,
-      entityType: 'ORGANIZATION' as AuditEntityType,
+      entityType: "ORGANIZATION" as AuditEntityType,
       entityId: organizationId,
-      action: 'blackout_deleted',
+      action: "blackout_deleted",
       actionCategory: AuditActionCategory.DELETE,
       actionDescription: `Deleted blackout period "${existing.name}"`,
       actorUserId: userId,
@@ -824,7 +824,7 @@ export class CampaignSchedulingService {
         organizationId,
         ...(options?.includeInactive ? {} : { isActive: true }),
       },
-      orderBy: { startDate: 'asc' },
+      orderBy: { startDate: "asc" },
     });
   }
 

@@ -1,17 +1,16 @@
-// =============================================================================
-// ATTACHMENTS CONTROLLER
-// =============================================================================
-//
-// REST API controller for file attachments. Supports uploading files to Cases,
-// Investigations, and Investigation Notes with secure download via signed URLs.
-//
-// ENDPOINTS:
-// - POST   /api/v1/attachments           - Upload file attachment
-// - GET    /api/v1/attachments           - List attachments (with filters)
-// - GET    /api/v1/attachments/:id       - Get single attachment
-// - GET    /api/v1/attachments/:id/download - Redirect to signed download URL
-// - DELETE /api/v1/attachments/:id       - Delete attachment
-// =============================================================================
+/**
+ * ATTACHMENTS CONTROLLER
+ *
+ * REST API controller for file attachments. Supports uploading files to Cases,
+ * Investigations, and Investigation Notes with secure download via signed URLs.
+ *
+ * ENDPOINTS:
+ * - POST   /api/v1/attachments           - Upload file attachment
+ * - GET    /api/v1/attachments           - List attachments (with filters)
+ * - GET    /api/v1/attachments/:id       - Get single attachment
+ * - GET    /api/v1/attachments/:id/download - Redirect to signed download URL
+ * - DELETE /api/v1/attachments/:id       - Delete attachment
+ */
 
 import {
   Controller,
@@ -108,9 +107,7 @@ export class AttachmentsController {
 
   constructor(private readonly attachmentsService: AttachmentsService) {}
 
-  // -------------------------------------------------------------------------
   // POST /api/v1/attachments - Upload file
-  // -------------------------------------------------------------------------
 
   /**
    * Uploads a file attachment to a parent entity.
@@ -224,9 +221,7 @@ export class AttachmentsController {
     );
   }
 
-  // -------------------------------------------------------------------------
   // GET /api/v1/attachments - List attachments
-  // -------------------------------------------------------------------------
 
   /**
    * Returns paginated list of attachments with optional filters.
@@ -250,9 +245,7 @@ export class AttachmentsController {
     return this.attachmentsService.findAll(organizationId, query);
   }
 
-  // -------------------------------------------------------------------------
   // GET /api/v1/attachments/:id - Get single attachment
-  // -------------------------------------------------------------------------
 
   /**
    * Returns a single attachment by ID with download URL.
@@ -278,9 +271,7 @@ export class AttachmentsController {
     return this.attachmentsService.findOne(id, organizationId);
   }
 
-  // -------------------------------------------------------------------------
   // GET /api/v1/attachments/:id/download - Download file
-  // -------------------------------------------------------------------------
 
   /**
    * Redirects to signed download URL for the attachment.
@@ -317,9 +308,7 @@ export class AttachmentsController {
     res.redirect(attachment.downloadUrl);
   }
 
-  // -------------------------------------------------------------------------
   // DELETE /api/v1/attachments/:id - Delete attachment
-  // -------------------------------------------------------------------------
 
   /**
    * Deletes an attachment and its file from storage.

@@ -98,16 +98,12 @@ export class AttestationResponseService {
     });
 
     if (!assignment) {
-      throw new NotFoundException(
-        `Assignment ${dto.assignmentId} not found`,
-      );
+      throw new NotFoundException(`Assignment ${dto.assignmentId} not found`);
     }
 
     // Verify assignment belongs to this employee
     if (assignment.employeeId !== employeeId) {
-      throw new ForbiddenException(
-        "This assignment does not belong to you",
-      );
+      throw new ForbiddenException("This assignment does not belong to you");
     }
 
     // Verify campaign is an attestation campaign
@@ -439,7 +435,9 @@ export class AttestationResponseService {
 
     const totalQuestions = quizConfig.questions.length;
     const score =
-      totalQuestions > 0 ? Math.round((correctCount / totalQuestions) * 100) : 0;
+      totalQuestions > 0
+        ? Math.round((correctCount / totalQuestions) * 100)
+        : 0;
     const passed = score >= quizConfig.passingScore;
 
     return {

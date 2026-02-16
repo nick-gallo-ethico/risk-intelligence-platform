@@ -1,6 +1,4 @@
-// =============================================================================
-// Activity Timeline Module Index
-// =============================================================================
+/** Activity Timeline Module Index */
 
 export * from "./activity.module";
 export * from "./activity-timeline.service";

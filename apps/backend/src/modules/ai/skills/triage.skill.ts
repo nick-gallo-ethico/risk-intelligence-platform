@@ -1,16 +1,16 @@
-import { z } from 'zod';
+import { z } from "zod";
 import {
   SkillDefinition,
   SkillScope,
   SkillContext,
   SkillResult,
-} from './skill.types';
+} from "./skill.types";
 import {
   AiTriageService,
   TriageInterpretation,
   TriagePreview,
-} from '../../disclosures/ai-triage.service';
-import { SchemaIntrospectionService } from '../schema-introspection.service';
+} from "../../disclosures/ai-triage.service";
+import { SchemaIntrospectionService } from "../schema-introspection.service";
 
 /**
  * Input schema for triage skill.
@@ -25,8 +25,8 @@ export const triageInputSchema = z.object({
       'Natural language query like "approve all under $100" or "dismiss low severity vendor matches"',
     ),
   entityType: z
-    .enum(['disclosure', 'conflict'])
-    .describe('Type of entity to triage: disclosure or conflict'),
+    .enum(["disclosure", "conflict"])
+    .describe("Type of entity to triage: disclosure or conflict"),
 });
 
 export type TriageInput = z.infer<typeof triageInputSchema>;
@@ -36,7 +36,7 @@ export type TriageInput = z.infer<typeof triageInputSchema>;
  * Returns pending confirmation with preview data.
  */
 export interface TriageOutput {
-  status: 'pending_confirmation' | 'executed' | 'cancelled';
+  status: "pending_confirmation" | "executed" | "cancelled";
   preview?: {
     /** Natural language query that was interpreted */
     query: string;
@@ -118,16 +118,16 @@ export function triageSkill(
   schemaService: SchemaIntrospectionService,
 ): SkillDefinition<TriageInput, TriageOutput> {
   return {
-    id: 'triage',
-    name: 'Bulk Triage',
+    id: "triage",
+    name: "Bulk Triage",
     description:
-      'Bulk process disclosures or conflicts using natural language queries. ' +
+      "Bulk process disclosures or conflicts using natural language queries. " +
       'Examples: "approve all under $100", "dismiss low severity vendor matches", ' +
       '"reject all pending disclosures older than 30 days". ' +
-      'Returns a preview table for confirmation before executing.',
+      "Returns a preview table for confirmation before executing.",
     scope: SkillScope.PLATFORM,
-    entityTypes: ['disclosure', 'conflict'], // Only available for these entity types
-    requiredPermissions: ['ai:skills:triage', 'disclosure:bulk:execute'],
+    entityTypes: ["disclosure", "conflict"], // Only available for these entity types
+    requiredPermissions: ["ai:skills:triage", "disclosure:bulk:execute"],
 
     inputSchema: triageInputSchema,
 
@@ -162,7 +162,7 @@ export function triageSkill(
 
         // 3. Return preview for confirmation (DO NOT EXECUTE)
         const output: TriageOutput = {
-          status: 'pending_confirmation',
+          status: "pending_confirmation",
           preview: {
             query: input.query,
             interpretation,
@@ -193,7 +193,7 @@ export function triageSkill(
         const err = error as Error;
         return {
           success: false,
-          error: err.message || 'Failed to interpret triage query',
+          error: err.message || "Failed to interpret triage query",
           metadata: {
             durationMs: Date.now() - startTime,
           },
@@ -213,7 +213,7 @@ function buildPreviewMessage(
   const { count, impact } = preview;
   const { action, entityType, confidence, warnings } = interpretation;
 
-  let message = `Found ${count} ${entityType}${count !== 1 ? 's' : ''} matching "${interpretation.originalQuery}".\n\n`;
+  let message = `Found ${count} ${entityType}${count !== 1 ? "s" : ""} matching "${interpretation.originalQuery}".\n\n`;
 
   message += `**Action:** ${formatAction(action)}\n`;
   message += `**Confidence:** ${Math.round(confidence * 100)}%\n`;
@@ -224,14 +224,16 @@ function buildPreviewMessage(
   }
 
   if (Object.keys(impact.statusBreakdown).length > 0) {
-    message += '\n**Status breakdown:**\n';
-    for (const [status, statusCount] of Object.entries(impact.statusBreakdown)) {
+    message += "\n**Status breakdown:**\n";
+    for (const [status, statusCount] of Object.entries(
+      impact.statusBreakdown,
+    )) {
       message += `- ${status}: ${statusCount}\n`;
     }
   }
 
   if (warnings.length > 0) {
-    message += '\n**Warnings:**\n';
+    message += "\n**Warnings:**\n";
     for (const warning of warnings) {
       message += `- ${warning}\n`;
     }
@@ -247,12 +249,12 @@ function buildPreviewMessage(
  */
 function formatAction(action: string): string {
   const actionMap: Record<string, string> = {
-    approve: 'Approve',
-    reject: 'Reject',
-    request_info: 'Request Additional Info',
-    dismiss: 'Dismiss',
-    escalate: 'Escalate to Case',
-    resolve: 'Resolve',
+    approve: "Approve",
+    reject: "Reject",
+    request_info: "Request Additional Info",
+    dismiss: "Dismiss",
+    escalate: "Escalate to Case",
+    resolve: "Resolve",
   };
   return actionMap[action] || action;
 }
