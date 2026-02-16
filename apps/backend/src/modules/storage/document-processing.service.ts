@@ -1,19 +1,7 @@
-// =============================================================================
-// DOCUMENT PROCESSING SERVICE - Text extraction for search indexing
-// =============================================================================
-//
-// This service handles text extraction from various document types to enable
-// full-text search indexing. Currently provides a placeholder implementation
-// with support for plain text files.
-//
-// FUTURE ENHANCEMENTS:
-// - PDF text extraction (pdf-parse)
-// - DOCX/Word extraction (mammoth)
-// - Spreadsheet extraction (xlsx)
-// - OCR for scanned documents
-// =============================================================================
-
 import { Injectable, Logger } from "@nestjs/common";
+// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+const pdfParse = require("pdf-parse");
+import * as mammoth from "mammoth";
 
 /**
  * Result of text extraction from a document.
@@ -142,38 +130,86 @@ export class DocumentProcessingService {
         };
       }
 
-      // PDF extraction (placeholder)
+      // PDF extraction using pdf-parse
       if (normalizedType === "application/pdf") {
-        this.logger.debug("PDF extraction requested - using placeholder");
-        // TODO: Implement with pdf-parse library
-        // const pdfParse = require('pdf-parse');
-        // const data = await pdfParse(content);
-        // return { text: data.text, charCount: data.text.length, success: true };
+        try {
+          const data = await pdfParse(content);
+          return {
+            text: data.text,
+            charCount: data.text.length,
+            success: true,
+          };
+        } catch (error) {
+          this.logger.error(
+            `PDF extraction failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+          );
+          return {
+            text: null,
+            charCount: 0,
+            success: false,
+            error: `PDF extraction failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+          };
+        }
+      }
+
+      // DOCX extraction using mammoth
+      if (
+        normalizedType ===
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+      ) {
+        try {
+          const result = await mammoth.extractRawText({ buffer: content });
+          return {
+            text: result.value,
+            charCount: result.value.length,
+            success: true,
+          };
+        } catch (error) {
+          this.logger.error(
+            `DOCX extraction failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+          );
+          return {
+            text: null,
+            charCount: 0,
+            success: false,
+            error: `DOCX extraction failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+          };
+        }
+      }
+
+      // Legacy .doc format - not supported
+      if (normalizedType === "application/msword") {
         return {
           text: null,
           charCount: 0,
           success: false,
-          error: "PDF extraction not yet implemented",
+          error: "Legacy .doc format not supported. Please convert to .docx.",
         };
       }
 
-      // Word/Office extraction (placeholder)
+      // Excel spreadsheets - not supported yet
       if (
-        normalizedType.includes("msword") ||
-        normalizedType.includes("officedocument")
+        normalizedType.includes("spreadsheetml") ||
+        normalizedType === "application/vnd.ms-excel"
       ) {
-        this.logger.debug(
-          "Office document extraction requested - using placeholder",
-        );
-        // TODO: Implement with mammoth for DOCX
-        // const mammoth = require('mammoth');
-        // const result = await mammoth.extractRawText({ buffer: content });
-        // return { text: result.value, charCount: result.value.length, success: true };
         return {
           text: null,
           charCount: 0,
           success: false,
-          error: "Office document extraction not yet implemented",
+          error: "Excel spreadsheet extraction not yet implemented.",
+        };
+      }
+
+      // PowerPoint presentations - not supported yet
+      if (
+        normalizedType.includes("presentationml") ||
+        normalizedType === "application/vnd.ms-powerpoint"
+      ) {
+        return {
+          text: null,
+          charCount: 0,
+          success: false,
+          error: "PowerPoint presentation extraction not yet implemented.",
         };
       }
 

@@ -44,6 +44,7 @@ import {
 } from "@nestjs/websockets";
 import { Server, Socket } from "socket.io";
 import { Logger, Injectable } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
 import { PrismaService } from "../../prisma/prisma.service";
 
@@ -139,6 +140,7 @@ export class ProjectGateway
   constructor(
     private readonly jwtService: JwtService,
     private readonly prisma: PrismaService,
+    private readonly configService: ConfigService,
   ) {}
 
   /**
@@ -525,9 +527,9 @@ export class ProjectGateway
     }
 
     try {
-      // Verify JWT token
+      // Verify JWT token using ConfigService (PROD-03)
       const payload = await this.jwtService.verifyAsync(token, {
-        secret: process.env.JWT_SECRET,
+        secret: this.configService.getOrThrow<string>("JWT_SECRET"),
       });
 
       // Extract required fields (support multiple claim formats)

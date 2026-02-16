@@ -41,6 +41,7 @@ import {
 } from "@nestjs/websockets";
 import { Server, Socket } from "socket.io";
 import { Logger } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
 import { OnEvent } from "@nestjs/event-emitter";
 import { NotificationService } from "../services/notification.service";
@@ -108,6 +109,7 @@ export class NotificationGateway
   constructor(
     private readonly notificationService: NotificationService,
     private readonly jwtService: JwtService,
+    private readonly configService: ConfigService,
   ) {}
 
   /**
@@ -453,9 +455,9 @@ export class NotificationGateway
     }
 
     try {
-      // Verify JWT token
+      // Verify JWT token using ConfigService (PROD-03)
       const payload = await this.jwtService.verifyAsync(token, {
-        secret: process.env.JWT_SECRET,
+        secret: this.configService.getOrThrow<string>("JWT_SECRET"),
       });
 
       // Extract required fields
