@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-15)
 ## Current Position
 
 Phase: 33 of 36 (Slop Cleanup & Production Readiness)
-Plan: 1 of 6 complete
+Plan: 2 of 6 complete
 Status: In progress
-Last activity: 2026-02-15 — Completed 33-01-PLAN.md (Module Registration & Production Config)
+Last activity: 2026-02-16 — Completed 33-02-PLAN.md (Document Processing & File Validation)
 
-Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 IN PROGRESS (1/6 plans).
+Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 IN PROGRESS (2/6 plans).
 
 ## Shipped Milestones
 
@@ -74,6 +74,10 @@ Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 IN PROGRESS (1/
 - 32-06: MfaGuard checks user.mfaVerified from RequestUser (JWT payload)
 - 33-01: Use ConfigService.getOrThrow for required config values (fail fast pattern)
 - 33-01: Module-level Logger for useFactory initialization logging
+- 33-02: Downgraded pdf-parse to v1.1.1 for CommonJS compatibility (v2.x is ESM-only)
+- 33-02: Dynamic ESM import pattern for file-type in CommonJS: await import('file-type')
+- 33-02: Dual file validation: extension blocklist + magic byte verification for defense in depth
+- 33-02: Text files (.txt, .csv, .json, etc.) bypass magic byte check since they have no magic bytes
 
 ### Blockers
 
@@ -81,7 +85,7 @@ None currently.
 
 ## Session Continuity
 
-Last session: 2026-02-16T00:33:40Z
-Stopped at: Completed 33-01-PLAN.md (Module Registration & Production Config)
+Last session: 2026-02-16T00:37:55Z
+Stopped at: Completed 33-02-PLAN.md (Document Processing & File Validation)
 Resume file: None
-Next action: Execute 33-02-PLAN.md (Service Architecture Cleanup)
+Next action: Execute 33-03-PLAN.md
