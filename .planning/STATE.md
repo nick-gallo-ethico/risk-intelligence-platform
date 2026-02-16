@@ -90,6 +90,7 @@ Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE, Phase
 - 33-07: Barrel re-exports maintain backward compatibility for existing imports
 - 33-07: SLOP-09 resolved - PipelineService and CasePipelineService are complementary, not duplicates
 - 33-09: SLOP-05 gap closure verified: 37 TODOs (23 AUTH-TODO, 2 STUB-TODO, 12 future enhancements)
+- 33-10: PROD-02 gap closure: Extension blocking added to attachments controller fileFilter
 - 34-01: Batch size of 100 for cursor-based pagination (memory vs round-trips balance)
 - 34-01: BullMQ addBulk() chunks in batches of 100 jobs
 - 34-01: Return { items, nextCursor } format for paginated iteration
@@ -111,7 +112,7 @@ None currently.
 
 ## Session Continuity
 
-Last session: 2026-02-16T04:00:00Z
-Stopped at: Phase 34 complete and verified
+Last session: 2026-02-16T14:15:00Z
+Stopped at: Completed 33-10-PLAN.md (PROD-02 gap closure)
 Resume file: None
-Next action: Phase 34 complete. Start Phase 35 (Code Quality & Architecture).
+Next action: Continue with remaining gap closure plans or Phase 35 (Code Quality & Architecture).
