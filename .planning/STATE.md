@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-15)
 ## Current Position
 
 Phase: 34 of 36 (Performance & Scalability)
-Plan: 2 of 5 complete (34-01, 34-02)
+Plan: 3 of 5 complete (34-01, 34-02, 34-03)
 Status: In progress
-Last activity: 2026-02-16 - Completed 34-01-PLAN.md (Unbounded Query Fixes)
+Last activity: 2026-02-16 - Completed 34-03-PLAN.md (Redis Caching for Hot Paths)
 
-Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE, Phase 34 (2/5 plans).
+Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE, Phase 34 (3/5 plans).
 
 ## Shipped Milestones
 
@@ -38,7 +38,7 @@ Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE, Phase
 
 1. Phase 32: Security & SOC 2 (CRITICAL) - 13 requirements [COMPLETE - 8/8 plans]
 2. Phase 33: Slop Cleanup + Production - 16 requirements [COMPLETE - 7/7 plans]
-3. Phase 34: Performance & Scalability - 11 requirements [IN PROGRESS - 2/5 plans]
+3. Phase 34: Performance & Scalability - 11 requirements [IN PROGRESS - 3/5 plans]
 4. Phase 35: Code Quality & Architecture - 5 requirements
 5. Phase 36: Test Coverage Expansion - 10 requirements
 6. Phase 22: Dark Mode & Theme - 7 requirements (existing plans)
@@ -96,6 +96,10 @@ Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE, Phase
 - 34-02: N+1 fix pattern: collect IDs -> batch fetch with Promise.all() -> Map for O(1) lookup
 - 34-02: Recursive CTE for hierarchical data with depth limit to prevent infinite loops
 - 34-02: Raw SQL uses snake_case column names from Prisma @@map mappings
+- 34-03: Cache key format: org:{organizationId}:{namespace}:{key} for tenant isolation
+- 34-03: Redis store via cache-manager-ioredis-yet for cache-manager v5 compatibility
+- 34-03: Fail-open cache pattern: errors logged but don't break functionality
+- 34-03: 5 minute default TTL for dashboard data
 
 ### Blockers
 
@@ -103,7 +107,7 @@ None currently.
 
 ## Session Continuity
 
-Last session: 2026-02-16T02:33:00Z
-Stopped at: Completed 34-01-PLAN.md (Unbounded Query Fixes)
+Last session: 2026-02-16T02:26:00Z
+Stopped at: Completed 34-03-PLAN.md (Redis Caching for Hot Paths)
 Resume file: None
-Next action: Continue Phase 34 with 34-03-PLAN.md
+Next action: Continue Phase 34 with 34-04-PLAN.md
