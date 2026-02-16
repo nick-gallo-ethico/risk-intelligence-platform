@@ -10,6 +10,7 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { OnEvent } from "@nestjs/event-emitter";
 import { NotificationService } from "../services/notification.service";
+import { getErrorMessage, getErrorStack } from "@common/utils";
 
 /**
  * Event emitted when a workflow step is completed.
@@ -114,8 +115,8 @@ export class WorkflowEventListener {
       });
     } catch (error) {
       this.logger.error(
-        `Failed to send workflow step completion notification: ${error.message}`,
-        error.stack,
+        `Failed to send workflow step completion notification: ${getErrorMessage(error)}`,
+        getErrorStack(error),
       );
     }
   }
@@ -156,8 +157,8 @@ export class WorkflowEventListener {
       });
     } catch (error) {
       this.logger.error(
-        `Failed to send approval needed notification: ${error.message}`,
-        error.stack,
+        `Failed to send approval needed notification: ${getErrorMessage(error)}`,
+        getErrorStack(error),
       );
     }
   }
@@ -187,8 +188,8 @@ export class WorkflowEventListener {
       });
     } catch (error) {
       this.logger.error(
-        `Failed to send approval granted notification: ${error.message}`,
-        error.stack,
+        `Failed to send approval granted notification: ${getErrorMessage(error)}`,
+        getErrorStack(error),
       );
     }
   }
@@ -230,8 +231,8 @@ export class WorkflowEventListener {
       });
     } catch (error) {
       this.logger.error(
-        `Failed to send approval rejected notification: ${error.message}`,
-        error.stack,
+        `Failed to send approval rejected notification: ${getErrorMessage(error)}`,
+        getErrorStack(error),
       );
     }
   }

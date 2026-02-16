@@ -8,6 +8,7 @@ import {
 import { ProviderRegistryService } from "../../services/provider-registry.service";
 import { AiRateLimiterService } from "../../services/rate-limiter.service";
 import { PromptService } from "../../services/prompt.service";
+import { getErrorMessage } from "@common/utils";
 
 /**
  * Input schema for category suggestion skill.
@@ -165,7 +166,7 @@ export function categorySuggestSkill(
       } catch (error) {
         return {
           success: false,
-          error: error.message || "Category suggestion failed",
+          error: getErrorMessage(error) || "Category suggestion failed",
         };
       }
     },

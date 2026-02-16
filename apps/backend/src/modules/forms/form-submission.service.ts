@@ -11,6 +11,7 @@ import { FormSchemaService } from "./form-schema.service";
 import { FormValidationService } from "./form-validation.service";
 import { FormSchema, UiSchema } from "./types/form.types";
 import { nanoid } from "nanoid";
+import { getErrorMessage, getErrorStack } from "@common/utils";
 
 /**
  * Event emitted when a form is submitted.
@@ -150,8 +151,8 @@ export class FormSubmissionService {
     } catch (error) {
       // Event emission should not fail the submission
       this.logger.error(
-        `Failed to emit form.submitted event: ${error.message}`,
-        error.stack,
+        `Failed to emit form.submitted event: ${getErrorMessage(error)}`,
+        getErrorStack(error),
       );
     }
 
@@ -335,8 +336,8 @@ export class FormSubmissionService {
       });
     } catch (error) {
       this.logger.error(
-        `Failed to emit status_changed event: ${error.message}`,
-        error.stack,
+        `Failed to emit status_changed event: ${getErrorMessage(error)}`,
+        getErrorStack(error),
       );
     }
 

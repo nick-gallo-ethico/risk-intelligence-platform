@@ -3,6 +3,7 @@ import { Logger, Inject, forwardRef } from "@nestjs/common";
 import { Job } from "bullmq";
 import { EMAIL_QUEUE_NAME } from "../jobs/queues/email.queue";
 import { RemediationNotificationService } from "./remediation-notification.service";
+import { getErrorMessage, getErrorStack } from "@common/utils";
 
 /**
  * Remediation reminder job data
@@ -94,8 +95,8 @@ export class RemediationProcessor extends WorkerHost {
       return { processed: true, type: "remediation-reminder" };
     } catch (error) {
       this.logger.error(
-        `Failed to process reminder for step ${stepId}: ${error.message}`,
-        error.stack,
+        `Failed to process reminder for step ${stepId}: ${getErrorMessage(error)}`,
+        getErrorStack(error),
       );
       throw error; // Let BullMQ handle retry
     }
@@ -121,8 +122,8 @@ export class RemediationProcessor extends WorkerHost {
       return { processed: true, type: "remediation-escalation" };
     } catch (error) {
       this.logger.error(
-        `Failed to process escalation for step ${stepId}: ${error.message}`,
-        error.stack,
+        `Failed to process escalation for step ${stepId}: ${getErrorMessage(error)}`,
+        getErrorStack(error),
       );
       throw error; // Let BullMQ handle retry
     }

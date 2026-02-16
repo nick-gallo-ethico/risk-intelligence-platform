@@ -20,6 +20,7 @@ import {
   SlaBreachedEvent,
   SlaCriticalEvent,
 } from "../../events/events/sla.events";
+import { getErrorMessage, getErrorStack } from "@common/utils";
 
 @Injectable()
 export class SlaEventListener {
@@ -63,8 +64,8 @@ export class SlaEventListener {
       });
     } catch (error) {
       this.logger.error(
-        `Failed to send SLA warning notification: ${error.message}`,
-        error.stack,
+        `Failed to send SLA warning notification: ${getErrorMessage(error)}`,
+        getErrorStack(error),
       );
     }
   }
@@ -130,8 +131,8 @@ export class SlaEventListener {
       }
     } catch (error) {
       this.logger.error(
-        `Failed to send SLA breach notification: ${error.message}`,
-        error.stack,
+        `Failed to send SLA breach notification: ${getErrorMessage(error)}`,
+        getErrorStack(error),
       );
     }
   }
@@ -196,8 +197,8 @@ export class SlaEventListener {
       });
     } catch (error) {
       this.logger.error(
-        `Failed to send SLA critical notification: ${error.message}`,
-        error.stack,
+        `Failed to send SLA critical notification: ${getErrorMessage(error)}`,
+        getErrorStack(error),
       );
     }
   }

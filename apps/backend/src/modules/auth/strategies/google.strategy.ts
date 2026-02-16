@@ -4,6 +4,7 @@ import { Strategy, Profile, VerifyCallback } from "passport-google-oauth20";
 import { ConfigService } from "@nestjs/config";
 import { SsoService } from "../sso/sso.service";
 import { SsoUserData } from "../interfaces";
+import { getErrorMessage } from "@common/utils";
 
 /**
  * Build Google OAuth 2.0 strategy options from environment configuration.
@@ -122,8 +123,13 @@ export class GoogleStrategy extends PassportStrategy(Strategy, "google") {
 
       done(null, user);
     } catch (error) {
-      this.logger.error(`Google OAuth validation error: ${error.message}`);
-      done(error, false);
+      this.logger.error(
+        `Google OAuth validation error: ${getErrorMessage(error)}`,
+      );
+      done(
+        error instanceof Error ? error : new Error(getErrorMessage(error)),
+        false,
+      );
     }
   }
 }

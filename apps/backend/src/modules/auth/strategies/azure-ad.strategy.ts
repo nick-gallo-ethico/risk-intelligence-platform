@@ -9,6 +9,7 @@ import {
 import { ConfigService } from "@nestjs/config";
 import { SsoService } from "../sso/sso.service";
 import { SsoUserData } from "../interfaces";
+import { getErrorMessage } from "@common/utils";
 
 /**
  * Build Azure AD OIDC strategy options from environment configuration.
@@ -130,8 +131,11 @@ export class AzureAdStrategy extends PassportStrategy(
 
       done(null, user);
     } catch (error) {
-      this.logger.error(`Azure AD validation error: ${error.message}`);
-      done(error, null);
+      this.logger.error(`Azure AD validation error: ${getErrorMessage(error)}`);
+      done(
+        error instanceof Error ? error : new Error(getErrorMessage(error)),
+        null,
+      );
     }
   }
 

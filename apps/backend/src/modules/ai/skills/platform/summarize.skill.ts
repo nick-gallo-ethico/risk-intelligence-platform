@@ -8,6 +8,7 @@ import {
 import { ProviderRegistryService } from "../../services/provider-registry.service";
 import { AiRateLimiterService } from "../../services/rate-limiter.service";
 import { PromptService } from "../../services/prompt.service";
+import { getErrorMessage } from "@common/utils";
 
 /**
  * Input schema for summarize skill.
@@ -241,7 +242,7 @@ export function summarizeSkill(
       } catch (error) {
         return {
           success: false,
-          error: error.message || "Summarization failed",
+          error: getErrorMessage(error) || "Summarization failed",
         };
       }
     },

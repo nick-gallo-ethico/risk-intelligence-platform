@@ -15,6 +15,7 @@ import {
   NotificationType,
 } from "../../notifications/entities/notification.types";
 import { TicketCreatedEvent } from "../entities/help.types";
+import { getErrorMessage, getErrorStack } from "@common/utils";
 
 @Injectable()
 export class TicketListener {
@@ -59,8 +60,8 @@ export class TicketListener {
     } catch (error) {
       // Log error but don't throw - notification failure shouldn't block ticket creation
       this.logger.error(
-        `Failed to send notification for ticket ${ticket.ticketNumber}: ${error.message}`,
-        error.stack,
+        `Failed to send notification for ticket ${ticket.ticketNumber}: ${getErrorMessage(error)}`,
+        getErrorStack(error),
       );
     }
   }

@@ -8,6 +8,7 @@ import {
 import { ProviderRegistryService } from "../../services/provider-registry.service";
 import { AiRateLimiterService } from "../../services/rate-limiter.service";
 import { PromptService } from "../../services/prompt.service";
+import { getErrorMessage } from "@common/utils";
 
 /**
  * Input schema for note cleanup skill.
@@ -210,7 +211,7 @@ export function noteCleanupSkill(
       } catch (error) {
         return {
           success: false,
-          error: error.message || "Note cleanup failed",
+          error: getErrorMessage(error) || "Note cleanup failed",
         };
       }
     },

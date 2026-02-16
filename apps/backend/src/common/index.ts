@@ -6,3 +6,4 @@ export * from "./middleware/tenant.middleware";
 export * from "./services";
 export * from "./dataloader";
 export * from "./interceptors";
+export * from "./utils";

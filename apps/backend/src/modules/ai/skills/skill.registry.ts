@@ -11,6 +11,7 @@ import { AiRateLimiterService } from "../services/rate-limiter.service";
 import { PromptService } from "../services/prompt.service";
 import { ContextLoaderService } from "../services/context-loader.service";
 import { AITool } from "../interfaces/ai-provider.interface";
+import { getErrorMessage } from "@common/utils";
 
 // Import platform skills
 import { noteCleanupSkill } from "./platform/note-cleanup.skill";
@@ -78,40 +79,41 @@ export class SkillRegistry implements OnModuleInit {
 
   onModuleInit() {
     // Register platform skills
+    // Type assertions needed because SkillDefinition<T, U> has contravariant input types
     this.registerSkill(
       noteCleanupSkill(
         this.providerRegistry,
         this.rateLimiter,
         this.promptService,
-      ),
+      ) as SkillDefinition,
     );
     this.registerSkill(
       summarizeSkill(
         this.providerRegistry,
         this.rateLimiter,
         this.promptService,
-      ),
+      ) as SkillDefinition,
     );
     this.registerSkill(
       categorySuggestSkill(
         this.providerRegistry,
         this.rateLimiter,
         this.promptService,
-      ),
+      ) as SkillDefinition,
     );
     this.registerSkill(
       riskScoreSkill(
         this.providerRegistry,
         this.rateLimiter,
         this.promptService,
-      ),
+      ) as SkillDefinition,
     );
     this.registerSkill(
       translateSkill(
         this.providerRegistry,
         this.rateLimiter,
         this.promptService,
-      ),
+      ) as SkillDefinition,
     );
 
     this.logger.log(`Registered ${this.skills.size} skills`);
@@ -233,13 +235,15 @@ export class SkillRegistry implements OnModuleInit {
 
       return result as SkillResult<T>;
     } catch (error) {
-      if (error.name === "ZodError") {
-        return { success: false, error: `Invalid input: ${error.message}` };
+      const err = error as { name?: string };
+      const errorMessage = getErrorMessage(error);
+      if (err.name === "ZodError") {
+        return { success: false, error: `Invalid input: ${errorMessage}` };
       }
-      this.logger.error(`Skill ${skillId} failed:`, error);
+      this.logger.error(`Skill ${skillId} failed: ${errorMessage}`);
       return {
         success: false,
-        error: error.message || "Skill execution failed",
+        error: errorMessage || "Skill execution failed",
       };
     }
   }

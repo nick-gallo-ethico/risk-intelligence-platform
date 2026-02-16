@@ -188,7 +188,7 @@ export class QueryExecutorService {
     }));
 
     // Filter records to only include allowed fields
-    const rows = records.map((record: Record<string, unknown>) => {
+    const rows = (records as Array<Record<string, unknown>>).map((record) => {
       const row: Record<string, unknown> = {};
       for (const field of fields) {
         row[field] = record[field];
@@ -239,12 +239,12 @@ export class QueryExecutorService {
       series: [
         {
           name: this.formatFieldLabel(groupField),
-          data: results.map(
-            (r: Record<string, unknown> & { _count: number }) => ({
-              label: String(r[groupField] || "Unknown"),
-              value: r._count,
-            }),
-          ),
+          data: (
+            results as Array<Record<string, unknown> & { _count: number }>
+          ).map((r) => ({
+            label: String(r[groupField] || "Unknown"),
+            value: r._count,
+          })),
         },
       ],
     };

@@ -11,6 +11,7 @@ import { Injectable, Logger } from "@nestjs/common";
 import { OnEvent } from "@nestjs/event-emitter";
 import { NotificationService } from "../services/notification.service";
 import { CaseAssignedEvent, CaseStatusChangedEvent } from "../../events/events";
+import { getErrorMessage, getErrorStack } from "@common/utils";
 
 @Injectable()
 export class CaseEventListener {
@@ -51,8 +52,8 @@ export class CaseEventListener {
       });
     } catch (error) {
       this.logger.error(
-        `Failed to send case assignment notification: ${error.message}`,
-        error.stack,
+        `Failed to send case assignment notification: ${getErrorMessage(error)}`,
+        getErrorStack(error),
       );
     }
   }
@@ -83,8 +84,8 @@ export class CaseEventListener {
       });
     } catch (error) {
       this.logger.error(
-        `Failed to queue case status change notification: ${error.message}`,
-        error.stack,
+        `Failed to queue case status change notification: ${getErrorMessage(error)}`,
+        getErrorStack(error),
       );
     }
   }

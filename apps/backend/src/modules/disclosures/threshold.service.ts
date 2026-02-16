@@ -10,6 +10,7 @@ import {
 } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
 import { AuditService } from "../audit/audit.service";
+import { getErrorMessage, getErrorStack } from "@common/utils";
 import {
   CreateThresholdRuleDto,
   UpdateThresholdRuleDto,
@@ -320,8 +321,8 @@ export class ThresholdService {
         }
       } catch (error) {
         this.logger.error(
-          `Error evaluating rule ${rule.id} "${rule.name}": ${error.message}`,
-          error.stack,
+          `Error evaluating rule ${rule.id} "${rule.name}": ${getErrorMessage(error)}`,
+          getErrorStack(error),
         );
         // Continue with other rules even if one fails
       }

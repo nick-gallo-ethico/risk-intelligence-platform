@@ -16,6 +16,7 @@ import {
   getFirstNameFromProfile,
   getLastNameFromProfile,
 } from "../../../common/types/saml.types";
+import { getErrorMessage } from "@common/utils";
 
 /**
  * SAML 2.0 Strategy with multi-tenant support.
@@ -78,8 +79,13 @@ export class SamlStrategy extends PassportStrategy(Strategy, "saml") {
             disableRequestedAuthnContext: true, // Better IdP compatibility
           });
         } catch (error) {
-          this.logger.error(`SAML config error for tenant: ${error.message}`);
-          done(error, null);
+          this.logger.error(
+            `SAML config error for tenant: ${getErrorMessage(error)}`,
+          );
+          done(
+            error instanceof Error ? error : new Error(getErrorMessage(error)),
+            null,
+          );
         }
       },
     });
@@ -130,8 +136,12 @@ export class SamlStrategy extends PassportStrategy(Strategy, "saml") {
 
       done(null, user);
     } catch (error) {
-      this.logger.error(`SAML validation error: ${error.message}`);
-      done(error, undefined, undefined);
+      this.logger.error(`SAML validation error: ${getErrorMessage(error)}`);
+      done(
+        error instanceof Error ? error : new Error(getErrorMessage(error)),
+        undefined,
+        undefined,
+      );
     }
   }
 

@@ -38,9 +38,14 @@ export class ActionCatalog implements OnModuleInit {
 
   onModuleInit() {
     // Register built-in actions with Prisma dependency
-    this.registerAction(createAddNoteAction(this.prisma));
-    this.registerAction(createAddCaseNoteAction(this.prisma));
-    this.registerAction(createChangeStatusAction(this.prisma));
+    // Type assertions needed because ActionDefinition<T> has contravariant input types
+    this.registerAction(createAddNoteAction(this.prisma) as ActionDefinition);
+    this.registerAction(
+      createAddCaseNoteAction(this.prisma) as ActionDefinition,
+    );
+    this.registerAction(
+      createChangeStatusAction(this.prisma) as ActionDefinition,
+    );
 
     this.logger.log(
       `ActionCatalog initialized with ${this.actions.size} actions`,

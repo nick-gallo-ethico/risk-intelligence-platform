@@ -9,6 +9,7 @@ import { ProviderRegistryService } from "../../services/provider-registry.servic
 import { AiRateLimiterService } from "../../services/rate-limiter.service";
 import { PromptService } from "../../services/prompt.service";
 import { AIProvider } from "../../interfaces/ai-provider.interface";
+import { getErrorMessage } from "@common/utils";
 
 /**
  * Input schema for translation skill.
@@ -198,7 +199,7 @@ export function translateSkill(
       } catch (error) {
         return {
           success: false,
-          error: error.message || "Translation failed",
+          error: getErrorMessage(error) || "Translation failed",
         };
       }
     },

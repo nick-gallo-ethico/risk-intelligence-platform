@@ -8,6 +8,7 @@ import {
   ValidationError,
   ConditionalRule,
 } from "./types/form.types";
+import { getErrorMessage, getErrorStack } from "@common/utils";
 
 /**
  * FormValidationService provides JSON Schema validation using Ajv.
@@ -100,13 +101,17 @@ export class FormValidationService {
 
       return { valid: false, errors };
     } catch (error) {
-      this.logger.error(`Validation error: ${error.message}`, error.stack);
+      const errorMessage = getErrorMessage(error);
+      this.logger.error(
+        `Validation error: ${errorMessage}`,
+        getErrorStack(error),
+      );
       return {
         valid: false,
         errors: [
           {
             field: "schema",
-            message: "Schema validation failed: " + error.message,
+            message: "Schema validation failed: " + errorMessage,
             keyword: "compile",
           },
         ],
@@ -123,13 +128,14 @@ export class FormValidationService {
       this.ajv.compile(schema);
       return { valid: true, errors: [] };
     } catch (error) {
-      this.logger.warn(`Invalid schema: ${error.message}`);
+      const errorMessage = getErrorMessage(error);
+      this.logger.warn(`Invalid schema: ${errorMessage}`);
       return {
         valid: false,
         errors: [
           {
             field: "schema",
-            message: error.message,
+            message: errorMessage,
             keyword: "schema",
           },
         ],

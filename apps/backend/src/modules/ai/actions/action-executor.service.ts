@@ -14,6 +14,7 @@ import {
   ActionCategory,
 } from "./action.types";
 import { Prisma } from "@prisma/client";
+import { getErrorMessage } from "@common/utils";
 
 /**
  * Result from executing an action.
@@ -223,20 +224,21 @@ export class ActionExecutorService {
         };
       }
     } catch (error) {
+      const errorMessage = getErrorMessage(error);
       await this.prisma.aiAction.update({
         where: { id: aiAction.id },
         data: {
           status: "FAILED",
-          error: error.message,
+          error: errorMessage,
         },
       });
 
-      this.logger.error(`Action ${actionId} failed:`, error);
+      this.logger.error(`Action ${actionId} failed: ${errorMessage}`);
 
       return {
         success: false,
         actionId: aiAction.id,
-        error: error.message,
+        error: errorMessage,
         undoAvailable: false,
       };
     }

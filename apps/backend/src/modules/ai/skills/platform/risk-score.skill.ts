@@ -8,6 +8,7 @@ import {
 import { ProviderRegistryService } from "../../services/provider-registry.service";
 import { AiRateLimiterService } from "../../services/rate-limiter.service";
 import { PromptService } from "../../services/prompt.service";
+import { getErrorMessage } from "@common/utils";
 
 /**
  * Input schema for risk scoring skill.
@@ -191,7 +192,7 @@ export function riskScoreSkill(
       } catch (error) {
         return {
           success: false,
-          error: error.message || "Risk assessment failed",
+          error: getErrorMessage(error) || "Risk assessment failed",
         };
       }
     },
