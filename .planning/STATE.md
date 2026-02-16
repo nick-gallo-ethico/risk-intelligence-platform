@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-15)
 ## Current Position
 
 Phase: 36 of 36 (Test Coverage Expansion)
-Plan: 4 of 13 complete (36-01, 36-02, 36-03, 36-04)
+Plan: 5 of 13 complete (36-01, 36-02, 36-03, 36-04, 36-12)
 Status: Phase 36 In Progress
-Last activity: 2026-02-16 - Completed 36-04 (Tenant Isolation E2E Tests)
+Last activity: 2026-02-16 - Completed 36-12 (Forms and Workflow Builder Frontend Tests)
 
-Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10 plans), Phase 34 COMPLETE (5/5 plans), Phase 35 COMPLETE (6/6 plans), Phase 36 started (4/13 plans).
+Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10 plans), Phase 34 COMPLETE (5/5 plans), Phase 35 COMPLETE (6/6 plans), Phase 36 started (5/13 plans).
 
 ## Shipped Milestones
 
@@ -138,6 +138,10 @@ Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10
 - 36-02: ConfigService.get() mock returns defaultValue when provided for unconfigured strategy checks
 - 36-04: All cross-tenant access returns 404 (not 403) to prevent enumeration attacks
 - 36-04: Database state verification after cross-tenant mutation attempts using RLS bypass
+- 36-12: Mock @dnd-kit with proper DndContext, useDraggable, useDroppable patterns
+- 36-12: Mock @xyflow/react with forwardRef ReactFlow and useNodesState/useEdgesState hooks
+- 36-12: Mock @radix-ui/react-collapsible with Root, CollapsibleContent, CollapsibleTrigger exports
+- 36-12: QueryClientProvider wrapper required for WorkflowBuilder tests (uses mutations)
 
 ### Blockers
 
@@ -145,7 +149,7 @@ None currently.
 
 ## Session Continuity
 
-Last session: 2026-02-16T20:38:00Z
-Stopped at: Completed 36-04-PLAN.md (Tenant Isolation E2E Tests)
+Last session: 2026-02-16T21:56:00Z
+Stopped at: Completed 36-12-PLAN.md (Forms and Workflow Builder Frontend Tests)
 Resume file: None
-Next action: Continue Phase 36 (remaining 9 plans)
+Next action: Continue Phase 36 (remaining 8 plans)
