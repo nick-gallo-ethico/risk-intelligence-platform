@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-02-15)
 ## Current Position
 
 Phase: 34 of 36 (Performance & Scalability)
-Plan: 2 of 5 complete
+Plan: 2 of 5 complete (34-01, 34-02)
 Status: In progress
-Last activity: 2026-02-16 - Completed 34-02-PLAN.md (Fix N+1 Query Patterns in Persons Service)
+Last activity: 2026-02-16 - Completed 34-01-PLAN.md (Unbounded Query Fixes)
 
 Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE, Phase 34 (2/5 plans).
 
@@ -89,6 +89,10 @@ Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE, Phase
 - 33-07: DTO splitting: group by concern (field metadata, filters, queries, responses)
 - 33-07: Barrel re-exports maintain backward compatibility for existing imports
 - 33-07: SLOP-09 resolved - PipelineService and CasePipelineService are complementary, not duplicates
+- 34-01: Batch size of 100 for cursor-based pagination (memory vs round-trips balance)
+- 34-01: BullMQ addBulk() chunks in batches of 100 jobs
+- 34-01: Return { items, nextCursor } format for paginated iteration
+- 34-01: Raw SQL for completion rate (Prisma aggregate() doesn't support division)
 - 34-02: N+1 fix pattern: collect IDs -> batch fetch with Promise.all() -> Map for O(1) lookup
 - 34-02: Recursive CTE for hierarchical data with depth limit to prevent infinite loops
 - 34-02: Raw SQL uses snake_case column names from Prisma @@map mappings
@@ -99,7 +103,7 @@ None currently.
 
 ## Session Continuity
 
-Last session: 2026-02-16T02:24:58Z
-Stopped at: Completed 34-02-PLAN.md (Fix N+1 Query Patterns in Persons Service)
+Last session: 2026-02-16T02:33:00Z
+Stopped at: Completed 34-01-PLAN.md (Unbounded Query Fixes)
 Resume file: None
 Next action: Continue Phase 34 with 34-03-PLAN.md
