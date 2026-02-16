@@ -13,10 +13,9 @@ import { AudienceQueryService } from "./services/audience-query.service";
 import { AudienceDescriptionService } from "./services/audience-description.service";
 import { TargetingAttributesService } from "./services/targeting-attributes.service";
 import { SegmentConverterService } from "./services/segment-converter.service";
-import {
-  CampaignSchedulingService,
-  CAMPAIGN_QUEUE_NAME,
-} from "./campaign-scheduling.service";
+import { WaveSchedulerService, CAMPAIGN_QUEUE_NAME } from "./services/wave-scheduler.service";
+import { BlackoutManagerService } from "./services/blackout-manager.service";
+import { CampaignSchedulingService } from "./campaign-scheduling.service";
 import { CampaignSchedulingProcessor } from "./campaign-scheduling.processor";
 import { CampaignReminderService } from "./campaign-reminder.service";
 import { CampaignReminderProcessor } from "./campaign-reminder.processor";
@@ -80,6 +79,9 @@ import { AttestationController } from "./attestation/attestation.controller";
     AudienceDescriptionService,
     TargetingAttributesService,
     SegmentConverterService,
+    // Scheduling services (35-04)
+    WaveSchedulerService,
+    BlackoutManagerService,
     CampaignSchedulingService,
     CampaignSchedulingProcessor,
     CampaignReminderService,
@@ -95,6 +97,9 @@ import { AttestationController } from "./attestation/attestation.controller";
     SegmentQueryBuilder,
     CampaignAssignmentService,
     CampaignTargetingService,
+    // Scheduling services (35-04)
+    WaveSchedulerService,
+    BlackoutManagerService,
     CampaignSchedulingService,
     CampaignReminderService,
     CampaignTranslationService,
