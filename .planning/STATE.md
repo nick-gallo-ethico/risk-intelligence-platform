@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-02-15)
 
 ## Current Position
 
-Phase: 34 of 36 (Performance & Scalability)
-Plan: 5 of 5 complete
-Status: Phase 34 COMPLETE, Phase 33 COMPLETE (all gaps closed, verified)
-Last activity: 2026-02-16 - Completed Phase 33 gap closure (plans 08-10) and re-verification (16/16 passed)
+Phase: 35 of 36 (Code Quality & Architecture)
+Plan: 1 of ? in progress
+Status: Phase 35 started, Phase 34 COMPLETE, Phase 33 COMPLETE
+Last activity: 2026-02-16 - Completed 35-01 (Level 0 service splits)
 
-Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10 plans, verified), Phase 34 COMPLETE (5/5 plans).
+Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10 plans), Phase 34 COMPLETE (5/5 plans), Phase 35 in progress.
 
 ## Shipped Milestones
 
@@ -39,7 +39,7 @@ Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10
 1. Phase 32: Security & SOC 2 (CRITICAL) - 13 requirements [COMPLETE - 8/8 plans]
 2. Phase 33: Slop Cleanup + Production - 16 requirements [COMPLETE - 10/10 plans, verified]
 3. Phase 34: Performance & Scalability - 11 requirements [COMPLETE - 5/5 plans]
-4. Phase 35: Code Quality & Architecture - 5 requirements
+4. Phase 35: Code Quality & Architecture - 5 requirements [IN PROGRESS - 1/? plans]
 5. Phase 36: Test Coverage Expansion - 10 requirements
 6. Phase 22: Dark Mode & Theme - 7 requirements (existing plans)
 7. Phase 23: Help & Support System - 5 requirements (existing plans)
@@ -106,6 +106,9 @@ Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10
 - 34-04: connection_limit=50, pool_timeout=30, connect_timeout=10 for Prisma pool
 - 34-04: LRU cache max=1000, ttl=30min for agent instances with updateAgeOnGet
 - 34-04: getCacheStats() method for cache monitoring
+- 35-01: Thin Coordinator pattern - original service delegates to focused sub-services
+- 35-01: Type re-exports from original file for backward compatibility
+- 35-01: Services directory with index.ts barrel for sub-services
 
 ### Blockers
 
@@ -113,7 +116,7 @@ None currently.
 
 ## Session Continuity
 
-Last session: 2026-02-16T16:00:00Z
-Stopped at: Phase 33 fully complete (gap closure plans 08-10 executed, re-verification passed 16/16)
+Last session: 2026-02-16T15:58:00Z
+Stopped at: Completed 35-01-PLAN.md (Level 0 service splits)
 Resume file: None
-Next action: Phase 35 (Code Quality & Architecture) — plan or discuss
+Next action: Continue Phase 35 with remaining plans
