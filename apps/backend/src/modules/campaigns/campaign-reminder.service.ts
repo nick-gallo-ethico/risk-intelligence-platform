@@ -130,14 +130,112 @@ export class CampaignReminderService {
   // Reminder Processing
 
   /**
-   * Finds all assignments needing reminders today.
+   * Processes campaign reminders in batches using cursor-based pagination.
+   * Handles 100K+ assignments without memory exhaustion.
+   *
+   * @param organizationId - Optional org filter (processes all orgs if not provided)
+   * @returns Total number of assignments processed
+   */
+  async processRemindersInBatches(organizationId?: string): Promise<number> {
+    const batchSize = 100;
+    let cursor: string | undefined;
+    let totalProcessed = 0;
+    let totalRemindersQueued = 0;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const baseWhere: Prisma.CampaignAssignmentWhereInput = {
+      status: {
+        in: [
+          AssignmentStatus.PENDING,
+          AssignmentStatus.NOTIFIED,
+          AssignmentStatus.IN_PROGRESS,
+        ],
+      },
+      campaign: {
+        status: CampaignStatus.ACTIVE,
+      },
+    };
+
+    if (organizationId) {
+      baseWhere.organizationId = organizationId;
+    }
+
+    while (true) {
+      const assignments = await this.prisma.campaignAssignment.findMany({
+        where: baseWhere,
+        take: batchSize,
+        skip: cursor ? 1 : 0,
+        cursor: cursor ? { id: cursor } : undefined,
+        orderBy: { id: "asc" },
+        select: {
+          id: true,
+          campaignId: true,
+          employeeId: true,
+          reminderCount: true,
+          campaign: {
+            select: {
+              id: true,
+              name: true,
+              dueDate: true,
+              reminderConfig: true,
+            },
+          },
+          employee: {
+            select: {
+              id: true,
+              managerId: true,
+              manager: {
+                select: {
+                  id: true,
+                  email: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      if (assignments.length === 0) break;
+
+      // Filter assignments to find those needing reminders today
+      const pendingReminders = this.filterAssignmentsNeedingReminders(
+        assignments,
+        today,
+      );
+
+      if (pendingReminders.length > 0) {
+        await this.queueRemindersBulk(pendingReminders);
+        totalRemindersQueued += pendingReminders.length;
+      }
+
+      totalProcessed += assignments.length;
+      cursor = assignments[assignments.length - 1].id;
+    }
+
+    this.logger.log(
+      `Batch processing complete: processed ${totalProcessed} assignments, queued ${totalRemindersQueued} reminders`,
+    );
+
+    return totalProcessed;
+  }
+
+  /**
+   * Finds assignments needing reminders with optional pagination.
    * Called by the scheduler processor.
+   *
+   * @param organizationId - Optional org filter
+   * @param options - Optional pagination parameters (limit, cursor)
+   * @returns Pending reminders to be queued
    */
   async findAssignmentsNeedingReminders(
     organizationId?: string,
+    options: { limit?: number; cursor?: string } = {},
   ): Promise<PendingReminder[]> {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+    const limit = options.limit ?? 100;
 
     const where: Prisma.CampaignAssignmentWhereInput = {
       status: {
@@ -158,6 +256,10 @@ export class CampaignReminderService {
 
     const assignments = await this.prisma.campaignAssignment.findMany({
       where,
+      take: limit,
+      skip: options.cursor ? 1 : 0,
+      cursor: options.cursor ? { id: options.cursor } : undefined,
+      orderBy: { id: "asc" },
       select: {
         id: true,
         campaignId: true,
@@ -186,6 +288,33 @@ export class CampaignReminderService {
       },
     });
 
+    return this.filterAssignmentsNeedingReminders(assignments, today);
+  }
+
+  /**
+   * Filters assignments to find those needing reminders for the given date.
+   * Pure function that can be used by both batch and single-call processing.
+   */
+  private filterAssignmentsNeedingReminders(
+    assignments: Array<{
+      id: string;
+      campaignId: string;
+      employeeId: string;
+      reminderCount: number;
+      campaign: {
+        id: string;
+        name: string;
+        dueDate: Date | null;
+        reminderConfig: unknown;
+      };
+      employee: {
+        id: string;
+        managerId: string | null;
+        manager: { id: string; email: string } | null;
+      };
+    }>,
+    today: Date,
+  ): PendingReminder[] {
     const pendingReminders: PendingReminder[] = [];
 
     for (const assignment of assignments) {
@@ -231,20 +360,44 @@ export class CampaignReminderService {
   }
 
   /**
-   * Queues reminders for processing.
+   * Queues reminders for processing using BullMQ bulk operations.
+   * Chunks reminders into batches of 100 for efficient queue insertion.
+   *
+   * @param reminders - Array of pending reminders to queue
    */
-  async queueReminders(reminders: PendingReminder[]): Promise<void> {
-    for (const reminder of reminders) {
-      await this.campaignQueue.add("send-reminder", reminder, {
-        attempts: 3,
-        backoff: {
-          type: "exponential",
-          delay: 5000,
+  async queueRemindersBulk(reminders: PendingReminder[]): Promise<void> {
+    const chunkSize = 100;
+    let batchCount = 0;
+
+    for (let i = 0; i < reminders.length; i += chunkSize) {
+      const chunk = reminders.slice(i, i + chunkSize);
+      const jobs = chunk.map((reminder) => ({
+        name: "send-reminder",
+        data: reminder,
+        opts: {
+          attempts: 3,
+          backoff: {
+            type: "exponential" as const,
+            delay: 5000,
+          },
         },
-      });
+      }));
+
+      await this.campaignQueue.addBulk(jobs);
+      batchCount++;
     }
 
-    this.logger.log(`Queued ${reminders.length} reminders for processing`);
+    this.logger.log(
+      `Queued ${reminders.length} reminders in ${batchCount} batches`,
+    );
+  }
+
+  /**
+   * Queues reminders for processing (legacy method for backward compatibility).
+   * @deprecated Use queueRemindersBulk for better performance
+   */
+  async queueReminders(reminders: PendingReminder[]): Promise<void> {
+    await this.queueRemindersBulk(reminders);
   }
 
   /**
@@ -432,20 +585,33 @@ export class CampaignReminderService {
   // Query Methods
 
   /**
-   * Gets repeat non-responders for reporting.
+   * Gets repeat non-responders for reporting with pagination.
+   *
+   * @param organizationId - Organization to query
+   * @param options - Optional pagination parameters
+   * @returns Paginated list of repeat non-responders
    */
   async getRepeatNonResponders(
     organizationId: string,
-  ): Promise<ComplianceProfileStats[]> {
+    options: { limit?: number; cursor?: string } = {},
+  ): Promise<{
+    profiles: ComplianceProfileStats[];
+    nextCursor: string | null;
+  }> {
+    const limit = options.limit ?? 100;
+
     const profiles = await this.prisma.employeeComplianceProfile.findMany({
       where: {
         organizationId,
         isRepeatNonResponder: true,
       },
+      take: limit,
+      skip: options.cursor ? 1 : 0,
+      cursor: options.cursor ? { employeeId: options.cursor } : undefined,
       orderBy: { campaignsMissedDeadline: "desc" },
     });
 
-    return profiles.map((p) => ({
+    const mappedProfiles = profiles.map((p) => ({
       employeeId: p.employeeId,
       organizationId: p.organizationId,
       campaignsAssigned: p.campaignsAssigned,
@@ -455,10 +621,19 @@ export class CampaignReminderService {
       isRepeatNonResponder: p.isRepeatNonResponder,
       lastCampaignCompletedAt: p.lastCampaignCompletedAt,
     }));
+
+    return {
+      profiles: mappedProfiles,
+      nextCursor:
+        profiles.length === limit
+          ? profiles[profiles.length - 1].employeeId
+          : null,
+    };
   }
 
   /**
-   * Gets compliance statistics summary.
+   * Gets compliance statistics summary using database aggregation.
+   * Uses database-level aggregation to avoid loading all profiles into memory.
    */
   async getComplianceStatistics(organizationId: string): Promise<{
     totalEmployees: number;
@@ -466,37 +641,35 @@ export class CampaignReminderService {
     averageResponseDays: number;
     averageCompletionRate: number;
   }> {
-    const profiles = await this.prisma.employeeComplianceProfile.findMany({
-      where: { organizationId },
-    });
-
-    const totalEmployees = profiles.length;
-    const repeatNonResponders = profiles.filter(
-      (p) => p.isRepeatNonResponder,
-    ).length;
-
-    const totalResponseDays = profiles.reduce(
-      (sum, p) => sum + (p.averageResponseDays ?? 0),
-      0,
-    );
-    const averageResponseDays =
-      totalEmployees > 0 ? totalResponseDays / totalEmployees : 0;
-
-    const totalCompletionRate = profiles.reduce((sum, p) => {
-      const rate =
-        p.campaignsAssigned > 0
-          ? p.campaignsCompleted / p.campaignsAssigned
-          : 0;
-      return sum + rate;
-    }, 0);
-    const averageCompletionRate =
-      totalEmployees > 0 ? totalCompletionRate / totalEmployees : 0;
+    const [aggregates, repeatNonResponderCount, completionRateResult] =
+      await Promise.all([
+        // Database-level aggregation for count and average response days
+        this.prisma.employeeComplianceProfile.aggregate({
+          where: { organizationId },
+          _count: { _all: true },
+          _avg: { averageResponseDays: true },
+        }),
+        // Separate count for filtered data (repeat non-responders)
+        this.prisma.employeeComplianceProfile.count({
+          where: { organizationId, isRepeatNonResponder: true },
+        }),
+        // Use raw SQL for completion rate calculation (division not supported in aggregate)
+        this.prisma.$queryRaw<[{ rate: number | null }]>`
+          SELECT AVG(
+            CASE WHEN "campaignsAssigned" > 0
+            THEN "campaignsCompleted"::float / "campaignsAssigned"
+            ELSE 0 END
+          ) as rate
+          FROM "EmployeeComplianceProfile"
+          WHERE "organizationId" = ${organizationId}
+        `,
+      ]);
 
     return {
-      totalEmployees,
-      repeatNonResponders,
-      averageResponseDays,
-      averageCompletionRate,
+      totalEmployees: aggregates._count._all,
+      repeatNonResponders: repeatNonResponderCount,
+      averageResponseDays: aggregates._avg.averageResponseDays ?? 0,
+      averageCompletionRate: completionRateResult[0]?.rate ?? 0,
     };
   }
 }
