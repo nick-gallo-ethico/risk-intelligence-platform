@@ -20,6 +20,8 @@ import { MigrationExecutorService } from "./services/migration-executor.service"
 import { MigrationTemplateService } from "./services/migration-template.service";
 import { FieldMatcherService } from "./services/field-matcher.service";
 import { TransformApplierService } from "./services/transform-applier.service";
+import { FormatDetectorService } from "./services/format-detector.service";
+import { MappingGeneratorService } from "./services/mapping-generator.service";
 
 /**
  * MigrationModule provides data import capabilities for competitor system migrations.
@@ -62,8 +64,12 @@ import { TransformApplierService } from "./services/transform-applier.service";
     MigrationValidatorService,
     MigrationExecutorService,
     MigrationTemplateService,
+    // Level 0 sub-services (from Plan 01)
     FieldMatcherService,
     TransformApplierService,
+    // Level 1 sub-services (this plan)
+    FormatDetectorService,
+    MappingGeneratorService,
     // Connectors
     NavexConnector,
     EqsConnector,

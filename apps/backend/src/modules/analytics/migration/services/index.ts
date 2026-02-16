@@ -12,3 +12,8 @@ export {
   TransformApplierService,
   TemplateSummary,
 } from "./transform-applier.service";
+export {
+  FormatDetectorService,
+  SourceTypeIndicators,
+} from "./format-detector.service";
+export { MappingGeneratorService } from "./mapping-generator.service";
