@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-15)
 ## Current Position
 
 Phase: 33 of 36 (Slop Cleanup & Production Readiness)
-Plan: 2 of 6 complete
+Plan: 3 of 6 complete
 Status: In progress
-Last activity: 2026-02-16 — Completed 33-02-PLAN.md (Document Processing & File Validation)
+Last activity: 2026-02-16 — Completed 33-03-PLAN.md (Stub Implementations)
 
-Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 IN PROGRESS (2/6 plans).
+Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 IN PROGRESS (3/6 plans).
 
 ## Shipped Milestones
 
@@ -78,6 +78,11 @@ Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 IN PROGRESS (2/
 - 33-02: Dynamic ESM import pattern for file-type in CommonJS: await import('file-type')
 - 33-02: Dual file validation: extension blocklist + magic byte verification for defense in depth
 - 33-02: Text files (.txt, .csv, .json, etc.) bypass magic byte check since they have no magic bytes
+- 33-03: Inject NotificationService into EscalationProcessor for real notifications
+- 33-03: Return null for support ticket count when unavailable (vs hardcoded 0)
+- 33-03: Neutral score (75) for null ticket count in health calculation
+- 33-03: Throw NotImplementedException for uninitialized AI actions (factory pattern)
+- 33-03: Throw BadRequestException for PDF in flat file exports (use Board Report instead)
 
 ### Blockers
 
@@ -85,7 +90,7 @@ None currently.
 
 ## Session Continuity
 
-Last session: 2026-02-16T00:37:55Z
-Stopped at: Completed 33-02-PLAN.md (Document Processing & File Validation)
+Last session: 2026-02-16T01:34:00Z
+Stopped at: Completed 33-03-PLAN.md (Stub Implementations)
 Resume file: None
-Next action: Execute 33-03-PLAN.md
+Next action: Execute 33-04-PLAN.md
