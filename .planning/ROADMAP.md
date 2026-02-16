@@ -70,7 +70,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 32: Security & SOC 2 Fixes** - Auth bypass fixes, JWT algorithm pinning, WebSocket auth, MFA persistence (v1.2)
 - [x] **Phase 33: Slop Cleanup & Production Readiness** - Orphaned modules, dead code, MIME validation, placeholder removal (v1.2)
 - [x] **Phase 34: Performance & Scalability** - Unbounded queries, Redis caching, connection pooling, N+1 fixes (v1.2)
-- [ ] **Phase 35: Code Quality & Architecture** - Fat service splits, any type replacement, strict mode, null safety (v1.2)
+- [x] **Phase 35: Code Quality & Architecture** - Fat service splits, any type replacement, strict mode, null safety (v1.2)
 - [ ] **Phase 36: Test Coverage Expansion** - Auth guards/strategies, impersonation, E2E isolation, 60%+ backend coverage (v1.2)
 
 ## Phase Details
@@ -1103,12 +1103,12 @@ Plans:
 
 Plans:
 
-- [ ] 35-01-PLAN.md (Wave 1) — Split Level 0 services (schema-introspection, mapping-suggestion, query-to-prisma)
-- [ ] 35-02-PLAN.md (Wave 2) — Split Level 1 services (ai-query, migration-parser)
-- [ ] 35-03-PLAN.md (Wave 2) — Split Level 2 standalone services (ai-triage, user-table, project-template, context-loader)
-- [ ] 35-04-PLAN.md (Wave 3) — Split final Level 2 services (policy-case-association, notification, campaign-scheduling)
-- [ ] 35-05-PLAN.md (Wave 3) — Replace any types, create type definitions, fix forms.controller.ts
-- [ ] 35-06-PLAN.md (Wave 4) — Enable strict mode, fix non-null assertions, verification
+- [x] 35-01-PLAN.md (Wave 1) — Split Level 0 services (schema-introspection, mapping-suggestion, query-to-prisma)
+- [x] 35-02-PLAN.md (Wave 2) — Split Level 1 services (ai-query, migration-parser)
+- [x] 35-03-PLAN.md (Wave 2) — Split Level 2 standalone services (ai-triage, user-table, project-template, context-loader)
+- [x] 35-04-PLAN.md (Wave 3) — Split final Level 2 services (policy-case-association, notification, campaign-scheduling)
+- [x] 35-05-PLAN.md (Wave 3) — Replace any types, create type definitions, fix forms.controller.ts
+- [x] 35-06-PLAN.md (Wave 4) — Enable strict mode, fix non-null assertions, verification
 
 ### Phase 36: Test Coverage Expansion (v1.2)
 

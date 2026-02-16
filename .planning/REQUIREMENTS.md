@@ -56,11 +56,11 @@ Dual-track milestone: (1) Remediate all findings from pre-Series A code review a
 
 ### Code Quality & Architecture (Grade: C+ → Target: B+)
 
-- [ ] **QUAL-01**: Split 12 fat services (800+ LOC each) — ai-triage, mapping-suggestion, query-to-prisma, user-table, project-template, context-loader, ai-query, migration-parser, policy-case-association, notification, campaign-scheduling, schema-introspection
-- [ ] **QUAL-02**: Replace 90+ `any` type usages with proper interfaces — ai-triage (8), ai-query (9), threshold (5), auth.controller (3), workflow (4), create-workflow-template.dto (4)
-- [ ] **QUAL-03**: Enable strict: true in backend tsconfig.json
-- [ ] **QUAL-04**: Replace non-null assertions with proper null checks — tenant.middleware, keyvault.service, claude.provider, impersonation.middleware
-- [ ] **QUAL-05**: Fix `as any` casts bypassing validation in forms.controller.ts — match DTO types to service signatures
+- [x] **QUAL-01**: Split 12 fat services (800+ LOC each) — ai-triage, mapping-suggestion, query-to-prisma, user-table, project-template, context-loader, ai-query, migration-parser, policy-case-association, notification, campaign-scheduling, schema-introspection
+- [x] **QUAL-02**: Replace 90+ `any` type usages with proper interfaces — ai-triage (8), ai-query (9), threshold (5), auth.controller (3), workflow (4), create-workflow-template.dto (4)
+- [x] **QUAL-03**: Enable strict: true in backend tsconfig.json
+- [x] **QUAL-04**: Replace non-null assertions with proper null checks — tenant.middleware, keyvault.service, claude.provider, impersonation.middleware
+- [x] **QUAL-05**: Fix `as any` casts bypassing validation in forms.controller.ts — match DTO types to service signatures
 
 ### Test Coverage (Grade: F → Target: B)
 
@@ -181,11 +181,11 @@ Dual-track milestone: (1) Remediate all findings from pre-Series A code review a
 | PERF-09     | Phase 34   | Complete |
 | PERF-10     | Phase 34   | Complete |
 | PERF-11     | Phase 34   | Complete |
-| QUAL-01     | Phase 35   | Pending  |
-| QUAL-02     | Phase 35   | Pending  |
-| QUAL-03     | Phase 35   | Pending  |
-| QUAL-04     | Phase 35   | Pending  |
-| QUAL-05     | Phase 35   | Pending  |
+| QUAL-01     | Phase 35   | Complete |
+| QUAL-02     | Phase 35   | Complete |
+| QUAL-03     | Phase 35   | Complete |
+| QUAL-04     | Phase 35   | Complete |
+| QUAL-05     | Phase 35   | Complete |
 | TEST-01     | Phase 36   | Pending  |
 | TEST-02     | Phase 36   | Pending  |
 | TEST-03     | Phase 36   | Pending  |
