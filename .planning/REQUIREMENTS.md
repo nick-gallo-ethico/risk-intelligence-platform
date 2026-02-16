@@ -42,17 +42,17 @@ Dual-track milestone: (1) Remediate all findings from pre-Series A code review a
 
 ### Performance & Scalability (Grade: C → Target: B+)
 
-- [ ] **PERF-01**: Fix unbounded query in campaign-reminder.service.ts — add cursor-based batch processing instead of fetching all assignments
-- [ ] **PERF-02**: Implement Redis caching for hot paths — user permissions, categories, business units, branding, org settings
-- [ ] **PERF-03**: Fix N+1 in persons.service.ts createFromEmployee — batch-fetch manager, businessUnit, location relations
-- [ ] **PERF-04**: Fix N+1 in persons.service.ts getManagerChain — replace per-level queries with recursive CTE or batch fetch
-- [ ] **PERF-05**: Fix compliance profiles in-memory aggregation — use Prisma aggregate() or raw SQL instead of loading all profiles to JS
-- [ ] **PERF-06**: Configure Prisma connection pool — add connection_limit=50&pool_timeout=30 to DATABASE_URL
-- [ ] **PERF-07**: Fix unbounded repeat non-responder query — add take/skip pagination
-- [ ] **PERF-08**: Switch dashboard cache from in-memory to Redis store — required for multi-instance deployment
-- [ ] **PERF-09**: Use BullMQ addBulk() for reminder queueing instead of loop-based individual queue.add()
-- [ ] **PERF-10**: Add batch limits to scheduled export and getDirectReports queries
-- [ ] **PERF-11**: Add TTL/LRU eviction to agent instance Map to prevent unbounded growth
+- [x] **PERF-01**: Fix unbounded query in campaign-reminder.service.ts — add cursor-based batch processing instead of fetching all assignments
+- [x] **PERF-02**: Implement Redis caching for hot paths — user permissions, categories, business units, branding, org settings
+- [x] **PERF-03**: Fix N+1 in persons.service.ts createFromEmployee — batch-fetch manager, businessUnit, location relations
+- [x] **PERF-04**: Fix N+1 in persons.service.ts getManagerChain — replace per-level queries with recursive CTE or batch fetch
+- [x] **PERF-05**: Fix compliance profiles in-memory aggregation — use Prisma aggregate() or raw SQL instead of loading all profiles to JS
+- [x] **PERF-06**: Configure Prisma connection pool — add connection_limit=50&pool_timeout=30 to DATABASE_URL
+- [x] **PERF-07**: Fix unbounded repeat non-responder query — add take/skip pagination
+- [x] **PERF-08**: Switch dashboard cache from in-memory to Redis store — required for multi-instance deployment
+- [x] **PERF-09**: Use BullMQ addBulk() for reminder queueing instead of loop-based individual queue.add()
+- [x] **PERF-10**: Add batch limits to scheduled export and getDirectReports queries
+- [x] **PERF-11**: Add TTL/LRU eviction to agent instance Map to prevent unbounded growth
 
 ### Code Quality & Architecture (Grade: C+ → Target: B+)
 
@@ -170,17 +170,17 @@ Dual-track milestone: (1) Remediate all findings from pre-Series A code review a
 | PROD-03     | Phase 33   | Pending  |
 | PROD-04     | Phase 33   | Pending  |
 | PROD-05     | Phase 33   | Pending  |
-| PERF-01     | Phase 34   | Pending  |
-| PERF-02     | Phase 34   | Pending  |
-| PERF-03     | Phase 34   | Pending  |
-| PERF-04     | Phase 34   | Pending  |
-| PERF-05     | Phase 34   | Pending  |
-| PERF-06     | Phase 34   | Pending  |
-| PERF-07     | Phase 34   | Pending  |
-| PERF-08     | Phase 34   | Pending  |
-| PERF-09     | Phase 34   | Pending  |
-| PERF-10     | Phase 34   | Pending  |
-| PERF-11     | Phase 34   | Pending  |
+| PERF-01     | Phase 34   | Complete |
+| PERF-02     | Phase 34   | Complete |
+| PERF-03     | Phase 34   | Complete |
+| PERF-04     | Phase 34   | Complete |
+| PERF-05     | Phase 34   | Complete |
+| PERF-06     | Phase 34   | Complete |
+| PERF-07     | Phase 34   | Complete |
+| PERF-08     | Phase 34   | Complete |
+| PERF-09     | Phase 34   | Complete |
+| PERF-10     | Phase 34   | Complete |
+| PERF-11     | Phase 34   | Complete |
 | QUAL-01     | Phase 35   | Pending  |
 | QUAL-02     | Phase 35   | Pending  |
 | QUAL-03     | Phase 35   | Pending  |

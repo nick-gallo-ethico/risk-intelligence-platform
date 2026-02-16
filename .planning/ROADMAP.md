@@ -69,7 +69,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 31: Code Quality & Performance** - Service decomposition, JWT RS256, Elasticsearch circuit breaker (v1.1)
 - [x] **Phase 32: Security & SOC 2 Fixes** - Auth bypass fixes, JWT algorithm pinning, WebSocket auth, MFA persistence (v1.2)
 - [ ] **Phase 33: Slop Cleanup & Production Readiness** - Orphaned modules, dead code, MIME validation, placeholder removal (v1.2)
-- [ ] **Phase 34: Performance & Scalability** - Unbounded queries, Redis caching, connection pooling, N+1 fixes (v1.2)
+- [x] **Phase 34: Performance & Scalability** - Unbounded queries, Redis caching, connection pooling, N+1 fixes (v1.2)
 - [ ] **Phase 35: Code Quality & Architecture** - Fat service splits, any type replacement, strict mode, null safety (v1.2)
 - [ ] **Phase 36: Test Coverage Expansion** - Auth guards/strategies, impersonation, E2E isolation, 60%+ backend coverage (v1.2)
 
@@ -1049,17 +1049,20 @@ Plans:
 4. All 54 TODO comments triaged (resolved or converted to tracked issues)
 5. File uploads validate magic bytes before processing (not just MIME header)
 
-**Plans**: 7 plans in 3 waves
+**Plans**: 10 plans in 4 waves (7 original + 3 gap closure)
 
 Plans:
 
-- [ ] 33-01-PLAN.md (Wave 1) - Register orphaned modules, ConfigService migration, Logger migration, faker devDep
-- [ ] 33-02-PLAN.md (Wave 1) - Document processing implementation with pdf-parse/mammoth, magic-byte validation
-- [ ] 33-03-PLAN.md (Wave 2) - Fix stub implementations (escalation, AI actions, support tickets, PDF export)
-- [ ] 33-04-PLAN.md (Wave 2) - Section separator removal (common/, config/, modules A-D)
-- [ ] 33-05-PLAN.md (Wave 2) - Section separator removal (modules E-W)
-- [ ] 33-06-PLAN.md (Wave 3) - TODO triage, JSDoc cleanup
-- [ ] 33-07-PLAN.md (Wave 3) - DTO splits, SLOP-09 documentation
+- [x] 33-01-PLAN.md (Wave 1) - Register orphaned modules, ConfigService migration, Logger migration, faker devDep
+- [x] 33-02-PLAN.md (Wave 1) - Document processing implementation with pdf-parse/mammoth, magic-byte validation
+- [x] 33-03-PLAN.md (Wave 2) - Fix stub implementations (escalation, AI actions, support tickets, PDF export)
+- [x] 33-04-PLAN.md (Wave 2) - Section separator removal (common/, config/, modules A-D)
+- [x] 33-05-PLAN.md (Wave 2) - Section separator removal (modules E-W)
+- [x] 33-06-PLAN.md (Wave 3) - TODO triage, JSDoc cleanup
+- [x] 33-07-PLAN.md (Wave 3) - DTO splits, SLOP-09 documentation
+- [ ] 33-08-PLAN.md (Wave 4, Gap Closure) - Complete separator removal (290 remaining in analytics/, remediation/, reporting/, rius/, search/)
+- [ ] 33-09-PLAN.md (Wave 4, Gap Closure) - Complete TODO triage (37 remaining)
+- [ ] 33-10-PLAN.md (Wave 4, Gap Closure) - Add DANGEROUS_EXTENSIONS check to attachments.controller.ts fileFilter
 
 ### Phase 34: Performance & Scalability (v1.2)
 
@@ -1077,11 +1080,11 @@ Plans:
 
 Plans:
 
-- [ ] 34-01-PLAN.md (Wave 1) — Fix unbounded queries: cursor-based batch processing for campaign reminders, bounded getDueSchedules/getDirectReports, Prisma aggregate for compliance stats
-- [ ] 34-02-PLAN.md (Wave 1) — Fix N+1 patterns: batch createFromEmployee with parallel relation fetching, recursive CTE for getManagerChain
-- [ ] 34-03-PLAN.md (Wave 1) — Redis caching: TenantCacheService with tenant-isolated keys, Redis-backed CacheModule, dashboard cache migration
-- [ ] 34-04-PLAN.md (Wave 2) — Resource management: Prisma connection pool configuration, LRU cache for agent instances with TTL/max eviction
-- [ ] 34-05-PLAN.md (Wave 2) — Verification checkpoint: automated checks for all 11 PERF requirements, human verification
+- [x] 34-01-PLAN.md (Wave 1) — Fix unbounded queries: cursor-based batch processing for campaign reminders, bounded getDueSchedules/getDirectReports, Prisma aggregate for compliance stats
+- [x] 34-02-PLAN.md (Wave 1) — Fix N+1 patterns: batch createFromEmployee with parallel relation fetching, recursive CTE for getManagerChain
+- [x] 34-03-PLAN.md (Wave 1) — Redis caching: TenantCacheService with tenant-isolated keys, Redis-backed CacheModule, dashboard cache migration
+- [x] 34-04-PLAN.md (Wave 2) — Resource management: Prisma connection pool configuration, LRU cache for agent instances with TTL/max eviction
+- [x] 34-05-PLAN.md (Wave 2) — Verification checkpoint: automated checks for all 11 PERF requirements, human verification
 
 ### Phase 35: Code Quality & Architecture (v1.2)
 

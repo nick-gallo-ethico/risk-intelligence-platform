@@ -32,6 +32,8 @@ import {
 } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { Response } from "express";
+import * as path from "path";
+import { DANGEROUS_EXTENSIONS } from "../../common/services/storage.service";
 import {
   ApiTags,
   ApiOperation,
@@ -125,6 +127,19 @@ export class AttachmentsController {
     FileInterceptor("file", {
       limits: { fileSize: MAX_FILE_SIZE },
       fileFilter: (_req, file, callback) => {
+        const ext = path.extname(file.originalname).toLowerCase();
+
+        // Block dangerous extensions first (defense in depth)
+        if (DANGEROUS_EXTENSIONS.includes(ext)) {
+          return callback(
+            new BadRequestException(
+              `Dangerous file extension not allowed: ${ext}`,
+            ),
+            false,
+          );
+        }
+
+        // Then check MIME type
         if (ALLOWED_MIME_TYPES.includes(file.mimetype)) {
           callback(null, true);
         } else {
