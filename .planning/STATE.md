@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-15)
 ## Current Position
 
 Phase: 36 of 36 (Test Coverage Expansion)
-Plan: 3 of 13 complete (36-01, 36-02, 36-03)
+Plan: 4 of 13 complete (36-01, 36-02, 36-03, 36-04)
 Status: Phase 36 In Progress
-Last activity: 2026-02-16 - Completed 36-02 (Auth Strategies Unit Tests)
+Last activity: 2026-02-16 - Completed 36-04 (Tenant Isolation E2E Tests)
 
-Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10 plans), Phase 34 COMPLETE (5/5 plans), Phase 35 COMPLETE (6/6 plans), Phase 36 started (3/13 plans).
+Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10 plans), Phase 34 COMPLETE (5/5 plans), Phase 35 COMPLETE (6/6 plans), Phase 36 started (4/13 plans).
 
 ## Shipped Milestones
 
@@ -136,6 +136,8 @@ Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10
 - 36-01: TestableGuard subclass pattern to expose protected methods for ThrottlerGuard testing
 - 36-02: Use development NODE_ENV in tests to allow http redirectUrl for Azure AD
 - 36-02: ConfigService.get() mock returns defaultValue when provided for unconfigured strategy checks
+- 36-04: All cross-tenant access returns 404 (not 403) to prevent enumeration attacks
+- 36-04: Database state verification after cross-tenant mutation attempts using RLS bypass
 
 ### Blockers
 
@@ -143,7 +145,7 @@ None currently.
 
 ## Session Continuity
 
-Last session: 2026-02-16T20:18:40Z
-Stopped at: Completed 36-02-PLAN.md (Auth Strategies Unit Tests)
+Last session: 2026-02-16T20:38:00Z
+Stopped at: Completed 36-04-PLAN.md (Tenant Isolation E2E Tests)
 Resume file: None
-Next action: Continue Phase 36 (remaining 10 plans)
+Next action: Continue Phase 36 (remaining 9 plans)
