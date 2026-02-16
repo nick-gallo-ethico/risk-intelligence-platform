@@ -324,9 +324,156 @@ export class PersonsService {
   // Employee Linkage Methods
 
   /**
+   * Creates Person records from multiple employees efficiently using batch queries.
+   * Eliminates N+1 query pattern by fetching all relations in 3 queries.
+   *
+   * @param employees - Array of Employee records to create Person records from
+   * @param userId - The user initiating the creation
+   * @param organizationId - The organization ID
+   * @returns Array of created Person records
+   */
+  async createFromEmployeeBatch(
+    employees: Employee[],
+    userId: string,
+    organizationId: string,
+  ): Promise<Person[]> {
+    if (employees.length === 0) {
+      return [];
+    }
+
+    // Step 1: Collect all unique relation IDs
+    const managerIds = [
+      ...new Set(
+        employees.map((e) => e.managerId).filter((id): id is string => !!id),
+      ),
+    ];
+    const businessUnitIds = [
+      ...new Set(
+        employees
+          .map((e) => e.businessUnitId)
+          .filter((id): id is string => !!id),
+      ),
+    ];
+    const locationIds = [
+      ...new Set(
+        employees.map((e) => e.locationId).filter((id): id is string => !!id),
+      ),
+    ];
+
+    // Step 2: Check existing persons to avoid duplicates
+    const existingPersons = await this.prisma.person.findMany({
+      where: {
+        organizationId,
+        employeeId: { in: employees.map((e) => e.id) },
+        type: PersonType.EMPLOYEE,
+      },
+      select: { id: true, employeeId: true },
+    });
+    const existingEmployeeIds = new Set(
+      existingPersons.map((p) => p.employeeId),
+    );
+
+    // Filter to only new employees
+    const newEmployees = employees.filter(
+      (e) => !existingEmployeeIds.has(e.id),
+    );
+    if (newEmployees.length === 0) {
+      this.logger.debug(
+        `All ${employees.length} employees already have Person records`,
+      );
+      return [];
+    }
+
+    // Step 3: Batch fetch all relations in parallel (3 queries total)
+    const [managerEmployees, businessUnits, locations] = await Promise.all([
+      managerIds.length > 0
+        ? this.prisma.employee.findMany({
+            where: { id: { in: managerIds }, organizationId },
+            select: { id: true, firstName: true, lastName: true },
+          })
+        : Promise.resolve([]),
+      businessUnitIds.length > 0
+        ? this.prisma.businessUnit.findMany({
+            where: { id: { in: businessUnitIds } },
+            select: { id: true, name: true },
+          })
+        : Promise.resolve([]),
+      locationIds.length > 0
+        ? this.prisma.location.findMany({
+            where: { id: { in: locationIds } },
+            select: { id: true, name: true },
+          })
+        : Promise.resolve([]),
+    ]);
+
+    // Step 4: Create lookup maps for O(1) access
+    const managerMap = new Map(
+      managerEmployees.map((m) => [m.id, `${m.firstName} ${m.lastName}`]),
+    );
+    const buMap = new Map(businessUnits.map((b) => [b.id, b.name]));
+    const locMap = new Map(locations.map((l) => [l.id, l.name]));
+
+    // Step 5: Create all persons in a transaction (atomic batch creation)
+    const persons = await this.prisma.$transaction(
+      newEmployees.map((employee) =>
+        this.prisma.person.create({
+          data: {
+            organizationId,
+            type: PersonType.EMPLOYEE,
+            source: PersonSource.HRIS_SYNC,
+            firstName: employee.firstName,
+            lastName: employee.lastName,
+            email: employee.email,
+            phone: employee.phone ?? undefined,
+            employeeId: employee.id,
+            businessUnitId: employee.businessUnitId ?? undefined,
+            businessUnitName: employee.businessUnitId
+              ? buMap.get(employee.businessUnitId)
+              : undefined,
+            jobTitle: employee.jobTitle,
+            employmentStatus: employee.employmentStatus,
+            locationId: employee.locationId ?? undefined,
+            locationName: employee.locationId
+              ? locMap.get(employee.locationId)
+              : undefined,
+            managerId: employee.managerId ?? undefined,
+            managerName: employee.managerId
+              ? managerMap.get(employee.managerId)
+              : undefined,
+            anonymityTier: AnonymityTier.OPEN,
+            createdById: userId,
+            updatedById: userId,
+          },
+        }),
+      ),
+    );
+
+    // Step 6: Log batch creation
+    this.logger.log(
+      `Created ${persons.length} Person records from ${employees.length} employees (batch)`,
+    );
+
+    // Emit events for each person
+    for (const person of persons) {
+      this.emitEvent("person.created", {
+        organizationId,
+        actorUserId: userId,
+        personId: person.id,
+        type: person.type,
+        source: person.source,
+        employeeId: person.employeeId,
+      });
+    }
+
+    return persons;
+  }
+
+  /**
    * Creates a Person record from an Employee, including manager chain.
    * Used during HRIS sync to create Person records for employees.
    * If the employee's manager doesn't have a Person record, recursively creates it.
+   *
+   * Note: For bulk operations, prefer createFromEmployeeBatch for better performance.
    *
    * @param employee - The Employee record to create a Person from
    * @param userId - The user initiating the creation
@@ -582,9 +729,9 @@ export class PersonsService {
   }
 
   /**
-   * Gets the manager chain for a Person, traversing up the hierarchy.
-   * Useful for org chart navigation and escalation paths.
-   * Returns an array starting with the Person's direct manager up to the top.
+   * Gets the manager chain for a Person using a recursive CTE.
+   * Fetches the entire hierarchy in a single database query.
+   * Returns an array starting with the Person's direct manager up to maxDepth.
    *
    * @param personId - The Person ID to get the manager chain for
    * @param organizationId - The organization ID
@@ -596,26 +743,61 @@ export class PersonsService {
     organizationId: string,
     maxDepth: number = 10,
   ): Promise<Person[]> {
-    const chain: Person[] = [];
-    let currentPerson = await this.findOne(personId, organizationId);
-    let depth = 0;
+    // Use recursive CTE to fetch entire chain in single query
+    // Note: Column names use snake_case as defined in @@map in schema.prisma
+    const chain = await this.prisma.$queryRaw<Person[]>`
+      WITH RECURSIVE manager_chain AS (
+        -- Base case: get the person's direct manager
+        SELECT p.*, 1 AS depth
+        FROM persons p
+        WHERE p.id = (
+          SELECT manager_id FROM persons WHERE id = ${personId} AND organization_id = ${organizationId}
+        )
+        AND p.organization_id = ${organizationId}
 
-    while (currentPerson.managerId && depth < maxDepth) {
-      const manager = await this.prisma.person.findFirst({
-        where: {
-          id: currentPerson.managerId,
-          organizationId,
-        },
-      });
+        UNION ALL
 
-      if (!manager) {
-        break;
-      }
-
-      chain.push(manager);
-      currentPerson = manager;
-      depth++;
-    }
+        -- Recursive case: get each manager's manager
+        SELECT p.*, mc.depth + 1
+        FROM persons p
+        INNER JOIN manager_chain mc ON p.id = mc.manager_id
+        WHERE mc.depth < ${maxDepth}
+        AND p.organization_id = ${organizationId}
+      )
+      SELECT
+        id,
+        organization_id AS "organizationId",
+        type,
+        source,
+        first_name AS "firstName",
+        last_name AS "lastName",
+        email,
+        phone,
+        employee_id AS "employeeId",
+        business_unit_id AS "businessUnitId",
+        business_unit_name AS "businessUnitName",
+        job_title AS "jobTitle",
+        employment_status AS "employmentStatus",
+        location_id AS "locationId",
+        location_name AS "locationName",
+        manager_id AS "managerId",
+        manager_name AS "managerName",
+        company,
+        title,
+        relationship,
+        anonymity_tier AS "anonymityTier",
+        status,
+        merged_into_primary_id AS "mergedIntoPrimaryId",
+        merged_at AS "mergedAt",
+        merged_by_id AS "mergedById",
+        notes,
+        created_by_id AS "createdById",
+        updated_by_id AS "updatedById",
+        created_at AS "createdAt",
+        updated_at AS "updatedAt"
+      FROM manager_chain
+      ORDER BY depth ASC
+    `;
 
     return chain;
   }
@@ -623,21 +805,27 @@ export class PersonsService {
   /**
    * Gets direct reports for a Person (people who have this Person as their manager).
    * Useful for org chart navigation and team views.
+   * Results are bounded to prevent unbounded queries on large organizations.
    *
    * @param personId - The Person ID to get direct reports for
    * @param organizationId - The organization ID
+   * @param options - Optional limit parameter (default 100 to prevent unbounded queries)
    * @returns Array of Person records who report to this Person
    */
   async getDirectReports(
     personId: string,
     organizationId: string,
+    options: { limit?: number } = {},
   ): Promise<Person[]> {
+    const limit = options.limit ?? 100;
+
     return this.prisma.person.findMany({
       where: {
         managerId: personId,
         organizationId,
         status: PersonStatus.ACTIVE,
       },
+      take: limit,
       orderBy: [{ lastName: "asc" }, { firstName: "asc" }],
     });
   }

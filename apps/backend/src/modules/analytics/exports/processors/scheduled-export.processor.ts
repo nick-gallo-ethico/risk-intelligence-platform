@@ -86,22 +86,43 @@ export class ScheduledExportProcessor {
   /**
    * Check for due schedules every minute.
    * NestJS ScheduleModule handles cron execution.
+   * Uses cursor-based pagination to handle large numbers of due schedules.
    */
   @Cron(CronExpression.EVERY_MINUTE)
   async processScheduledExports(): Promise<void> {
-    const dueSchedules = await this.scheduledExportService.getDueSchedules();
+    let cursor: string | undefined;
+    let totalProcessed = 0;
 
-    if (dueSchedules.length === 0) {
-      return; // Nothing to do
+    // Process schedules in batches using cursor-based pagination
+    while (true) {
+      const { schedules, nextCursor } =
+        await this.scheduledExportService.getDueSchedules({ cursor });
+
+      if (schedules.length === 0) {
+        break; // Nothing more to process
+      }
+
+      this.logger.log(
+        `Processing batch of ${schedules.length} due scheduled export(s)`,
+      );
+
+      // Process each schedule sequentially to avoid overload
+      for (const schedule of schedules) {
+        await this.processSchedule(schedule);
+        totalProcessed++;
+      }
+
+      // Move to next batch
+      if (!nextCursor) {
+        break;
+      }
+      cursor = nextCursor;
     }
 
-    this.logger.log(
-      `Processing ${dueSchedules.length} due scheduled export(s)`,
-    );
-
-    // Process each schedule sequentially to avoid overload
-    for (const schedule of dueSchedules) {
-      await this.processSchedule(schedule);
+    if (totalProcessed > 0) {
+      this.logger.log(
+        `Completed processing ${totalProcessed} scheduled export(s)`,
+      );
     }
   }
 

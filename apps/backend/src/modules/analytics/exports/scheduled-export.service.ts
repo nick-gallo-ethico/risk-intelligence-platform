@@ -479,19 +479,31 @@ export class ScheduledExportService {
   // ===========================================
 
   /**
-   * Get all scheduled exports that are due to run.
+   * Get scheduled exports that are due to run with cursor-based pagination.
    * Called by the cron processor to find work.
    *
-   * @returns Active schedules with nextRunAt <= now
+   * @param options - Optional pagination parameters (cursor, limit)
+   * @returns Active schedules with nextRunAt <= now, with pagination cursor
    */
-  async getDueSchedules(): Promise<
-    Array<ScheduledExport & { organization: { id: string; name: string } }>
-  > {
-    return this.prisma.scheduledExport.findMany({
+  async getDueSchedules(
+    options: { cursor?: string; limit?: number } = {},
+  ): Promise<{
+    schedules: Array<
+      ScheduledExport & { organization: { id: string; name: string } }
+    >;
+    nextCursor: string | null;
+  }> {
+    const limit = options.limit ?? 100;
+
+    const schedules = await this.prisma.scheduledExport.findMany({
       where: {
         isActive: true,
         nextRunAt: { lte: new Date() },
       },
+      take: limit,
+      skip: options.cursor ? 1 : 0,
+      cursor: options.cursor ? { id: options.cursor } : undefined,
+      orderBy: { id: "asc" },
       include: {
         organization: {
           select: {
@@ -501,6 +513,12 @@ export class ScheduledExportService {
         },
       },
     });
+
+    return {
+      schedules,
+      nextCursor:
+        schedules.length === limit ? schedules[schedules.length - 1].id : null,
+    };
   }
 
   /**
