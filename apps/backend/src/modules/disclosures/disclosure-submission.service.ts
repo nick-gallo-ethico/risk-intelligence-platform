@@ -69,9 +69,7 @@ export class DisclosureSubmissionService {
     private readonly queryService: DisclosureQueryService,
   ) {}
 
-  // ===========================================
   // Delegated Draft Methods
-  // ===========================================
 
   async saveDraft(
     dto: SaveDraftDto,
@@ -105,9 +103,7 @@ export class DisclosureSubmissionService {
     return this.draftService.deleteDraft(draftId, employeeId, organizationId);
   }
 
-  // ===========================================
   // Submission
-  // ===========================================
 
   /**
    * Submits a complete disclosure.
@@ -376,9 +372,7 @@ export class DisclosureSubmissionService {
     };
   }
 
-  // ===========================================
   // Delegated Query Methods
-  // ===========================================
 
   async getDisclosure(
     disclosureId: string,
@@ -394,9 +388,7 @@ export class DisclosureSubmissionService {
     return this.queryService.findMany(query, organizationId);
   }
 
-  // ===========================================
   // Approval Workflow
-  // ===========================================
 
   /**
    * Approves a disclosure.
@@ -490,9 +482,7 @@ export class DisclosureSubmissionService {
     return (await this.getDisclosure(disclosureId, organizationId))!;
   }
 
-  // ===========================================
   // Private Helpers
-  // ===========================================
 
   /**
    * Creates a case when threshold triggers CREATE_CASE action.

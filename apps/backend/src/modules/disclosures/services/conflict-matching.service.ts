@@ -18,9 +18,7 @@ import { ConflictType, ConflictSeverity } from "@prisma/client";
 import { PrismaService } from "../../prisma/prisma.service";
 import { MatchDetails, SeverityFactors } from "../dto/conflict.dto";
 
-// ===========================================
 // Types
-// ===========================================
 
 /**
  * Match result from fuzzy matching.
@@ -72,9 +70,7 @@ export class ConflictMatchingService {
 
   constructor(private readonly prisma: PrismaService) {}
 
-  // ===========================================
   // Fuzzy Matching (RS.42)
-  // ===========================================
 
   /**
    * Calculates similarity between two strings using Levenshtein distance.
@@ -178,9 +174,7 @@ export class ConflictMatchingService {
     return ConflictSeverity.LOW;
   }
 
-  // ===========================================
   // Individual Conflict Checks
-  // ===========================================
 
   /**
    * Checks for self-dealing: prior disclosures with the same entity by this person.

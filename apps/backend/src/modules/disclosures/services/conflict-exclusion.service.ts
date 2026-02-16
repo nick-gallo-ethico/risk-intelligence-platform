@@ -34,9 +34,7 @@ export class ConflictExclusionService {
     private readonly matchingService: ConflictMatchingService,
   ) {}
 
-  // ===========================================
   // Exclusion Creation
-  // ===========================================
 
   /**
    * Creates a conflict exclusion.
@@ -86,9 +84,7 @@ export class ConflictExclusionService {
     return exclusion;
   }
 
-  // ===========================================
   // Exclusion Checking
-  // ===========================================
 
   /**
    * Checks if a conflict is excluded by an active exclusion.
@@ -133,9 +129,7 @@ export class ConflictExclusionService {
     return { excluded: false };
   }
 
-  // ===========================================
   // Query Methods
-  // ===========================================
 
   /**
    * Finds exclusions with pagination and filters.
@@ -217,9 +211,7 @@ export class ConflictExclusionService {
     this.logger.log(`Deactivated exclusion ${exclusionId}`);
   }
 
-  // ===========================================
   // Helpers
-  // ===========================================
 
   /**
    * Maps a ConflictExclusion to DTO.

@@ -7,7 +7,7 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
-} from '@nestjs/common';
+} from "@nestjs/common";
 import {
   ApiTags,
   ApiOperation,
@@ -15,23 +15,21 @@ import {
   ApiBearerAuth,
   ApiBody,
   ApiParam,
-} from '@nestjs/swagger';
-import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
-import { RolesGuard } from '../../common/guards/roles.guard';
-import { Roles, UserRole } from '../../common/decorators/roles.decorator';
-import { CurrentUser } from '../../common/decorators/current-user.decorator';
-import { TenantId } from '../../common/decorators/tenant-id.decorator';
+} from "@nestjs/swagger";
+import { JwtAuthGuard } from "../../common/guards/jwt-auth.guard";
+import { RolesGuard } from "../../common/guards/roles.guard";
+import { Roles, UserRole } from "../../common/decorators/roles.decorator";
+import { CurrentUser } from "../../common/decorators/current-user.decorator";
+import { TenantId } from "../../common/decorators/tenant-id.decorator";
 import {
   AiTriageService,
   TriageEntityType,
   TriageInterpretation,
   TriagePreview,
   TriageResult,
-} from './ai-triage.service';
+} from "./ai-triage.service";
 
-// ===========================================
 // DTOs
-// ===========================================
 
 /**
  * Request body for interpreting a natural language triage query.
@@ -46,7 +44,7 @@ class InterpretQueryDto {
   /**
    * Entity type to triage.
    */
-  entityType: 'disclosure' | 'conflict';
+  entityType: "disclosure" | "conflict";
 }
 
 /**
@@ -74,9 +72,7 @@ class ExecuteRequestDto {
   confirm: boolean;
 }
 
-// ===========================================
 // Controller
-// ===========================================
 
 /**
  * TriageController provides REST endpoints for AI-assisted bulk triage.
@@ -100,9 +96,9 @@ class ExecuteRequestDto {
  * - 5-minute preview expiration
  * - Full audit trail
  */
-@ApiTags('Triage')
+@ApiTags("Triage")
 @ApiBearerAuth()
-@Controller('triage')
+@Controller("triage")
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(UserRole.SYSTEM_ADMIN, UserRole.COMPLIANCE_OFFICER)
 export class TriageController {
@@ -118,33 +114,33 @@ export class TriageController {
    * @param organizationId - Tenant context
    * @returns Structured interpretation
    */
-  @Post('interpret')
+  @Post("interpret")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
-    summary: 'Interpret natural language triage query',
+    summary: "Interpret natural language triage query",
     description:
-      'Parse a natural language query into structured filters and action. ' +
+      "Parse a natural language query into structured filters and action. " +
       'Examples: "approve all under $100", "dismiss low severity vendor matches".',
   })
   @ApiBody({ type: InterpretQueryDto })
   @ApiResponse({
     status: 200,
-    description: 'Query interpreted successfully',
+    description: "Query interpreted successfully",
     schema: {
-      type: 'object',
+      type: "object",
       properties: {
-        originalQuery: { type: 'string' },
-        entityType: { type: 'string', enum: ['disclosure', 'conflict'] },
-        filters: { type: 'object' },
-        action: { type: 'string' },
-        confidence: { type: 'number' },
-        explanation: { type: 'string' },
-        warnings: { type: 'array', items: { type: 'string' } },
+        originalQuery: { type: "string" },
+        entityType: { type: "string", enum: ["disclosure", "conflict"] },
+        filters: { type: "object" },
+        action: { type: "string" },
+        confidence: { type: "number" },
+        explanation: { type: "string" },
+        warnings: { type: "array", items: { type: "string" } },
       },
     },
   })
-  @ApiResponse({ status: 400, description: 'Invalid query or parse failure' })
-  @ApiResponse({ status: 429, description: 'Rate limit exceeded' })
+  @ApiResponse({ status: 400, description: "Invalid query or parse failure" })
+  @ApiResponse({ status: 429, description: "Rate limit exceeded" })
   async interpret(
     @Body() dto: InterpretQueryDto,
     @TenantId() organizationId: string,
@@ -169,38 +165,38 @@ export class TriageController {
    * @param organizationId - Tenant context
    * @returns Preview with matching items
    */
-  @Post('preview')
+  @Post("preview")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
-    summary: 'Generate triage preview',
+    summary: "Generate triage preview",
     description:
-      'Generate a preview of matching items without executing any action. ' +
-      'Preview is cached for 5 minutes and required for execution.',
+      "Generate a preview of matching items without executing any action. " +
+      "Preview is cached for 5 minutes and required for execution.",
   })
   @ApiBody({ type: PreviewRequestDto })
   @ApiResponse({
     status: 200,
-    description: 'Preview generated successfully',
+    description: "Preview generated successfully",
     schema: {
-      type: 'object',
+      type: "object",
       properties: {
-        id: { type: 'string', description: 'Preview ID for execution' },
-        count: { type: 'number', description: 'Total matching items' },
-        items: { type: 'array', description: 'Sample items (max 100)' },
+        id: { type: "string", description: "Preview ID for execution" },
+        count: { type: "number", description: "Total matching items" },
+        items: { type: "array", description: "Sample items (max 100)" },
         impact: {
-          type: 'object',
+          type: "object",
           properties: {
-            estimatedDurationMs: { type: 'number' },
-            totalValueAffected: { type: 'number' },
-            statusBreakdown: { type: 'object' },
+            estimatedDurationMs: { type: "number" },
+            totalValueAffected: { type: "number" },
+            statusBreakdown: { type: "object" },
           },
         },
-        createdAt: { type: 'string', format: 'date-time' },
-        expiresAt: { type: 'string', format: 'date-time' },
+        createdAt: { type: "string", format: "date-time" },
+        expiresAt: { type: "string", format: "date-time" },
       },
     },
   })
-  @ApiResponse({ status: 400, description: 'Invalid interpretation' })
+  @ApiResponse({ status: 400, description: "Invalid interpretation" })
   async preview(
     @Body() dto: PreviewRequestDto,
     @TenantId() organizationId: string,
@@ -219,44 +215,47 @@ export class TriageController {
    * @param user - Current user for audit
    * @returns Execution result with success/failure counts
    */
-  @Post('execute')
+  @Post("execute")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
-    summary: 'Execute triage action',
+    summary: "Execute triage action",
     description:
-      'Execute the action from a preview. Requires explicit confirmation ' +
-      '(confirm: true) and valid, non-expired preview ID.',
+      "Execute the action from a preview. Requires explicit confirmation " +
+      "(confirm: true) and valid, non-expired preview ID.",
   })
   @ApiBody({ type: ExecuteRequestDto })
   @ApiResponse({
     status: 200,
-    description: 'Action executed successfully',
+    description: "Action executed successfully",
     schema: {
-      type: 'object',
+      type: "object",
       properties: {
-        previewId: { type: 'string' },
-        action: { type: 'string' },
-        processed: { type: 'number' },
-        succeeded: { type: 'number' },
-        failed: { type: 'number' },
+        previewId: { type: "string" },
+        action: { type: "string" },
+        processed: { type: "number" },
+        succeeded: { type: "number" },
+        failed: { type: "number" },
         errors: {
-          type: 'array',
+          type: "array",
           items: {
-            type: 'object',
+            type: "object",
             properties: {
-              id: { type: 'string' },
-              error: { type: 'string' },
+              id: { type: "string" },
+              error: { type: "string" },
             },
           },
         },
-        startedAt: { type: 'string', format: 'date-time' },
-        completedAt: { type: 'string', format: 'date-time' },
-        durationMs: { type: 'number' },
+        startedAt: { type: "string", format: "date-time" },
+        completedAt: { type: "string", format: "date-time" },
+        durationMs: { type: "number" },
       },
     },
   })
-  @ApiResponse({ status: 400, description: 'Confirmation required or preview expired' })
-  @ApiResponse({ status: 404, description: 'Preview not found' })
+  @ApiResponse({
+    status: 400,
+    description: "Confirmation required or preview expired",
+  })
+  @ApiResponse({ status: 404, description: "Preview not found" })
   async execute(
     @Body() dto: ExecuteRequestDto,
     @TenantId() organizationId: string,
@@ -278,17 +277,17 @@ export class TriageController {
    *
    * @param previewId - Preview ID to cancel
    */
-  @Delete('preview/:previewId')
+  @Delete("preview/:previewId")
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({
-    summary: 'Cancel triage preview',
+    summary: "Cancel triage preview",
     description:
-      'Cancel a preview and clear it from cache. Use this to abandon a ' +
-      'triage operation without executing.',
+      "Cancel a preview and clear it from cache. Use this to abandon a " +
+      "triage operation without executing.",
   })
-  @ApiParam({ name: 'previewId', description: 'Preview ID to cancel' })
-  @ApiResponse({ status: 204, description: 'Preview cancelled' })
-  async cancelPreview(@Param('previewId') previewId: string): Promise<void> {
+  @ApiParam({ name: "previewId", description: "Preview ID to cancel" })
+  @ApiResponse({ status: 204, description: "Preview cancelled" })
+  async cancelPreview(@Param("previewId") previewId: string): Promise<void> {
     await this.triageService.cancelPreview(previewId);
   }
 }

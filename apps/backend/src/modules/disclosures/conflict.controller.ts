@@ -64,9 +64,7 @@ export class ConflictController {
     private readonly conflictDetectionService: ConflictDetectionService,
   ) {}
 
-  // ===========================================
   // Conflict Alert Endpoints
-  // ===========================================
 
   /**
    * List conflict alerts with filters.
@@ -195,9 +193,7 @@ export class ConflictController {
     );
   }
 
-  // ===========================================
   // Entity Timeline Endpoint (RS.49)
-  // ===========================================
 
   /**
    * Get entity timeline history showing all interactions with a named entity.
@@ -229,9 +225,7 @@ export class ConflictController {
     );
   }
 
-  // ===========================================
   // Exclusion Management Endpoints
-  // ===========================================
 
   /**
    * List active conflict exclusions.
