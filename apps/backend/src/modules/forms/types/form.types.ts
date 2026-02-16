@@ -1,4 +1,4 @@
-import { JSONSchema7 } from 'json-schema';
+import { JSONSchema7 } from "json-schema";
 
 /**
  * Extended JSON Schema for form definitions.
@@ -27,17 +27,17 @@ export interface UiSchema {
 export interface UiFieldConfig {
   /** Widget type for rendering */
   widget?:
-    | 'text'
-    | 'textarea'
-    | 'select'
-    | 'radio'
-    | 'checkbox'
-    | 'date'
-    | 'file'
-    | 'rich-text'
-    | 'phone'
-    | 'email'
-    | 'currency';
+    | "text"
+    | "textarea"
+    | "select"
+    | "radio"
+    | "checkbox"
+    | "date"
+    | "file"
+    | "rich-text"
+    | "phone"
+    | "email"
+    | "currency";
   /** Placeholder text */
   placeholder?: string;
   /** Help text shown below field */
@@ -63,7 +63,7 @@ export interface ConditionalRule {
   if: {
     field: string;
     value: unknown;
-    operator?: 'eq' | 'neq' | 'gt' | 'lt' | 'gte' | 'lte' | 'contains' | 'in';
+    operator?: "eq" | "neq" | "gt" | "lt" | "gte" | "lte" | "contains" | "in";
   };
   /** Actions to take when condition is met */
   then: {

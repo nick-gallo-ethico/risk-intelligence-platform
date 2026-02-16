@@ -8,9 +8,9 @@ import {
   IsArray,
   IsDateString,
   Min,
-} from 'class-validator';
-import { Type } from 'class-transformer';
-import { InterviewStatus, IntervieweeType } from '@prisma/client';
+} from "class-validator";
+import { Type } from "class-transformer";
+import { InterviewStatus, IntervieweeType } from "@prisma/client";
 
 export interface InterviewQuestion {
   id: string;
@@ -140,7 +140,7 @@ export class UpdateInterviewDto {
   consentNotes?: string;
 
   @IsArray()
-  @IsUUID('4', { each: true })
+  @IsUUID("4", { each: true })
   @IsOptional()
   secondaryInterviewerIds?: string[];
 }
@@ -185,7 +185,7 @@ export class CreateInterviewTemplateDto {
   categoryId?: string;
 
   @IsArray()
-  questions: Omit<InterviewQuestion, 'response'>[];
+  questions: Omit<InterviewQuestion, "response">[];
 }
 
 export class UpdateInterviewTemplateDto {
@@ -203,7 +203,7 @@ export class UpdateInterviewTemplateDto {
 
   @IsArray()
   @IsOptional()
-  questions?: Omit<InterviewQuestion, 'response'>[];
+  questions?: Omit<InterviewQuestion, "response">[];
 
   @IsBoolean()
   @IsOptional()

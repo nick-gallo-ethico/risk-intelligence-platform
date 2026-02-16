@@ -7,8 +7,8 @@ import {
   IsObject,
   MaxLength,
   MinLength,
-} from 'class-validator';
-import { FormType } from '@prisma/client';
+} from "class-validator";
+import { FormType } from "@prisma/client";
 
 /**
  * DTO for creating a new form definition.

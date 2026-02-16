@@ -58,9 +58,7 @@ export class HrisSyncService {
       durationMs: 0,
     };
 
-    this.logger.log(
-      `Starting HRIS sync for organization ${organizationId}`,
-    );
+    this.logger.log(`Starting HRIS sync for organization ${organizationId}`);
 
     // 1. Fetch all employees from Merge
     const mergeEmployees = await this.mergeClient.getEmployees(accountToken);
@@ -228,7 +226,9 @@ export class HrisSyncService {
           rawHrisData: mergeEmployee as unknown as Prisma.InputJsonValue,
         },
       });
-      this.logger.debug(`Created Employee ${employee.id} from Merge ${mergeEmployee.id}`);
+      this.logger.debug(
+        `Created Employee ${employee.id} from Merge ${mergeEmployee.id}`,
+      );
     } else {
       // Update existing Employee with latest HRIS data
       employee = await this.prisma.employee.update({
@@ -248,7 +248,9 @@ export class HrisSyncService {
           rawHrisData: mergeEmployee as unknown as Prisma.InputJsonValue,
         },
       });
-      this.logger.debug(`Updated Employee ${employee.id} from Merge ${mergeEmployee.id}`);
+      this.logger.debug(
+        `Updated Employee ${employee.id} from Merge ${mergeEmployee.id}`,
+      );
     }
 
     return employee;

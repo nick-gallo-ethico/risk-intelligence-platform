@@ -3,11 +3,11 @@ import {
   Logger,
   NotFoundException,
   BadRequestException,
-} from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
-import { FormType, Prisma } from '@prisma/client';
-import { FormValidationService } from './form-validation.service';
-import { FormSchema, UiSchema } from './types/form.types';
+} from "@nestjs/common";
+import { PrismaService } from "../prisma/prisma.service";
+import { FormType, Prisma } from "@prisma/client";
+import { FormValidationService } from "./form-validation.service";
+import { FormSchema, UiSchema } from "./types/form.types";
 
 /**
  * DTO for creating a new form definition.
@@ -128,7 +128,7 @@ export class FormSchemaService {
   async findByType(organizationId: string, formType: FormType) {
     return this.prisma.formDefinition.findMany({
       where: { organizationId, formType, isActive: true },
-      orderBy: { name: 'asc' },
+      orderBy: { name: "asc" },
     });
   }
 
@@ -161,7 +161,7 @@ export class FormSchemaService {
 
     return this.prisma.formDefinition.findMany({
       where,
-      orderBy: [{ name: 'asc' }, { version: 'desc' }],
+      orderBy: [{ name: "asc" }, { version: "desc" }],
     });
   }
 
@@ -184,14 +184,16 @@ export class FormSchemaService {
 
       if (hasSubmissions > 0) {
         throw new BadRequestException(
-          'Cannot update published form with submissions. Publish a new version instead.',
+          "Cannot update published form with submissions. Publish a new version instead.",
         );
       }
     }
 
     // Validate new schema if provided
     if (dto.schema) {
-      const schemaValidation = this.validationService.validateSchema(dto.schema);
+      const schemaValidation = this.validationService.validateSchema(
+        dto.schema,
+      );
       if (!schemaValidation.valid) {
         throw new BadRequestException(
           `Invalid schema: ${schemaValidation.errors[0]?.message}`,
@@ -229,7 +231,10 @@ export class FormSchemaService {
    * Publish a form definition.
    * If already published with submissions, creates a new version.
    */
-  async publish(organizationId: string, id: string): Promise<{ id: string; version: number }> {
+  async publish(
+    organizationId: string,
+    id: string,
+  ): Promise<{ id: string; version: number }> {
     const form = await this.findById(organizationId, id);
 
     // If already published with submissions, create new version
@@ -298,7 +303,7 @@ export class FormSchemaService {
         isPublished: true,
         isActive: true,
       },
-      orderBy: { version: 'desc' },
+      orderBy: { version: "desc" },
     });
 
     if (!form) {

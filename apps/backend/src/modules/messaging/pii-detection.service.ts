@@ -77,8 +77,7 @@ export class PiiDetectionService {
     {
       type: PiiType.SSN,
       // Matches XXX-XX-XXXX or XXX XX XXXX or XXXXXXXXX
-      regex:
-        /\b(?!000|666|9\d{2})\d{3}[-\s]?(?!00)\d{2}[-\s]?(?!0000)\d{4}\b/g,
+      regex: /\b(?!000|666|9\d{2})\d{3}[-\s]?(?!00)\d{2}[-\s]?(?!0000)\d{4}\b/g,
       warning:
         "Social Security Number detected - this could identify the reporter",
     },

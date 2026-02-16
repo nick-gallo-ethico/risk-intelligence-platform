@@ -1,19 +1,19 @@
-import { Module } from '@nestjs/common';
+import { Module } from "@nestjs/common";
 import {
   InvestigationsController,
   CaseInvestigationsController,
-} from './investigations.controller';
-import { InvestigationsService } from './investigations.service';
-import { PrismaModule } from '../prisma/prisma.module';
-import { CasesModule } from '../cases/cases.module';
-import { ExportsModule } from '../analytics/exports/exports.module';
-import { InvestigationInterviewService } from './interviews/interview.service';
-import { InvestigationInterviewController } from './interviews/interview.controller';
-import { InvestigationTemplateService } from './templates/template.service';
-import { TemplateAssignmentService } from './templates/template-assignment.service';
-import { InvestigationTemplateController } from './templates/template.controller';
-import { InvestigationChecklistService } from './checklists/checklist.service';
-import { InvestigationChecklistController } from './checklists/checklist.controller';
+} from "./investigations.controller";
+import { InvestigationsService } from "./investigations.service";
+import { PrismaModule } from "../prisma/prisma.module";
+import { CasesModule } from "../cases/cases.module";
+import { ExportsModule } from "../analytics/exports/exports.module";
+import { InvestigationInterviewService } from "./interviews/interview.service";
+import { InvestigationInterviewController } from "./interviews/interview.controller";
+import { InvestigationTemplateService } from "./templates/template.service";
+import { TemplateAssignmentService } from "./templates/template-assignment.service";
+import { InvestigationTemplateController } from "./templates/template.controller";
+import { InvestigationChecklistService } from "./checklists/checklist.service";
+import { InvestigationChecklistController } from "./checklists/checklist.controller";
 
 /**
  * Module for investigation management.

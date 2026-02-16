@@ -1,8 +1,8 @@
-import { Module } from '@nestjs/common';
-import { FormSchemaService } from './form-schema.service';
-import { FormValidationService } from './form-validation.service';
-import { FormSubmissionService } from './form-submission.service';
-import { FormsController } from './forms.controller';
+import { Module } from "@nestjs/common";
+import { FormSchemaService } from "./form-schema.service";
+import { FormValidationService } from "./form-validation.service";
+import { FormSubmissionService } from "./form-submission.service";
+import { FormsController } from "./forms.controller";
 
 /**
  * FormsModule provides the dynamic form engine for the platform.

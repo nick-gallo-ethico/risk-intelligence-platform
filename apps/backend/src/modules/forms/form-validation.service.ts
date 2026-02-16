@@ -1,13 +1,13 @@
-import { Injectable, Logger } from '@nestjs/common';
-import Ajv from 'ajv';
-import addFormats from 'ajv-formats';
-import ajvErrors from 'ajv-errors';
+import { Injectable, Logger } from "@nestjs/common";
+import Ajv from "ajv";
+import addFormats from "ajv-formats";
+import ajvErrors from "ajv-errors";
 import {
   FormSchema,
   ValidationResult,
   ValidationError,
   ConditionalRule,
-} from './types/form.types';
+} from "./types/form.types";
 
 /**
  * FormValidationService provides JSON Schema validation using Ajv.
@@ -28,7 +28,7 @@ export class FormValidationService {
     this.ajv = new Ajv({
       allErrors: true, // Report all errors, not just first
       coerceTypes: true, // Coerce string "123" to number 123
-      removeAdditional: 'all', // Remove properties not in schema
+      removeAdditional: "all", // Remove properties not in schema
       useDefaults: true, // Apply default values from schema
     });
 
@@ -47,27 +47,28 @@ export class FormValidationService {
    */
   private addCustomFormats(): void {
     // Phone number format (international)
-    this.ajv.addFormat('phone', {
-      type: 'string',
+    this.ajv.addFormat("phone", {
+      type: "string",
       validate: (value: string) => /^\+?[\d\s\-()]+$/.test(value),
     });
 
     // Currency format (decimal with optional cents)
-    this.ajv.addFormat('currency', {
-      type: 'string',
+    this.ajv.addFormat("currency", {
+      type: "string",
       validate: (value: string) => /^\d+(\.\d{1,2})?$/.test(value),
     });
 
     // Social Security Number format (redacted support)
-    this.ajv.addFormat('ssn', {
-      type: 'string',
+    this.ajv.addFormat("ssn", {
+      type: "string",
       validate: (value: string) =>
-        /^\d{3}-?\d{2}-?\d{4}$/.test(value) || /^\*{3}-?\*{2}-?\d{4}$/.test(value),
+        /^\d{3}-?\d{2}-?\d{4}$/.test(value) ||
+        /^\*{3}-?\*{2}-?\d{4}$/.test(value),
     });
 
     // Employee ID format (alphanumeric)
-    this.ajv.addFormat('employee-id', {
-      type: 'string',
+    this.ajv.addFormat("employee-id", {
+      type: "string",
       validate: (value: string) => /^[A-Za-z0-9-_]+$/.test(value),
     });
   }
@@ -76,7 +77,10 @@ export class FormValidationService {
    * Validate submission data against a JSON Schema.
    * Returns validation result with detailed errors.
    */
-  validate(schema: FormSchema, data: Record<string, unknown>): ValidationResult {
+  validate(
+    schema: FormSchema,
+    data: Record<string, unknown>,
+  ): ValidationResult {
     try {
       const validate = this.ajv.compile(schema);
       const dataCopy = JSON.parse(JSON.stringify(data)); // Clone to avoid mutation
@@ -86,11 +90,13 @@ export class FormValidationService {
         return { valid: true, errors: [] };
       }
 
-      const errors: ValidationError[] = (validate.errors || []).map((error) => ({
-        field: this.formatFieldPath(error.instancePath, error.params),
-        message: this.formatErrorMessage(error),
-        keyword: error.keyword,
-      }));
+      const errors: ValidationError[] = (validate.errors || []).map(
+        (error) => ({
+          field: this.formatFieldPath(error.instancePath, error.params),
+          message: this.formatErrorMessage(error),
+          keyword: error.keyword,
+        }),
+      );
 
       return { valid: false, errors };
     } catch (error) {
@@ -99,9 +105,9 @@ export class FormValidationService {
         valid: false,
         errors: [
           {
-            field: 'schema',
-            message: 'Schema validation failed: ' + error.message,
-            keyword: 'compile',
+            field: "schema",
+            message: "Schema validation failed: " + error.message,
+            keyword: "compile",
           },
         ],
       };
@@ -122,9 +128,9 @@ export class FormValidationService {
         valid: false,
         errors: [
           {
-            field: 'schema',
+            field: "schema",
             message: error.message,
-            keyword: 'schema',
+            keyword: "schema",
           },
         ],
       };
@@ -166,30 +172,32 @@ export class FormValidationService {
    * Evaluate a conditional rule's condition against data.
    */
   private evaluateCondition(
-    condition: ConditionalRule['if'],
+    condition: ConditionalRule["if"],
     data: Record<string, unknown>,
   ): boolean {
     const actualValue = this.getNestedValue(data, condition.field);
     const expectedValue = condition.value;
-    const operator = condition.operator || 'eq';
+    const operator = condition.operator || "eq";
 
     switch (operator) {
-      case 'eq':
+      case "eq":
         return actualValue === expectedValue;
-      case 'neq':
+      case "neq":
         return actualValue !== expectedValue;
-      case 'gt':
+      case "gt":
         return Number(actualValue) > Number(expectedValue);
-      case 'lt':
+      case "lt":
         return Number(actualValue) < Number(expectedValue);
-      case 'gte':
+      case "gte":
         return Number(actualValue) >= Number(expectedValue);
-      case 'lte':
+      case "lte":
         return Number(actualValue) <= Number(expectedValue);
-      case 'contains':
+      case "contains":
         return String(actualValue).includes(String(expectedValue));
-      case 'in':
-        return Array.isArray(expectedValue) && expectedValue.includes(actualValue);
+      case "in":
+        return (
+          Array.isArray(expectedValue) && expectedValue.includes(actualValue)
+        );
       default:
         return false;
     }
@@ -199,8 +207,8 @@ export class FormValidationService {
    * Get nested value from object using dot notation.
    */
   private getNestedValue(obj: Record<string, unknown>, path: string): unknown {
-    return path.split('.').reduce((current: unknown, key: string) => {
-      if (current && typeof current === 'object') {
+    return path.split(".").reduce((current: unknown, key: string) => {
+      if (current && typeof current === "object") {
         return (current as Record<string, unknown>)[key];
       }
       return undefined;
@@ -216,14 +224,14 @@ export class FormValidationService {
   ): string {
     // Handle missing property errors
     if (params?.missingProperty) {
-      const basePath = instancePath.replace(/^\//, '').replace(/\//g, '.');
+      const basePath = instancePath.replace(/^\//, "").replace(/\//g, ".");
       const propertyPath = String(params.missingProperty);
       return basePath ? `${basePath}.${propertyPath}` : propertyPath;
     }
 
     // Convert /path/to/field to path.to.field
-    const path = instancePath.replace(/^\//, '').replace(/\//g, '.');
-    return path || 'root';
+    const path = instancePath.replace(/^\//, "").replace(/\//g, ".");
+    return path || "root";
   }
 
   /**
@@ -241,26 +249,26 @@ export class FormValidationService {
 
     // Generate message based on keyword
     switch (error.keyword) {
-      case 'required':
-        return `${error.params?.missingProperty || 'This field'} is required`;
-      case 'type':
+      case "required":
+        return `${error.params?.missingProperty || "This field"} is required`;
+      case "type":
         return `Must be of type ${error.params?.type}`;
-      case 'minLength':
+      case "minLength":
         return `Must be at least ${error.params?.limit} characters`;
-      case 'maxLength':
+      case "maxLength":
         return `Must be at most ${error.params?.limit} characters`;
-      case 'minimum':
+      case "minimum":
         return `Must be at least ${error.params?.limit}`;
-      case 'maximum':
+      case "maximum":
         return `Must be at most ${error.params?.limit}`;
-      case 'pattern':
-        return 'Invalid format';
-      case 'format':
+      case "pattern":
+        return "Invalid format";
+      case "format":
         return `Must be a valid ${error.params?.format}`;
-      case 'enum':
-        return `Must be one of: ${(error.params?.allowedValues as unknown[])?.join(', ')}`;
+      case "enum":
+        return `Must be one of: ${(error.params?.allowedValues as unknown[])?.join(", ")}`;
       default:
-        return 'Validation failed';
+        return "Validation failed";
     }
   }
 }

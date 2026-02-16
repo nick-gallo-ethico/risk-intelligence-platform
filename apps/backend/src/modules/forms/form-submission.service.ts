@@ -3,14 +3,14 @@ import {
   Logger,
   BadRequestException,
   NotFoundException,
-} from '@nestjs/common';
-import { EventEmitter2 } from '@nestjs/event-emitter';
-import { PrismaService } from '../prisma/prisma.service';
-import { FormSubmissionStatus, Prisma } from '@prisma/client';
-import { FormSchemaService } from './form-schema.service';
-import { FormValidationService } from './form-validation.service';
-import { FormSchema, UiSchema } from './types/form.types';
-import { nanoid } from 'nanoid';
+} from "@nestjs/common";
+import { EventEmitter2 } from "@nestjs/event-emitter";
+import { PrismaService } from "../prisma/prisma.service";
+import { FormSubmissionStatus, Prisma } from "@prisma/client";
+import { FormSchemaService } from "./form-schema.service";
+import { FormValidationService } from "./form-validation.service";
+import { FormSchema, UiSchema } from "./types/form.types";
+import { nanoid } from "nanoid";
 
 /**
  * Event emitted when a form is submitted.
@@ -74,7 +74,7 @@ export class FormSubmissionService {
     );
 
     if (!form.isPublished) {
-      throw new BadRequestException('Form is not published');
+      throw new BadRequestException("Form is not published");
     }
 
     const schema = form.schema as unknown as FormSchema;
@@ -90,11 +90,14 @@ export class FormSubmissionService {
       : schema;
 
     // Validate submission
-    const validation = this.validationService.validate(effectiveSchema, params.data);
+    const validation = this.validationService.validate(
+      effectiveSchema,
+      params.data,
+    );
 
     if (!validation.valid) {
       throw new BadRequestException({
-        message: 'Validation failed',
+        message: "Validation failed",
         errors: validation.errors,
       });
     }
@@ -105,7 +108,9 @@ export class FormSubmissionService {
 
     // Validate anonymous submission is allowed
     if (!params.submittedById && !form.allowAnonymous) {
-      throw new BadRequestException('Anonymous submissions are not allowed for this form');
+      throw new BadRequestException(
+        "Anonymous submissions are not allowed for this form",
+      );
     }
 
     // Create submission
@@ -126,12 +131,12 @@ export class FormSubmissionService {
     });
 
     this.logger.log(
-      `Form ${form.name} submitted: ${submission.id}${isAnonymous ? ' (anonymous)' : ''}`,
+      `Form ${form.name} submitted: ${submission.id}${isAnonymous ? " (anonymous)" : ""}`,
     );
 
     // Emit event for downstream processing
     try {
-      this.eventEmitter.emit('form.submitted', {
+      this.eventEmitter.emit("form.submitted", {
         organizationId: params.organizationId,
         submissionId: submission.id,
         formDefinitionId: params.formDefinitionId,
@@ -233,7 +238,7 @@ export class FormSubmissionService {
     });
 
     if (!submission) {
-      throw new NotFoundException('Submission not found');
+      throw new NotFoundException("Submission not found");
     }
 
     return {
@@ -269,7 +274,7 @@ export class FormSubmissionService {
     const [submissions, total] = await Promise.all([
       this.prisma.formSubmission.findMany({
         where,
-        orderBy: { submittedAt: 'desc' },
+        orderBy: { submittedAt: "desc" },
         take: options?.limit ?? 50,
         skip: options?.offset ?? 0,
       }),
@@ -298,7 +303,7 @@ export class FormSubmissionService {
           select: { name: true, formType: true },
         },
       },
-      orderBy: { submittedAt: 'desc' },
+      orderBy: { submittedAt: "desc" },
     });
   }
 
@@ -321,7 +326,7 @@ export class FormSubmissionService {
 
     // Emit status change event
     try {
-      this.eventEmitter.emit('form.submission.status_changed', {
+      this.eventEmitter.emit("form.submission.status_changed", {
         organizationId,
         submissionId: id,
         formDefinitionId: submission.formDefinitionId,

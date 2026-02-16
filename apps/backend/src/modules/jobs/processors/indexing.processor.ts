@@ -144,7 +144,9 @@ export class IndexingProcessor extends WorkerHost {
     }
   }
 
-  private transformCase(entity: Record<string, unknown>): Record<string, unknown> {
+  private transformCase(
+    entity: Record<string, unknown>,
+  ): Record<string, unknown> {
     const primaryCategory = entity.primaryCategory as {
       id: string;
       name: string;
@@ -195,7 +197,9 @@ export class IndexingProcessor extends WorkerHost {
     };
   }
 
-  private transformRiu(entity: Record<string, unknown>): Record<string, unknown> {
+  private transformRiu(
+    entity: Record<string, unknown>,
+  ): Record<string, unknown> {
     const category = entity.category as { id: string; name: string } | null;
     const createdBy = entity.createdBy as {
       id: string;

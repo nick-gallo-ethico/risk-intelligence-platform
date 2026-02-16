@@ -15,13 +15,13 @@
  * @see NotificationService for job creation
  */
 
-import { Processor, WorkerHost, OnWorkerEvent } from '@nestjs/bullmq';
-import { Inject, Logger, forwardRef } from '@nestjs/common';
-import { MailerService } from '@nestjs-modules/mailer';
-import { Job } from 'bullmq';
-import { EMAIL_QUEUE_NAME } from '../queues/email.queue';
-import { EmailJobData } from '../types/job-data.types';
-import { DeliveryTrackerService } from '../../notifications/services/delivery-tracker.service';
+import { Processor, WorkerHost, OnWorkerEvent } from "@nestjs/bullmq";
+import { Inject, Logger, forwardRef } from "@nestjs/common";
+import { MailerService } from "@nestjs-modules/mailer";
+import { Job } from "bullmq";
+import { EMAIL_QUEUE_NAME } from "../queues/email.queue";
+import { EmailJobData } from "../types/job-data.types";
+import { DeliveryTrackerService } from "../../notifications/services/delivery-tracker.service";
 
 /**
  * Extended email job data that includes pre-rendered HTML.
@@ -69,7 +69,9 @@ export class EmailProcessor extends WorkerHost {
    * @param job - BullMQ job containing email data
    * @returns Object with messageId for tracking
    */
-  async process(job: Job<ProcessedEmailJobData>): Promise<{ messageId: string }> {
+  async process(
+    job: Job<ProcessedEmailJobData>,
+  ): Promise<{ messageId: string }> {
     const { notificationId, to, subject, html, organizationId } = job.data;
 
     this.logger.log(
@@ -78,14 +80,16 @@ export class EmailProcessor extends WorkerHost {
 
     // Validate required fields
     if (!to || !subject || !html) {
-      const error = 'Missing required email fields (to, subject, or html)';
+      const error = "Missing required email fields (to, subject, or html)";
       this.logger.error(`Email job ${job.id} failed: ${error}`);
       throw new Error(error);
     }
 
     // Validate notification ID exists for tracking
     if (!notificationId) {
-      this.logger.warn(`Email job ${job.id} missing notificationId - delivery tracking disabled`);
+      this.logger.warn(
+        `Email job ${job.id} missing notificationId - delivery tracking disabled`,
+      );
     }
 
     // Send email via MailerService
@@ -94,11 +98,14 @@ export class EmailProcessor extends WorkerHost {
     if (!result.success) {
       // Record failure for this attempt
       if (notificationId) {
-        await this.deliveryTracker.recordFailed(notificationId, result.error || 'Unknown error');
+        await this.deliveryTracker.recordFailed(
+          notificationId,
+          result.error || "Unknown error",
+        );
       }
 
       // Throw to trigger BullMQ retry
-      throw new Error(result.error || 'Email send failed');
+      throw new Error(result.error || "Email send failed");
     }
 
     // Record successful send with provider's message ID
@@ -134,14 +141,15 @@ export class EmailProcessor extends WorkerHost {
 
       // nodemailer returns messageId in response
       // Format varies by transport: "<uuid@domain>" or just "uuid"
-      const messageId = result.messageId?.replace(/[<>]/g, '') || undefined;
+      const messageId = result.messageId?.replace(/[<>]/g, "") || undefined;
 
       return {
         success: true,
         messageId,
       };
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
 
       this.logger.error(`Failed to send email to ${to}: ${errorMessage}`);
 
@@ -155,11 +163,11 @@ export class EmailProcessor extends WorkerHost {
   /**
    * Called when job completes successfully.
    */
-  @OnWorkerEvent('completed')
+  @OnWorkerEvent("completed")
   onCompleted(job: Job<ProcessedEmailJobData>): void {
     const result = job.returnvalue as { messageId: string } | undefined;
     this.logger.log(
-      `Email job ${job.id} completed successfully, messageId: ${result?.messageId || 'N/A'}`,
+      `Email job ${job.id} completed successfully, messageId: ${result?.messageId || "N/A"}`,
     );
   }
 
@@ -167,10 +175,15 @@ export class EmailProcessor extends WorkerHost {
    * Called when job fails.
    * If all retries exhausted, records permanent failure for compliance audit.
    */
-  @OnWorkerEvent('failed')
-  async onFailed(job: Job<ProcessedEmailJobData> | undefined, error: Error): Promise<void> {
+  @OnWorkerEvent("failed")
+  async onFailed(
+    job: Job<ProcessedEmailJobData> | undefined,
+    error: Error,
+  ): Promise<void> {
     if (!job) {
-      this.logger.error(`Email job failed with no job context: ${error.message}`);
+      this.logger.error(
+        `Email job failed with no job context: ${error.message}`,
+      );
       return;
     }
 
@@ -194,7 +207,7 @@ export class EmailProcessor extends WorkerHost {
   /**
    * Called when job becomes active (started processing).
    */
-  @OnWorkerEvent('active')
+  @OnWorkerEvent("active")
   onActive(job: Job<ProcessedEmailJobData>): void {
     this.logger.debug(
       `Email job ${job.id} is now active (attempt ${job.attemptsMade + 1})`,
@@ -204,7 +217,7 @@ export class EmailProcessor extends WorkerHost {
   /**
    * Called when job is stalled (processing took too long).
    */
-  @OnWorkerEvent('stalled')
+  @OnWorkerEvent("stalled")
   onStalled(jobId: string): void {
     this.logger.warn(`Email job ${jobId} has stalled and will be reprocessed`);
   }
@@ -212,7 +225,7 @@ export class EmailProcessor extends WorkerHost {
   /**
    * Called on worker error.
    */
-  @OnWorkerEvent('error')
+  @OnWorkerEvent("error")
   onError(error: Error): void {
     this.logger.error(`Email worker error: ${error.message}`, error.stack);
   }
