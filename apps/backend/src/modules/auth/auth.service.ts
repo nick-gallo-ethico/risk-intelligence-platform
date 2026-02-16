@@ -7,6 +7,7 @@ import {
 import { ConfigService } from "@nestjs/config";
 import { JwtService, JwtSignOptions } from "@nestjs/jwt";
 import * as bcrypt from "bcrypt";
+import { UserRole } from "@prisma/client";
 import { PrismaService } from "../prisma/prisma.service";
 import { LoginDto, AuthResponseDto, AuthUserDto } from "./dto";
 import {
@@ -231,7 +232,7 @@ export class AuthService {
       email: string;
       firstName: string;
       lastName: string;
-      role: string;
+      role: UserRole;
       organizationId: string;
       mfaEnabled?: boolean;
     },
@@ -260,7 +261,7 @@ export class AuthService {
         email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
-        role: user.role as any,
+        role: user.role,
         organizationId: user.organizationId,
       },
     };
@@ -320,7 +321,7 @@ export class AuthService {
       id: string;
       email: string;
       organizationId: string;
-      role: string;
+      role: UserRole;
     },
     sessionId: string,
     mfaVerified: boolean,
@@ -329,7 +330,7 @@ export class AuthService {
       sub: user.id,
       email: user.email,
       organizationId: user.organizationId,
-      role: user.role as any,
+      role: user.role,
       sessionId,
       type: "access",
       mfaVerified, // SEC-09: Session-bound MFA verification

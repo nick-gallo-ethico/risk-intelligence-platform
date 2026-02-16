@@ -168,13 +168,27 @@ export interface DynamicPrismaModel {
     orderBy?:
       | Record<string, "asc" | "desc">
       | Array<Record<string, "asc" | "desc">>;
-    include?: Record<string, boolean | object>;
-    select?: Record<string, boolean | object>;
+    include?: Record<string, unknown>;
+    select?: Record<string, unknown>;
   }): Promise<unknown[]>;
   findFirst(args?: {
     where?: Record<string, unknown>;
+    include?: Record<string, unknown>;
+    select?: Record<string, unknown>;
   }): Promise<unknown | null>;
   count(args?: { where?: Record<string, unknown> }): Promise<number>;
+  create(args: {
+    data: Record<string, unknown>;
+    include?: Record<string, unknown>;
+    select?: Record<string, unknown>;
+  }): Promise<unknown>;
+  update(args: {
+    where: Record<string, unknown>;
+    data: Record<string, unknown>;
+    include?: Record<string, unknown>;
+    select?: Record<string, unknown>;
+  }): Promise<unknown>;
+  delete(args: { where: Record<string, unknown> }): Promise<unknown>;
   groupBy(args: {
     by: string[];
     where?: Record<string, unknown>;

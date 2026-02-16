@@ -8,6 +8,7 @@ import {
   AssociationEventContext,
   DeleteResult,
 } from "./association.types";
+import { getDynamicPrismaModel } from "../../../common/types/prisma.types";
 
 /**
  * Abstract base class for association services.
@@ -163,8 +164,10 @@ export abstract class BaseAssociationService<
     const include = this.getCreateInclude();
 
     // Create the association using dynamic Prisma model access
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const model = (this.prisma as any)[this.config.prismaModelName];
+    const model = getDynamicPrismaModel(
+      this.prisma,
+      this.config.prismaModelName,
+    );
     const entity = (await model.create({
       data: createData,
       include,
@@ -218,9 +221,11 @@ export abstract class BaseAssociationService<
     const entity = await this.findByIdOrThrow(associationId, organizationId);
 
     // Delete it
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const model = (this.prisma as any)[this.config.prismaModelName];
-    await model.delete({
+    const deleteModel = getDynamicPrismaModel(
+      this.prisma,
+      this.config.prismaModelName,
+    );
+    await deleteModel.delete({
       where: { id: associationId },
     });
 
@@ -265,9 +270,11 @@ export abstract class BaseAssociationService<
     associationId: string,
     organizationId: string,
   ): Promise<TEntity> {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const model = (this.prisma as any)[this.config.prismaModelName];
-    const entity = await model.findFirst({
+    const findModel = getDynamicPrismaModel(
+      this.prisma,
+      this.config.prismaModelName,
+    );
+    const entity = await findModel.findFirst({
       where: { id: associationId, organizationId },
       include: this.getCreateInclude(),
     });

@@ -10,6 +10,12 @@ import { Request } from "express";
 import { SsoService } from "../sso/sso.service";
 import { SsoConfigService } from "../sso/sso-config.service";
 import { SsoUserData } from "../interfaces";
+import {
+  SamlProfile,
+  getEmailFromProfile,
+  getFirstNameFromProfile,
+  getLastNameFromProfile,
+} from "../../../common/types/saml.types";
 
 /**
  * SAML 2.0 Strategy with multi-tenant support.
@@ -131,47 +137,27 @@ export class SamlStrategy extends PassportStrategy(Strategy, "saml") {
 
   /**
    * Extract email from SAML profile.
-   * SAML assertions can have email in various attributes.
+   * Uses typed SamlProfile interface from common types.
    */
   private extractEmail(profile: Profile): string {
-    return (
-      profile.nameID ||
-      profile.email ||
-      (profile as any)[
-        "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress"
-      ] ||
-      (profile as any)[
-        "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/upn"
-      ] ||
-      ""
-    );
+    // Cast to SamlProfile for type-safe claim access
+    const samlProfile = profile as unknown as SamlProfile;
+    return getEmailFromProfile(samlProfile) || "";
   }
 
   /**
    * Extract first name from SAML profile.
    */
   private extractFirstName(profile: Profile): string {
-    return (
-      profile.firstName ||
-      (profile as any).givenName ||
-      (profile as any)[
-        "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/givenname"
-      ] ||
-      ""
-    );
+    const samlProfile = profile as unknown as SamlProfile;
+    return getFirstNameFromProfile(samlProfile);
   }
 
   /**
    * Extract last name from SAML profile.
    */
   private extractLastName(profile: Profile): string {
-    return (
-      profile.lastName ||
-      (profile as any).surname ||
-      (profile as any)[
-        "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/surname"
-      ] ||
-      ""
-    );
+    const samlProfile = profile as unknown as SamlProfile;
+    return getLastNameFromProfile(samlProfile);
   }
 }

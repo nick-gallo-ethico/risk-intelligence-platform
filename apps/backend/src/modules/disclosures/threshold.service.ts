@@ -356,13 +356,14 @@ export class ThresholdService {
    * Evaluates a single rule against disclosure data.
    */
   private async evaluateRule(
-    rule: any,
+    rule: ThresholdRule,
     disclosureData: Record<string, unknown>,
     personId: string,
     organizationId: string,
   ): Promise<RuleEvaluationResult> {
-    const conditions = rule.conditions as RuleConditionDto[];
-    const aggregateConfig = rule.aggregateConfig as AggregateConfigDto | null;
+    const conditions = rule.conditions as unknown as RuleConditionDto[];
+    const aggregateConfig =
+      rule.aggregateConfig as unknown as AggregateConfigDto | null;
 
     let evaluatedValue = 0;
     let aggregateBreakdown: AggregateBreakdown | undefined;
@@ -550,8 +551,13 @@ export class ThresholdService {
 
   /**
    * Converts our condition DTOs to json-rules-engine format.
+   * Returns structure compatible with json-rules-engine TopLevelCondition.
    */
-  private buildEngineConditions(conditions: RuleConditionDto[]): any {
+  private buildEngineConditions(
+    conditions: RuleConditionDto[],
+  ):
+    | { all: Array<{ fact: string; operator: string; value: unknown }> }
+    | { any: Array<{ fact: string; operator: string; value: unknown }> } {
     if (conditions.length === 0) {
       return { all: [] };
     }
@@ -635,7 +641,7 @@ export class ThresholdService {
    * Logs a threshold trigger for audit and analytics.
    */
   private async logTrigger(
-    rule: any,
+    rule: ThresholdRule,
     disclosureId: string,
     personId: string,
     result: RuleEvaluationResult,
@@ -672,17 +678,19 @@ export class ThresholdService {
   /**
    * Maps a Prisma ThresholdRule to response DTO.
    */
-  private mapToResponse(rule: any): ThresholdRuleResponseDto {
+  private mapToResponse(rule: ThresholdRule): ThresholdRuleResponseDto {
     return {
       id: rule.id,
       organizationId: rule.organizationId,
       name: rule.name,
-      description: rule.description,
+      description: rule.description ?? undefined,
       disclosureTypes: rule.disclosureTypes,
-      conditions: rule.conditions as RuleConditionDto[],
-      aggregateConfig: rule.aggregateConfig as AggregateConfigDto | undefined,
+      conditions: rule.conditions as unknown as RuleConditionDto[],
+      aggregateConfig: rule.aggregateConfig as unknown as
+        | AggregateConfigDto
+        | undefined,
       action: rule.action,
-      actionConfig: rule.actionConfig as any,
+      actionConfig: rule.actionConfig as Record<string, unknown> | undefined,
       applyMode: rule.applyMode,
       priority: rule.priority,
       isActive: rule.isActive,

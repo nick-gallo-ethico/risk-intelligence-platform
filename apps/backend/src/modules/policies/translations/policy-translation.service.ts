@@ -41,6 +41,13 @@ import {
   getSupportedLanguageCodes,
 } from "./dto";
 
+/**
+ * Result type from the translate skill.
+ */
+interface TranslateSkillResult {
+  translated: string;
+}
+
 // Events
 
 /**
@@ -201,10 +208,9 @@ export class PolicyTranslationService {
         );
       }
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      translatedContent = (contentResult.data as any).translated;
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      translatedTitle = (titleResult.data as any).translated;
+      translatedContent = (contentResult.data as TranslateSkillResult)
+        .translated;
+      translatedTitle = (titleResult.data as TranslateSkillResult).translated;
       translatedBy = TranslationSource.AI;
       aiModel = contentResult.metadata?.model || null;
 
@@ -542,10 +548,10 @@ export class PolicyTranslationService {
       );
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const translatedContent = (contentResult.data as any).translated;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const translatedTitle = (titleResult.data as any).translated;
+    const translatedContent = (contentResult.data as TranslateSkillResult)
+      .translated;
+    const translatedTitle = (titleResult.data as TranslateSkillResult)
+      .translated;
     const plainText = this.extractPlainText(translatedContent);
 
     const updated = await this.prisma.policyVersionTranslation.update({

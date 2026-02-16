@@ -12,6 +12,12 @@ import {
 } from "class-validator";
 import { Type } from "class-transformer";
 import { WorkflowEntityType } from "@prisma/client";
+import {
+  WorkflowStep,
+  StageGate,
+  TransitionCondition,
+  TransitionAction,
+} from "../types/workflow.types";
 
 /**
  * DTO for workflow stage definition.
@@ -33,7 +39,7 @@ export class WorkflowStageDto {
 
   @IsArray()
   @IsOptional()
-  steps?: any[]; // WorkflowStep[] - validated at service layer
+  steps?: WorkflowStep[];
 
   @IsInt()
   @IsOptional()
@@ -42,7 +48,7 @@ export class WorkflowStageDto {
 
   @IsArray()
   @IsOptional()
-  gates?: any[]; // StageGate[] - validated at service layer
+  gates?: StageGate[];
 
   @IsBoolean()
   @IsOptional()
@@ -68,11 +74,11 @@ export class WorkflowTransitionDto {
 
   @IsArray()
   @IsOptional()
-  conditions?: any[]; // TransitionCondition[] - validated at service layer
+  conditions?: TransitionCondition[];
 
   @IsArray()
   @IsOptional()
-  actions?: any[]; // TransitionAction[] - validated at service layer
+  actions?: TransitionAction[];
 
   @IsBoolean()
   @IsOptional()

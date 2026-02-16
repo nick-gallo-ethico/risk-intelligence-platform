@@ -568,7 +568,7 @@ describe("AuthService", () => {
       email: mockEmail,
       firstName: "Test",
       lastName: "User",
-      role: "COMPLIANCE_OFFICER",
+      role: "COMPLIANCE_OFFICER" as const,
       organizationId: mockOrgId,
     };
 

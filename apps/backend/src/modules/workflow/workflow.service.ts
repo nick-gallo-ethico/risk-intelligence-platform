@@ -130,8 +130,10 @@ export class WorkflowService {
     // Validate if stages/transitions are being updated
     if (dto.stages || dto.transitions || dto.initialStage) {
       this.validateTemplate({
-        stages: dto.stages || (template.stages as any),
-        transitions: dto.transitions || (template.transitions as any),
+        stages: dto.stages || (template.stages as unknown as WorkflowStage[]),
+        transitions:
+          dto.transitions ||
+          (template.transitions as unknown as WorkflowTransition[]),
         initialStage: dto.initialStage || template.initialStage,
       } as CreateWorkflowTemplateDto);
     }
@@ -361,7 +363,15 @@ export class WorkflowService {
     organizationId: string,
     filters: ListInstancesDto,
   ): Promise<{
-    data: any[];
+    data: Array<{
+      id: string;
+      entityId: string;
+      entityType: string;
+      currentStage: string;
+      status: WorkflowInstanceStatus;
+      createdAt: Date;
+      template?: { id: string; name: string; version: number } | null;
+    }>;
     total: number;
     page: number;
     limit: number;
@@ -369,7 +379,12 @@ export class WorkflowService {
     const { templateId, status, entityType, page = 1, limit = 20 } = filters;
 
     // Build where clause
-    const where: any = { organizationId };
+    const where: {
+      organizationId: string;
+      templateId?: string;
+      status?: WorkflowInstanceStatus;
+      entityType?: WorkflowEntityType;
+    } = { organizationId };
     if (templateId) where.templateId = templateId;
     if (status) where.status = status;
     if (entityType) where.entityType = entityType;

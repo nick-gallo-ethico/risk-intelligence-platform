@@ -10,6 +10,7 @@ import {
   TableResultData,
   ChartResultData,
 } from "../dto/ai-query.dto";
+import { getDynamicPrismaModel } from "../../../../common/types/prisma.types";
 
 /**
  * QueryExecutorService handles database query execution for AI-powered analytics.
@@ -96,7 +97,7 @@ export class QueryExecutorService {
     queryArgs: { where: Record<string, unknown> },
     parsedQuery: ParsedQuery,
   ): Promise<{ data: KpiResultData; visualizationType: VisualizationType }> {
-    const count = await (this.prisma as any)[modelName].count({
+    const count = await getDynamicPrismaModel(this.prisma, modelName).count({
       where: queryArgs.where,
     });
 
@@ -118,9 +119,11 @@ export class QueryExecutorService {
         },
       };
 
-      previousValue = await (this.prisma as any)[modelName].count({
-        where: previousWhere,
-      });
+      previousValue = await getDynamicPrismaModel(this.prisma, modelName).count(
+        {
+          where: previousWhere,
+        },
+      );
 
       if (previousValue !== undefined && previousValue > 0) {
         changePercent = ((count - previousValue) / previousValue) * 100;
@@ -158,12 +161,12 @@ export class QueryExecutorService {
     limit: number,
   ): Promise<{ data: TableResultData; visualizationType: VisualizationType }> {
     const [records, totalCount] = await Promise.all([
-      (this.prisma as any)[modelName].findMany({
+      getDynamicPrismaModel(this.prisma, modelName).findMany({
         where: queryArgs.where,
         orderBy: queryArgs.orderBy || [{ createdAt: "desc" }],
         take: Math.min(limit, 1000),
       }),
-      (this.prisma as any)[modelName].count({
+      getDynamicPrismaModel(this.prisma, modelName).count({
         where: queryArgs.where,
       }),
     ]);
@@ -216,16 +219,18 @@ export class QueryExecutorService {
     const groupField = parsedQuery.groupBy?.[0]?.field || "status";
 
     // Use Prisma groupBy for distribution
-    const results = await (this.prisma as any)[modelName].groupBy({
-      by: [groupField],
-      where: queryArgs.where,
-      _count: true,
-      orderBy: {
-        _count: {
-          [groupField]: "desc",
+    const results = await getDynamicPrismaModel(this.prisma, modelName).groupBy(
+      {
+        by: [groupField],
+        where: queryArgs.where,
+        _count: true,
+        orderBy: {
+          _count: {
+            [groupField]: "desc",
+          },
         },
       },
-    });
+    );
 
     const data: ChartResultData = {
       type: "chart",
@@ -266,7 +271,10 @@ export class QueryExecutorService {
     const dateField = parsedQuery.dateRange?.field || "createdAt";
     const dateTrunc = parsedQuery.groupBy?.[0]?.dateTrunc || "month";
 
-    const results = await (this.prisma as any)[modelName].findMany({
+    const results = await getDynamicPrismaModel(
+      this.prisma,
+      modelName,
+    ).findMany({
       where: queryArgs.where,
       select: {
         [dateField]: true,
@@ -277,7 +285,11 @@ export class QueryExecutorService {
     });
 
     // Group by time period
-    const groupedData = this.groupByTimePeriod(results, dateField, dateTrunc);
+    const groupedData = this.groupByTimePeriod(
+      results as Array<Record<string, unknown>>,
+      dateField,
+      dateTrunc,
+    );
 
     return {
       data: {
@@ -314,9 +326,11 @@ export class QueryExecutorService {
     // Build aggregation query
     switch (aggregation.function) {
       case "count":
-        const count = await (this.prisma as any)[modelName].count({
-          where: queryArgs.where,
-        });
+        const count = await getDynamicPrismaModel(this.prisma, modelName).count(
+          {
+            where: queryArgs.where,
+          },
+        );
         return {
           data: {
             type: "kpi",
@@ -336,12 +350,15 @@ export class QueryExecutorService {
             `Aggregation ${aggregation.function} requires a field`,
           );
         }
-        const result = await (this.prisma as any)[modelName].aggregate({
+        const result = (await getDynamicPrismaModel(
+          this.prisma,
+          modelName,
+        ).aggregate({
           where: queryArgs.where,
           [`_${aggregation.function}`]: {
             [aggregation.field]: true,
           },
-        });
+        })) as Record<string, Record<string, number> | undefined>;
         const value =
           result[`_${aggregation.function}`]?.[aggregation.field] || 0;
         return {

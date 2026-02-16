@@ -36,6 +36,7 @@ import { JwtAuthGuard, RolesGuard } from "../../common/guards";
 import { CurrentUser, Roles } from "../../common/decorators";
 import { UserRole } from "../../common/decorators/roles.decorator";
 import { RequestUser } from "./interfaces/jwt-payload.interface";
+import { SsoAuthenticatedUser } from "./interfaces/sso-user.interface";
 import {
   SsoConfigService,
   UpdateSsoConfigDto,
@@ -231,7 +232,7 @@ export class AuthController {
   @ApiResponse({ status: 200, type: AuthResponseDto })
   async azureAdCallback(@Req() req: Request): Promise<AuthResponseDto> {
     // User is already validated by AzureAdStrategy
-    const user = req.user as any;
+    const user = req.user as SsoAuthenticatedUser | undefined;
 
     if (!user) {
       throw new UnauthorizedException("Azure AD authentication failed");
@@ -282,7 +283,7 @@ export class AuthController {
   @ApiResponse({ status: 200, type: AuthResponseDto })
   async googleCallback(@Req() req: Request): Promise<AuthResponseDto> {
     // User is already validated by GoogleStrategy
-    const user = req.user as any;
+    const user = req.user as SsoAuthenticatedUser | undefined;
 
     if (!user) {
       throw new UnauthorizedException("Google OAuth authentication failed");
@@ -339,7 +340,7 @@ export class AuthController {
     @Req() req: Request,
   ): Promise<AuthResponseDto> {
     // User is already validated by SamlStrategy
-    const user = req.user as any;
+    const user = req.user as SsoAuthenticatedUser | undefined;
 
     if (!user) {
       throw new UnauthorizedException("SAML authentication failed");

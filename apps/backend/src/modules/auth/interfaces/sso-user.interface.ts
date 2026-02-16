@@ -1,7 +1,15 @@
+import { Organization, User } from "@prisma/client";
+
 /**
  * SSO provider identifiers
  */
 export type SsoProvider = "azure-ad" | "google" | "saml";
+
+/**
+ * User returned from SSO callback validation (from Passport strategies).
+ * This is attached to req.user after successful SSO authentication.
+ */
+export type SsoAuthenticatedUser = User & { organization: Organization };
 
 /**
  * User data extracted from SSO provider callback.
