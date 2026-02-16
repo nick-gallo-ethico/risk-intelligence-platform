@@ -17,7 +17,7 @@ import { ClientSuccessService } from "./client-success.service";
 import { PortfolioResponse, PortfolioQueryDto } from "./dto/portfolio.dto";
 import { BenchmarksResponse, BenchmarksQueryDto } from "./dto/benchmarks.dto";
 
-// TODO: Add InternalUserGuard when implemented
+// AUTH-TODO: Add InternalUserGuard when implemented - tracked in SLOP-05
 // @UseGuards(InternalUserGuard)
 @Controller("internal/client-success")
 export class ClientSuccessController {

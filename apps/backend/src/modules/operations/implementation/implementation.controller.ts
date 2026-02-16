@@ -46,7 +46,7 @@ export class ImplementationController {
     private readonly checklistService: ChecklistService,
   ) {}
 
-  // ==================== Project Endpoints ====================
+  // Project Endpoints
 
   /**
    * Create a new implementation project.
@@ -55,7 +55,7 @@ export class ImplementationController {
   @Post()
   @HttpCode(HttpStatus.CREATED)
   async createProject(@Body() dto: CreateProjectDto) {
-    // TODO: Get internal user ID from auth context
+    // AUTH-TODO: Get internal user ID from auth context - tracked in SLOP-05
     const internalUserId = dto.leadImplementerId;
     return this.implementationService.createProject(dto, internalUserId);
   }
@@ -84,7 +84,7 @@ export class ImplementationController {
     @Param("id", ParseUUIDPipe) id: string,
     @Body() dto: UpdateProjectDto,
   ) {
-    // TODO: Get internal user ID from auth context
+    // AUTH-TODO: Get internal user ID from auth context - tracked in SLOP-05
     const internalUserId = "system";
     return this.implementationService.updateProject(id, dto, internalUserId);
   }
@@ -95,7 +95,7 @@ export class ImplementationController {
   @Post(":id/complete")
   @HttpCode(HttpStatus.OK)
   async completeProject(@Param("id", ParseUUIDPipe) id: string) {
-    // TODO: Get internal user ID from auth context
+    // AUTH-TODO: Get internal user ID from auth context - tracked in SLOP-05
     const internalUserId = "system";
     return this.implementationService.completeProject(id, internalUserId);
   }
@@ -109,7 +109,7 @@ export class ImplementationController {
     @Param("id", ParseUUIDPipe) id: string,
     @Body() dto: TransitionPhaseDto,
   ) {
-    // TODO: Get internal user ID from auth context
+    // AUTH-TODO: Get internal user ID from auth context - tracked in SLOP-05
     const internalUserId = "system";
     await this.implementationService.transitionPhase(
       id,
@@ -119,7 +119,7 @@ export class ImplementationController {
     return { success: true, phase: dto.phase };
   }
 
-  // ==================== Task Endpoints ====================
+  // Task Endpoints
 
   /**
    * Get all tasks for a project, grouped by phase.
@@ -149,7 +149,7 @@ export class ImplementationController {
     @Param("taskId", ParseUUIDPipe) taskId: string,
     @Body() dto: UpdateTaskDto,
   ) {
-    // TODO: Get internal user ID from auth context
+    // AUTH-TODO: Get internal user ID from auth context - tracked in SLOP-05
     const internalUserId = "system";
     const task = await this.checklistService.updateTask(
       taskId,
@@ -173,7 +173,7 @@ export class ImplementationController {
     @Param("phase") phase: ImplementationPhase,
     @Body("status") status: ImplTaskStatus,
   ) {
-    // TODO: Get internal user ID from auth context
+    // AUTH-TODO: Get internal user ID from auth context - tracked in SLOP-05
     const internalUserId = "system";
     const result = await this.checklistService.bulkUpdatePhase(
       projectId,
@@ -196,7 +196,7 @@ export class ImplementationController {
     return this.checklistService.calculateProjectHealth(projectId);
   }
 
-  // ==================== Blocker Endpoints ====================
+  // Blocker Endpoints
 
   /**
    * Get all blockers for a project.
@@ -221,7 +221,7 @@ export class ImplementationController {
     @Param("id", ParseUUIDPipe) projectId: string,
     @Body() dto: CreateBlockerDto,
   ) {
-    // TODO: Get internal user ID from auth context
+    // AUTH-TODO: Get internal user ID from auth context - tracked in SLOP-05
     const internalUserId = "system";
     return this.implementationService.createBlocker(
       projectId,
@@ -239,7 +239,7 @@ export class ImplementationController {
     @Param("blockerId", ParseUUIDPipe) blockerId: string,
     @Body() dto: UpdateBlockerDto,
   ) {
-    // TODO: Get internal user ID from auth context
+    // AUTH-TODO: Get internal user ID from auth context - tracked in SLOP-05
     const internalUserId = "system";
     return this.implementationService.updateBlocker(
       blockerId,

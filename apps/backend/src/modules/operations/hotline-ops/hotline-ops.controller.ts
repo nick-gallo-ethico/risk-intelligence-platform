@@ -42,9 +42,7 @@ export class HotlineOpsController {
     private readonly operatorStatusService: OperatorStatusService,
   ) {}
 
-  // ===========================================
   // Directive Management Endpoints
-  // ===========================================
 
   /**
    * List all directives across tenants.
@@ -87,11 +85,11 @@ export class HotlineOpsController {
 
   /**
    * Create a new directive.
-   * TODO: Get user ID from internal auth context.
+   * AUTH-TODO: Get user ID from internal auth context - tracked in SLOP-05.
    */
   @Post("directives")
   async createDirective(@Body() dto: CreateDirectiveDto) {
-    // TODO: Extract user ID from internal auth guard
+    // AUTH-TODO: Extract user ID from internal auth guard - tracked in SLOP-05
     const userId = "internal-user-placeholder";
     return this.directiveAdminService.createDirective(dto, userId);
   }
@@ -99,33 +97,31 @@ export class HotlineOpsController {
   /**
    * Update an existing directive.
    * Use approveAndPublish: true to approve a client draft.
-   * TODO: Get user ID from internal auth context.
+   * AUTH-TODO: Get user ID from internal auth context - tracked in SLOP-05.
    */
   @Patch("directives/:id")
   async updateDirective(
     @Param("id", ParseUUIDPipe) id: string,
     @Body() dto: UpdateDirectiveDto,
   ) {
-    // TODO: Extract user ID from internal auth guard
+    // AUTH-TODO: Extract user ID from internal auth guard - tracked in SLOP-05
     const userId = "internal-user-placeholder";
     return this.directiveAdminService.updateDirective(id, dto, userId);
   }
 
   /**
    * Soft delete a directive.
-   * TODO: Get user ID from internal auth context.
+   * AUTH-TODO: Get user ID from internal auth context - tracked in SLOP-05.
    */
   @Delete("directives/:id")
   async deleteDirective(@Param("id", ParseUUIDPipe) id: string) {
-    // TODO: Extract user ID from internal auth guard
+    // AUTH-TODO: Extract user ID from internal auth guard - tracked in SLOP-05
     const userId = "internal-user-placeholder";
     await this.directiveAdminService.deleteDirective(id, userId);
     return { success: true };
   }
 
-  // ===========================================
   // QA Queue Endpoints
-  // ===========================================
 
   /**
    * Get global QA queue across all tenants.
@@ -155,11 +151,11 @@ export class HotlineOpsController {
   /**
    * Perform bulk QA action on multiple RIUs.
    * Supports: APPROVE, REJECT, REASSIGN, CHANGE_PRIORITY.
-   * TODO: Get user ID from internal auth context.
+   * AUTH-TODO: Get user ID from internal auth context - tracked in SLOP-05.
    */
   @Post("qa-queue/bulk-action")
   async performBulkAction(@Body() dto: BulkQaActionDto) {
-    // TODO: Extract user ID from internal auth guard
+    // AUTH-TODO: Extract user ID from internal auth guard - tracked in SLOP-05
     const userId = "internal-user-placeholder";
     return this.bulkQaService.performBulkAction(dto, userId);
   }
@@ -190,9 +186,7 @@ export class HotlineOpsController {
     return { success: true };
   }
 
-  // ===========================================
   // Operator Status Endpoints
-  // ===========================================
 
   /**
    * Get live operator status board.

@@ -68,7 +68,7 @@ export class GoLiveController {
     @Param("gateId") gateId: string,
     @Body() dto: UpdateGateDto,
   ) {
-    // TODO: Get user ID from auth context when auth is implemented
+    // AUTH-TODO: Get user ID from auth context when internal auth is implemented - tracked in SLOP-05
     const checkedById = "internal-user-placeholder";
     await this.goLiveService.updateGate(projectId, gateId, dto, checkedById);
     return { success: true, message: `Gate ${gateId} updated` };
@@ -91,7 +91,7 @@ export class GoLiveController {
     @Param("itemId") itemId: string,
     @Body() dto: UpdateReadinessItemDto,
   ) {
-    // TODO: Get user ID from auth context when auth is implemented
+    // AUTH-TODO: Get user ID from auth context when internal auth is implemented - tracked in SLOP-05
     const completedById = "internal-user-placeholder";
     await this.goLiveService.updateReadinessItem(
       projectId,
@@ -122,7 +122,7 @@ export class GoLiveController {
     @Param("projectId", ParseUUIDPipe) projectId: string,
     @Body() dto: InternalApprovalDto,
   ) {
-    // TODO: Get user ID from auth context when auth is implemented
+    // AUTH-TODO: Get user ID from auth context when internal auth is implemented - tracked in SLOP-05
     const approverId = "internal-user-placeholder";
     await this.goLiveService.recordInternalApproval(projectId, dto, approverId);
     return { success: true, message: "Internal approval recorded" };

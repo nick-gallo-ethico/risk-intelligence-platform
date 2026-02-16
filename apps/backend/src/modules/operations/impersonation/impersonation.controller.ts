@@ -75,12 +75,12 @@ export class ImpersonationController {
    * - sessionId: UUID of created session
    * - expiresAt: Session expiration timestamp
    *
-   * TODO: Add InternalAuthGuard when internal auth is implemented
+   * AUTH-TODO: Add InternalAuthGuard when internal auth is implemented - tracked in SLOP-05
    */
   @Post("sessions")
-  // @UseGuards(InternalAuthGuard)
+  // @UseGuards(InternalAuthGuard) - AUTH-TODO
   async startSession(@Body() dto: StartSessionDto, @Req() req: Request) {
-    // TODO: Get operator ID from internal auth
+    // AUTH-TODO: Get operator ID from internal auth - tracked in SLOP-05
     const operatorUserId = req.internalUser?.id;
     if (!operatorUserId) {
       // For development/testing, require operatorUserId in headers
