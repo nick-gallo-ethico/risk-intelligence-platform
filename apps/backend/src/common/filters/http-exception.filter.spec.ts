@@ -1,15 +1,14 @@
-// =============================================================================
-// HTTP EXCEPTION FILTER - UNIT TESTS
-// =============================================================================
-//
-// Tests for the HttpExceptionFilter.
-// Key test scenarios:
-// - HttpException handling (message string, array, custom error)
-// - Generic Error handling with stack trace logging
-// - Non-Error exception handling and logging (SEC-06)
-// - Response format (timestamp, path, method, requestId)
-// - All exception types produce structured JSON responses
-// =============================================================================
+/**
+ * HTTP EXCEPTION FILTER - UNIT TESTS
+ *
+ * Tests for the HttpExceptionFilter.
+ * Key test scenarios:
+ * - HttpException handling (message string, array, custom error)
+ * - Generic Error handling with stack trace logging
+ * - Non-Error exception handling and logging (SEC-06)
+ * - Response format (timestamp, path, method, requestId)
+ * - All exception types produce structured JSON responses
+ */
 
 import { HttpExceptionFilter } from "./http-exception.filter";
 import { HttpException, HttpStatus, Logger } from "@nestjs/common";
@@ -58,10 +57,7 @@ describe("HttpExceptionFilter", () => {
     loggerErrorSpy.mockRestore();
   });
 
-  // -------------------------------------------------------------------------
   // HTTP EXCEPTION TESTS
-  // -------------------------------------------------------------------------
-
   describe("HttpException handling", () => {
     it("should handle HttpException with message string", () => {
       // Arrange
@@ -157,10 +153,7 @@ describe("HttpExceptionFilter", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
   // GENERIC ERROR TESTS
-  // -------------------------------------------------------------------------
-
   describe("Generic Error handling", () => {
     it("should handle generic Error with 500 status", () => {
       // Arrange
@@ -219,10 +212,7 @@ describe("HttpExceptionFilter", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
   // NON-ERROR EXCEPTION TESTS (SEC-06)
-  // -------------------------------------------------------------------------
-
   describe("Non-Error exception handling (SEC-06)", () => {
     it("should handle string exception and return 500", () => {
       // Arrange
@@ -343,10 +333,7 @@ describe("HttpExceptionFilter", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
   // RESPONSE FORMAT TESTS
-  // -------------------------------------------------------------------------
-
   describe("Response format", () => {
     it("should include timestamp in response", () => {
       // Arrange
@@ -433,10 +420,7 @@ describe("HttpExceptionFilter", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
   // EDGE CASES
-  // -------------------------------------------------------------------------
-
   describe("Edge cases", () => {
     it("should handle HttpException with null response object", () => {
       // Arrange - Create HttpException with object that has null fields

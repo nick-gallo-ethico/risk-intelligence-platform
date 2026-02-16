@@ -1,16 +1,15 @@
-// =============================================================================
-// ROLES GUARD - UNIT TESTS
-// =============================================================================
-//
-// Tests for the RolesGuard.
-// Key test scenarios:
-// - Allow access when no roles are specified (no @Roles decorator)
-// - Allow access when user has one of the required roles
-// - Throw ForbiddenException when user is missing from request
-// - Throw ForbiddenException when user lacks required role
-// - Check both handler and class level for roles metadata
-// - Allow access when user.role matches any role in requiredRoles array
-// =============================================================================
+/**
+ * ROLES GUARD - UNIT TESTS
+ *
+ * Tests for the RolesGuard.
+ * Key test scenarios:
+ * - Allow access when no roles are specified (no @Roles decorator)
+ * - Allow access when user has one of the required roles
+ * - Throw ForbiddenException when user is missing from request
+ * - Throw ForbiddenException when user lacks required role
+ * - Check both handler and class level for roles metadata
+ * - Allow access when user.role matches any role in requiredRoles array
+ */
 
 import { Test, TestingModule } from "@nestjs/testing";
 import { ExecutionContext, ForbiddenException } from "@nestjs/common";

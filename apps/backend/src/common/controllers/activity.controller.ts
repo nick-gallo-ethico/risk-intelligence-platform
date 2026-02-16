@@ -1,15 +1,14 @@
-// =============================================================================
-// ACTIVITY CONTROLLER - API endpoints for activity/audit log access
-// =============================================================================
-//
-// Provides read-only access to the organization's activity timeline.
-// All endpoints are protected by JWT auth and tenant isolation.
-//
-// KEY DESIGN DECISIONS:
-// 1. Read-only - no mutations (logging is done via ActivityService.log)
-// 2. Tenant isolation enforced on all queries
-// 3. Self-access OR admin roles for user-specific activity
-// =============================================================================
+/**
+ * ACTIVITY CONTROLLER - API endpoints for activity/audit log access
+ *
+ * Provides read-only access to the organization's activity timeline.
+ * All endpoints are protected by JWT auth and tenant isolation.
+ *
+ * KEY DESIGN DECISIONS:
+ * 1. Read-only - no mutations (logging is done via ActivityService.log)
+ * 2. Tenant isolation enforced on all queries
+ * 3. Self-access OR admin roles for user-specific activity
+ */
 
 import {
   Controller,
@@ -59,9 +58,7 @@ export class ActivityController {
 
   constructor(private readonly activityService: ActivityService) {}
 
-  // -------------------------------------------------------------------------
   // LIST ORG ACTIVITY - GET /api/v1/activity
-  // -------------------------------------------------------------------------
   @Get()
   @Roles(UserRole.COMPLIANCE_OFFICER, UserRole.SYSTEM_ADMIN)
   @UseGuards(RolesGuard)
@@ -83,9 +80,7 @@ export class ActivityController {
     return this.activityService.getOrganizationActivity(organizationId, query);
   }
 
-  // -------------------------------------------------------------------------
   // ENTITY TIMELINE - GET /api/v1/activity/entity/:entityType/:entityId
-  // -------------------------------------------------------------------------
   @Get("entity/:entityType/:entityId")
   @ApiOperation({ summary: "Get activity timeline for a specific entity" })
   @ApiParam({
@@ -127,9 +122,7 @@ export class ActivityController {
     );
   }
 
-  // -------------------------------------------------------------------------
   // USER ACTIVITY - GET /api/v1/activity/user/:userId
-  // -------------------------------------------------------------------------
   @Get("user/:userId")
   @ApiOperation({ summary: "Get activity history for a specific user" })
   @ApiParam({

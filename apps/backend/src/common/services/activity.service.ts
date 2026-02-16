@@ -1,16 +1,15 @@
-// =============================================================================
-// ACTIVITY SERVICE - Core audit logging service for the platform
-// =============================================================================
-//
-// This service handles all activity/audit logging. It follows the pattern
-// where activity logging is non-blocking - errors are logged but not thrown.
-//
-// KEY DESIGN DECISIONS:
-// 1. organizationId is required on ALL operations (tenant isolation)
-// 2. Actor names are denormalized for display efficiency
-// 3. actionDescription is auto-generated if not provided
-// 4. Errors are caught and logged - never thrown to caller
-// =============================================================================
+/**
+ * ACTIVITY SERVICE - Core audit logging service for the platform
+ *
+ * This service handles all activity/audit logging. It follows the pattern
+ * where activity logging is non-blocking - errors are logged but not thrown.
+ *
+ * KEY DESIGN DECISIONS:
+ * 1. organizationId is required on ALL operations (tenant isolation)
+ * 2. Actor names are denormalized for display efficiency
+ * 3. actionDescription is auto-generated if not provided
+ * 4. Errors are caught and logged - never thrown to caller
+ */
 
 import { Injectable, Logger } from "@nestjs/common";
 import { PrismaService } from "../../modules/prisma/prisma.service";
@@ -91,10 +90,7 @@ export class ActivityService {
     private readonly descriptionGenerator: ActivityDescriptionGenerator,
   ) {}
 
-  // -------------------------------------------------------------------------
   // LOG - Create audit log entry (non-blocking)
-  // -------------------------------------------------------------------------
-
   /**
    * Creates an audit log entry for an action.
    *
@@ -198,10 +194,7 @@ export class ActivityService {
     }
   }
 
-  // -------------------------------------------------------------------------
   // GET ENTITY TIMELINE - Activity for specific entity
-  // -------------------------------------------------------------------------
-
   /**
    * Retrieves the activity timeline for a specific entity.
    *
@@ -257,10 +250,7 @@ export class ActivityService {
     };
   }
 
-  // -------------------------------------------------------------------------
   // GET ORGANIZATION ACTIVITY - Recent activity for org
-  // -------------------------------------------------------------------------
-
   /**
    * Retrieves recent activity for an organization.
    *
@@ -338,10 +328,7 @@ export class ActivityService {
     };
   }
 
-  // -------------------------------------------------------------------------
   // GET USER ACTIVITY - Activity by specific user
-  // -------------------------------------------------------------------------
-
   /**
    * Retrieves activity performed by a specific user.
    *
@@ -414,10 +401,7 @@ export class ActivityService {
     };
   }
 
-  // -------------------------------------------------------------------------
   // HELPER METHODS
-  // -------------------------------------------------------------------------
-
   /**
    * Resolves the actor type based on provided inputs.
    * Defaults to USER if actorUserId is provided, SYSTEM otherwise.
@@ -524,10 +508,7 @@ export class ActivityService {
     return AuditActionCategory.UPDATE;
   }
 
-  // -------------------------------------------------------------------------
   // PIN ACTIVITY - Mark an activity as pinned/unpinned
-  // -------------------------------------------------------------------------
-
   /**
    * Pins or unpins an activity entry.
    *
@@ -589,10 +570,7 @@ export class ActivityService {
     }
   }
 
-  // -------------------------------------------------------------------------
   // GET STATUS HISTORY - Status changes for an entity
-  // -------------------------------------------------------------------------
-
   /**
    * Retrieves status change history for an entity.
    *
@@ -662,10 +640,7 @@ export class ActivityService {
     }
   }
 
-  // -------------------------------------------------------------------------
   // HELPER METHODS (continued)
-  // -------------------------------------------------------------------------
-
   /**
    * Maps a Prisma AuditLog record to ActivityResponseDto.
    */

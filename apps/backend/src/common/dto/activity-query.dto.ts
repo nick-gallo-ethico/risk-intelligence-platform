@@ -1,11 +1,10 @@
-// =============================================================================
-// ACTIVITY QUERY DTO - Query parameters for activity timeline
-// =============================================================================
-//
-// Used for filtering and paginating audit log entries.
-// All filters are optional - omitting filters returns all activities.
-// organizationId is applied automatically from tenant context.
-// =============================================================================
+/**
+ * ACTIVITY QUERY DTO - Query parameters for activity timeline
+ *
+ * Used for filtering and paginating audit log entries.
+ * All filters are optional - omitting filters returns all activities.
+ * organizationId is applied automatically from tenant context.
+ */
 
 import {
   IsString,

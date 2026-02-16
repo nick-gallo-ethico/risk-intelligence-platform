@@ -1,15 +1,14 @@
-// =============================================================================
-// ACTIVITY MODULE - Global module for activity/audit logging
-// =============================================================================
-//
-// This module provides audit logging capabilities across the entire platform.
-// Marked as @Global() so other modules can inject ActivityService without
-// explicitly importing this module.
-//
-// EXPORTS:
-// - ActivityService: Core logging service for creating audit entries
-// - ActivityDescriptionGenerator: Generates natural language descriptions
-// =============================================================================
+/**
+ * ACTIVITY MODULE - Global module for activity/audit logging
+ *
+ * This module provides audit logging capabilities across the entire platform.
+ * Marked as @Global() so other modules can inject ActivityService without
+ * explicitly importing this module.
+ *
+ * EXPORTS:
+ * - ActivityService: Core logging service for creating audit entries
+ * - ActivityDescriptionGenerator: Generates natural language descriptions
+ */
 
 import { Module, Global } from "@nestjs/common";
 import { ActivityService } from "./services/activity.service";

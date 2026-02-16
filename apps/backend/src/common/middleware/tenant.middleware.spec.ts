@@ -1,18 +1,17 @@
-// =============================================================================
-// TENANT MIDDLEWARE - UNIT TESTS
-// =============================================================================
-//
-// Tests for the TenantMiddleware.
-// Key test scenarios:
-// - Skip processing for public paths (/health, /api/v1/auth/login, /api/v1/auth/refresh)
-// - Call next() without setting context when no auth header
-// - Call next() without setting context when auth header doesn't start with "Bearer "
-// - Set req.organizationId and req.userId from valid JWT
-// - Call Prisma $executeRaw to set RLS session variable for valid token
-// - Set null RLS context (00000000-...) for invalid/expired token
-// - Log warning for invalid JWT
-// - Only process access tokens (type === 'access')
-// =============================================================================
+/**
+ * TENANT MIDDLEWARE - UNIT TESTS
+ *
+ * Tests for the TenantMiddleware.
+ * Key test scenarios:
+ * - Skip processing for public paths (/health, /api/v1/auth/login, /api/v1/auth/refresh)
+ * - Call next() without setting context when no auth header
+ * - Call next() without setting context when auth header doesn't start with "Bearer "
+ * - Set req.organizationId and req.userId from valid JWT
+ * - Call Prisma $executeRaw to set RLS session variable for valid token
+ * - Set null RLS context (00000000-...) for invalid/expired token
+ * - Log warning for invalid JWT
+ * - Only process access tokens (type === 'access')
+ */
 
 import { Test, TestingModule } from "@nestjs/testing";
 import { ConfigService } from "@nestjs/config";

@@ -1,19 +1,18 @@
-// =============================================================================
-// ACTIVITY DESCRIPTION GENERATOR SERVICE
-// =============================================================================
-//
-// Generates natural language descriptions for activity log entries.
-// This is a stateless utility service with pure functions.
-//
-// Standard action types are defined in:
-// - 01-SHARED-INFRASTRUCTURE/CORE-DATA-MODEL.md (Standard Action Types table)
-//
-// KEY FEATURES:
-// - Template-based description generation
-// - Actor type handling (USER, SYSTEM, AI, ANONYMOUS)
-// - Bulk change support
-// - Fallback for unknown actions
-// =============================================================================
+/**
+ * ACTIVITY DESCRIPTION GENERATOR SERVICE
+ *
+ * Generates natural language descriptions for activity log entries.
+ * This is a stateless utility service with pure functions.
+ *
+ * Standard action types are defined in:
+ * - 01-SHARED-INFRASTRUCTURE/CORE-DATA-MODEL.md (Standard Action Types table)
+ *
+ * KEY FEATURES:
+ * - Template-based description generation
+ * - Actor type handling (USER, SYSTEM, AI, ANONYMOUS)
+ * - Bulk change support
+ * - Fallback for unknown actions
+ */
 
 import { Injectable } from "@nestjs/common";
 

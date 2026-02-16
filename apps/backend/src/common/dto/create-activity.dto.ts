@@ -1,13 +1,12 @@
-// =============================================================================
-// CREATE ACTIVITY DTO - Input for logging activity to the audit log
-// =============================================================================
-//
-// IMPORTANT: organizationId and actorUserId are NOT in this DTO.
-// - organizationId comes from the tenant context (JWT/middleware)
-// - actorUserId comes from the current user context
-//
-// This DTO is used by ActivityService.log() to record actions.
-// =============================================================================
+/**
+ * CREATE ACTIVITY DTO - Input for logging activity to the audit log
+ *
+ * IMPORTANT: organizationId and actorUserId are NOT in this DTO.
+ * - organizationId comes from the tenant context (JWT/middleware)
+ * - actorUserId comes from the current user context
+ *
+ * This DTO is used by ActivityService.log() to record actions.
+ */
 
 import {
   IsString,

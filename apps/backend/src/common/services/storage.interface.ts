@@ -1,16 +1,15 @@
-// =============================================================================
-// STORAGE INTERFACE - Contract for file storage providers
-// =============================================================================
-//
-// This interface defines the contract for file storage implementations.
-// Currently supports LocalStorageAdapter (dev) with AzureBlobAdapter planned.
-//
-// KEY DESIGN DECISIONS:
-// 1. All operations use storage key (not full path) for portability
-// 2. Keys include tenantId for multi-tenant isolation
-// 3. Signed URLs support expiration for security
-// 4. Stream-based download for memory efficiency with large files
-// =============================================================================
+/**
+ * STORAGE INTERFACE - Contract for file storage providers
+ *
+ * This interface defines the contract for file storage implementations.
+ * Currently supports LocalStorageAdapter (dev) with AzureBlobAdapter planned.
+ *
+ * KEY DESIGN DECISIONS:
+ * 1. All operations use storage key (not full path) for portability
+ * 2. Keys include tenantId for multi-tenant isolation
+ * 3. Signed URLs support expiration for security
+ * 4. Stream-based download for memory efficiency with large files
+ */
 
 import { Readable } from "stream";
 

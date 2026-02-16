@@ -1,16 +1,15 @@
-// =============================================================================
-// STORAGE SERVICE - UNIT TESTS
-// =============================================================================
-//
-// Tests for the StorageService.
-// Key test scenarios:
-// - File upload with validation
-// - File size validation
-// - MIME type validation (with wildcards)
-// - Download delegation to adapter
-// - Delete delegation to adapter
-// - Signed URL generation
-// =============================================================================
+/**
+ * STORAGE SERVICE - UNIT TESTS
+ *
+ * Tests for the StorageService.
+ * Key test scenarios:
+ * - File upload with validation
+ * - File size validation
+ * - MIME type validation (with wildcards)
+ * - Download delegation to adapter
+ * - Delete delegation to adapter
+ * - Signed URL generation
+ */
 
 import { Test, TestingModule } from "@nestjs/testing";
 import { BadRequestException } from "@nestjs/common";
@@ -103,10 +102,7 @@ describe("StorageService", () => {
     jest.clearAllMocks();
   });
 
-  // -------------------------------------------------------------------------
   // UPLOAD TESTS
-  // -------------------------------------------------------------------------
-
   describe("upload()", () => {
     it("should upload file successfully", async () => {
       // Arrange
@@ -160,10 +156,7 @@ describe("StorageService", () => {
       ).rejects.toThrow("No file provided");
     });
 
-    // -------------------------------------------------------------------------
     // FILE SIZE VALIDATION
-    // -------------------------------------------------------------------------
-
     it("should reject files exceeding max size", async () => {
       // Arrange
       const largeFile: FileInput = {
@@ -195,9 +188,7 @@ describe("StorageService", () => {
       expect(result).toEqual(mockUploadResult);
     });
 
-    // -------------------------------------------------------------------------
     // MIME TYPE VALIDATION
-    // -------------------------------------------------------------------------
 
     it("should accept allowed MIME type (exact match)", async () => {
       // Arrange
@@ -302,10 +293,7 @@ describe("StorageService", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
   // DOWNLOAD TESTS
-  // -------------------------------------------------------------------------
-
   describe("download()", () => {
     it("should delegate to adapter", async () => {
       // Arrange
@@ -330,10 +318,7 @@ describe("StorageService", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
   // DELETE TESTS
-  // -------------------------------------------------------------------------
-
   describe("delete()", () => {
     it("should delegate to adapter", async () => {
       // Arrange
@@ -357,10 +342,7 @@ describe("StorageService", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
   // GET SIGNED URL TESTS
-  // -------------------------------------------------------------------------
-
   describe("getSignedUrl()", () => {
     it("should delegate to adapter with default expiry", async () => {
       // Arrange
@@ -395,10 +377,7 @@ describe("StorageService", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
   // EXISTS TESTS
-  // -------------------------------------------------------------------------
-
   describe("exists()", () => {
     it("should return true when file exists", async () => {
       // Arrange

@@ -1,15 +1,14 @@
-// =============================================================================
-// STORAGE MODULE - File storage services
-// =============================================================================
-//
-// This module provides file storage capabilities for the platform.
-// Uses LocalStorageAdapter for development and can be configured for
-// AzureBlobAdapter in production.
-//
-// EXPORTS:
-// - StorageService: Main service for file operations with validation
-// - STORAGE_ADAPTER: Token for injecting custom storage adapters
-// =============================================================================
+/**
+ * STORAGE MODULE - File storage services
+ *
+ * This module provides file storage capabilities for the platform.
+ * Uses LocalStorageAdapter for development and can be configured for
+ * AzureBlobAdapter in production.
+ *
+ * EXPORTS:
+ * - StorageService: Main service for file operations with validation
+ * - STORAGE_ADAPTER: Token for injecting custom storage adapters
+ */
 
 import { Module, Global } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";

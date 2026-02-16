@@ -1,14 +1,13 @@
-// =============================================================================
-// TENANT GUARD - UNIT TESTS
-// =============================================================================
-//
-// Tests for the TenantGuard.
-// Key test scenarios:
-// - Allow access when organizationId is present
-// - Throw ForbiddenException when organizationId is missing
-// - Throw ForbiddenException when organizationId is empty string
-// - Throw ForbiddenException when organizationId is null
-// =============================================================================
+/**
+ * TENANT GUARD - UNIT TESTS
+ *
+ * Tests for the TenantGuard.
+ * Key test scenarios:
+ * - Allow access when organizationId is present
+ * - Throw ForbiddenException when organizationId is missing
+ * - Throw ForbiddenException when organizationId is empty string
+ * - Throw ForbiddenException when organizationId is null
+ */
 
 import { Test, TestingModule } from "@nestjs/testing";
 import { ExecutionContext, ForbiddenException } from "@nestjs/common";

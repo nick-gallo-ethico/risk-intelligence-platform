@@ -1,16 +1,15 @@
-// =============================================================================
-// STORAGE SERVICE - Main file storage service with validation
-// =============================================================================
-//
-// This service wraps the storage adapter and provides:
-// 1. File validation (size, type)
-// 2. Tenant context enforcement
-// 3. Unified interface regardless of storage backend
-//
-// USAGE:
-// - Inject StorageService in your feature services
-// - Use LocalStorageAdapter for dev, AzureBlobAdapter for prod
-// =============================================================================
+/**
+ * STORAGE SERVICE - Main file storage service with validation
+ *
+ * This service wraps the storage adapter and provides:
+ * 1. File validation (size, type)
+ * 2. Tenant context enforcement
+ * 3. Unified interface regardless of storage backend
+ *
+ * USAGE:
+ * - Inject StorageService in your feature services
+ * - Use LocalStorageAdapter for dev, AzureBlobAdapter for prod
+ */
 
 import {
   Injectable,
@@ -129,10 +128,7 @@ export class StorageService {
     );
   }
 
-  // -------------------------------------------------------------------------
   // UPLOAD - Validate and store file
-  // -------------------------------------------------------------------------
-
   /**
    * Upload a file with validation.
    *
@@ -193,10 +189,7 @@ export class StorageService {
     return result;
   }
 
-  // -------------------------------------------------------------------------
   // DOWNLOAD - Stream file from storage
-  // -------------------------------------------------------------------------
-
   /**
    * Download a file by storage key.
    *
@@ -209,10 +202,7 @@ export class StorageService {
     return this.adapter.download(key);
   }
 
-  // -------------------------------------------------------------------------
   // DELETE - Remove file from storage
-  // -------------------------------------------------------------------------
-
   /**
    * Delete a file by storage key.
    *
@@ -225,10 +215,7 @@ export class StorageService {
     this.logger.log(`File deleted: ${key}`);
   }
 
-  // -------------------------------------------------------------------------
   // GET SIGNED URL - Generate time-limited access URL
-  // -------------------------------------------------------------------------
-
   /**
    * Generate a signed URL for secure file access.
    *
@@ -240,10 +227,7 @@ export class StorageService {
     return this.adapter.getSignedUrl(key, expiresInSeconds);
   }
 
-  // -------------------------------------------------------------------------
   // EXISTS - Check if file exists
-  // -------------------------------------------------------------------------
-
   /**
    * Check if a file exists in storage.
    *
@@ -254,10 +238,7 @@ export class StorageService {
     return this.adapter.exists(key);
   }
 
-  // -------------------------------------------------------------------------
   // MAGIC BYTE VALIDATION - Detect actual file content type
-  // -------------------------------------------------------------------------
-
   /**
    * Validates file content against expected type using magic bytes.
    * This prevents MIME type spoofing attacks where malicious files
@@ -375,10 +356,7 @@ export class StorageService {
     }
   }
 
-  // -------------------------------------------------------------------------
   // VALIDATION - Multer file with validation
-  // -------------------------------------------------------------------------
-
   /**
    * Validates file size against configured maximum.
    */

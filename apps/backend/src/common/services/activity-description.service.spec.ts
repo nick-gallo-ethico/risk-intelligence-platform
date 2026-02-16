@@ -1,10 +1,9 @@
-// =============================================================================
-// ACTIVITY DESCRIPTION GENERATOR SERVICE - UNIT TESTS
-// =============================================================================
-//
-// Tests for the ActivityDescriptionGenerator service.
-// Covers all standard action types from CORE-DATA-MODEL.md.
-// =============================================================================
+/**
+ * ACTIVITY DESCRIPTION GENERATOR SERVICE - UNIT TESTS
+ *
+ * Tests for the ActivityDescriptionGenerator service.
+ * Covers all standard action types from CORE-DATA-MODEL.md.
+ */
 
 import {
   ActivityDescriptionGenerator,
@@ -18,10 +17,7 @@ describe("ActivityDescriptionGenerator", () => {
     generator = new ActivityDescriptionGenerator();
   });
 
-  // -------------------------------------------------------------------------
   // BASIC ACTIONS
-  // -------------------------------------------------------------------------
-
   describe("create action", () => {
     it("should generate description for create action", () => {
       const context: DescriptionContext = {
@@ -123,10 +119,7 @@ describe("ActivityDescriptionGenerator", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
   // STATUS CHANGE ACTION
-  // -------------------------------------------------------------------------
-
   describe("status_changed action", () => {
     it("should generate description for status change with values", () => {
       const context: DescriptionContext = {
@@ -171,10 +164,7 @@ describe("ActivityDescriptionGenerator", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
   // ASSIGNMENT ACTIONS
-  // -------------------------------------------------------------------------
-
   describe("assigned action", () => {
     it("should generate description for assignment with assignee", () => {
       const context: DescriptionContext = {
@@ -233,10 +223,7 @@ describe("ActivityDescriptionGenerator", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
   // ACCESS ACTIONS
-  // -------------------------------------------------------------------------
-
   describe("commented action", () => {
     it("should generate description for comment action", () => {
       const context: DescriptionContext = {
@@ -296,10 +283,7 @@ describe("ActivityDescriptionGenerator", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
   // APPROVAL ACTIONS
-  // -------------------------------------------------------------------------
-
   describe("approved action", () => {
     it("should generate description for approval", () => {
       const context: DescriptionContext = {
@@ -346,10 +330,7 @@ describe("ActivityDescriptionGenerator", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
   // AI ACTIONS
-  // -------------------------------------------------------------------------
-
   describe("ai_generated action", () => {
     it("should generate description for AI actions", () => {
       const context: DescriptionContext = {
@@ -406,10 +387,7 @@ describe("ActivityDescriptionGenerator", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
   // SYSTEM ACTIONS
-  // -------------------------------------------------------------------------
-
   describe("system actions (no actor)", () => {
     it("should generate description for system actions (no actor)", () => {
       const context: DescriptionContext = {
@@ -449,10 +427,7 @@ describe("ActivityDescriptionGenerator", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
   // SECURITY ACTIONS
-  // -------------------------------------------------------------------------
-
   describe("login action", () => {
     it("should generate description for login with location", () => {
       const context: DescriptionContext = {
@@ -507,10 +482,7 @@ describe("ActivityDescriptionGenerator", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
   // ANONYMOUS ACTIONS
-  // -------------------------------------------------------------------------
-
   describe("anonymous actions", () => {
     it("should generate description for anonymous reporter", () => {
       const context: DescriptionContext = {
@@ -537,10 +509,7 @@ describe("ActivityDescriptionGenerator", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
   // INTEGRATION ACTIONS
-  // -------------------------------------------------------------------------
-
   describe("integration actions", () => {
     it("should use integration name when provided", () => {
       const context: DescriptionContext = {
@@ -568,10 +537,7 @@ describe("ActivityDescriptionGenerator", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
   // FALLBACK BEHAVIOR
-  // -------------------------------------------------------------------------
-
   describe("unknown actions", () => {
     it("should handle unknown actions with fallback", () => {
       const context: DescriptionContext = {
@@ -599,10 +565,7 @@ describe("ActivityDescriptionGenerator", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
   // EDGE CASES
-  // -------------------------------------------------------------------------
-
   describe("edge cases", () => {
     it("should handle missing actor type with user name", () => {
       const context: DescriptionContext = {

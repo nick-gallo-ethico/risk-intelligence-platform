@@ -1,15 +1,14 @@
-// =============================================================================
-// JWT AUTH GUARD - UNIT TESTS
-// =============================================================================
-//
-// Tests for the JwtAuthGuard.
-// Key test scenarios:
-// - Allow access for routes marked with @Public() decorator
-// - Verify reflector checks both handler and class level for IS_PUBLIC_KEY
-// - Throw UnauthorizedException when handleRequest receives no user
-// - Throw UnauthorizedException when handleRequest receives error
-// - Return user from handleRequest when user exists
-// =============================================================================
+/**
+ * JWT AUTH GUARD - UNIT TESTS
+ *
+ * Tests for the JwtAuthGuard.
+ * Key test scenarios:
+ * - Allow access for routes marked with @Public() decorator
+ * - Verify reflector checks both handler and class level for IS_PUBLIC_KEY
+ * - Throw UnauthorizedException when handleRequest receives no user
+ * - Throw UnauthorizedException when handleRequest receives error
+ * - Return user from handleRequest when user exists
+ */
 
 import { Test, TestingModule } from "@nestjs/testing";
 import { ExecutionContext, UnauthorizedException } from "@nestjs/common";

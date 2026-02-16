@@ -1,16 +1,15 @@
-// =============================================================================
-// ACTIVITY SERVICE - UNIT TESTS
-// =============================================================================
-//
-// Tests for the ActivityService.
-// Key test scenarios:
-// - Activity logging with correct organization
-// - Actor name denormalization
-// - System actions (no actor)
-// - Non-blocking error handling
-// - Tenant isolation in queries
-// - Pagination
-// =============================================================================
+/**
+ * ACTIVITY SERVICE - UNIT TESTS
+ *
+ * Tests for the ActivityService.
+ * Key test scenarios:
+ * - Activity logging with correct organization
+ * - Actor name denormalization
+ * - System actions (no actor)
+ * - Non-blocking error handling
+ * - Tenant isolation in queries
+ * - Pagination
+ */
 
 import { Test, TestingModule } from "@nestjs/testing";
 import { ActivityService, LogActivityInput } from "./activity.service";
@@ -104,10 +103,7 @@ describe("ActivityService", () => {
     jest.clearAllMocks();
   });
 
-  // -------------------------------------------------------------------------
   // LOG METHOD TESTS
-  // -------------------------------------------------------------------------
-
   describe("log()", () => {
     it("should create activity log with correct organization", async () => {
       // Arrange
@@ -372,10 +368,7 @@ describe("ActivityService", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
   // GET ENTITY TIMELINE TESTS
-  // -------------------------------------------------------------------------
-
   describe("getEntityTimeline()", () => {
     it("should filter timeline by organization", async () => {
       // Arrange
@@ -493,10 +486,7 @@ describe("ActivityService", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
   // GET ORGANIZATION ACTIVITY TESTS
-  // -------------------------------------------------------------------------
-
   describe("getOrganizationActivity()", () => {
     it("should filter by organization", async () => {
       // Arrange
@@ -594,10 +584,7 @@ describe("ActivityService", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
   // GET USER ACTIVITY TESTS
-  // -------------------------------------------------------------------------
-
   describe("getUserActivity()", () => {
     it("should filter by user and organization", async () => {
       // Arrange
@@ -678,10 +665,7 @@ describe("ActivityService", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
   // ACTION CATEGORY INFERENCE TESTS
-  // -------------------------------------------------------------------------
-
   describe("action category inference", () => {
     it.each([
       ["created", AuditActionCategory.CREATE],
@@ -727,10 +711,7 @@ describe("ActivityService", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
   // RESPONSE MAPPING TESTS
-  // -------------------------------------------------------------------------
-
   describe("response mapping", () => {
     it("should map actor user to response format", async () => {
       // Arrange

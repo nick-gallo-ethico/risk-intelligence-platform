@@ -1,16 +1,15 @@
-// =============================================================================
-// LOCAL STORAGE ADAPTER - UNIT TESTS
-// =============================================================================
-//
-// Tests for the LocalStorageAdapter.
-// Key test scenarios:
-// - File upload with tenant isolation
-// - Filename sanitization
-// - File download with streaming
-// - File deletion with cleanup
-// - Signed URL generation (local dev)
-// - File existence checking
-// =============================================================================
+/**
+ * LOCAL STORAGE ADAPTER - UNIT TESTS
+ *
+ * Tests for the LocalStorageAdapter.
+ * Key test scenarios:
+ * - File upload with tenant isolation
+ * - Filename sanitization
+ * - File download with streaming
+ * - File deletion with cleanup
+ * - Signed URL generation (local dev)
+ * - File existence checking
+ */
 
 // Mock uuid before imports (ESM compatibility)
 let mockUuidCounter = 0;
@@ -89,10 +88,7 @@ describe("LocalStorageAdapter", () => {
     adapter = module.get<LocalStorageAdapter>(LocalStorageAdapter);
   });
 
-  // -------------------------------------------------------------------------
   // UPLOAD TESTS
-  // -------------------------------------------------------------------------
-
   describe("upload()", () => {
     it("should create directory and write file", async () => {
       // Act
@@ -216,10 +212,7 @@ describe("LocalStorageAdapter", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
   // DOWNLOAD TESTS
-  // -------------------------------------------------------------------------
-
   describe("download()", () => {
     const testKey = "tenant-uuid-123/files/uuid-456/test.pdf";
 
@@ -281,10 +274,7 @@ describe("LocalStorageAdapter", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
   // DELETE TESTS
-  // -------------------------------------------------------------------------
-
   describe("delete()", () => {
     const testKey = "tenant-uuid-123/files/uuid-456/test.pdf";
 
@@ -310,10 +300,7 @@ describe("LocalStorageAdapter", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
   // GET SIGNED URL TESTS
-  // -------------------------------------------------------------------------
-
   describe("getSignedUrl()", () => {
     const testKey = "tenant-uuid-123/files/uuid-456/test.pdf";
 
@@ -339,10 +326,7 @@ describe("LocalStorageAdapter", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
   // EXISTS TESTS
-  // -------------------------------------------------------------------------
-
   describe("exists()", () => {
     const testKey = "tenant-uuid-123/files/uuid-456/test.pdf";
 
@@ -369,10 +353,7 @@ describe("LocalStorageAdapter", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
   // MIME TYPE DETECTION TESTS
-  // -------------------------------------------------------------------------
-
   describe("MIME type detection", () => {
     const testCases = [
       { ext: ".pdf", expected: "application/pdf" },

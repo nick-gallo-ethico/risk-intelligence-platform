@@ -1,19 +1,18 @@
-// =============================================================================
-// LOCAL STORAGE ADAPTER - File system storage for development
-// =============================================================================
-//
-// This adapter stores files on the local file system. It's intended for
-// development and testing. Production should use AzureBlobAdapter.
-//
-// STORAGE STRUCTURE:
-// ./uploads/{tenantId}/{subdirectory}/{uuid}/{filename}
-//
-// KEY FEATURES:
-// 1. Tenant-isolated directory structure
-// 2. UUID-based subdirectories prevent filename collisions
-// 3. Sanitized filenames for security
-// 4. Stream-based operations for memory efficiency
-// =============================================================================
+/**
+ * LOCAL STORAGE ADAPTER - File system storage for development
+ *
+ * This adapter stores files on the local file system. It's intended for
+ * development and testing. Production should use AzureBlobAdapter.
+ *
+ * STORAGE STRUCTURE:
+ * ./uploads/{tenantId}/{subdirectory}/{uuid}/{filename}
+ *
+ * KEY FEATURES:
+ * 1. Tenant-isolated directory structure
+ * 2. UUID-based subdirectories prevent filename collisions
+ * 3. Sanitized filenames for security
+ * 4. Stream-based operations for memory efficiency
+ */
 
 import { Injectable, Logger, NotFoundException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
@@ -43,10 +42,7 @@ export class LocalStorageAdapter implements StorageAdapter {
     this.ensureBaseDirectoryExists();
   }
 
-  // -------------------------------------------------------------------------
   // UPLOAD - Store file in tenant-isolated directory
-  // -------------------------------------------------------------------------
-
   async upload(
     file: FileInput,
     tenantId: string,
@@ -97,10 +93,7 @@ export class LocalStorageAdapter implements StorageAdapter {
     };
   }
 
-  // -------------------------------------------------------------------------
   // DOWNLOAD - Stream file from storage
-  // -------------------------------------------------------------------------
-
   async download(key: string): Promise<DownloadResult> {
     const fullPath = this.getFullPath(key);
 
@@ -127,10 +120,7 @@ export class LocalStorageAdapter implements StorageAdapter {
     };
   }
 
-  // -------------------------------------------------------------------------
   // DELETE - Remove file from storage
-  // -------------------------------------------------------------------------
-
   async delete(key: string): Promise<void> {
     const fullPath = this.getFullPath(key);
 
@@ -146,10 +136,7 @@ export class LocalStorageAdapter implements StorageAdapter {
     this.logger.debug(`File deleted: ${key}`);
   }
 
-  // -------------------------------------------------------------------------
   // GET SIGNED URL - For local storage, return relative path
-  // -------------------------------------------------------------------------
-
   async getSignedUrl(key: string, expiresInSeconds = 3600): Promise<string> {
     // For local storage, we don't have real signed URLs
     // Return a path that can be served by static file middleware
@@ -168,10 +155,7 @@ export class LocalStorageAdapter implements StorageAdapter {
     return this.buildUrl(key);
   }
 
-  // -------------------------------------------------------------------------
   // EXISTS - Check if file exists
-  // -------------------------------------------------------------------------
-
   async exists(key: string): Promise<boolean> {
     const fullPath = this.getFullPath(key);
     try {
@@ -182,10 +166,7 @@ export class LocalStorageAdapter implements StorageAdapter {
     }
   }
 
-  // -------------------------------------------------------------------------
   // HELPER METHODS
-  // -------------------------------------------------------------------------
-
   /**
    * Ensures the base uploads directory exists.
    */

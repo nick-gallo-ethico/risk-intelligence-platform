@@ -1,10 +1,9 @@
-// =============================================================================
-// ACTIVITY RESPONSE DTO - API response format for audit log entries
-// =============================================================================
-//
-// Response DTOs are for typing and Swagger documentation only.
-// No validation decorators needed since data comes from the database.
-// =============================================================================
+/**
+ * ACTIVITY RESPONSE DTO - API response format for audit log entries
+ *
+ * Response DTOs are for typing and Swagger documentation only.
+ * No validation decorators needed since data comes from the database.
+ */
 
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import {
