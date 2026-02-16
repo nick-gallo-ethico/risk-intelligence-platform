@@ -1,6 +1,12 @@
 import { Module } from "@nestjs/common";
 import { BullModule } from "@nestjs/bullmq";
-import { UserTableService, TABLE_DELIVERY_QUEUE } from "./user-table.service";
+import { UserTableService } from "./user-table.service";
+import { TableCrudService } from "./services/table-crud.service";
+import { TableQueryService } from "./services/table-query.service";
+import {
+  TableDeliveryService,
+  TABLE_DELIVERY_QUEUE,
+} from "./services/table-delivery.service";
 import { UserTableController } from "./user-table.controller";
 import { ReportingModule } from "../reporting/reporting.module";
 
@@ -32,7 +38,14 @@ import { ReportingModule } from "../reporting/reporting.module";
     }),
   ],
   controllers: [UserTableController],
-  providers: [UserTableService],
-  exports: [UserTableService],
+  providers: [
+    // Sub-services (split from user-table.service.ts)
+    TableCrudService,
+    TableQueryService,
+    TableDeliveryService,
+    // Coordinator service
+    UserTableService,
+  ],
+  exports: [UserTableService, TableCrudService, TableQueryService],
 })
 export class TablesModule {}

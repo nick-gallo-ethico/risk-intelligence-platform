@@ -13,6 +13,8 @@ import { ProjectUpdateService } from "./services/project-update.service";
 import { ProjectTaskSubscriberService } from "./services/project-task-subscriber.service";
 import { ProjectTaskDependencyService } from "./services/project-task-dependency.service";
 import { MentionService } from "./services/mention.service";
+import { TemplateRegistryService } from "./services/template-registry.service";
+import { TemplateApplierService } from "./services/template-applier.service";
 import { ProjectEventListener } from "./listeners/project-event.listener";
 import { ProjectGateway } from "./gateways/project.gateway";
 import { ProjectsController } from "./projects.controller";
@@ -46,6 +48,9 @@ import { ProjectTemplateController } from "./project-template.controller";
     ProjectService,
     ProjectTaskService,
     ProjectGroupService,
+    // Template sub-services (split from project-template.service.ts)
+    TemplateRegistryService,
+    TemplateApplierService,
     ProjectTemplateService,
     ProjectStatsService,
     ProjectUpdateService,
