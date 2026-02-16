@@ -105,9 +105,7 @@ export class ProjectsController {
     private readonly projectTaskDependencyService: ProjectTaskDependencyService,
   ) {}
 
-  // =========================================================================
   // Project CRUD
-  // =========================================================================
 
   /**
    * POST /api/v1/projects
@@ -266,9 +264,7 @@ export class ProjectsController {
     await this.milestoneService.delete(organizationId, id, user.id);
   }
 
-  // =========================================================================
   // Project Items (Legacy Tasks)
-  // =========================================================================
 
   /**
    * POST /api/v1/projects/:id/items
@@ -357,9 +353,7 @@ export class ProjectsController {
     await this.milestoneService.removeItem(organizationId, itemId, user.id);
   }
 
-  // =========================================================================
   // Project Tasks (Monday.com-style board tasks)
-  // =========================================================================
 
   /**
    * GET /api/v1/projects/:id/tasks
@@ -556,9 +550,7 @@ export class ProjectsController {
     return this.projectTaskService.getSubtasks(organizationId, taskId);
   }
 
-  // =========================================================================
   // Project Groups
-  // =========================================================================
 
   /**
    * GET /api/v1/projects/:id/groups
@@ -688,9 +680,7 @@ export class ProjectsController {
     await this.projectGroupService.reorder(organizationId, id, dto.orderedIds);
   }
 
-  // =========================================================================
   // Task Updates (Conversation Thread)
-  // =========================================================================
 
   @Get(":id/tasks/:taskId/updates")
   @ApiOperation({ summary: "Get task updates" })
@@ -780,9 +770,7 @@ export class ProjectsController {
     );
   }
 
-  // =========================================================================
   // Task Subscribers (Watcher System)
-  // =========================================================================
 
   @Get(":id/tasks/:taskId/subscribers")
   @ApiOperation({ summary: "Get task subscribers" })
@@ -828,9 +816,7 @@ export class ProjectsController {
     );
   }
 
-  // =========================================================================
   // Task Dependencies
-  // =========================================================================
 
   @Get(":id/tasks/:taskId/dependencies")
   @ApiOperation({ summary: "Get task dependencies" })

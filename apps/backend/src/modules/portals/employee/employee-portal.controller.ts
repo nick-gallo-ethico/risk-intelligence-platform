@@ -78,7 +78,7 @@ export class EmployeePortalController {
     private readonly proxyService: ManagerProxyService,
   ) {}
 
-  // ==================== Task Endpoints ====================
+  // Task Endpoints
 
   /**
    * Get all tasks for the authenticated user.
@@ -194,7 +194,7 @@ export class EmployeePortalController {
     );
   }
 
-  // ==================== History View Endpoints ====================
+  // History View Endpoints
 
   /**
    * Get employee's submitted reports.
@@ -305,7 +305,7 @@ export class EmployeePortalController {
     );
   }
 
-  // ==================== Manager Proxy Endpoints ====================
+  // Manager Proxy Endpoints
 
   /**
    * Get manager's team members (direct reports).
@@ -392,7 +392,7 @@ export class EmployeePortalController {
     return this.proxyService.getProxySubmissions(personId, user.organizationId);
   }
 
-  // ==================== Private Helper Methods ====================
+  // Private Helper Methods
 
   /**
    * Get the Person ID for the authenticated user.

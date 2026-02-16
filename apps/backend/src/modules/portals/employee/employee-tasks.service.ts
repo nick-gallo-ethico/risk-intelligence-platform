@@ -455,7 +455,7 @@ export class EmployeeTasksService {
     throw new BadRequestException("Unknown task source type");
   }
 
-  // ==================== Private Methods ====================
+  // Private Methods
 
   /**
    * Get active campaign assignments for an employee.

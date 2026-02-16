@@ -169,7 +169,9 @@ export function createDataLoaders(prisma: PrismaService): DataLoaders {
 
         // Extract unique creator IDs
         const creatorIds = [
-          ...new Set(cases.map((c) => c.createdById).filter(Boolean) as string[]),
+          ...new Set(
+            cases.map((c) => c.createdById).filter(Boolean) as string[],
+          ),
         ];
 
         // Batch load users

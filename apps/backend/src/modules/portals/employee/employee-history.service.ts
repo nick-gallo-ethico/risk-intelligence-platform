@@ -476,7 +476,7 @@ export class EmployeeHistoryService {
     };
   }
 
-  // ==================== Private Methods ====================
+  // Private Methods
 
   /**
    * Extract disclosure type from assignment metadata.

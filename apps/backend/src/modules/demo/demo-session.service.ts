@@ -8,9 +8,9 @@
  * - User changes can be counted and reset independently
  */
 
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
-import { DemoUserSession } from '@prisma/client';
+import { Injectable, Logger, NotFoundException } from "@nestjs/common";
+import { PrismaService } from "../prisma/prisma.service";
+import { DemoUserSession } from "@prisma/client";
 
 /**
  * Session statistics showing change counts by entity type
@@ -160,7 +160,7 @@ export class DemoSessionService {
       where: {
         lastActivityAt: { lt: cutoff },
       },
-      orderBy: { lastActivityAt: 'asc' },
+      orderBy: { lastActivityAt: "asc" },
     });
   }
 
@@ -185,7 +185,12 @@ export class DemoSessionService {
   async getOrganizationSessions(organizationId: string): Promise<
     Array<
       DemoUserSession & {
-        user: { id: string; email: string; firstName: string; lastName: string };
+        user: {
+          id: string;
+          email: string;
+          firstName: string;
+          lastName: string;
+        };
       }
     >
   > {
@@ -201,7 +206,7 @@ export class DemoSessionService {
           },
         },
       },
-      orderBy: { lastActivityAt: 'desc' },
+      orderBy: { lastActivityAt: "desc" },
     });
   }
 

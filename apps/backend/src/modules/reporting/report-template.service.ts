@@ -146,7 +146,9 @@ export class ReportTemplateService {
     }
 
     if (template.organizationId !== organizationId) {
-      throw new ForbiddenException("Cannot modify templates from other organizations");
+      throw new ForbiddenException(
+        "Cannot modify templates from other organizations",
+      );
     }
 
     this.logger.log(`Updating report template ${id}`);
@@ -191,7 +193,9 @@ export class ReportTemplateService {
     }
 
     if (template.organizationId !== organizationId) {
-      throw new ForbiddenException("Cannot delete templates from other organizations");
+      throw new ForbiddenException(
+        "Cannot delete templates from other organizations",
+      );
     }
 
     this.logger.log(`Deleting report template ${id}`);

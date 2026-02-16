@@ -6,11 +6,8 @@ import {
   IsInt,
   IsArray,
   Min,
-} from 'class-validator';
-import {
-  CustomPropertyEntityType,
-  PropertyDataType,
-} from '@prisma/client';
+} from "class-validator";
+import { CustomPropertyEntityType, PropertyDataType } from "@prisma/client";
 
 export interface SelectOption {
   value: string;
@@ -37,7 +34,10 @@ export interface DateValidation {
   allowPast?: boolean;
 }
 
-export type ValidationRules = TextValidation | NumberValidation | DateValidation;
+export type ValidationRules =
+  | TextValidation
+  | NumberValidation
+  | DateValidation;
 
 export class CreateCustomPropertyDto {
   @IsEnum(CustomPropertyEntityType)

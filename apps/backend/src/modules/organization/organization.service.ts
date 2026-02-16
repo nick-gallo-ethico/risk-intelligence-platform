@@ -502,7 +502,7 @@ export class OrganizationService {
     return this.getSettings(organizationId);
   }
 
-  // ===== Private Helper Methods =====
+  // Private Helper Methods
 
   /**
    * Generate cache key for organization settings.

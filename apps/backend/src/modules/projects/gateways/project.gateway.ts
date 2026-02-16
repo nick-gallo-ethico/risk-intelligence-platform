@@ -368,7 +368,7 @@ export class ProjectGateway
     });
   }
 
-  // ===== Broadcast Methods (called by services) =====
+  // Broadcast Methods (called by services)
 
   /**
    * Broadcast a task update to all users in the project room.
@@ -495,7 +495,7 @@ export class ProjectGateway
     });
   }
 
-  // ===== Helper Methods =====
+  // Helper Methods
 
   /**
    * Build tenant-isolated room key for a project.

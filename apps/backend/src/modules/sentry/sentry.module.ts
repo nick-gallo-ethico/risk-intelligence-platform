@@ -36,7 +36,7 @@ export class SentryModule implements OnModuleInit {
       const integrations: any[] = [];
       try {
         // Dynamic import to gracefully handle missing native module
-        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
         const { nodeProfilingIntegration } = require("@sentry/profiling-node");
         integrations.push(nodeProfilingIntegration());
         this.logger.log("Sentry profiling integration loaded");

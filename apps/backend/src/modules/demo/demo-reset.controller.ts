@@ -17,23 +17,23 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
-} from '@nestjs/common';
+} from "@nestjs/common";
 import {
   ApiTags,
   ApiOperation,
   ApiResponse,
   ApiBearerAuth,
-} from '@nestjs/swagger';
-import { JwtAuthGuard, TenantGuard } from '../../common/guards';
-import { CurrentUser, TenantId } from '../../common/decorators';
+} from "@nestjs/swagger";
+import { JwtAuthGuard, TenantGuard } from "../../common/guards";
+import { CurrentUser, TenantId } from "../../common/decorators";
 import {
   DemoResetService,
   ResetResult,
   UndoResult,
   VerificationSummary,
-} from './demo-reset.service';
-import { DemoSessionService, SessionStats } from './demo-session.service';
-import { User } from '@prisma/client';
+} from "./demo-reset.service";
+import { DemoSessionService, SessionStats } from "./demo-session.service";
+import { User } from "@prisma/client";
 
 /**
  * DTO for reset request
@@ -75,10 +75,10 @@ interface ResetPreviewResponse {
   confirmationToken: string;
 }
 
-@ApiTags('Demo Reset')
-@Controller('demo')
+@ApiTags("Demo Reset")
+@Controller("demo")
 @UseGuards(JwtAuthGuard, TenantGuard)
-@ApiBearerAuth('JWT')
+@ApiBearerAuth("JWT")
 export class DemoResetController {
   constructor(
     private readonly resetService: DemoResetService,
@@ -90,17 +90,17 @@ export class DemoResetController {
    * Get current user's demo session stats.
    * Shows how many changes would be cleared by reset.
    */
-  @Get('session')
+  @Get("session")
   @ApiOperation({
-    summary: 'Get demo session stats',
+    summary: "Get demo session stats",
     description:
       "Returns current user's demo session information including counts of user-created items.",
   })
   @ApiResponse({
     status: 200,
-    description: 'Session stats retrieved successfully',
+    description: "Session stats retrieved successfully",
   })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
   async getSessionStats(
     @CurrentUser() user: User,
     @TenantId() orgId: string,
@@ -128,17 +128,17 @@ export class DemoResetController {
    * Preview what would be deleted by a reset.
    * Same as session stats but explicitly for reset preview.
    */
-  @Get('reset/preview')
+  @Get("reset/preview")
   @ApiOperation({
-    summary: 'Preview reset changes',
+    summary: "Preview reset changes",
     description:
-      'Shows what items would be deleted by a reset. Base data is always preserved.',
+      "Shows what items would be deleted by a reset. Base data is always preserved.",
   })
   @ApiResponse({
     status: 200,
-    description: 'Reset preview generated successfully',
+    description: "Reset preview generated successfully",
   })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
   async previewReset(
     @CurrentUser() user: User,
     @TenantId() orgId: string,
@@ -150,7 +150,7 @@ export class DemoResetController {
     const stats = await this.sessionService.getSessionWithStats(session.id);
 
     return {
-      message: 'Reset will delete the following user-created items:',
+      message: "Reset will delete the following user-created items:",
       willDelete: stats.changeCount,
       totalItems:
         stats.changeCount.cases +
@@ -160,7 +160,7 @@ export class DemoResetController {
       undoAvailable: true,
       undoWindowHours: 24,
       confirmationRequired: true,
-      confirmationToken: 'CONFIRM_RESET',
+      confirmationToken: "CONFIRM_RESET",
     };
   }
 
@@ -171,22 +171,22 @@ export class DemoResetController {
    *
    * Body: { "confirmationToken": "CONFIRM_RESET" }
    */
-  @Post('reset')
+  @Post("reset")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
-    summary: 'Reset demo changes',
+    summary: "Reset demo changes",
     description:
-      'Deletes all user-created demo data. Requires confirmation token. Base data is preserved.',
+      "Deletes all user-created demo data. Requires confirmation token. Base data is preserved.",
   })
   @ApiResponse({
     status: 200,
-    description: 'Reset completed successfully',
+    description: "Reset completed successfully",
   })
   @ApiResponse({
     status: 400,
-    description: 'Invalid confirmation token',
+    description: "Invalid confirmation token",
   })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
   async resetDemo(
     @CurrentUser() user: User,
     @TenantId() orgId: string,
@@ -203,22 +203,22 @@ export class DemoResetController {
    * POST /api/v1/demo/undo
    * Undo a recent reset (within 24-hour window).
    */
-  @Post('undo')
+  @Post("undo")
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
-    summary: 'Undo reset',
+    summary: "Undo reset",
     description:
-      'Restores user data from a recent reset. Must be within 24-hour window.',
+      "Restores user data from a recent reset. Must be within 24-hour window.",
   })
   @ApiResponse({
     status: 200,
-    description: 'Undo completed successfully',
+    description: "Undo completed successfully",
   })
   @ApiResponse({
     status: 400,
-    description: 'No changes available to restore (undo window expired)',
+    description: "No changes available to restore (undo window expired)",
   })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
   async undoReset(
     @CurrentUser() user: User,
     @TenantId() orgId: string,
@@ -231,17 +231,17 @@ export class DemoResetController {
    * Verify reset was successful.
    * Confirms base data is intact and user changes are cleared.
    */
-  @Get('verify')
+  @Get("verify")
   @ApiOperation({
-    summary: 'Verify reset',
+    summary: "Verify reset",
     description:
-      'Verifies that base data is intact and user changes have been cleared.',
+      "Verifies that base data is intact and user changes have been cleared.",
   })
   @ApiResponse({
     status: 200,
-    description: 'Verification completed',
+    description: "Verification completed",
   })
-  @ApiResponse({ status: 401, description: 'Unauthorized' })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
   async verifyReset(
     @CurrentUser() user: User,
     @TenantId() orgId: string,

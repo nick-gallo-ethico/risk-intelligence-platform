@@ -6,24 +6,22 @@
  * for the disclosure form schema engine.
  */
 
-// ===========================================
 // Field Type Enums
-// ===========================================
 
 /**
  * Basic field types for standard form inputs.
  */
 export enum BasicFieldType {
-  TEXT = 'TEXT',
-  TEXTAREA = 'TEXTAREA',
-  NUMBER = 'NUMBER',
-  DATE = 'DATE',
-  DATETIME = 'DATETIME',
-  DROPDOWN = 'DROPDOWN',
-  MULTI_SELECT = 'MULTI_SELECT',
-  CHECKBOX = 'CHECKBOX',
-  RADIO = 'RADIO',
-  FILE_UPLOAD = 'FILE_UPLOAD',
+  TEXT = "TEXT",
+  TEXTAREA = "TEXTAREA",
+  NUMBER = "NUMBER",
+  DATE = "DATE",
+  DATETIME = "DATETIME",
+  DROPDOWN = "DROPDOWN",
+  MULTI_SELECT = "MULTI_SELECT",
+  CHECKBOX = "CHECKBOX",
+  RADIO = "RADIO",
+  FILE_UPLOAD = "FILE_UPLOAD",
 }
 
 /**
@@ -32,21 +30,21 @@ export enum BasicFieldType {
  */
 export enum ComplianceFieldType {
   /** Maps relationships between entities and persons (e.g., vendor-employee) */
-  RELATIONSHIP_MAPPER = 'RELATIONSHIP_MAPPER',
+  RELATIONSHIP_MAPPER = "RELATIONSHIP_MAPPER",
   /** Currency field with threshold checking and warning/block rules */
-  DOLLAR_THRESHOLD = 'DOLLAR_THRESHOLD',
+  DOLLAR_THRESHOLD = "DOLLAR_THRESHOLD",
   /** Date field with annual, quarterly, or monthly tracking */
-  RECURRING_DATE = 'RECURRING_DATE',
+  RECURRING_DATE = "RECURRING_DATE",
   /** Lookup field that searches vendor master, HRIS, or other entity sources */
-  ENTITY_LOOKUP = 'ENTITY_LOOKUP',
+  ENTITY_LOOKUP = "ENTITY_LOOKUP",
   /** Digital signature capture with timestamp */
-  SIGNATURE_CAPTURE = 'SIGNATURE_CAPTURE',
+  SIGNATURE_CAPTURE = "SIGNATURE_CAPTURE",
   /** Required acknowledgment checkbox with statement */
-  ATTESTATION = 'ATTESTATION',
+  ATTESTATION = "ATTESTATION",
   /** Multi-currency field with ISO 4217 support */
-  CURRENCY = 'CURRENCY',
+  CURRENCY = "CURRENCY",
   /** Percentage field (0-100) with validation */
-  PERCENTAGE = 'PERCENTAGE',
+  PERCENTAGE = "PERCENTAGE",
 }
 
 /**
@@ -54,9 +52,7 @@ export enum ComplianceFieldType {
  */
 export type FormFieldType = BasicFieldType | ComplianceFieldType;
 
-// ===========================================
 // Field Definition Interfaces
-// ===========================================
 
 /**
  * Complete field definition structure.
@@ -115,9 +111,7 @@ export interface FieldValidation {
   customValidator?: string;
 }
 
-// ===========================================
 // Conditional Logic (RS.27)
-// ===========================================
 
 /**
  * Conditional rule for dynamic form behavior.
@@ -141,16 +135,16 @@ export interface FieldConditional {
  * Conditional operators for field comparisons.
  */
 export enum ConditionalOperator {
-  EQUALS = 'eq',
-  NOT_EQUALS = 'neq',
-  GREATER_THAN = 'gt',
-  LESS_THAN = 'lt',
-  GREATER_THAN_OR_EQUALS = 'gte',
-  LESS_THAN_OR_EQUALS = 'lte',
-  CONTAINS = 'contains',
-  NOT_CONTAINS = 'not_contains',
-  IS_EMPTY = 'is_empty',
-  IS_NOT_EMPTY = 'is_not_empty',
+  EQUALS = "eq",
+  NOT_EQUALS = "neq",
+  GREATER_THAN = "gt",
+  LESS_THAN = "lt",
+  GREATER_THAN_OR_EQUALS = "gte",
+  LESS_THAN_OR_EQUALS = "lte",
+  CONTAINS = "contains",
+  NOT_CONTAINS = "not_contains",
+  IS_EMPTY = "is_empty",
+  IS_NOT_EMPTY = "is_not_empty",
 }
 
 /**
@@ -169,9 +163,7 @@ export interface ConditionalAction {
   setValue?: unknown;
 }
 
-// ===========================================
 // Type-Specific Configurations
-// ===========================================
 
 /**
  * Configuration options specific to field types.
@@ -187,7 +179,7 @@ export interface FieldTypeConfig {
 
   // Entity lookup configuration
   /** Entity type to search: 'vendor', 'employee', 'person', 'organization' */
-  entityType?: 'vendor' | 'employee' | 'person' | 'organization';
+  entityType?: "vendor" | "employee" | "person" | "organization";
   /** Fields to search within the entity */
   searchFields?: string[];
   /** Template for displaying search results (e.g., "{{name}} - {{department}}") */
@@ -209,7 +201,7 @@ export interface FieldTypeConfig {
 
   // Recurring date configuration
   /** Type of recurrence tracking */
-  recurrenceType?: 'annual' | 'quarterly' | 'monthly';
+  recurrenceType?: "annual" | "quarterly" | "monthly";
 
   // File upload configuration
   /** Allowed MIME types (e.g., 'application/pdf', 'image/*') */
@@ -256,9 +248,7 @@ export interface FieldUiConfig {
   hidden?: boolean;
 }
 
-// ===========================================
 // Section Structure with Nested Repeaters (RS.29)
-// ===========================================
 
 /**
  * Form section grouping fields together.
@@ -324,16 +314,14 @@ export interface RepeaterConfig {
  */
 export interface AggregateConfig {
   /** Aggregation function */
-  function: 'SUM' | 'COUNT' | 'AVG' | 'MIN' | 'MAX';
+  function: "SUM" | "COUNT" | "AVG" | "MIN" | "MAX";
   /** Field key within repeater to aggregate */
   sourceField: string;
   /** Field key where result is stored */
   targetField: string;
 }
 
-// ===========================================
 // Calculated Fields (RS.28)
-// ===========================================
 
 /**
  * Calculated field definition using expression engine.
@@ -349,12 +337,10 @@ export interface CalculatedField {
   /** Field keys this calculation depends on (for reactivity) */
   dependencies: string[];
   /** Output format for display */
-  format?: 'currency' | 'percentage' | 'number' | 'date';
+  format?: "currency" | "percentage" | "number" | "date";
 }
 
-// ===========================================
 // Validation Rules (RS.27)
-// ===========================================
 
 /**
  * Cross-field validation rule.
@@ -377,12 +363,10 @@ export interface ValidationRule {
   /** Error message when validation fails */
   errorMessage: string;
   /** Severity level: 'error' blocks submission, 'warning' allows with confirmation */
-  severity: 'error' | 'warning';
+  severity: "error" | "warning";
 }
 
-// ===========================================
 // Summary Types
-// ===========================================
 
 /**
  * Form template summary for list views.

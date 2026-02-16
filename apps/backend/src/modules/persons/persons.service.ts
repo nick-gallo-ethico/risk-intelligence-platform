@@ -321,9 +321,7 @@ export class PersonsService {
     return placeholder;
   }
 
-  // ===========================================
   // Employee Linkage Methods
-  // ===========================================
 
   /**
    * Creates a Person record from an Employee, including manager chain.
@@ -644,9 +642,7 @@ export class PersonsService {
     });
   }
 
-  // ===========================================
   // Private Helper Methods
-  // ===========================================
 
   /**
    * Builds Prisma where clause from query parameters.

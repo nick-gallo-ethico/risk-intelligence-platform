@@ -9,9 +9,9 @@
  * affect other system operations.
  */
 
-import { Injectable, Logger } from '@nestjs/common';
-import { Cron, CronExpression } from '@nestjs/schedule';
-import { DemoService } from './demo.service';
+import { Injectable, Logger } from "@nestjs/common";
+import { Cron, CronExpression } from "@nestjs/schedule";
+import { DemoService } from "./demo.service";
 
 @Injectable()
 export class DemoScheduler {
@@ -28,7 +28,7 @@ export class DemoScheduler {
    */
   @Cron(CronExpression.EVERY_HOUR)
   async handleExpiredAccounts(): Promise<void> {
-    this.logger.log('Processing expired demo accounts...');
+    this.logger.log("Processing expired demo accounts...");
 
     try {
       const expiredCount = await this.demoService.processExpiredAccounts();
@@ -36,12 +36,12 @@ export class DemoScheduler {
       if (expiredCount > 0) {
         this.logger.log(`Expired ${expiredCount} demo account(s)`);
       } else {
-        this.logger.debug('No accounts to expire');
+        this.logger.debug("No accounts to expire");
       }
     } catch (error) {
       // Log but don't throw - scheduled task failures shouldn't crash the app
       this.logger.error(
-        `Failed to process expired accounts: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        `Failed to process expired accounts: ${error instanceof Error ? error.message : "Unknown error"}`,
         error instanceof Error ? error.stack : undefined,
       );
     }
@@ -54,7 +54,7 @@ export class DemoScheduler {
    * for the hourly cron to run.
    */
   async triggerExpiredAccountsCheck(): Promise<number> {
-    this.logger.log('Manually triggering expired accounts check...');
+    this.logger.log("Manually triggering expired accounts check...");
     return this.demoService.processExpiredAccounts();
   }
 }

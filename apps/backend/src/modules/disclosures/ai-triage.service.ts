@@ -4,43 +4,44 @@ import {
   BadRequestException,
   NotFoundException,
   Inject,
-} from '@nestjs/common';
-import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
-import { v4 as uuidv4 } from 'uuid';
-import { PrismaService } from '../prisma/prisma.service';
-import { AuditService, CreateAuditLogDto } from '../audit/audit.service';
-import { SchemaIntrospectionService } from '../ai/schema-introspection.service';
-import { ProviderRegistryService } from '../ai/services/provider-registry.service';
-import { AiRateLimiterService } from '../ai/services/rate-limiter.service';
-import { ConflictQueryDto, DismissalCategory } from './dto/conflict.dto';
-import { DisclosureQueryDto, DisclosureStatus } from './dto/disclosure-submission.dto';
+} from "@nestjs/common";
+import { CACHE_MANAGER, Cache } from "@nestjs/cache-manager";
+import { v4 as uuidv4 } from "uuid";
+import { PrismaService } from "../prisma/prisma.service";
+import { AuditService, CreateAuditLogDto } from "../audit/audit.service";
+import { SchemaIntrospectionService } from "../ai/schema-introspection.service";
+import { ProviderRegistryService } from "../ai/services/provider-registry.service";
+import { AiRateLimiterService } from "../ai/services/rate-limiter.service";
+import { ConflictQueryDto, DismissalCategory } from "./dto/conflict.dto";
+import {
+  DisclosureQueryDto,
+  DisclosureStatus,
+} from "./dto/disclosure-submission.dto";
 import {
   ConflictStatus,
   AuditEntityType,
   AuditActionCategory,
   ActorType,
   RiuStatus,
-} from '@prisma/client';
+} from "@prisma/client";
 
-// ===========================================
 // Triage Types
-// ===========================================
 
 /**
  * Supported entity types for AI triage.
  */
-export type TriageEntityType = 'disclosure' | 'conflict';
+export type TriageEntityType = "disclosure" | "conflict";
 
 /**
  * Actions that can be performed via AI triage.
  */
 export type TriageAction =
-  | 'approve'
-  | 'reject'
-  | 'request_info'
-  | 'dismiss'
-  | 'escalate'
-  | 'resolve';
+  | "approve"
+  | "reject"
+  | "request_info"
+  | "dismiss"
+  | "escalate"
+  | "resolve";
 
 /**
  * Result of AI interpreting a natural language query.
@@ -136,9 +137,7 @@ export interface InterpretQueryInput {
   entityType: TriageEntityType;
 }
 
-// ===========================================
 // AI Prompt Templates
-// ===========================================
 
 const TRIAGE_INTERPRETATION_PROMPT = `You are an AI assistant helping with compliance disclosure triage.
 
@@ -177,9 +176,7 @@ IMPORTANT:
 - Add warnings if the query could affect many records
 - Dates should be in ISO 8601 format`;
 
-// ===========================================
 // AiTriageService
-// ===========================================
 
 /**
  * AiTriageService provides AI-assisted bulk processing of disclosures and conflicts.
@@ -262,10 +259,10 @@ export class AiTriageService {
     const validActions = this.schemaService.getValidActions(input.entityType);
 
     // Build prompt
-    const prompt = TRIAGE_INTERPRETATION_PROMPT.replace('{schema}', schema)
-      .replace('{actions}', validActions.join(', '))
-      .replace('{query}', input.query)
-      .replace('{entityType}', input.entityType);
+    const prompt = TRIAGE_INTERPRETATION_PROMPT.replace("{schema}", schema)
+      .replace("{actions}", validActions.join(", "))
+      .replace("{query}", input.query)
+      .replace("{entityType}", input.entityType);
 
     // Check rate limit
     const estimatedTokens = Math.ceil(prompt.length / 4) + 500;
@@ -289,7 +286,7 @@ export class AiTriageService {
         maxTokens: 1024,
         messages: [
           {
-            role: 'user',
+            role: "user",
             content: prompt,
           },
         ],
@@ -307,7 +304,8 @@ export class AiTriageService {
 
       try {
         // Extract JSON from response (may be wrapped in markdown code block)
-        const jsonMatch = content.match(/```(?:json)?\s*([\s\S]*?)\s*```/) ||
+        const jsonMatch =
+          content.match(/```(?:json)?\s*([\s\S]*?)\s*```/) ||
           content.match(/(\{[\s\S]*\})/);
         if (jsonMatch) {
           parsed = JSON.parse(jsonMatch[1]);
@@ -317,14 +315,14 @@ export class AiTriageService {
       } catch {
         this.logger.error(`Failed to parse AI response: ${content}`);
         throw new BadRequestException(
-          'Failed to interpret query. Please try rephrasing.',
+          "Failed to interpret query. Please try rephrasing.",
         );
       }
 
       // Validate the action
       if (!validActions.includes(parsed.action)) {
         throw new BadRequestException(
-          `Invalid action "${parsed.action}" for ${input.entityType}. Valid: ${validActions.join(', ')}`,
+          `Invalid action "${parsed.action}" for ${input.entityType}. Valid: ${validActions.join(", ")}`,
         );
       }
 
@@ -347,11 +345,11 @@ export class AiTriageService {
       // Record AI usage
       await this.rateLimiter.recordUsage({
         organizationId,
-        userId: 'system', // Will be set in execute
+        userId: "system", // Will be set in execute
         inputTokens: response.usage.inputTokens,
         outputTokens: response.usage.outputTokens,
         model: provider.defaultModel,
-        featureType: 'triage_interpret',
+        featureType: "triage_interpret",
         durationMs: Date.now() - startTime,
       });
 
@@ -371,7 +369,7 @@ export class AiTriageService {
       const err = error as Error;
       this.logger.error(`AI interpretation failed: ${err.message}`, err.stack);
       throw new BadRequestException(
-        'Failed to interpret query. Please try again.',
+        "Failed to interpret query. Please try again.",
       );
     }
   }
@@ -401,7 +399,7 @@ export class AiTriageService {
     let statusBreakdown: Record<string, number> = {};
     let totalValueAffected: number | undefined;
 
-    if (interpretation.entityType === 'disclosure') {
+    if (interpretation.entityType === "disclosure") {
       const result = await this.queryDisclosures(
         interpretation.filters as DisclosureQueryDto,
         organizationId,
@@ -410,7 +408,7 @@ export class AiTriageService {
       count = result.count;
       statusBreakdown = result.statusBreakdown;
       totalValueAffected = result.totalValue;
-    } else if (interpretation.entityType === 'conflict') {
+    } else if (interpretation.entityType === "conflict") {
       const result = await this.queryConflicts(
         interpretation.filters as ConflictQueryDto,
         organizationId,
@@ -464,7 +462,7 @@ export class AiTriageService {
     // Require explicit confirmation
     if (!confirm) {
       throw new BadRequestException(
-        'Confirmation required. Set confirm: true to execute.',
+        "Confirmation required. Set confirm: true to execute.",
       );
     }
 
@@ -475,16 +473,14 @@ export class AiTriageService {
 
     if (!preview) {
       throw new NotFoundException(
-        'Preview not found or expired. Generate a new preview.',
+        "Preview not found or expired. Generate a new preview.",
       );
     }
 
     // Check expiration
     if (new Date() > new Date(preview.expiresAt)) {
       await this.cacheManager.del(this.getPreviewCacheKey(previewId));
-      throw new BadRequestException(
-        'Preview expired. Generate a new preview.',
-      );
+      throw new BadRequestException("Preview expired. Generate a new preview.");
     }
 
     const startedAt = new Date();
@@ -497,7 +493,7 @@ export class AiTriageService {
     const errors: Array<{ id: string; error: string }> = [];
 
     // Execute based on entity type and action
-    if (preview.interpretation.entityType === 'disclosure') {
+    if (preview.interpretation.entityType === "disclosure") {
       const result = await this.executeDisclosureAction(
         preview,
         organizationId,
@@ -506,7 +502,7 @@ export class AiTriageService {
       succeeded = result.succeeded;
       failed = result.failed;
       errors.push(...result.errors);
-    } else if (preview.interpretation.entityType === 'conflict') {
+    } else if (preview.interpretation.entityType === "conflict") {
       const result = await this.executeConflictAction(
         preview,
         organizationId,
@@ -526,8 +522,8 @@ export class AiTriageService {
     await this.auditService.log({
       organizationId,
       entityType: AuditEntityType.DISCLOSURE,
-      entityId: 'bulk',
-      action: 'AI_BULK_TRIAGE',
+      entityId: "bulk",
+      action: "AI_BULK_TRIAGE",
       actionCategory: AuditActionCategory.UPDATE,
       actionDescription: `AI-assisted bulk action: ${succeeded} items ${preview.interpretation.action}`,
       actorUserId: userId,
@@ -572,9 +568,7 @@ export class AiTriageService {
     this.logger.log(`Preview cancelled: ${previewId}`);
   }
 
-  // ===========================================
   // Private: Query Methods
-  // ===========================================
 
   private async queryDisclosures(
     filters: DisclosureQueryDto,
@@ -589,7 +583,7 @@ export class AiTriageService {
     // Query disclosures via RIU with disclosure extension
     const riuWhere: Record<string, unknown> = {
       organizationId,
-      type: 'DISCLOSURE_RESPONSE',
+      type: "DISCLOSURE_RESPONSE",
       disclosureExtension: { isNot: null },
     };
 
@@ -627,10 +621,14 @@ export class AiTriageService {
     if (filters.startDate || filters.endDate) {
       riuWhere.createdAt = {};
       if (filters.startDate) {
-        (riuWhere.createdAt as Record<string, unknown>).gte = new Date(filters.startDate);
+        (riuWhere.createdAt as Record<string, unknown>).gte = new Date(
+          filters.startDate,
+        );
       }
       if (filters.endDate) {
-        (riuWhere.createdAt as Record<string, unknown>).lte = new Date(filters.endDate);
+        (riuWhere.createdAt as Record<string, unknown>).lte = new Date(
+          filters.endDate,
+        );
       }
     }
 
@@ -639,7 +637,7 @@ export class AiTriageService {
       this.prisma.riskIntelligenceUnit.findMany({
         where: riuWhere as any,
         take: 100,
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: "desc" },
         include: {
           disclosureExtension: true,
         },
@@ -715,10 +713,14 @@ export class AiTriageService {
     if (filters.startDate || filters.endDate) {
       where.createdAt = {};
       if (filters.startDate) {
-        (where.createdAt as Record<string, unknown>).gte = new Date(filters.startDate);
+        (where.createdAt as Record<string, unknown>).gte = new Date(
+          filters.startDate,
+        );
       }
       if (filters.endDate) {
-        (where.createdAt as Record<string, unknown>).lte = new Date(filters.endDate);
+        (where.createdAt as Record<string, unknown>).lte = new Date(
+          filters.endDate,
+        );
       }
     }
 
@@ -726,11 +728,11 @@ export class AiTriageService {
       this.prisma.conflictAlert.findMany({
         where: where as any,
         take: 100,
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: "desc" },
       }),
       this.prisma.conflictAlert.count({ where: where as any }),
       this.prisma.conflictAlert.groupBy({
-        by: ['status'],
+        by: ["status"],
         where: where as any,
         _count: true,
       }),
@@ -754,9 +756,7 @@ export class AiTriageService {
     return { items, count, statusBreakdown };
   }
 
-  // ===========================================
   // Private: Execution Methods
-  // ===========================================
 
   private async executeDisclosureAction(
     preview: TriagePreview,
@@ -776,7 +776,7 @@ export class AiTriageService {
     const filters = preview.interpretation.filters as DisclosureQueryDto;
     const riuWhere: Record<string, unknown> = {
       organizationId,
-      type: 'DISCLOSURE_RESPONSE',
+      type: "DISCLOSURE_RESPONSE",
       disclosureExtension: { isNot: null },
     };
 
@@ -806,13 +806,13 @@ export class AiTriageService {
     // more complex workflow, but for bulk triage we update status
     let newStatus: RiuStatus | undefined;
     switch (action) {
-      case 'approve':
+      case "approve":
         newStatus = RiuStatus.RELEASED;
         break;
-      case 'reject':
+      case "reject":
         newStatus = RiuStatus.RELEASED; // Still released but marked rejected in metadata
         break;
-      case 'request_info':
+      case "request_info":
         newStatus = RiuStatus.PENDING_QA; // Keeps it pending for more info
         break;
     }
@@ -821,7 +821,7 @@ export class AiTriageService {
       return {
         succeeded: 0,
         failed: preview.count,
-        errors: [{ id: 'all', error: `Unsupported action: ${action}` }],
+        errors: [{ id: "all", error: `Unsupported action: ${action}` }],
       };
     }
 
@@ -903,14 +903,14 @@ export class AiTriageService {
     let dismissalCategory: string | undefined;
 
     switch (action) {
-      case 'dismiss':
+      case "dismiss":
         newStatus = ConflictStatus.DISMISSED;
         dismissalCategory = DismissalCategory.OTHER;
         break;
-      case 'escalate':
+      case "escalate":
         newStatus = ConflictStatus.ESCALATED;
         break;
-      case 'resolve':
+      case "resolve":
         newStatus = ConflictStatus.RESOLVED;
         break;
     }
@@ -919,7 +919,7 @@ export class AiTriageService {
       return {
         succeeded: 0,
         failed: preview.count,
-        errors: [{ id: 'all', error: `Unsupported action: ${action}` }],
+        errors: [{ id: "all", error: `Unsupported action: ${action}` }],
       };
     }
 
@@ -935,7 +935,7 @@ export class AiTriageService {
           updatedAt: new Date(),
         };
 
-        if (action === 'dismiss') {
+        if (action === "dismiss") {
           updateData.dismissedBy = userId;
           updateData.dismissedAt = new Date();
           updateData.dismissedCategory = dismissalCategory;
@@ -980,9 +980,7 @@ export class AiTriageService {
     return { succeeded, failed, errors };
   }
 
-  // ===========================================
   // Private: Helpers
-  // ===========================================
 
   private getPreviewCacheKey(previewId: string): string {
     return `triage:preview:${previewId}`;

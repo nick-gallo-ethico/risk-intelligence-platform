@@ -434,7 +434,7 @@ export class DigestService {
     );
   }
 
-  // ===== Private Helper Methods =====
+  // Private Helper Methods
 
   /**
    * Check if user has digest email enabled for any digestable category.

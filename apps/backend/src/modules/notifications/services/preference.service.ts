@@ -457,7 +457,7 @@ export class PreferenceService {
     return orgSettings;
   }
 
-  // ===== Private Helper Methods =====
+  // Private Helper Methods
 
   /**
    * Generate cache key for user preferences.

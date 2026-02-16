@@ -22,10 +22,6 @@ import {
   PaginatedMilestoneResult,
 } from "./dto/milestone.dto";
 
-// ===========================================
-// Service
-// ===========================================
-
 /**
  * MilestoneService manages project milestones for tracking compliance deliverables.
  *
@@ -44,9 +40,7 @@ export class MilestoneService {
     private readonly auditService: AuditService,
   ) {}
 
-  // ===========================================
   // CRUD Operations
-  // ===========================================
 
   /**
    * Creates a new milestone with optional items.
@@ -261,9 +255,7 @@ export class MilestoneService {
     };
   }
 
-  // ===========================================
   // Milestone Items
-  // ===========================================
 
   /**
    * Adds an item to a milestone.
@@ -410,9 +402,7 @@ export class MilestoneService {
     });
   }
 
-  // ===========================================
   // Progress Calculation
-  // ===========================================
 
   /**
    * Recalculates progress for a milestone based on its items.
@@ -472,9 +462,7 @@ export class MilestoneService {
     );
   }
 
-  // ===========================================
   // Entity Sync
-  // ===========================================
 
   /**
    * Syncs entity completion to linked milestone items.
@@ -510,9 +498,7 @@ export class MilestoneService {
     }
   }
 
-  // ===========================================
   // Helper Methods
-  // ===========================================
 
   /**
    * Transforms a milestone database record to response DTO.

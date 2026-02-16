@@ -1,1 +1,1 @@
-export * from './provision-prospect.dto';
+export * from "./provision-prospect.dto";

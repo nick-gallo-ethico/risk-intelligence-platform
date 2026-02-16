@@ -14,15 +14,15 @@
  * - ScheduleModule for cron-based expiry
  */
 
-import { Module } from '@nestjs/common';
-import { ScheduleModule } from '@nestjs/schedule';
-import { DemoService } from './demo.service';
-import { DemoController } from './demo.controller';
-import { DemoScheduler } from './demo.scheduler';
-import { DemoSessionService } from './demo-session.service';
-import { DemoResetService } from './demo-reset.service';
-import { DemoResetController } from './demo-reset.controller';
-import { PrismaModule } from '../prisma/prisma.module';
+import { Module } from "@nestjs/common";
+import { ScheduleModule } from "@nestjs/schedule";
+import { DemoService } from "./demo.service";
+import { DemoController } from "./demo.controller";
+import { DemoScheduler } from "./demo.scheduler";
+import { DemoSessionService } from "./demo-session.service";
+import { DemoResetService } from "./demo-reset.service";
+import { DemoResetController } from "./demo-reset.controller";
+import { PrismaModule } from "../prisma/prisma.module";
 
 @Module({
   imports: [

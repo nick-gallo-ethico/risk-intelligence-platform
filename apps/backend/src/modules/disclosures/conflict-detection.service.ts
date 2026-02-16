@@ -62,9 +62,7 @@ export class ConflictDetectionService {
     private readonly exclusionService: ConflictExclusionService,
   ) {}
 
-  // ===========================================
   // Main Detection Entry Point
-  // ===========================================
 
   /**
    * Detects conflicts for a disclosure.
@@ -227,9 +225,7 @@ export class ConflictDetectionService {
     return [...selfDealing, ...hris, ...cases, ...patterns];
   }
 
-  // ===========================================
   // Dismissal Workflow (RS.44)
-  // ===========================================
 
   /**
    * Dismisses a conflict alert with optional exclusion creation.
@@ -373,9 +369,7 @@ export class ConflictDetectionService {
     return undefined;
   }
 
-  // ===========================================
   // Escalation
-  // ===========================================
 
   /**
    * Escalates a conflict alert to a case.
@@ -413,9 +407,7 @@ export class ConflictDetectionService {
     return this.mapAlertToDto(updated);
   }
 
-  // ===========================================
   // Entity Timeline (RS.45)
-  // ===========================================
 
   /**
    * Gets the full timeline for an entity across disclosures and cases.
@@ -546,9 +538,7 @@ export class ConflictDetectionService {
     };
   }
 
-  // ===========================================
   // Query Methods
-  // ===========================================
 
   /**
    * Queries conflict alerts with filters.
@@ -654,9 +644,7 @@ export class ConflictDetectionService {
     return alert ? this.mapAlertToDto(alert) : null;
   }
 
-  // ===========================================
   // Delegated Exclusion Methods
-  // ===========================================
 
   /**
    * Creates a conflict exclusion.
@@ -730,9 +718,7 @@ export class ConflictDetectionService {
     return this.exclusionService.mapExclusionToDto(exclusion);
   }
 
-  // ===========================================
   // Delegated Matching Methods (for external callers)
-  // ===========================================
 
   /**
    * Exposes fuzzy match for external callers.
@@ -748,9 +734,7 @@ export class ConflictDetectionService {
     return this.matchingService.calculateSimilarity(str1, str2);
   }
 
-  // ===========================================
   // Helpers
-  // ===========================================
 
   /**
    * Maps a database alert to DTO.

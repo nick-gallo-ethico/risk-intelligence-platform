@@ -210,7 +210,7 @@ export class OrgNotificationSettingsService {
     return settings.enforcedCategories;
   }
 
-  // ===== Private Helper Methods =====
+  // Private Helper Methods
 
   /**
    * Generate cache key for organization settings.

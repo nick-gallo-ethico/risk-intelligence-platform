@@ -16,9 +16,7 @@ import { Transform } from "class-transformer";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { PolicyType, PolicyStatus, PolicyCaseLinkType } from "@prisma/client";
 
-// ===========================================
 // Create Policy DTO
-// ===========================================
 
 /**
  * DTO for creating a new policy.
@@ -87,9 +85,7 @@ export class CreatePolicyDto {
   reviewDate?: string;
 }
 
-// ===========================================
 // Update Policy DTO
-// ===========================================
 
 /**
  * DTO for updating a policy.
@@ -160,9 +156,7 @@ export class UpdatePolicyDto {
   reviewDate?: string;
 }
 
-// ===========================================
 // Publish Policy DTO
-// ===========================================
 
 /**
  * DTO for publishing a policy version.
@@ -230,18 +224,14 @@ export class PublishPolicyDto {
   reAttestationReason?: string;
 }
 
-// ===========================================
 // Policy Query DTO
-// ===========================================
 
 /**
  * DTO for querying/filtering policies.
  * Supports pagination, filtering, search, and sorting.
  */
 export class PolicyQueryDto {
-  // ===========================================
   // Pagination
-  // ===========================================
 
   @ApiPropertyOptional({
     description: "Page number (1-indexed)",
@@ -269,9 +259,7 @@ export class PolicyQueryDto {
   @Transform(({ value }) => parseInt(value, 10))
   limit?: number = 20;
 
-  // ===========================================
   // Filters
-  // ===========================================
 
   @ApiPropertyOptional({
     description: "Filter by policy status",
@@ -299,9 +287,7 @@ export class PolicyQueryDto {
   @IsOptional()
   ownerId?: string;
 
-  // ===========================================
   // Search
-  // ===========================================
 
   @ApiPropertyOptional({
     description: "Full-text search query (searches title and content)",
@@ -313,9 +299,7 @@ export class PolicyQueryDto {
   @MaxLength(200)
   search?: string;
 
-  // ===========================================
   // Sorting
-  // ===========================================
 
   @ApiPropertyOptional({
     description: "Field to sort by",
@@ -353,9 +337,7 @@ export class PolicyQueryDto {
   sortOrder?: "asc" | "desc" = "desc";
 }
 
-// ===========================================
 // Create Translation DTO
-// ===========================================
 
 /**
  * DTO for creating a policy translation.
@@ -399,9 +381,7 @@ export class CreateTranslationDto {
   content?: string;
 }
 
-// ===========================================
 // Link Policy to Case DTO
-// ===========================================
 
 /**
  * DTO for linking a policy to a case.

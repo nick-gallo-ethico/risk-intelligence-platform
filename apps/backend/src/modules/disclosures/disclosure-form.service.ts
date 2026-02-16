@@ -4,13 +4,9 @@ import {
   NotFoundException,
   BadRequestException,
   ConflictException,
-} from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
-import {
-  DisclosureFormType,
-  FormTemplateStatus,
-  Prisma,
-} from '@prisma/client';
+} from "@nestjs/common";
+import { PrismaService } from "../prisma/prisma.service";
+import { DisclosureFormType, FormTemplateStatus, Prisma } from "@prisma/client";
 import {
   CreateFormTemplateDto,
   UpdateFormTemplateDto,
@@ -23,8 +19,8 @@ import {
   FormTemplateTranslationDto,
   DisclosureFormTypeDto,
   FormTemplateStatusDto,
-} from './dto/form-template.dto';
-import { FormField, FormSection } from './entities/form-field.types';
+} from "./dto/form-template.dto";
+import { FormField, FormSection } from "./entities/form-field.types";
 
 /**
  * DisclosureFormService handles CRUD operations for disclosure form templates.
@@ -85,7 +81,7 @@ export class DisclosureFormService {
       // Translations must be of the same disclosure type
       if (parent.disclosureType !== dto.disclosureType) {
         throw new BadRequestException(
-          'Translation must have the same disclosure type as parent template',
+          "Translation must have the same disclosure type as parent template",
         );
       }
     }
@@ -96,12 +92,14 @@ export class DisclosureFormService {
         name: dto.name,
         description: dto.description,
         disclosureType: dto.disclosureType as DisclosureFormType,
-        language: dto.language || 'en',
+        language: dto.language || "en",
         parentTemplateId: dto.parentTemplateId,
         fields: dto.fields as unknown as Prisma.InputJsonValue,
         sections: dto.sections as unknown as Prisma.InputJsonValue,
-        validationRules: dto.validationRules as unknown as Prisma.InputJsonValue,
-        calculatedFields: dto.calculatedFields as unknown as Prisma.InputJsonValue,
+        validationRules:
+          dto.validationRules as unknown as Prisma.InputJsonValue,
+        calculatedFields:
+          dto.calculatedFields as unknown as Prisma.InputJsonValue,
         uiSchema: dto.uiSchema as unknown as Prisma.InputJsonValue,
         createdById,
       },
@@ -159,7 +157,7 @@ export class DisclosureFormService {
       where.status = query.status as FormTemplateStatus;
     } else if (!query.includeArchived) {
       // By default, exclude archived templates
-      where.status = { not: 'ARCHIVED' as FormTemplateStatus };
+      where.status = { not: "ARCHIVED" as FormTemplateStatus };
     }
 
     if (query.language) {
@@ -168,8 +166,8 @@ export class DisclosureFormService {
 
     if (query.search) {
       where.OR = [
-        { name: { contains: query.search, mode: 'insensitive' } },
-        { description: { contains: query.search, mode: 'insensitive' } },
+        { name: { contains: query.search, mode: "insensitive" } },
+        { description: { contains: query.search, mode: "insensitive" } },
       ];
     }
 
@@ -180,7 +178,7 @@ export class DisclosureFormService {
 
     const templates = await this.prisma.disclosureFormTemplate.findMany({
       where,
-      orderBy: [{ name: 'asc' }, { version: 'desc' }],
+      orderBy: [{ name: "asc" }, { version: "desc" }],
       include: {
         translations: {
           select: { id: true },
@@ -210,22 +208,22 @@ export class DisclosureFormService {
     }
 
     // Cannot update published templates with submissions - must create new version
-    if (template.status === 'PUBLISHED') {
+    if (template.status === "PUBLISHED") {
       const hasSubmissions = await this.prisma.riuDisclosureExtension.count({
         where: { formTemplateId: id },
       });
 
       if (hasSubmissions > 0) {
         throw new BadRequestException(
-          'Cannot update published template with submissions. Publish a new version instead.',
+          "Cannot update published template with submissions. Publish a new version instead.",
         );
       }
     }
 
     // Cannot update archived templates
-    if (template.status === 'ARCHIVED') {
+    if (template.status === "ARCHIVED") {
       throw new BadRequestException(
-        'Cannot update archived template. Clone it to create a new version.',
+        "Cannot update archived template. Clone it to create a new version.",
       );
     }
 
@@ -238,9 +236,11 @@ export class DisclosureFormService {
     if (dto.sections !== undefined)
       updateData.sections = dto.sections as unknown as Prisma.InputJsonValue;
     if (dto.validationRules !== undefined)
-      updateData.validationRules = dto.validationRules as unknown as Prisma.InputJsonValue;
+      updateData.validationRules =
+        dto.validationRules as unknown as Prisma.InputJsonValue;
     if (dto.calculatedFields !== undefined)
-      updateData.calculatedFields = dto.calculatedFields as unknown as Prisma.InputJsonValue;
+      updateData.calculatedFields =
+        dto.calculatedFields as unknown as Prisma.InputJsonValue;
     if (dto.uiSchema !== undefined)
       updateData.uiSchema = dto.uiSchema as unknown as Prisma.InputJsonValue;
 
@@ -278,9 +278,9 @@ export class DisclosureFormService {
       throw new NotFoundException(`Form template ${id} not found`);
     }
 
-    if (template.status === 'ARCHIVED') {
+    if (template.status === "ARCHIVED") {
       throw new BadRequestException(
-        'Cannot publish archived template. Clone it to create a new version.',
+        "Cannot publish archived template. Clone it to create a new version.",
       );
     }
 
@@ -291,7 +291,7 @@ export class DisclosureFormService {
 
     // If already published with submissions, or explicitly requested, create new version
     if (
-      (template.status === 'PUBLISHED' && hasSubmissions > 0) ||
+      (template.status === "PUBLISHED" && hasSubmissions > 0) ||
       dto.createNewVersion
     ) {
       const newVersion = await this.prisma.disclosureFormTemplate.create({
@@ -301,7 +301,7 @@ export class DisclosureFormService {
           description: template.description,
           disclosureType: template.disclosureType,
           version: template.version + 1,
-          status: 'PUBLISHED',
+          status: "PUBLISHED",
           publishedAt: new Date(),
           publishedBy: publishedById,
           parentTemplateId: template.parentTemplateId,
@@ -319,7 +319,7 @@ export class DisclosureFormService {
       // Archive the old version (keep for historical reference)
       await this.prisma.disclosureFormTemplate.update({
         where: { id },
-        data: { status: 'ARCHIVED' },
+        data: { status: "ARCHIVED" },
       });
 
       this.logger.log(
@@ -333,7 +333,7 @@ export class DisclosureFormService {
     const updated = await this.prisma.disclosureFormTemplate.update({
       where: { id },
       data: {
-        status: 'PUBLISHED',
+        status: "PUBLISHED",
         publishedAt: new Date(),
         publishedBy: publishedById,
       },
@@ -391,10 +391,11 @@ export class DisclosureFormService {
             : `Cloned from: ${source.name}`,
         disclosureType: source.disclosureType,
         version: 1,
-        status: 'DRAFT',
+        status: "DRAFT",
         // Link to parent if creating a translation
         parentTemplateId: dto.asTranslation ? id : null,
-        language: dto.language || (dto.asTranslation ? undefined : source.language),
+        language:
+          dto.language || (dto.asTranslation ? undefined : source.language),
         fields: source.fields as Prisma.InputJsonValue,
         sections: source.sections as Prisma.InputJsonValue,
         validationRules: source.validationRules as Prisma.InputJsonValue,
@@ -409,7 +410,7 @@ export class DisclosureFormService {
     });
 
     this.logger.log(
-      `Cloned template '${source.name}' to '${dto.name}'${dto.asTranslation ? ' as translation' : ''}`,
+      `Cloned template '${source.name}' to '${dto.name}'${dto.asTranslation ? " as translation" : ""}`,
     );
 
     return this.mapToResponse(cloned);
@@ -437,7 +438,7 @@ export class DisclosureFormService {
     const activeCampaigns = await this.prisma.campaign.count({
       where: {
         disclosureFormTemplateId: id,
-        status: { in: ['DRAFT', 'SCHEDULED', 'ACTIVE'] },
+        status: { in: ["DRAFT", "SCHEDULED", "ACTIVE"] },
       },
     });
 
@@ -449,7 +450,7 @@ export class DisclosureFormService {
 
     await this.prisma.disclosureFormTemplate.update({
       where: { id },
-      data: { status: 'ARCHIVED' },
+      data: { status: "ARCHIVED" },
     });
 
     this.logger.log(
@@ -479,7 +480,7 @@ export class DisclosureFormService {
         organizationId,
         name: template.name,
       },
-      orderBy: { version: 'desc' },
+      orderBy: { version: "desc" },
     });
 
     return versions.map((v) => ({
@@ -489,7 +490,8 @@ export class DisclosureFormService {
       publishedBy: v.publishedBy || undefined,
       createdAt: v.createdAt,
       fieldCount: Array.isArray(v.fields) ? (v.fields as unknown[]).length : 0,
-      changesSummary: v.version > 1 ? `Version ${v.version}` : 'Initial version',
+      changesSummary:
+        v.version > 1 ? `Version ${v.version}` : "Initial version",
     }));
   }
 
@@ -533,7 +535,7 @@ export class DisclosureFormService {
     const where: Prisma.DisclosureFormTemplateWhereInput = {
       organizationId,
       name,
-      status: 'PUBLISHED',
+      status: "PUBLISHED",
     };
 
     if (language) {
@@ -542,7 +544,7 @@ export class DisclosureFormService {
 
     const template = await this.prisma.disclosureFormTemplate.findFirst({
       where,
-      orderBy: { version: 'desc' },
+      orderBy: { version: "desc" },
       include: {
         translations: true,
         parentTemplate: true,
@@ -559,10 +561,7 @@ export class DisclosureFormService {
   /**
    * Delete a form template (DRAFT only, no submissions).
    */
-  async delete(
-    organizationId: string,
-    id: string,
-  ): Promise<void> {
+  async delete(organizationId: string, id: string): Promise<void> {
     const template = await this.prisma.disclosureFormTemplate.findFirst({
       where: { id, organizationId },
     });
@@ -571,9 +570,9 @@ export class DisclosureFormService {
       throw new NotFoundException(`Form template ${id} not found`);
     }
 
-    if (template.status !== 'DRAFT') {
+    if (template.status !== "DRAFT") {
       throw new BadRequestException(
-        'Only draft templates can be deleted. Archive published templates instead.',
+        "Only draft templates can be deleted. Archive published templates instead.",
       );
     }
 
@@ -584,7 +583,7 @@ export class DisclosureFormService {
 
     if (hasSubmissions > 0) {
       throw new BadRequestException(
-        'Cannot delete template with existing submissions.',
+        "Cannot delete template with existing submissions.",
       );
     }
 
@@ -595,7 +594,7 @@ export class DisclosureFormService {
 
     if (hasTranslations > 0) {
       throw new BadRequestException(
-        'Cannot delete template with existing translations.',
+        "Cannot delete template with existing translations.",
       );
     }
 
@@ -606,9 +605,7 @@ export class DisclosureFormService {
     this.logger.log(`Deleted draft template '${template.name}'`);
   }
 
-  // ===========================================
   // Private Helper Methods
-  // ===========================================
 
   /**
    * Map a Prisma model to the full response DTO.
@@ -636,13 +633,12 @@ export class DisclosureFormService {
       fields,
       sections,
       validationRules:
-        (template.validationRules as unknown as FormTemplateResponseDto['validationRules']) ||
+        (template.validationRules as unknown as FormTemplateResponseDto["validationRules"]) ||
         undefined,
       calculatedFields:
-        (template.calculatedFields as unknown as FormTemplateResponseDto['calculatedFields']) ||
+        (template.calculatedFields as unknown as FormTemplateResponseDto["calculatedFields"]) ||
         undefined,
-      uiSchema:
-        (template.uiSchema as Record<string, unknown>) || undefined,
+      uiSchema: (template.uiSchema as Record<string, unknown>) || undefined,
       isSystem: template.isSystem,
       createdById: template.createdById,
       createdAt: template.createdAt,

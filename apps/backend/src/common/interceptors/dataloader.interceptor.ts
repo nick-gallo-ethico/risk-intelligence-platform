@@ -45,7 +45,10 @@ import {
 } from "@nestjs/common";
 import { Observable } from "rxjs";
 import { PrismaService } from "../../modules/prisma/prisma.service";
-import { createDataLoaders, DataLoaders } from "../dataloader/dataloader.factory";
+import {
+  createDataLoaders,
+  DataLoaders,
+} from "../dataloader/dataloader.factory";
 
 /**
  * Key used to store DataLoaders on the request object.
@@ -119,6 +122,8 @@ export const GetDataLoaders = createParamDecorator(
  * Helper to get DataLoaders from a request object.
  * Useful in services that receive the request.
  */
-export function getDataLoadersFromRequest(request: any): DataLoaders | undefined {
+export function getDataLoadersFromRequest(
+  request: any,
+): DataLoaders | undefined {
   return request[DATALOADER_CONTEXT_KEY];
 }

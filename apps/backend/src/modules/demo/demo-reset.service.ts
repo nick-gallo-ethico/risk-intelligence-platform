@@ -13,15 +13,15 @@ import {
   Logger,
   BadRequestException,
   NotFoundException,
-} from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
-import { DemoSessionService } from './demo-session.service';
+} from "@nestjs/common";
+import { PrismaService } from "../prisma/prisma.service";
+import { DemoSessionService } from "./demo-session.service";
 
 /** Undo window duration in hours */
 const UNDO_WINDOW_HOURS = 24;
 
 /** Required confirmation token for reset */
-const CONFIRMATION_TOKEN = 'CONFIRM_RESET';
+const CONFIRMATION_TOKEN = "CONFIRM_RESET";
 
 /**
  * Result of a reset operation
@@ -186,7 +186,7 @@ export class DemoResetService {
       archiveRecords.push({
         organizationId: c.organizationId,
         demoUserSessionId: sessionId,
-        entityType: 'Case',
+        entityType: "Case",
         entityId: c.id,
         entityData: c as unknown as object,
         expiresAt,
@@ -197,7 +197,7 @@ export class DemoResetService {
       archiveRecords.push({
         organizationId: i.organizationId,
         demoUserSessionId: sessionId,
-        entityType: 'Investigation',
+        entityType: "Investigation",
         entityId: i.id,
         entityData: i as unknown as object,
         expiresAt,
@@ -208,7 +208,7 @@ export class DemoResetService {
       archiveRecords.push({
         organizationId: r.organizationId,
         demoUserSessionId: sessionId,
-        entityType: 'RIU',
+        entityType: "RIU",
         entityId: r.id,
         entityData: r as unknown as object,
         expiresAt,
@@ -234,14 +234,14 @@ export class DemoResetService {
    */
   private async deleteUserChanges(
     sessionId: string,
-  ): Promise<ResetResult['deletedCounts']> {
+  ): Promise<ResetResult["deletedCounts"]> {
     // Get IDs first for audit log deletion
-    const userCaseIds = await this.getUserEntityIds(sessionId, 'case');
+    const userCaseIds = await this.getUserEntityIds(sessionId, "case");
     const userInvestigationIds = await this.getUserEntityIds(
       sessionId,
-      'investigation',
+      "investigation",
     );
-    const userRiuIds = await this.getUserEntityIds(sessionId, 'riu');
+    const userRiuIds = await this.getUserEntityIds(sessionId, "riu");
 
     // Delete in FK-safe order using a transaction
     const results = await this.prisma.$transaction([
@@ -249,9 +249,12 @@ export class DemoResetService {
       this.prisma.auditLog.deleteMany({
         where: {
           OR: [
-            { entityType: 'CASE', entityId: { in: userCaseIds } },
-            { entityType: 'INVESTIGATION', entityId: { in: userInvestigationIds } },
-            { entityType: 'RIU', entityId: { in: userRiuIds } },
+            { entityType: "CASE", entityId: { in: userCaseIds } },
+            {
+              entityType: "INVESTIGATION",
+              entityId: { in: userInvestigationIds },
+            },
+            { entityType: "RIU", entityId: { in: userRiuIds } },
           ],
         },
       }),
@@ -274,10 +277,7 @@ export class DemoResetService {
       // 6. Delete RIU-Case associations for user RIUs
       this.prisma.riuCaseAssociation.deleteMany({
         where: {
-          OR: [
-            { riuId: { in: userRiuIds } },
-            { caseId: { in: userCaseIds } },
-          ],
+          OR: [{ riuId: { in: userRiuIds } }, { caseId: { in: userCaseIds } }],
         },
       }),
       // 7. Delete cases (after investigations, messages, subjects)
@@ -306,24 +306,24 @@ export class DemoResetService {
    */
   private async getUserEntityIds(
     sessionId: string,
-    entityType: 'case' | 'investigation' | 'riu',
+    entityType: "case" | "investigation" | "riu",
   ): Promise<string[]> {
     let records: { id: string }[];
 
     switch (entityType) {
-      case 'case':
+      case "case":
         records = await this.prisma.case.findMany({
           where: { demoUserSessionId: sessionId, isBaseData: false },
           select: { id: true },
         });
         break;
-      case 'investigation':
+      case "investigation":
         records = await this.prisma.investigation.findMany({
           where: { demoUserSessionId: sessionId, isBaseData: false },
           select: { id: true },
         });
         break;
-      case 'riu':
+      case "riu":
         records = await this.prisma.riskIntelligenceUnit.findMany({
           where: { demoUserSessionId: sessionId, isBaseData: false },
           select: { id: true },
@@ -356,12 +356,12 @@ export class DemoResetService {
         expiresAt: { gt: new Date() },
         restoredAt: null,
       },
-      orderBy: { archivedAt: 'desc' },
+      orderBy: { archivedAt: "desc" },
     });
 
     if (archived.length === 0) {
       throw new BadRequestException(
-        'No changes available to restore. Undo window may have expired.',
+        "No changes available to restore. Undo window may have expired.",
       );
     }
 
@@ -373,27 +373,27 @@ export class DemoResetService {
 
       try {
         switch (archive.entityType) {
-          case 'Case':
+          case "Case":
             await this.prisma.case.create({
               data: this.cleanForRestore(data) as Parameters<
                 typeof this.prisma.case.create
-              >[0]['data'],
+              >[0]["data"],
             });
             restoredCounts.cases++;
             break;
-          case 'Investigation':
+          case "Investigation":
             await this.prisma.investigation.create({
               data: this.cleanForRestore(data) as Parameters<
                 typeof this.prisma.investigation.create
-              >[0]['data'],
+              >[0]["data"],
             });
             restoredCounts.investigations++;
             break;
-          case 'RIU':
+          case "RIU":
             await this.prisma.riskIntelligenceUnit.create({
               data: this.cleanForRestore(data) as Parameters<
                 typeof this.prisma.riskIntelligenceUnit.create
-              >[0]['data'],
+              >[0]["data"],
             });
             restoredCounts.rius++;
             break;
@@ -407,7 +407,7 @@ export class DemoResetService {
       } catch (error) {
         this.logger.warn(
           `Failed to restore ${archive.entityType} ${archive.entityId}: ${
-            error instanceof Error ? error.message : 'Unknown error'
+            error instanceof Error ? error.message : "Unknown error"
           }`,
         );
       }
@@ -424,7 +424,9 @@ export class DemoResetService {
   /**
    * Clean entity data for restoration (remove relations, etc.).
    */
-  private cleanForRestore(data: Record<string, unknown>): Record<string, unknown> {
+  private cleanForRestore(
+    data: Record<string, unknown>,
+  ): Record<string, unknown> {
     // Remove relation fields that were included in the archive
     const {
       messages,

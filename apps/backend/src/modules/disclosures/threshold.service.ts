@@ -1,14 +1,15 @@
+import { Injectable, Logger, NotFoundException } from "@nestjs/common";
+import { EventEmitter2 } from "@nestjs/event-emitter";
+import { Engine, Rule } from "json-rules-engine";
+import { Decimal } from "@prisma/client/runtime/library";
 import {
-  Injectable,
-  Logger,
-  NotFoundException,
-} from '@nestjs/common';
-import { EventEmitter2 } from '@nestjs/event-emitter';
-import { Engine, Rule } from 'json-rules-engine';
-import { Decimal } from '@prisma/client/runtime/library';
-import { ThresholdAction, ThresholdRule, Prisma, DisclosureType } from '@prisma/client';
-import { PrismaService } from '../prisma/prisma.service';
-import { AuditService } from '../audit/audit.service';
+  ThresholdAction,
+  ThresholdRule,
+  Prisma,
+  DisclosureType,
+} from "@prisma/client";
+import { PrismaService } from "../prisma/prisma.service";
+import { AuditService } from "../audit/audit.service";
 import {
   CreateThresholdRuleDto,
   UpdateThresholdRuleDto,
@@ -20,7 +21,7 @@ import {
   ConditionOperator,
   ThresholdActionDto,
   AggregateConfigDto,
-} from './dto/threshold-rule.dto';
+} from "./dto/threshold-rule.dto";
 
 /**
  * Internal result type for rule evaluation
@@ -57,9 +58,7 @@ export class ThresholdService {
     private readonly auditService: AuditService,
   ) {}
 
-  // ===========================================
   // CRUD Operations
-  // ===========================================
 
   /**
    * Creates a new threshold rule.
@@ -83,20 +82,20 @@ export class ThresholdService {
         actionConfig: dto.actionConfig
           ? JSON.parse(JSON.stringify(dto.actionConfig))
           : undefined,
-        applyMode: dto.applyMode || 'FORWARD_ONLY',
+        applyMode: dto.applyMode || "FORWARD_ONLY",
         priority: dto.priority ?? 0,
         createdById: userId,
       },
     });
 
     await this.auditService.log({
-      entityType: 'DISCLOSURE',
+      entityType: "DISCLOSURE",
       entityId: rule.id,
-      action: 'threshold_rule_created',
-      actionCategory: 'CREATE',
+      action: "threshold_rule_created",
+      actionCategory: "CREATE",
       actionDescription: `Created threshold rule "${rule.name}" with action ${rule.action}`,
       actorUserId: userId,
-      actorType: 'USER',
+      actorType: "USER",
       organizationId,
     });
 
@@ -127,7 +126,9 @@ export class ThresholdService {
     if (dto.conditions !== undefined)
       updateData.conditions = JSON.parse(JSON.stringify(dto.conditions));
     if (dto.aggregateConfig !== undefined)
-      updateData.aggregateConfig = JSON.parse(JSON.stringify(dto.aggregateConfig));
+      updateData.aggregateConfig = JSON.parse(
+        JSON.stringify(dto.aggregateConfig),
+      );
     if (dto.action !== undefined)
       updateData.action = dto.action as ThresholdAction;
     if (dto.actionConfig !== undefined)
@@ -141,13 +142,13 @@ export class ThresholdService {
     });
 
     await this.auditService.log({
-      entityType: 'DISCLOSURE',
+      entityType: "DISCLOSURE",
       entityId: rule.id,
-      action: 'threshold_rule_updated',
-      actionCategory: 'UPDATE',
+      action: "threshold_rule_updated",
+      actionCategory: "UPDATE",
       actionDescription: `Updated threshold rule "${rule.name}"`,
       actorUserId: userId,
-      actorType: 'USER',
+      actorType: "USER",
       organizationId,
       changes: { ruleChanges: { old: existing, new: dto } },
     });
@@ -176,7 +177,7 @@ export class ThresholdService {
   async findMany(organizationId: string): Promise<ThresholdRuleResponseDto[]> {
     const rules = await this.prisma.thresholdRule.findMany({
       where: { organizationId },
-      orderBy: { priority: 'desc' },
+      orderBy: { priority: "desc" },
     });
     return rules.map((r: ThresholdRule) => this.mapToResponse(r));
   }
@@ -184,10 +185,12 @@ export class ThresholdService {
   /**
    * Finds all active threshold rules for an organization.
    */
-  async findActive(organizationId: string): Promise<ThresholdRuleResponseDto[]> {
+  async findActive(
+    organizationId: string,
+  ): Promise<ThresholdRuleResponseDto[]> {
     const rules = await this.prisma.thresholdRule.findMany({
       where: { organizationId, isActive: true },
-      orderBy: { priority: 'desc' },
+      orderBy: { priority: "desc" },
     });
     return rules.map((r: ThresholdRule) => this.mapToResponse(r));
   }
@@ -205,22 +208,20 @@ export class ThresholdService {
     await this.prisma.thresholdRule.delete({ where: { id } });
 
     await this.auditService.log({
-      entityType: 'DISCLOSURE',
+      entityType: "DISCLOSURE",
       entityId: id,
-      action: 'threshold_rule_deleted',
-      actionCategory: 'DELETE',
+      action: "threshold_rule_deleted",
+      actionCategory: "DELETE",
       actionDescription: `Deleted threshold rule "${rule.name}"`,
       actorUserId: userId,
-      actorType: 'USER',
+      actorType: "USER",
       organizationId,
     });
 
     this.logger.log(`Deleted threshold rule ${id} in org ${organizationId}`);
   }
 
-  // ===========================================
   // Rule Evaluation
-  // ===========================================
 
   /**
    * Evaluates a disclosure against all applicable threshold rules.
@@ -252,7 +253,7 @@ export class ThresholdService {
         isActive: true,
         disclosureTypes: { has: disclosureType as DisclosureType },
       },
-      orderBy: { priority: 'desc' },
+      orderBy: { priority: "desc" },
     });
 
     if (rules.length === 0) {
@@ -298,8 +299,7 @@ export class ThresholdService {
           if (!highestPriorityAction) {
             highestPriorityAction = rule.action as ThresholdActionDto;
           } else if (
-            actionPriority[rule.action] >
-            actionPriority[highestPriorityAction]
+            actionPriority[rule.action] > actionPriority[highestPriorityAction]
           ) {
             highestPriorityAction = rule.action as ThresholdActionDto;
           }
@@ -329,7 +329,7 @@ export class ThresholdService {
 
     // Emit event if any rules triggered
     if (triggeredRules.length > 0) {
-      this.eventEmitter.emit('threshold.triggered', {
+      this.eventEmitter.emit("threshold.triggered", {
         organizationId,
         disclosureId,
         personId,
@@ -350,9 +350,7 @@ export class ThresholdService {
     };
   }
 
-  // ===========================================
   // Private Helpers
-  // ===========================================
 
   /**
    * Evaluates a single rule against disclosure data.
@@ -381,7 +379,10 @@ export class ThresholdService {
       aggregateBreakdown = aggregateResult;
     } else {
       // Use the disclosure value directly
-      evaluatedValue = this.extractNumericValue(disclosureData, 'disclosureValue');
+      evaluatedValue = this.extractNumericValue(
+        disclosureData,
+        "disclosureValue",
+      );
     }
 
     // Create json-rules-engine for condition evaluation
@@ -394,7 +395,7 @@ export class ThresholdService {
     engine.addRule(
       new Rule({
         conditions: engineConditions,
-        event: { type: 'threshold-met' },
+        event: { type: "threshold-met" },
       }),
     );
 
@@ -402,14 +403,17 @@ export class ThresholdService {
     const facts = {
       ...this.flattenData(disclosureData),
       aggregateValue: evaluatedValue,
-      disclosureValue: this.extractNumericValue(disclosureData, 'disclosureValue'),
+      disclosureValue: this.extractNumericValue(
+        disclosureData,
+        "disclosureValue",
+      ),
     };
 
     const { events } = await engine.run(facts);
 
     // Find the threshold value from conditions (for logging)
     const thresholdCondition = conditions.find((c) =>
-      ['gte', 'gt', 'lte', 'lt'].includes(c.operator),
+      ["gte", "gt", "lte", "lt"].includes(c.operator),
     );
     const thresholdValue = (thresholdCondition?.value as number) || 0;
 
@@ -442,15 +446,15 @@ export class ThresholdService {
 
     if (config.timeWindow) {
       const { period, value, type } = config.timeWindow;
-      if (type === 'rolling') {
+      if (type === "rolling") {
         switch (period) {
-          case 'days':
+          case "days":
             windowStart.setDate(windowStart.getDate() - value);
             break;
-          case 'months':
+          case "months":
             windowStart.setMonth(windowStart.getMonth() - value);
             break;
-          case 'years':
+          case "years":
             windowStart.setFullYear(windowStart.getFullYear() - value);
             break;
         }
@@ -473,35 +477,34 @@ export class ThresholdService {
     };
 
     // Add dimension filters
-    if (config.dimensions?.includes('person')) {
+    if (config.dimensions?.includes("person")) {
       whereClause.relatedPersonId = personId;
     }
 
     if (
-      config.dimensions?.includes('entity') &&
+      config.dimensions?.includes("entity") &&
       currentDisclosure.relatedCompany
     ) {
       whereClause.relatedCompany = {
         contains: currentDisclosure.relatedCompany as string,
-        mode: 'insensitive',
+        mode: "insensitive",
       };
     }
 
     // Query related disclosures
-    const relatedDisclosures = await this.prisma.riuDisclosureExtension.findMany(
-      {
+    const relatedDisclosures =
+      await this.prisma.riuDisclosureExtension.findMany({
         where: whereClause,
         select: {
           riuId: true,
           disclosureValue: true,
           createdAt: true,
         },
-        orderBy: { createdAt: 'desc' },
-      },
-    );
+        orderBy: { createdAt: "desc" },
+      });
 
     // Calculate aggregate
-    const func = config.aggregateFunction || 'SUM';
+    const func = config.aggregateFunction || "SUM";
     const values: number[] = relatedDisclosures
       .map((d) => (d.disclosureValue ? Number(d.disclosureValue) : 0))
       .filter((v) => v > 0);
@@ -509,25 +512,26 @@ export class ThresholdService {
     // Add current disclosure value
     const currentValue = this.extractNumericValue(
       currentDisclosure,
-      'disclosureValue',
+      "disclosureValue",
     );
     values.push(currentValue);
 
     let totalValue = 0;
     switch (func) {
-      case 'SUM':
+      case "SUM":
         totalValue = values.reduce((sum: number, v: number) => sum + v, 0);
         break;
-      case 'COUNT':
+      case "COUNT":
         totalValue = values.length;
         break;
-      case 'AVG':
+      case "AVG":
         totalValue =
           values.length > 0
-            ? values.reduce((sum: number, v: number) => sum + v, 0) / values.length
+            ? values.reduce((sum: number, v: number) => sum + v, 0) /
+              values.length
             : 0;
         break;
-      case 'MAX':
+      case "MAX":
         totalValue = Math.max(...values, 0);
         break;
     }
@@ -554,13 +558,13 @@ export class ThresholdService {
 
     // Convert to json-rules-engine format
     const engineConditions = conditions.map((c) => ({
-      fact: c.field === 'disclosureValue' ? 'aggregateValue' : c.field,
+      fact: c.field === "disclosureValue" ? "aggregateValue" : c.field,
       operator: this.mapOperator(c.operator as ConditionOperator),
       value: c.value,
     }));
 
     // Check for OR conjunction
-    const hasOr = conditions.some((c) => c.conjunction === 'OR');
+    const hasOr = conditions.some((c) => c.conjunction === "OR");
     if (hasOr) {
       return { any: engineConditions };
     }
@@ -573,17 +577,17 @@ export class ThresholdService {
    */
   private mapOperator(op: ConditionOperator): string {
     const mapping: Record<string, string> = {
-      eq: 'equal',
-      neq: 'notEqual',
-      gt: 'greaterThan',
-      gte: 'greaterThanInclusive',
-      lt: 'lessThan',
-      lte: 'lessThanInclusive',
-      contains: 'contains',
-      in: 'in',
-      not_in: 'notIn',
+      eq: "equal",
+      neq: "notEqual",
+      gt: "greaterThan",
+      gte: "greaterThanInclusive",
+      lt: "lessThan",
+      lte: "lessThanInclusive",
+      contains: "contains",
+      in: "in",
+      not_in: "notIn",
     };
-    return mapping[op] || 'equal';
+    return mapping[op] || "equal";
   }
 
   /**
@@ -593,16 +597,16 @@ export class ThresholdService {
     data: Record<string, unknown>,
     path: string,
   ): number {
-    const parts = path.split('.');
+    const parts = path.split(".");
     let value: unknown = data;
     for (const part of parts) {
-      if (value && typeof value === 'object') {
+      if (value && typeof value === "object") {
         value = (value as Record<string, unknown>)[part];
       } else {
         return 0;
       }
     }
-    return typeof value === 'number' ? value : parseFloat(String(value)) || 0;
+    return typeof value === "number" ? value : parseFloat(String(value)) || 0;
   }
 
   /**
@@ -610,12 +614,12 @@ export class ThresholdService {
    */
   private flattenData(
     data: Record<string, unknown>,
-    prefix = '',
+    prefix = "",
   ): Record<string, unknown> {
     const result: Record<string, unknown> = {};
     for (const [key, value] of Object.entries(data)) {
       const newKey = prefix ? `${prefix}.${key}` : key;
-      if (value && typeof value === 'object' && !Array.isArray(value)) {
+      if (value && typeof value === "object" && !Array.isArray(value)) {
         Object.assign(
           result,
           this.flattenData(value as Record<string, unknown>, newKey),
@@ -645,7 +649,8 @@ export class ThresholdService {
         personId,
         evaluatedValue: new Decimal(result.evaluatedValue),
         thresholdValue: new Decimal(result.thresholdValue),
-        aggregateBreakdown: result.aggregateBreakdown as unknown as Prisma.InputJsonValue,
+        aggregateBreakdown:
+          result.aggregateBreakdown as unknown as Prisma.InputJsonValue,
         actionTaken: rule.action,
       },
     });

@@ -14,45 +14,41 @@ import {
   MinLength,
   MaxLength,
   IsUUID,
-} from 'class-validator';
-import { Type } from 'class-transformer';
+} from "class-validator";
+import { Type } from "class-transformer";
 import type {
   FormField,
   FormSection,
   CalculatedField,
   ValidationRule,
-} from '../entities/form-field.types';
+} from "../entities/form-field.types";
 
-// ===========================================
 // Enums (matching Prisma enums)
-// ===========================================
 
 /**
  * Disclosure form types matching Prisma DisclosureFormType enum.
  */
 export enum DisclosureFormTypeDto {
-  COI = 'COI',
-  GIFT = 'GIFT',
-  OUTSIDE_EMPLOYMENT = 'OUTSIDE_EMPLOYMENT',
-  ATTESTATION = 'ATTESTATION',
-  POLITICAL = 'POLITICAL',
-  CHARITABLE = 'CHARITABLE',
-  TRAVEL = 'TRAVEL',
-  CUSTOM = 'CUSTOM',
+  COI = "COI",
+  GIFT = "GIFT",
+  OUTSIDE_EMPLOYMENT = "OUTSIDE_EMPLOYMENT",
+  ATTESTATION = "ATTESTATION",
+  POLITICAL = "POLITICAL",
+  CHARITABLE = "CHARITABLE",
+  TRAVEL = "TRAVEL",
+  CUSTOM = "CUSTOM",
 }
 
 /**
  * Form template status matching Prisma FormTemplateStatus enum.
  */
 export enum FormTemplateStatusDto {
-  DRAFT = 'DRAFT',
-  PUBLISHED = 'PUBLISHED',
-  ARCHIVED = 'ARCHIVED',
+  DRAFT = "DRAFT",
+  PUBLISHED = "PUBLISHED",
+  ARCHIVED = "ARCHIVED",
 }
 
-// ===========================================
 // Create/Update DTOs
-// ===========================================
 
 /**
  * DTO for creating a new disclosure form template.
@@ -74,7 +70,7 @@ export class CreateFormTemplateDto {
   @IsOptional()
   @IsString()
   @MaxLength(10)
-  language?: string = 'en';
+  language?: string = "en";
 
   @IsOptional()
   @IsUUID()
@@ -164,9 +160,7 @@ export class CloneFormTemplateDto {
   asTranslation?: boolean; // If true, links as child translation
 }
 
-// ===========================================
 // Query DTOs
-// ===========================================
 
 /**
  * DTO for querying form templates with filters.
@@ -199,9 +193,7 @@ export class FormTemplateQueryDto {
   includeArchived?: boolean;
 }
 
-// ===========================================
 // Response DTOs
-// ===========================================
 
 /**
  * Full form template response with all fields.

@@ -67,7 +67,9 @@ export class RiuAccessService {
       this.logger.error(
         "Failed to generate unique access code after max attempts",
       );
-      throw new InternalServerErrorException("Failed to generate unique access code");
+      throw new InternalServerErrorException(
+        "Failed to generate unique access code",
+      );
     }
 
     return code;

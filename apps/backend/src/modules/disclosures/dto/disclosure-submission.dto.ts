@@ -18,30 +18,26 @@ import {
   MaxLength,
   ValidateNested,
   IsArray,
-} from 'class-validator';
-import { Type } from 'class-transformer';
-import { DisclosureType } from '@prisma/client';
-import { ConflictAlertDto } from './conflict.dto';
-import { ThresholdEvaluationResult } from './threshold-rule.dto';
+} from "class-validator";
+import { Type } from "class-transformer";
+import { DisclosureType } from "@prisma/client";
+import { ConflictAlertDto } from "./conflict.dto";
+import { ThresholdEvaluationResult } from "./threshold-rule.dto";
 
-// ===========================================
 // Enums
-// ===========================================
 
 /**
  * Disclosure submission status.
  */
 export enum DisclosureStatus {
-  DRAFT = 'DRAFT',
-  SUBMITTED = 'SUBMITTED',
-  UNDER_REVIEW = 'UNDER_REVIEW',
-  APPROVED = 'APPROVED',
-  REJECTED = 'REJECTED',
+  DRAFT = "DRAFT",
+  SUBMITTED = "SUBMITTED",
+  UNDER_REVIEW = "UNDER_REVIEW",
+  APPROVED = "APPROVED",
+  REJECTED = "REJECTED",
 }
 
-// ===========================================
 // Draft DTOs
-// ===========================================
 
 /**
  * DTO for saving a disclosure draft.
@@ -91,9 +87,7 @@ export class DraftResponseDto {
   updatedAt: Date;
 }
 
-// ===========================================
 // Submit DTOs
-// ===========================================
 
 /**
  * DTO for submitting a complete disclosure.
@@ -204,9 +198,7 @@ export class SubmitDisclosureDto {
   details?: string;
 }
 
-// ===========================================
 // Response DTOs
-// ===========================================
 
 /**
  * Full disclosure response after submission.
@@ -306,9 +298,7 @@ export class DisclosureListResponseDto {
   hasMore: boolean;
 }
 
-// ===========================================
 // Query DTOs
-// ===========================================
 
 /**
  * DTO for querying disclosures with filters and pagination.
@@ -376,16 +366,14 @@ export class DisclosureQueryDto {
 
   @IsOptional()
   @IsString()
-  sortBy?: 'createdAt' | 'submittedAt' | 'disclosureValue' | 'disclosureType';
+  sortBy?: "createdAt" | "submittedAt" | "disclosureValue" | "disclosureType";
 
   @IsOptional()
   @IsString()
-  sortOrder?: 'asc' | 'desc';
+  sortOrder?: "asc" | "desc";
 }
 
-// ===========================================
 // Review/Approval DTOs
-// ===========================================
 
 /**
  * DTO for approving a disclosure.
@@ -431,9 +419,7 @@ export class RequestInfoDto {
   requiredFields?: string[];
 }
 
-// ===========================================
 // Submission Result DTOs
-// ===========================================
 
 /**
  * Result of disclosure submission including threshold and conflict results.

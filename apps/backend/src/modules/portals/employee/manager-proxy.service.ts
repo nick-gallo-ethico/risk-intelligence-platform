@@ -361,7 +361,7 @@ export class ManagerProxyService {
     });
   }
 
-  // ==================== Private Methods ====================
+  // Private Methods
 
   /**
    * Check transitive manager relationship via hierarchy traversal.
