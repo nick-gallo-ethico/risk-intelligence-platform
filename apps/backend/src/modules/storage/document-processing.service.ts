@@ -23,9 +23,17 @@ export interface TextExtractionResult {
 /**
  * Service for extracting text from documents for search indexing.
  *
- * This is a placeholder implementation that will be enhanced with
- * actual document parsing libraries (pdf-parse, mammoth, etc.) in
- * a future iteration.
+ * Supports:
+ * - Plain text files (text/plain, text/html, text/csv, etc.)
+ * - PDF documents (via pdf-parse)
+ * - DOCX documents (via mammoth)
+ *
+ * Not yet supported:
+ * - Legacy .doc files (recommend conversion to .docx)
+ * - Excel spreadsheets (.xlsx, .xls)
+ * - PowerPoint presentations (.pptx, .ppt)
+ * - OpenDocument formats (.odt, .ods, .odp)
+ * - RTF files
  */
 @Injectable()
 export class DocumentProcessingService {
@@ -90,14 +98,6 @@ export class DocumentProcessingService {
 
   /**
    * Extracts text from a document for search indexing.
-   *
-   * Currently supports:
-   * - Plain text files (text/plain, text/html, etc.)
-   *
-   * Future support (placeholder):
-   * - PDF (application/pdf)
-   * - Word documents (DOCX, DOC)
-   * - Spreadsheets (XLSX, XLS)
    *
    * @param content - Document content as Buffer
    * @param contentType - MIME type of the document

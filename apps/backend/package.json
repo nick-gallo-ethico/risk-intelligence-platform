@@ -41,7 +41,6 @@
     "@bull-board/express": "^6.16.4",
     "@bull-board/nestjs": "^6.16.4",
     "@elastic/elasticsearch": "^9.2.1",
-    "@faker-js/faker": "^10.2.0",
     "@nest-lab/throttler-storage-redis": "^1.1.0",
     "@nestjs-modules/mailer": "^2.0.2",
     "@nestjs/bullmq": "^11.0.4",
@@ -101,7 +100,7 @@
     "passport-azure-ad": "^4.3.5",
     "passport-google-oauth20": "^2.0.0",
     "passport-jwt": "^4.0.1",
-    "pdf-parse": "^2.4.5",
+    "pdf-parse": "^1.1.1",
     "pino": "^8.17.2",
     "pino-http": "^9.0.0",
     "pino-pretty": "^10.3.1",
@@ -117,6 +116,7 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@faker-js/faker": "^10.3.0",
     "@nestjs/cli": "^10.3.0",
     "@nestjs/schematics": "^10.1.0",
     "@nestjs/testing": "^10.3.0",
