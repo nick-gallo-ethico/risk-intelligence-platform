@@ -13,8 +13,15 @@
 // - Provider (Azure/Local) is auto-configured based on environment
 // =============================================================================
 
-import { Injectable, Inject, Logger, NotFoundException } from "@nestjs/common";
+import {
+  Injectable,
+  Inject,
+  Logger,
+  NotFoundException,
+  BadRequestException,
+} from "@nestjs/common";
 import { EventEmitter2 } from "@nestjs/event-emitter";
+import * as path from "path";
 import { PrismaService } from "../prisma/prisma.service";
 import { AttachmentEntityType, Attachment } from "@prisma/client";
 import {
@@ -22,6 +29,11 @@ import {
   STORAGE_PROVIDER,
 } from "./providers/storage-provider.interface";
 import { DocumentProcessingService } from "./document-processing.service";
+import {
+  DANGEROUS_EXTENSIONS,
+  ALLOWED_EXTENSIONS,
+  MagicByteValidationResult,
+} from "../../common/services/storage.service";
 import { nanoid } from "nanoid";
 
 /**
@@ -106,6 +118,18 @@ export class ModuleStorageService {
    * @returns Upload result with attachment ID and URL
    */
   async uploadFile(params: UploadFileParams): Promise<UploadFileResult> {
+    // Validate file extension (PROD-02: block dangerous files)
+    this.validateExtension(params.fileName);
+
+    // Validate magic bytes (PROD-01: prevent MIME spoofing)
+    const ext = path.extname(params.fileName).toLowerCase();
+    const magicValidation = await this.validateMagicBytes(params.content, ext);
+    if (!magicValidation.valid) {
+      throw new BadRequestException(
+        `File validation failed: ${magicValidation.error}`,
+      );
+    }
+
     // Generate unique file key: {entityType}/{entityId}/{nanoid}-{filename}
     const fileKey = this.generateFileKey(
       params.entityType,
@@ -396,5 +420,120 @@ export class ModuleStorageService {
     }
 
     return sanitized;
+  }
+
+  /**
+   * Validates file extension against allowed/dangerous lists.
+   * PROD-02: Block dangerous file extensions.
+   *
+   * @param filename - Original filename with extension
+   * @throws BadRequestException if extension is dangerous or not allowed
+   */
+  private validateExtension(filename: string): void {
+    const ext = path.extname(filename).toLowerCase();
+
+    if (DANGEROUS_EXTENSIONS.includes(ext)) {
+      throw new BadRequestException(
+        `Dangerous file extension not allowed: ${ext}`,
+      );
+    }
+
+    if (!ALLOWED_EXTENSIONS.includes(ext)) {
+      throw new BadRequestException(`File extension not allowed: ${ext}`);
+    }
+  }
+
+  /**
+   * Validates file content against expected type using magic bytes.
+   * PROD-01: Prevent MIME type spoofing attacks.
+   *
+   * @param buffer - File content as Buffer
+   * @param expectedExt - Expected file extension (e.g., '.pdf', '.docx')
+   * @returns Validation result with detected MIME type
+   */
+  private async validateMagicBytes(
+    buffer: Buffer,
+    expectedExt: string,
+  ): Promise<MagicByteValidationResult> {
+    try {
+      // Dynamic import for ESM package in CommonJS context
+      const { fileTypeFromBuffer } = await import("file-type");
+      const detected = await fileTypeFromBuffer(buffer);
+
+      // Plain text files have no magic bytes - allow if extension is text-based
+      if (!detected) {
+        const textExtensions = [
+          ".txt",
+          ".csv",
+          ".json",
+          ".xml",
+          ".md",
+          ".html",
+          ".htm",
+          ".svg",
+        ];
+        if (textExtensions.includes(expectedExt.toLowerCase())) {
+          return { valid: true };
+        }
+        return {
+          valid: false,
+          error: "Could not detect file type from content",
+        };
+      }
+
+      // Map extensions to allowed MIME types
+      const extToMime: Record<string, string[]> = {
+        ".pdf": ["application/pdf"],
+        ".docx": [
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        ],
+        ".doc": ["application/msword", "application/x-cfb"],
+        ".xlsx": [
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        ],
+        ".xls": ["application/vnd.ms-excel", "application/x-cfb"],
+        ".pptx": [
+          "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+        ],
+        ".ppt": ["application/vnd.ms-powerpoint", "application/x-cfb"],
+        ".png": ["image/png"],
+        ".jpg": ["image/jpeg"],
+        ".jpeg": ["image/jpeg"],
+        ".gif": ["image/gif"],
+        ".webp": ["image/webp"],
+        ".bmp": ["image/bmp"],
+        ".zip": ["application/zip"],
+        ".rar": ["application/x-rar-compressed", "application/vnd.rar"],
+        ".7z": ["application/x-7z-compressed"],
+      };
+
+      const normalizedExt = expectedExt.toLowerCase();
+      const allowedMimes = extToMime[normalizedExt];
+
+      // If extension not in our map, check if file-type detected something safe
+      if (!allowedMimes) {
+        return {
+          valid: false,
+          detectedMime: detected.mime,
+          error: `Extension ${expectedExt} not in validated list`,
+        };
+      }
+
+      // Check if detected MIME matches expected
+      if (allowedMimes.includes(detected.mime)) {
+        return { valid: true, detectedMime: detected.mime };
+      }
+
+      return {
+        valid: false,
+        detectedMime: detected.mime,
+        error: `File content (${detected.mime}) does not match extension (${expectedExt})`,
+      };
+    } catch (error) {
+      this.logger.error(
+        `Magic byte validation failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
+      return { valid: false, error: "Magic byte validation failed" };
+    }
   }
 }

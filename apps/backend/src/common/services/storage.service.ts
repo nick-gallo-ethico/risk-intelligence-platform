@@ -19,6 +19,7 @@ import {
   Inject,
 } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
+import * as path from "path";
 import {
   StorageAdapter,
   FileInput,
@@ -26,6 +27,68 @@ import {
   UploadResult,
   DownloadResult,
 } from "./storage.interface";
+
+/**
+ * Result of magic byte validation.
+ */
+export interface MagicByteValidationResult {
+  /** Whether the file content matches the expected extension */
+  valid: boolean;
+  /** Detected MIME type from magic bytes (if detected) */
+  detectedMime?: string;
+  /** Error message if validation failed */
+  error?: string;
+}
+
+/**
+ * Dangerous file extensions that should always be rejected.
+ */
+export const DANGEROUS_EXTENSIONS = [
+  ".exe",
+  ".bat",
+  ".cmd",
+  ".sh",
+  ".ps1",
+  ".msi",
+  ".dll",
+  ".scr",
+  ".com",
+  ".vbs",
+  ".js",
+  ".jse",
+  ".wsf",
+  ".wsh",
+];
+
+/**
+ * Allowed file extensions for upload.
+ */
+export const ALLOWED_EXTENSIONS = [
+  ".pdf",
+  ".docx",
+  ".xlsx",
+  ".pptx",
+  ".doc",
+  ".xls",
+  ".ppt",
+  ".png",
+  ".jpg",
+  ".jpeg",
+  ".gif",
+  ".webp",
+  ".bmp",
+  ".svg",
+  ".txt",
+  ".csv",
+  ".json",
+  ".xml",
+  ".md",
+  ".html",
+  ".htm",
+  ".zip",
+  ".rar",
+  ".7z",
+];
 
 /**
  * Storage adapter injection token.
@@ -97,8 +160,24 @@ export class StorageService {
     // Validate file size
     this.validateFileSize(file.size);
 
-    // Validate MIME type
+    // Validate MIME type from header
     this.validateMimeType(file.mimetype);
+
+    // Validate file extension against dangerous/allowed lists
+    this.validateExtension(file.originalname);
+
+    // Validate magic bytes match extension (PROD-01: prevent MIME spoofing)
+    // Only perform magic byte validation if buffer is available
+    // (files using disk storage will need validation in the adapter)
+    if (file.buffer) {
+      const ext = path.extname(file.originalname).toLowerCase();
+      const magicValidation = await this.validateMagicBytes(file.buffer, ext);
+      if (!magicValidation.valid) {
+        throw new BadRequestException(
+          `File validation failed: ${magicValidation.error}`,
+        );
+      }
+    }
 
     this.logger.debug(
       `Uploading file: ${file.originalname} (${this.formatBytes(file.size)}) for tenant ${tenantId}`,
@@ -173,6 +252,127 @@ export class StorageService {
    */
   async exists(key: string): Promise<boolean> {
     return this.adapter.exists(key);
+  }
+
+  // -------------------------------------------------------------------------
+  // MAGIC BYTE VALIDATION - Detect actual file content type
+  // -------------------------------------------------------------------------
+
+  /**
+   * Validates file content against expected type using magic bytes.
+   * This prevents MIME type spoofing attacks where malicious files
+   * are disguised with incorrect extensions.
+   *
+   * @param buffer - File content as Buffer
+   * @param expectedExt - Expected file extension (e.g., '.pdf', '.docx')
+   * @returns Validation result with detected MIME type
+   */
+  async validateMagicBytes(
+    buffer: Buffer,
+    expectedExt: string,
+  ): Promise<MagicByteValidationResult> {
+    try {
+      // Dynamic import for ESM package in CommonJS context
+      const { fileTypeFromBuffer } = await import("file-type");
+      const detected = await fileTypeFromBuffer(buffer);
+
+      // Plain text files have no magic bytes - allow if extension is text-based
+      if (!detected) {
+        const textExtensions = [
+          ".txt",
+          ".csv",
+          ".json",
+          ".xml",
+          ".md",
+          ".html",
+          ".htm",
+          ".svg",
+        ];
+        if (textExtensions.includes(expectedExt.toLowerCase())) {
+          return { valid: true };
+        }
+        return {
+          valid: false,
+          error: "Could not detect file type from content",
+        };
+      }
+
+      // Map extensions to allowed MIME types
+      const extToMime: Record<string, string[]> = {
+        ".pdf": ["application/pdf"],
+        ".docx": [
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        ],
+        ".doc": ["application/msword", "application/x-cfb"],
+        ".xlsx": [
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        ],
+        ".xls": ["application/vnd.ms-excel", "application/x-cfb"],
+        ".pptx": [
+          "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+        ],
+        ".ppt": ["application/vnd.ms-powerpoint", "application/x-cfb"],
+        ".png": ["image/png"],
+        ".jpg": ["image/jpeg"],
+        ".jpeg": ["image/jpeg"],
+        ".gif": ["image/gif"],
+        ".webp": ["image/webp"],
+        ".bmp": ["image/bmp"],
+        ".zip": ["application/zip"],
+        ".rar": ["application/x-rar-compressed", "application/vnd.rar"],
+        ".7z": ["application/x-7z-compressed"],
+      };
+
+      const normalizedExt = expectedExt.toLowerCase();
+      const allowedMimes = extToMime[normalizedExt];
+
+      // If extension not in our map, check if file-type detected something safe
+      if (!allowedMimes) {
+        // For unmapped extensions, we're strict - reject unless it's text
+        return {
+          valid: false,
+          detectedMime: detected.mime,
+          error: `Extension ${expectedExt} not in validated list`,
+        };
+      }
+
+      // Check if detected MIME matches expected
+      if (allowedMimes.includes(detected.mime)) {
+        return { valid: true, detectedMime: detected.mime };
+      }
+
+      return {
+        valid: false,
+        detectedMime: detected.mime,
+        error: `File content (${detected.mime}) does not match extension (${expectedExt})`,
+      };
+    } catch (error) {
+      this.logger.error(
+        `Magic byte validation failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
+      return { valid: false, error: "Magic byte validation failed" };
+    }
+  }
+
+  /**
+   * Validates file extension against allowed/dangerous lists.
+   * Should be called before magic byte validation.
+   *
+   * @param filename - Original filename with extension
+   * @throws BadRequestException if extension is dangerous or not allowed
+   */
+  validateExtension(filename: string): void {
+    const ext = path.extname(filename).toLowerCase();
+
+    if (DANGEROUS_EXTENSIONS.includes(ext)) {
+      throw new BadRequestException(
+        `Dangerous file extension not allowed: ${ext}`,
+      );
+    }
+
+    if (!ALLOWED_EXTENSIONS.includes(ext)) {
+      throw new BadRequestException(`File extension not allowed: ${ext}`);
+    }
   }
 
   // -------------------------------------------------------------------------
