@@ -1,10 +1,46 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication, ValidationPipe } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import { randomUUID } from 'crypto';
-import { AppModule } from '../../src/app.module';
-import { PrismaService } from '../../src/modules/prisma/prisma.service';
-import * as bcrypt from 'bcrypt';
+/**
+ * E2E Test Setup with Environment Configuration
+ *
+ * IMPORTANT: Environment variables must be set BEFORE any module imports.
+ * This ensures ConfigService has correct values when NestJS compiles modules.
+ */
+
+import * as fs from "fs";
+import * as path from "path";
+
+// Set environment variables BEFORE any NestJS imports
+process.env.NODE_ENV = "development";
+process.env.STORAGE_PROVIDER = "local";
+
+// Set JWT secrets for token generation in tests (must be at least 32 chars)
+// Always set unconditionally to ensure tests work regardless of .env file
+process.env.JWT_SECRET = "test-jwt-secret-for-e2e-tests-only-minimum-32-chars";
+process.env.JWT_REFRESH_SECRET =
+  "test-jwt-refresh-secret-for-e2e-tests-min32ch";
+
+// Debug: log env vars to verify they're set before module compilation
+console.log(
+  "[Test Setup] JWT_SECRET set:",
+  process.env.JWT_SECRET?.slice(0, 20) + "...",
+);
+
+// Set LOCAL_STORAGE_PATH to an absolute path
+const uploadsDir = path.resolve(__dirname, "../../uploads");
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+process.env.LOCAL_STORAGE_PATH = uploadsDir;
+
+// Now import NestJS modules (after env vars are set)
+import { Test, TestingModule } from "@nestjs/testing";
+import { INestApplication, ValidationPipe } from "@nestjs/common";
+import { JwtService } from "@nestjs/jwt";
+import { randomUUID } from "crypto";
+import * as jwt from "jsonwebtoken";
+import { AppModule } from "../../src/app.module";
+import { PrismaService } from "../../src/modules/prisma/prisma.service";
+import { JwtKeyService } from "../../src/modules/auth/services/jwt-key.service";
+import * as bcrypt from "bcrypt";
 
 /**
  * Test organization data for tenant isolation testing.
@@ -40,11 +76,20 @@ export interface TestContext {
  * Use this for any e2e tests requiring tenant isolation verification.
  */
 export async function createTestContext(): Promise<TestContext> {
+  // Debug: verify env vars are still set before module compilation
+  console.log("[createTestContext] NODE_ENV:", process.env.NODE_ENV);
+  console.log(
+    "[createTestContext] JWT_SECRET:",
+    process.env.JWT_SECRET?.slice(0, 20) + "...",
+  );
+
   const moduleFixture: TestingModule = await Test.createTestingModule({
     imports: [AppModule],
   }).compile();
 
-  const app = moduleFixture.createNestApplication();
+  const app = moduleFixture.createNestApplication({
+    logger: ["log", "error", "warn", "debug"],
+  });
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -54,17 +99,25 @@ export async function createTestContext(): Promise<TestContext> {
     }),
   );
 
-  app.setGlobalPrefix('api/v1', {
-    exclude: ['health'],
+  app.setGlobalPrefix("api/v1", {
+    exclude: ["health"],
   });
 
   await app.init();
 
   const prisma = app.get(PrismaService);
   const jwtService = app.get(JwtService);
+  const jwtKeyService = app.get(JwtKeyService);
+
+  // Debug: log key status
+  const keyStatus = jwtKeyService.getKeyStatus();
+  console.log(
+    "[createTestContext] JwtKeyService status:",
+    JSON.stringify(keyStatus),
+  );
 
   // Seed test organizations
-  const { orgA, orgB } = await seedTestOrganizations(prisma, jwtService);
+  const { orgA, orgB } = await seedTestOrganizations(prisma, jwtKeyService);
 
   return {
     app,
@@ -112,13 +165,13 @@ export async function destroyTestContext(ctx: TestContext): Promise<void> {
  */
 async function seedTestOrganizations(
   prisma: PrismaService,
-  jwtService: JwtService,
+  jwtKeyService: JwtKeyService,
 ): Promise<{ orgA: TestOrg; orgB: TestOrg }> {
   // Bypass RLS for seeding
   await prisma.enableBypassRLS();
 
   try {
-    const passwordHash = await bcrypt.hash('TestPassword123!', 10);
+    const passwordHash = await bcrypt.hash("TestPassword123!", 10);
 
     // Use UUID for guaranteed uniqueness when tests run in parallel
     const uniqueId = randomUUID().substring(0, 8);
@@ -126,7 +179,7 @@ async function seedTestOrganizations(
     // Create Organization A
     const orgARecord = await prisma.organization.create({
       data: {
-        name: 'Test Org Alpha',
+        name: "Test Org Alpha",
         slug: `test-org-alpha-${uniqueId}`,
         isActive: true,
       },
@@ -135,7 +188,7 @@ async function seedTestOrganizations(
     // Create Organization B
     const orgBRecord = await prisma.organization.create({
       data: {
-        name: 'Test Org Beta',
+        name: "Test Org Beta",
         slug: `test-org-beta-${uniqueId}`,
         isActive: true,
       },
@@ -145,11 +198,11 @@ async function seedTestOrganizations(
     const userA1 = await prisma.user.create({
       data: {
         organizationId: orgARecord.id,
-        email: 'admin@testalpha.local',
+        email: "admin@testalpha.local",
         passwordHash,
-        firstName: 'Alpha',
-        lastName: 'Admin',
-        role: 'SYSTEM_ADMIN',
+        firstName: "Alpha",
+        lastName: "Admin",
+        role: "SYSTEM_ADMIN",
         isActive: true,
       },
     });
@@ -157,11 +210,11 @@ async function seedTestOrganizations(
     const userA2 = await prisma.user.create({
       data: {
         organizationId: orgARecord.id,
-        email: 'investigator@testalpha.local',
+        email: "investigator@testalpha.local",
         passwordHash,
-        firstName: 'Alpha',
-        lastName: 'Investigator',
-        role: 'INVESTIGATOR',
+        firstName: "Alpha",
+        lastName: "Investigator",
+        role: "INVESTIGATOR",
         isActive: true,
       },
     });
@@ -170,19 +223,34 @@ async function seedTestOrganizations(
     const userB1 = await prisma.user.create({
       data: {
         organizationId: orgBRecord.id,
-        email: 'admin@testbeta.local',
+        email: "admin@testbeta.local",
         passwordHash,
-        firstName: 'Beta',
-        lastName: 'Admin',
-        role: 'SYSTEM_ADMIN',
+        firstName: "Beta",
+        lastName: "Admin",
+        role: "SYSTEM_ADMIN",
         isActive: true,
       },
     });
 
     // Generate tokens for users (creates real sessions)
-    const tokenA1 = await generateTestToken(jwtService, prisma, userA1, orgARecord.id);
-    const tokenA2 = await generateTestToken(jwtService, prisma, userA2, orgARecord.id);
-    const tokenB1 = await generateTestToken(jwtService, prisma, userB1, orgBRecord.id);
+    const tokenA1 = await generateTestToken(
+      jwtKeyService,
+      prisma,
+      userA1,
+      orgARecord.id,
+    );
+    const tokenA2 = await generateTestToken(
+      jwtKeyService,
+      prisma,
+      userA2,
+      orgARecord.id,
+    );
+    const tokenB1 = await generateTestToken(
+      jwtKeyService,
+      prisma,
+      userB1,
+      orgBRecord.id,
+    );
 
     const orgA: TestOrg = {
       id: orgARecord.id,
@@ -198,9 +266,7 @@ async function seedTestOrganizations(
       id: orgBRecord.id,
       name: orgBRecord.name,
       slug: orgBRecord.slug,
-      users: [
-        { ...userB1, token: tokenB1 },
-      ],
+      users: [{ ...userB1, token: tokenB1 }],
     };
 
     return { orgA, orgB };
@@ -211,9 +277,10 @@ async function seedTestOrganizations(
 
 /**
  * Generates a JWT access token for testing with a real session.
+ * Uses JwtKeyService to get the signing key and algorithm used by the app.
  */
 async function generateTestToken(
-  jwtService: JwtService,
+  jwtKeyService: JwtKeyService,
   prisma: PrismaService,
   user: { id: string; email: string; role: string },
   organizationId: string,
@@ -227,24 +294,67 @@ async function generateTestToken(
       userId: user.id,
       organizationId,
       expiresAt,
-      userAgent: 'test-agent',
-      ipAddress: '127.0.0.1',
+      userAgent: "test-agent",
+      ipAddress: "127.0.0.1",
     },
   });
 
-  return jwtService.sign({
+  // Get signing options from JwtKeyService (handles RS256/HS256 automatically)
+  const signingOptions = jwtKeyService.getSigningOptions();
+  console.log(
+    "[generateTestToken] algorithm:",
+    signingOptions.algorithm,
+    "kid:",
+    signingOptions.kid,
+  );
+
+  const payload = {
     sub: user.id,
     email: user.email,
     organizationId,
     role: user.role,
     sessionId: session.id,
-    type: 'access',
+    type: "access",
+  };
+
+  // Sign using jsonwebtoken directly with the correct algorithm
+  const token = jwt.sign(payload, signingOptions.key, {
+    algorithm: signingOptions.algorithm,
+    expiresIn: "1d",
+    ...(signingOptions.kid && { keyid: signingOptions.kid }),
   });
+
+  // Debug: Verify the token can be decoded and verified
+  const decoded = jwt.decode(token, { complete: true });
+  console.log(
+    "[generateTestToken] token header:",
+    JSON.stringify(decoded?.header),
+  );
+
+  // Verify the token works with our key
+  try {
+    const verificationKey = jwtKeyService.getVerificationKey(
+      signingOptions.kid,
+    );
+    jwt.verify(token, verificationKey, { algorithms: ["RS256"] });
+    console.log("[generateTestToken] Token verification OK");
+  } catch (verifyError) {
+    console.error(
+      "[generateTestToken] Token verification FAILED:",
+      (verifyError as Error).message,
+    );
+  }
+
+  return token;
 }
 
 /**
  * Helper to get auth header for a test user.
  */
 export function authHeader(user: TestUser): { Authorization: string } {
+  // Debug: Check token exists
+  if (!user.token) {
+    console.error("[authHeader] WARNING: User has no token!", user.email);
+  }
   return { Authorization: `Bearer ${user.token}` };
 }

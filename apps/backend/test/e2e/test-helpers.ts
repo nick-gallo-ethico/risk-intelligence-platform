@@ -9,6 +9,8 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { INestApplication, ValidationPipe } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { randomUUID } from "crypto";
+import * as fs from "fs";
+import * as path from "path";
 import { AppModule } from "../../src/app.module";
 import { PrismaService } from "../../src/modules/prisma/prisma.service";
 import * as bcrypt from "bcrypt";
@@ -45,6 +47,17 @@ export async function createTestApp(): Promise<{
   prisma: PrismaService;
   jwtService: JwtService;
 }> {
+  // Set required env vars for test environment
+  process.env.NODE_ENV = "development";
+  process.env.STORAGE_PROVIDER = "local";
+
+  // Ensure uploads directory exists for LocalStorageProvider
+  const uploadsDir = path.resolve(__dirname, "../../uploads");
+  if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+  }
+  process.env.LOCAL_STORAGE_PATH = uploadsDir;
+
   const moduleFixture: TestingModule = await Test.createTestingModule({
     imports: [AppModule],
   }).compile();

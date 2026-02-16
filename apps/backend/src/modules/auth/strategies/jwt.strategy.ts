@@ -43,7 +43,6 @@ export class JwtStrategy extends PassportStrategy(Strategy, "jwt") {
       try {
         // Extract header to get kid (key ID) for RS256
         const header = JwtStrategy.extractHeader(rawJwtToken);
-
         if (header?.kid) {
           // RS256: Look up key by kid
           const verificationKey = jwtKeyService.getVerificationKey(header.kid);

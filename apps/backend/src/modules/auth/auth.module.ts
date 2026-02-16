@@ -13,7 +13,7 @@ import {
 import { DomainModule } from "./domain";
 import { SsoModule } from "./sso";
 import { MfaModule } from "./mfa";
-import { JwtKeyService } from "./services";
+import { JwtKeyModule } from "./jwt-key.module";
 
 @Module({
   imports: [
@@ -73,11 +73,12 @@ import { JwtKeyService } from "./services";
     DomainModule,
     SsoModule,
     MfaModule,
+    // JwtKeyModule provides singleton JwtKeyService for consistent key management
+    JwtKeyModule,
   ],
   controllers: [AuthController],
   providers: [
     AuthService,
-    JwtKeyService,
     JwtStrategy,
     AzureAdStrategy,
     GoogleStrategy,
@@ -86,7 +87,7 @@ import { JwtKeyService } from "./services";
   exports: [
     AuthService,
     JwtModule,
-    JwtKeyService,
+    JwtKeyModule,
     DomainModule,
     SsoModule,
     MfaModule,

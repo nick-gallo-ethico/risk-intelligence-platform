@@ -10,10 +10,11 @@
  * - Auto-escalation processor for aging blockers
  */
 
-import { Module } from "@nestjs/common";
+import { Module, forwardRef } from "@nestjs/common";
 import { EventEmitterModule } from "@nestjs/event-emitter";
 import { BullModule } from "@nestjs/bullmq";
 import { PrismaModule } from "../../prisma/prisma.module";
+import { NotificationsModule } from "../../notifications/notifications.module";
 import { GoLiveService } from "./go-live.service";
 import { GoLiveController } from "./go-live.controller";
 import { ImplementationController } from "./implementation.controller";
@@ -25,6 +26,7 @@ import { EscalationProcessor, ESCALATION_QUEUE } from "./escalation.processor";
 @Module({
   imports: [
     PrismaModule,
+    forwardRef(() => NotificationsModule),
     EventEmitterModule.forRoot(),
     BullModule.registerQueue({
       name: ESCALATION_QUEUE,

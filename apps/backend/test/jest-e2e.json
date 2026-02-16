@@ -3,14 +3,20 @@
   "rootDir": ".",
   "testEnvironment": "node",
   "testRegex": ".e2e-spec.ts$",
+  "setupFilesAfterEnv": ["<rootDir>/e2e/setup.ts"],
   "transform": {
     "^.+\\.(t|j)s$": "ts-jest"
   },
+  "transformIgnorePatterns": [
+    "node_modules/(?!(@scure|@otplib|@noble|uuid|nanoid|file-type|strtok3|token-types|peek-readable|opossum)/)"
+  ],
   "moduleNameMapper": {
     "^@/(.*)$": "<rootDir>/../src/$1",
     "^@common/(.*)$": "<rootDir>/../src/common/$1",
     "^@modules/(.*)$": "<rootDir>/../src/modules/$1",
-    "^@config/(.*)$": "<rootDir>/../src/config/$1"
+    "^@config/(.*)$": "<rootDir>/../src/config/$1",
+    "^uuid$": "<rootDir>/../../../node_modules/uuid/dist/index.js",
+    "^opossum$": "<rootDir>/../../../node_modules/opossum/lib/circuit.js"
   },
   "maxWorkers": 1,
   "globalSetup": "<rootDir>/helpers/global-setup.ts",
