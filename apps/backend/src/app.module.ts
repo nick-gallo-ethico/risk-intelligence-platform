@@ -47,6 +47,9 @@ import { ProjectsModule } from "./modules/projects/projects.module";
 import { OrganizationModule } from "./modules/organization/organization.module";
 import { OperationsModule } from "./modules/operations/operations.module";
 import { HelpModule } from "./modules/help/help.module";
+import { FeatureFlagsModule } from "./modules/feature-flags/feature-flags.module";
+import { MetricsModule } from "./modules/metrics/metrics.module";
+import { SentryModule } from "./modules/sentry/sentry.module";
 import { ActivityModule } from "./common/activity.module";
 import { StorageModule } from "./common/storage.module";
 import { TenantMiddleware } from "./common/middleware/tenant.middleware";
@@ -60,6 +63,10 @@ import { AppConfigModule } from "./config/config.module";
   imports: [
     // Global config with Key Vault support (provides ConfigService and KeyVaultService)
     AppConfigModule,
+    // Global infrastructure modules
+    FeatureFlagsModule, // Feature flag management with Redis caching (SLOP-01)
+    MetricsModule, // Prometheus metrics collection
+    SentryModule, // Error tracking and performance monitoring
     // Global rate limiting with Redis storage for multi-instance deployments
     ThrottlerModule.forRootAsync({
       imports: [ConfigModule],
