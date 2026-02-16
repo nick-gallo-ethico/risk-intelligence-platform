@@ -1,7 +1,3 @@
-// =============================================================================
-// INVESTIGATION NOTES MODULE
-// =============================================================================
-//
 // NestJS module for investigation notes feature.
 // Provides CRUD operations for notes attached to investigations.
 //
@@ -11,7 +7,6 @@
 //
 // EXPORTS:
 // - InvestigationNotesService: For use by other modules if needed
-// =============================================================================
 
 import { Module } from "@nestjs/common";
 import { InvestigationNotesController } from "./investigation-notes.controller";

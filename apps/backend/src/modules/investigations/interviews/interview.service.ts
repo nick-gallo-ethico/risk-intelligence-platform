@@ -2,10 +2,10 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
-} from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
-import { EventEmitter2 } from '@nestjs/event-emitter';
-import { InterviewStatus, IntervieweeType, Prisma } from '@prisma/client';
+} from "@nestjs/common";
+import { PrismaService } from "../../prisma/prisma.service";
+import { EventEmitter2 } from "@nestjs/event-emitter";
+import { InterviewStatus, IntervieweeType, Prisma } from "@prisma/client";
 import {
   CreateInterviewDto,
   UpdateInterviewDto,
@@ -13,7 +13,7 @@ import {
   CreateInterviewTemplateDto,
   UpdateInterviewTemplateDto,
   InterviewQuestion,
-} from './dto/interview.dto';
+} from "./dto/interview.dto";
 
 @Injectable()
 export class InvestigationInterviewService {
@@ -22,7 +22,7 @@ export class InvestigationInterviewService {
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
-  // ===== Interview CRUD =====
+  // Interview CRUD
 
   async create(
     organizationId: string,
@@ -35,14 +35,16 @@ export class InvestigationInterviewService {
       !dto.intervieweePersonId
     ) {
       throw new BadRequestException(
-        'intervieweePersonId required for PERSON type',
+        "intervieweePersonId required for PERSON type",
       );
     }
     if (
       dto.intervieweeType === IntervieweeType.EXTERNAL &&
       !dto.intervieweeName
     ) {
-      throw new BadRequestException('intervieweeName required for EXTERNAL type');
+      throw new BadRequestException(
+        "intervieweeName required for EXTERNAL type",
+      );
     }
 
     // If template provided, load questions from template
@@ -79,7 +81,7 @@ export class InvestigationInterviewService {
       },
     });
 
-    this.eventEmitter.emit('investigation.interview.created', {
+    this.eventEmitter.emit("investigation.interview.created", {
       organizationId,
       interviewId: interview.id,
       investigationId: dto.investigationId,
@@ -100,7 +102,7 @@ export class InvestigationInterviewService {
     });
 
     if (!interview) {
-      throw new NotFoundException('Interview not found');
+      throw new NotFoundException("Interview not found");
     }
 
     return interview;
@@ -109,7 +111,7 @@ export class InvestigationInterviewService {
   async findByInvestigation(organizationId: string, investigationId: string) {
     return this.prisma.investigationInterview.findMany({
       where: { organizationId, investigationId },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
     });
   }
 
@@ -130,7 +132,7 @@ export class InvestigationInterviewService {
     const [interviews, total] = await Promise.all([
       this.prisma.investigationInterview.findMany({
         where,
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: "desc" },
         skip: ((query.page || 1) - 1) * (query.limit || 20),
         take: query.limit || 20,
         include: {
@@ -220,7 +222,7 @@ export class InvestigationInterviewService {
       data: updateData,
     });
 
-    this.eventEmitter.emit('investigation.interview.updated', {
+    this.eventEmitter.emit("investigation.interview.updated", {
       organizationId,
       interviewId: id,
       userId,
@@ -234,7 +236,7 @@ export class InvestigationInterviewService {
 
     if (interview.status !== InterviewStatus.SCHEDULED) {
       throw new BadRequestException(
-        'Interview must be in SCHEDULED status to start',
+        "Interview must be in SCHEDULED status to start",
       );
     }
 
@@ -254,7 +256,7 @@ export class InvestigationInterviewService {
 
     if (interview.status !== InterviewStatus.IN_PROGRESS) {
       throw new BadRequestException(
-        'Interview must be in IN_PROGRESS status to complete',
+        "Interview must be in IN_PROGRESS status to complete",
       );
     }
 
@@ -289,14 +291,14 @@ export class InvestigationInterviewService {
       where: { id },
     });
 
-    this.eventEmitter.emit('investigation.interview.deleted', {
+    this.eventEmitter.emit("investigation.interview.deleted", {
       organizationId,
       interviewId: id,
       userId,
     });
   }
 
-  // ===== Interview Templates =====
+  // Interview Templates
 
   async createTemplate(
     organizationId: string,
@@ -321,7 +323,7 @@ export class InvestigationInterviewService {
     });
 
     if (!template) {
-      throw new NotFoundException('Interview template not found');
+      throw new NotFoundException("Interview template not found");
     }
 
     return template;
@@ -338,7 +340,7 @@ export class InvestigationInterviewService {
 
     return this.prisma.interviewTemplate.findMany({
       where,
-      orderBy: { name: 'asc' },
+      orderBy: { name: "asc" },
     });
   }
 
@@ -383,7 +385,7 @@ export class InvestigationInterviewService {
     });
   }
 
-  // ===== Queries for Pattern Detection =====
+  // Queries for Pattern Detection
 
   async findInterviewsByPerson(organizationId: string, personId: string) {
     return this.prisma.investigationInterview.findMany({
@@ -396,7 +398,7 @@ export class InvestigationInterviewService {
           select: { id: true, caseId: true, investigationNumber: true },
         },
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
     });
   }
 }

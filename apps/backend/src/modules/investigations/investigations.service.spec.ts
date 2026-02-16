@@ -15,9 +15,7 @@ describe("InvestigationsService", () => {
   let prisma: jest.Mocked<PrismaService>;
   let activityService: jest.Mocked<ActivityService>;
 
-  // -------------------------------------------------------------------------
   // Test Data Fixtures
-  // -------------------------------------------------------------------------
   const mockOrgId = "org-test-123";
   const mockOtherOrgId = "org-other-456";
   const mockUserId = "user-test-123";
@@ -76,9 +74,7 @@ describe("InvestigationsService", () => {
     department: InvestigationDepartment.HR,
   };
 
-  // -------------------------------------------------------------------------
   // Mock Setup
-  // -------------------------------------------------------------------------
   const mockPrismaService = {
     case: {
       findFirst: jest.fn(),
@@ -96,9 +92,7 @@ describe("InvestigationsService", () => {
     log: jest.fn(),
   };
 
-  // -------------------------------------------------------------------------
   // Module Setup
-  // -------------------------------------------------------------------------
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -116,9 +110,7 @@ describe("InvestigationsService", () => {
     jest.clearAllMocks();
   });
 
-  // -------------------------------------------------------------------------
   // describe('create')
-  // -------------------------------------------------------------------------
   describe("create", () => {
     it("should create investigation with correct organization", async () => {
       // Arrange
@@ -222,9 +214,7 @@ describe("InvestigationsService", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
   // describe('findOne')
-  // -------------------------------------------------------------------------
   describe("findOne", () => {
     it("should return investigation when found in organization", async () => {
       // Arrange
@@ -276,9 +266,7 @@ describe("InvestigationsService", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
   // describe('findAllForCase')
-  // -------------------------------------------------------------------------
   describe("findAllForCase", () => {
     it("should return paginated results filtered by case and org", async () => {
       // Arrange
@@ -330,9 +318,7 @@ describe("InvestigationsService", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
   // describe('assign')
-  // -------------------------------------------------------------------------
   describe("assign", () => {
     it("should update assignment history on assign", async () => {
       // Arrange
@@ -450,9 +436,7 @@ describe("InvestigationsService", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
   // describe('transition')
-  // -------------------------------------------------------------------------
   describe("transition", () => {
     it("should validate status transitions", async () => {
       // Arrange - Investigation in NEW status
@@ -571,9 +555,7 @@ describe("InvestigationsService", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
   // describe('close')
-  // -------------------------------------------------------------------------
   describe("close", () => {
     it("should require findings before closing", async () => {
       // Arrange - Investigation in PENDING_REVIEW but no findings
@@ -656,9 +638,7 @@ describe("InvestigationsService", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
   // describe('recordFindings')
-  // -------------------------------------------------------------------------
   describe("recordFindings", () => {
     it("should record findings and log activity", async () => {
       // Arrange
@@ -702,9 +682,7 @@ describe("InvestigationsService", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
   // describe('getNextInvestigationNumber')
-  // -------------------------------------------------------------------------
   describe("getNextInvestigationNumber", () => {
     it("should return 1 for first investigation", async () => {
       // Arrange

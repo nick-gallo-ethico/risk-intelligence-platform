@@ -1,7 +1,3 @@
-// =============================================================================
-// INVESTIGATION NOTES CONTROLLER
-// =============================================================================
-//
 // REST API controller for investigation notes.
 // All endpoints require authentication and are scoped to user's organization.
 //
@@ -11,7 +7,6 @@
 // - GET    /api/v1/investigations/:investigationId/notes/:id - Get single note
 // - PATCH  /api/v1/investigations/:investigationId/notes/:id - Update note
 // - DELETE /api/v1/investigations/:investigationId/notes/:id - Delete note
-// =============================================================================
 
 import {
   Controller,

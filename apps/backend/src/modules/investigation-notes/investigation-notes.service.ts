@@ -1,7 +1,3 @@
-// =============================================================================
-// INVESTIGATION NOTES SERVICE
-// =============================================================================
-//
 // Service for managing investigation notes with full CRUD operations,
 // activity logging, and visibility-based access control.
 //
@@ -10,7 +6,6 @@
 // 2. All mutations log to ActivityService
 // 3. Visibility filtering: PRIVATE (author-only), TEAM (investigators), ALL
 // 4. Content sanitization for XSS prevention
-// =============================================================================
 
 import {
   Injectable,
@@ -50,9 +45,7 @@ export class InvestigationNotesService {
     private readonly activityService: ActivityService,
   ) {}
 
-  // -------------------------------------------------------------------------
   // CREATE - Create new investigation note
-  // -------------------------------------------------------------------------
   async create(
     dto: CreateInvestigationNoteDto,
     investigationId: string,
@@ -127,9 +120,7 @@ export class InvestigationNotesService {
     return this.mapToResponseDto(note);
   }
 
-  // -------------------------------------------------------------------------
   // FIND ALL - List notes for investigation with visibility filtering
-  // -------------------------------------------------------------------------
   async findAllForInvestigation(
     investigationId: string,
     query: InvestigationNoteQueryDto,
@@ -209,9 +200,7 @@ export class InvestigationNotesService {
     };
   }
 
-  // -------------------------------------------------------------------------
   // FIND ONE - Get single note with visibility check
-  // -------------------------------------------------------------------------
   async findOne(
     id: string,
     userId: string,
@@ -246,9 +235,7 @@ export class InvestigationNotesService {
     return this.mapToResponseDto(note);
   }
 
-  // -------------------------------------------------------------------------
   // UPDATE - Update note with edit tracking
-  // -------------------------------------------------------------------------
   async update(
     id: string,
     dto: UpdateInvestigationNoteDto,
@@ -343,9 +330,7 @@ export class InvestigationNotesService {
     return this.mapToResponseDto(updated);
   }
 
-  // -------------------------------------------------------------------------
   // DELETE - Remove note with activity logging
-  // -------------------------------------------------------------------------
   async delete(
     id: string,
     userId: string,
@@ -399,9 +384,7 @@ export class InvestigationNotesService {
     });
   }
 
-  // -------------------------------------------------------------------------
   // HELPER - Sanitize HTML content
-  // -------------------------------------------------------------------------
   private sanitizeContent(html: string): string {
     return sanitizeHtml(html, {
       allowedTags: [
@@ -436,9 +419,7 @@ export class InvestigationNotesService {
     });
   }
 
-  // -------------------------------------------------------------------------
   // HELPER - Strip HTML tags and generate plain text
-  // -------------------------------------------------------------------------
   stripHtml(html: string): string {
     // Remove HTML tags
     let text = html.replace(/<[^>]*>/g, " ");
@@ -454,9 +435,7 @@ export class InvestigationNotesService {
     return text.replace(/\s+/g, " ").trim();
   }
 
-  // -------------------------------------------------------------------------
   // HELPER - Build visibility filter for queries
-  // -------------------------------------------------------------------------
   private buildVisibilityFilter(
     userId: string,
     userRole: UserRole,
@@ -486,9 +465,7 @@ export class InvestigationNotesService {
     return filters;
   }
 
-  // -------------------------------------------------------------------------
   // HELPER - Check if user can access a note based on visibility
-  // -------------------------------------------------------------------------
   private canAccessNote(
     note: InvestigationNote & {
       investigation: { assignedTo: string[] };
@@ -520,9 +497,7 @@ export class InvestigationNotesService {
     return false;
   }
 
-  // -------------------------------------------------------------------------
   // HELPER - Check if user can modify a note
-  // -------------------------------------------------------------------------
   private canModifyNote(
     note: InvestigationNote,
     userId: string,
@@ -537,9 +512,7 @@ export class InvestigationNotesService {
     return this.isAdminRole(userRole);
   }
 
-  // -------------------------------------------------------------------------
   // HELPER - Check if role is admin-level
-  // -------------------------------------------------------------------------
   private isAdminRole(role: UserRole): boolean {
     const adminRoles: UserRole[] = [
       UserRole.SYSTEM_ADMIN,
@@ -549,9 +522,7 @@ export class InvestigationNotesService {
     return adminRoles.includes(role);
   }
 
-  // -------------------------------------------------------------------------
   // HELPER - Map Prisma model to response DTO
-  // -------------------------------------------------------------------------
   private mapToResponseDto(
     note: InvestigationNote & {
       author: {

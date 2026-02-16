@@ -7,13 +7,15 @@ import {
   IsUUID,
   IsInt,
   Min,
-} from 'class-validator';
-import { Type } from 'class-transformer';
-import { TemplateTier, TemplateRequirement, InvestigationTemplate } from '@prisma/client';
+} from "class-validator";
+import { Type } from "class-transformer";
+import {
+  TemplateTier,
+  TemplateRequirement,
+  InvestigationTemplate,
+} from "@prisma/client";
 
-// ===========================================
 // JSON Schema Types for Template Structure
-// ===========================================
 
 /**
  * ChecklistItem represents a single actionable item within a section.
@@ -48,18 +50,16 @@ export interface ChecklistSection {
  */
 export interface ConditionalRule {
   targetId: string; // Section or item ID
-  targetType: 'section' | 'item';
+  targetType: "section" | "item";
   condition: {
     field: string; // e.g., 'category', 'severity', 'customField.hipaa'
-    operator: 'equals' | 'not_equals' | 'contains' | 'in';
+    operator: "equals" | "not_equals" | "contains" | "in";
     value: string | string[];
   };
-  action: 'show' | 'hide' | 'require';
+  action: "show" | "hide" | "require";
 }
 
-// ===========================================
 // DTOs
-// ===========================================
 
 export class CreateTemplateDto {
   @IsString()
@@ -180,9 +180,7 @@ export class DuplicateTemplateDto {
   name?: string;
 }
 
-// ===========================================
 // Category-Template Mapping DTOs
-// ===========================================
 
 /**
  * DTO for creating a category-to-template mapping.

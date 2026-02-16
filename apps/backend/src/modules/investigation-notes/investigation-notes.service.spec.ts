@@ -1,14 +1,9 @@
-// =============================================================================
-// INVESTIGATION NOTES SERVICE - Unit Tests
-// =============================================================================
-//
 // Tests for InvestigationNotesService covering:
 // - CRUD operations
 // - Tenant isolation (organizationId filtering)
 // - Visibility-based access control
 // - Activity logging
 // - HTML sanitization
-// =============================================================================
 
 import { Test, TestingModule } from "@nestjs/testing";
 import { NotFoundException, ForbiddenException } from "@nestjs/common";
@@ -27,9 +22,7 @@ describe("InvestigationNotesService", () => {
   let prisma: jest.Mocked<PrismaService>;
   let activityService: jest.Mocked<ActivityService>;
 
-  // -------------------------------------------------------------------------
   // Test Data Fixtures
-  // -------------------------------------------------------------------------
   const mockOrgId = "org-test-123";
   const mockUserId = "user-test-123";
   const mockOtherUserId = "user-other-456";
@@ -82,9 +75,7 @@ describe("InvestigationNotesService", () => {
     visibility: NoteVisibility.TEAM,
   };
 
-  // -------------------------------------------------------------------------
   // Mock Setup
-  // -------------------------------------------------------------------------
   const mockPrismaService = {
     investigation: {
       findFirst: jest.fn(),
@@ -106,9 +97,7 @@ describe("InvestigationNotesService", () => {
     log: jest.fn(),
   };
 
-  // -------------------------------------------------------------------------
   // Module Setup
-  // -------------------------------------------------------------------------
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -126,9 +115,7 @@ describe("InvestigationNotesService", () => {
     jest.clearAllMocks();
   });
 
-  // -------------------------------------------------------------------------
   // describe('create')
-  // -------------------------------------------------------------------------
   describe("create", () => {
     it("should create note with correct organization", async () => {
       // Arrange
@@ -257,9 +244,7 @@ describe("InvestigationNotesService", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
   // describe('findOne')
-  // -------------------------------------------------------------------------
   describe("findOne", () => {
     it("should return note when found in organization", async () => {
       // Arrange
@@ -372,9 +357,7 @@ describe("InvestigationNotesService", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
   // describe('findAllForInvestigation')
-  // -------------------------------------------------------------------------
   describe("findAllForInvestigation", () => {
     it("should return paginated notes", async () => {
       // Arrange
@@ -433,9 +416,7 @@ describe("InvestigationNotesService", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
   // describe('update')
-  // -------------------------------------------------------------------------
   describe("update", () => {
     it("should mark note as edited on update", async () => {
       // Arrange
@@ -574,9 +555,7 @@ describe("InvestigationNotesService", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
   // describe('delete')
-  // -------------------------------------------------------------------------
   describe("delete", () => {
     it("should delete note and log activity", async () => {
       // Arrange
@@ -643,9 +622,7 @@ describe("InvestigationNotesService", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
   // describe('stripHtml')
-  // -------------------------------------------------------------------------
   describe("stripHtml", () => {
     it("should remove HTML tags", () => {
       // Act

@@ -1,3 +1,4 @@
+import { NotImplementedException } from "@nestjs/common";
 import { z } from "zod";
 import {
   ActionDefinition,
@@ -297,8 +298,11 @@ export function createChangeStatusAction(
 }
 
 /**
- * Placeholder action for registration without Prisma.
- * Used by ActionCatalog - replaced with factory version at runtime.
+ * Static action definition for type exports and registration.
+ * At runtime, ActionCatalog replaces this with the factory version that has Prisma injected.
+ *
+ * If this version is called directly (bypassing ActionCatalog), it throws NotImplementedException
+ * to make it clear the action was not properly initialized.
  */
 export const changeStatusAction: ActionDefinition<ChangeStatusInput> = {
   id: "change-status",
@@ -310,9 +314,11 @@ export const changeStatusAction: ActionDefinition<ChangeStatusInput> = {
   undoWindowSeconds: UNDO_WINDOWS.STANDARD,
   inputSchema: changeStatusInputSchema,
 
-  async canExecute(input: ChangeStatusInput, context: ActionContext) {
-    // Placeholder - real implementation uses factory
-    return { allowed: true };
+  async canExecute(_input: ChangeStatusInput, _context: ActionContext) {
+    throw new NotImplementedException(
+      "change-status canExecute requires initialization via ActionCatalog with PrismaService. " +
+        "Use actionCatalogService.getAction('change-status') instead of importing changeStatusAction directly.",
+    );
   },
 
   async generatePreview(input: ChangeStatusInput, context: ActionContext) {
@@ -328,20 +334,21 @@ export const changeStatusAction: ActionDefinition<ChangeStatusInput> = {
     };
   },
 
-  async execute(input: ChangeStatusInput, context: ActionContext) {
-    // Placeholder - real implementation uses factory
-    return {
-      success: false,
-      message: "Action not properly initialized - use factory function",
-    };
+  async execute(_input: ChangeStatusInput, _context: ActionContext) {
+    throw new NotImplementedException(
+      "change-status action requires initialization via ActionCatalog with PrismaService. " +
+        "Use actionCatalogService.getAction('change-status') instead of importing changeStatusAction directly.",
+    );
   },
 
   async undo(
-    actionId: string,
-    previousState: Record<string, unknown>,
-    context: ActionContext,
+    _actionId: string,
+    _previousState: Record<string, unknown>,
+    _context: ActionContext,
   ) {
-    // Placeholder - real implementation uses factory
-    throw new Error("Action not properly initialized - use factory function");
+    throw new NotImplementedException(
+      "change-status undo requires initialization via ActionCatalog with PrismaService. " +
+        "Use actionCatalogService.getAction('change-status') instead of importing changeStatusAction directly.",
+    );
   },
 };

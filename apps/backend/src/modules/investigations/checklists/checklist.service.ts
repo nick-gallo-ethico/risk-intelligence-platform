@@ -3,11 +3,11 @@ import {
   NotFoundException,
   BadRequestException,
   ConflictException,
-} from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
-import { EventEmitter2 } from '@nestjs/event-emitter';
-import { Prisma } from '@prisma/client';
-import { nanoid } from 'nanoid';
+} from "@nestjs/common";
+import { PrismaService } from "../../prisma/prisma.service";
+import { EventEmitter2 } from "@nestjs/event-emitter";
+import { Prisma } from "@prisma/client";
+import { nanoid } from "nanoid";
 import {
   ApplyTemplateDto,
   CompleteItemDto,
@@ -20,11 +20,8 @@ import {
   ChecklistProgressResponse,
   ItemStatus,
   SectionStatus,
-} from './dto/checklist.dto';
-import {
-  ChecklistSection,
-  ChecklistItem,
-} from '../templates/dto/template.dto';
+} from "./dto/checklist.dto";
+import { ChecklistSection, ChecklistItem } from "../templates/dto/template.dto";
 
 /**
  * InvestigationChecklistService manages checklist progress for investigations.
@@ -63,19 +60,18 @@ export class InvestigationChecklistService {
     });
 
     if (!investigation) {
-      throw new NotFoundException('Investigation not found');
+      throw new NotFoundException("Investigation not found");
     }
 
     // Check if checklist already exists
-    const existing = await this.prisma.investigationChecklistProgress.findUnique(
-      {
+    const existing =
+      await this.prisma.investigationChecklistProgress.findUnique({
         where: { investigationId: dto.investigationId },
-      },
-    );
+      });
 
     if (existing) {
       throw new ConflictException(
-        'Investigation already has a checklist. Delete it first to apply a new template.',
+        "Investigation already has a checklist. Delete it first to apply a new template.",
       );
     }
 
@@ -85,7 +81,7 @@ export class InvestigationChecklistService {
     });
 
     if (!template) {
-      throw new NotFoundException('Investigation template not found');
+      throw new NotFoundException("Investigation template not found");
     }
 
     // Parse template sections
@@ -102,7 +98,7 @@ export class InvestigationChecklistService {
 
       // Initialize section state
       sectionStates[section.id] = {
-        status: 'pending' as SectionStatus,
+        status: "pending" as SectionStatus,
         completedItems: 0,
         totalItems: sectionItems.length,
       };
@@ -110,7 +106,7 @@ export class InvestigationChecklistService {
       // Initialize item states
       for (const item of sectionItems) {
         itemStates[item.id] = {
-          status: 'pending' as ItemStatus,
+          status: "pending" as ItemStatus,
         };
       }
     }
@@ -138,7 +134,7 @@ export class InvestigationChecklistService {
       data: { usageCount: { increment: 1 } },
     });
 
-    this.eventEmitter.emit('investigation.checklist.applied', {
+    this.eventEmitter.emit("investigation.checklist.applied", {
       organizationId,
       investigationId: dto.investigationId,
       templateId: dto.templateId,
@@ -172,7 +168,7 @@ export class InvestigationChecklistService {
     });
 
     if (!template) {
-      throw new NotFoundException('Template no longer exists');
+      throw new NotFoundException("Template no longer exists");
     }
 
     return this.buildResponse(progress, template);
@@ -189,7 +185,10 @@ export class InvestigationChecklistService {
     userName: string,
     dto: CompleteItemDto,
   ): Promise<ChecklistProgressResponse> {
-    const progress = await this.getProgressOrThrow(organizationId, investigationId);
+    const progress = await this.getProgressOrThrow(
+      organizationId,
+      investigationId,
+    );
 
     // Get current item states
     const itemStates = progress.itemStates as unknown as Record<
@@ -230,18 +229,18 @@ export class InvestigationChecklistService {
     }
 
     if (!itemSection && !isCustomItem) {
-      throw new BadRequestException('Item not found in checklist');
+      throw new BadRequestException("Item not found in checklist");
     }
 
     // Check if already completed
-    if (itemStates[itemId]?.status === 'completed') {
-      throw new BadRequestException('Item is already completed');
+    if (itemStates[itemId]?.status === "completed") {
+      throw new BadRequestException("Item is already completed");
     }
 
     // Update item state
     const now = new Date().toISOString();
     itemStates[itemId] = {
-      status: 'completed',
+      status: "completed",
       completedAt: now,
       completedById: userId,
       completedByName: userName,
@@ -258,17 +257,17 @@ export class InvestigationChecklistService {
         section.completedItems += 1;
         section.status =
           section.completedItems >= section.totalItems
-            ? 'completed'
-            : 'in_progress';
+            ? "completed"
+            : "in_progress";
       }
     }
 
     // Calculate new metrics
     const completedItems = Object.values(itemStates).filter(
-      (s) => s.status === 'completed',
+      (s) => s.status === "completed",
     ).length;
     const skippedCount = Object.values(itemStates).filter(
-      (s) => s.status === 'skipped',
+      (s) => s.status === "skipped",
     ).length;
     const activeItems = progress.totalItems - skippedCount;
     const progressPercent =
@@ -288,7 +287,7 @@ export class InvestigationChecklistService {
       },
     });
 
-    this.eventEmitter.emit('investigation.checklist.item.completed', {
+    this.eventEmitter.emit("investigation.checklist.item.completed", {
       organizationId,
       investigationId,
       itemId,
@@ -309,7 +308,10 @@ export class InvestigationChecklistService {
     userName: string,
     dto: SkipItemDto,
   ): Promise<ChecklistProgressResponse> {
-    const progress = await this.getProgressOrThrow(organizationId, investigationId);
+    const progress = await this.getProgressOrThrow(
+      organizationId,
+      investigationId,
+    );
 
     // Get current states
     const itemStates = progress.itemStates as unknown as Record<
@@ -342,22 +344,22 @@ export class InvestigationChecklistService {
     }
 
     if (!itemSection) {
-      throw new BadRequestException('Item not found in checklist');
+      throw new BadRequestException("Item not found in checklist");
     }
 
     // Check if required item
     if (itemDef?.required) {
-      throw new BadRequestException('Required items cannot be skipped');
+      throw new BadRequestException("Required items cannot be skipped");
     }
 
     // Check if already skipped
-    if (itemStates[itemId]?.status === 'skipped') {
-      throw new BadRequestException('Item is already skipped');
+    if (itemStates[itemId]?.status === "skipped") {
+      throw new BadRequestException("Item is already skipped");
     }
 
     // Update item state
     itemStates[itemId] = {
-      status: 'skipped',
+      status: "skipped",
     };
 
     // Add to skipped items list
@@ -377,19 +379,19 @@ export class InvestigationChecklistService {
       const sectionItemIds = itemSection.items.map((i) => i.id);
       const completedOrSkipped = sectionItemIds.filter(
         (id) =>
-          itemStates[id]?.status === 'completed' ||
-          itemStates[id]?.status === 'skipped',
+          itemStates[id]?.status === "completed" ||
+          itemStates[id]?.status === "skipped",
       ).length;
       section.status =
-        completedOrSkipped >= section.totalItems ? 'completed' : 'in_progress';
+        completedOrSkipped >= section.totalItems ? "completed" : "in_progress";
     }
 
     // Calculate new metrics
     const completedItems = Object.values(itemStates).filter(
-      (s) => s.status === 'completed',
+      (s) => s.status === "completed",
     ).length;
     const skippedCount = Object.values(itemStates).filter(
-      (s) => s.status === 'skipped',
+      (s) => s.status === "skipped",
     ).length;
     const activeItems = progress.totalItems - skippedCount;
     const progressPercent =
@@ -410,7 +412,7 @@ export class InvestigationChecklistService {
       },
     });
 
-    this.eventEmitter.emit('investigation.checklist.item.skipped', {
+    this.eventEmitter.emit("investigation.checklist.item.skipped", {
       organizationId,
       investigationId,
       itemId,
@@ -430,7 +432,10 @@ export class InvestigationChecklistService {
     itemId: string,
     userId: string,
   ): Promise<ChecklistProgressResponse> {
-    const progress = await this.getProgressOrThrow(organizationId, investigationId);
+    const progress = await this.getProgressOrThrow(
+      organizationId,
+      investigationId,
+    );
 
     // Get current states
     const itemStates = progress.itemStates as unknown as Record<
@@ -446,11 +451,11 @@ export class InvestigationChecklistService {
 
     // Check if item exists and is completed or skipped
     const currentState = itemStates[itemId];
-    if (!currentState || currentState.status === 'pending') {
-      throw new BadRequestException('Item is not completed or skipped');
+    if (!currentState || currentState.status === "pending") {
+      throw new BadRequestException("Item is not completed or skipped");
     }
 
-    const wasSkipped = currentState.status === 'skipped';
+    const wasSkipped = currentState.status === "skipped";
 
     // Get template for section info
     const template = await this.prisma.investigationTemplate.findUnique({
@@ -469,7 +474,7 @@ export class InvestigationChecklistService {
 
     // Reset item state
     itemStates[itemId] = {
-      status: 'pending',
+      status: "pending",
     };
 
     // Remove from skipped items if it was skipped
@@ -484,16 +489,16 @@ export class InvestigationChecklistService {
       if (section && !wasSkipped) {
         section.completedItems = Math.max(0, section.completedItems - 1);
         section.status =
-          section.completedItems === 0 ? 'pending' : 'in_progress';
+          section.completedItems === 0 ? "pending" : "in_progress";
       }
     }
 
     // Calculate new metrics
     const completedItems = Object.values(itemStates).filter(
-      (s) => s.status === 'completed',
+      (s) => s.status === "completed",
     ).length;
     const skippedCount = Object.values(itemStates).filter(
-      (s) => s.status === 'skipped',
+      (s) => s.status === "skipped",
     ).length;
     const activeItems = progress.totalItems - skippedCount;
     const progressPercent =
@@ -514,7 +519,7 @@ export class InvestigationChecklistService {
       },
     });
 
-    this.eventEmitter.emit('investigation.checklist.item.uncompleted', {
+    this.eventEmitter.emit("investigation.checklist.item.uncompleted", {
       organizationId,
       investigationId,
       itemId,
@@ -534,7 +539,10 @@ export class InvestigationChecklistService {
     userName: string,
     dto: AddCustomItemDto,
   ): Promise<ChecklistProgressResponse> {
-    const progress = await this.getProgressOrThrow(organizationId, investigationId);
+    const progress = await this.getProgressOrThrow(
+      organizationId,
+      investigationId,
+    );
 
     // Get template to verify section exists
     const template = await this.prisma.investigationTemplate.findUnique({
@@ -544,7 +552,7 @@ export class InvestigationChecklistService {
 
     const section = sections?.find((s) => s.id === dto.sectionId);
     if (!section) {
-      throw new BadRequestException('Section not found in template');
+      throw new BadRequestException("Section not found in template");
     }
 
     // Get current states
@@ -585,7 +593,7 @@ export class InvestigationChecklistService {
 
     // Initialize item state
     itemStates[itemId] = {
-      status: 'pending',
+      status: "pending",
     };
 
     // Update section state
@@ -594,19 +602,19 @@ export class InvestigationChecklistService {
       sectionState.totalItems += 1;
       sectionState.status =
         sectionState.completedItems >= sectionState.totalItems
-          ? 'completed'
+          ? "completed"
           : sectionState.completedItems > 0
-            ? 'in_progress'
-            : 'pending';
+            ? "in_progress"
+            : "pending";
     }
 
     // Update metrics
     const newTotalItems = progress.totalItems + 1;
     const skippedCount = Object.values(itemStates).filter(
-      (s) => s.status === 'skipped',
+      (s) => s.status === "skipped",
     ).length;
     const completedItems = Object.values(itemStates).filter(
-      (s) => s.status === 'completed',
+      (s) => s.status === "completed",
     ).length;
     const activeItems = newTotalItems - skippedCount;
     const progressPercent =
@@ -626,7 +634,7 @@ export class InvestigationChecklistService {
       },
     });
 
-    this.eventEmitter.emit('investigation.checklist.item.added', {
+    this.eventEmitter.emit("investigation.checklist.item.added", {
       organizationId,
       investigationId,
       itemId,
@@ -645,13 +653,16 @@ export class InvestigationChecklistService {
     investigationId: string,
     userId: string,
   ): Promise<void> {
-    const progress = await this.getProgressOrThrow(organizationId, investigationId);
+    const progress = await this.getProgressOrThrow(
+      organizationId,
+      investigationId,
+    );
 
     await this.prisma.investigationChecklistProgress.delete({
       where: { id: progress.id },
     });
 
-    this.eventEmitter.emit('investigation.checklist.deleted', {
+    this.eventEmitter.emit("investigation.checklist.deleted", {
       organizationId,
       investigationId,
       checklistId: progress.id,
@@ -678,9 +689,7 @@ export class InvestigationChecklistService {
     return count > 0;
   }
 
-  // ===========================================
   // Private Helpers
-  // ===========================================
 
   /**
    * Get progress or throw NotFoundException.
@@ -696,9 +705,7 @@ export class InvestigationChecklistService {
     );
 
     if (!progress) {
-      throw new NotFoundException(
-        'Checklist not found for this investigation',
-      );
+      throw new NotFoundException("Checklist not found for this investigation");
     }
 
     return progress;

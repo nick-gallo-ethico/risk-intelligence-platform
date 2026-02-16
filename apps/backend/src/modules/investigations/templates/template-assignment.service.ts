@@ -1,15 +1,12 @@
-import {
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
-import { TemplateRequirement } from '@prisma/client';
-import { InvestigationTemplateService } from './template.service';
+import { Injectable, NotFoundException } from "@nestjs/common";
+import { PrismaService } from "../../prisma/prisma.service";
+import { TemplateRequirement } from "@prisma/client";
+import { InvestigationTemplateService } from "./template.service";
 import {
   CreateCategoryMappingDto,
   UpdateCategoryMappingDto,
   TemplateRecommendation,
-} from './dto/template.dto';
+} from "./dto/template.dto";
 
 /**
  * TemplateAssignmentService manages category-to-template mappings.
@@ -30,9 +27,7 @@ export class TemplateAssignmentService {
     private readonly templateService: InvestigationTemplateService,
   ) {}
 
-  // ===========================================
   // Category Mapping CRUD
-  // ===========================================
 
   /**
    * Create a new category-to-template mapping.
@@ -52,7 +47,7 @@ export class TemplateAssignmentService {
       where: { id: dto.categoryId, organizationId },
     });
     if (!category) {
-      throw new NotFoundException('Category not found');
+      throw new NotFoundException("Category not found");
     }
 
     // Verify template exists in the organization
@@ -91,7 +86,7 @@ export class TemplateAssignmentService {
       include: {
         template: true,
       },
-      orderBy: { priority: 'asc' },
+      orderBy: { priority: "asc" },
     });
   }
 
@@ -128,7 +123,7 @@ export class TemplateAssignmentService {
         category: { select: { id: true, name: true, path: true } },
         template: { select: { id: true, name: true, tier: true } },
       },
-      orderBy: [{ category: { name: 'asc' } }, { priority: 'asc' }],
+      orderBy: [{ category: { name: "asc" } }, { priority: "asc" }],
     });
   }
 
@@ -150,7 +145,7 @@ export class TemplateAssignmentService {
     });
 
     if (!existing) {
-      throw new NotFoundException('Mapping not found');
+      throw new NotFoundException("Mapping not found");
     }
 
     return this.prisma.categoryTemplateMapping.update({
@@ -179,15 +174,13 @@ export class TemplateAssignmentService {
     });
 
     if (!existing) {
-      throw new NotFoundException('Mapping not found');
+      throw new NotFoundException("Mapping not found");
     }
 
     await this.prisma.categoryTemplateMapping.delete({ where: { id } });
   }
 
-  // ===========================================
   // Template Recommendation
-  // ===========================================
 
   /**
    * Get template recommendations for a case/investigation category.
@@ -218,7 +211,7 @@ export class TemplateAssignmentService {
           isActive: true,
         },
         include: { template: true },
-        orderBy: { priority: 'asc' },
+        orderBy: { priority: "asc" },
       });
 
       for (const mapping of mappings) {
@@ -226,7 +219,7 @@ export class TemplateAssignmentService {
           recommendations.push({
             template: mapping.template,
             requirement: mapping.requirement,
-            reason: 'Mapped to category',
+            reason: "Mapped to category",
           });
         }
       }
@@ -246,7 +239,7 @@ export class TemplateAssignmentService {
           for (const rec of parentResult.templates) {
             recommendations.push({
               ...rec,
-              reason: 'Inherited from parent category',
+              reason: "Inherited from parent category",
             });
           }
         }
@@ -269,7 +262,7 @@ export class TemplateAssignmentService {
         defaultTemplate = {
           template: orgDefault,
           requirement: TemplateRequirement.OPTIONAL,
-          reason: 'Organization default template',
+          reason: "Organization default template",
         };
       }
     }

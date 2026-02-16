@@ -80,9 +80,7 @@ export class InvestigationsService {
     private readonly activityService: ActivityService,
   ) {}
 
-  // -------------------------------------------------------------------------
   // CREATE - Create new investigation for a case
-  // -------------------------------------------------------------------------
 
   /**
    * Creates a new investigation for a case.
@@ -151,9 +149,7 @@ export class InvestigationsService {
     return investigation;
   }
 
-  // -------------------------------------------------------------------------
   // FIND ALL FOR CASE - Paginated list of investigations for a case
-  // -------------------------------------------------------------------------
 
   /**
    * Returns paginated list of investigations for a specific case.
@@ -211,9 +207,7 @@ export class InvestigationsService {
     return { data, total, limit, page };
   }
 
-  // -------------------------------------------------------------------------
   // FIND ALL - Paginated list of all investigations (not case-scoped)
-  // -------------------------------------------------------------------------
 
   /**
    * Returns paginated list of investigations across all cases.
@@ -371,9 +365,7 @@ export class InvestigationsService {
     };
   }
 
-  // -------------------------------------------------------------------------
   // FIND ONE - Get single investigation with relations
-  // -------------------------------------------------------------------------
 
   /**
    * Returns a single investigation by ID with case and assignee details.
@@ -411,9 +403,7 @@ export class InvestigationsService {
     return investigation;
   }
 
-  // -------------------------------------------------------------------------
   // UPDATE - Update investigation fields
-  // -------------------------------------------------------------------------
 
   /**
    * Updates an investigation's fields.
@@ -459,9 +449,7 @@ export class InvestigationsService {
     return updated;
   }
 
-  // -------------------------------------------------------------------------
   // ASSIGN - Assign investigators to investigation
-  // -------------------------------------------------------------------------
 
   /**
    * Assigns investigators to an investigation.
@@ -559,9 +547,7 @@ export class InvestigationsService {
     return updated;
   }
 
-  // -------------------------------------------------------------------------
   // TRANSITION - Change investigation status
-  // -------------------------------------------------------------------------
 
   /**
    * Transitions investigation to a new status.
@@ -624,9 +610,7 @@ export class InvestigationsService {
     return updated;
   }
 
-  // -------------------------------------------------------------------------
   // RECORD FINDINGS - Document investigation findings
-  // -------------------------------------------------------------------------
 
   /**
    * Records findings for an investigation.
@@ -676,9 +660,7 @@ export class InvestigationsService {
     return updated;
   }
 
-  // -------------------------------------------------------------------------
   // CLOSE - Close investigation with required fields
-  // -------------------------------------------------------------------------
 
   /**
    * Closes an investigation.
@@ -736,9 +718,7 @@ export class InvestigationsService {
     return updated;
   }
 
-  // -------------------------------------------------------------------------
   // HELPERS
-  // -------------------------------------------------------------------------
 
   /**
    * Gets the next investigation number for a case.

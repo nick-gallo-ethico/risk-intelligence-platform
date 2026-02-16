@@ -1,3 +1,4 @@
+import { NotImplementedException } from "@nestjs/common";
 import { z } from "zod";
 import {
   ActionDefinition,
@@ -129,8 +130,11 @@ export function createAddCaseNoteAction(
 }
 
 /**
- * Placeholder action for registration without Prisma.
- * Used by ActionCatalog - replaced with factory version at runtime.
+ * Static action definition for type exports and registration.
+ * At runtime, ActionCatalog replaces this with the factory version that has Prisma injected.
+ *
+ * If this version is called directly (bypassing ActionCatalog), it throws NotImplementedException
+ * to make it clear the action was not properly initialized.
  */
 export const addCaseNoteAction: ActionDefinition<AddCaseNoteInput> = {
   id: "add-case-note",
@@ -142,7 +146,7 @@ export const addCaseNoteAction: ActionDefinition<AddCaseNoteInput> = {
   undoWindowSeconds: UNDO_WINDOWS.QUICK,
   inputSchema: addCaseNoteInputSchema,
 
-  async generatePreview(input: AddCaseNoteInput, context: ActionContext) {
+  async generatePreview(input: AddCaseNoteInput, _context: ActionContext) {
     return {
       description: `Add a ${input.noteType.toLowerCase()} note to case`,
       changes: [
@@ -156,10 +160,16 @@ export const addCaseNoteAction: ActionDefinition<AddCaseNoteInput> = {
   },
 
   async execute() {
-    return { success: false, message: "Not initialized" };
+    throw new NotImplementedException(
+      "add-case-note action requires initialization via ActionCatalog with PrismaService. " +
+        "Use actionCatalogService.getAction('add-case-note') instead of importing addCaseNoteAction directly.",
+    );
   },
 
   async undo() {
-    throw new Error("Not initialized");
+    throw new NotImplementedException(
+      "add-case-note undo requires initialization via ActionCatalog with PrismaService. " +
+        "Use actionCatalogService.getAction('add-case-note') instead of importing addCaseNoteAction directly.",
+    );
   },
 };

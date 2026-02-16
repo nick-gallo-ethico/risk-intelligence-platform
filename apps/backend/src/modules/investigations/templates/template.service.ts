@@ -3,17 +3,17 @@ import {
   NotFoundException,
   BadRequestException,
   ForbiddenException,
-} from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service';
-import { EventEmitter2 } from '@nestjs/event-emitter';
-import { TemplateTier, Prisma } from '@prisma/client';
+} from "@nestjs/common";
+import { PrismaService } from "../../prisma/prisma.service";
+import { EventEmitter2 } from "@nestjs/event-emitter";
+import { TemplateTier, Prisma } from "@prisma/client";
 import {
   CreateTemplateDto,
   UpdateTemplateDto,
   TemplateQueryDto,
   ChecklistSection,
-} from './dto/template.dto';
-import { nanoid } from 'nanoid';
+} from "./dto/template.dto";
+import { nanoid } from "nanoid";
 
 /**
  * InvestigationTemplateService manages the lifecycle of investigation templates.
@@ -55,12 +55,13 @@ export class InvestigationTemplateService {
         sections: dto.sections as unknown as Prisma.InputJsonValue,
         suggestedDurations:
           dto.suggestedDurations as unknown as Prisma.InputJsonValue,
-        conditionalRules: dto.conditionalRules as unknown as Prisma.InputJsonValue,
+        conditionalRules:
+          dto.conditionalRules as unknown as Prisma.InputJsonValue,
         isDefault: dto.isDefault || false,
       },
     });
 
-    this.eventEmitter.emit('investigation.template.created', {
+    this.eventEmitter.emit("investigation.template.created", {
       organizationId,
       templateId: template.id,
       userId,
@@ -78,7 +79,7 @@ export class InvestigationTemplateService {
     });
 
     if (!template) {
-      throw new NotFoundException('Investigation template not found');
+      throw new NotFoundException("Investigation template not found");
     }
 
     return template;
@@ -113,7 +114,7 @@ export class InvestigationTemplateService {
     const [templates, total] = await Promise.all([
       this.prisma.investigationTemplate.findMany({
         where,
-        orderBy: [{ tier: 'asc' }, { name: 'asc' }],
+        orderBy: [{ tier: "asc" }, { name: "asc" }],
         skip: ((query.page || 1) - 1) * (query.limit || 20),
         take: query.limit || 20,
       }),
@@ -186,7 +187,7 @@ export class InvestigationTemplateService {
       },
     });
 
-    this.eventEmitter.emit('investigation.template.updated', {
+    this.eventEmitter.emit("investigation.template.updated", {
       organizationId,
       templateId: id,
       userId,
@@ -235,15 +236,17 @@ export class InvestigationTemplateService {
             tier: existing.tier,
             sharedWithTeamId: existing.sharedWithTeamId,
             sections: existing.sections as Prisma.InputJsonValue,
-            suggestedDurations: existing.suggestedDurations as Prisma.InputJsonValue,
-            conditionalRules: existing.conditionalRules as Prisma.InputJsonValue,
+            suggestedDurations:
+              existing.suggestedDurations as Prisma.InputJsonValue,
+            conditionalRules:
+              existing.conditionalRules as Prisma.InputJsonValue,
             isDefault: existing.isDefault,
             version: existing.version + 1,
             sourceTemplateId: id,
           },
         });
 
-        this.eventEmitter.emit('investigation.template.published', {
+        this.eventEmitter.emit("investigation.template.published", {
           organizationId,
           templateId: newTemplate.id,
           previousVersion: id,
@@ -273,7 +276,7 @@ export class InvestigationTemplateService {
       data: { isArchived: true, isActive: false },
     });
 
-    this.eventEmitter.emit('investigation.template.archived', {
+    this.eventEmitter.emit("investigation.template.archived", {
       organizationId,
       templateId: id,
       userId,
@@ -315,13 +318,14 @@ export class InvestigationTemplateService {
         categoryId: existing.categoryId,
         tier: TemplateTier.PERSONAL, // Duplicates start as personal
         sections: existing.sections as Prisma.InputJsonValue,
-        suggestedDurations: existing.suggestedDurations as Prisma.InputJsonValue,
+        suggestedDurations:
+          existing.suggestedDurations as Prisma.InputJsonValue,
         conditionalRules: existing.conditionalRules as Prisma.InputJsonValue,
         sourceTemplateId: id,
       },
     });
 
-    this.eventEmitter.emit('investigation.template.duplicated', {
+    this.eventEmitter.emit("investigation.template.duplicated", {
       organizationId,
       templateId: template.id,
       sourceTemplateId: id,
@@ -373,12 +377,12 @@ export class InvestigationTemplateService {
     try {
       importData = JSON.parse(templateJson);
     } catch {
-      throw new BadRequestException('Invalid template JSON');
+      throw new BadRequestException("Invalid template JSON");
     }
 
     if (!importData.name || !importData.sections) {
       throw new BadRequestException(
-        'Template JSON must include name and sections',
+        "Template JSON must include name and sections",
       );
     }
 
@@ -391,11 +395,11 @@ export class InvestigationTemplateService {
       sections,
       suggestedDurations: importData.suggestedDurations,
       conditionalRules:
-        importData.conditionalRules as CreateTemplateDto['conditionalRules'],
+        importData.conditionalRules as CreateTemplateDto["conditionalRules"],
       tier: importAsOfficial ? TemplateTier.OFFICIAL : TemplateTier.PERSONAL,
     });
 
-    this.eventEmitter.emit('investigation.template.imported', {
+    this.eventEmitter.emit("investigation.template.imported", {
       organizationId,
       templateId: template.id,
       userId,
@@ -449,9 +453,7 @@ export class InvestigationTemplateService {
     });
   }
 
-  // ===========================================
   // Private Helpers
-  // ===========================================
 
   /**
    * Validate that all section and item IDs are unique.

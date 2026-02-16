@@ -4,21 +4,19 @@ import {
   IsBoolean,
   IsUUID,
   IsArray,
-} from 'class-validator';
+} from "class-validator";
 
-// ===========================================
 // Type Definitions for Checklist State
-// ===========================================
 
 /**
  * Status of a checklist item.
  */
-export type ItemStatus = 'pending' | 'completed' | 'skipped';
+export type ItemStatus = "pending" | "completed" | "skipped";
 
 /**
  * Status of a checklist section.
  */
-export type SectionStatus = 'pending' | 'in_progress' | 'completed';
+export type SectionStatus = "pending" | "in_progress" | "completed";
 
 /**
  * State of a single checklist item.
@@ -72,9 +70,7 @@ export interface SkippedItem {
   skippedAt: string;
 }
 
-// ===========================================
 // DTOs for API Operations
-// ===========================================
 
 /**
  * Apply a template to an investigation, creating checklist progress.
@@ -96,12 +92,12 @@ export class CompleteItemDto {
   completionNotes?: string;
 
   @IsArray()
-  @IsUUID('4', { each: true })
+  @IsUUID("4", { each: true })
   @IsOptional()
   attachmentIds?: string[];
 
   @IsArray()
-  @IsUUID('4', { each: true })
+  @IsUUID("4", { each: true })
   @IsOptional()
   linkedInterviewIds?: string[];
 }
@@ -142,9 +138,7 @@ export class UpdateItemOrderDto {
   itemOrder: string[];
 }
 
-// ===========================================
 // Response Types
-// ===========================================
 
 /**
  * Template section information for response.

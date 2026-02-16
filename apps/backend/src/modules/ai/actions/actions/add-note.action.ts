@@ -1,11 +1,12 @@
-import { z } from 'zod';
+import { NotImplementedException } from "@nestjs/common";
+import { z } from "zod";
 import {
   ActionDefinition,
   ActionCategory,
   ActionContext,
   UNDO_WINDOWS,
-} from '../action.types';
-import { PrismaService } from '../../../prisma/prisma.service';
+} from "../action.types";
+import { PrismaService } from "../../../prisma/prisma.service";
 
 /**
  * Input schema for add-note action.
@@ -13,9 +14,16 @@ import { PrismaService } from '../../../prisma/prisma.service';
 export const addNoteInputSchema = z.object({
   content: z.string().min(1).max(50000),
   noteType: z
-    .enum(['GENERAL', 'INTERVIEW', 'EVIDENCE', 'FINDING', 'RECOMMENDATION', 'FOLLOW_UP'])
+    .enum([
+      "GENERAL",
+      "INTERVIEW",
+      "EVIDENCE",
+      "FINDING",
+      "RECOMMENDATION",
+      "FOLLOW_UP",
+    ])
     .optional()
-    .default('GENERAL'),
+    .default("GENERAL"),
 });
 
 export type AddNoteInput = z.infer<typeof addNoteInputSchema>;
@@ -34,12 +42,12 @@ export function createAddNoteAction(
   prisma: PrismaService,
 ): ActionDefinition<AddNoteInput> {
   return {
-    id: 'add-note',
-    name: 'Add Note',
-    description: 'Add a note to an investigation',
+    id: "add-note",
+    name: "Add Note",
+    description: "Add a note to an investigation",
     category: ActionCategory.QUICK,
-    entityTypes: ['investigation'],
-    requiredPermissions: ['investigations:notes:create'],
+    entityTypes: ["investigation"],
+    requiredPermissions: ["investigations:notes:create"],
     undoWindowSeconds: UNDO_WINDOWS.QUICK,
     inputSchema: addNoteInputSchema,
 
@@ -48,18 +56,18 @@ export function createAddNoteAction(
         description: `Add a ${input.noteType.toLowerCase()} note to ${context.entityType} ${context.entityId}`,
         changes: [
           {
-            field: 'notes',
+            field: "notes",
             oldValue: null,
             newValue:
               input.content.slice(0, 100) +
-              (input.content.length > 100 ? '...' : ''),
+              (input.content.length > 100 ? "..." : ""),
           },
         ],
       };
     },
 
     async execute(input: AddNoteInput, context: ActionContext) {
-      if (context.entityType !== 'investigation') {
+      if (context.entityType !== "investigation") {
         return {
           success: false,
           message: `Unsupported entity type: ${context.entityType}. Only investigations are supported.`,
@@ -74,7 +82,7 @@ export function createAddNoteAction(
 
       const authorName = user
         ? `${user.firstName} ${user.lastName}`
-        : 'Unknown User';
+        : "Unknown User";
 
       const note = await prisma.investigationNote.create({
         data: {
@@ -102,7 +110,7 @@ export function createAddNoteAction(
     ) {
       const noteId = previousState.noteId as string;
       if (!noteId) {
-        throw new Error('Cannot undo: noteId not found in previous state');
+        throw new Error("Cannot undo: noteId not found in previous state");
       }
 
       await prisma.investigationNote.delete({
@@ -113,16 +121,19 @@ export function createAddNoteAction(
 }
 
 /**
- * Placeholder action for registration without Prisma.
- * Used by ActionCatalog - replaced with factory version at runtime.
+ * Static action definition for type exports and registration.
+ * At runtime, ActionCatalog replaces this with the factory version that has Prisma injected.
+ *
+ * If this version is called directly (bypassing ActionCatalog), it throws NotImplementedException
+ * to make it clear the action was not properly initialized.
  */
 export const addNoteAction: ActionDefinition<AddNoteInput> = {
-  id: 'add-note',
-  name: 'Add Note',
-  description: 'Add a note to an investigation',
+  id: "add-note",
+  name: "Add Note",
+  description: "Add a note to an investigation",
   category: ActionCategory.QUICK,
-  entityTypes: ['investigation'],
-  requiredPermissions: ['investigations:notes:create'],
+  entityTypes: ["investigation"],
+  requiredPermissions: ["investigations:notes:create"],
   undoWindowSeconds: UNDO_WINDOWS.QUICK,
   inputSchema: addNoteInputSchema,
 
@@ -131,30 +142,31 @@ export const addNoteAction: ActionDefinition<AddNoteInput> = {
       description: `Add a ${input.noteType.toLowerCase()} note to ${context.entityType} ${context.entityId}`,
       changes: [
         {
-          field: 'notes',
+          field: "notes",
           oldValue: null,
           newValue:
             input.content.slice(0, 100) +
-            (input.content.length > 100 ? '...' : ''),
+            (input.content.length > 100 ? "..." : ""),
         },
       ],
     };
   },
 
-  async execute(input: AddNoteInput, context: ActionContext) {
-    // Placeholder - real implementation uses factory with injected Prisma
-    return {
-      success: false,
-      message: 'Action not properly initialized - use factory function',
-    };
+  async execute(_input: AddNoteInput, _context: ActionContext) {
+    throw new NotImplementedException(
+      "add-note action requires initialization via ActionCatalog with PrismaService. " +
+        "Use actionCatalogService.getAction('add-note') instead of importing addNoteAction directly.",
+    );
   },
 
   async undo(
-    actionId: string,
-    previousState: Record<string, unknown>,
-    context: ActionContext,
+    _actionId: string,
+    _previousState: Record<string, unknown>,
+    _context: ActionContext,
   ) {
-    // Placeholder - real implementation uses factory with injected Prisma
-    throw new Error('Action not properly initialized - use factory function');
+    throw new NotImplementedException(
+      "add-note undo requires initialization via ActionCatalog with PrismaService. " +
+        "Use actionCatalogService.getAction('add-note') instead of importing addNoteAction directly.",
+    );
   },
 };
