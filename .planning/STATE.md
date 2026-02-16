@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-02-15)
 
 ## Current Position
 
-Phase: 33 of 36 (Slop Cleanup & Production Readiness)
-Plan: 7 of 7 complete
-Status: Phase 33 COMPLETE
-Last activity: 2026-02-16 - Completed 33-07-PLAN.md (DTO File Splitting & SLOP-09)
+Phase: 34 of 36 (Performance & Scalability)
+Plan: 2 of 5 complete
+Status: In progress
+Last activity: 2026-02-16 - Completed 34-02-PLAN.md (Fix N+1 Query Patterns in Persons Service)
 
-Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (7/7 plans).
+Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE, Phase 34 (2/5 plans).
 
 ## Shipped Milestones
 
@@ -38,7 +38,7 @@ Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (7/7 p
 
 1. Phase 32: Security & SOC 2 (CRITICAL) - 13 requirements [COMPLETE - 8/8 plans]
 2. Phase 33: Slop Cleanup + Production - 16 requirements [COMPLETE - 7/7 plans]
-3. Phase 34: Performance & Scalability - 11 requirements
+3. Phase 34: Performance & Scalability - 11 requirements [IN PROGRESS - 2/5 plans]
 4. Phase 35: Code Quality & Architecture - 5 requirements
 5. Phase 36: Test Coverage Expansion - 10 requirements
 6. Phase 22: Dark Mode & Theme - 7 requirements (existing plans)
@@ -89,6 +89,9 @@ Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (7/7 p
 - 33-07: DTO splitting: group by concern (field metadata, filters, queries, responses)
 - 33-07: Barrel re-exports maintain backward compatibility for existing imports
 - 33-07: SLOP-09 resolved - PipelineService and CasePipelineService are complementary, not duplicates
+- 34-02: N+1 fix pattern: collect IDs -> batch fetch with Promise.all() -> Map for O(1) lookup
+- 34-02: Recursive CTE for hierarchical data with depth limit to prevent infinite loops
+- 34-02: Raw SQL uses snake_case column names from Prisma @@map mappings
 
 ### Blockers
 
@@ -96,7 +99,7 @@ None currently.
 
 ## Session Continuity
 
-Last session: 2026-02-16T01:58:00Z
-Stopped at: Completed 33-07-PLAN.md (DTO File Splitting & SLOP-09)
+Last session: 2026-02-16T02:24:58Z
+Stopped at: Completed 34-02-PLAN.md (Fix N+1 Query Patterns in Persons Service)
 Resume file: None
-Next action: Phase 33 complete. Start Phase 34 (Performance & Scalability).
+Next action: Continue Phase 34 with 34-03-PLAN.md
