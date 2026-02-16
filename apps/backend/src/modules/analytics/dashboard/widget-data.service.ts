@@ -41,9 +41,7 @@ export class WidgetDataService {
     private readonly widgetMetricsDataService: WidgetMetricsDataService,
   ) {}
 
-  // ===========================================
   // Public API
-  // ===========================================
 
   /**
    * Gets data for a single widget.
@@ -152,9 +150,7 @@ export class WidgetDataService {
     }
   }
 
-  // ===========================================
   // Private: Data Fetching Router
-  // ===========================================
 
   /**
    * Routes widget data requests to the appropriate domain-specific service.
@@ -250,9 +246,7 @@ export class WidgetDataService {
     }
   }
 
-  // ===========================================
   // Private: Cache Helpers
-  // ===========================================
 
   /**
    * Builds a cache key for widget data.

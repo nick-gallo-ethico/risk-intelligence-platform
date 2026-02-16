@@ -69,9 +69,7 @@ export class ExportsController {
     @InjectQueue(FLAT_EXPORT_QUEUE_NAME) private readonly exportQueue: Queue,
   ) {}
 
-  // =========================================================================
   // Tag Management
-  // =========================================================================
 
   /**
    * Configure a tagged export field.
@@ -151,9 +149,7 @@ export class ExportsController {
     return this.flatFileService.previewTag(user.organizationId, caseId);
   }
 
-  // =========================================================================
   // Export Jobs
-  // =========================================================================
 
   /**
    * Create a new flat file export job.

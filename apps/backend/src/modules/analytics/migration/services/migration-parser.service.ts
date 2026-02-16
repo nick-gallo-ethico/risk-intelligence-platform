@@ -32,9 +32,7 @@ export class MigrationParserService {
 
   constructor(private readonly prisma: PrismaService) {}
 
-  // ===========================================
   // Format Detection
-  // ===========================================
 
   /**
    * Detect file format and suggest field mappings.
@@ -223,9 +221,7 @@ export class MigrationParserService {
     }
   }
 
-  // ===========================================
   // Field Mapping
-  // ===========================================
 
   /**
    * Generate suggested field mappings based on source fields and hints.
@@ -469,9 +465,7 @@ export class MigrationParserService {
     this.logger.log(`Saved ${mappings.length} field mappings for job ${jobId}`);
   }
 
-  // ===========================================
   // Parsing and Transformation
-  // ===========================================
 
   /**
    * Parse a single row using the provided mappings.
@@ -604,9 +598,7 @@ export class MigrationParserService {
     }
   }
 
-  // ===========================================
   // Private Helpers
-  // ===========================================
 
   /**
    * Fuzzy match a field name to a target field.

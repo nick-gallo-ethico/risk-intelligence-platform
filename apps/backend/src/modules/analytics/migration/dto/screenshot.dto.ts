@@ -1,14 +1,13 @@
-// =============================================================================
-// SCREENSHOT ANALYSIS DTOs - Form field extraction from images
-// =============================================================================
-//
-// DTOs for the screenshot-to-form AI assistant that extracts form definitions
-// from competitor screenshots for migration or form builder purposes.
-//
-// Use cases:
-// - Migration: Analyzing competitor forms (NAVEX, EQS, OneTrust, STAR) to replicate
-// - Form Builder: Creating new forms from screenshot mockups
-// =============================================================================
+/**
+ * SCREENSHOT ANALYSIS DTOs - Form field extraction from images
+ *
+ * DTOs for the screenshot-to-form AI assistant that extracts form definitions
+ * from competitor screenshots for migration or form builder purposes.
+ *
+ * Use cases:
+ * - Migration: Analyzing competitor forms (NAVEX, EQS, OneTrust, STAR) to replicate
+ * - Form Builder: Creating new forms from screenshot mockups
+ */
 
 import { IsString, IsOptional, IsEnum, IsArray } from "class-validator";
 

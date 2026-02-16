@@ -16,9 +16,7 @@ import {
 } from "@prisma/client";
 import { addDays, addWeeks, addMonths, set, setDay } from "date-fns";
 
-// ===========================================
 // Schedule Configuration Interface
-// ===========================================
 
 /**
  * Configuration for schedule timing.
@@ -33,9 +31,7 @@ export interface ScheduleConfig {
   dayOfMonth?: number;
 }
 
-// ===========================================
 // DTOs
-// ===========================================
 
 /**
  * DTO for creating a scheduled export.
@@ -101,9 +97,7 @@ export interface PaginatedResult<T> {
   limit: number;
 }
 
-// ===========================================
 // Service
-// ===========================================
 
 /**
  * ScheduledExportService
@@ -126,9 +120,7 @@ export class ScheduledExportService {
     private readonly auditService: AuditService,
   ) {}
 
-  // ===========================================
   // CRUD Operations
-  // ===========================================
 
   /**
    * Create a new scheduled export.
@@ -347,9 +339,7 @@ export class ScheduledExportService {
     return { items, total, offset, limit };
   }
 
-  // ===========================================
   // Status Management
-  // ===========================================
 
   /**
    * Pause a scheduled export (deactivate without deleting).
@@ -430,9 +420,7 @@ export class ScheduledExportService {
     return run.id;
   }
 
-  // ===========================================
   // Run History
-  // ===========================================
 
   /**
    * Get execution history for a scheduled export.
@@ -474,9 +462,7 @@ export class ScheduledExportService {
     return { items, total, offset, limit };
   }
 
-  // ===========================================
   // Processor Support Methods
-  // ===========================================
 
   /**
    * Get scheduled exports that are due to run with cursor-based pagination.
@@ -565,9 +551,7 @@ export class ScheduledExportService {
     );
   }
 
-  // ===========================================
   // Schedule Calculation
-  // ===========================================
 
   /**
    * Calculate the next run time based on schedule configuration.
@@ -636,9 +620,7 @@ export class ScheduledExportService {
     }
   }
 
-  // ===========================================
   // Helpers
-  // ===========================================
 
   /**
    * Log an audit entry with error handling.

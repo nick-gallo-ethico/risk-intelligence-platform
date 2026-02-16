@@ -51,9 +51,7 @@ export class MigrationService {
     private readonly migrationTemplateService: MigrationTemplateService,
   ) {}
 
-  // ===========================================
   // Job Management (CRUD)
-  // ===========================================
 
   async createJob(
     organizationId: string,
@@ -132,9 +130,7 @@ export class MigrationService {
     });
   }
 
-  // ===========================================
   // Format Detection (delegated to ParserService)
-  // ===========================================
 
   async detectFormat(
     organizationId: string,
@@ -150,9 +146,7 @@ export class MigrationService {
     );
   }
 
-  // ===========================================
   // Field Mapping (delegated to TemplateService)
-  // ===========================================
 
   async getSuggestedMappings(
     orgId: string,
@@ -196,9 +190,7 @@ export class MigrationService {
     return this.migrationTemplateService.loadTemplate(orgId, sourceType);
   }
 
-  // ===========================================
   // Validation & Preview (delegated to ValidatorService)
-  // ===========================================
 
   async validate(
     orgId: string,
@@ -248,9 +240,7 @@ export class MigrationService {
     return job.fieldMappings as unknown as FieldMappingDto[];
   }
 
-  // ===========================================
   // Import Execution (delegated to ExecutorService)
-  // ===========================================
 
   async startImport(
     orgId: string,
@@ -299,9 +289,7 @@ export class MigrationService {
     await this.migrationExecutorService.failImport(jobId, error, details);
   }
 
-  // ===========================================
   // Rollback (delegated to ExecutorService)
-  // ===========================================
 
   async canRollback(
     orgId: string,

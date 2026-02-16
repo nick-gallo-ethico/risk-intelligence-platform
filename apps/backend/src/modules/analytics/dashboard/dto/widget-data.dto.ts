@@ -9,9 +9,7 @@ import { Type } from "class-transformer";
 import { ChartType, DateRangePreset } from "@prisma/client";
 import { DateRangeDto } from "./dashboard.dto";
 
-// ===========================================
 // Request DTOs
-// ===========================================
 
 /**
  * DTO for requesting data for a single widget.
@@ -46,9 +44,7 @@ export class BatchWidgetDataRequestDto {
   globalDateRange?: DateRangeDto;
 }
 
-// ===========================================
 // Response Types
-// ===========================================
 
 /**
  * Response wrapper for widget data.
@@ -76,9 +72,7 @@ export type WidgetData =
   | ListData
   | QuickActionsData;
 
-// ===========================================
 // KPI Card Data
-// ===========================================
 
 /**
  * Data structure for KPI card widgets.
@@ -120,9 +114,7 @@ export interface KpiComparison {
   period: string;
 }
 
-// ===========================================
 // Chart Data (Recharts-compatible format)
-// ===========================================
 
 /**
  * Data structure for chart widgets.
@@ -179,9 +171,7 @@ export interface ChartConfig {
   };
 }
 
-// ===========================================
 // Table Data
-// ===========================================
 
 /**
  * Data structure for table widgets.
@@ -226,9 +216,7 @@ export interface TableRow {
   [key: string]: unknown;
 }
 
-// ===========================================
 // List Data
-// ===========================================
 
 /**
  * Data structure for list widgets.
@@ -265,9 +253,7 @@ export interface ListItem {
   metadata?: Record<string, unknown>;
 }
 
-// ===========================================
 // Quick Actions Data
-// ===========================================
 
 /**
  * Data structure for quick actions widgets.
@@ -298,9 +284,7 @@ export interface QuickAction {
   badge?: number;
 }
 
-// ===========================================
 // Batch Response
-// ===========================================
 
 /**
  * Response for batch widget data requests.
@@ -314,9 +298,7 @@ export interface BatchWidgetDataResponse {
   totalDuration: number;
 }
 
-// ===========================================
 // Error Response
-// ===========================================
 
 /**
  * Error response for failed widget data fetches.
@@ -331,9 +313,7 @@ export interface WidgetDataError {
     | "DATA_SOURCE_ERROR";
 }
 
-// ===========================================
 // Date Range Helpers
-// ===========================================
 
 /**
  * Resolved date range with actual start and end dates.

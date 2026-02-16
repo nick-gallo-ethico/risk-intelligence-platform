@@ -1,16 +1,15 @@
-// =============================================================================
-// SCREENSHOT TO FORM SERVICE - AI-powered form field extraction
-// =============================================================================
-//
-// This service uses Claude's vision API to analyze form screenshots and extract
-// field definitions for migration or form building purposes.
-//
-// Key features:
-// - Supports both migration (competitor analysis) and form builder contexts
-// - Competitor-specific hints improve extraction accuracy
-// - Confidence scoring and warnings for review
-// - Audit trail for all analyses
-// =============================================================================
+/**
+ * SCREENSHOT TO FORM SERVICE - AI-powered form field extraction
+ *
+ * This service uses Claude's vision API to analyze form screenshots and extract
+ * field definitions for migration or form building purposes.
+ *
+ * Key features:
+ * - Supports both migration (competitor analysis) and form builder contexts
+ * - Competitor-specific hints improve extraction accuracy
+ * - Confidence scoring and warnings for review
+ * - Audit trail for all analyses
+ */
 
 import {
   Injectable,

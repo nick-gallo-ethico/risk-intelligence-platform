@@ -11,9 +11,7 @@ import {
   RiskArea,
 } from "./report-data-fetcher.service";
 
-// ===========================================
 // Report Rendering Types
-// ===========================================
 
 /**
  * Data structure for rendering board report HTML.
@@ -171,9 +169,7 @@ export class ReportPdfBuilderService {
     return `${prefix}${trend.value}%`;
   }
 
-  // ===========================================
   // Private Methods
-  // ===========================================
 
   /**
    * Ensure Handlebars helpers are registered.

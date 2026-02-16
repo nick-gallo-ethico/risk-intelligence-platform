@@ -1,8 +1,6 @@
 import { ExportDataType, ExportSourceType } from "@prisma/client";
 
-// ===========================================
 // Column Definition Types
-// ===========================================
 
 /**
  * Represents a single column in the flat file export.
@@ -65,9 +63,7 @@ export interface ColumnMapping {
   calculationFn?: string;
 }
 
-// ===========================================
 // Export Row Types
-// ===========================================
 
 /**
  * Core case columns that are always present in flat file exports.
@@ -180,9 +176,7 @@ export interface FlatExportRow extends CoreCaseColumns {
   all_subjects?: unknown[];
 }
 
-// ===========================================
 // Export Configuration Types
-// ===========================================
 
 /**
  * Configuration for a flat file export job.
@@ -217,9 +211,7 @@ export const DEFAULT_EXPORT_CONFIG: ExportConfig = {
   timezone: "UTC",
 };
 
-// ===========================================
 // Core Column Definitions
-// ===========================================
 
 /**
  * Core case column definitions.

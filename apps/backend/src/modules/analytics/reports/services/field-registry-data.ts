@@ -32,9 +32,7 @@ export interface FieldDefinition {
  * Static field registries for each entity type
  */
 export const ENTITY_FIELD_REGISTRIES: Record<string, FieldDefinition[]> = {
-  // ==========================================
   // CASES - Primary compliance work container
-  // ==========================================
   cases: [
     // Case Details
     {
@@ -432,9 +430,7 @@ export const ENTITY_FIELD_REGISTRIES: Record<string, FieldDefinition[]> = {
     },
   ],
 
-  // ==========================================
   // RIUS - Risk Intelligence Units (immutable inputs)
-  // ==========================================
   rius: [
     {
       id: "id",
@@ -637,9 +633,7 @@ export const ENTITY_FIELD_REGISTRIES: Record<string, FieldDefinition[]> = {
     },
   ],
 
-  // ==========================================
   // PERSONS - Individuals in the system
-  // ==========================================
   persons: [
     {
       id: "id",
@@ -817,9 +811,7 @@ export const ENTITY_FIELD_REGISTRIES: Record<string, FieldDefinition[]> = {
     },
   ],
 
-  // ==========================================
   // CAMPAIGNS - Disclosure/attestation campaigns
-  // ==========================================
   campaigns: [
     {
       id: "id",
@@ -1009,9 +1001,7 @@ export const ENTITY_FIELD_REGISTRIES: Record<string, FieldDefinition[]> = {
     },
   ],
 
-  // ==========================================
   // POLICIES - Policy documents
-  // ==========================================
   policies: [
     {
       id: "id",
@@ -1178,9 +1168,7 @@ export const ENTITY_FIELD_REGISTRIES: Record<string, FieldDefinition[]> = {
     },
   ],
 
-  // ==========================================
   // DISCLOSURES - Disclosure form submissions
-  // ==========================================
   disclosures: [
     {
       id: "id",
@@ -1299,9 +1287,7 @@ export const ENTITY_FIELD_REGISTRIES: Record<string, FieldDefinition[]> = {
     },
   ],
 
-  // ==========================================
   // INVESTIGATIONS - Formal investigations
-  // ==========================================
   investigations: [
     {
       id: "id",

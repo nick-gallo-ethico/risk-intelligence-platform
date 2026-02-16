@@ -340,9 +340,7 @@ export class MyWorkController {
     };
   }
 
-  // ==========================================
   // Private: Task Completion Helpers
-  // ==========================================
 
   /**
    * Complete a case by setting status to CLOSED.

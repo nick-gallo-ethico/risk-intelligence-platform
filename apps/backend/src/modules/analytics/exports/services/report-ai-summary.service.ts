@@ -7,9 +7,7 @@ import {
   RiskArea,
 } from "./report-data-fetcher.service";
 
-// ===========================================
 // AI Summary Configuration
-// ===========================================
 
 /**
  * Configuration for executive summary generation.
@@ -178,9 +176,7 @@ Keep each bullet point to 1-2 sentences. Use clear, executive-friendly language.
     return this.aiClient.isConfigured();
   }
 
-  // ===========================================
   // Prompt Building
-  // ===========================================
 
   /**
    * Build the prompt for executive summary generation.
@@ -232,9 +228,7 @@ ${data.riskAreas.map((r) => `- ${r.name}: Score ${r.score}, ${r.casesCount} case
 Generate 3-5 specific, actionable recommendations to improve compliance posture.`;
   }
 
-  // ===========================================
   // Fallback Generation
-  // ===========================================
 
   /**
    * Generate a fallback summary when AI is unavailable.
@@ -302,9 +296,7 @@ Generate 3-5 specific, actionable recommendations to improve compliance posture.
     return recommendations;
   }
 
-  // ===========================================
   // Utility Methods
-  // ===========================================
 
   /**
    * Format date range as a readable string.

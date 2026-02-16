@@ -38,9 +38,7 @@ export type TaskSortBy = "priority_due_date" | "due_date" | "created_at";
 export class TaskSorterService {
   private readonly logger = new Logger(TaskSorterService.name);
 
-  // ==========================================
   // Public: Sorting Methods
-  // ==========================================
 
   /**
    * Sort tasks based on specified method.
@@ -126,9 +124,7 @@ export class TaskSorterService {
     );
   }
 
-  // ==========================================
   // Public: Filtering Methods
-  // ==========================================
 
   /**
    * Apply filters to a task list.
@@ -160,9 +156,7 @@ export class TaskSorterService {
     return result;
   }
 
-  // ==========================================
   // Public: Pagination Methods
-  // ==========================================
 
   /**
    * Paginate results and return with metadata.
@@ -187,9 +181,7 @@ export class TaskSorterService {
     };
   }
 
-  // ==========================================
   // Public: Count Methods
-  // ==========================================
 
   /**
    * Calculate task counts by type.
@@ -218,9 +210,7 @@ export class TaskSorterService {
     return counts;
   }
 
-  // ==========================================
   // Public: Priority Calculation
-  // ==========================================
 
   /**
    * Calculate priority weight for a task.

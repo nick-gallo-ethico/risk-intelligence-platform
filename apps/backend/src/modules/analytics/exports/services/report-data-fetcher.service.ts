@@ -7,9 +7,7 @@ import {
   CaseBreakdown,
 } from "../pptx-generator.service";
 
-// ===========================================
 // Exported Types for Report Data
-// ===========================================
 
 /**
  * Date range filter for report queries.
@@ -603,9 +601,7 @@ export class ReportDataFetcherService {
     return org?.name;
   }
 
-  // ===========================================
   // Private Helper Methods
-  // ===========================================
 
   /**
    * Build Prisma where clause for case queries with filters.

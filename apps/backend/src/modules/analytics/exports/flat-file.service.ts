@@ -43,9 +43,7 @@ export class FlatFileService {
     private readonly auditService: AuditService,
   ) {}
 
-  // ===========================================
   // Tag Management
-  // ===========================================
 
   /**
    * Configure or update a field tag for flat file exports.
@@ -241,9 +239,7 @@ export class FlatFileService {
     return previews;
   }
 
-  // ===========================================
   // Export Job Management
-  // ===========================================
 
   /**
    * Create a new export job.
@@ -422,9 +418,7 @@ export class FlatFileService {
     };
   }
 
-  // ===========================================
   // Column Builders
-  // ===========================================
 
   /**
    * Get core case column definitions.
@@ -456,9 +450,7 @@ export class FlatFileService {
     }));
   }
 
-  // ===========================================
   // Value Resolution
-  // ===========================================
 
   /**
    * Resolve the value of a tagged field from a case and its relations.
@@ -516,9 +508,7 @@ export class FlatFileService {
     }
   }
 
-  // ===========================================
   // Formatting
-  // ===========================================
 
   /**
    * Format a value based on data type and optional pattern.
@@ -624,9 +614,7 @@ export class FlatFileService {
     return value.toLocaleString("en-US");
   }
 
-  // ===========================================
   // Helpers
-  // ===========================================
 
   /**
    * Map Prisma ExportDataType to column type string.

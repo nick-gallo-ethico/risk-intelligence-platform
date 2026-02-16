@@ -70,9 +70,7 @@ export class DashboardController {
     private readonly widgetDataService: WidgetDataService,
   ) {}
 
-  // ====================
   // Dashboard CRUD
-  // ====================
 
   /**
    * List dashboards with optional filters.
@@ -136,9 +134,7 @@ export class DashboardController {
     await this.dashboardConfigService.deleteDashboard(organizationId, id);
   }
 
-  // ====================
   // Default Dashboards
-  // ====================
 
   /**
    * Get the default dashboard for a given type.
@@ -169,9 +165,7 @@ export class DashboardController {
     );
   }
 
-  // ====================
   // User Configuration
-  // ====================
 
   /**
    * Get user's configured dashboards.
@@ -253,9 +247,7 @@ export class DashboardController {
     );
   }
 
-  // ====================
   // Widget Management
-  // ====================
 
   /**
    * Add a widget to a dashboard.
@@ -326,9 +318,7 @@ export class DashboardController {
     );
   }
 
-  // ====================
   // Widget Data
-  // ====================
 
   /**
    * Get data for all widgets in a dashboard.

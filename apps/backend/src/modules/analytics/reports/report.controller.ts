@@ -68,9 +68,7 @@ export class ReportController {
     private readonly reportAiService: ReportAiService,
   ) {}
 
-  // =========================================================================
   // Field Discovery
-  // =========================================================================
 
   @Get("fields/:entityType")
   @ApiOperation({ summary: "Get available fields for an entity type" })
@@ -97,9 +95,7 @@ export class ReportController {
     );
   }
 
-  // =========================================================================
   // Templates
-  // =========================================================================
 
   @Get("templates")
   @ApiOperation({ summary: "List pre-built report templates" })
@@ -113,9 +109,7 @@ export class ReportController {
     return templates as unknown as SavedReportResponseDto[];
   }
 
-  // =========================================================================
   // Report CRUD
-  // =========================================================================
 
   @Get()
   @ApiOperation({ summary: "List saved reports" })
@@ -240,9 +234,7 @@ export class ReportController {
     );
   }
 
-  // =========================================================================
   // Report Execution
-  // =========================================================================
 
   @Post(":id/run")
   @ApiOperation({ summary: "Run a saved report" })
@@ -256,9 +248,7 @@ export class ReportController {
     return this.reportService.run(user.organizationId, id, dto);
   }
 
-  // =========================================================================
   // Report Actions
-  // =========================================================================
 
   @Post(":id/duplicate")
   @Roles(
@@ -304,9 +294,7 @@ export class ReportController {
     return { status: "PENDING", jobId: `export-${id}-${Date.now()}` };
   }
 
-  // =========================================================================
   // AI Generation
-  // =========================================================================
 
   @Post("ai-generate")
   @Roles(UserRole.SYSTEM_ADMIN, UserRole.COMPLIANCE_OFFICER)
@@ -327,9 +315,7 @@ export class ReportController {
     );
   }
 
-  // =========================================================================
   // Schedule Management
-  // =========================================================================
 
   @Post(":id/schedule")
   @Roles(

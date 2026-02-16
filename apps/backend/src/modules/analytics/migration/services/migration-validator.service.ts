@@ -37,9 +37,7 @@ export class MigrationValidatorService {
     private readonly parserService: MigrationParserService,
   ) {}
 
-  // ===========================================
   // Validation
-  // ===========================================
 
   /**
    * Validate all data rows against field mappings.
@@ -354,9 +352,7 @@ export class MigrationValidatorService {
     };
   }
 
-  // ===========================================
   // Preview Generation
-  // ===========================================
 
   /**
    * Generate preview rows with transformed data.
@@ -411,9 +407,7 @@ export class MigrationValidatorService {
     return previewRows;
   }
 
-  // ===========================================
   // Private Helpers
-  // ===========================================
 
   /**
    * Validate a value for a specific transform function.

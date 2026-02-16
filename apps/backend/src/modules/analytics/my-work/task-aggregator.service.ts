@@ -75,9 +75,7 @@ export class TaskAggregatorService {
     private readonly taskSorterService: TaskSorterService,
   ) {}
 
-  // ==========================================
   // Public: Main Entry Points
-  // ==========================================
 
   /**
    * Get all tasks assigned to the user.
@@ -194,9 +192,7 @@ export class TaskAggregatorService {
     };
   }
 
-  // ==========================================
   // Private: Count Methods (for getTaskCounts)
-  // ==========================================
 
   private async countCaseAssignments(
     organizationId: string,

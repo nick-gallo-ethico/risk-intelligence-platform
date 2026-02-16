@@ -39,9 +39,7 @@ export class MigrationExecutorService {
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
-  // ===========================================
   // Import Execution
-  // ===========================================
 
   /**
    * Execute the import operation.
@@ -348,9 +346,7 @@ export class MigrationExecutorService {
     });
   }
 
-  // ===========================================
   // Rollback
-  // ===========================================
 
   /**
    * Check if a job can be rolled back.
@@ -539,9 +535,7 @@ export class MigrationExecutorService {
     this.logger.debug(`Would delete ${entityType} ${entityId}`);
   }
 
-  // ===========================================
   // Job Status Updates
-  // ===========================================
 
   /**
    * Mark a job as completed.

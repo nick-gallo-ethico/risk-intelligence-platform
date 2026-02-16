@@ -17,9 +17,7 @@ import {
 } from "../entities/unified-task.entity";
 import { TaskFiltersDto } from "../dto/my-work.dto";
 
-// ==========================================
 // Type Aliases
-// ==========================================
 
 /**
  * Conflict alert with disclosure and RIU context.
@@ -68,9 +66,7 @@ export class TaskWorkflowFetcherService {
 
   constructor(private readonly prisma: PrismaService) {}
 
-  // ==========================================
   // Public: Aggregated Fetch
-  // ==========================================
 
   /**
    * Fetch all workflow-related tasks for a user in parallel.
@@ -100,9 +96,7 @@ export class TaskWorkflowFetcherService {
     ];
   }
 
-  // ==========================================
   // Disclosure/Conflict Methods
-  // ==========================================
 
   /**
    * Fetch disclosure conflict alerts requiring review.
@@ -162,9 +156,7 @@ export class TaskWorkflowFetcherService {
     };
   }
 
-  // ==========================================
   // Campaign Methods
-  // ==========================================
 
   /**
    * Fetch campaign assignments for the user (as employee).
@@ -244,9 +236,7 @@ export class TaskWorkflowFetcherService {
     };
   }
 
-  // ==========================================
   // Approval/Workflow Methods
-  // ==========================================
 
   /**
    * Fetch workflow approval requests.
@@ -318,9 +308,7 @@ export class TaskWorkflowFetcherService {
     };
   }
 
-  // ==========================================
   // Private: Helper Methods
-  // ==========================================
 
   /**
    * Convert conflict severity to task priority.

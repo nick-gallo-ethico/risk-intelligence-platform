@@ -1,9 +1,7 @@
 import PptxGenJS from "pptxgenjs";
 import { Injectable, Logger } from "@nestjs/common";
 
-// ===========================================
 // PPTX Data Types
-// ===========================================
 
 /**
  * Key Performance Indicator item for slides.
@@ -92,9 +90,7 @@ export interface PptxGenerationOptions {
   includeNotes?: boolean;
 }
 
-// ===========================================
 // Color Constants
-// ===========================================
 
 const COLORS = {
   primary: "0F172A", // Slate 900

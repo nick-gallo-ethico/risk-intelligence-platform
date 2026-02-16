@@ -223,7 +223,7 @@ export class MigrationProcessor extends WorkerHost {
     }
   }
 
-  // ==================== Validation ====================
+  // Validation
 
   /**
    * Execute validation of all rows against field mappings.
@@ -320,7 +320,7 @@ export class MigrationProcessor extends WorkerHost {
     return { validRows, errorRows, errors };
   }
 
-  // ==================== Preview ====================
+  // Preview
 
   /**
    * Generate preview of transformed data for first N rows.
@@ -399,7 +399,7 @@ export class MigrationProcessor extends WorkerHost {
     return { rowCount: previewData.length, previewData };
   }
 
-  // ==================== Import ====================
+  // Import
 
   /**
    * Execute the full import with progress tracking.
@@ -555,7 +555,7 @@ export class MigrationProcessor extends WorkerHost {
     return { importedCount, errorCount, errors };
   }
 
-  // ==================== Rollback ====================
+  // Rollback
 
   /**
    * Execute rollback of imported records.
@@ -707,7 +707,7 @@ export class MigrationProcessor extends WorkerHost {
     return { rolledBackCount, skippedCount, skippedReasons };
   }
 
-  // ==================== Entity Creation ====================
+  // Entity Creation
 
   /**
    * Create entities from transformed row data.
@@ -917,7 +917,7 @@ export class MigrationProcessor extends WorkerHost {
     });
   }
 
-  // ==================== Helpers ====================
+  // Helpers
 
   /**
    * Get the appropriate connector for the source type.
@@ -1053,7 +1053,7 @@ export class MigrationProcessor extends WorkerHost {
     return mapping[normalized];
   }
 
-  // ==================== Event Handlers ====================
+  // Event Handlers
 
   /**
    * Handle job failure after all retries exhausted.

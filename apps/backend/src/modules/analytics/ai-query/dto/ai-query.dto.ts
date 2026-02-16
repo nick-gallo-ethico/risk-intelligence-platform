@@ -179,9 +179,7 @@ export class AiQueryRequestDto {
   limit?: number;
 }
 
-// ============================================
 // AI Structured Output Types (from Claude)
-// ============================================
 
 /**
  * Single filter condition parsed from natural language.
@@ -263,9 +261,7 @@ export interface ParsedQuery {
   interpretation: string;
 }
 
-// ============================================
 // Result Data Types
-// ============================================
 
 /**
  * KPI result data - single value with optional comparison.

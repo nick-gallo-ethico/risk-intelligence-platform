@@ -76,9 +76,7 @@ export interface PrebuiltWidgetDisplayConfig {
   comparisonPeriod?: "previous" | "year_ago";
 }
 
-// ===========================================
 // CCO (Chief Compliance Officer) Dashboard
-// ===========================================
 
 /**
  * Pre-built widgets for the CCO dashboard.
@@ -265,9 +263,7 @@ export const CCO_WIDGETS: PrebuiltWidget[] = [
   },
 ];
 
-// ===========================================
 // Investigator Dashboard
-// ===========================================
 
 /**
  * Pre-built widgets for the Investigator dashboard.
@@ -422,9 +418,7 @@ export const INVESTIGATOR_WIDGETS: PrebuiltWidget[] = [
   },
 ];
 
-// ===========================================
 // Campaign Manager Dashboard
-// ===========================================
 
 /**
  * Pre-built widgets for the Campaign Manager dashboard.
@@ -629,9 +623,7 @@ export const CAMPAIGN_MANAGER_WIDGETS: PrebuiltWidget[] = [
   },
 ];
 
-// ===========================================
 // Dashboard Defaults Export
-// ===========================================
 
 /**
  * Dashboard defaults configuration mapping dashboard types to their

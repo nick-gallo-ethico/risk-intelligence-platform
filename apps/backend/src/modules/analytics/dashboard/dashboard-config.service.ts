@@ -36,9 +36,7 @@ export class DashboardConfigService {
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
-  // ====================
   // Dashboard CRUD
-  // ====================
 
   /**
    * Creates a new dashboard with optional widgets.
@@ -246,9 +244,7 @@ export class DashboardConfigService {
     return { data: data as unknown as Dashboard[], total };
   }
 
-  // ====================
   // User Config
-  // ====================
 
   /**
    * Gets user's configuration for a specific dashboard.
@@ -395,9 +391,7 @@ export class DashboardConfigService {
     return defaultDashboard;
   }
 
-  // ====================
   // Default Dashboards
-  // ====================
 
   /**
    * Gets the default dashboard for a given type.
@@ -509,9 +503,7 @@ export class DashboardConfigService {
     return { lg: lgLayouts, md: mdLayouts, sm: smLayouts, xs: xsLayouts };
   }
 
-  // ====================
   // Widget Management
-  // ====================
 
   /**
    * Adds a widget to a dashboard.

@@ -29,9 +29,7 @@ export class WidgetCaseDataService {
     @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
   ) {}
 
-  // ===========================================
   // Public: Case Data Fetchers
-  // ===========================================
 
   /**
    * Routes case data requests to the appropriate fetch method based on widget type.
@@ -308,9 +306,7 @@ export class WidgetCaseDataService {
     return where;
   }
 
-  // ===========================================
   // Public: RIU Data Fetchers
-  // ===========================================
 
   /**
    * Fetches RIU data for KPI or chart widgets.
@@ -428,9 +424,7 @@ export class WidgetCaseDataService {
     return where;
   }
 
-  // ===========================================
   // Public: Investigation Data Fetchers
-  // ===========================================
 
   /**
    * Fetches investigation progress data for the current user.
@@ -477,9 +471,7 @@ export class WidgetCaseDataService {
     };
   }
 
-  // ===========================================
   // Private: Helper Methods
-  // ===========================================
 
   private getCaseTableColumns(): TableColumn[] {
     return [

@@ -21,9 +21,7 @@ import {
 } from "../entities/unified-task.entity";
 import { TaskFiltersDto } from "../dto/my-work.dto";
 
-// ==========================================
 // Type Aliases
-// ==========================================
 
 /**
  * Case with related category information.
@@ -83,9 +81,7 @@ export class TaskCaseFetcherService {
 
   constructor(private readonly prisma: PrismaService) {}
 
-  // ==========================================
   // Public: Aggregated Fetch
-  // ==========================================
 
   /**
    * Fetch all case-related tasks for a user in parallel.
@@ -116,9 +112,7 @@ export class TaskCaseFetcherService {
     ];
   }
 
-  // ==========================================
   // Case Assignment Methods
-  // ==========================================
 
   /**
    * Fetch cases assigned to the user.
@@ -236,9 +230,7 @@ export class TaskCaseFetcherService {
     };
   }
 
-  // ==========================================
   // Investigation Methods
-  // ==========================================
 
   /**
    * Fetch investigation steps assigned to the user.
@@ -316,9 +308,7 @@ export class TaskCaseFetcherService {
     };
   }
 
-  // ==========================================
   // Remediation Methods
-  // ==========================================
 
   /**
    * Fetch remediation tasks assigned to the user.
@@ -400,9 +390,7 @@ export class TaskCaseFetcherService {
     };
   }
 
-  // ==========================================
   // Project Task Methods
-  // ==========================================
 
   /**
    * Fetch project tasks assigned to the user.
@@ -483,9 +471,7 @@ export class TaskCaseFetcherService {
     };
   }
 
-  // ==========================================
   // Private: Helper Methods
-  // ==========================================
 
   /**
    * Convert case severity to task priority.

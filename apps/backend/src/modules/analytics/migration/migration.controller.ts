@@ -141,7 +141,7 @@ export class MigrationController {
     @InjectQueue(MIGRATION_QUEUE_NAME) private readonly migrationQueue: Queue,
   ) {}
 
-  // ==================== Job Management ====================
+  // Job Management
 
   @Post("upload")
   @UseInterceptors(FileInterceptor("file"))
@@ -291,7 +291,7 @@ export class MigrationController {
     await this.migrationService.cancelImport(organizationId, id);
   }
 
-  // ==================== Format Detection & Mapping ====================
+  // Format Detection & Mapping
 
   @Post(":id/detect")
   @HttpCode(HttpStatus.OK)
@@ -457,7 +457,7 @@ export class MigrationController {
     );
   }
 
-  // ==================== Validation & Preview (Queue-based) ====================
+  // Validation & Preview (Queue-based)
 
   @Post(":id/validate")
   @HttpCode(HttpStatus.OK)
@@ -549,7 +549,7 @@ export class MigrationController {
     };
   }
 
-  // ==================== Import Execution ====================
+  // Import Execution
 
   @Post(":id/import")
   @HttpCode(HttpStatus.OK)
@@ -594,7 +594,7 @@ export class MigrationController {
     };
   }
 
-  // ==================== Rollback ====================
+  // Rollback
 
   @Get(":id/rollback-status")
   @ApiOperation({ summary: "Check if rollback is available" })
@@ -658,7 +658,7 @@ export class MigrationController {
     };
   }
 
-  // ==================== Template Management ====================
+  // Template Management
 
   @Get("templates/list")
   @ApiOperation({ summary: "List saved mapping templates" })
@@ -671,7 +671,7 @@ export class MigrationController {
     return { templates };
   }
 
-  // ==================== Screenshot to Form ====================
+  // Screenshot to Form
 
   @Post("screenshot-to-form")
   @UseInterceptors(FileInterceptor("image"))
