@@ -77,9 +77,7 @@ export const CASE_INDEX_MAPPING = {
       intakeTimestamp: { type: "date" },
       releasedAt: { type: "date" },
 
-      // ===========================================
       // DENORMALIZED ASSOCIATIONS for Pattern Detection
-      // ===========================================
       // Nested types enable complex boolean queries like:
       // "Cases where Person A was SUBJECT AND Person B was WITNESS"
 
@@ -124,9 +122,7 @@ export const CASE_INDEX_MAPPING = {
         },
       },
 
-      // ===========================================
       // FLATTENED ARRAYS for Simple Faceting
-      // ===========================================
       // Duplicates nested data for efficient aggregations and simple filters.
       // Use these for "show all cases with this person" style queries.
 
@@ -136,9 +132,7 @@ export const CASE_INDEX_MAPPING = {
       reporterPersonIds: { type: "keyword" },
       investigatorPersonIds: { type: "keyword" },
 
-      // ===========================================
       // CUSTOM FIELDS (Dynamic Object)
-      // ===========================================
       // Custom properties defined per-organization are indexed here.
       // Uses dynamic mapping to support any property type defined in CustomPropertyDefinition.
       // Text values are analyzed for full-text search; keyword values for exact matching.

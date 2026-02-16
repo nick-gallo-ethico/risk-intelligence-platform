@@ -27,9 +27,7 @@ describe("RiusService", () => {
   let activityService: jest.Mocked<ActivityService>;
   let eventEmitter: jest.Mocked<EventEmitter2>;
 
-  // -------------------------------------------------------------------------
   // Test Data Fixtures
-  // -------------------------------------------------------------------------
   const mockOrgId = "org-test-123";
   const mockOtherOrgId = "org-other-456";
   const mockUserId = "user-test-123";
@@ -104,9 +102,7 @@ describe("RiusService", () => {
     severity: Severity.MEDIUM,
   };
 
-  // -------------------------------------------------------------------------
   // Mock Setup
-  // -------------------------------------------------------------------------
   const mockPrismaService = {
     riskIntelligenceUnit: {
       create: jest.fn(),
@@ -159,9 +155,7 @@ describe("RiusService", () => {
     updateLanguage: jest.fn(),
   };
 
-  // -------------------------------------------------------------------------
   // Module Setup
-  // -------------------------------------------------------------------------
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -187,9 +181,7 @@ describe("RiusService", () => {
     jest.clearAllMocks();
   });
 
-  // -------------------------------------------------------------------------
   // describe('create')
-  // -------------------------------------------------------------------------
   describe("create", () => {
     it("should create RIU with correct organizationId", async () => {
       // Arrange
@@ -307,9 +299,7 @@ describe("RiusService", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
   // describe('findOne') - Delegated to RiuQueryService
-  // -------------------------------------------------------------------------
   describe("findOne", () => {
     it("should return RIU when found in organization", async () => {
       // Arrange
@@ -357,10 +347,8 @@ describe("RiusService", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
   // describe('update') - Delegated to RiuUpdateService
   // CRITICAL: Immutability enforcement tested in RiuUpdateService unit tests
-  // -------------------------------------------------------------------------
   describe("update", () => {
     describe("MUTABLE fields - should allow updates", () => {
       it("should allow updating status field", async () => {
@@ -601,9 +589,7 @@ describe("RiusService", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
   // describe('updateStatus') - Delegated to RiuUpdateService
-  // -------------------------------------------------------------------------
   describe("updateStatus", () => {
     it("should update status with statusChangedAt timestamp", async () => {
       // Arrange
@@ -686,9 +672,7 @@ describe("RiusService", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
   // describe('updateAiEnrichment') - Delegated to RiuUpdateService
-  // -------------------------------------------------------------------------
   describe("updateAiEnrichment", () => {
     it("should update aiSummary", async () => {
       // Arrange
@@ -806,9 +790,7 @@ describe("RiusService", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
   // describe('findByAccessCode') - Delegated to RiuQueryService
-  // -------------------------------------------------------------------------
   describe("findByAccessCode", () => {
     it("should return RIU for valid access code", async () => {
       // Arrange
@@ -875,9 +857,7 @@ describe("RiusService", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
   // describe('findAll') - Delegated to RiuQueryService
-  // -------------------------------------------------------------------------
   describe("findAll", () => {
     it("should return paginated results", async () => {
       // Arrange
@@ -956,9 +936,7 @@ describe("RiusService", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
   // describe('event emission error handling')
-  // -------------------------------------------------------------------------
   describe("event emission error handling", () => {
     it("should not fail request if event emission fails", async () => {
       // Arrange

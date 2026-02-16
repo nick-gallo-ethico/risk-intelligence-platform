@@ -344,9 +344,7 @@ export class IndexingService implements OnModuleInit {
     }
   }
 
-  // ===========================================
   // CASE INDEXING WITH ASSOCIATIONS
-  // ===========================================
 
   /**
    * Build association data for a Case document.
@@ -517,9 +515,7 @@ export class IndexingService implements OnModuleInit {
     );
   }
 
-  // ===========================================
   // ASSOCIATION CHANGE EVENT HANDLERS
-  // ===========================================
 
   /**
    * Re-index Case when a person-case association is created.

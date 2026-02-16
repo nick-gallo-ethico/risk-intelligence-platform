@@ -253,7 +253,7 @@ export class RemediationService {
     });
   }
 
-  // ===== Templates =====
+  // Templates
 
   async createTemplate(
     organizationId: string,

@@ -42,7 +42,7 @@ export class RemediationController {
     private readonly stepService: RemediationStepService,
   ) {}
 
-  // ===== Plans =====
+  // Plans
 
   @Post("plans")
   @Roles(
@@ -142,7 +142,7 @@ export class RemediationController {
     return this.remediationService.cancel(user.organizationId, id, user.id);
   }
 
-  // ===== Steps =====
+  // Steps
 
   @Post("steps")
   @Roles(
@@ -244,7 +244,7 @@ export class RemediationController {
     return { success: true };
   }
 
-  // ===== My Assignments =====
+  // My Assignments
 
   @Get("my-steps")
   @Roles(
@@ -262,7 +262,7 @@ export class RemediationController {
     );
   }
 
-  // ===== Templates =====
+  // Templates
 
   @Post("templates")
   @Roles(UserRole.SYSTEM_ADMIN, UserRole.COMPLIANCE_OFFICER)

@@ -58,9 +58,7 @@ export class RiusService {
     private readonly riuUpdateService: RiuUpdateService,
   ) {}
 
-  // ===========================================
   // Creation
-  // ===========================================
 
   /**
    * Creates a new RIU with auto-generated reference number.
@@ -175,9 +173,7 @@ export class RiusService {
     }
   }
 
-  // ===========================================
   // Query Operations (delegated)
-  // ===========================================
 
   async findAll(
     query: RiuQueryDto,
@@ -235,9 +231,7 @@ export class RiusService {
     return this.riuFormDataService.getFormData(organizationId, riuId);
   }
 
-  // ===========================================
   // Update Operations (delegated to RiuUpdateService)
-  // ===========================================
 
   /**
    * Updates a RIU - ENFORCES IMMUTABILITY.
@@ -308,9 +302,7 @@ export class RiusService {
     );
   }
 
-  // ===========================================
   // Private Helpers
-  // ===========================================
 
   private async generateReferenceNumber(
     organizationId: string,

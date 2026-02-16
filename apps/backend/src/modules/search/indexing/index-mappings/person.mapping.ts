@@ -58,9 +58,7 @@ export const PERSON_INDEX_MAPPING = {
       createdAt: { type: "date" },
       updatedAt: { type: "date" },
 
-      // ===========================================
       // CUSTOM FIELDS (Dynamic Object)
-      // ===========================================
       customFields: {
         type: "object",
         dynamic: true,

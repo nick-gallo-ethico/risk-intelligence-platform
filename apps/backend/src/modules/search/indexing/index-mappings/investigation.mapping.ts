@@ -46,9 +46,7 @@ export const INVESTIGATION_INDEX_MAPPING = {
       startedAt: { type: "date" },
       closedAt: { type: "date" },
 
-      // ===========================================
       // CUSTOM FIELDS (Dynamic Object)
-      // ===========================================
       customFields: {
         type: "object",
         dynamic: true,

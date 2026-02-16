@@ -29,7 +29,6 @@ async function bootstrap() {
   app.use(bodyParser.urlencoded({ limit: "10mb", extended: true }));
 
   // CSRF Protection (SEC-04 - Mitigated by Design)
-  // ------------------------------------------------
   // This API uses JWT tokens in Authorization headers (not cookies) for authentication.
   // Browsers do not automatically send Authorization headers on cross-site requests,
   // which inherently mitigates CSRF attacks for most endpoints.

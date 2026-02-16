@@ -54,9 +54,7 @@ export class ReportingController {
     private exportService: ExportService,
   ) {}
 
-  // ========================================
   // Template Endpoints
-  // ========================================
 
   @Post("templates")
   @UseGuards(RolesGuard)
@@ -118,9 +116,7 @@ export class ReportingController {
     return this.templateService.duplicate(orgId, id, body.name);
   }
 
-  // ========================================
   // Execution Endpoints
-  // ========================================
 
   @Post("templates/:id/run")
   @ApiOperation({ summary: "Run a report and return results" })
