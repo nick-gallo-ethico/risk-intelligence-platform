@@ -18,7 +18,7 @@
 // - STORAGE_PROVIDER: Injection token for the storage provider
 // =============================================================================
 
-import { Module, Global } from "@nestjs/common";
+import { Module, Global, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { ModuleStorageService } from "./storage.service";
 import { DocumentProcessingService } from "./document-processing.service";
@@ -26,6 +26,9 @@ import { StorageController } from "./storage.controller";
 import { AzureBlobProvider } from "./providers/azure-blob.provider";
 import { LocalStorageProvider } from "./providers/local-storage.provider";
 import { STORAGE_PROVIDER } from "./providers/storage-provider.interface";
+
+// Module-level logger for useFactory initialization logging (PROD-05)
+const logger = new Logger("ModuleStorageModule");
 
 @Global()
 @Module({
@@ -48,7 +51,10 @@ import { STORAGE_PROVIDER } from "./providers/storage-provider.interface";
         // onModuleInit is async for local, but we need sync here
         // The provider will initialize itself on first use
         localProvider.onModuleInit().catch((err) => {
-          console.error("Failed to initialize LocalStorageProvider:", err);
+          logger.error(
+            "Failed to initialize LocalStorageProvider",
+            err instanceof Error ? err.stack : String(err),
+          );
         });
         return localProvider;
       },
