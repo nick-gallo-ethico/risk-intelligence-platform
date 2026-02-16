@@ -1,16 +1,15 @@
-// =============================================================================
-// AZURE BLOB STORAGE PROVIDER - Production file storage
-// =============================================================================
-//
-// This provider implements the StorageProvider interface using Azure Blob Storage.
-// Each organization gets its own container for tenant isolation.
-//
-// CONTAINER NAMING:
-// {prefix}-org-{organizationId} (e.g., 'ethico-org-abc123')
-//
-// SIGNED URLs:
-// Uses SAS tokens with configurable expiration for secure downloads.
-// =============================================================================
+/**
+ * Azure Blob Storage Provider - Production file storage
+ *
+ * This provider implements the StorageProvider interface using Azure Blob Storage.
+ * Each organization gets its own container for tenant isolation.
+ *
+ * CONTAINER NAMING:
+ * {prefix}-org-{organizationId} (e.g., 'ethico-org-abc123')
+ *
+ * SIGNED URLs:
+ * Uses SAS tokens with configurable expiration for secure downloads.
+ */
 
 import { Injectable, Logger, OnModuleInit } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";

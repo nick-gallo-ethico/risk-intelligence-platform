@@ -1,22 +1,21 @@
-// =============================================================================
-// STORAGE MODULE - File storage with provider abstraction
-// =============================================================================
-//
-// This module provides file storage capabilities with:
-// 1. Provider abstraction (Azure Blob for production, Local for development)
-// 2. Per-tenant container isolation
-// 3. Attachment tracking in database
-// 4. Document processing for text extraction (search indexing)
-//
-// CONFIGURATION:
-// Set STORAGE_PROVIDER=azure for production or STORAGE_PROVIDER=local for development.
-// Azure requires AZURE_STORAGE_ACCOUNT_NAME and AZURE_STORAGE_ACCOUNT_KEY.
-//
-// EXPORTS:
-// - ModuleStorageService: Main service for file operations with Attachment tracking
-// - DocumentProcessingService: Text extraction for search indexing
-// - STORAGE_PROVIDER: Injection token for the storage provider
-// =============================================================================
+/**
+ * Storage Module - File storage with provider abstraction
+ *
+ * This module provides file storage capabilities with:
+ * 1. Provider abstraction (Azure Blob for production, Local for development)
+ * 2. Per-tenant container isolation
+ * 3. Attachment tracking in database
+ * 4. Document processing for text extraction (search indexing)
+ *
+ * CONFIGURATION:
+ * Set STORAGE_PROVIDER=azure for production or STORAGE_PROVIDER=local for development.
+ * Azure requires AZURE_STORAGE_ACCOUNT_NAME and AZURE_STORAGE_ACCOUNT_KEY.
+ *
+ * EXPORTS:
+ * - ModuleStorageService: Main service for file operations with Attachment tracking
+ * - DocumentProcessingService: Text extraction for search indexing
+ * - STORAGE_PROVIDER: Injection token for the storage provider
+ */
 
 import { Module, Global, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";

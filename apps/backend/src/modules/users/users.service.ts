@@ -33,9 +33,9 @@ export class UsersService {
     private readonly activityService: ActivityService,
   ) {}
 
-  // -------------------------------------------------------------------------
+  //
   // CREATE - Create new user within organization
-  // -------------------------------------------------------------------------
+  //
 
   /**
    * Creates a new user within the organization.
@@ -102,9 +102,9 @@ export class UsersService {
     return this.mapToResponseDto(user);
   }
 
-  // -------------------------------------------------------------------------
+  //
   // FIND ALL - Paginated list with filters
-  // -------------------------------------------------------------------------
+  //
 
   /**
    * Retrieves a paginated list of users with optional filters.
@@ -186,9 +186,9 @@ export class UsersService {
     };
   }
 
-  // -------------------------------------------------------------------------
+  //
   // FIND ONE - Get single user by ID
-  // -------------------------------------------------------------------------
+  //
 
   /**
    * Retrieves a single user by ID.
@@ -215,9 +215,9 @@ export class UsersService {
     return this.mapToResponseDto(user);
   }
 
-  // -------------------------------------------------------------------------
+  //
   // UPDATE - Update user details
-  // -------------------------------------------------------------------------
+  //
 
   /**
    * Updates an existing user.
@@ -316,9 +316,9 @@ export class UsersService {
     return this.mapToResponseDto(updated);
   }
 
-  // -------------------------------------------------------------------------
+  //
   // DEACTIVATE - Soft delete user
-  // -------------------------------------------------------------------------
+  //
 
   /**
    * Deactivates a user (soft delete by setting isActive = false).
@@ -369,9 +369,9 @@ export class UsersService {
     });
   }
 
-  // -------------------------------------------------------------------------
+  //
   // HELPER METHODS
-  // -------------------------------------------------------------------------
+  //
 
   /**
    * Maps a Prisma User record to UserResponseDto.

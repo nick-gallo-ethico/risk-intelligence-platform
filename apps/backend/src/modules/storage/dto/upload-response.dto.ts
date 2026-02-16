@@ -1,6 +1,4 @@
-// =============================================================================
 // STORAGE DTOs - Request/Response types for storage operations
-// =============================================================================
 
 import { AttachmentEntityType } from "@prisma/client";
 

@@ -1,17 +1,16 @@
-// =============================================================================
-// LOCAL STORAGE PROVIDER - Development file storage
-// =============================================================================
-//
-// This provider implements the StorageProvider interface using the local filesystem.
-// Each organization gets its own directory for tenant isolation.
-//
-// DIRECTORY STRUCTURE:
-// {basePath}/org-{organizationId}/{path}
-//
-// SIGNED URLs:
-// For local development, returns direct file paths (no actual signing).
-// Production should always use AzureBlobProvider.
-// =============================================================================
+/**
+ * Local Storage Provider - Development file storage
+ *
+ * This provider implements the StorageProvider interface using the local filesystem.
+ * Each organization gets its own directory for tenant isolation.
+ *
+ * DIRECTORY STRUCTURE:
+ * {basePath}/org-{organizationId}/{path}
+ *
+ * SIGNED URLs:
+ * For local development, returns direct file paths (no actual signing).
+ * Production should always use AzureBlobProvider.
+ */
 
 import {
   Injectable,

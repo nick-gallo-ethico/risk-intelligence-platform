@@ -348,9 +348,7 @@ export class WorkflowService {
     }
   }
 
-  // ============================================
   // Additional Methods for UI Support
-  // ============================================
 
   /**
    * List workflow instances with optional filters and pagination.

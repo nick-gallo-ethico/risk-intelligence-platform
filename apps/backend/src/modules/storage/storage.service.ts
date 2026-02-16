@@ -1,17 +1,16 @@
-// =============================================================================
-// STORAGE SERVICE - Unified file storage with Attachment tracking
-// =============================================================================
-//
-// This service provides a unified API for file storage operations with:
-// 1. Per-tenant container isolation (organizationId-based)
-// 2. Attachment record tracking in the database
-// 3. Event emission for search indexing
-// 4. Signed URL generation for secure downloads
-//
-// USAGE:
-// - Inject StorageService in feature services
-// - Provider (Azure/Local) is auto-configured based on environment
-// =============================================================================
+/**
+ * Storage Service - Unified file storage with Attachment tracking
+ *
+ * This service provides a unified API for file storage operations with:
+ * 1. Per-tenant container isolation (organizationId-based)
+ * 2. Attachment record tracking in the database
+ * 3. Event emission for search indexing
+ * 4. Signed URL generation for secure downloads
+ *
+ * USAGE:
+ * - Inject StorageService in feature services
+ * - Provider (Azure/Local) is auto-configured based on environment
+ */
 
 import {
   Injectable,

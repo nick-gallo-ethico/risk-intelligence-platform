@@ -52,9 +52,7 @@ export class WorkflowController {
     private workflowEngine: WorkflowEngineService,
   ) {}
 
-  // ============================================
   // Template Endpoints
-  // ============================================
 
   /**
    * Create a new workflow template.
@@ -165,9 +163,7 @@ export class WorkflowController {
     await this.workflowService.delete(organizationId, id);
   }
 
-  // ============================================
   // Instance Endpoints
-  // ============================================
 
   /**
    * List all workflow instances with optional filters.

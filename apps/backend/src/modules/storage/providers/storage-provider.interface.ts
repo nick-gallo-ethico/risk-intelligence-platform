@@ -1,16 +1,15 @@
-// =============================================================================
-// STORAGE PROVIDER INTERFACE - Contract for file storage backends
-// =============================================================================
-//
-// This interface defines the contract for storage providers.
-// Implementations: AzureBlobProvider (production), LocalStorageProvider (dev)
-//
-// KEY DESIGN DECISIONS:
-// 1. Per-tenant container isolation (organizationId in all operations)
-// 2. Signed URLs with expiration for secure downloads
-// 3. Stream-based download for memory efficiency
-// 4. Metadata support for file tracking
-// =============================================================================
+/**
+ * Storage Provider Interface - Contract for file storage backends
+ *
+ * This interface defines the contract for storage providers.
+ * Implementations: AzureBlobProvider (production), LocalStorageProvider (dev)
+ *
+ * KEY DESIGN DECISIONS:
+ * 1. Per-tenant container isolation (organizationId in all operations)
+ * 2. Signed URLs with expiration for secure downloads
+ * 3. Stream-based download for memory efficiency
+ * 4. Metadata support for file tracking
+ */
 
 /**
  * Parameters for uploading a file.

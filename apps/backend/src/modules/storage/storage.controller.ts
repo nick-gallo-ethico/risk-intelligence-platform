@@ -1,18 +1,17 @@
-// =============================================================================
-// STORAGE CONTROLLER - REST API for file storage operations
-// =============================================================================
-//
-// This controller provides endpoints for:
-// 1. File upload with multipart form data
-// 2. Download URL generation (signed URLs)
-// 3. Attachment metadata retrieval
-// 4. Attachment listing and deletion
-//
-// SECURITY:
-// - All endpoints require JWT authentication
-// - Tenant isolation via TenantGuard
-// - File size limits enforced (50MB default)
-// =============================================================================
+/**
+ * Storage Controller - REST API for file storage operations
+ *
+ * This controller provides endpoints for:
+ * 1. File upload with multipart form data
+ * 2. Download URL generation (signed URLs)
+ * 3. Attachment metadata retrieval
+ * 4. Attachment listing and deletion
+ *
+ * SECURITY:
+ * - All endpoints require JWT authentication
+ * - Tenant isolation via TenantGuard
+ * - File size limits enforced (50MB default)
+ */
 
 import {
   Controller,

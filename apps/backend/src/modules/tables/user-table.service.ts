@@ -608,9 +608,7 @@ export class UserTableService {
     });
   }
 
-  // =====================
   // Private Helper Methods
-  // =====================
 
   /**
    * Find table by ID with permission check.
