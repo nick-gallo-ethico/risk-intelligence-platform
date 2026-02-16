@@ -18,6 +18,8 @@ import { MigrationParserService } from "./services/migration-parser.service";
 import { MigrationValidatorService } from "./services/migration-validator.service";
 import { MigrationExecutorService } from "./services/migration-executor.service";
 import { MigrationTemplateService } from "./services/migration-template.service";
+import { FieldMatcherService } from "./services/field-matcher.service";
+import { TransformApplierService } from "./services/transform-applier.service";
 
 /**
  * MigrationModule provides data import capabilities for competitor system migrations.
@@ -60,6 +62,8 @@ import { MigrationTemplateService } from "./services/migration-template.service"
     MigrationValidatorService,
     MigrationExecutorService,
     MigrationTemplateService,
+    FieldMatcherService,
+    TransformApplierService,
     // Connectors
     NavexConnector,
     EqsConnector,
