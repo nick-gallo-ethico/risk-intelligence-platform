@@ -10,9 +10,6 @@ import {
 } from "class-validator";
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 
-/**
- * DTO for creating or updating a feature flag.
- */
 export class SetFeatureFlagDto {
   @ApiProperty({
     description: "Unique identifier for the feature flag",
@@ -60,9 +57,6 @@ export class SetFeatureFlagDto {
   metadata?: Record<string, unknown>;
 }
 
-/**
- * DTO for checking if a feature flag is enabled.
- */
 export class CheckFeatureFlagDto {
   @ApiProperty({
     description: "Name of the feature flag to check",
@@ -77,9 +71,6 @@ export class CheckFeatureFlagDto {
   enabled: boolean;
 }
 
-/**
- * DTO for feature flag response.
- */
 export class FeatureFlagResponseDto {
   @ApiProperty({
     description: "Unique identifier for the feature flag",

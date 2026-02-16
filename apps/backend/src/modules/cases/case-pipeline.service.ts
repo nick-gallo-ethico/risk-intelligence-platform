@@ -1,5 +1,13 @@
 /**
- * CASE PIPELINE SERVICE - Manages case workflow stages and outcomes
+ * CasePipelineService - Case State Management
+ *
+ * This service manages case progression through pipeline stages.
+ * It handles: moving cases, validating transitions, recording changes.
+ *
+ * NOT to be confused with PipelineService which provides:
+ * - Pipeline stage definitions
+ * - Transition rules
+ * - Pipeline configuration
  *
  * This service handles:
  * 1. Moving cases through configurable pipeline stages
@@ -10,6 +18,11 @@
  * - Pipeline stages are tenant-configurable (stored in pipelineStage field)
  * - Classification on Case can differ from RIU (this is where corrections go)
  * - All stage/outcome changes include audit tracking with timestamps and user
+ *
+ * @see PipelineService for pipeline configuration (stage definitions, transition rules)
+ *
+ * SLOP-09 Resolution: This file and pipeline.service.ts are NOT duplicates.
+ * They serve complementary purposes - this manages state, the other provides configuration.
  */
 
 import {

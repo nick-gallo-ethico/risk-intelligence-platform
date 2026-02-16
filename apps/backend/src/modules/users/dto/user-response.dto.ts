@@ -1,9 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
 import { UserRole } from "@prisma/client";
 
-/**
- * Nested DTO for department reference in user response.
- */
 export class DepartmentRefDto {
   @ApiProperty({ example: "550e8400-e29b-41d4-a716-446655440000" })
   id: string;
@@ -12,9 +9,6 @@ export class DepartmentRefDto {
   name: string;
 }
 
-/**
- * Nested DTO for business unit reference in user response.
- */
 export class BusinessUnitRefDto {
   @ApiProperty({ example: "550e8400-e29b-41d4-a716-446655440001" })
   id: string;
@@ -63,9 +57,6 @@ export class UserResponseDto {
   updatedAt: Date;
 }
 
-/**
- * Response DTO for paginated user list.
- */
 export class UserListResponseDto {
   @ApiProperty({ type: [UserResponseDto] })
   items: UserResponseDto[];

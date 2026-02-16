@@ -4,9 +4,6 @@ import {
   ActorType,
 } from "@prisma/client";
 
-/**
- * Response shape for a single audit log entry.
- */
 export class AuditLogResponseDto {
   id: string;
   organizationId: string;
@@ -26,9 +23,6 @@ export class AuditLogResponseDto {
   createdAt: Date;
 }
 
-/**
- * Paginated response for audit log queries.
- */
 export class AuditLogPaginatedResponseDto {
   data: AuditLogResponseDto[];
   total: number;

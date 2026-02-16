@@ -10,9 +10,6 @@ import {
 import { Type } from "class-transformer";
 import { AuditEntityType, AuditActionCategory } from "@prisma/client";
 
-/**
- * Query parameters for filtering and paginating audit logs.
- */
 export class AuditLogQueryDto {
   @IsOptional()
   @IsEnum(AuditEntityType)

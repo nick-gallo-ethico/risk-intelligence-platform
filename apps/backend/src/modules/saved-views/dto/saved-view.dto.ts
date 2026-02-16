@@ -87,9 +87,6 @@ export interface ColumnConfig {
   width?: number;
 }
 
-/**
- * DTO for creating a new saved view.
- */
 export class CreateSavedViewDto {
   @IsString()
   name: string;
@@ -241,9 +238,6 @@ export class ReorderSavedViewsDto {
   viewOrders: ViewOrderItem[];
 }
 
-/**
- * Individual view order item for reordering.
- */
 export class ViewOrderItem {
   @IsUUID()
   id: string;

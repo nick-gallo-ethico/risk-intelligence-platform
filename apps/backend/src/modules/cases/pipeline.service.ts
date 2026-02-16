@@ -1,15 +1,28 @@
 /**
- * PIPELINE SERVICE - Manages pipeline configurations for cases
+ * PipelineService - Pipeline Configuration Provider
+ *
+ * This service provides pipeline stage definitions and transition rules.
+ * It answers: "What stages exist and what transitions are allowed?"
+ *
+ * NOT to be confused with CasePipelineService which handles:
+ * - Moving cases through pipeline stages
+ * - Validating transitions for specific cases
+ * - Recording state changes with audit trails
  *
  * This service handles:
  * 1. Returning default pipeline stages for cases
  * 2. Tenant-specific pipeline customization (future)
- * 3. Pipeline stage validation
+ * 3. Pipeline stage validation rules
  *
  * KEY DESIGN DECISIONS:
  * - Default stages returned when no tenant-specific config exists
  * - Pipeline stages match the frontend PipelineStageBar expectations
  * - Future: Store tenant-specific overrides in database
+ *
+ * @see CasePipelineService for case state management (moving cases through stages)
+ *
+ * SLOP-09 Resolution: This file and case-pipeline.service.ts are NOT duplicates.
+ * They serve complementary purposes - this provides configuration, the other manages state.
  */
 
 import {
