@@ -89,6 +89,7 @@ Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE, Phase
 - 33-07: DTO splitting: group by concern (field metadata, filters, queries, responses)
 - 33-07: Barrel re-exports maintain backward compatibility for existing imports
 - 33-07: SLOP-09 resolved - PipelineService and CasePipelineService are complementary, not duplicates
+- 33-09: SLOP-05 gap closure verified: 37 TODOs (23 AUTH-TODO, 2 STUB-TODO, 12 future enhancements)
 - 34-01: Batch size of 100 for cursor-based pagination (memory vs round-trips balance)
 - 34-01: BullMQ addBulk() chunks in batches of 100 jobs
 - 34-01: Return { items, nextCursor } format for paginated iteration
