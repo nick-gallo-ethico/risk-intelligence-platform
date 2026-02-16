@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-15)
 ## Current Position
 
 Phase: 35 of 36 (Code Quality & Architecture)
-Plan: 1 of ? in progress
-Status: Phase 35 started, Phase 34 COMPLETE, Phase 33 COMPLETE
-Last activity: 2026-02-16 - Completed 35-01 (Level 0 service splits)
+Plan: 2 of ? complete
+Status: Phase 35 in progress, Phase 34 COMPLETE, Phase 33 COMPLETE
+Last activity: 2026-02-16 - Completed 35-02 (Level 1 service splits)
 
-Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10 plans), Phase 34 COMPLETE (5/5 plans), Phase 35 in progress.
+Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10 plans), Phase 34 COMPLETE (5/5 plans), Phase 35 in progress (2/? plans).
 
 ## Shipped Milestones
 
@@ -109,6 +109,10 @@ Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10
 - 35-01: Thin Coordinator pattern - original service delegates to focused sub-services
 - 35-01: Type re-exports from original file for backward compatibility
 - 35-01: Services directory with index.ts barrel for sub-services
+- 35-02: Three-stage pipeline for AI queries: parse -> execute -> format
+- 35-02: FormatDetectorService groups all file format concerns (delimiter, encoding, source type)
+- 35-02: MappingGeneratorService uses FieldMatcherService for fuzzy matching
+- 35-02: Transform methods added to existing TransformApplierService (not new service)
 
 ### Blockers
 
@@ -116,7 +120,7 @@ None currently.
 
 ## Session Continuity
 
-Last session: 2026-02-16T15:58:00Z
-Stopped at: Completed 35-01-PLAN.md (Level 0 service splits)
+Last session: 2026-02-16T16:15:00Z
+Stopped at: Completed 35-02-PLAN.md (Level 1 service splits)
 Resume file: None
 Next action: Continue Phase 35 with remaining plans

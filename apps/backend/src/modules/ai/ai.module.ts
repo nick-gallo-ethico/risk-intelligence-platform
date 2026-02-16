@@ -9,6 +9,9 @@ import { AuthModule } from "../auth/auth.module";
 import { AiClientService } from "./services/ai-client.service";
 import { ConversationService } from "./services/conversation.service";
 import { ContextLoaderService } from "./services/context-loader.service";
+import { ContextCacheService } from "./services/context-cache.service";
+import { HierarchyLoaderService } from "./services/hierarchy-loader.service";
+import { PromptBuilderService } from "./services/prompt-builder.service";
 import { ProviderRegistryService } from "./services/provider-registry.service";
 import { PromptService } from "./services/prompt.service";
 import { AiRateLimiterService } from "./services/rate-limiter.service";
@@ -70,6 +73,10 @@ import { AiController } from "./ai.controller";
     // Core Services
     AiClientService,
     ConversationService,
+    // Context sub-services (split from context-loader.service.ts)
+    ContextCacheService,
+    HierarchyLoaderService,
+    PromptBuilderService,
     ContextLoaderService,
     PromptService,
     AiRateLimiterService,
