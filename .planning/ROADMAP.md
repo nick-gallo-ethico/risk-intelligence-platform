@@ -68,7 +68,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 30: Test Coverage Foundation** - Auth, core entities, campaigns/policies, frontend MSW (v1.1)
 - [x] **Phase 31: Code Quality & Performance** - Service decomposition, JWT RS256, Elasticsearch circuit breaker (v1.1)
 - [x] **Phase 32: Security & SOC 2 Fixes** - Auth bypass fixes, JWT algorithm pinning, WebSocket auth, MFA persistence (v1.2)
-- [ ] **Phase 33: Slop Cleanup & Production Readiness** - Orphaned modules, dead code, MIME validation, placeholder removal (v1.2)
+- [x] **Phase 33: Slop Cleanup & Production Readiness** - Orphaned modules, dead code, MIME validation, placeholder removal (v1.2)
 - [x] **Phase 34: Performance & Scalability** - Unbounded queries, Redis caching, connection pooling, N+1 fixes (v1.2)
 - [ ] **Phase 35: Code Quality & Architecture** - Fat service splits, any type replacement, strict mode, null safety (v1.2)
 - [ ] **Phase 36: Test Coverage Expansion** - Auth guards/strategies, impersonation, E2E isolation, 60%+ backend coverage (v1.2)
@@ -1060,9 +1060,9 @@ Plans:
 - [x] 33-05-PLAN.md (Wave 2) - Section separator removal (modules E-W)
 - [x] 33-06-PLAN.md (Wave 3) - TODO triage, JSDoc cleanup
 - [x] 33-07-PLAN.md (Wave 3) - DTO splits, SLOP-09 documentation
-- [ ] 33-08-PLAN.md (Wave 4, Gap Closure) - Complete separator removal (290 remaining in analytics/, remediation/, reporting/, rius/, search/)
-- [ ] 33-09-PLAN.md (Wave 4, Gap Closure) - Complete TODO triage (37 remaining)
-- [ ] 33-10-PLAN.md (Wave 4, Gap Closure) - Add DANGEROUS_EXTENSIONS check to attachments.controller.ts fileFilter
+- [x] 33-08-PLAN.md (Wave 4, Gap Closure) - Complete separator removal (290 remaining in analytics/, remediation/, reporting/, rius/, search/)
+- [x] 33-09-PLAN.md (Wave 4, Gap Closure) - Complete TODO triage (37 remaining)
+- [x] 33-10-PLAN.md (Wave 4, Gap Closure) - Add DANGEROUS_EXTENSIONS check to attachments.controller.ts fileFilter
 
 ### Phase 34: Performance & Scalability (v1.2)
 

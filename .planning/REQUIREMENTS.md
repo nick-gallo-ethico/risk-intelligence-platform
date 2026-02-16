@@ -28,17 +28,17 @@ Dual-track milestone: (1) Remediate all findings from pre-Series A code review a
 
 ### AI Code Slop Cleanup (Grade: C- → Target: B+)
 
-- [ ] **SLOP-01**: Register or delete 3 orphaned modules — feature-flags, metrics, sentry modules exist but are not imported in AppModule
-- [ ] **SLOP-02**: Implement or disable document processing stubs — PDF, Office, RTF, OpenDocument extraction returning fake success:false
-- [ ] **SLOP-03**: Fix usage metrics support ticket count — currently always returns 0, feeding 15% of health score calculation
-- [ ] **SLOP-04**: Strip 384 section-separator comments (// ====...) across 84 files
-- [ ] **SLOP-05**: Triage and resolve 38 TODO comments — 12 are auth-related security-blocking items
-- [ ] **SLOP-06**: Implement or remove empty notification methods in escalation processor
-- [ ] **SLOP-07**: Implement or remove placeholder AI actions returning { success: false, message: 'Placeholder' }
-- [ ] **SLOP-08**: Fix PDF export silently returning Excel — implement PDF or return error explaining unavailability
-- [ ] **SLOP-09**: Delete duplicate service file — pipeline.service.ts + case-pipeline.service.ts in same directory
-- [ ] **SLOP-10**: Strip restating JSDoc comments that add no value (/\*_ Delete a feature flag. _/ async deleteFlag())
-- [ ] **SLOP-11**: Split bloated DTO files — report.dto.ts (683 lines, 11 DTOs), conflict.dto.ts (605 lines)
+- [x] **SLOP-01**: Register or delete 3 orphaned modules — feature-flags, metrics, sentry modules exist but are not imported in AppModule
+- [x] **SLOP-02**: Implement or disable document processing stubs — PDF, Office, RTF, OpenDocument extraction returning fake success:false
+- [x] **SLOP-03**: Fix usage metrics support ticket count — currently always returns 0, feeding 15% of health score calculation
+- [x] **SLOP-04**: Strip 384 section-separator comments (// ====...) across 84 files
+- [x] **SLOP-05**: Triage and resolve 38 TODO comments — 12 are auth-related security-blocking items
+- [x] **SLOP-06**: Implement or remove empty notification methods in escalation processor
+- [x] **SLOP-07**: Implement or remove placeholder AI actions returning { success: false, message: 'Placeholder' }
+- [x] **SLOP-08**: Fix PDF export silently returning Excel — implement PDF or return error explaining unavailability
+- [x] **SLOP-09**: Delete duplicate service file — pipeline.service.ts + case-pipeline.service.ts in same directory
+- [x] **SLOP-10**: Strip restating JSDoc comments that add no value (/\*_ Delete a feature flag. _/ async deleteFlag())
+- [x] **SLOP-11**: Split bloated DTO files — report.dto.ts (683 lines, 11 DTOs), conflict.dto.ts (605 lines)
 
 ### Performance & Scalability (Grade: C → Target: B+)
 
@@ -77,11 +77,11 @@ Dual-track milestone: (1) Remediate all findings from pre-Series A code review a
 
 ### Production Readiness (Grade: B- → Target: A-)
 
-- [ ] **PROD-01**: Add magic-byte file validation with file-type npm package — MIME validation currently trusts client header only
-- [ ] **PROD-02**: Add fileFilter to Multer attachment upload — reject dangerous extensions before processing
-- [ ] **PROD-03**: Replace direct process.env.JWT_SECRET with ConfigService.get() in project.gateway.ts and notification.gateway.ts
-- [ ] **PROD-04**: Move @faker-js/faker from production deps to devDependencies
-- [ ] **PROD-05**: Replace console.error with NestJS Logger in storage.module.ts
+- [x] **PROD-01**: Add magic-byte file validation with file-type npm package — MIME validation currently trusts client header only
+- [x] **PROD-02**: Add fileFilter to Multer attachment upload — reject dangerous extensions before processing
+- [x] **PROD-03**: Replace direct process.env.JWT_SECRET with ConfigService.get() in project.gateway.ts and notification.gateway.ts
+- [x] **PROD-04**: Move @faker-js/faker from production deps to devDependencies
+- [x] **PROD-05**: Replace console.error with NestJS Logger in storage.module.ts
 
 ---
 
@@ -154,22 +154,22 @@ Dual-track milestone: (1) Remediate all findings from pre-Series A code review a
 | SEC-11      | Phase 32   | Complete |
 | SEC-12      | Phase 32   | Complete |
 | SEC-13      | Phase 32   | Complete |
-| SLOP-01     | Phase 33   | Pending  |
-| SLOP-02     | Phase 33   | Pending  |
-| SLOP-03     | Phase 33   | Pending  |
-| SLOP-04     | Phase 33   | Pending  |
-| SLOP-05     | Phase 33   | Pending  |
-| SLOP-06     | Phase 33   | Pending  |
-| SLOP-07     | Phase 33   | Pending  |
-| SLOP-08     | Phase 33   | Pending  |
-| SLOP-09     | Phase 33   | Pending  |
-| SLOP-10     | Phase 33   | Pending  |
-| SLOP-11     | Phase 33   | Pending  |
-| PROD-01     | Phase 33   | Pending  |
-| PROD-02     | Phase 33   | Pending  |
-| PROD-03     | Phase 33   | Pending  |
-| PROD-04     | Phase 33   | Pending  |
-| PROD-05     | Phase 33   | Pending  |
+| SLOP-01     | Phase 33   | Complete |
+| SLOP-02     | Phase 33   | Complete |
+| SLOP-03     | Phase 33   | Complete |
+| SLOP-04     | Phase 33   | Complete |
+| SLOP-05     | Phase 33   | Complete |
+| SLOP-06     | Phase 33   | Complete |
+| SLOP-07     | Phase 33   | Complete |
+| SLOP-08     | Phase 33   | Complete |
+| SLOP-09     | Phase 33   | Complete |
+| SLOP-10     | Phase 33   | Complete |
+| SLOP-11     | Phase 33   | Complete |
+| PROD-01     | Phase 33   | Complete |
+| PROD-02     | Phase 33   | Complete |
+| PROD-03     | Phase 33   | Complete |
+| PROD-04     | Phase 33   | Complete |
+| PROD-05     | Phase 33   | Complete |
 | PERF-01     | Phase 34   | Complete |
 | PERF-02     | Phase 34   | Complete |
 | PERF-03     | Phase 34   | Complete |
