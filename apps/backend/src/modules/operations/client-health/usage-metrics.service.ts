@@ -70,12 +70,16 @@ export class UsageMetricsService {
     const thirtyDaysAgo = subDays(forDate, 30);
 
     // Collect all metrics in parallel for efficiency
-    const [login, cases, campaigns, support] = await Promise.all([
+    const [login, cases, campaigns, supportCount] = await Promise.all([
       this.getLoginMetrics(organizationId, thirtyDaysAgo, forDate),
       this.getCaseMetrics(organizationId, dateStart, dateEnd),
       this.getCampaignMetrics(organizationId),
       this.getSupportTicketCount(organizationId, thirtyDaysAgo, forDate),
     ]);
+
+    // Support ticket count returns null if unavailable - default to 0 for storage
+    // (schema requires Int, but health score calculation should treat 0 as "unknown")
+    const supportTickets = supportCount ?? 0;
 
     // Upsert daily metrics record
     await this.prisma.usageMetric.upsert({
@@ -97,7 +101,7 @@ export class UsageMetricsService {
         campaignsActive: campaigns.campaignsActive,
         assignmentsTotal: campaigns.assignmentsTotal,
         assignmentsCompleted: campaigns.assignmentsCompleted,
-        supportTickets: support,
+        supportTickets,
       },
       update: {
         activeUsers: login.activeUsers,
@@ -109,7 +113,7 @@ export class UsageMetricsService {
         campaignsActive: campaigns.campaignsActive,
         assignmentsTotal: campaigns.assignmentsTotal,
         assignmentsCompleted: campaigns.assignmentsCompleted,
-        supportTickets: support,
+        supportTickets,
       },
     });
 
@@ -258,25 +262,39 @@ export class UsageMetricsService {
 
   /**
    * Get support ticket count for a period.
-   * Placeholder for integration with external support system.
+   * Queries the SupportTicket model for tickets created within the date range.
    *
    * @param organizationId - Tenant ID
    * @param startDate - Period start
    * @param endDate - Period end
-   * @returns Number of support tickets
+   * @returns Number of support tickets, or null if support system not configured
    */
   async getSupportTicketCount(
     organizationId: string,
     startDate: Date,
     endDate: Date,
-  ): Promise<number> {
-    // TODO: Integrate with actual support system (Zendesk, Intercom, etc.)
-    // For now, return 0 as placeholder
-    // The supportTickets field can be updated via API when integration is ready
-    this.logger.debug(
-      `Support ticket count requested for org ${organizationId} (${startDate.toISOString()} - ${endDate.toISOString()}) - returning 0 (placeholder)`,
-    );
-    return 0;
+  ): Promise<number | null> {
+    try {
+      const count = await this.prisma.supportTicket.count({
+        where: {
+          organizationId,
+          createdAt: { gte: startDate, lte: endDate },
+        },
+      });
+
+      this.logger.debug(
+        `Support ticket count for org ${organizationId}: ${count} tickets (${startDate.toISOString()} - ${endDate.toISOString()})`,
+      );
+
+      return count;
+    } catch (error) {
+      // If support tickets table doesn't exist or query fails,
+      // return null to indicate "not configured" rather than 0
+      this.logger.warn(
+        `Support ticket count unavailable for org ${organizationId}: ${error instanceof Error ? error.message : "Unknown error"}`,
+      );
+      return null;
+    }
   }
 
   /**

@@ -20,7 +20,7 @@
  */
 
 import { Processor, WorkerHost, OnWorkerEvent } from "@nestjs/bullmq";
-import { Injectable, Logger } from "@nestjs/common";
+import { BadRequestException, Injectable, Logger } from "@nestjs/common";
 import { Job } from "bullmq";
 import { PrismaService } from "../../../prisma/prisma.service";
 import { FlatFileService } from "../flat-file.service";
@@ -341,7 +341,14 @@ export class FlatExportProcessor extends WorkerHost {
         columnConfig,
       );
       return this.generateCsv(rows, columns);
-    } else {
+    } else if (format === ExportFormat.PDF) {
+      // PDF is not supported for flat file exports - use board report export instead
+      throw new BadRequestException(
+        "PDF export is not available for flat file exports. " +
+          "Please use Excel (.xlsx) or CSV format for flat file exports. " +
+          "For PDF reports, use the Board Report export feature.",
+      );
+    } else if (format === ExportFormat.JSON) {
       // JSON format
       const rows = await this.collectRows(
         orgId,
@@ -351,6 +358,10 @@ export class FlatExportProcessor extends WorkerHost {
         columnConfig,
       );
       return Buffer.from(JSON.stringify(rows, null, 2));
+    } else {
+      // Exhaustiveness check - if new formats are added, this will fail type checking
+      const _exhaustiveCheck: never = format;
+      throw new BadRequestException(`Unsupported export format: ${format}`);
     }
   }
 

@@ -251,7 +251,12 @@ export class HealthScoreService {
    * Lower tickets = higher score (inverse relationship).
    * 0 tickets = 100, 10+ tickets in 30 days = 0.
    */
-  private calculateTicketScore(ticketCount: number): number {
+  private calculateTicketScore(ticketCount: number | null): number {
+    // If support ticket system is not configured, return neutral score
+    // This avoids penalizing or boosting clients who don't use support tickets
+    if (ticketCount === null) {
+      return 75; // Neutral - doesn't significantly affect overall score
+    }
     // Each ticket reduces score by 10 points
     return Math.max(0, 100 - ticketCount * 10);
   }
