@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-15)
 ## Current Position
 
 Phase: 35 of 36 (Code Quality & Architecture)
-Plan: 5 of ? complete
-Status: Phase 35 in progress, Phase 34 COMPLETE, Phase 33 COMPLETE
-Last activity: 2026-02-16 - Completed 35-05 (Type Safety Improvements)
+Plan: 6 of 6 complete
+Status: Phase 35 COMPLETE, Phase 34 COMPLETE, Phase 33 COMPLETE
+Last activity: 2026-02-16 - Completed 35-06 (Strict Mode and Non-Null Assertions)
 
-Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10 plans), Phase 34 COMPLETE (5/5 plans), Phase 35 in progress (5/? plans).
+Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10 plans), Phase 34 COMPLETE (5/5 plans), Phase 35 COMPLETE (6/6 plans).
 
 ## Shipped Milestones
 
@@ -39,7 +39,7 @@ Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10
 1. Phase 32: Security & SOC 2 (CRITICAL) - 13 requirements [COMPLETE - 8/8 plans]
 2. Phase 33: Slop Cleanup + Production - 16 requirements [COMPLETE - 10/10 plans, verified]
 3. Phase 34: Performance & Scalability - 11 requirements [COMPLETE - 5/5 plans]
-4. Phase 35: Code Quality & Architecture - 5 requirements [IN PROGRESS - 4/? plans]
+4. Phase 35: Code Quality & Architecture - 5 requirements [COMPLETE - 6/6 plans]
 5. Phase 36: Test Coverage Expansion - 10 requirements
 6. Phase 22: Dark Mode & Theme - 7 requirements (existing plans)
 7. Phase 23: Help & Support System - 5 requirements (existing plans)
@@ -127,6 +127,9 @@ Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10
 - 35-05: as unknown as Type double-cast pattern for Prisma JSON fields
 - 35-05: UserRole enum from @prisma/client instead of string literals for role typing
 - 35-05: SsoAuthenticatedUser type for SSO callback handlers
+- 35-06: strictPropertyInitialization: false for NestJS DTO pattern compatibility
+- 35-06: getErrorMessage() and getErrorStack() utilities for unknown catch types
+- 35-06: Type assertions for generic contravariant registries (ActionCatalog, SkillRegistry)
 
 ### Blockers
 
@@ -134,7 +137,7 @@ None currently.
 
 ## Session Continuity
 
-Last session: 2026-02-16T19:00:00Z
-Stopped at: Completed 35-05-PLAN.md (Type Safety Improvements)
+Last session: 2026-02-16T20:35:00Z
+Stopped at: Completed 35-06-PLAN.md (Strict Mode and Non-Null Assertions) - Phase 35 COMPLETE
 Resume file: None
-Next action: Continue Phase 35 with remaining plans (if any) or proceed to Phase 36
+Next action: Proceed to Phase 36 (Test Coverage Expansion)
