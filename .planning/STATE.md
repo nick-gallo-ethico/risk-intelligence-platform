@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-15)
 ## Current Position
 
 Phase: 33 of 36 (Slop Cleanup & Production Readiness)
-Plan: 5 of 6 complete
+Plan: 6 of 7 complete
 Status: In progress
-Last activity: 2026-02-16 — Completed 33-04-PLAN.md (Section Separator Cleanup Batch 1)
+Last activity: 2026-02-16 - Completed 33-06-PLAN.md (TODO Triage and JSDoc Cleanup)
 
-Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 IN PROGRESS (5/6 plans).
+Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 IN PROGRESS (6/7 plans).
 
 ## Shipped Milestones
 
@@ -83,6 +83,9 @@ Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 IN PROGRESS (5/
 - 33-03: Neutral score (75) for null ticket count in health calculation
 - 33-03: Throw NotImplementedException for uninitialized AI actions (factory pattern)
 - 33-03: Throw BadRequestException for PDF in flat file exports (use Board Report instead)
+- 33-06: AUTH-TODO prefix for internal operations auth TODOs (InternalAuthGuard, InternalUserGuard)
+- 33-06: STUB-TODO prefix for integration stubs (email service, message attachments)
+- 33-06: Conservative JSDoc removal - only remove if zero additional context beyond name
 
 ### Blockers
 
@@ -90,7 +93,7 @@ None currently.
 
 ## Session Continuity
 
-Last session: 2026-02-16T01:45:00Z
-Stopped at: Completed 33-04-PLAN.md (Section Separator Cleanup Batch 1)
+Last session: 2026-02-16T02:10:00Z
+Stopped at: Completed 33-06-PLAN.md (TODO Triage and JSDoc Cleanup)
 Resume file: None
-Next action: Execute 33-06-PLAN.md (33-05 already complete)
+Next action: Execute 33-07-PLAN.md (if exists)
