@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-15)
 ## Current Position
 
 Phase: 36 of 36 (Test Coverage Expansion)
-Plan: 7 of 13 complete (36-01, 36-02, 36-03, 36-04, 36-05, 36-11, 36-12)
+Plan: 8 of 13 complete (36-01, 36-02, 36-03, 36-04, 36-05, 36-06, 36-11, 36-12)
 Status: Phase 36 In Progress
-Last activity: 2026-02-16 - Completed 36-05 (Additional Module Tenant Isolation E2E Tests)
+Last activity: 2026-02-16 - Completed 36-06 (Final 4 Modules Tenant Isolation E2E Tests)
 
-Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10 plans), Phase 34 COMPLETE (5/5 plans), Phase 35 COMPLETE (6/6 plans), Phase 36 started (7/13 plans).
+Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10 plans), Phase 34 COMPLETE (5/5 plans), Phase 35 COMPLETE (6/6 plans), Phase 36 started (8/13 plans).
 
 ## Shipped Milestones
 
@@ -147,6 +147,10 @@ Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10
 - 36-11: MSW wildcard URL patterns (\*/api/v1) for flexible API mocking across environments
 - 36-05: AI context isolation tests verify no cross-tenant data leaks to AI prompts
 - 36-05: 62 additional tenant isolation tests across reporting, AI, forms, notifications
+- 36-06: HRIS tests verify Person/Employee records respect RLS tenant boundaries
+- 36-06: Search tests verify results, suggestions, and unified search are tenant-scoped
+- 36-06: Projects tests verify CRUD operations, tasks, groups, and stats are isolated
+- 36-06: TEST-04 complete: 16 modules now have tenant isolation verification
 
 ### Blockers
 
@@ -154,7 +158,7 @@ None currently.
 
 ## Session Continuity
 
-Last session: 2026-02-16T23:52:00Z
-Stopped at: Completed 36-05-PLAN.md (Additional Module Tenant Isolation E2E Tests)
+Last session: 2026-02-16T23:58:00Z
+Stopped at: Completed 36-06-PLAN.md (Final 4 Modules Tenant Isolation E2E Tests)
 Resume file: None
-Next action: Continue Phase 36 (remaining 6 plans)
+Next action: Continue Phase 36 (remaining 5 plans)
