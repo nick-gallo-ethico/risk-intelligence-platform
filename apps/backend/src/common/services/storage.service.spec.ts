@@ -100,10 +100,19 @@ describe("StorageService", () => {
 
   afterEach(() => {
     jest.clearAllMocks();
+    jest.restoreAllMocks();
   });
 
   // UPLOAD TESTS
   describe("upload()", () => {
+    beforeEach(() => {
+      // Mock validateMagicBytes to always return valid for these tests
+      // This isolates unit tests from the file-type ESM dependency
+      jest
+        .spyOn(service, "validateMagicBytes")
+        .mockResolvedValue({ valid: true, detectedMime: "application/pdf" });
+    });
+
     it("should upload file successfully", async () => {
       // Arrange
       mockAdapter.upload.mockResolvedValue(mockUploadResult);
@@ -213,6 +222,7 @@ describe("StorageService", () => {
       });
       const imageFile: FileInput = {
         ...mockFile,
+        originalname: "test-image.jpg",
         mimetype: "image/jpeg",
       };
 
@@ -231,6 +241,7 @@ describe("StorageService", () => {
       });
       const textFile: FileInput = {
         ...mockFile,
+        originalname: "test-file.txt",
         mimetype: "text/plain",
       };
 
@@ -250,6 +261,7 @@ describe("StorageService", () => {
       });
       const docxFile: FileInput = {
         ...mockFile,
+        originalname: "test-document.docx",
         mimetype:
           "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
       };
