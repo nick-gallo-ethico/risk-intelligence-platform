@@ -17,18 +17,26 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { ConfigService } from "@nestjs/config";
 import { Request, Response, NextFunction } from "express";
 import * as jwt from "jsonwebtoken";
+import * as crypto from "crypto";
 import { TenantMiddleware } from "./tenant.middleware";
 import { PrismaService } from "../../modules/prisma/prisma.service";
+import { JwtKeyService } from "../../modules/auth/services/jwt-key.service";
 
 describe("TenantMiddleware", () => {
   let middleware: TenantMiddleware;
   let prismaService: jest.Mocked<PrismaService>;
   let configService: jest.Mocked<ConfigService>;
+  let jwtKeyService: jest.Mocked<JwtKeyService>;
 
   // Test data
   const mockOrganizationId = "org-uuid-123-456-789";
   const mockUserId = "user-uuid-abc-def";
-  const mockJwtSecret = "test-jwt-secret-key-12345";
+  // Generate RSA key pair for RS256 tests
+  const { privateKey, publicKey } = crypto.generateKeyPairSync("rsa", {
+    modulusLength: 2048,
+    publicKeyEncoding: { type: "spki", format: "pem" },
+    privateKeyEncoding: { type: "pkcs8", format: "pem" },
+  });
 
   // Helper to create mock Request
   const createMockRequest = (options: {
@@ -47,7 +55,7 @@ describe("TenantMiddleware", () => {
   // Helper to create mock Response
   const createMockResponse = (): Response => ({}) as unknown as Response;
 
-  // Helper to create valid JWT token
+  // Helper to create valid JWT token using RS256
   const createValidAccessToken = (): string => {
     return jwt.sign(
       {
@@ -55,8 +63,8 @@ describe("TenantMiddleware", () => {
         organizationId: mockOrganizationId,
         type: "access",
       },
-      mockJwtSecret,
-      { expiresIn: "1h" },
+      privateKey,
+      { algorithm: "RS256", expiresIn: "1h" },
     );
   };
 
@@ -68,8 +76,8 @@ describe("TenantMiddleware", () => {
         organizationId: mockOrganizationId,
         type: "refresh",
       },
-      mockJwtSecret,
-      { expiresIn: "7d" },
+      privateKey,
+      { algorithm: "RS256", expiresIn: "7d" },
     );
   };
 
@@ -81,8 +89,8 @@ describe("TenantMiddleware", () => {
         organizationId: mockOrganizationId,
         type: "access",
       },
-      mockJwtSecret,
-      { expiresIn: "-1h" }, // Already expired
+      privateKey,
+      { algorithm: "RS256", expiresIn: "-1h" }, // Already expired
     );
   };
 
@@ -92,7 +100,12 @@ describe("TenantMiddleware", () => {
     };
 
     const mockConfigService = {
-      get: jest.fn().mockReturnValue(mockJwtSecret),
+      get: jest.fn().mockReturnValue(publicKey),
+    };
+
+    const mockJwtKeyService = {
+      getVerificationKey: jest.fn().mockReturnValue(publicKey),
+      getAlgorithm: jest.fn().mockReturnValue("RS256"),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -106,12 +119,17 @@ describe("TenantMiddleware", () => {
           provide: ConfigService,
           useValue: mockConfigService,
         },
+        {
+          provide: JwtKeyService,
+          useValue: mockJwtKeyService,
+        },
       ],
     }).compile();
 
     middleware = module.get<TenantMiddleware>(TenantMiddleware);
     prismaService = module.get(PrismaService);
     configService = module.get(ConfigService);
+    jwtKeyService = module.get(JwtKeyService);
   });
 
   afterEach(() => {
@@ -276,7 +294,7 @@ describe("TenantMiddleware", () => {
       expect(callString).toContain(mockOrganizationId);
     });
 
-    it("should get jwt.secret from ConfigService", async () => {
+    it("should get verification key from JwtKeyService for RS256 tokens", async () => {
       // Arrange
       const token = createValidAccessToken();
       const req = createMockRequest({
@@ -290,7 +308,7 @@ describe("TenantMiddleware", () => {
       await middleware.use(req, res, next);
 
       // Assert
-      expect(configService.get).toHaveBeenCalledWith("jwt.secret");
+      expect(jwtKeyService.getVerificationKey).toHaveBeenCalled();
     });
   });
 
@@ -381,15 +399,23 @@ describe("TenantMiddleware", () => {
     });
 
     it("should set null RLS context for token with wrong secret", async () => {
-      // Arrange
+      // Arrange - create a token with a different key pair
+      const { privateKey: wrongPrivateKey } = crypto.generateKeyPairSync(
+        "rsa",
+        {
+          modulusLength: 2048,
+          publicKeyEncoding: { type: "spki", format: "pem" },
+          privateKeyEncoding: { type: "pkcs8", format: "pem" },
+        },
+      );
       const wrongSecretToken = jwt.sign(
         {
           sub: mockUserId,
           organizationId: mockOrganizationId,
           type: "access",
         },
-        "wrong-secret-key",
-        { expiresIn: "1h" },
+        wrongPrivateKey,
+        { algorithm: "RS256", expiresIn: "1h" },
       );
       const req = createMockRequest({
         path: "/api/v1/cases",

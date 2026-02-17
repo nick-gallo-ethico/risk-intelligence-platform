@@ -15,6 +15,7 @@ import { ConfigService } from "@nestjs/config";
 import * as bcrypt from "bcrypt";
 import { AuthService } from "./auth.service";
 import { PrismaService } from "../prisma/prisma.service";
+import { JwtKeyService } from "./services/jwt-key.service";
 
 // Mock bcrypt module
 jest.mock("bcrypt", () => ({
@@ -97,6 +98,18 @@ describe("AuthService", () => {
     }),
   };
 
+  const mockJwtKeyService = {
+    getSigningKey: jest.fn().mockReturnValue("test-signing-key"),
+    getVerificationKey: jest.fn().mockReturnValue("test-verification-key"),
+    getAlgorithm: jest.fn().mockReturnValue("RS256"),
+    getAccessTokenTtl: jest.fn().mockReturnValue("15m"),
+    getRefreshTokenTtl: jest.fn().mockReturnValue("7d"),
+    getSigningOptions: jest.fn().mockReturnValue({
+      algorithm: "RS256",
+      privateKey: "test-private-key",
+    }),
+  };
+
   // Module Setup
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -105,6 +118,7 @@ describe("AuthService", () => {
         { provide: PrismaService, useValue: mockPrismaService },
         { provide: JwtService, useValue: mockJwtService },
         { provide: ConfigService, useValue: mockConfigService },
+        { provide: JwtKeyService, useValue: mockJwtKeyService },
       ],
     }).compile();
 

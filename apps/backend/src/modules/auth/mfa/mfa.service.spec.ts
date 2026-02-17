@@ -12,10 +12,12 @@
 
 import { Test, TestingModule } from "@nestjs/testing";
 import { BadRequestException, UnauthorizedException } from "@nestjs/common";
+import { JwtService } from "@nestjs/jwt";
 import { MfaService } from "./mfa.service";
 import { PrismaService } from "../../prisma/prisma.service";
 import { AuditService } from "../../audit/audit.service";
 import { RecoveryCodesService } from "./recovery-codes.service";
+import { JwtKeyService } from "../services/jwt-key.service";
 
 // Mock otplib with TOTP class pattern
 const mockTotpInstance = {
@@ -108,6 +110,20 @@ describe("MfaService", () => {
     verifyRecoveryCode: jest.fn(),
   };
 
+  const mockJwtService = {
+    signAsync: jest.fn().mockResolvedValue("mock-token"),
+    sign: jest.fn().mockReturnValue("mock-token"),
+    verify: jest.fn(),
+  };
+
+  const mockJwtKeyService = {
+    getSigningKey: jest.fn().mockReturnValue("test-key"),
+    getVerificationKey: jest.fn().mockReturnValue("test-key"),
+    getAlgorithm: jest.fn().mockReturnValue("RS256"),
+    getAccessTokenTtl: jest.fn().mockReturnValue("15m"),
+    getRefreshTokenTtl: jest.fn().mockReturnValue("7d"),
+  };
+
   // Module Setup
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -116,6 +132,8 @@ describe("MfaService", () => {
         { provide: PrismaService, useValue: mockPrismaService },
         { provide: AuditService, useValue: mockAuditService },
         { provide: RecoveryCodesService, useValue: mockRecoveryCodesService },
+        { provide: JwtService, useValue: mockJwtService },
+        { provide: JwtKeyService, useValue: mockJwtKeyService },
       ],
     }).compile();
 
