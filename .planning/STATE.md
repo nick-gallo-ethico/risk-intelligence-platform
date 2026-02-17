@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-15)
 ## Current Position
 
 Phase: 36 of 36 (Test Coverage Expansion)
-Plan: 8 of 13 complete (36-01, 36-02, 36-03, 36-04, 36-05, 36-06, 36-11, 36-12)
+Plan: 9 of 13 complete (36-01, 36-02, 36-03, 36-04, 36-05, 36-06, 36-08, 36-11, 36-12)
 Status: Phase 36 In Progress
-Last activity: 2026-02-16 - Completed 36-06 (Final 4 Modules Tenant Isolation E2E Tests)
+Last activity: 2026-02-17 - Completed 36-08 (AI Services Unit Tests)
 
-Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10 plans), Phase 34 COMPLETE (5/5 plans), Phase 35 COMPLETE (6/6 plans), Phase 36 started (8/13 plans).
+Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10 plans), Phase 34 COMPLETE (5/5 plans), Phase 35 COMPLETE (6/6 plans), Phase 36 in progress (9/13 plans).
 
 ## Shipped Milestones
 
@@ -151,6 +151,9 @@ Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10
 - 36-06: Search tests verify results, suggestions, and unified search are tenant-scoped
 - 36-06: Projects tests verify CRUD operations, tasks, groups, and stats are isolated
 - 36-06: TEST-04 complete: 16 modules now have tenant isolation verification
+- 36-08: Mock Anthropic SDK at top of test file with jest.mock('@anthropic-ai/sdk')
+- 36-08: Mock sub-services (ContextCacheService, HierarchyLoaderService, PromptBuilderService) for context-loader tests
+- 36-08: Fixed spread operator order in mockResolvedValue to avoid TS2783 error
 
 ### Blockers
 
@@ -158,7 +161,7 @@ None currently.
 
 ## Session Continuity
 
-Last session: 2026-02-16T23:58:00Z
-Stopped at: Completed 36-06-PLAN.md (Final 4 Modules Tenant Isolation E2E Tests)
+Last session: 2026-02-17T01:50:00Z
+Stopped at: Completed 36-08-PLAN.md (AI Services Unit Tests)
 Resume file: None
-Next action: Continue Phase 36 (remaining 5 plans)
+Next action: Continue Phase 36 (remaining 4 plans: 36-07, 36-09, 36-10, 36-13)
