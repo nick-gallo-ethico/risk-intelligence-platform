@@ -26,12 +26,12 @@ import * as path from "path";
 jest.mock("fs");
 jest.mock("path");
 
-// Helper to create mock Dirent
-const createMockDirent = (name: string, isDir = false) =>
-  ({
-    name,
-    isDirectory: () => isDir,
-  }) as unknown as fs.Dirent;
+// Helper to create mock Dirent - use any type due to Node.js fs type changes
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const createMockDirent = (name: string, isDir = false): any => ({
+  name,
+  isDirectory: () => isDir,
+});
 
 describe("PromptService", () => {
   let service: PromptService;
@@ -90,7 +90,7 @@ describe("PromptService", () => {
     it("should load templates from filesystem on init", async () => {
       // Arrange
       mockFs.existsSync.mockReturnValue(true);
-      mockFs.readdirSync.mockReturnValue([createMockDirent("test.hbs")]);
+      mockFs.readdirSync.mockReturnValue([createMockDirent("test.hbs")] as any);
       mockFs.readFileSync.mockReturnValue("Hello {{name}}");
 
       // Act
@@ -122,7 +122,7 @@ describe("PromptService", () => {
       mockFs.existsSync.mockReturnValue(true);
       mockFs.readdirSync.mockReturnValue([
         createMockDirent("helpers-test.hbs"),
-      ]);
+      ] as any);
       mockFs.readFileSync.mockReturnValue("{{#if (eq a b)}}equal{{/if}}");
 
       const testService = new PromptService(
@@ -139,7 +139,9 @@ describe("PromptService", () => {
     it("should render template with Handlebars variables", async () => {
       // Arrange
       mockFs.existsSync.mockReturnValue(true);
-      mockFs.readdirSync.mockReturnValue([createMockDirent("greeting.hbs")]);
+      mockFs.readdirSync.mockReturnValue([
+        createMockDirent("greeting.hbs"),
+      ] as any);
       mockFs.readFileSync.mockReturnValue(
         "Hello {{user.name}}, you are a {{user.role}}.",
       );
@@ -164,7 +166,9 @@ describe("PromptService", () => {
     it("should add currentDateTime to context", async () => {
       // Arrange
       mockFs.existsSync.mockReturnValue(true);
-      mockFs.readdirSync.mockReturnValue([createMockDirent("timestamp.hbs")]);
+      mockFs.readdirSync.mockReturnValue([
+        createMockDirent("timestamp.hbs"),
+      ] as any);
       mockFs.readFileSync.mockReturnValue("Time: {{currentDateTime}}");
 
       const testService = new PromptService(
@@ -234,7 +238,9 @@ describe("PromptService", () => {
     it("should escape HTML in variable values by default", async () => {
       // Arrange
       mockFs.existsSync.mockReturnValue(true);
-      mockFs.readdirSync.mockReturnValue([createMockDirent("escape.hbs")]);
+      mockFs.readdirSync.mockReturnValue([
+        createMockDirent("escape.hbs"),
+      ] as any);
       mockFs.readFileSync.mockReturnValue("Content: {{content}}");
 
       const testService = new PromptService(
@@ -255,7 +261,9 @@ describe("PromptService", () => {
     it("should support nested helpers in templates", async () => {
       // Arrange
       mockFs.existsSync.mockReturnValue(true);
-      mockFs.readdirSync.mockReturnValue([createMockDirent("nested.hbs")]);
+      mockFs.readdirSync.mockReturnValue([
+        createMockDirent("nested.hbs"),
+      ] as any);
       mockFs.readFileSync.mockReturnValue(
         "{{#if (and isAdmin isVerified)}}Access granted{{else}}Access denied{{/if}}",
       );
@@ -278,7 +286,9 @@ describe("PromptService", () => {
     it("should support comparison helpers", async () => {
       // Arrange
       mockFs.existsSync.mockReturnValue(true);
-      mockFs.readdirSync.mockReturnValue([createMockDirent("compare.hbs")]);
+      mockFs.readdirSync.mockReturnValue([
+        createMockDirent("compare.hbs"),
+      ] as any);
       mockFs.readFileSync.mockReturnValue(
         "{{#if (gt count 5)}}High{{else}}Low{{/if}}",
       );
@@ -437,7 +447,7 @@ describe("PromptService", () => {
       mockFs.readdirSync.mockReturnValue([
         createMockDirent("template1.hbs"),
         createMockDirent("template2.hbs"),
-      ]);
+      ] as any);
       mockFs.readFileSync.mockReturnValue("Content");
 
       const testService = new PromptService(
@@ -462,8 +472,8 @@ describe("PromptService", () => {
         .mockReturnValueOnce([
           createMockDirent("skills", true),
           createMockDirent("base.hbs"),
-        ])
-        .mockReturnValueOnce([createMockDirent("summarize.hbs")]);
+        ] as any)
+        .mockReturnValueOnce([createMockDirent("summarize.hbs")] as any);
       mockFs.readFileSync.mockReturnValue("Content");
 
       const testService = new PromptService(
@@ -596,7 +606,7 @@ describe("PromptService", () => {
     });
 
     it("should support eq helper for equality comparison", async () => {
-      mockFs.readdirSync.mockReturnValue([createMockDirent("eq.hbs")]);
+      mockFs.readdirSync.mockReturnValue([createMockDirent("eq.hbs")] as any);
       mockFs.readFileSync.mockReturnValue(
         "{{#if (eq status 'OPEN')}}Open{{else}}Not Open{{/if}}",
       );
@@ -614,7 +624,7 @@ describe("PromptService", () => {
     });
 
     it("should support json helper for stringification", async () => {
-      mockFs.readdirSync.mockReturnValue([createMockDirent("json.hbs")]);
+      mockFs.readdirSync.mockReturnValue([createMockDirent("json.hbs")] as any);
       mockFs.readFileSync.mockReturnValue("Data: {{{json data}}}");
 
       const testService = new PromptService(
@@ -630,7 +640,9 @@ describe("PromptService", () => {
     });
 
     it("should support truncate helper", async () => {
-      mockFs.readdirSync.mockReturnValue([createMockDirent("truncate.hbs")]);
+      mockFs.readdirSync.mockReturnValue([
+        createMockDirent("truncate.hbs"),
+      ] as any);
       mockFs.readFileSync.mockReturnValue("Text: {{truncate text 10}}");
 
       const testService = new PromptService(
@@ -646,7 +658,7 @@ describe("PromptService", () => {
     });
 
     it("should support upper and lower helpers", async () => {
-      mockFs.readdirSync.mockReturnValue([createMockDirent("case.hbs")]);
+      mockFs.readdirSync.mockReturnValue([createMockDirent("case.hbs")] as any);
       mockFs.readFileSync.mockReturnValue(
         "Upper: {{upper text}}, Lower: {{lower text}}",
       );
@@ -662,7 +674,9 @@ describe("PromptService", () => {
     });
 
     it("should support default helper for fallback values", async () => {
-      mockFs.readdirSync.mockReturnValue([createMockDirent("default.hbs")]);
+      mockFs.readdirSync.mockReturnValue([
+        createMockDirent("default.hbs"),
+      ] as any);
       mockFs.readFileSync.mockReturnValue("Name: {{default name 'Unknown'}}");
 
       const testService = new PromptService(
@@ -678,7 +692,9 @@ describe("PromptService", () => {
     });
 
     it("should support length helper for arrays", async () => {
-      mockFs.readdirSync.mockReturnValue([createMockDirent("length.hbs")]);
+      mockFs.readdirSync.mockReturnValue([
+        createMockDirent("length.hbs"),
+      ] as any);
       mockFs.readFileSync.mockReturnValue("Count: {{length items}}");
 
       const testService = new PromptService(
@@ -694,8 +710,8 @@ describe("PromptService", () => {
     });
 
     it("should support join helper for arrays", async () => {
-      mockFs.readdirSync.mockReturnValue([createMockDirent("join.hbs")]);
-      mockFs.readFileSync.mockReturnValue("Tags: {{join tags}}");
+      mockFs.readdirSync.mockReturnValue([createMockDirent("join.hbs")] as any);
+      mockFs.readFileSync.mockReturnValue("Tags: {{join tags ', '}}");
 
       const testService = new PromptService(
         mockPrisma as unknown as PrismaService,
