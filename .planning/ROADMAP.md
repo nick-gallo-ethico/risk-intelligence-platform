@@ -74,7 +74,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 36: Test Coverage Expansion** - Auth guards/strategies, impersonation, E2E isolation, 26.4% backend coverage (3.3x from 7.9%) (v1.2)
 - [ ] **Phase 37: Critical Integration Fixes** - RedisCacheModule registration, batch reminder wiring, JwtWsGuard cleanup (v1.2 gap closure)
 - [ ] **Phase 38: Dark Mode Gap Closure** - Migrate 323 hardcoded colors, settings toggle, DataTable/modal dark variants (v1.2 gap closure)
-- [ ] **Phase 39: Frontend Test Repair** - Fix 50 case-detail test failures from Phase 25.1 refactor (v1.2 gap closure)
+- [ ] **Phase 39: Frontend Test Repair** - Fix 56 case-detail test failures from Phase 25.1 refactor (v1.2 gap closure)
 
 ## Phase Details
 
@@ -1185,17 +1185,24 @@ Plans: TBD (created by /gsd:plan-phase 38)
 
 ### Phase 39: Frontend Test Repair (v1.2 Gap Closure)
 
-**Goal**: Fix 50 broken frontend test failures caused by Phase 25.1 case-detail component refactoring after Phase 36 tests were written.
+**Goal**: Fix 56 broken frontend test failures caused by Phase 25.1 case-detail component refactoring after Phase 36 tests were written.
 **Depends on**: Phase 37 (critical fixes first; can parallel with Phase 38)
 **Requirements**: Contributes to TEST-10 (coverage improvement)
-**Gap Closure**: 50 frontend test failures across 10 case-detail test files
+**Gap Closure**: 56 frontend test failures across 8 case-detail test files (4 failure categories)
 **Success Criteria** (what must be TRUE):
 
-1. All 50 previously-failing frontend tests pass (0 failures in case-detail test files)
+1. All 56 previously-failing frontend tests pass (0 failures in case-detail test files)
 2. Test assertions match current Phase 25.1 component APIs (props, element structure, data-testid attributes)
 3. No test functionality removed — tests are updated to match new component interfaces, not deleted
+   **Plans**: 5 plans in 3 waves
 
-Plans: TBD (created by /gsd:plan-phase 39)
+Plans:
+
+- [ ] 39-01-PLAN.md (Wave 1) — Create renderWithProviders test utility with QueryClient wrapper
+- [ ] 39-02-PLAN.md (Wave 2) — Fix CaseActivityTimeline tests (23 failures)
+- [ ] 39-03-PLAN.md (Wave 2) — Fix CasePropertiesPanel + CaseInvestigationsPanel tests (30 failures)
+- [ ] 39-04-PLAN.md (Wave 2) — Fix remaining test files: activity-filters, property-section, case-header, create-investigation-dialog (8 failures)
+- [ ] 39-05-PLAN.md (Wave 3) — Verification: all 56 tests pass, no functionality removed
 
 ---
 
@@ -1252,7 +1259,7 @@ Plans: TBD (created by /gsd:plan-phase 39)
 | 36. Test Coverage Expansion             | v1.2      | 0/13           | Planned     | -          |
 | 37. Critical Integration Fixes          | v1.2      | 0/TBD          | Not started | -          |
 | 38. Dark Mode Gap Closure               | v1.2      | 0/TBD          | Not started | -          |
-| 39. Frontend Test Repair                | v1.2      | 0/TBD          | Not started | -          |
+| 39. Frontend Test Repair                | v1.2      | 0/5            | Planned     | -          |
 
 ---
 
