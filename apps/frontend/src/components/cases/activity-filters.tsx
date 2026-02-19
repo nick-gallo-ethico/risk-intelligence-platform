@@ -182,8 +182,8 @@ export function ActivityFilters({
               "border-b-2 -mb-px",
               "focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2",
               isActive
-                ? "border-blue-500 text-blue-600"
-                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300",
+                ? "border-blue-500 text-blue-600 dark:border-blue-400 dark:text-blue-400"
+                : "border-transparent text-muted-foreground hover:text-foreground hover:border-border",
             )}
           >
             {label}
@@ -192,8 +192,8 @@ export function ActivityFilters({
                 className={cn(
                   "ml-1.5 px-1.5 py-0.5 text-xs rounded-full",
                   isActive
-                    ? "bg-blue-100 text-blue-600"
-                    : "bg-gray-100 text-gray-600",
+                    ? "bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400"
+                    : "bg-muted text-muted-foreground",
                 )}
               >
                 {count}
