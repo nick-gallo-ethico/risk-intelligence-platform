@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-02-15)
 ## Current Position
 
 Phase: 22 of v1.2 (Dark Mode & Theme)
-Plan: 6 of 15 complete (22-01, 22-02, 22-03, 22-04, 22-05, 22-08)
+Plan: 8 of 15 complete (22-01, 22-02, 22-03, 22-04, 22-05, 22-06, 22-07, 22-08)
 Status: In progress
-Last activity: 2026-02-19 - Completed 22-08-PLAN.md (Policies, Analytics, Gantt Chart, and Rich Text Dark Mode)
+Last activity: 2026-02-19 - Completed 22-06-PLAN.md (Case Detail Components Dark Mode)
 
 Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10 plans), Phase 34 COMPLETE (5/5 plans), Phase 35 COMPLETE (6/6 plans), Phase 36 COMPLETE (13/13 plans), Phase 25.1 COMPLETE (10/10 plans), Phase 22 in progress (6/15 plans).
 
@@ -181,6 +181,13 @@ Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10
 - 22-08: Color pair functions for Gantt chart inline styles (getStatusColorPair, getStatusBgColorPair)
 - 22-08: Marked original single-color gantt functions as @deprecated for backward compatibility
 - 22-08: rgba() for dark mode Gantt backgrounds for consistent 20% opacity
+- 22-07: Investigation components verified already themed from prior Phase 22 executions
+- 22-07: SortableViewTab inactive state: bg-muted text-muted-foreground for semantic dark mode support
+- 22-07: DataTable inline status/severity colors get dark: variants for consistency
+- 22-07: Dark mode badge pairs pattern: bg-color-100 text-color-800 dark:bg-color-900/30 dark:text-color-300
+- 22-06: Task 1 files already themed in 3ba1cd0 (22-08) - only activity-filters.tsx needed updates
+- 22-06: Files tab drop zone pattern: border-border default, dark:bg-blue-900/20 for drag state
+- 22-06: Investigation card STATUS_COLORS and SLA_COLORS records with explicit dark variants
 
 ### Blockers
 
@@ -189,6 +196,6 @@ None currently.
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: Completed 22-08-PLAN.md (Policies, Analytics, Gantt Chart, and Rich Text Dark Mode)
+Stopped at: Completed 22-06-PLAN.md (Case Detail Components Dark Mode)
 Resume file: None
-Next action: Continue Phase 22 with remaining plans (22-06, 22-07, 22-09, etc.)
+Next action: Continue Phase 22 with remaining plans (22-09, 22-10, etc.)
