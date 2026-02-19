@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-15)
 ## Current Position
 
 Phase: 22 of v1.2 (Dark Mode & Theme)
-Plan: 3 of 15 complete (22-01, 22-02, 22-03)
+Plan: 4 of 15 complete (22-01, 22-02, 22-03, 22-04)
 Status: In progress
-Last activity: 2026-02-19 - Completed 22-03-PLAN.md (UI Primitives Dark Mode)
+Last activity: 2026-02-19 - Completed 22-04-PLAN.md (Layout and Navigation Dark Mode)
 
-Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10 plans), Phase 34 COMPLETE (5/5 plans), Phase 35 COMPLETE (6/6 plans), Phase 36 COMPLETE (13/13 plans), Phase 25.1 COMPLETE (10/10 plans), Phase 22 in progress (3/15 plans).
+Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10 plans), Phase 34 COMPLETE (5/5 plans), Phase 35 COMPLETE (6/6 plans), Phase 36 COMPLETE (13/13 plans), Phase 25.1 COMPLETE (10/10 plans), Phase 22 in progress (4/15 plans).
 
 ## Shipped Milestones
 
@@ -171,6 +171,10 @@ Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10
 - 22-03: bg-secondary for progress track - auto-adapts via CSS variables
 - 22-03: bg-popover semantic token for dropdown menus (not bg-white)
 - 22-03: bg-accent for focus/hover states in menus (not bg-gray-100)
+- 22-04: Navigation components (sidebar, mobile nav, ai-panel) already used semantic tokens - no changes needed
+- 22-04: Top nav stays dark in both modes (HubSpot pattern) with subtle dark mode border differentiation
+- 22-04: Kbd badge styling pattern: bg-muted border-border text-muted-foreground
+- 22-04: Form error styling pattern: text-destructive bg-destructive/10 border-destructive/20
 
 ### Blockers
 
@@ -179,6 +183,6 @@ None currently.
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: Completed 22-03-PLAN.md (UI Primitives Dark Mode)
+Stopped at: Completed 22-04-PLAN.md (Layout and Navigation Dark Mode)
 Resume file: None
-Next action: Continue Phase 22 with 22-04-PLAN.md (Data Tables Dark Mode)
+Next action: Continue Phase 22 with 22-05-PLAN.md (Dashboard dark mode)
