@@ -58,13 +58,8 @@ export function DataTable<T extends Record<string, unknown>>({
   getRowId,
   emptyMessage = "No records found",
 }: DataTableProps<T>) {
-  const {
-    config,
-    visibleColumns,
-    sortBy,
-    sortOrder,
-    setSort,
-  } = useSavedViewContext();
+  const { config, visibleColumns, sortBy, sortOrder, setSort } =
+    useSavedViewContext();
 
   const tableContainerRef = useRef<HTMLDivElement>(null);
 
@@ -205,17 +200,25 @@ export function DataTable<T extends Record<string, unknown>>({
       case "status": {
         const statusValue = String(value).toUpperCase();
         const statusColors: Record<string, string> = {
-          NEW: "bg-blue-100 text-blue-800 border-blue-200",
-          OPEN: "bg-amber-100 text-amber-800 border-amber-200",
-          IN_PROGRESS: "bg-amber-100 text-amber-800 border-amber-200",
-          CLOSED: "bg-green-100 text-green-800 border-green-200",
-          RESOLVED: "bg-green-100 text-green-800 border-green-200",
+          NEW: "bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800",
+          OPEN: "bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800",
+          IN_PROGRESS:
+            "bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800",
+          CLOSED:
+            "bg-green-100 text-green-800 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800",
+          RESOLVED:
+            "bg-green-100 text-green-800 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800",
         };
         const option = colConfig.filterOptions?.find((o) => o.value === value);
         const label = option?.label || String(value);
-        const colorClass = statusColors[statusValue] || "bg-gray-100 text-gray-800 border-gray-200";
+        const colorClass =
+          statusColors[statusValue] ||
+          "bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700";
         return (
-          <Badge variant="outline" className={cn("capitalize border", colorClass)}>
+          <Badge
+            variant="outline"
+            className={cn("capitalize border", colorClass)}
+          >
             {label}
           </Badge>
         );
@@ -223,16 +226,23 @@ export function DataTable<T extends Record<string, unknown>>({
       case "severity": {
         const severityValue = String(value).toUpperCase();
         const severityColors: Record<string, string> = {
-          HIGH: "bg-red-100 text-red-800 border-red-200",
-          CRITICAL: "bg-red-100 text-red-800 border-red-200",
-          MEDIUM: "bg-amber-100 text-amber-800 border-amber-200",
-          LOW: "bg-green-100 text-green-800 border-green-200",
+          HIGH: "bg-red-100 text-red-800 border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-800",
+          CRITICAL:
+            "bg-red-100 text-red-800 border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-800",
+          MEDIUM:
+            "bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800",
+          LOW: "bg-green-100 text-green-800 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800",
         };
         const option = colConfig.filterOptions?.find((o) => o.value === value);
         const label = option?.label || String(value);
-        const colorClass = severityColors[severityValue] || "bg-gray-100 text-gray-800 border-gray-200";
+        const colorClass =
+          severityColors[severityValue] ||
+          "bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700";
         return (
-          <Badge variant="outline" className={cn("capitalize border", colorClass)}>
+          <Badge
+            variant="outline"
+            className={cn("capitalize border", colorClass)}
+          >
             {label}
           </Badge>
         );

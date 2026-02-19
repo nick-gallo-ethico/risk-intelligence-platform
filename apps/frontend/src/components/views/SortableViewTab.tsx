@@ -56,8 +56,8 @@ export function SortableViewTab({
       className={cn(
         "group flex items-center gap-1 px-3 py-2 cursor-pointer transition-all select-none rounded-t-md",
         isActive
-          ? "bg-white border border-b-white border-border font-medium text-foreground shadow-sm"
-          : "bg-gray-200 text-gray-600 hover:bg-gray-300 hover:text-gray-800",
+          ? "bg-card border border-b-card border-border font-medium text-foreground shadow-sm"
+          : "bg-muted text-muted-foreground hover:bg-muted/80 hover:text-foreground",
         isDragging && "opacity-50 z-50",
       )}
       onClick={onSelect}
@@ -89,7 +89,7 @@ export function SortableViewTab({
           className={cn(
             "ml-1 text-xs h-5 px-1.5",
             isRecordCountStale && "opacity-60",
-            isActive && "bg-primary text-primary-foreground"
+            isActive && "bg-primary text-primary-foreground",
           )}
         >
           {view.recordCount.toLocaleString()}

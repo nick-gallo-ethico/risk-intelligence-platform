@@ -174,9 +174,11 @@ export function BoardCard<T extends Record<string, unknown>>({
 function getPriorityColor(priority: string): string {
   const lower = priority.toLowerCase();
   if (lower === "high" || lower === "critical")
-    return "border-red-500 text-red-600";
-  if (lower === "medium") return "border-yellow-500 text-yellow-600";
-  if (lower === "low") return "border-green-500 text-green-600";
+    return "border-red-500 text-red-600 dark:border-red-400 dark:text-red-400";
+  if (lower === "medium")
+    return "border-yellow-500 text-yellow-600 dark:border-yellow-400 dark:text-yellow-400";
+  if (lower === "low")
+    return "border-green-500 text-green-600 dark:border-green-400 dark:text-green-400";
   return "";
 }
 
