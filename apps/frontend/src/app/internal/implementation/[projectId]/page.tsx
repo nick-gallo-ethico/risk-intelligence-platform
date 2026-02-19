@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 /**
  * Project Detail Page
@@ -10,12 +10,12 @@
  * - Link to go-live readiness
  */
 
-import { useParams } from 'next/navigation';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import Link from 'next/link';
-import { ChecklistPanel } from '@/components/implementation/ChecklistPanel';
-import { BlockerCard } from '@/components/implementation/BlockerCard';
-import { format } from 'date-fns';
+import { useParams } from "next/navigation";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import Link from "next/link";
+import { ChecklistPanel } from "@/components/implementation/ChecklistPanel";
+import { BlockerCard } from "@/components/implementation/BlockerCard";
+import { format } from "date-fns";
 import {
   ArrowLeft,
   Calendar,
@@ -23,8 +23,8 @@ import {
   Rocket,
   Loader2,
   RefreshCw,
-} from 'lucide-react';
-import { cn } from '@/lib/utils';
+} from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface Task {
   id: string;
@@ -62,12 +62,12 @@ interface Project {
 type TasksByPhase = Record<string, Task[]>;
 
 function formatStatus(status: string): string {
-  return status.replace(/_/g, ' ');
+  return status.replace(/_/g, " ");
 }
 
 function formatPhase(phase: string): string {
   return phase
-    .replace(/_/g, ' ')
+    .replace(/_/g, " ")
     .toLowerCase()
     .replace(/\b\w/g, (l) => l.toUpperCase());
 }
@@ -82,11 +82,11 @@ export default function ProjectDetailPage() {
     isLoading,
     error,
   } = useQuery<Project>({
-    queryKey: ['implementation', projectId],
+    queryKey: ["implementation", projectId],
     queryFn: async () => {
       const res = await fetch(`/api/v1/internal/implementations/${projectId}`);
       if (!res.ok) {
-        throw new Error('Failed to fetch project');
+        throw new Error("Failed to fetch project");
       }
       return res.json();
     },
@@ -104,26 +104,28 @@ export default function ProjectDetailPage() {
       const res = await fetch(
         `/api/v1/internal/implementations/${projectId}/tasks/${taskId}`,
         {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ status }),
-        }
+        },
       );
       if (!res.ok) {
-        throw new Error('Failed to update task');
+        throw new Error("Failed to update task");
       }
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['implementation', projectId] });
+      queryClient.invalidateQueries({
+        queryKey: ["implementation", projectId],
+      });
     },
   });
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-24">
-        <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
-        <span className="ml-2 text-gray-500">Loading project...</span>
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        <span className="ml-2 text-muted-foreground">Loading project...</span>
       </div>
     );
   }
@@ -131,10 +133,10 @@ export default function ProjectDetailPage() {
   if (error || !project) {
     return (
       <div className="text-center py-24">
-        <p className="text-red-500 mb-4">Failed to load project.</p>
+        <p className="text-destructive mb-4">Failed to load project.</p>
         <Link
           href="/internal/implementation"
-          className="text-blue-600 hover:underline"
+          className="text-primary hover:underline"
         >
           Back to dashboard
         </Link>
@@ -153,10 +155,10 @@ export default function ProjectDetailPage() {
   // Determine health score color
   const healthColor =
     project.healthScore >= 80
-      ? 'text-green-600'
+      ? "text-green-600"
       : project.healthScore >= 60
-        ? 'text-yellow-600'
-        : 'text-red-600';
+        ? "text-yellow-600"
+        : "text-red-600";
 
   return (
     <div className="space-y-6">
@@ -164,16 +166,16 @@ export default function ProjectDetailPage() {
       <div className="flex items-center gap-4">
         <Link
           href="/internal/implementation"
-          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+          className="p-2 hover:bg-muted rounded-lg transition-colors"
         >
           <ArrowLeft className="h-5 w-5" />
         </Link>
         <div className="flex-1">
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-2xl font-bold text-foreground">
             {project.organization?.name}
           </h1>
-          <p className="text-gray-500">
-            {project.type?.replace(/_/g, ' ')} Implementation
+          <p className="text-muted-foreground">
+            {project.type?.replace(/_/g, " ")} Implementation
           </p>
         </div>
         <Link
@@ -187,30 +189,34 @@ export default function ProjectDetailPage() {
 
       {/* Project info cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="p-4 bg-white border rounded-lg shadow-sm">
-          <div className="text-sm text-gray-500 mb-1">Status</div>
-          <div className="font-semibold text-gray-900">
-            {formatStatus(project.status || '')}
+        <div className="p-4 bg-card border rounded-lg shadow-sm">
+          <div className="text-sm text-muted-foreground mb-1">Status</div>
+          <div className="font-semibold text-foreground">
+            {formatStatus(project.status || "")}
           </div>
         </div>
-        <div className="p-4 bg-white border rounded-lg shadow-sm">
-          <div className="text-sm text-gray-500 mb-1">Current Phase</div>
-          <div className="font-semibold text-gray-900">
-            {formatPhase(project.currentPhase || '')}
+        <div className="p-4 bg-card border rounded-lg shadow-sm">
+          <div className="text-sm text-muted-foreground mb-1">
+            Current Phase
+          </div>
+          <div className="font-semibold text-foreground">
+            {formatPhase(project.currentPhase || "")}
           </div>
         </div>
-        <div className="p-4 bg-white border rounded-lg shadow-sm">
-          <div className="text-sm text-gray-500 mb-1">Target Go-Live</div>
-          <div className="font-semibold text-gray-900 flex items-center gap-2">
-            <Calendar className="h-4 w-4 text-gray-400" />
+        <div className="p-4 bg-card border rounded-lg shadow-sm">
+          <div className="text-sm text-muted-foreground mb-1">
+            Target Go-Live
+          </div>
+          <div className="font-semibold text-foreground flex items-center gap-2">
+            <Calendar className="h-4 w-4 text-muted-foreground" />
             {project.targetGoLiveDate
-              ? format(new Date(project.targetGoLiveDate), 'MMM d, yyyy')
-              : 'Not set'}
+              ? format(new Date(project.targetGoLiveDate), "MMM d, yyyy")
+              : "Not set"}
           </div>
         </div>
-        <div className="p-4 bg-white border rounded-lg shadow-sm">
-          <div className="text-sm text-gray-500 mb-1">Health Score</div>
-          <div className={cn('text-2xl font-bold', healthColor)}>
+        <div className="p-4 bg-card border rounded-lg shadow-sm">
+          <div className="text-sm text-muted-foreground mb-1">Health Score</div>
+          <div className={cn("text-2xl font-bold", healthColor)}>
             {project.healthScore}%
           </div>
         </div>
@@ -221,16 +227,16 @@ export default function ProjectDetailPage() {
         {/* Checklist */}
         <div className="lg:col-span-2 space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold text-gray-900">
+            <h2 className="text-lg font-semibold text-foreground">
               Implementation Checklist
             </h2>
             {updateTaskMutation.isPending && (
-              <RefreshCw className="h-4 w-4 animate-spin text-gray-400" />
+              <RefreshCw className="h-4 w-4 animate-spin text-muted-foreground" />
             )}
           </div>
 
           {Object.keys(tasksByPhase).length === 0 ? (
-            <div className="p-8 bg-white border rounded-lg text-center text-gray-500">
+            <div className="p-8 bg-card border rounded-lg text-center text-muted-foreground">
               No tasks found. Initialize checklist from a template.
             </div>
           ) : (
@@ -249,13 +255,13 @@ export default function ProjectDetailPage() {
 
         {/* Blockers */}
         <div className="space-y-4">
-          <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-            <AlertTriangle className="h-5 w-5 text-yellow-500" />
+          <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
+            <AlertTriangle className="h-5 w-5 text-yellow-500 dark:text-yellow-400" />
             Blockers ({project.blockers?.length || 0})
           </h2>
 
           {!project.blockers || project.blockers.length === 0 ? (
-            <div className="p-6 bg-gray-50 border border-dashed rounded-lg text-center text-gray-500 text-sm">
+            <div className="p-6 bg-muted border border-dashed rounded-lg text-center text-muted-foreground text-sm">
               No active blockers
             </div>
           ) : (

@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 /**
  * Implementation Dashboard Page
@@ -9,11 +9,11 @@
  * - Project cards with health scores and go-live dates
  */
 
-import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import Link from 'next/link';
-import { ProjectCard } from '@/components/implementation/ProjectCard';
-import { Plus, Filter, Loader2 } from 'lucide-react';
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import Link from "next/link";
+import { ProjectCard } from "@/components/implementation/ProjectCard";
+import { Plus, Filter, Loader2 } from "lucide-react";
 
 interface Project {
   id: string;
@@ -31,25 +31,25 @@ interface ProjectsResponse {
 }
 
 const STATUS_OPTIONS = [
-  { value: null, label: 'All' },
-  { value: 'NOT_STARTED', label: 'Not Started' },
-  { value: 'IN_PROGRESS', label: 'In Progress' },
-  { value: 'AT_RISK', label: 'At Risk' },
-  { value: 'ON_HOLD', label: 'On Hold' },
-  { value: 'COMPLETED', label: 'Completed' },
+  { value: null, label: "All" },
+  { value: "NOT_STARTED", label: "Not Started" },
+  { value: "IN_PROGRESS", label: "In Progress" },
+  { value: "AT_RISK", label: "At Risk" },
+  { value: "ON_HOLD", label: "On Hold" },
+  { value: "COMPLETED", label: "Completed" },
 ] as const;
 
 export default function ImplementationDashboardPage() {
   const [statusFilter, setStatusFilter] = useState<string | null>(null);
 
   const { data, isLoading, error } = useQuery<ProjectsResponse>({
-    queryKey: ['implementations', statusFilter],
+    queryKey: ["implementations", statusFilter],
     queryFn: async () => {
       const params = new URLSearchParams();
-      if (statusFilter) params.set('status', statusFilter);
+      if (statusFilter) params.set("status", statusFilter);
       const res = await fetch(`/api/v1/internal/implementations?${params}`);
       if (!res.ok) {
-        throw new Error('Failed to fetch implementations');
+        throw new Error("Failed to fetch implementations");
       }
       return res.json();
     },
@@ -59,14 +59,13 @@ export default function ImplementationDashboardPage() {
   const stats = {
     total: data?.total || 0,
     inProgress:
-      data?.items?.filter((p) => p.status === 'IN_PROGRESS').length || 0,
-    atRisk: data?.items?.filter((p) => p.status === 'AT_RISK').length || 0,
-    completed:
-      data?.items?.filter((p) => p.status === 'COMPLETED').length || 0,
+      data?.items?.filter((p) => p.status === "IN_PROGRESS").length || 0,
+    atRisk: data?.items?.filter((p) => p.status === "AT_RISK").length || 0,
+    completed: data?.items?.filter((p) => p.status === "COMPLETED").length || 0,
     avgHealth:
       Math.round(
         (data?.items?.reduce((sum, p) => sum + p.healthScore, 0) || 0) /
-          (data?.items?.length || 1)
+          (data?.items?.length || 1),
       ) || 0,
   };
 
@@ -75,10 +74,10 @@ export default function ImplementationDashboardPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-2xl font-bold text-foreground">
             Implementation Projects
           </h1>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-muted-foreground mt-1">
             Track and manage client implementations
           </p>
         </div>
@@ -93,7 +92,7 @@ export default function ImplementationDashboardPage() {
 
       {/* Status Filters */}
       <div className="flex items-center gap-4 flex-wrap">
-        <div className="flex items-center gap-2 text-gray-500">
+        <div className="flex items-center gap-2 text-muted-foreground">
           <Filter className="h-4 w-4" />
           <span className="text-sm font-medium">Filter:</span>
         </div>
@@ -103,8 +102,8 @@ export default function ImplementationDashboardPage() {
             onClick={() => setStatusFilter(opt.value)}
             className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
               statusFilter === opt.value
-                ? 'bg-blue-100 text-blue-700'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
+                : "bg-muted text-muted-foreground hover:bg-muted/80"
             }`}
           >
             {opt.label}
@@ -114,49 +113,55 @@ export default function ImplementationDashboardPage() {
 
       {/* Statistics Cards */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-        <div className="p-4 bg-white border rounded-lg shadow-sm">
-          <div className="text-2xl font-bold text-gray-900">{stats.total}</div>
-          <div className="text-sm text-gray-500">Total Projects</div>
+        <div className="p-4 bg-card border rounded-lg shadow-sm">
+          <div className="text-2xl font-bold text-foreground">
+            {stats.total}
+          </div>
+          <div className="text-sm text-muted-foreground">Total Projects</div>
         </div>
-        <div className="p-4 bg-white border rounded-lg shadow-sm">
-          <div className="text-2xl font-bold text-blue-600">
+        <div className="p-4 bg-card border rounded-lg shadow-sm">
+          <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
             {stats.inProgress}
           </div>
-          <div className="text-sm text-gray-500">In Progress</div>
+          <div className="text-sm text-muted-foreground">In Progress</div>
         </div>
-        <div className="p-4 bg-white border rounded-lg shadow-sm">
-          <div className="text-2xl font-bold text-yellow-600">
+        <div className="p-4 bg-card border rounded-lg shadow-sm">
+          <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
             {stats.atRisk}
           </div>
-          <div className="text-sm text-gray-500">At Risk</div>
+          <div className="text-sm text-muted-foreground">At Risk</div>
         </div>
-        <div className="p-4 bg-white border rounded-lg shadow-sm">
-          <div className="text-2xl font-bold text-green-600">
+        <div className="p-4 bg-card border rounded-lg shadow-sm">
+          <div className="text-2xl font-bold text-green-600 dark:text-green-400">
             {stats.completed}
           </div>
-          <div className="text-sm text-gray-500">Completed</div>
+          <div className="text-sm text-muted-foreground">Completed</div>
         </div>
-        <div className="p-4 bg-white border rounded-lg shadow-sm">
-          <div className="text-2xl font-bold text-gray-900">
+        <div className="p-4 bg-card border rounded-lg shadow-sm">
+          <div className="text-2xl font-bold text-foreground">
             {stats.avgHealth}%
           </div>
-          <div className="text-sm text-gray-500">Avg Health</div>
+          <div className="text-sm text-muted-foreground">Avg Health</div>
         </div>
       </div>
 
       {/* Project List */}
       {isLoading ? (
         <div className="flex items-center justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
-          <span className="ml-2 text-gray-500">Loading projects...</span>
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          <span className="ml-2 text-muted-foreground">
+            Loading projects...
+          </span>
         </div>
       ) : error ? (
-        <div className="text-center py-12 text-red-500">
+        <div className="text-center py-12 text-destructive">
           Failed to load projects. Please try again.
         </div>
       ) : data?.items?.length === 0 ? (
         <div className="text-center py-12">
-          <p className="text-gray-500">No implementation projects found.</p>
+          <p className="text-muted-foreground">
+            No implementation projects found.
+          </p>
           <Link
             href="/internal/implementation/new"
             className="inline-flex items-center gap-2 mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
