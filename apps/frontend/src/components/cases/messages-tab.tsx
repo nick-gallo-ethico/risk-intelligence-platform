@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect } from "react";
 import {
   MessageSquare,
   Send,
@@ -11,32 +11,28 @@ import {
   ChevronUp,
   Paperclip,
   ExternalLink,
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Textarea } from '@/components/ui/textarea';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
-} from '@/components/ui/alert';
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from '@/components/ui/collapsible';
-import { toast } from '@/components/ui/toaster';
-import { cn } from '@/lib/utils';
-import { EmptyState } from '@/components/common/empty-state';
+} from "@/components/ui/collapsible";
+import { toast } from "@/components/ui/toaster";
+import { cn } from "@/lib/utils";
+import { EmptyState } from "@/components/common/empty-state";
 import {
   useCaseMessages,
   useSendMessage,
   useCheckPii,
-} from '@/hooks/use-case-messages';
-import type { CaseMessage } from '@/types/message';
+} from "@/hooks/use-case-messages";
+import type { CaseMessage } from "@/types/message";
 
 interface MessagesTabProps {
   caseId: string;
@@ -64,17 +60,17 @@ function formatMessageTime(dateString: string): string {
   const isToday = date.toDateString() === now.toDateString();
 
   if (isToday) {
-    return date.toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
+    return date.toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
     });
   }
 
-  return date.toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
   });
 }
 
@@ -82,13 +78,13 @@ function formatMessageTime(dateString: string): string {
  * Individual message bubble component
  */
 function MessageBubble({ message }: { message: CaseMessage }) {
-  const isOutbound = message.direction === 'outbound';
+  const isOutbound = message.direction === "outbound";
 
   return (
     <div
       className={cn(
-        'flex flex-col max-w-[80%] mb-4',
-        isOutbound ? 'ml-auto items-end' : 'mr-auto items-start'
+        "flex flex-col max-w-[80%] mb-4",
+        isOutbound ? "ml-auto items-end" : "mr-auto items-start",
       )}
     >
       {message.subject && (
@@ -98,10 +94,10 @@ function MessageBubble({ message }: { message: CaseMessage }) {
       )}
       <div
         className={cn(
-          'rounded-lg px-4 py-2',
+          "rounded-lg px-4 py-2",
           isOutbound
-            ? 'bg-blue-600 text-white'
-            : 'bg-gray-100 text-gray-900'
+            ? "bg-blue-600 text-white dark:bg-blue-500"
+            : "bg-muted text-foreground",
         )}
       >
         <p className="text-sm whitespace-pre-wrap">{message.content}</p>
@@ -128,43 +124,50 @@ function EmailCard({ email }: { email: EmailCorrespondence }) {
   const [isExpanded, setIsExpanded] = useState(false);
 
   return (
-    <Card className={cn('transition-shadow', isExpanded && 'ring-1 ring-blue-200')}>
+    <Card
+      className={cn(
+        "transition-shadow",
+        isExpanded && "ring-1 ring-blue-200 dark:ring-blue-700",
+      )}
+    >
       <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
         <CollapsibleTrigger asChild>
-          <CardHeader className="pb-2 cursor-pointer hover:bg-gray-50 rounded-t-lg">
+          <CardHeader className="pb-2 cursor-pointer hover:bg-muted/50 rounded-t-lg">
             <div className="flex items-start justify-between gap-2">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                   <Badge
                     variant="outline"
                     className={cn(
-                      'text-xs shrink-0',
+                      "text-xs shrink-0",
                       email.isInbound
-                        ? 'bg-green-50 text-green-700 border-green-200'
-                        : 'bg-blue-50 text-blue-700 border-blue-200'
+                        ? "bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-300 dark:border-green-800"
+                        : "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-300 dark:border-blue-800",
                     )}
                   >
-                    {email.isInbound ? 'Received' : 'Sent'}
+                    {email.isInbound ? "Received" : "Sent"}
                   </Badge>
                   <span className="text-xs text-muted-foreground">
                     {formatMessageTime(email.timestamp)}
                   </span>
                 </div>
-                <p className="text-sm font-medium text-gray-900 mt-1 truncate">
+                <p className="text-sm font-medium text-foreground mt-1 truncate">
                   {email.subject}
                 </p>
                 <p className="text-xs text-muted-foreground truncate">
-                  {email.isInbound ? `From: ${email.from}` : `To: ${email.to.join(', ')}`}
+                  {email.isInbound
+                    ? `From: ${email.from}`
+                    : `To: ${email.to.join(", ")}`}
                 </p>
               </div>
               <div className="flex items-center gap-2 shrink-0">
                 {email.hasAttachments && (
-                  <Paperclip className="h-4 w-4 text-gray-400" />
+                  <Paperclip className="h-4 w-4 text-muted-foreground" />
                 )}
                 {isExpanded ? (
-                  <ChevronUp className="h-4 w-4 text-gray-400" />
+                  <ChevronUp className="h-4 w-4 text-muted-foreground" />
                 ) : (
-                  <ChevronDown className="h-4 w-4 text-gray-400" />
+                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
                 )}
               </div>
             </div>
@@ -172,8 +175,8 @@ function EmailCard({ email }: { email: EmailCorrespondence }) {
         </CollapsibleTrigger>
         <CollapsibleContent>
           <CardContent className="pt-0">
-            <div className="border-t pt-3 mt-1">
-              <p className="text-sm text-gray-700 whitespace-pre-wrap">
+            <div className="border-t border-border pt-3 mt-1">
+              <p className="text-sm text-muted-foreground whitespace-pre-wrap">
                 {email.preview}
               </p>
               <div className="mt-3 flex gap-2">
@@ -249,12 +252,14 @@ function MessagesSkeleton() {
  * - Anonymous reporter indicator
  */
 export function MessagesTab({ caseId, reporterAnonymous }: MessagesTabProps) {
-  const [content, setContent] = useState('');
-  const [subject, setSubject] = useState('');
+  const [content, setContent] = useState("");
+  const [subject, setSubject] = useState("");
   const [showSubject, setShowSubject] = useState(false);
   const [piiWarnings, setPiiWarnings] = useState<string[]>([]);
   const [acknowledgedPii, setAcknowledgedPii] = useState(false);
-  const [activeSection, setActiveSection] = useState<'reporter' | 'email'>('reporter');
+  const [activeSection, setActiveSection] = useState<"reporter" | "email">(
+    "reporter",
+  );
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -269,8 +274,8 @@ export function MessagesTab({ caseId, reporterAnonymous }: MessagesTabProps) {
 
   // Scroll to bottom when messages load or new message added
   useEffect(() => {
-    if (data?.messages?.length && activeSection === 'reporter') {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (data?.messages?.length && activeSection === "reporter") {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }
   }, [data?.messages?.length, activeSection]);
 
@@ -287,7 +292,7 @@ export function MessagesTab({ caseId, reporterAnonymous }: MessagesTabProps) {
         }
       } catch {
         // If PII check fails, proceed anyway but warn
-        console.warn('PII check failed, proceeding with send');
+        console.warn("PII check failed, proceeding with send");
       }
     }
 
@@ -299,17 +304,25 @@ export function MessagesTab({ caseId, reporterAnonymous }: MessagesTabProps) {
       });
 
       // Reset form
-      setContent('');
-      setSubject('');
+      setContent("");
+      setSubject("");
       setShowSubject(false);
       setPiiWarnings([]);
       setAcknowledgedPii(false);
-      toast.success('Message sent');
+      toast.success("Message sent");
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to send message';
+      const message =
+        err instanceof Error ? err.message : "Failed to send message";
       toast.error(message);
     }
-  }, [content, subject, acknowledgedPii, piiWarnings, checkPiiMutation, sendMutation]);
+  }, [
+    content,
+    subject,
+    acknowledgedPii,
+    piiWarnings,
+    checkPiiMutation,
+    sendMutation,
+  ]);
 
   const handleAcknowledgePii = useCallback(() => {
     setAcknowledgedPii(true);
@@ -345,14 +358,14 @@ export function MessagesTab({ caseId, reporterAnonymous }: MessagesTabProps) {
   return (
     <div className="h-full flex flex-col">
       {/* Section tabs */}
-      <div className="px-4 py-2 bg-gray-50 border-b flex gap-4">
+      <div className="px-4 py-2 bg-muted/50 border-b flex gap-4">
         <button
-          onClick={() => setActiveSection('reporter')}
+          onClick={() => setActiveSection("reporter")}
           className={cn(
-            'flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors',
-            activeSection === 'reporter'
-              ? 'bg-white shadow-sm text-blue-600'
-              : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+            "flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors",
+            activeSection === "reporter"
+              ? "bg-card shadow-sm text-primary"
+              : "text-muted-foreground hover:text-foreground hover:bg-muted",
           )}
         >
           <MessageSquare className="h-4 w-4" />
@@ -364,12 +377,12 @@ export function MessagesTab({ caseId, reporterAnonymous }: MessagesTabProps) {
           )}
         </button>
         <button
-          onClick={() => setActiveSection('email')}
+          onClick={() => setActiveSection("email")}
           className={cn(
-            'flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors',
-            activeSection === 'email'
-              ? 'bg-white shadow-sm text-blue-600'
-              : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+            "flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors",
+            activeSection === "email"
+              ? "bg-card shadow-sm text-primary"
+              : "text-muted-foreground hover:text-foreground hover:bg-muted",
           )}
         >
           <Mail className="h-4 w-4" />
@@ -383,10 +396,13 @@ export function MessagesTab({ caseId, reporterAnonymous }: MessagesTabProps) {
       </div>
 
       {/* Anonymous reporter badge */}
-      {reporterAnonymous && activeSection === 'reporter' && (
-        <div className="px-4 py-2 bg-amber-50 border-b flex items-center justify-center gap-2">
-          <ShieldAlert className="h-4 w-4 text-amber-600" />
-          <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
+      {reporterAnonymous && activeSection === "reporter" && (
+        <div className="px-4 py-2 bg-amber-50 dark:bg-amber-900/20 border-b flex items-center justify-center gap-2">
+          <ShieldAlert className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+          <Badge
+            variant="outline"
+            className="bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800"
+          >
             Anonymous Reporter
           </Badge>
           <span className="text-xs text-muted-foreground">
@@ -396,7 +412,7 @@ export function MessagesTab({ caseId, reporterAnonymous }: MessagesTabProps) {
       )}
 
       {/* Content area */}
-      {activeSection === 'reporter' ? (
+      {activeSection === "reporter" ? (
         <>
           {/* Reporter messages list */}
           <div className="flex-1 overflow-y-auto p-4">
@@ -454,7 +470,7 @@ export function MessagesTab({ caseId, reporterAnonymous }: MessagesTabProps) {
           )}
 
           {/* Send message form */}
-          <div className="p-4 border-t bg-white">
+          <div className="p-4 border-t bg-card">
             {showSubject && (
               <Input
                 value={subject}
@@ -471,7 +487,7 @@ export function MessagesTab({ caseId, reporterAnonymous }: MessagesTabProps) {
                   placeholder="Type your message..."
                   className="min-h-[80px] resize-none"
                   onKeyDown={(e) => {
-                    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                    if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
                       handleSend();
                     }
                   }}
@@ -481,7 +497,7 @@ export function MessagesTab({ caseId, reporterAnonymous }: MessagesTabProps) {
                     onClick={() => setShowSubject(!showSubject)}
                     className="text-xs text-muted-foreground hover:text-foreground"
                   >
-                    {showSubject ? 'Hide subject' : 'Add subject'}
+                    {showSubject ? "Hide subject" : "Add subject"}
                   </button>
                   <span className="text-xs text-muted-foreground">
                     Ctrl+Enter to send
@@ -508,7 +524,7 @@ export function MessagesTab({ caseId, reporterAnonymous }: MessagesTabProps) {
               title="No email correspondence"
               description="Email threads with stakeholders will appear here."
               actionLabel="Compose Email"
-              onAction={() => toast.info('Email composition coming soon')}
+              onAction={() => toast.info("Email composition coming soon")}
             />
           ) : (
             <div className="space-y-3">

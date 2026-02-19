@@ -38,15 +38,18 @@ const ASSOCIATION_CONFIG: Record<
 > = {
   PRIMARY: {
     label: "Primary",
-    color: "bg-blue-100 text-blue-800 border-blue-200",
+    color:
+      "bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800",
   },
   RELATED: {
     label: "Related",
-    color: "bg-gray-100 text-gray-800 border-gray-200",
+    color:
+      "bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700",
   },
   MERGED_FROM: {
     label: "Merged",
-    color: "bg-purple-100 text-purple-800 border-purple-200",
+    color:
+      "bg-purple-100 text-purple-800 border-purple-200 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-800",
   },
 };
 
@@ -76,9 +79,10 @@ const SOURCE_LABELS: Record<SourceChannel, string> = {
  * Severity color configuration - matches backend Prisma enum
  */
 const SEVERITY_COLORS: Record<Severity, string> = {
-  LOW: "bg-green-100 text-green-800",
-  MEDIUM: "bg-yellow-100 text-yellow-800",
-  HIGH: "bg-orange-100 text-orange-800",
+  LOW: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300",
+  MEDIUM:
+    "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300",
+  HIGH: "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300",
 };
 
 interface LinkedRiuListProps {
@@ -117,8 +121,8 @@ export function LinkedRiuList({
 
   if (!associations || associations.length === 0) {
     return (
-      <div className="text-center py-6 text-gray-400 border border-dashed rounded-md">
-        <FileText className="w-8 h-8 mx-auto mb-2 text-gray-300" />
+      <div className="text-center py-6 text-muted-foreground border border-dashed border-border rounded-md">
+        <FileText className="w-8 h-8 mx-auto mb-2 text-muted-foreground/50" />
         <p className="text-sm">No linked reports</p>
         <p className="text-xs mt-1">RIUs will appear here when linked</p>
       </div>
@@ -136,9 +140,9 @@ export function LinkedRiuList({
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between mb-2">
-        <h3 className="text-sm font-semibold text-gray-700">
+        <h3 className="text-sm font-semibold text-foreground">
           Linked Reports
-          <span className="ml-2 text-xs font-normal text-gray-500">
+          <span className="ml-2 text-xs font-normal text-muted-foreground">
             ({associations.length})
           </span>
         </h3>
@@ -160,11 +164,11 @@ export function LinkedRiuList({
         <div className="space-y-2">
           {primaryAssociation && (
             <div className="flex items-center gap-2 my-3">
-              <div className="flex-1 border-t border-gray-200" />
-              <span className="text-xs text-gray-400 uppercase tracking-wide">
+              <div className="flex-1 border-t border-border" />
+              <span className="text-xs text-muted-foreground uppercase tracking-wide">
                 Related Reports
               </span>
-              <div className="flex-1 border-t border-gray-200" />
+              <div className="flex-1 border-t border-border" />
             </div>
           )}
           {otherAssociations.map((assoc) => (
@@ -214,8 +218,8 @@ function RiuCard({
       className={cn(
         "transition-all duration-200",
         isPrimary
-          ? "border-2 border-blue-300 shadow-sm bg-blue-50/30"
-          : "border border-gray-200 hover:border-gray-300",
+          ? "border-2 border-blue-300 dark:border-blue-700 shadow-sm bg-blue-50/30 dark:bg-blue-900/10"
+          : "border border-border hover:border-muted-foreground/30",
       )}
     >
       <Collapsible open={isExpanded} onOpenChange={onToggle}>
@@ -237,16 +241,16 @@ function RiuCard({
               <div
                 className={cn(
                   "flex-shrink-0 p-1.5 rounded",
-                  isPrimary ? "bg-blue-100" : "bg-gray-100",
+                  isPrimary ? "bg-blue-100 dark:bg-blue-900/30" : "bg-muted",
                 )}
               >
-                <TypeIcon className="w-4 h-4 text-gray-600" />
+                <TypeIcon className="w-4 h-4 text-muted-foreground" />
               </div>
 
               {/* Reference number and metadata */}
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="font-mono text-sm font-medium text-gray-900">
+                  <span className="font-mono text-sm font-medium text-foreground">
                     {riu.referenceNumber}
                   </span>
                   <Badge
@@ -264,7 +268,7 @@ function RiuCard({
                     </Badge>
                   )}
                 </div>
-                <div className="text-xs text-gray-500 mt-0.5 truncate">
+                <div className="text-xs text-muted-foreground mt-0.5 truncate">
                   {typeConfig.label} via {SOURCE_LABELS[riu.sourceChannel]} |{" "}
                   {new Date(riu.createdAt).toLocaleDateString("en-US", {
                     month: "short",
@@ -276,7 +280,7 @@ function RiuCard({
             </div>
 
             {/* Expand/collapse indicator */}
-            <div className="flex-shrink-0 text-gray-400">
+            <div className="flex-shrink-0 text-muted-foreground">
               {isExpanded ? (
                 <ChevronUp className="w-5 h-5" />
               ) : (
@@ -292,26 +296,28 @@ function RiuCard({
             <div
               className={cn(
                 "rounded-md p-3 mt-1",
-                isPrimary ? "bg-white border border-blue-100" : "bg-gray-50",
+                isPrimary
+                  ? "bg-card border border-blue-100 dark:border-blue-800"
+                  : "bg-muted/50",
               )}
             >
               {/* Summary */}
               {riu.summary && (
                 <div className="mb-3">
-                  <h4 className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
+                  <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">
                     Summary
                   </h4>
-                  <p className="text-sm text-gray-700">{riu.summary}</p>
+                  <p className="text-sm text-foreground">{riu.summary}</p>
                 </div>
               )}
 
               {/* Details - truncated with scroll */}
               <div>
-                <h4 className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
+                <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-1">
                   Details
                 </h4>
                 <div className="max-h-40 overflow-y-auto">
-                  <p className="text-sm text-gray-600 whitespace-pre-wrap">
+                  <p className="text-sm text-muted-foreground whitespace-pre-wrap">
                     {riu.details}
                   </p>
                 </div>
@@ -319,7 +325,7 @@ function RiuCard({
 
               {/* View full RIU link */}
               {onViewClick && (
-                <div className="mt-3 pt-2 border-t border-gray-100">
+                <div className="mt-3 pt-2 border-t border-border">
                   <Button
                     variant="ghost"
                     size="sm"
@@ -327,7 +333,7 @@ function RiuCard({
                       e.stopPropagation();
                       onViewClick(association.riuId);
                     }}
-                    className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 p-0 h-auto text-xs"
+                    className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:text-blue-400 dark:hover:text-blue-300 dark:hover:bg-blue-900/30 p-0 h-auto text-xs"
                   >
                     <ExternalLink className="w-3 h-3 mr-1" />
                     View full report

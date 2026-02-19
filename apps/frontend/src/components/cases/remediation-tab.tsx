@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback } from "react";
 import {
   DndContext,
   DragEndEvent,
@@ -10,13 +10,13 @@ import {
   useSensors,
   PointerSensor,
   KeyboardSensor,
-} from '@dnd-kit/core';
+} from "@dnd-kit/core";
 import {
   SortableContext,
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
   arrayMove,
-} from '@dnd-kit/sortable';
+} from "@dnd-kit/sortable";
 import {
   ClipboardCheck,
   Plus,
@@ -24,30 +24,30 @@ import {
   ChevronRight,
   PlayCircle,
   ExternalLink,
-} from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Progress } from '@/components/ui/progress';
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Progress } from "@/components/ui/progress";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from '@/components/ui/collapsible';
-import { RemediationStepCard } from './remediation-step-card';
+} from "@/components/ui/collapsible";
+import { RemediationStepCard } from "./remediation-step-card";
 import {
   useCaseRemediation,
   useReorderSteps,
   useCompleteStep,
   useSkipStep,
   useActivateRemediationPlan,
-} from '@/hooks/use-case-remediation';
+} from "@/hooks/use-case-remediation";
 import type {
   RemediationPlan,
   RemediationPlanStatus,
   RemediationStep,
-} from '@/types/remediation';
+} from "@/types/remediation";
 
 interface RemediationTabProps {
   caseId: string;
@@ -57,40 +57,44 @@ interface RemediationTabProps {
  * Get badge styling for plan status.
  */
 function getPlanStatusBadge(status: RemediationPlanStatus): {
-  variant: 'default' | 'secondary' | 'destructive' | 'outline';
+  variant: "default" | "secondary" | "destructive" | "outline";
   label: string;
   className: string;
 } {
   switch (status) {
-    case 'DRAFT':
+    case "DRAFT":
       return {
-        variant: 'secondary',
-        label: 'Draft',
-        className: 'bg-gray-100 text-gray-700',
+        variant: "secondary",
+        label: "Draft",
+        className:
+          "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300",
       };
-    case 'ACTIVE':
+    case "ACTIVE":
       return {
-        variant: 'default',
-        label: 'Active',
-        className: 'bg-blue-100 text-blue-700',
+        variant: "default",
+        label: "Active",
+        className:
+          "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300",
       };
-    case 'COMPLETED':
+    case "COMPLETED":
       return {
-        variant: 'default',
-        label: 'Completed',
-        className: 'bg-green-100 text-green-700',
+        variant: "default",
+        label: "Completed",
+        className:
+          "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300",
       };
-    case 'CANCELLED':
+    case "CANCELLED":
       return {
-        variant: 'secondary',
-        label: 'Cancelled',
-        className: 'bg-gray-100 text-gray-500',
+        variant: "secondary",
+        label: "Cancelled",
+        className:
+          "bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400",
       };
     default:
       return {
-        variant: 'outline',
+        variant: "outline",
         label: status,
-        className: '',
+        className: "",
       };
   }
 }
@@ -126,7 +130,7 @@ function PlanCard({ plan, caseId, isExpanded, onToggle }: PlanCardProps) {
     }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
-    })
+    }),
   );
 
   const handleDragEnd = useCallback(
@@ -145,22 +149,22 @@ function PlanCard({ plan, caseId, isExpanded, onToggle }: PlanCardProps) {
       const stepOrders = newSteps.map((s, i) => ({ id: s.id, order: i }));
       reorderMutation.mutate(stepOrders);
     },
-    [localSteps, reorderMutation]
+    [localSteps, reorderMutation],
   );
 
   const handleCompleteStep = useCallback(
     (stepId: string) => {
       completeMutation.mutate({ stepId });
     },
-    [completeMutation]
+    [completeMutation],
   );
 
   const handleSkipStep = useCallback(
     (stepId: string) => {
       // For now, use a default reason - in production, show a dialog
-      skipMutation.mutate({ stepId, reason: 'Skipped by user' });
+      skipMutation.mutate({ stepId, reason: "Skipped by user" });
     },
-    [skipMutation]
+    [skipMutation],
   );
 
   const handleActivate = useCallback(() => {
@@ -174,12 +178,16 @@ function PlanCard({ plan, caseId, isExpanded, onToggle }: PlanCardProps) {
       : 0;
 
   return (
-    <div className="bg-white rounded-lg border shadow-sm">
+    <div className="bg-card rounded-lg border border-border shadow-sm">
       <Collapsible open={isExpanded} onOpenChange={onToggle}>
         {/* Plan Header */}
         <div className="p-4 flex items-center gap-3">
           <CollapsibleTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-6 w-6 flex-shrink-0">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-6 w-6 flex-shrink-0"
+            >
               {isExpanded ? (
                 <ChevronDown className="h-4 w-4" />
               ) : (
@@ -190,8 +198,13 @@ function PlanCard({ plan, caseId, isExpanded, onToggle }: PlanCardProps) {
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <h3 className="font-semibold text-gray-900 truncate">{plan.title}</h3>
-              <Badge variant={statusBadge.variant} className={statusBadge.className}>
+              <h3 className="font-semibold text-foreground truncate">
+                {plan.title}
+              </h3>
+              <Badge
+                variant={statusBadge.variant}
+                className={statusBadge.className}
+              >
                 {statusBadge.label}
               </Badge>
             </div>
@@ -204,8 +217,11 @@ function PlanCard({ plan, caseId, isExpanded, onToggle }: PlanCardProps) {
 
             {/* Progress */}
             <div className="flex items-center gap-3 mt-2">
-              <Progress value={progressPercent} className="h-1.5 flex-1 max-w-[200px]" />
-              <span className="text-xs text-gray-500">
+              <Progress
+                value={progressPercent}
+                className="h-1.5 flex-1 max-w-[200px]"
+              />
+              <span className="text-xs text-muted-foreground">
                 {plan.completedSteps}/{plan.totalSteps} steps
               </span>
               {plan.overdueSteps > 0 && (
@@ -218,7 +234,7 @@ function PlanCard({ plan, caseId, isExpanded, onToggle }: PlanCardProps) {
 
           {/* Actions */}
           <div className="flex items-center gap-2 flex-shrink-0">
-            {plan.status === 'DRAFT' && (
+            {plan.status === "DRAFT" && (
               <Button
                 variant="outline"
                 size="sm"
@@ -243,7 +259,7 @@ function PlanCard({ plan, caseId, isExpanded, onToggle }: PlanCardProps) {
           <div className="px-4 pb-4 pt-0">
             <div className="border-t pt-4">
               {localSteps.length === 0 ? (
-                <div className="text-center py-6 text-gray-400 border border-dashed rounded-md">
+                <div className="text-center py-6 text-muted-foreground border border-dashed border-border rounded-md">
                   <p className="text-sm">No steps defined</p>
                   <Button variant="outline" size="sm" className="mt-2">
                     <Plus className="h-4 w-4 mr-1" />
@@ -296,7 +312,9 @@ function PlanCard({ plan, caseId, isExpanded, onToggle }: PlanCardProps) {
  */
 export function RemediationTab({ caseId }: RemediationTabProps) {
   const { data: plans, isLoading, error } = useCaseRemediation(caseId);
-  const [expandedPlanIds, setExpandedPlanIds] = useState<Set<string>>(new Set());
+  const [expandedPlanIds, setExpandedPlanIds] = useState<Set<string>>(
+    new Set(),
+  );
 
   const togglePlan = useCallback((planId: string) => {
     setExpandedPlanIds((prev) => {
@@ -322,10 +340,10 @@ export function RemediationTab({ caseId }: RemediationTabProps) {
   if (error) {
     return (
       <div className="p-6">
-        <div className="text-center py-12 text-red-500 border border-dashed border-red-200 rounded-md">
+        <div className="text-center py-12 text-red-500 dark:text-red-400 border border-dashed border-red-200 dark:border-red-800 rounded-md">
           <p className="text-sm">Failed to load remediation plans</p>
-          <p className="text-xs mt-1 text-red-400">
-            {error instanceof Error ? error.message : 'Unknown error'}
+          <p className="text-xs mt-1 text-red-400 dark:text-red-500">
+            {error instanceof Error ? error.message : "Unknown error"}
           </p>
         </div>
       </div>
@@ -338,10 +356,10 @@ export function RemediationTab({ caseId }: RemediationTabProps) {
     <div className="p-6 space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold text-gray-700">
+        <h2 className="text-sm font-semibold text-foreground">
           Remediation Plans
           {hasPlans && (
-            <span className="ml-2 text-xs font-normal text-gray-500">
+            <span className="ml-2 text-xs font-normal text-muted-foreground">
               ({plans.length})
             </span>
           )}
@@ -369,16 +387,16 @@ export function RemediationTab({ caseId }: RemediationTabProps) {
         </div>
       ) : (
         <div
-          className="text-center py-12 text-gray-400 border border-dashed rounded-md"
+          className="text-center py-12 text-muted-foreground border border-dashed border-border rounded-md"
           data-testid="empty-state"
         >
-          <ClipboardCheck className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-          <h4 className="text-sm font-medium text-gray-900 mb-1">
+          <ClipboardCheck className="w-12 h-12 mx-auto mb-3 text-muted-foreground/50" />
+          <h4 className="text-sm font-medium text-foreground mb-1">
             No remediation plans
           </h4>
-          <p className="text-sm text-gray-500 max-w-sm mx-auto">
-            Create a plan to track corrective actions and ensure compliance issues
-            are addressed.
+          <p className="text-sm text-muted-foreground max-w-sm mx-auto">
+            Create a plan to track corrective actions and ensure compliance
+            issues are addressed.
           </p>
           <Button variant="outline" size="sm" className="mt-4">
             <Plus className="h-4 w-4 mr-1" />
@@ -402,7 +420,7 @@ function RemediationTabSkeleton() {
       </div>
       <div className="space-y-3">
         {[1, 2].map((i) => (
-          <div key={i} className="bg-white rounded-lg border p-4">
+          <div key={i} className="bg-card rounded-lg border p-4">
             <div className="flex items-center gap-3">
               <Skeleton className="h-6 w-6" />
               <div className="flex-1 space-y-2">

@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useSortable } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import {
   GripVertical,
   Calendar,
@@ -9,18 +9,21 @@ import {
   Check,
   MoreHorizontal,
   SkipForward,
-} from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import type { RemediationStep, RemediationStepStatus } from '@/types/remediation';
+} from "@/components/ui/dropdown-menu";
+import type {
+  RemediationStep,
+  RemediationStepStatus,
+} from "@/types/remediation";
 
 interface RemediationStepCardProps {
   step: RemediationStep;
@@ -33,46 +36,51 @@ interface RemediationStepCardProps {
  * Get badge variant and label for step status.
  */
 function getStatusBadge(status: RemediationStepStatus): {
-  variant: 'default' | 'secondary' | 'destructive' | 'outline';
+  variant: "default" | "secondary" | "destructive" | "outline";
   label: string;
   className: string;
 } {
   switch (status) {
-    case 'PENDING':
+    case "PENDING":
       return {
-        variant: 'secondary',
-        label: 'Pending',
-        className: 'bg-gray-100 text-gray-700 hover:bg-gray-100',
+        variant: "secondary",
+        label: "Pending",
+        className:
+          "bg-gray-100 text-gray-700 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-800",
       };
-    case 'IN_PROGRESS':
+    case "IN_PROGRESS":
       return {
-        variant: 'default',
-        label: 'In Progress',
-        className: 'bg-blue-100 text-blue-700 hover:bg-blue-100',
+        variant: "default",
+        label: "In Progress",
+        className:
+          "bg-blue-100 text-blue-700 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-300 dark:hover:bg-blue-900/30",
       };
-    case 'COMPLETED':
+    case "COMPLETED":
       return {
-        variant: 'default',
-        label: 'Completed',
-        className: 'bg-green-100 text-green-700 hover:bg-green-100',
+        variant: "default",
+        label: "Completed",
+        className:
+          "bg-green-100 text-green-700 hover:bg-green-100 dark:bg-green-900/30 dark:text-green-300 dark:hover:bg-green-900/30",
       };
-    case 'SKIPPED':
+    case "SKIPPED":
       return {
-        variant: 'secondary',
-        label: 'Skipped',
-        className: 'bg-amber-100 text-amber-700 hover:bg-amber-100',
+        variant: "secondary",
+        label: "Skipped",
+        className:
+          "bg-amber-100 text-amber-700 hover:bg-amber-100 dark:bg-amber-900/30 dark:text-amber-300 dark:hover:bg-amber-900/30",
       };
-    case 'AWAITING_APPROVAL':
+    case "AWAITING_APPROVAL":
       return {
-        variant: 'default',
-        label: 'Awaiting Approval',
-        className: 'bg-purple-100 text-purple-700 hover:bg-purple-100',
+        variant: "default",
+        label: "Awaiting Approval",
+        className:
+          "bg-purple-100 text-purple-700 hover:bg-purple-100 dark:bg-purple-900/30 dark:text-purple-300 dark:hover:bg-purple-900/30",
       };
     default:
       return {
-        variant: 'outline',
+        variant: "outline",
         label: status,
-        className: '',
+        className: "",
       };
   }
 }
@@ -103,9 +111,9 @@ function isDueSoon(dateStr: string): boolean {
  */
 function getInitials(name: string): string {
   return name
-    .split(' ')
+    .split(" ")
     .map((n) => n[0])
-    .join('')
+    .join("")
     .toUpperCase()
     .slice(0, 2);
 }
@@ -128,7 +136,7 @@ export function RemediationStepCard({
     isDragging: sortableIsDragging,
   } = useSortable({
     id: step.id,
-    data: { type: 'step', step },
+    data: { type: "step", step },
   });
 
   const isDragging = externalIsDragging || sortableIsDragging;
@@ -139,42 +147,44 @@ export function RemediationStepCard({
   };
 
   const statusBadge = getStatusBadge(step.status);
-  const assigneeName =
-    step.assigneeName || step.externalAssigneeName || null;
-  const isCompleted = step.status === 'COMPLETED' || step.status === 'SKIPPED';
-  const canComplete = !isCompleted && step.status !== 'AWAITING_APPROVAL';
+  const assigneeName = step.assigneeName || step.externalAssigneeName || null;
+  const isCompleted = step.status === "COMPLETED" || step.status === "SKIPPED";
+  const canComplete = !isCompleted && step.status !== "AWAITING_APPROVAL";
 
   return (
     <div
       ref={setNodeRef}
       style={style}
       className={cn(
-        'flex items-start gap-3 p-3 bg-white rounded-lg border transition-all',
-        isDragging && 'opacity-50 shadow-lg',
-        !isDragging && 'hover:border-primary/50'
+        "flex items-start gap-3 p-3 bg-card rounded-lg border border-border transition-all",
+        isDragging && "opacity-50 shadow-lg",
+        !isDragging && "hover:border-primary/50",
       )}
     >
       {/* Drag Handle */}
       <button
         {...attributes}
         {...listeners}
-        className="cursor-grab active:cursor-grabbing p-1 hover:bg-gray-100 rounded mt-0.5 flex-shrink-0"
+        className="cursor-grab active:cursor-grabbing p-1 hover:bg-muted rounded mt-0.5 flex-shrink-0"
         aria-label="Drag to reorder"
       >
-        <GripVertical className="h-4 w-4 text-gray-400" />
+        <GripVertical className="h-4 w-4 text-muted-foreground" />
       </button>
 
       {/* Content */}
       <div className="flex-1 min-w-0 space-y-2">
         {/* Header Row: Status + Title */}
         <div className="flex items-start gap-2">
-          <Badge variant={statusBadge.variant} className={cn('flex-shrink-0', statusBadge.className)}>
+          <Badge
+            variant={statusBadge.variant}
+            className={cn("flex-shrink-0", statusBadge.className)}
+          >
             {statusBadge.label}
           </Badge>
           <span
             className={cn(
-              'font-medium text-sm',
-              isCompleted && 'text-gray-500 line-through'
+              "font-medium text-sm",
+              isCompleted && "text-muted-foreground line-through",
             )}
           >
             {step.title}
@@ -189,13 +199,13 @@ export function RemediationStepCard({
         )}
 
         {/* Meta Row: Assignee + Due Date */}
-        <div className="flex items-center gap-4 text-xs text-gray-500">
+        <div className="flex items-center gap-4 text-xs text-muted-foreground">
           {/* Assignee */}
           <div className="flex items-center gap-1.5">
             {assigneeName ? (
               <>
                 <Avatar className="h-5 w-5">
-                  <AvatarFallback className="text-[10px] bg-gray-200">
+                  <AvatarFallback className="text-[10px] bg-muted">
                     {getInitials(assigneeName)}
                   </AvatarFallback>
                 </Avatar>
@@ -204,7 +214,7 @@ export function RemediationStepCard({
             ) : (
               <>
                 <User className="h-3.5 w-3.5" />
-                <span className="text-gray-400">Unassigned</span>
+                <span className="text-muted-foreground/70">Unassigned</span>
               </>
             )}
           </div>
@@ -213,20 +223,27 @@ export function RemediationStepCard({
           {step.dueDate && (
             <div
               className={cn(
-                'flex items-center gap-1',
-                !isCompleted && isOverdue(step.dueDate) && 'text-red-600',
-                !isCompleted && !isOverdue(step.dueDate) && isDueSoon(step.dueDate) && 'text-amber-600'
+                "flex items-center gap-1",
+                !isCompleted &&
+                  isOverdue(step.dueDate) &&
+                  "text-red-600 dark:text-red-400",
+                !isCompleted &&
+                  !isOverdue(step.dueDate) &&
+                  isDueSoon(step.dueDate) &&
+                  "text-amber-600 dark:text-amber-400",
               )}
             >
               <Calendar className="h-3.5 w-3.5" />
               <span>
-                {new Date(step.dueDate).toLocaleDateString('en-US', {
-                  month: 'short',
-                  day: 'numeric',
+                {new Date(step.dueDate).toLocaleDateString("en-US", {
+                  month: "short",
+                  day: "numeric",
                 })}
               </span>
               {!isCompleted && isOverdue(step.dueDate) && (
-                <span className="text-[10px] font-medium ml-0.5">(Overdue)</span>
+                <span className="text-[10px] font-medium ml-0.5">
+                  (Overdue)
+                </span>
               )}
             </div>
           )}

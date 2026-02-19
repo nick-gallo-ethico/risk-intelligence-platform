@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo } from "react";
 import {
   Paperclip,
   Upload,
@@ -17,11 +17,11 @@ import {
   ChevronDown,
   Tag,
   X,
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Skeleton } from '@/components/ui/skeleton';
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Dialog,
   DialogContent,
@@ -29,40 +29,44 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { toast } from '@/components/ui/toaster';
-import { cn } from '@/lib/utils';
-import { EmptyState } from '@/components/common/empty-state';
-import { FileUpload } from '@/components/files/file-upload';
-import { useCaseFiles, useDeleteCaseFile, useInvalidateCaseFiles } from '@/hooks/use-case-files';
-import type { Attachment } from '@/types/attachment';
+} from "@/components/ui/dropdown-menu";
+import { toast } from "@/components/ui/toaster";
+import { cn } from "@/lib/utils";
+import { EmptyState } from "@/components/common/empty-state";
+import { FileUpload } from "@/components/files/file-upload";
+import {
+  useCaseFiles,
+  useDeleteCaseFile,
+  useInvalidateCaseFiles,
+} from "@/hooks/use-case-files";
+import type { Attachment } from "@/types/attachment";
 
 interface FilesTabProps {
   caseId: string;
 }
 
-type SortOption = 'newest' | 'oldest' | 'name' | 'size';
+type SortOption = "newest" | "oldest" | "name" | "size";
 
 const SORT_OPTIONS: { value: SortOption; label: string }[] = [
-  { value: 'newest', label: 'Newest first' },
-  { value: 'oldest', label: 'Oldest first' },
-  { value: 'name', label: 'Name (A-Z)' },
-  { value: 'size', label: 'Size (largest)' },
+  { value: "newest", label: "Newest first" },
+  { value: "oldest", label: "Oldest first" },
+  { value: "name", label: "Name (A-Z)" },
+  { value: "size", label: "Size (largest)" },
 ];
 
 /**
  * Format file size for display
  */
 function formatFileSize(bytes: number): string {
-  if (bytes === 0) return '0 B';
+  if (bytes === 0) return "0 B";
   const k = 1024;
-  const sizes = ['B', 'KB', 'MB', 'GB'];
+  const sizes = ["B", "KB", "MB", "GB"];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
   return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
 }
@@ -71,10 +75,10 @@ function formatFileSize(bytes: number): string {
  * Format date for display
  */
 function formatDate(dateString: string): string {
-  return new Date(dateString).toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
+  return new Date(dateString).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
   });
 }
 
@@ -82,10 +86,11 @@ function formatDate(dateString: string): string {
  * Get appropriate icon for file type
  */
 function getFileIcon(mimeType: string) {
-  if (mimeType.startsWith('image/')) return FileImage;
-  if (mimeType.startsWith('video/')) return FileVideo;
-  if (mimeType.startsWith('audio/')) return FileAudio;
-  if (mimeType === 'application/pdf' || mimeType.includes('document')) return FileText;
+  if (mimeType.startsWith("image/")) return FileImage;
+  if (mimeType.startsWith("video/")) return FileVideo;
+  if (mimeType.startsWith("audio/")) return FileAudio;
+  if (mimeType === "application/pdf" || mimeType.includes("document"))
+    return FileText;
   return File;
 }
 
@@ -93,7 +98,7 @@ function getFileIcon(mimeType: string) {
  * Check if file type supports thumbnail preview
  */
 function isImageFile(mimeType: string): boolean {
-  return mimeType.startsWith('image/') && !mimeType.includes('svg');
+  return mimeType.startsWith("image/") && !mimeType.includes("svg");
 }
 
 /**
@@ -102,9 +107,9 @@ function isImageFile(mimeType: string): boolean {
 function isPreviewable(mimeType: string): boolean {
   return (
     isImageFile(mimeType) ||
-    mimeType === 'application/pdf' ||
-    mimeType.startsWith('video/') ||
-    mimeType.startsWith('audio/')
+    mimeType === "application/pdf" ||
+    mimeType.startsWith("video/") ||
+    mimeType.startsWith("audio/")
   );
 }
 
@@ -118,23 +123,28 @@ interface FileCardProps {
   onPreview: (attachment: Attachment) => void;
 }
 
-function FileCard({ attachment, onDelete, onDownload, onPreview }: FileCardProps) {
+function FileCard({
+  attachment,
+  onDelete,
+  onDownload,
+  onPreview,
+}: FileCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   const Icon = getFileIcon(attachment.mimeType);
   const showThumbnail = isImageFile(attachment.mimeType);
   const canPreview = isPreviewable(attachment.mimeType);
 
   // Mock tags (will be replaced with actual attachment tags when API supports)
-  const tags = attachment.isEvidence ? ['Evidence'] : [];
+  const tags = attachment.isEvidence ? ["Evidence"] : [];
 
   return (
     <div
-      className="group relative bg-white rounded-lg border shadow-sm overflow-hidden transition-shadow hover:shadow-md"
+      className="group relative bg-card rounded-lg border border-border shadow-sm overflow-hidden transition-shadow hover:shadow-md"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
       {/* Thumbnail/Icon Area */}
-      <div className="relative h-32 bg-gray-100 flex items-center justify-center">
+      <div className="relative h-32 bg-muted flex items-center justify-center">
         {showThumbnail ? (
           <img
             src={attachment.downloadUrl}
@@ -142,15 +152,15 @@ function FileCard({ attachment, onDelete, onDownload, onPreview }: FileCardProps
             className="h-full w-full object-cover"
             onError={(e) => {
               // Fallback to icon if image fails to load
-              e.currentTarget.style.display = 'none';
-              e.currentTarget.parentElement?.classList.add('show-icon');
+              e.currentTarget.style.display = "none";
+              e.currentTarget.parentElement?.classList.add("show-icon");
             }}
           />
         ) : null}
         <Icon
           className={cn(
-            'h-12 w-12 text-gray-400',
-            showThumbnail && 'hidden group-[.show-icon]:block'
+            "h-12 w-12 text-muted-foreground",
+            showThumbnail && "hidden group-[.show-icon]:block",
           )}
         />
 
@@ -181,7 +191,7 @@ function FileCard({ attachment, onDelete, onDownload, onPreview }: FileCardProps
               variant="secondary"
               size="icon"
               onClick={() => onDelete(attachment.id)}
-              className="h-8 w-8 hover:bg-red-100 hover:text-red-600"
+              className="h-8 w-8 hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/30 dark:hover:text-red-400"
               title="Delete"
             >
               <Trash2 className="h-4 w-4" />
@@ -193,7 +203,7 @@ function FileCard({ attachment, onDelete, onDownload, onPreview }: FileCardProps
         {attachment.isEvidence && (
           <Badge
             variant="secondary"
-            className="absolute top-2 right-2 bg-amber-100 text-amber-700 text-xs"
+            className="absolute top-2 right-2 bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300 text-xs"
           >
             Evidence
           </Badge>
@@ -202,10 +212,13 @@ function FileCard({ attachment, onDelete, onDownload, onPreview }: FileCardProps
 
       {/* File Info */}
       <div className="p-3">
-        <p className="text-sm font-medium text-gray-900 truncate" title={attachment.fileName}>
+        <p
+          className="text-sm font-medium text-foreground truncate"
+          title={attachment.fileName}
+        >
           {attachment.fileName}
         </p>
-        <div className="flex items-center gap-2 mt-1 text-xs text-gray-500">
+        <div className="flex items-center gap-2 mt-1 text-xs text-muted-foreground">
           <span>{formatFileSize(attachment.fileSize)}</span>
           <span>-</span>
           <span>{formatDate(attachment.createdAt)}</span>
@@ -218,7 +231,7 @@ function FileCard({ attachment, onDelete, onDownload, onPreview }: FileCardProps
               <Badge
                 key={tag}
                 variant="outline"
-                className="text-xs px-1.5 py-0 h-5 bg-gray-50"
+                className="text-xs px-1.5 py-0 h-5 bg-muted"
               >
                 <Tag className="h-3 w-3 mr-1" />
                 {tag}
@@ -243,18 +256,18 @@ function DropZone({ onDrop, isDragging }: DropZoneProps) {
   return (
     <div
       className={cn(
-        'border-2 border-dashed rounded-lg p-8 text-center transition-colors',
+        "border-2 border-dashed rounded-lg p-8 text-center transition-colors",
         isDragging
-          ? 'border-blue-500 bg-blue-50'
-          : 'border-gray-300 hover:border-gray-400'
+          ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
+          : "border-border hover:border-muted-foreground/50",
       )}
       onClick={onDrop}
     >
-      <Upload className="h-10 w-10 mx-auto text-gray-400 mb-3" />
-      <p className="text-sm font-medium text-gray-700">
+      <Upload className="h-10 w-10 mx-auto text-muted-foreground mb-3" />
+      <p className="text-sm font-medium text-foreground">
         Drop files here or click to upload
       </p>
-      <p className="text-xs text-gray-500 mt-1">
+      <p className="text-xs text-muted-foreground mt-1">
         Supports images, documents, videos, and audio files
       </p>
     </div>
@@ -268,7 +281,10 @@ function FilesGridSkeleton() {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       {[1, 2, 3, 4, 5, 6].map((i) => (
-        <div key={i} className="bg-white rounded-lg border overflow-hidden">
+        <div
+          key={i}
+          className="bg-card rounded-lg border border-border overflow-hidden"
+        >
           <Skeleton className="h-32 w-full" />
           <div className="p-3">
             <Skeleton className="h-4 w-3/4" />
@@ -296,8 +312,8 @@ export function FilesTab({ caseId }: FilesTabProps) {
   const [showUploadDialog, setShowUploadDialog] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [previewFile, setPreviewFile] = useState<Attachment | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [sortOption, setSortOption] = useState<SortOption>('newest');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortOption, setSortOption] = useState<SortOption>("newest");
   const [isDragging, setIsDragging] = useState(false);
 
   const { data, isLoading, error } = useCaseFiles(caseId);
@@ -305,7 +321,7 @@ export function FilesTab({ caseId }: FilesTabProps) {
   const invalidateCaseFiles = useInvalidateCaseFiles();
 
   const handleDownload = useCallback((attachment: Attachment) => {
-    window.open(attachment.downloadUrl, '_blank', 'noopener,noreferrer');
+    window.open(attachment.downloadUrl, "_blank", "noopener,noreferrer");
   }, []);
 
   const handleDeleteClick = useCallback((id: string) => {
@@ -317,9 +333,9 @@ export function FilesTab({ caseId }: FilesTabProps) {
 
     try {
       await deleteMutation.mutateAsync(deleteConfirmId);
-      toast.success('File deleted');
+      toast.success("File deleted");
     } catch {
-      toast.error('Failed to delete file');
+      toast.error("Failed to delete file");
     } finally {
       setDeleteConfirmId(null);
     }
@@ -328,7 +344,7 @@ export function FilesTab({ caseId }: FilesTabProps) {
   const handleUploadComplete = useCallback(() => {
     invalidateCaseFiles(caseId);
     setShowUploadDialog(false);
-    toast.success('File uploaded successfully');
+    toast.success("File uploaded successfully");
   }, [caseId, invalidateCaseFiles]);
 
   const handlePreview = useCallback((attachment: Attachment) => {
@@ -346,20 +362,24 @@ export function FilesTab({ caseId }: FilesTabProps) {
       filtered = files.filter(
         (f) =>
           f.fileName.toLowerCase().includes(query) ||
-          f.mimeType.toLowerCase().includes(query)
+          f.mimeType.toLowerCase().includes(query),
       );
     }
 
     // Sort files
     const sorted = [...filtered].sort((a, b) => {
       switch (sortOption) {
-        case 'newest':
-          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-        case 'oldest':
-          return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
-        case 'name':
+        case "newest":
+          return (
+            new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          );
+        case "oldest":
+          return (
+            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+          );
+        case "name":
           return a.fileName.localeCompare(b.fileName);
-        case 'size':
+        case "size":
           return b.fileSize - a.fileSize;
         default:
           return 0;
@@ -423,7 +443,7 @@ export function FilesTab({ caseId }: FilesTabProps) {
       {/* Header with search, sort, and upload */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
         <div className="flex items-center gap-4 flex-1 w-full sm:w-auto">
-          <h3 className="text-sm font-semibold text-gray-700 whitespace-nowrap">
+          <h3 className="text-sm font-semibold text-foreground whitespace-nowrap">
             Files
             {totalFiles > 0 && (
               <Badge variant="secondary" className="ml-2 h-5 px-1.5 text-xs">
@@ -434,7 +454,7 @@ export function FilesTab({ caseId }: FilesTabProps) {
 
           {/* Search bar */}
           <div className="relative flex-1 max-w-xs">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -443,8 +463,8 @@ export function FilesTab({ caseId }: FilesTabProps) {
             />
             {searchQuery && (
               <button
-                onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                onClick={() => setSearchQuery("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -467,7 +487,7 @@ export function FilesTab({ caseId }: FilesTabProps) {
                 <DropdownMenuItem
                   key={option.value}
                   onClick={() => setSortOption(option.value)}
-                  className={cn(sortOption === option.value && 'bg-gray-100')}
+                  className={cn(sortOption === option.value && "bg-muted")}
                 >
                   {option.label}
                 </DropdownMenuItem>
@@ -476,7 +496,11 @@ export function FilesTab({ caseId }: FilesTabProps) {
           </DropdownMenu>
 
           {/* Upload button */}
-          <Button variant="default" size="sm" onClick={() => setShowUploadDialog(true)}>
+          <Button
+            variant="default"
+            size="sm"
+            onClick={() => setShowUploadDialog(true)}
+          >
             <Upload className="h-4 w-4 mr-2" />
             Upload
           </Button>
@@ -485,10 +509,12 @@ export function FilesTab({ caseId }: FilesTabProps) {
 
       {/* Drag and drop indicator */}
       {isDragging && (
-        <div className="absolute inset-0 bg-blue-50/80 flex items-center justify-center z-50 rounded-lg border-2 border-dashed border-blue-500">
+        <div className="absolute inset-0 bg-blue-50/80 dark:bg-blue-900/40 flex items-center justify-center z-50 rounded-lg border-2 border-dashed border-blue-500">
           <div className="text-center">
-            <Upload className="h-12 w-12 mx-auto text-blue-500 mb-2" />
-            <p className="text-lg font-medium text-blue-700">Drop files to upload</p>
+            <Upload className="h-12 w-12 mx-auto text-blue-500 dark:text-blue-400 mb-2" />
+            <p className="text-lg font-medium text-blue-700 dark:text-blue-300">
+              Drop files to upload
+            </p>
           </div>
         </div>
       )}
@@ -501,7 +527,7 @@ export function FilesTab({ caseId }: FilesTabProps) {
             title="No files found"
             description={`No files match "${searchQuery}". Try a different search term.`}
             actionLabel="Clear search"
-            onAction={() => setSearchQuery('')}
+            onAction={() => setSearchQuery("")}
           />
         ) : (
           <DropZone
@@ -538,7 +564,10 @@ export function FilesTab({ caseId }: FilesTabProps) {
             onUploadComplete={handleUploadComplete}
           />
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowUploadDialog(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setShowUploadDialog(false)}
+            >
               Close
             </Button>
           </DialogFooter>
@@ -546,12 +575,16 @@ export function FilesTab({ caseId }: FilesTabProps) {
       </Dialog>
 
       {/* Delete Confirmation Dialog */}
-      <Dialog open={!!deleteConfirmId} onOpenChange={(open) => !open && setDeleteConfirmId(null)}>
+      <Dialog
+        open={!!deleteConfirmId}
+        onOpenChange={(open) => !open && setDeleteConfirmId(null)}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Delete File</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete this file? This action cannot be undone.
+              Are you sure you want to delete this file? This action cannot be
+              undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -567,19 +600,22 @@ export function FilesTab({ caseId }: FilesTabProps) {
               onClick={handleDeleteConfirm}
               disabled={deleteMutation.isPending}
             >
-              {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+              {deleteMutation.isPending ? "Deleting..." : "Delete"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* Preview Dialog */}
-      <Dialog open={!!previewFile} onOpenChange={(open) => !open && setPreviewFile(null)}>
+      <Dialog
+        open={!!previewFile}
+        onOpenChange={(open) => !open && setPreviewFile(null)}
+      >
         <DialogContent className="sm:max-w-4xl max-h-[90vh]">
           <DialogHeader>
             <DialogTitle>{previewFile?.fileName}</DialogTitle>
           </DialogHeader>
-          <div className="flex items-center justify-center p-4 bg-gray-100 rounded-lg min-h-[400px]">
+          <div className="flex items-center justify-center p-4 bg-muted rounded-lg min-h-[400px]">
             {previewFile && isImageFile(previewFile.mimeType) && (
               <img
                 src={previewFile.downloadUrl}
@@ -587,22 +623,26 @@ export function FilesTab({ caseId }: FilesTabProps) {
                 className="max-w-full max-h-[60vh] object-contain"
               />
             )}
-            {previewFile && previewFile.mimeType === 'application/pdf' && (
+            {previewFile && previewFile.mimeType === "application/pdf" && (
               <iframe
                 src={previewFile.downloadUrl}
                 title={previewFile.fileName}
                 className="w-full h-[60vh]"
               />
             )}
-            {previewFile && previewFile.mimeType.startsWith('video/') && (
+            {previewFile && previewFile.mimeType.startsWith("video/") && (
               <video
                 src={previewFile.downloadUrl}
                 controls
                 className="max-w-full max-h-[60vh]"
               />
             )}
-            {previewFile && previewFile.mimeType.startsWith('audio/') && (
-              <audio src={previewFile.downloadUrl} controls className="w-full" />
+            {previewFile && previewFile.mimeType.startsWith("audio/") && (
+              <audio
+                src={previewFile.downloadUrl}
+                controls
+                className="w-full"
+              />
             )}
           </div>
           <DialogFooter>
