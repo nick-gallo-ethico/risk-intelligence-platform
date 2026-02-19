@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useRouter } from 'next/navigation';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
-import type { Case } from '@/types/case';
+import { useRouter } from "next/navigation";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import type { Case } from "@/types/case";
 
 interface DashboardStats {
   totalThisMonth: number;
@@ -25,17 +25,15 @@ function calculateStats(cases: Case[]): DashboardStats {
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
   const thisMonthCases = cases.filter(
-    (c) => new Date(c.createdAt) >= startOfMonth
+    (c) => new Date(c.createdAt) >= startOfMonth,
   );
 
-  const openCases = cases.filter((c) => c.status === 'OPEN');
-  const newCases = cases.filter((c) => c.status === 'NEW');
+  const openCases = cases.filter((c) => c.status === "OPEN");
+  const newCases = cases.filter((c) => c.status === "NEW");
 
   // Calculate average resolution time for closed cases this month
   const closedThisMonth = cases.filter(
-    (c) =>
-      c.status === 'CLOSED' &&
-      new Date(c.updatedAt) >= startOfMonth
+    (c) => c.status === "CLOSED" && new Date(c.updatedAt) >= startOfMonth,
   );
 
   let avgResolutionDays: number | null = null;
@@ -86,62 +84,66 @@ export function StatsCards({ cases, isLoading }: StatsCardsProps) {
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-medium text-gray-500">
+          <CardTitle className="text-sm font-medium text-muted-foreground">
             Cases This Month
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-3xl font-bold">{stats.totalThisMonth}</div>
-          <p className="text-xs text-gray-500 mt-1">Total new cases</p>
+          <div className="text-3xl font-bold text-foreground">
+            {stats.totalThisMonth}
+          </div>
+          <p className="text-xs text-muted-foreground mt-1">Total new cases</p>
         </CardContent>
       </Card>
 
       <Card
         className="cursor-pointer hover:shadow-md transition-shadow"
-        onClick={() => router.push('/cases?status=OPEN')}
+        onClick={() => router.push("/cases?status=OPEN")}
       >
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-medium text-gray-500">
+          <CardTitle className="text-sm font-medium text-muted-foreground">
             Open Cases
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-3xl font-bold text-yellow-600">
+          <div className="text-3xl font-bold text-yellow-600 dark:text-yellow-400">
             {stats.openCases}
           </div>
-          <p className="text-xs text-gray-500 mt-1">Currently active</p>
+          <p className="text-xs text-muted-foreground mt-1">Currently active</p>
         </CardContent>
       </Card>
 
       <Card
         className="cursor-pointer hover:shadow-md transition-shadow"
-        onClick={() => router.push('/cases?status=NEW')}
+        onClick={() => router.push("/cases?status=NEW")}
       >
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-medium text-gray-500">
+          <CardTitle className="text-sm font-medium text-muted-foreground">
             New (Unassigned)
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-3xl font-bold text-blue-600">
+          <div className="text-3xl font-bold text-blue-600 dark:text-blue-400">
             {stats.newCases}
           </div>
-          <p className="text-xs text-gray-500 mt-1">Awaiting triage</p>
+          <p className="text-xs text-muted-foreground mt-1">Awaiting triage</p>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-medium text-gray-500">
+          <CardTitle className="text-sm font-medium text-muted-foreground">
             Avg Resolution Time
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="text-3xl font-bold text-green-600">
-            {stats.avgResolutionDays !== null ? `${stats.avgResolutionDays}d` : '—'}
+          <div className="text-3xl font-bold text-green-600 dark:text-green-400">
+            {stats.avgResolutionDays !== null
+              ? `${stats.avgResolutionDays}d`
+              : "—"}
           </div>
-          <p className="text-xs text-gray-500 mt-1">
-            {stats.avgResolutionDays !== null ? 'Days to close' : 'No data yet'}
+          <p className="text-xs text-muted-foreground mt-1">
+            {stats.avgResolutionDays !== null ? "Days to close" : "No data yet"}
           </p>
         </CardContent>
       </Card>

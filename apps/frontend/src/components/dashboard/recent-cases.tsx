@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useRouter } from 'next/navigation';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { StatusBadge } from '@/components/ui/status-badge';
-import { SeverityBadge } from '@/components/ui/severity-badge';
-import { Skeleton } from '@/components/ui/skeleton';
+import { useRouter } from "next/navigation";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { StatusBadge } from "@/components/ui/status-badge";
+import { SeverityBadge } from "@/components/ui/severity-badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
   TableBody,
@@ -12,8 +12,8 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import type { Case } from '@/types/case';
+} from "@/components/ui/table";
+import type { Case } from "@/types/case";
 
 interface RecentCasesProps {
   cases: Case[];
@@ -32,13 +32,13 @@ function formatRelativeDate(dateString: string): string {
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
   if (diffMins < 60) {
-    return diffMins <= 1 ? 'Just now' : `${diffMins} minutes ago`;
+    return diffMins <= 1 ? "Just now" : `${diffMins} minutes ago`;
   }
   if (diffHours < 24) {
-    return diffHours === 1 ? '1 hour ago' : `${diffHours} hours ago`;
+    return diffHours === 1 ? "1 hour ago" : `${diffHours} hours ago`;
   }
   if (diffDays === 1) {
-    return 'Yesterday';
+    return "Yesterday";
   }
   if (diffDays < 7) {
     return `${diffDays} days ago`;
@@ -55,7 +55,10 @@ export function RecentCases({ cases, isLoading }: RecentCasesProps) {
 
   // Sort by createdAt descending and take top 10
   const recentCases = [...cases]
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+    )
     .slice(0, 10);
 
   return (
@@ -63,8 +66,8 @@ export function RecentCases({ cases, isLoading }: RecentCasesProps) {
       <CardHeader className="flex flex-row items-center justify-between pb-3">
         <CardTitle className="text-base font-semibold">Recent Cases</CardTitle>
         <button
-          onClick={() => router.push('/cases')}
-          className="text-sm text-blue-600 hover:text-blue-800 hover:underline"
+          onClick={() => router.push("/cases")}
+          className="text-sm text-primary hover:text-primary/80 hover:underline"
         >
           View all
         </button>
@@ -81,7 +84,7 @@ export function RecentCases({ cases, isLoading }: RecentCasesProps) {
             ))}
           </div>
         ) : recentCases.length === 0 ? (
-          <div className="p-8 text-center text-gray-500">
+          <div className="p-8 text-center text-muted-foreground">
             No cases found. Create your first case to get started.
           </div>
         ) : (
@@ -106,7 +109,8 @@ export function RecentCases({ cases, isLoading }: RecentCasesProps) {
                     {caseItem.referenceNumber}
                   </TableCell>
                   <TableCell className="max-w-[300px] truncate">
-                    {caseItem.summary || caseItem.details.substring(0, 60) + '...'}
+                    {caseItem.summary ||
+                      caseItem.details.substring(0, 60) + "..."}
                   </TableCell>
                   <TableCell>
                     <StatusBadge status={caseItem.status} />
@@ -115,10 +119,10 @@ export function RecentCases({ cases, isLoading }: RecentCasesProps) {
                     {caseItem.severity ? (
                       <SeverityBadge severity={caseItem.severity} />
                     ) : (
-                      <span className="text-gray-400 text-xs">—</span>
+                      <span className="text-muted-foreground text-xs">—</span>
                     )}
                   </TableCell>
-                  <TableCell className="text-right text-sm text-gray-500">
+                  <TableCell className="text-right text-sm text-muted-foreground">
                     {formatRelativeDate(caseItem.createdAt)}
                   </TableCell>
                 </TableRow>

@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useRouter } from 'next/navigation';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { StatusBadge } from '@/components/ui/status-badge';
-import { Skeleton } from '@/components/ui/skeleton';
-import type { Case } from '@/types/case';
+import { useRouter } from "next/navigation";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { StatusBadge } from "@/components/ui/status-badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import type { Case } from "@/types/case";
 
 interface MyAssignmentsProps {
   cases: Case[];
@@ -23,10 +23,12 @@ function getUserAssignments(cases: Case[], userId: string): Case[] {
   return cases
     .filter(
       (c) =>
-        c.createdById === userId &&
-        (c.status === 'NEW' || c.status === 'OPEN')
+        c.createdById === userId && (c.status === "NEW" || c.status === "OPEN"),
     )
-    .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
+    .sort(
+      (a, b) =>
+        new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
+    )
     .slice(0, 5);
 }
 
@@ -45,7 +47,9 @@ export function MyAssignments({
   return (
     <Card className="flex-1 flex flex-col">
       <CardHeader className="pb-3">
-        <CardTitle className="text-base font-semibold">My Active Cases</CardTitle>
+        <CardTitle className="text-base font-semibold">
+          My Active Cases
+        </CardTitle>
       </CardHeader>
       <CardContent>
         {isLoading ? (
@@ -61,11 +65,11 @@ export function MyAssignments({
             ))}
           </div>
         ) : assignments.length === 0 ? (
-          <div className="text-center py-6 text-gray-500">
+          <div className="text-center py-6 text-muted-foreground">
             <p>No active cases assigned to you.</p>
             <button
-              onClick={() => router.push('/cases/new')}
-              className="mt-2 text-sm text-blue-600 hover:text-blue-800 hover:underline"
+              onClick={() => router.push("/cases/new")}
+              className="mt-2 text-sm text-primary hover:text-primary/80 hover:underline"
             >
               Create a new case
             </button>
@@ -75,22 +79,23 @@ export function MyAssignments({
             {assignments.map((caseItem) => (
               <li
                 key={caseItem.id}
-                className="flex items-center justify-between py-2 px-3 -mx-3 rounded-md hover:bg-gray-50 cursor-pointer transition-colors"
+                className="flex items-center justify-between py-2 px-3 -mx-3 rounded-md hover:bg-muted/50 cursor-pointer transition-colors"
                 onClick={() => router.push(`/cases/${caseItem.id}`)}
               >
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
-                    <span className="font-mono text-sm text-gray-700">
+                    <span className="font-mono text-sm text-foreground">
                       {caseItem.referenceNumber}
                     </span>
                     <StatusBadge status={caseItem.status} />
                   </div>
-                  <p className="text-sm text-gray-500 truncate mt-0.5">
-                    {caseItem.summary || caseItem.details.substring(0, 50) + '...'}
+                  <p className="text-sm text-muted-foreground truncate mt-0.5">
+                    {caseItem.summary ||
+                      caseItem.details.substring(0, 50) + "..."}
                   </p>
                 </div>
                 <div className="ml-4 flex-shrink-0">
-                  <span className="text-xs text-gray-400">
+                  <span className="text-xs text-muted-foreground">
                     {new Date(caseItem.updatedAt).toLocaleDateString()}
                   </span>
                 </div>
