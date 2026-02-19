@@ -47,7 +47,7 @@ export function QuickActionGrid({
 
   return (
     <div className={cn("p-4", className)}>
-      <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">
+      <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-3">
         Quick Actions
       </h3>
       <div className="flex gap-2">
@@ -55,11 +55,11 @@ export function QuickActionGrid({
           <Button
             key={action.id}
             variant="outline"
-            className="flex-1 min-w-0 flex flex-col items-center justify-center h-16 p-2 gap-1 hover:bg-gray-50"
+            className="flex-1 min-w-0 flex flex-col items-center justify-center h-16 p-2 gap-1 hover:bg-muted"
             onClick={action.onClick}
           >
-            <action.icon className="h-5 w-5 text-gray-600" />
-            <span className="text-xs text-gray-700 font-medium truncate">
+            <action.icon className="h-5 w-5 text-muted-foreground" />
+            <span className="text-xs text-foreground font-medium truncate">
               {action.label}
             </span>
           </Button>
@@ -71,10 +71,12 @@ export function QuickActionGrid({
             <DropdownMenuTrigger asChild>
               <Button
                 variant="outline"
-                className="flex-1 min-w-0 flex flex-col items-center justify-center h-16 p-2 gap-1 hover:bg-gray-50"
+                className="flex-1 min-w-0 flex flex-col items-center justify-center h-16 p-2 gap-1 hover:bg-muted"
               >
-                <MoreHorizontal className="h-5 w-5 text-gray-600" />
-                <span className="text-xs text-gray-700 font-medium">More</span>
+                <MoreHorizontal className="h-5 w-5 text-muted-foreground" />
+                <span className="text-xs text-foreground font-medium">
+                  More
+                </span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">

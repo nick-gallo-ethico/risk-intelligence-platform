@@ -30,28 +30,33 @@ interface DataHighlightsCardProps {
  */
 const BADGE_COLOR_MAP: Record<string, string> = {
   // Severity
-  LOW: "bg-green-100 text-green-800 border-green-200",
-  MEDIUM: "bg-yellow-100 text-yellow-800 border-yellow-200",
-  HIGH: "bg-red-100 text-red-800 border-red-200",
+  LOW: "bg-green-100 text-green-800 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800",
+  MEDIUM:
+    "bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-300 dark:border-yellow-800",
+  HIGH: "bg-red-100 text-red-800 border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-800",
   // Status
-  NEW: "bg-blue-100 text-blue-800 border-blue-200",
-  OPEN: "bg-purple-100 text-purple-800 border-purple-200",
-  CLOSED: "bg-gray-100 text-gray-800 border-gray-200",
+  NEW: "bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800",
+  OPEN: "bg-purple-100 text-purple-800 border-purple-200 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-800",
+  CLOSED: "bg-muted text-muted-foreground border-border",
   // SLA Status
-  ON_TRACK: "bg-green-100 text-green-800 border-green-200",
-  WARNING: "bg-yellow-100 text-yellow-800 border-yellow-200",
-  BREACHED: "bg-red-100 text-red-800 border-red-200",
-  CRITICAL: "bg-red-200 text-red-900 border-red-300",
+  ON_TRACK:
+    "bg-green-100 text-green-800 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800",
+  WARNING:
+    "bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-300 dark:border-yellow-800",
+  BREACHED:
+    "bg-red-100 text-red-800 border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-800",
+  CRITICAL:
+    "bg-red-200 text-red-900 border-red-300 dark:bg-red-900/50 dark:text-red-200 dark:border-red-700",
 };
 
 /**
  * SLA status icon color mapping.
  */
 const SLA_ICON_COLOR_MAP: Record<string, string> = {
-  ON_TRACK: "text-green-500",
-  WARNING: "text-yellow-500",
-  BREACHED: "text-red-500",
-  CRITICAL: "text-red-600",
+  ON_TRACK: "text-green-500 dark:text-green-400",
+  WARNING: "text-yellow-500 dark:text-yellow-400",
+  BREACHED: "text-red-500 dark:text-red-400",
+  CRITICAL: "text-red-600 dark:text-red-400",
 };
 
 /**
@@ -92,7 +97,7 @@ export function DataHighlightsCard({
   return (
     <Card className={cn("border shadow-sm", className)}>
       <CardHeader className="pb-2">
-        <CardTitle className="text-sm font-semibold text-gray-700">
+        <CardTitle className="text-sm font-semibold text-foreground">
           Data Highlights
         </CardTitle>
       </CardHeader>
@@ -120,14 +125,16 @@ function HighlightCell({
 }: DataHighlight) {
   const renderValue = () => {
     if (value === null || value === undefined || value === "") {
-      return <span className="text-gray-400 text-sm italic">Not set</span>;
+      return (
+        <span className="text-muted-foreground text-sm italic">Not set</span>
+      );
     }
 
     switch (type) {
       case "badge": {
         const colorClass =
           BADGE_COLOR_MAP[String(value).toUpperCase()] ||
-          "bg-gray-100 text-gray-700 border-gray-200";
+          "bg-muted text-muted-foreground border-border";
         return (
           <Badge variant="outline" className={cn("font-medium", colorClass)}>
             {String(value).replace(/_/g, " ")}
@@ -139,8 +146,8 @@ function HighlightCell({
         const slaKey = String(value).toUpperCase();
         const colorClass =
           BADGE_COLOR_MAP[slaKey] ||
-          "bg-gray-100 text-gray-700 border-gray-200";
-        const iconColor = SLA_ICON_COLOR_MAP[slaKey] || "text-gray-500";
+          "bg-muted text-muted-foreground border-border";
+        const iconColor = SLA_ICON_COLOR_MAP[slaKey] || "text-muted-foreground";
         return (
           <div className="flex items-center gap-1.5">
             <Clock className={cn("w-4 h-4", iconColor)} />
@@ -164,7 +171,7 @@ function HighlightCell({
               <AvatarImage src={avatarUrl} alt={String(value)} />
               <AvatarFallback className="text-xs">{initials}</AvatarFallback>
             </Avatar>
-            <span className="text-sm font-medium text-gray-900 truncate">
+            <span className="text-sm font-medium text-foreground truncate">
               {String(value)}
             </span>
           </div>
@@ -175,8 +182,8 @@ function HighlightCell({
       default:
         return (
           <div className="flex items-center gap-1.5">
-            {icon && <span className="text-gray-400">{icon}</span>}
-            <span className="text-sm font-semibold text-gray-900">
+            {icon && <span className="text-muted-foreground">{icon}</span>}
+            <span className="text-sm font-semibold text-foreground">
               {String(value)}
             </span>
           </div>
@@ -186,7 +193,7 @@ function HighlightCell({
 
   return (
     <div className="flex flex-col gap-1">
-      <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+      <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
         {label}
       </span>
       {renderValue()}

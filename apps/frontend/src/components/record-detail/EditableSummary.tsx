@@ -113,7 +113,7 @@ export function EditableSummary({
   return (
     <Card className={cn("border shadow-sm", className)}>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-semibold text-gray-700">
+        <CardTitle className="text-sm font-semibold text-foreground">
           {title}
         </CardTitle>
         <div className="flex items-center gap-2">
@@ -123,7 +123,7 @@ export function EditableSummary({
                 variant="ghost"
                 size="sm"
                 onClick={handleEdit}
-                className="h-7 px-2 text-gray-500 hover:text-gray-700"
+                className="h-7 px-2 text-muted-foreground hover:text-foreground"
                 aria-label="Edit summary"
               >
                 <Pencil className="w-4 h-4" />
@@ -134,7 +134,7 @@ export function EditableSummary({
                   size="sm"
                   onClick={handleAiGenerate}
                   disabled={isGenerating}
-                  className="h-7 gap-1.5 text-purple-600 border-purple-200 hover:bg-purple-50 hover:text-purple-700"
+                  className="h-7 gap-1.5 text-purple-600 border-purple-200 hover:bg-purple-50 hover:text-purple-700 dark:text-purple-400 dark:border-purple-800 dark:hover:bg-purple-900/30 dark:hover:text-purple-300"
                 >
                   {isGenerating ? (
                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -153,7 +153,7 @@ export function EditableSummary({
           <div className="space-y-3">
             {/* AI generated notice */}
             {aiGeneratedValue && (
-              <div className="flex items-center gap-2 text-xs text-purple-600 bg-purple-50 px-2 py-1.5 rounded-md">
+              <div className="flex items-center gap-2 text-xs text-purple-600 bg-purple-50 px-2 py-1.5 rounded-md dark:text-purple-300 dark:bg-purple-900/30">
                 <Sparkles className="w-3.5 h-3.5" />
                 <span>
                   AI-generated summary. Review and save, or edit below.
@@ -180,7 +180,7 @@ export function EditableSummary({
                     size="sm"
                     onClick={handleAiGenerate}
                     disabled={isGenerating || isSaving}
-                    className="h-8 gap-1.5 text-purple-600 border-purple-200 hover:bg-purple-50"
+                    className="h-8 gap-1.5 text-purple-600 border-purple-200 hover:bg-purple-50 dark:text-purple-400 dark:border-purple-800 dark:hover:bg-purple-900/30"
                   >
                     {isGenerating ? (
                       <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -196,7 +196,7 @@ export function EditableSummary({
                     size="sm"
                     onClick={handleDiscardAi}
                     disabled={isSaving}
-                    className="h-8 text-gray-500"
+                    className="h-8 text-muted-foreground"
                   >
                     Discard AI
                   </Button>
@@ -232,7 +232,7 @@ export function EditableSummary({
           </div>
         ) : isEmpty ? (
           <div className="text-center py-6">
-            <p className="text-sm text-gray-500 mb-3">
+            <p className="text-sm text-muted-foreground mb-3">
               No summary yet. Click edit to add one, or use AI to generate.
             </p>
             <div className="flex items-center justify-center gap-2">
@@ -251,7 +251,7 @@ export function EditableSummary({
                   size="sm"
                   onClick={handleAiGenerate}
                   disabled={isGenerating}
-                  className="h-8 gap-1.5 text-purple-600 border-purple-200 hover:bg-purple-50"
+                  className="h-8 gap-1.5 text-purple-600 border-purple-200 hover:bg-purple-50 dark:text-purple-400 dark:border-purple-800 dark:hover:bg-purple-900/30"
                 >
                   {isGenerating ? (
                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -264,7 +264,7 @@ export function EditableSummary({
             </div>
           </div>
         ) : (
-          <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
+          <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
             {displayText}
           </p>
         )}
