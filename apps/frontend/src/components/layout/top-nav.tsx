@@ -140,7 +140,7 @@ export function TopNav() {
   };
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-white/10 bg-[hsl(227,36%,13%)] text-white">
+    <header className="sticky top-0 z-40 w-full border-b border-white/5 dark:border-white/10 bg-[hsl(227,36%,13%)] text-white">
       <div className="flex h-14 items-center gap-4 px-4">
         {/* Search - left aligned, wider like HubSpot */}
         <Popover open={searchOpen} onOpenChange={setSearchOpen}>

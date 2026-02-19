@@ -1,18 +1,13 @@
-'use client';
+"use client";
 
-import { cn } from '@/lib/utils';
-import type { CaseStatus } from '@/types/case';
-
-const STATUS_COLORS: Record<CaseStatus, string> = {
-  NEW: 'bg-blue-100 text-blue-800 border-blue-200',
-  OPEN: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-  CLOSED: 'bg-gray-100 text-gray-800 border-gray-200',
-};
+import { cn } from "@/lib/utils";
+import { getStatusColor, statusColors } from "@/lib/theme-colors";
+import type { CaseStatus } from "@/types/case";
 
 const STATUS_LABELS: Record<CaseStatus, string> = {
-  NEW: 'New',
-  OPEN: 'Open',
-  CLOSED: 'Closed',
+  NEW: "New",
+  OPEN: "Open",
+  CLOSED: "Closed",
 };
 
 interface StatusBadgeProps {
@@ -22,15 +17,15 @@ interface StatusBadgeProps {
 
 /**
  * Status badge component for case status display.
- * Uses consistent color coding across the application.
+ * Uses centralized theme-colors utility for dark mode support.
  */
 export function StatusBadge({ status, className }: StatusBadgeProps) {
   return (
     <span
       className={cn(
-        'inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold',
-        STATUS_COLORS[status],
-        className
+        "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold",
+        getStatusColor(status),
+        className,
       )}
     >
       {STATUS_LABELS[status]}
@@ -38,4 +33,5 @@ export function StatusBadge({ status, className }: StatusBadgeProps) {
   );
 }
 
-export { STATUS_COLORS, STATUS_LABELS };
+// Re-export statusColors for backward compatibility
+export { statusColors as STATUS_COLORS, STATUS_LABELS };
