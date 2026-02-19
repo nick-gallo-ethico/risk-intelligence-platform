@@ -42,10 +42,13 @@ const PIPELINE_STAGES = [
 // Status badge colors with dark mode support
 const STATUS_COLORS: Record<InvestigationStatus, string> = {
   NEW: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
-  ASSIGNED: "bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300",
-  INVESTIGATING: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300",
-  PENDING_REVIEW: "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300",
-  CLOSED: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300",
+  ASSIGNED:
+    "bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300",
+  INVESTIGATING:
+    "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300",
+  PENDING_REVIEW:
+    "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300",
+  CLOSED: "bg-muted text-muted-foreground",
   ON_HOLD: "bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300",
 };
 
@@ -53,14 +56,17 @@ const STATUS_COLORS: Record<InvestigationStatus, string> = {
 const TYPE_COLORS: Record<InvestigationType, string> = {
   FULL: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300",
   LIMITED: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
-  INQUIRY: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300",
+  INQUIRY: "bg-muted text-muted-foreground",
 };
 
 // SLA status colors with dark mode support
 const SLA_COLORS: Record<SlaStatus, string> = {
-  ON_TRACK: "bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-300 dark:border-green-800",
-  WARNING: "bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-300 dark:border-yellow-800",
-  OVERDUE: "bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-300 dark:border-red-800",
+  ON_TRACK:
+    "bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-300 dark:border-green-800",
+  WARNING:
+    "bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-300 dark:border-yellow-800",
+  OVERDUE:
+    "bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-300 dark:border-red-800",
 };
 
 /**

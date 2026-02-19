@@ -11,12 +11,15 @@ interface InvestigationInfoSummaryProps {
 }
 
 const STATUS_COLORS: Record<InvestigationStatus, string> = {
-  NEW: "bg-blue-100 text-blue-800",
-  ASSIGNED: "bg-indigo-100 text-indigo-800",
-  INVESTIGATING: "bg-yellow-100 text-yellow-800",
-  PENDING_REVIEW: "bg-orange-100 text-orange-800",
-  CLOSED: "bg-gray-100 text-gray-800",
-  ON_HOLD: "bg-slate-100 text-slate-800",
+  NEW: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
+  ASSIGNED:
+    "bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300",
+  INVESTIGATING:
+    "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300",
+  PENDING_REVIEW:
+    "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300",
+  CLOSED: "bg-muted text-muted-foreground",
+  ON_HOLD: "bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300",
 };
 
 /**
@@ -99,16 +102,18 @@ export function InvestigationInfoSummary({
           {milestones.map((milestone, idx) => (
             <div key={idx} className="flex items-start gap-2">
               {milestone.complete ? (
-                <CheckCircle2 className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                <CheckCircle2 className="h-4 w-4 text-green-500 dark:text-green-400 mt-0.5 flex-shrink-0" />
               ) : milestone.inProgress ? (
-                <AlertCircle className="h-4 w-4 text-yellow-500 mt-0.5 flex-shrink-0" />
+                <AlertCircle className="h-4 w-4 text-yellow-500 dark:text-yellow-400 mt-0.5 flex-shrink-0" />
               ) : (
-                <Circle className="h-4 w-4 text-gray-300 mt-0.5 flex-shrink-0" />
+                <Circle className="h-4 w-4 text-muted-foreground/50 mt-0.5 flex-shrink-0" />
               )}
               <span
                 className={cn(
                   "text-sm",
-                  milestone.complete ? "text-gray-700" : "text-gray-500",
+                  milestone.complete
+                    ? "text-foreground"
+                    : "text-muted-foreground",
                 )}
               >
                 {milestone.label}
@@ -118,7 +123,7 @@ export function InvestigationInfoSummary({
         </div>
 
         {/* Created info */}
-        <div className="mt-4 pt-3 border-t text-xs text-gray-500">
+        <div className="mt-4 pt-3 border-t text-xs text-muted-foreground">
           <p>
             Created:{" "}
             {new Date(investigation.createdAt).toLocaleDateString("en-US", {

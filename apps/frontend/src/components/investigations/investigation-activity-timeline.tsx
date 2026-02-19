@@ -225,7 +225,7 @@ export function InvestigationActivityTimeline({
       {/* Search bar */}
       <div className="p-4 border-b">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search activities..."
             value={searchQuery}
@@ -266,7 +266,7 @@ export function InvestigationActivityTimeline({
       </div>
 
       {/* Filter count */}
-      <div className="px-4 py-1 text-xs text-gray-500 border-b">
+      <div className="px-4 py-1 text-xs text-muted-foreground border-b">
         Showing {filteredActivities.length} of {activities.length} activities
       </div>
 
@@ -275,7 +275,7 @@ export function InvestigationActivityTimeline({
         {/* Upcoming section */}
         {upcomingItems.length > 0 && (
           <div className="border-b pb-4 mb-4">
-            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3 flex items-center gap-2">
+            <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3 flex items-center gap-2">
               <Clock className="h-4 w-4" />
               Upcoming
             </h3>
@@ -295,12 +295,12 @@ export function InvestigationActivityTimeline({
         {/* Date-grouped history */}
         {groupedActivities.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-gray-500">No activities found</p>
+            <p className="text-muted-foreground">No activities found</p>
           </div>
         ) : (
           groupedActivities.map((group) => (
             <div key={group.label} className="mb-6">
-              <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+              <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">
                 {group.label}
               </h4>
               <div className="space-y-3">
