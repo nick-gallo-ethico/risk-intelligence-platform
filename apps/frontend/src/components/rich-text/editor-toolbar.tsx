@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useCallback, useState } from 'react';
-import { Editor } from '@tiptap/react';
-import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+import { useCallback, useState } from "react";
+import { Editor } from "@tiptap/react";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import {
   Bold,
   Italic,
@@ -14,7 +14,7 @@ import {
   Link,
   Code,
   Unlink,
-} from 'lucide-react';
+} from "lucide-react";
 
 interface EditorToolbarProps {
   /** Tiptap editor instance */
@@ -29,12 +29,12 @@ interface EditorToolbarProps {
  */
 export function EditorToolbar({ editor, className }: EditorToolbarProps) {
   const [showLinkInput, setShowLinkInput] = useState(false);
-  const [linkUrl, setLinkUrl] = useState('');
+  const [linkUrl, setLinkUrl] = useState("");
 
   // Handle link insertion
   const handleSetLink = useCallback(() => {
     if (!linkUrl) {
-      editor.chain().focus().extendMarkRange('link').unsetLink().run();
+      editor.chain().focus().extendMarkRange("link").unsetLink().run();
       setShowLinkInput(false);
       return;
     }
@@ -42,20 +42,15 @@ export function EditorToolbar({ editor, className }: EditorToolbarProps) {
     // Add https:// if no protocol specified
     const url = linkUrl.match(/^https?:\/\//) ? linkUrl : `https://${linkUrl}`;
 
-    editor
-      .chain()
-      .focus()
-      .extendMarkRange('link')
-      .setLink({ href: url })
-      .run();
+    editor.chain().focus().extendMarkRange("link").setLink({ href: url }).run();
 
-    setLinkUrl('');
+    setLinkUrl("");
     setShowLinkInput(false);
   }, [editor, linkUrl]);
 
   // Handle link button click
   const handleLinkClick = useCallback(() => {
-    const previousUrl = editor.getAttributes('link').href;
+    const previousUrl = editor.getAttributes("link").href;
     if (previousUrl) {
       setLinkUrl(previousUrl);
     }
@@ -64,17 +59,17 @@ export function EditorToolbar({ editor, className }: EditorToolbarProps) {
 
   // Cancel link input
   const handleCancelLink = useCallback(() => {
-    setLinkUrl('');
+    setLinkUrl("");
     setShowLinkInput(false);
   }, []);
 
   return (
-    <div className={cn('border-b bg-muted/30', className)}>
+    <div className={cn("border-b bg-muted/30", className)}>
       <div className="flex flex-wrap items-center gap-0.5 p-1">
         {/* Text formatting */}
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleBold().run()}
-          isActive={editor.isActive('bold')}
+          isActive={editor.isActive("bold")}
           tooltip="Bold (Ctrl+B)"
         >
           <Bold className="h-4 w-4" />
@@ -82,7 +77,7 @@ export function EditorToolbar({ editor, className }: EditorToolbarProps) {
 
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleItalic().run()}
-          isActive={editor.isActive('italic')}
+          isActive={editor.isActive("italic")}
           tooltip="Italic (Ctrl+I)"
         >
           <Italic className="h-4 w-4" />
@@ -90,7 +85,7 @@ export function EditorToolbar({ editor, className }: EditorToolbarProps) {
 
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleUnderline().run()}
-          isActive={editor.isActive('underline')}
+          isActive={editor.isActive("underline")}
           tooltip="Underline (Ctrl+U)"
         >
           <Underline className="h-4 w-4" />
@@ -101,7 +96,7 @@ export function EditorToolbar({ editor, className }: EditorToolbarProps) {
         {/* Lists */}
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleBulletList().run()}
-          isActive={editor.isActive('bulletList')}
+          isActive={editor.isActive("bulletList")}
           tooltip="Bullet List"
         >
           <List className="h-4 w-4" />
@@ -109,7 +104,7 @@ export function EditorToolbar({ editor, className }: EditorToolbarProps) {
 
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleOrderedList().run()}
-          isActive={editor.isActive('orderedList')}
+          isActive={editor.isActive("orderedList")}
           tooltip="Numbered List"
         >
           <ListOrdered className="h-4 w-4" />
@@ -120,7 +115,7 @@ export function EditorToolbar({ editor, className }: EditorToolbarProps) {
         {/* Quote */}
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleBlockquote().run()}
-          isActive={editor.isActive('blockquote')}
+          isActive={editor.isActive("blockquote")}
           tooltip="Quote Block"
         >
           <Quote className="h-4 w-4" />
@@ -129,7 +124,7 @@ export function EditorToolbar({ editor, className }: EditorToolbarProps) {
         {/* Code block */}
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleCodeBlock().run()}
-          isActive={editor.isActive('codeBlock')}
+          isActive={editor.isActive("codeBlock")}
           tooltip="Code Block"
         >
           <Code className="h-4 w-4" />
@@ -142,13 +137,13 @@ export function EditorToolbar({ editor, className }: EditorToolbarProps) {
           <>
             <ToolbarButton
               onClick={handleLinkClick}
-              isActive={editor.isActive('link')}
+              isActive={editor.isActive("link")}
               tooltip="Insert Link"
             >
               <Link className="h-4 w-4" />
             </ToolbarButton>
 
-            {editor.isActive('link') && (
+            {editor.isActive("link") && (
               <ToolbarButton
                 onClick={() => editor.chain().focus().unsetLink().run()}
                 tooltip="Remove Link"
@@ -165,15 +160,15 @@ export function EditorToolbar({ editor, className }: EditorToolbarProps) {
               value={linkUrl}
               onChange={(e) => setLinkUrl(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === 'Enter') {
+                if (e.key === "Enter") {
                   e.preventDefault();
                   handleSetLink();
                 }
-                if (e.key === 'Escape') {
+                if (e.key === "Escape") {
                   handleCancelLink();
                 }
               }}
-              className="h-7 px-2 text-sm border rounded-md focus:outline-none focus:ring-1 focus:ring-ring w-48"
+              className="h-7 px-2 text-sm border rounded-md bg-background focus:outline-none focus:ring-1 focus:ring-ring w-48"
               autoFocus
             />
             <Button
@@ -225,10 +220,7 @@ function ToolbarButton({
       onClick={onClick}
       disabled={disabled}
       title={tooltip}
-      className={cn(
-        'h-8 w-8 p-0',
-        isActive && 'bg-muted text-foreground'
-      )}
+      className={cn("h-8 w-8 p-0", isActive && "bg-muted text-foreground")}
     >
       {children}
     </Button>

@@ -15,9 +15,9 @@ import {
   max,
   addDays,
   subDays,
-} from 'date-fns';
+} from "date-fns";
 
-export type TimelineZoom = 'week' | 'month' | 'quarter';
+export type TimelineZoom = "week" | "month" | "quarter";
 
 export interface TimelineColumn {
   date: Date;
@@ -32,7 +32,7 @@ export interface MilestoneBar {
   startDate: Date;
   endDate: Date;
   progress: number;
-  status: 'NOT_STARTED' | 'IN_PROGRESS' | 'AT_RISK' | 'COMPLETED' | 'CANCELLED';
+  status: "NOT_STARTED" | "IN_PROGRESS" | "AT_RISK" | "COMPLETED" | "CANCELLED";
   left: number; // Percentage
   width: number; // Percentage
   row: number;
@@ -50,7 +50,7 @@ export interface TimelineRange {
 export function calculateTimelineRange(
   milestones: { targetDate: Date; createdAt: Date }[],
   zoom: TimelineZoom,
-  paddingDays: number = 14
+  paddingDays: number = 14,
 ): TimelineRange {
   if (milestones.length === 0) {
     const now = new Date();
@@ -70,43 +70,43 @@ export function calculateTimelineRange(
 function createTimelineForRange(
   start: Date,
   end: Date,
-  zoom: TimelineZoom
+  zoom: TimelineZoom,
 ): TimelineRange {
   let columns: TimelineColumn[];
   const today = new Date();
 
   switch (zoom) {
-    case 'week': {
+    case "week": {
       // Daily columns for week view
       const days = eachDayOfInterval({ start, end });
       columns = days.map((date) => ({
         date,
-        label: format(date, 'EEE d'),
-        isToday: format(date, 'yyyy-MM-dd') === format(today, 'yyyy-MM-dd'),
+        label: format(date, "EEE d"),
+        isToday: format(date, "yyyy-MM-dd") === format(today, "yyyy-MM-dd"),
         isWeekend: date.getDay() === 0 || date.getDay() === 6,
       }));
       break;
     }
 
-    case 'month': {
+    case "month": {
       // Weekly columns for month view
       const weeks = eachWeekOfInterval({ start, end });
       columns = weeks.map((date) => ({
         date,
-        label: format(date, 'MMM d'),
+        label: format(date, "MMM d"),
         isToday: isWithinInterval(today, { start: date, end: endOfWeek(date) }),
         isWeekend: false,
       }));
       break;
     }
 
-    case 'quarter': {
+    case "quarter": {
       // Monthly columns for quarter view
       const months = eachMonthOfInterval({ start, end });
       columns = months.map((date) => ({
         date,
-        label: format(date, 'MMM yyyy'),
-        isToday: format(date, 'yyyy-MM') === format(today, 'yyyy-MM'),
+        label: format(date, "MMM yyyy"),
+        isToday: format(date, "yyyy-MM") === format(today, "yyyy-MM"),
         isWeekend: false,
       }));
       break;
@@ -129,7 +129,7 @@ export function calculateMilestoneBar(
     status: string;
   },
   timeline: TimelineRange,
-  row: number
+  row: number,
 ): MilestoneBar {
   const totalDays = differenceInDays(timeline.end, timeline.start);
 
@@ -147,7 +147,7 @@ export function calculateMilestoneBar(
     startDate: milestone.createdAt,
     endDate: milestone.targetDate,
     progress: milestone.progressPercent,
-    status: milestone.status as MilestoneBar['status'],
+    status: milestone.status as MilestoneBar["status"],
     left,
     width,
     row,
@@ -155,47 +155,69 @@ export function calculateMilestoneBar(
 }
 
 /**
- * Get color for milestone status.
+ * Get color pair (light/dark) for milestone status.
  */
-export function getStatusColor(status: MilestoneBar['status']): string {
+export function getStatusColorPair(status: MilestoneBar["status"]): {
+  light: string;
+  dark: string;
+} {
   switch (status) {
-    case 'COMPLETED':
-      return '#22c55e'; // green-500
-    case 'IN_PROGRESS':
-      return '#3b82f6'; // blue-500
-    case 'AT_RISK':
-      return '#f59e0b'; // amber-500
-    case 'CANCELLED':
-      return '#6b7280'; // gray-500
+    case "COMPLETED":
+      return { light: "#22c55e", dark: "#4ade80" }; // green-500 / green-400
+    case "IN_PROGRESS":
+      return { light: "#3b82f6", dark: "#60a5fa" }; // blue-500 / blue-400
+    case "AT_RISK":
+      return { light: "#f59e0b", dark: "#fbbf24" }; // amber-500 / amber-400
+    case "CANCELLED":
+      return { light: "#6b7280", dark: "#9ca3af" }; // gray-500 / gray-400
     default:
-      return '#94a3b8'; // slate-400
+      return { light: "#94a3b8", dark: "#cbd5e1" }; // slate-400 / slate-300
   }
 }
 
 /**
- * Get lighter color for milestone background.
+ * Get background color pair (light/dark) for milestone status.
  */
-export function getStatusBgColor(status: MilestoneBar['status']): string {
+export function getStatusBgColorPair(status: MilestoneBar["status"]): {
+  light: string;
+  dark: string;
+} {
   switch (status) {
-    case 'COMPLETED':
-      return '#dcfce7'; // green-100
-    case 'IN_PROGRESS':
-      return '#dbeafe'; // blue-100
-    case 'AT_RISK':
-      return '#fef3c7'; // amber-100
-    case 'CANCELLED':
-      return '#f3f4f6'; // gray-100
+    case "COMPLETED":
+      return { light: "#dcfce7", dark: "rgba(34, 197, 94, 0.2)" }; // green-100 / green-500 at 20%
+    case "IN_PROGRESS":
+      return { light: "#dbeafe", dark: "rgba(59, 130, 246, 0.2)" }; // blue-100 / blue-500 at 20%
+    case "AT_RISK":
+      return { light: "#fef3c7", dark: "rgba(245, 158, 11, 0.2)" }; // amber-100 / amber-500 at 20%
+    case "CANCELLED":
+      return { light: "#f3f4f6", dark: "rgba(107, 114, 128, 0.2)" }; // gray-100 / gray-500 at 20%
     default:
-      return '#f1f5f9'; // slate-100
+      return { light: "#f1f5f9", dark: "rgba(148, 163, 184, 0.2)" }; // slate-100 / slate-400 at 20%
   }
+}
+
+/**
+ * Get color for milestone status.
+ * @deprecated Use getStatusColorPair() for dark mode support
+ */
+export function getStatusColor(status: MilestoneBar["status"]): string {
+  return getStatusColorPair(status).light;
+}
+
+/**
+ * Get lighter color for milestone background.
+ * @deprecated Use getStatusBgColorPair() for dark mode support
+ */
+export function getStatusBgColor(status: MilestoneBar["status"]): string {
+  return getStatusBgColorPair(status).light;
 }
 
 /**
  * Format date range for tooltip.
  */
 export function formatDateRange(start: Date, end: Date): string {
-  const startStr = format(start, 'MMM d, yyyy');
-  const endStr = format(end, 'MMM d, yyyy');
+  const startStr = format(start, "MMM d, yyyy");
+  const endStr = format(end, "MMM d, yyyy");
   return `${startStr} - ${endStr}`;
 }
 
