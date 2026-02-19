@@ -118,15 +118,10 @@ export class CampaignReminderProcessor extends WorkerHost {
     this.logger.log("Running scheduled reminder check");
 
     try {
-      const reminders =
-        await this.reminderService.findAssignmentsNeedingReminders();
-
-      if (reminders.length > 0) {
-        await this.reminderService.queueReminders(reminders);
-        this.logger.log(`Scheduled check queued ${reminders.length} reminders`);
-      } else {
-        this.logger.log("Scheduled check: No reminders to send");
-      }
+      // Use cursor-based batch processor for scalability (Phase 34)
+      // Processes 100 assignments per batch to prevent heap exhaustion
+      const processed = await this.reminderService.processRemindersInBatches();
+      this.logger.log(`Scheduled check processed ${processed} assignments`);
     } catch (error) {
       this.logger.error("Error in scheduled reminder check", error);
     }
