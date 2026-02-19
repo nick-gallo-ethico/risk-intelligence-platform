@@ -72,6 +72,9 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 34: Performance & Scalability** - Unbounded queries, Redis caching, connection pooling, N+1 fixes (v1.2)
 - [x] **Phase 35: Code Quality & Architecture** - Fat service splits, any type replacement, strict mode, null safety (v1.2)
 - [x] **Phase 36: Test Coverage Expansion** - Auth guards/strategies, impersonation, E2E isolation, 26.4% backend coverage (3.3x from 7.9%) (v1.2)
+- [ ] **Phase 37: Critical Integration Fixes** - RedisCacheModule registration, batch reminder wiring, JwtWsGuard cleanup (v1.2 gap closure)
+- [ ] **Phase 38: Dark Mode Gap Closure** - Migrate 323 hardcoded colors, settings toggle, DataTable/modal dark variants (v1.2 gap closure)
+- [ ] **Phase 39: Frontend Test Repair** - Fix 50 case-detail test failures from Phase 25.1 refactor (v1.2 gap closure)
 
 ## Phase Details
 
@@ -1143,11 +1146,60 @@ Plans:
 
 ---
 
+### Phase 37: Critical Integration Fixes (v1.2 Gap Closure)
+
+**Goal**: Fix 3 integration issues found by milestone audit — a CRITICAL DI failure, dead batch processing code, and a security trap from dead WebSocket guard code.
+**Depends on**: Phase 36 (all prior v1.2 work complete)
+**Requirements**: Closes integration gaps from v1.2-MILESTONE-AUDIT.md
+**Gap Closure**: RedisCacheModule DI failure (CRITICAL), processRemindersInBatches dead code (MEDIUM), JwtWsGuard HS256 dead code (MEDIUM)
+**Success Criteria** (what must be TRUE):
+
+1. RedisCacheModule is registered in AppModule and all 7+ dependent services resolve CACHE_MANAGER without DI errors
+2. Campaign reminder scheduler calls processRemindersInBatches() (cursor-based) instead of non-paginated method
+3. JwtWsGuard file and its spec are deleted — no HS256 WebSocket auth code remains in codebase
+
+Plans: TBD (created by /gsd:plan-phase 37)
+
+---
+
+### Phase 38: Dark Mode Gap Closure (v1.2 Gap Closure)
+
+**Goal**: Complete dark mode support by migrating all hardcoded Tailwind color classes to semantic tokens and fixing remaining component gaps, so the entire application renders correctly in dark mode.
+**Depends on**: Phase 37 (critical fixes first)
+**Requirements**: THEME-01, THEME-02, THEME-06
+**Gap Closure**: 323 hardcoded colors across 60+ component files, missing settings page toggle, DataTable/modal dark variants
+**Success Criteria** (what must be TRUE):
+
+1. Theme toggle is accessible from both user dropdown AND settings page (THEME-01)
+2. Zero hardcoded Tailwind color classes (bg-white, text-gray-_, border-gray-_, etc.) remain in component files — all use semantic tokens (THEME-02)
+3. DataTable renders with proper dark shadow variants and all modal components use semantic tokens (THEME-06)
+4. Visual spot-check of top 5 affected files (investigation-properties-panel, merge-modal, investigation-files-tab, investigation-interviews-tab, linked-riu-form-answers) passes in dark mode
+
+Plans: TBD (created by /gsd:plan-phase 38)
+
+---
+
+### Phase 39: Frontend Test Repair (v1.2 Gap Closure)
+
+**Goal**: Fix 50 broken frontend test failures caused by Phase 25.1 case-detail component refactoring after Phase 36 tests were written.
+**Depends on**: Phase 37 (critical fixes first; can parallel with Phase 38)
+**Requirements**: Contributes to TEST-10 (coverage improvement)
+**Gap Closure**: 50 frontend test failures across 10 case-detail test files
+**Success Criteria** (what must be TRUE):
+
+1. All 50 previously-failing frontend tests pass (0 failures in case-detail test files)
+2. Test assertions match current Phase 25.1 component APIs (props, element structure, data-testid attributes)
+3. No test functionality removed — tests are updated to match new component interfaces, not deleted
+
+Plans: TBD (created by /gsd:plan-phase 39)
+
+---
+
 ## Milestones
 
 - **v1.0 Feature Build** — Phases 1-25.1, 242+ plans (shipped 2026-02-13) — See `milestones/v1.0-ROADMAP.md`
 - **v1.1 Code Review Remediation** — Phases 26-31, 43 plans (shipped 2026-02-15) — See `milestones/v1.1-ROADMAP.md`
-- **v1.2 Production Hardening & Feature Completion** — Phases 32-36 + Phases 22, 23, 25.1 continued (in progress)
+- **v1.2 Production Hardening & Feature Completion** — Phases 32-39 + Phases 22, 23, 25.1 continued (in progress)
 
 ## Progress
 
@@ -1194,11 +1246,14 @@ Plans:
 | 34. Performance & Scalability           | v1.2      | 0/5            | Planned     | -          |
 | 35. Code Quality & Architecture         | v1.2      | 0/6            | Planned     | -          |
 | 36. Test Coverage Expansion             | v1.2      | 0/13           | Planned     | -          |
+| 37. Critical Integration Fixes          | v1.2      | 0/TBD          | Not started | -          |
+| 38. Dark Mode Gap Closure               | v1.2      | 0/TBD          | Not started | -          |
+| 39. Frontend Test Repair                | v1.2      | 0/TBD          | Not started | -          |
 
 ---
 
 _Roadmap created: 2026-02-02_
-_Updated: 2026-02-15 (Phase 33 plans created)_
-_Total phases: 36 (+ decimal insertions)_
+_Updated: 2026-02-19 (gap closure phases 37-39 added from milestone audit)_
+_Total phases: 39 (+ decimal insertions)_
 _Total plans: 285+ completed across v1.0 and v1.1, TBD for v1.2_
 _Total requirements: 149 (v1.0) + 36 (v1.1) + 77 (v1.2) = 262_

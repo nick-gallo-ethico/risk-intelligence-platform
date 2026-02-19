@@ -25,7 +25,7 @@ Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10
 
 ## v1.2 Milestone Overview
 
-**Phases:** 8 total (5 new remediation + 3 continued feature)
+**Phases:** 11 total (5 remediation + 3 continued feature + 3 gap closure)
 **Requirements:** 77 (55 Track 1 + 22 Track 2)
 **Target:** D+ to B+ overall code quality grade
 
@@ -44,6 +44,9 @@ Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10
 6. Phase 22: Dark Mode & Theme - 7 requirements [COMPLETE - 15/15 plans]
 7. Phase 23: Help & Support System - 5 requirements [COMPLETE - 5/5 plans, verified]
 8. Phase 25.1: Case Detail Vision - 10 requirements [COMPLETE - 10/10 plans, verified]
+9. Phase 37: Critical Integration Fixes - 3 integration gaps [NOT STARTED - gap closure]
+10. Phase 38: Dark Mode Gap Closure - 3 requirements [NOT STARTED - gap closure]
+11. Phase 39: Frontend Test Repair - 50 test failures [NOT STARTED - gap closure]
 
 ## Accumulated Context
 
@@ -223,4 +226,4 @@ None currently.
 Last session: 2026-02-19
 Stopped at: Phase 23 confirmed complete (all plans executed in v1.0, verified 6/6)
 Resume file: None
-Next action: All v1.2 phases COMPLETE. Proceed to /gsd:audit-milestone
+Next action: Plan and execute gap closure phases 37-39. Start with /gsd:plan-phase 37
