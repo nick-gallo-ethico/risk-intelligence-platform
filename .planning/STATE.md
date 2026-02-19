@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-02-15)
 
 ## Current Position
 
-Phase: 36 of 36 (Test Coverage Expansion)
-Plan: 13 of 13 complete (36-01 through 36-13)
-Status: Phase 36 COMPLETE
-Last activity: 2026-02-19 - Completed 36-13 (Coverage Verification & Phase Closure)
+Phase: 25.1 of v1.2 (Case Detail Page Vision Revision)
+Plan: 10 of 10 complete (25.1-01 through 25.1-10)
+Status: Phase 25.1 COMPLETE
+Last activity: 2026-02-19 - Completed Phase 25.1 execution (all plans previously executed, verification passed)
 
-Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10 plans), Phase 34 COMPLETE (5/5 plans), Phase 35 COMPLETE (6/6 plans), Phase 36 COMPLETE (13/13 plans).
+Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10 plans), Phase 34 COMPLETE (5/5 plans), Phase 35 COMPLETE (6/6 plans), Phase 36 COMPLETE (13/13 plans), Phase 25.1 COMPLETE (10/10 plans).
 
 ## Shipped Milestones
 
@@ -40,10 +40,10 @@ Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10
 2. Phase 33: Slop Cleanup + Production - 16 requirements [COMPLETE - 10/10 plans, verified]
 3. Phase 34: Performance & Scalability - 11 requirements [COMPLETE - 5/5 plans]
 4. Phase 35: Code Quality & Architecture - 5 requirements [COMPLETE - 6/6 plans]
-5. Phase 36: Test Coverage Expansion - 10 requirements
+5. Phase 36: Test Coverage Expansion - 10 requirements [COMPLETE - 13/13 plans]
 6. Phase 22: Dark Mode & Theme - 7 requirements (existing plans)
 7. Phase 23: Help & Support System - 5 requirements (existing plans)
-8. Phase 25.1: Case Detail Vision - 10 requirements (existing plans)
+8. Phase 25.1: Case Detail Vision - 10 requirements [COMPLETE - 10/10 plans, verified]
 
 ## Accumulated Context
 
@@ -171,7 +171,7 @@ None currently.
 
 ## Session Continuity
 
-Last session: 2026-02-19T03:00:00Z
-Stopped at: Completed 36-13-PLAN.md (Coverage Verification & Phase Closure)
+Last session: 2026-02-19
+Stopped at: Phase 25.1 complete (all plans executed, verified 11/11 must-haves)
 Resume file: None
-Next action: Phase 36 complete. Next: Phase 22 (Dark Mode & Theme) or Phase 23 (Help & Support System)
+Next action: Phase 22 (Dark Mode & Theme) or Phase 23 (Help & Support System)

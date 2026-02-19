@@ -60,7 +60,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 23: Help & Support System** - Knowledge base, in-platform ticket filing, real-time support (v1.2 continued)
 - [x] **Phase 24: Policy Content & Seed Data** - Populate policies with properly formatted text, improve case seed data
 - [x] **Phase 25: Case & Investigation Page Redesign** - HubSpot three-column record pattern for case and investigation detail pages
-- [ ] **Phase 25.1: Case Detail Page Vision Revision** - Rebuild case detail page to match revised HubSpot-style spec with pipeline bar, collapsible property cards, Activities tab pattern, and config-driven architecture (v1.2 continued)
+- [x] **Phase 25.1: Case Detail Page Vision Revision** - Rebuild case detail page to match revised HubSpot-style spec with pipeline bar, collapsible property cards, Activities tab pattern, and config-driven architecture (v1.2 continued)
 - [x] **Phase 26: Emergency Fixes** - Critical import errors blocking startup (v1.1)
 - [x] **Phase 27: Security Hardening** - Auth guards, session management, CORS, body limits (v1.1)
 - [x] **Phase 28: Production Readiness** - Container, health checks, Key Vault, graceful shutdown (v1.1)
@@ -999,16 +999,16 @@ Plans:
 
 Plans:
 
-- [ ] 25.1-01-PLAN.md (Wave 1) — Config-driven foundation: RecordDetailLayout, CASES_DETAIL_CONFIG, TypeScript types, page.tsx restructure, dead code removal
-- [ ] 25.1-02-PLAN.md (Wave 1) — Sticky PipelineStageBar: usePipeline hook, click-to-advance with confirmation dialog, hover tooltips, days-in-stage chip
-- [ ] 25.1-03-PLAN.md (Wave 2) — Left sidebar restructure: RecordHeader, ActionsDropdown (8 items), CollapsiblePropertyCard, 3 property cards (About, Intake, Classification)
-- [ ] 25.1-04-PLAN.md (Wave 3) — Classification card content: CategorySelector with dependent dropdowns, Risk Level, Regulatory Framework, Tags fields
-- [ ] 25.1-05-PLAN.md (Wave 2) — Overview tab rebuild: DataHighlightsCard, EditableSummary with AI, StatusHistoryTimeline, 6-section layout, PipelineStageBar wiring
-- [ ] 25.1-06-PLAN.md (Wave 2) — Activities tab HubSpot pattern: useActivities hook, 8 checkbox-style type filters, pinning, per-activity hover actions, expand/collapse
-- [ ] 25.1-07-PLAN.md (Wave 2) — Tab cleanup: 6-tab config (Overview default, no URL state), Messages/Files/Investigations tab enhancements
-- [ ] 25.1-08-PLAN.md (Wave 2) — Right sidebar additions: TasksCard with inline checkboxes, RemediationStatusCard with progress bar, 9-card sidebar wiring
-- [ ] 25.1-09-PLAN.md (Wave 4) — Responsive & polish: tablet/mobile drawer sidebars, loading/error states, collapsible state persistence
-- [ ] 25.1-10-PLAN.md (Wave 1) — Backend API integration: Pipeline configuration endpoint, activity pinning, activity type verification, status history
+- [x] 25.1-01-PLAN.md (Wave 1) — Config-driven foundation: RecordDetailLayout, CASES_DETAIL_CONFIG, TypeScript types, page.tsx restructure, dead code removal
+- [x] 25.1-02-PLAN.md (Wave 1) — Sticky PipelineStageBar: usePipeline hook, click-to-advance with confirmation dialog, hover tooltips, days-in-stage chip
+- [x] 25.1-03-PLAN.md (Wave 2) — Left sidebar restructure: RecordHeader, ActionsDropdown (8 items), CollapsiblePropertyCard, 3 property cards (About, Intake, Classification)
+- [x] 25.1-04-PLAN.md (Wave 3) — Classification card content: CategorySelector with dependent dropdowns, Risk Level, Regulatory Framework, Tags fields
+- [x] 25.1-05-PLAN.md (Wave 2) — Overview tab rebuild: DataHighlightsCard, EditableSummary with AI, StatusHistoryTimeline, 6-section layout, PipelineStageBar wiring
+- [x] 25.1-06-PLAN.md (Wave 2) — Activities tab HubSpot pattern: useActivities hook, 8 checkbox-style type filters, pinning, per-activity hover actions, expand/collapse
+- [x] 25.1-07-PLAN.md (Wave 2) — Tab cleanup: 6-tab config (Overview default, no URL state), Messages/Files/Investigations tab enhancements
+- [x] 25.1-08-PLAN.md (Wave 2) — Right sidebar additions: TasksCard with inline checkboxes, RemediationStatusCard with progress bar, 9-card sidebar wiring
+- [x] 25.1-09-PLAN.md (Wave 4) — Responsive & polish: tablet/mobile drawer sidebars, loading/error states, collapsible state persistence
+- [x] 25.1-10-PLAN.md (Wave 1) — Backend API integration: Pipeline configuration endpoint, activity pinning, activity type verification, status history
 
 ### Phase 32: Security & SOC 2 Fixes (v1.2)
 

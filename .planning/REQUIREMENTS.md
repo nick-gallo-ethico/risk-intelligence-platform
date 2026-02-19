@@ -105,18 +105,18 @@ Dual-track milestone: (1) Remediate all findings from pre-Series A code review a
 - [ ] **HELP-04**: Users can view their open tickets and status
 - [ ] **HELP-05**: Contextual help links from relevant pages to related articles
 
-### Case Detail Vision Revision (Phase 25.1 — 0/10 plans)
+### Case Detail Vision Revision (Phase 25.1 — 10/10 plans)
 
-- [ ] **CASE-01**: Sticky pipeline stage bar at top with click-to-advance
-- [ ] **CASE-02**: Left sidebar Actions dropdown with 8 items (Assign, Change Status, Merge, Follow, View Properties, View History, Export, Delete)
-- [ ] **CASE-03**: Left sidebar with 3 collapsible property cards (About, Intake, Classification)
-- [ ] **CASE-04**: Classification card with dependent category/subcategory dropdowns
-- [ ] **CASE-05**: Overview tab as default with lifecycle metrics, editable summary, status timeline
-- [ ] **CASE-06**: Activities tab with exact HubSpot pattern — type checkboxes, user/team filter, search, pinning
-- [ ] **CASE-07**: Six tabs total: Overview, Activities, Investigations, Messages, Files, Remediation
-- [ ] **CASE-08**: Right sidebar with 9 cards (Workflow, People, RIUs, Cases, Policies, Documents, Tasks, Remediation Status, AI Assistant)
-- [ ] **CASE-09**: Config-driven architecture using CASES_DETAIL_CONFIG module config pattern
-- [ ] **CASE-10**: Tenant-configurable pipeline stages (default: New → Assigned → Active → Review → Closed → Remediation → Archived)
+- [x] **CASE-01**: Sticky pipeline stage bar at top with click-to-advance
+- [x] **CASE-02**: Left sidebar Actions dropdown with 8 items (Assign, Change Status, Merge, Follow, View Properties, View History, Export, Delete)
+- [x] **CASE-03**: Left sidebar with 3 collapsible property cards (About, Intake, Classification)
+- [x] **CASE-04**: Classification card with dependent category/subcategory dropdowns
+- [x] **CASE-05**: Overview tab as default with lifecycle metrics, editable summary, status timeline
+- [x] **CASE-06**: Activities tab with exact HubSpot pattern — type checkboxes, user/team filter, search, pinning
+- [x] **CASE-07**: Six tabs total: Overview, Activities, Investigations, Messages, Files, Remediation
+- [x] **CASE-08**: Right sidebar with 9 cards (Workflow, People, RIUs, Cases, Policies, Documents, Tasks, Remediation Status, AI Assistant)
+- [x] **CASE-09**: Config-driven architecture using CASES_DETAIL_CONFIG module config pattern
+- [x] **CASE-10**: Tenant-configurable pipeline stages (default: New → Assigned → Active → Review → Closed → Remediation → Archived)
 
 ---
 
@@ -208,16 +208,16 @@ Dual-track milestone: (1) Remediate all findings from pre-Series A code review a
 | HELP-03     | Phase 23   | Pending  |
 | HELP-04     | Phase 23   | Pending  |
 | HELP-05     | Phase 23   | Pending  |
-| CASE-01     | Phase 25.1 | Pending  |
-| CASE-02     | Phase 25.1 | Pending  |
-| CASE-03     | Phase 25.1 | Pending  |
-| CASE-04     | Phase 25.1 | Pending  |
-| CASE-05     | Phase 25.1 | Pending  |
-| CASE-06     | Phase 25.1 | Pending  |
-| CASE-07     | Phase 25.1 | Pending  |
-| CASE-08     | Phase 25.1 | Pending  |
-| CASE-09     | Phase 25.1 | Pending  |
-| CASE-10     | Phase 25.1 | Pending  |
+| CASE-01     | Phase 25.1 | Complete |
+| CASE-02     | Phase 25.1 | Complete |
+| CASE-03     | Phase 25.1 | Complete |
+| CASE-04     | Phase 25.1 | Complete |
+| CASE-05     | Phase 25.1 | Complete |
+| CASE-06     | Phase 25.1 | Complete |
+| CASE-07     | Phase 25.1 | Complete |
+| CASE-08     | Phase 25.1 | Complete |
+| CASE-09     | Phase 25.1 | Complete |
+| CASE-10     | Phase 25.1 | Complete |
 
 ---
 
