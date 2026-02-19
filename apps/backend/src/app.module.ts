@@ -52,6 +52,7 @@ import { MetricsModule } from "./modules/metrics/metrics.module";
 import { SentryModule } from "./modules/sentry/sentry.module";
 import { ActivityModule } from "./common/activity.module";
 import { StorageModule } from "./common/storage.module";
+import { RedisCacheModule } from "./common/cache.module";
 import { TenantMiddleware } from "./common/middleware/tenant.middleware";
 import { AppConfigModule } from "./config/config.module";
 
@@ -90,6 +91,7 @@ import { AppConfigModule } from "./config/config.module";
     PrismaModule,
     ActivityModule,
     StorageModule, // Low-level file storage (used by AttachmentsModule)
+    RedisCacheModule, // Phase 34: Global Redis-backed caching with tenant isolation
     ModuleStorageModule, // High-level storage with Attachment tracking and document processing
     SearchModule, // Elasticsearch search with per-tenant indices and permission filtering
     WorkflowModule, // Workflow engine for entity lifecycle management
