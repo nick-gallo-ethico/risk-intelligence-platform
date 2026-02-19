@@ -87,15 +87,15 @@ Dual-track milestone: (1) Remediate all findings from pre-Series A code review a
 
 ## Track 2: Unfinished v1.0 Feature Phases
 
-### Dark Mode & Theme System (Phase 22 — 0/15 plans)
+### Dark Mode & Theme System (Phase 22 — 15/15 plans) ✓
 
-- [ ] **THEME-01**: User can toggle dark mode from user menu and settings
-- [ ] **THEME-02**: All pages render correctly in dark mode with proper contrast
-- [ ] **THEME-03**: Dark mode preference persists across sessions in user preferences
-- [ ] **THEME-04**: System preference detection — auto-detect OS dark mode as default
-- [ ] **THEME-05**: Navigation bars visually consistent in both light and dark modes
-- [ ] **THEME-06**: Charts, tables, modals, and forms respect active theme
-- [ ] **THEME-07**: Smooth theme transition with no flash of wrong theme on page load
+- [x] **THEME-01**: User can toggle dark mode from user menu and settings
+- [x] **THEME-02**: All pages render correctly in dark mode with proper contrast
+- [x] **THEME-03**: Dark mode preference persists across sessions in user preferences
+- [x] **THEME-04**: System preference detection — auto-detect OS dark mode as default
+- [x] **THEME-05**: Navigation bars visually consistent in both light and dark modes
+- [x] **THEME-06**: Charts, tables, modals, and forms respect active theme
+- [x] **THEME-07**: Smooth theme transition with no flash of wrong theme on page load
 
 ### Help & Support System (Phase 23 — 0/5 plans)
 
@@ -196,13 +196,13 @@ Dual-track milestone: (1) Remediate all findings from pre-Series A code review a
 | TEST-08     | Phase 36   | Pending  |
 | TEST-09     | Phase 36   | Pending  |
 | TEST-10     | Phase 36   | Pending  |
-| THEME-01    | Phase 22   | Pending  |
-| THEME-02    | Phase 22   | Pending  |
-| THEME-03    | Phase 22   | Pending  |
-| THEME-04    | Phase 22   | Pending  |
-| THEME-05    | Phase 22   | Pending  |
-| THEME-06    | Phase 22   | Pending  |
-| THEME-07    | Phase 22   | Pending  |
+| THEME-01    | Phase 22   | Complete |
+| THEME-02    | Phase 22   | Complete |
+| THEME-03    | Phase 22   | Complete |
+| THEME-04    | Phase 22   | Complete |
+| THEME-05    | Phase 22   | Complete |
+| THEME-06    | Phase 22   | Complete |
+| THEME-07    | Phase 22   | Complete |
 | HELP-01     | Phase 23   | Pending  |
 | HELP-02     | Phase 23   | Pending  |
 | HELP-03     | Phase 23   | Pending  |

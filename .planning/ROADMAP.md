@@ -56,7 +56,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 19: Workflow Engine UI** - Visual workflow builder, workflow management section, apply to cases/approvals/disclosures
 - [x] **Phase 20: Settings Overhaul (HubSpot-Style)** - Preferences, account management, data management, properties, permission sets
 - [x] **Phase 21: Project Management (Monday.com-Style)** - Kanban boards, task views, timelines, project tracking
-- [ ] **Phase 22: Dark Mode & Theme** - Dark mode toggle, consistent nav theming, theme system (v1.2 continued)
+- [x] **Phase 22: Dark Mode & Theme** - Dark mode toggle, consistent nav theming, theme system (v1.2 continued)
 - [ ] **Phase 23: Help & Support System** - Knowledge base, in-platform ticket filing, real-time support (v1.2 continued)
 - [x] **Phase 24: Policy Content & Seed Data** - Populate policies with properly formatted text, improve case seed data
 - [x] **Phase 25: Case & Investigation Page Redesign** - HubSpot three-column record pattern for case and investigation detail pages
@@ -888,21 +888,21 @@ Plans:
 
 Plans:
 
-- [ ] 22-01-PLAN.md (Wave 1) — Install next-themes, wire ThemeProvider, suppressHydrationWarning, Sonner toast theme
-- [ ] 22-02-PLAN.md (Wave 1) — ThemeToggle component in user menu, create lib/theme-colors.ts status color utility
-- [ ] 22-03-PLAN.md (Wave 2) — Migrate status-badge + severity-badge to theme-colors.ts, fix UI primitive hardcoded colors
-- [ ] 22-04-PLAN.md (Wave 2) — Theme navigation (top-nav, sidebar, mobile), layouts, and common components
-- [ ] 22-05-PLAN.md (Wave 3) — Theme dashboard components and case layout/header/tabs/filters
-- [ ] 22-06-PLAN.md (Wave 3) — Theme remaining case components (panels, timeline, forms, investigation-card)
-- [ ] 22-07-PLAN.md (Wave 3) — Theme investigation components, DataTable frozen column shadows, board/view components
-- [ ] 22-08-PLAN.md (Wave 3) — Theme policy components, analytics, Gantt chart hex colors, rich text editor
-- [ ] 22-09-PLAN.md (Wave 4) — Theme ethics portal (20 components), tenant branding coordination, conflict review
-- [ ] 22-10-PLAN.md (Wave 4) — Theme operator console (17 components, split-screen layout, QA queue)
-- [ ] 22-11-PLAN.md (Wave 4) — Theme employee portal, campaigns, disclosure form builder/preview
-- [ ] 22-12-PLAN.md (Wave 4) — Theme settings, users, implementation, exports, files, remaining views
-- [ ] 22-13-PLAN.md (Wave 4) — Sweep all 43 page.tsx files for page-level hardcoded colors
-- [ ] 22-14-PLAN.md (Wave 5) — Verification checkpoint: TypeScript compilation, all 7 success criteria verified
-- [ ] 22-15-PLAN.md (Wave 5) — Fix DataTable column width flexibility (allow columns to expand and shrink dynamically)
+- [x] 22-01-PLAN.md (Wave 1) — Install next-themes, wire ThemeProvider, suppressHydrationWarning, Sonner toast theme
+- [x] 22-02-PLAN.md (Wave 1) — ThemeToggle component in user menu, create lib/theme-colors.ts status color utility
+- [x] 22-03-PLAN.md (Wave 2) — Migrate status-badge + severity-badge to theme-colors.ts, fix UI primitive hardcoded colors
+- [x] 22-04-PLAN.md (Wave 2) — Theme navigation (top-nav, sidebar, mobile), layouts, and common components
+- [x] 22-05-PLAN.md (Wave 3) — Theme dashboard components and case layout/header/tabs/filters
+- [x] 22-06-PLAN.md (Wave 3) — Theme remaining case components (panels, timeline, forms, investigation-card)
+- [x] 22-07-PLAN.md (Wave 3) — Theme investigation components, DataTable frozen column shadows, board/view components
+- [x] 22-08-PLAN.md (Wave 3) — Theme policy components, analytics, Gantt chart hex colors, rich text editor
+- [x] 22-09-PLAN.md (Wave 4) — Theme ethics portal (20 components), tenant branding coordination, conflict review
+- [x] 22-10-PLAN.md (Wave 4) — Theme operator console (17 components, split-screen layout, QA queue)
+- [x] 22-11-PLAN.md (Wave 4) — Theme employee portal, campaigns, disclosure form builder/preview
+- [x] 22-12-PLAN.md (Wave 4) — Theme settings, users, implementation, exports, files, remaining views
+- [x] 22-13-PLAN.md (Wave 4) — Sweep all 43 page.tsx files for page-level hardcoded colors
+- [x] 22-14-PLAN.md (Wave 5) — Verification checkpoint: TypeScript compilation, all 7 success criteria verified
+- [x] 22-15-PLAN.md (Wave 5) — Fix DataTable column width flexibility (allow columns to expand and shrink dynamically)
 
 ### Phase 23: Help & Support System (v1.2 continued)
 

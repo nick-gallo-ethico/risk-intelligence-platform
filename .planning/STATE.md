@@ -12,7 +12,7 @@ See: .planning/PROJECT.md (updated 2026-02-15)
 Phase: 22 of v1.2 (Dark Mode & Theme)
 Plan: 15 of 15 complete (22-01 through 22-15)
 Status: COMPLETE
-Last activity: 2026-02-19 - Completed 22-14-PLAN.md (Final Verification and Gap Closure)
+Last activity: 2026-02-19 - Phase 22 COMPLETE (15/15 plans, verified, settings toggle added)
 
 Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10 plans), Phase 34 COMPLETE (5/5 plans), Phase 35 COMPLETE (6/6 plans), Phase 36 COMPLETE (13/13 plans), Phase 25.1 COMPLETE (10/10 plans), Phase 22 COMPLETE (15/15 plans).
 
