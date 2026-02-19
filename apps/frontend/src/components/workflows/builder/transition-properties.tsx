@@ -169,20 +169,20 @@ export function TransitionProperties({
     <div className="space-y-5">
       {/* Header */}
       <div>
-        <h3 className="font-semibold text-sm text-slate-900">
+        <h3 className="font-semibold text-sm text-foreground">
           Transition Properties
         </h3>
-        <p className="text-xs text-slate-500 mt-0.5">
+        <p className="text-xs text-muted-foreground mt-0.5">
           Configure the selected transition
         </p>
       </div>
 
       {/* From/To Display */}
-      <div className="flex items-center gap-2 p-2 bg-slate-100 rounded border border-slate-200">
+      <div className="flex items-center gap-2 p-2 bg-muted/50 rounded border border-border">
         <Badge variant="outline" className="text-xs">
           {fromStageName}
         </Badge>
-        <ArrowRight className="h-4 w-4 text-slate-400" />
+        <ArrowRight className="h-4 w-4 text-muted-foreground" />
         <Badge variant="outline" className="text-xs">
           {toStageName}
         </Badge>
@@ -217,7 +217,7 @@ export function TransitionProperties({
             >
               Requires Reason
             </Label>
-            <p className="text-[10px] text-slate-500">
+            <p className="text-[10px] text-muted-foreground">
               User must provide a reason when triggering
             </p>
           </div>
@@ -236,8 +236,8 @@ export function TransitionProperties({
       {/* Allowed Roles */}
       <div className="space-y-3">
         <div>
-          <h4 className="font-medium text-xs text-slate-900">Allowed Roles</h4>
-          <p className="text-[10px] text-slate-500">
+          <h4 className="font-medium text-xs text-foreground">Allowed Roles</h4>
+          <p className="text-[10px] text-muted-foreground">
             Who can trigger this transition (leave empty for all roles)
           </p>
         </div>
@@ -269,8 +269,8 @@ export function TransitionProperties({
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <div>
-            <h4 className="font-medium text-xs text-slate-900">Conditions</h4>
-            <p className="text-[10px] text-slate-500">
+            <h4 className="font-medium text-xs text-foreground">Conditions</h4>
+            <p className="text-[10px] text-muted-foreground">
               {transition.conditions?.length ?? 0} condition(s)
             </p>
           </div>
@@ -291,7 +291,7 @@ export function TransitionProperties({
           {transition.conditions?.map((condition, index) => (
             <div
               key={index}
-              className="flex items-center gap-2 p-2 bg-white rounded border border-slate-200 group"
+              className="flex items-center gap-2 p-2 bg-card rounded border border-border group"
             >
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
@@ -302,7 +302,7 @@ export function TransitionProperties({
                     {condition.type}
                   </Badge>
                 </div>
-                <p className="text-[10px] text-slate-500 truncate mt-0.5">
+                <p className="text-[10px] text-muted-foreground truncate mt-0.5">
                   {JSON.stringify(condition.config).slice(0, 50)}
                   {JSON.stringify(condition.config).length > 50 && "..."}
                 </p>
@@ -321,7 +321,7 @@ export function TransitionProperties({
 
           {/* Add Condition Form */}
           {isAddingCondition && (
-            <div className="space-y-3 p-3 bg-slate-50 rounded-lg border border-slate-200">
+            <div className="space-y-3 p-3 bg-muted/50 rounded-lg border border-border">
               <div className="space-y-1.5">
                 <Label htmlFor="condition-type" className="text-xs">
                   Condition Type
@@ -375,7 +375,7 @@ export function TransitionProperties({
           {/* Empty State */}
           {(!transition.conditions || transition.conditions.length === 0) &&
             !isAddingCondition && (
-              <div className="text-center py-4 text-xs text-slate-500">
+              <div className="text-center py-4 text-xs text-muted-foreground">
                 No conditions. Transition is always allowed.
               </div>
             )}
@@ -388,8 +388,8 @@ export function TransitionProperties({
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <div>
-            <h4 className="font-medium text-xs text-slate-900">Actions</h4>
-            <p className="text-[10px] text-slate-500">
+            <h4 className="font-medium text-xs text-foreground">Actions</h4>
+            <p className="text-[10px] text-muted-foreground">
               {transition.actions?.length ?? 0} action(s)
             </p>
           </div>
@@ -410,7 +410,7 @@ export function TransitionProperties({
           {transition.actions?.map((action, index) => (
             <div
               key={index}
-              className="flex items-center gap-2 p-2 bg-white rounded border border-slate-200 group"
+              className="flex items-center gap-2 p-2 bg-card rounded border border-border group"
             >
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
@@ -421,7 +421,7 @@ export function TransitionProperties({
                     {action.type}
                   </Badge>
                 </div>
-                <p className="text-[10px] text-slate-500 truncate mt-0.5">
+                <p className="text-[10px] text-muted-foreground truncate mt-0.5">
                   {JSON.stringify(action.config).slice(0, 50)}
                   {JSON.stringify(action.config).length > 50 && "..."}
                 </p>
@@ -440,7 +440,7 @@ export function TransitionProperties({
 
           {/* Add Action Form */}
           {isAddingAction && (
-            <div className="space-y-3 p-3 bg-slate-50 rounded-lg border border-slate-200">
+            <div className="space-y-3 p-3 bg-muted/50 rounded-lg border border-border">
               <div className="space-y-1.5">
                 <Label htmlFor="action-type" className="text-xs">
                   Action Type
@@ -492,7 +492,7 @@ export function TransitionProperties({
           {/* Empty State */}
           {(!transition.actions || transition.actions.length === 0) &&
             !isAddingAction && (
-              <div className="text-center py-4 text-xs text-slate-500">
+              <div className="text-center py-4 text-xs text-muted-foreground">
                 No actions. Nothing happens on transition.
               </div>
             )}

@@ -166,7 +166,7 @@ export function WorkflowCanvas({
         fitViewOptions={{ padding: 0.2 }}
         deleteKeyCode={null} // We handle deletion manually
         proOptions={{ hideAttribution: true }}
-        className="bg-slate-100"
+        className="bg-muted/30"
       >
         {/* Dot pattern background */}
         <Background
@@ -185,13 +185,13 @@ export function WorkflowCanvas({
           nodeStrokeWidth={3}
           zoomable
           pannable
-          className="bg-white rounded shadow-sm border"
+          className="bg-card rounded shadow-sm border"
         />
 
         {/* Controls at bottom-left */}
         <Controls
           showInteractive={false}
-          className="bg-white rounded shadow-sm border"
+          className="bg-card rounded shadow-sm border"
         />
       </ReactFlow>
     </div>

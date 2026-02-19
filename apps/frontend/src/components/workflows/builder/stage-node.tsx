@@ -40,7 +40,7 @@ function StageNodeComponent({ data, selected }: NodeProps<StageNodeType>) {
   return (
     <div
       className={cn(
-        "relative bg-white rounded-lg border shadow-sm transition-all",
+        "relative bg-card rounded-lg border shadow-sm transition-all",
         "min-w-[200px] max-w-[280px]",
         selected
           ? "ring-2 ring-blue-500 ring-offset-2 shadow-md"
@@ -64,7 +64,7 @@ function StageNodeComponent({ data, selected }: NodeProps<StageNodeType>) {
       <div className="p-3">
         {/* Header: Name + Badges */}
         <div className="flex items-start justify-between gap-2 mb-2">
-          <h3 className="font-semibold text-sm text-gray-900 truncate flex-1">
+          <h3 className="font-semibold text-sm text-foreground truncate flex-1">
             {stage.name}
           </h3>
           <div className="flex items-center gap-1 flex-shrink-0">
@@ -83,13 +83,13 @@ function StageNodeComponent({ data, selected }: NodeProps<StageNodeType>) {
 
         {/* Description (if present) */}
         {stage.description && (
-          <p className="text-xs text-gray-500 truncate mb-2">
+          <p className="text-xs text-muted-foreground truncate mb-2">
             {stage.description}
           </p>
         )}
 
         {/* Metadata row */}
-        <div className="flex items-center gap-3 text-xs text-gray-500">
+        <div className="flex items-center gap-3 text-xs text-muted-foreground">
           {/* Step count */}
           <span className="flex items-center gap-1">
             <Layers className="w-3 h-3" />

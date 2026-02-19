@@ -83,14 +83,14 @@ function PaletteItemComponent({ item }: PaletteItemProps) {
       draggable
       onDragStart={handleDragStart}
       className={cn(
-        "flex items-center gap-3 p-3 rounded-lg border border-slate-200",
-        "bg-white cursor-grab transition-all",
-        "hover:border-slate-300 hover:shadow-sm",
+        "flex items-center gap-3 p-3 rounded-lg border border-border",
+        "bg-card cursor-grab transition-all",
+        "hover:border-border/80 hover:shadow-sm",
         "active:cursor-grabbing active:scale-[0.98]",
       )}
     >
       {/* Drag handle */}
-      <GripVertical className="w-4 h-4 text-slate-300 flex-shrink-0" />
+      <GripVertical className="w-4 h-4 text-muted-foreground/50 flex-shrink-0" />
 
       {/* Color indicator + icon */}
       <div
@@ -102,10 +102,10 @@ function PaletteItemComponent({ item }: PaletteItemProps) {
 
       {/* Text */}
       <div className="flex-1 min-w-0">
-        <div className="text-sm font-medium text-slate-900 truncate">
+        <div className="text-sm font-medium text-foreground truncate">
           {item.label}
         </div>
-        <div className="text-xs text-slate-500 truncate">
+        <div className="text-xs text-muted-foreground truncate">
           {item.description}
         </div>
       </div>
@@ -119,11 +119,11 @@ function PaletteItemComponent({ item }: PaletteItemProps) {
 
 export function StagePalette() {
   return (
-    <div className="flex flex-col h-full bg-slate-50 border-r border-slate-200">
+    <div className="flex flex-col h-full bg-muted/50 border-r border-border">
       {/* Header */}
-      <div className="p-4 border-b border-slate-200">
-        <h3 className="font-semibold text-sm text-slate-900">Stages</h3>
-        <p className="text-xs text-slate-500 mt-1">
+      <div className="p-4 border-b border-border">
+        <h3 className="font-semibold text-sm text-foreground">Stages</h3>
+        <p className="text-xs text-muted-foreground mt-1">
           Drag stages onto the canvas
         </p>
       </div>
@@ -136,8 +136,8 @@ export function StagePalette() {
       </div>
 
       {/* Instructions */}
-      <div className="p-3 border-t border-slate-200 bg-white">
-        <p className="text-xs text-slate-500 text-center">
+      <div className="p-3 border-t border-border bg-card">
+        <p className="text-xs text-muted-foreground text-center">
           Connect stages by dragging from handles
         </p>
       </div>

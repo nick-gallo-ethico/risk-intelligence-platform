@@ -260,7 +260,7 @@ export function ProjectTaskTable({
   };
 
   return (
-    <div className="h-full overflow-auto bg-gray-50 p-6">
+    <div className="h-full overflow-auto bg-muted/30 p-6">
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
@@ -278,7 +278,7 @@ export function ProjectTaskTable({
             return (
               <div
                 key={group.id}
-                className="bg-white rounded-lg border shadow-sm"
+                className="bg-card rounded-lg border shadow-sm"
               >
                 {/* Group header */}
                 <ProjectGroupHeader
@@ -350,10 +350,10 @@ export function ProjectTaskTable({
             const taskIds = ungroupedTasks.map((t) => t.id);
 
             return (
-              <div className="bg-white rounded-lg border shadow-sm">
+              <div className="bg-card rounded-lg border shadow-sm">
                 {/* Ungrouped header */}
                 <div
-                  className="flex items-center gap-2 px-4 py-3 cursor-pointer hover:bg-gray-50 transition-colors"
+                  className="flex items-center gap-2 px-4 py-3 cursor-pointer hover:bg-muted/50 transition-colors"
                   onClick={() => handleToggleCollapse("_ungrouped")}
                 >
                   <Checkbox
@@ -369,8 +369,8 @@ export function ProjectTaskTable({
                     }}
                     onClick={(e) => e.stopPropagation()}
                   />
-                  <div className="w-1 h-5 rounded-full bg-gray-400 mr-2" />
-                  <span className="font-medium text-gray-700">Ungrouped</span>
+                  <div className="w-1 h-5 rounded-full bg-muted-foreground mr-2" />
+                  <span className="font-medium text-foreground">Ungrouped</span>
                   <span className="text-sm text-muted-foreground ml-2">
                     {ungroupedTasks.length}{" "}
                     {ungroupedTasks.length === 1 ? "task" : "tasks"}
@@ -508,7 +508,7 @@ function ColumnHeaders({
 
   return (
     <div
-      className="grid gap-2 px-4 py-2 text-xs font-medium text-muted-foreground bg-gray-50 border-b"
+      className="grid gap-2 px-4 py-2 text-xs font-medium text-muted-foreground bg-muted/50 border-b"
       style={{ gridTemplateColumns: gridCols }}
     >
       <div></div>
@@ -609,10 +609,10 @@ function SortableColumnHeader({ column, width }: SortableColumnHeaderProps) {
  */
 function ProjectTaskTableSkeleton() {
   return (
-    <div className="h-full overflow-auto bg-gray-50 p-6">
+    <div className="h-full overflow-auto bg-muted/30 p-6">
       <div className="space-y-4">
         {[1, 2, 3].map((i) => (
-          <div key={i} className="bg-white rounded-lg border shadow-sm">
+          <div key={i} className="bg-card rounded-lg border shadow-sm">
             <div className="flex items-center gap-3 px-4 py-3">
               <Skeleton className="h-5 w-5" />
               <Skeleton className="h-5 w-1 rounded-full" />
@@ -620,7 +620,7 @@ function ProjectTaskTableSkeleton() {
               <Skeleton className="h-5 w-16" />
             </div>
             <div className="border-t">
-              <div className="px-4 py-2 bg-gray-50 border-b">
+              <div className="px-4 py-2 bg-muted/50 border-b">
                 <Skeleton className="h-4 w-full max-w-md" />
               </div>
               {[1, 2, 3].map((j) => (

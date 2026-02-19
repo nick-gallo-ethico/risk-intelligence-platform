@@ -93,7 +93,7 @@ function StageCircle({ stage, status, compact }: StageCircleProps) {
         status === "completed" && "bg-green-500 border-green-500",
         status === "current" &&
           "border-blue-500 bg-blue-500 animate-pulse shadow-md shadow-blue-500/30",
-        status === "future" && "border-gray-300 bg-white",
+        status === "future" && "border-gray-300 bg-card dark:border-gray-600",
       )}
       style={
         status === "future"

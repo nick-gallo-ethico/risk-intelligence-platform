@@ -106,10 +106,10 @@ function TransitionEdgeComponent({
             }}
             className={cn(
               "flex items-center gap-1 px-2 py-1 rounded-full",
-              "bg-white border border-slate-200 text-xs text-slate-700",
+              "bg-card border border-border text-xs text-foreground",
               "shadow-sm transition-all",
-              selected && "border-blue-300 bg-blue-50",
-              isHovered && !selected && "border-slate-300",
+              selected && "border-blue-300 bg-blue-50 dark:bg-blue-950/50",
+              isHovered && !selected && "border-border/80",
             )}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}

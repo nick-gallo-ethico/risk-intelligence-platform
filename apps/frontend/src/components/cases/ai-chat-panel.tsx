@@ -440,11 +440,11 @@ export function AiChatPanel({
     isStreaming || connectionStatus !== "connected" || !input.trim();
 
   return (
-    <div className="flex flex-col h-full bg-white">
+    <div className="flex flex-col h-full bg-card">
       {/* Header */}
       <div className="flex items-center gap-2 px-4 py-3 border-b bg-gradient-to-r from-purple-50 to-blue-50">
         <Sparkles className="w-5 h-5 text-purple-600" />
-        <h2 className="font-semibold text-gray-900">AI Assistant</h2>
+        <h2 className="font-semibold text-foreground">AI Assistant</h2>
         <div className="ml-auto flex items-center gap-2">
           <Badge
             variant={connectionStatus === "connected" ? "default" : "secondary"}
@@ -492,13 +492,13 @@ export function AiChatPanel({
       <ScrollArea className="flex-1 px-4">
         {messages.length === 0 && connectionStatus === "connected" && (
           <div className="py-8 text-center">
-            <Bot className="w-12 h-12 mx-auto text-gray-300 mb-4" />
-            <p className="text-gray-600 mb-6">
+            <Bot className="w-12 h-12 mx-auto text-muted-foreground/50 mb-4" />
+            <p className="text-muted-foreground mb-6">
               Ask me anything about this case. I can help you analyze details,
               suggest next steps, or draft summaries.
             </p>
             <div className="space-y-2">
-              <p className="text-xs text-gray-500 uppercase tracking-wide mb-3">
+              <p className="text-xs text-muted-foreground uppercase tracking-wide mb-3">
                 Suggested prompts
               </p>
               <div className="flex flex-wrap gap-2 justify-center">
@@ -506,7 +506,7 @@ export function AiChatPanel({
                   <button
                     key={prompt}
                     onClick={() => handleSuggestedPrompt(prompt)}
-                    className="px-3 py-1.5 text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full transition-colors"
+                    className="px-3 py-1.5 text-sm bg-muted hover:bg-muted/80 text-foreground rounded-full transition-colors"
                   >
                     {prompt}
                   </button>
@@ -566,7 +566,7 @@ export function AiChatPanel({
           </div>
         </div>
         {connectionStatus !== "connected" && connectionStatus !== "error" && (
-          <p className="text-xs text-gray-500 mt-2 flex items-center gap-1">
+          <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1">
             <Loader2 className="w-3 h-3 animate-spin" />
             Connecting to AI service...
           </p>
@@ -583,7 +583,7 @@ function MessageBubble({ message }: { message: ChatMessage }) {
   if (message.isToolUse) {
     return (
       <div className="flex justify-center">
-        <div className="flex items-center gap-2 text-xs text-gray-500 italic bg-gray-100 px-3 py-1.5 rounded-full">
+        <div className="flex items-center gap-2 text-xs text-muted-foreground italic bg-muted px-3 py-1.5 rounded-full">
           <Loader2 className="w-3 h-3 animate-spin" />
           {message.content}
         </div>
@@ -594,7 +594,7 @@ function MessageBubble({ message }: { message: ChatMessage }) {
   if (message.role === "system") {
     return (
       <div className="flex justify-center">
-        <p className="text-xs text-gray-500 bg-gray-100 px-3 py-1.5 rounded-full">
+        <p className="text-xs text-muted-foreground bg-muted px-3 py-1.5 rounded-full">
           {message.content}
         </p>
       </div>
@@ -622,7 +622,7 @@ function MessageBubble({ message }: { message: ChatMessage }) {
           "max-w-[85%] px-3 py-2 rounded-lg text-sm",
           isUser
             ? "bg-blue-600 text-white rounded-br-sm"
-            : "bg-gray-100 text-gray-900 rounded-bl-sm",
+            : "bg-muted text-foreground rounded-bl-sm",
         )}
       >
         <p className="whitespace-pre-wrap break-words">

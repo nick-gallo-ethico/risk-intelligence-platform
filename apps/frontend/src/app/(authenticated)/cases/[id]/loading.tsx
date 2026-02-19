@@ -15,10 +15,10 @@ export default function CaseDetailLoading() {
   return (
     <div className="flex flex-col h-full">
       {/* Breadcrumb/header skeleton */}
-      <div className="flex-shrink-0 border-b bg-white px-6 py-4">
+      <div className="flex-shrink-0 border-b bg-card px-6 py-4">
         <div className="flex items-center gap-2 mb-3">
           <Skeleton className="h-4 w-12" />
-          <span className="text-gray-300">/</span>
+          <span className="text-muted-foreground/50">/</span>
           <Skeleton className="h-4 w-32" />
         </div>
         <div className="flex items-start justify-between">
@@ -36,7 +36,7 @@ export default function CaseDetailLoading() {
       {/* Three-column skeleton */}
       <div className="flex-1 grid grid-cols-1 xl:grid-cols-[300px_1fr_300px] min-h-0">
         {/* Left sidebar skeleton - hidden below xl */}
-        <div className="hidden xl:block border-r bg-white overflow-y-auto">
+        <div className="hidden xl:block border-r bg-card overflow-y-auto">
           {/* Record header skeleton */}
           <div className="p-4 border-b">
             <Skeleton className="h-6 w-36 mb-3" />
@@ -75,7 +75,7 @@ export default function CaseDetailLoading() {
               {[1, 2, 3, 4, 5].map((i) => (
                 <div
                   key={i}
-                  className="flex justify-between py-1.5 border-b border-gray-100 last:border-0"
+                  className="flex justify-between py-1.5 border-b border-border/50 last:border-0"
                 >
                   <Skeleton className="h-4 w-20" />
                   <Skeleton className="h-4 w-24" />
@@ -100,7 +100,7 @@ export default function CaseDetailLoading() {
               {[1, 2, 3].map((i) => (
                 <div
                   key={i}
-                  className="flex justify-between py-1.5 border-b border-gray-100 last:border-0"
+                  className="flex justify-between py-1.5 border-b border-border/50 last:border-0"
                 >
                   <Skeleton className="h-4 w-16" />
                   <Skeleton className="h-4 w-20" />
@@ -131,7 +131,7 @@ export default function CaseDetailLoading() {
         </div>
 
         {/* Right sidebar skeleton - hidden below xl */}
-        <div className="hidden xl:block border-l bg-white p-4 space-y-4 overflow-y-auto">
+        <div className="hidden xl:block border-l bg-card p-4 space-y-4 overflow-y-auto">
           {/* Workflow card */}
           <div className="rounded-lg border bg-card p-4 space-y-3">
             <Skeleton className="h-5 w-24" />

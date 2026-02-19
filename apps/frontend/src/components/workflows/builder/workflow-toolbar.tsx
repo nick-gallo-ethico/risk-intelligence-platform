@@ -242,7 +242,7 @@ export function WorkflowToolbar({
 
   return (
     <TooltipProvider>
-      <div className="h-14 border-b border-slate-200 bg-white flex items-center gap-3 px-4">
+      <div className="h-14 border-b border-border bg-card flex items-center gap-3 px-4">
         {/* Back button */}
         <Tooltip>
           <TooltipTrigger asChild>
@@ -284,10 +284,10 @@ export function WorkflowToolbar({
           ) : (
             <button
               onClick={handleStartEditName}
-              className="flex items-center gap-1.5 text-lg font-semibold text-slate-900 hover:text-slate-700 transition-colors group"
+              className="flex items-center gap-1.5 text-lg font-semibold text-foreground hover:text-foreground/80 transition-colors group"
             >
               {name || "Untitled Workflow"}
-              <Pencil className="h-3.5 w-3.5 text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity" />
+              <Pencil className="h-3.5 w-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
             </button>
           )}
         </div>

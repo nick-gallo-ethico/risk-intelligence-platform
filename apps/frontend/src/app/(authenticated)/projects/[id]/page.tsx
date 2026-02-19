@@ -90,18 +90,30 @@ const STATUS_STYLES: Record<
   { bg: string; text: string; label: string }
 > = {
   NOT_STARTED: {
-    bg: "bg-gray-100",
-    text: "text-gray-700",
+    bg: "bg-gray-100 dark:bg-gray-800/50",
+    text: "text-gray-700 dark:text-gray-300",
     label: "Not Started",
   },
   IN_PROGRESS: {
-    bg: "bg-blue-100",
-    text: "text-blue-700",
+    bg: "bg-blue-100 dark:bg-blue-900/30",
+    text: "text-blue-700 dark:text-blue-300",
     label: "In Progress",
   },
-  AT_RISK: { bg: "bg-orange-100", text: "text-orange-700", label: "At Risk" },
-  COMPLETED: { bg: "bg-green-100", text: "text-green-700", label: "Completed" },
-  CANCELLED: { bg: "bg-gray-100", text: "text-gray-500", label: "Cancelled" },
+  AT_RISK: {
+    bg: "bg-orange-100 dark:bg-orange-900/30",
+    text: "text-orange-700 dark:text-orange-300",
+    label: "At Risk",
+  },
+  COMPLETED: {
+    bg: "bg-green-100 dark:bg-green-900/30",
+    text: "text-green-700 dark:text-green-300",
+    label: "Completed",
+  },
+  CANCELLED: {
+    bg: "bg-gray-100 dark:bg-gray-800/50",
+    text: "text-gray-500 dark:text-gray-400",
+    label: "Cancelled",
+  },
 };
 
 /**
@@ -224,7 +236,7 @@ function ProjectHeader({
     : "?";
 
   return (
-    <div className="bg-white border-b px-6 py-4">
+    <div className="bg-card border-b px-6 py-4">
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
         <button
@@ -415,10 +427,10 @@ function ProjectHeader({
  */
 function ProjectHeaderSkeleton() {
   return (
-    <div className="bg-white border-b px-6 py-4">
+    <div className="bg-card border-b px-6 py-4">
       <div className="flex items-center gap-2 mb-3">
         <Skeleton className="h-4 w-12" />
-        <span className="text-gray-300">/</span>
+        <span className="text-muted-foreground/50">/</span>
         <Skeleton className="h-4 w-32" />
       </div>
       <div className="flex items-start justify-between">
@@ -709,12 +721,12 @@ function ProjectDetailPageContent() {
   // Error state
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">
+          <h2 className="text-xl font-semibold text-foreground mb-2">
             Project Not Found
           </h2>
-          <p className="text-gray-600 mb-4">
+          <p className="text-muted-foreground mb-4">
             The project may have been deleted or you may not have access.
           </p>
           <Button onClick={() => router.push("/projects")}>
@@ -726,7 +738,7 @@ function ProjectDetailPageContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col">
       {/* Header */}
       <ProjectHeader
         project={project ?? null}
@@ -824,7 +836,7 @@ function ProjectDetailPageContent() {
  */
 function ProjectDetailPageSkeleton() {
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col">
       <ProjectHeaderSkeleton />
       <div className="border-b px-6 py-2">
         <Skeleton className="h-10 w-64" />
@@ -835,7 +847,7 @@ function ProjectDetailPageSkeleton() {
       <div className="flex-1 p-6">
         <div className="space-y-4">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="bg-white rounded-lg border p-4">
+            <div key={i} className="bg-card rounded-lg border p-4">
               <Skeleton className="h-6 w-32 mb-4" />
               <div className="space-y-2">
                 {[1, 2, 3].map((j) => (

@@ -33,7 +33,7 @@ function EditWorkflowSkeleton() {
   return (
     <div className="h-full flex flex-col">
       {/* Toolbar skeleton */}
-      <div className="h-14 border-b border-slate-200 bg-white flex items-center gap-3 px-4">
+      <div className="h-14 border-b border-border bg-card flex items-center gap-3 px-4">
         <Skeleton className="h-8 w-8 rounded" />
         <Skeleton className="h-6 w-48" />
         <Skeleton className="h-5 w-20" />
@@ -46,7 +46,7 @@ function EditWorkflowSkeleton() {
       {/* Main content skeleton */}
       <div className="flex flex-1">
         {/* Palette skeleton */}
-        <div className="w-60 border-r border-slate-200 p-4">
+        <div className="w-60 border-r border-border p-4">
           <Skeleton className="h-6 w-32 mb-4" />
           {Array.from({ length: 4 }).map((_, i) => (
             <Skeleton key={i} className="h-12 w-full mb-2" />
@@ -54,17 +54,17 @@ function EditWorkflowSkeleton() {
         </div>
 
         {/* Canvas skeleton */}
-        <div className="flex-1 bg-slate-100">
+        <div className="flex-1 bg-muted/30">
           <div className="flex items-center justify-center h-full">
-            <div className="flex flex-col items-center gap-2 text-slate-400">
-              <div className="w-8 h-8 border-2 border-slate-300 border-t-slate-500 rounded-full animate-spin" />
+            <div className="flex flex-col items-center gap-2 text-muted-foreground">
+              <div className="w-8 h-8 border-2 border-muted-foreground/30 border-t-muted-foreground rounded-full animate-spin" />
               <span className="text-sm">Loading workflow...</span>
             </div>
           </div>
         </div>
 
         {/* Properties skeleton */}
-        <div className="w-80 border-l border-slate-200 p-4">
+        <div className="w-80 border-l border-border p-4">
           <Skeleton className="h-6 w-32 mb-4" />
           <Skeleton className="h-20 w-full" />
         </div>

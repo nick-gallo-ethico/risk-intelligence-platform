@@ -111,23 +111,23 @@ export function PropertyPanel({
     // Nothing selected - show placeholder
     return (
       <div className="flex flex-col items-center justify-center h-full text-center p-6">
-        <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center mb-4">
-          <Layers className="w-6 h-6 text-slate-400" />
+        <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center mb-4">
+          <Layers className="w-6 h-6 text-muted-foreground" />
         </div>
-        <h3 className="font-medium text-sm text-slate-700 mb-1">
+        <h3 className="font-medium text-sm text-foreground mb-1">
           No Selection
         </h3>
-        <p className="text-xs text-slate-500 max-w-[200px]">
+        <p className="text-xs text-muted-foreground max-w-[200px]">
           Select a stage or transition on the canvas to view and edit its
           properties
         </p>
         <div className="mt-6 space-y-3 text-left">
-          <div className="flex items-center gap-2 text-xs text-slate-500">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <div className="w-5 h-5 rounded bg-blue-500" />
             <span>Click a stage to edit</span>
           </div>
-          <div className="flex items-center gap-2 text-xs text-slate-500">
-            <ArrowRight className="w-5 h-5 text-slate-400" />
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <ArrowRight className="w-5 h-5 text-muted-foreground" />
             <span>Click a transition to edit</span>
           </div>
         </div>
@@ -136,7 +136,7 @@ export function PropertyPanel({
   };
 
   return (
-    <div className="w-80 flex-shrink-0 border-l border-slate-200 bg-white flex flex-col h-full">
+    <div className="w-80 flex-shrink-0 border-l border-border bg-card flex flex-col h-full">
       <ScrollArea className="flex-1">
         <div className="p-4">{renderContent()}</div>
       </ScrollArea>

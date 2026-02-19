@@ -162,10 +162,10 @@ export function StageProperties({
     <div className="space-y-5">
       {/* Header */}
       <div>
-        <h3 className="font-semibold text-sm text-slate-900">
+        <h3 className="font-semibold text-sm text-foreground">
           Stage Properties
         </h3>
-        <p className="text-xs text-slate-500 mt-0.5">
+        <p className="text-xs text-muted-foreground mt-0.5">
           Configure the selected stage
         </p>
       </div>
@@ -213,7 +213,7 @@ export function StageProperties({
                 onClick={() => updateDisplay({ color: color.value })}
                 className={`w-6 h-6 rounded-full border-2 transition-all ${
                   stage.display?.color === color.value
-                    ? "border-slate-900 scale-110"
+                    ? "border-foreground scale-110"
                     : "border-transparent hover:scale-105"
                 }`}
                 style={{ backgroundColor: color.value }}
@@ -249,7 +249,7 @@ export function StageProperties({
             <Label htmlFor="stage-terminal" className="text-xs cursor-pointer">
               Terminal Stage
             </Label>
-            <p className="text-[10px] text-slate-500">
+            <p className="text-[10px] text-muted-foreground">
               No outgoing transitions allowed
             </p>
           </div>
@@ -289,8 +289,8 @@ export function StageProperties({
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <div>
-            <h4 className="font-medium text-xs text-slate-900">Steps</h4>
-            <p className="text-[10px] text-slate-500">
+            <h4 className="font-medium text-xs text-foreground">Steps</h4>
+            <p className="text-[10px] text-muted-foreground">
               {stage.steps?.length ?? 0} step(s)
             </p>
           </div>
@@ -317,11 +317,11 @@ export function StageProperties({
                   onCancel={() => setEditingStepId(null)}
                 />
               ) : (
-                <div className="flex items-center gap-2 p-2 bg-white rounded border border-slate-200 group">
-                  <GripVertical className="h-4 w-4 text-slate-300" />
+                <div className="flex items-center gap-2 p-2 bg-card rounded border border-border group">
+                  <GripVertical className="h-4 w-4 text-muted-foreground/50" />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-slate-900 truncate">
+                      <span className="text-sm font-medium text-foreground truncate">
                         {step.name}
                       </span>
                       <Badge
@@ -340,7 +340,7 @@ export function StageProperties({
                       )}
                     </div>
                     {step.description && (
-                      <p className="text-[10px] text-slate-500 truncate">
+                      <p className="text-[10px] text-muted-foreground truncate">
                         {step.description}
                       </p>
                     )}
@@ -381,7 +381,7 @@ export function StageProperties({
 
           {/* Empty State */}
           {(!stage.steps || stage.steps.length === 0) && !isAddingStep && (
-            <div className="text-center py-4 text-xs text-slate-500">
+            <div className="text-center py-4 text-xs text-muted-foreground">
               No steps defined. Add steps to define work within this stage.
             </div>
           )}
@@ -394,8 +394,8 @@ export function StageProperties({
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <div>
-            <h4 className="font-medium text-xs text-slate-900">Gates</h4>
-            <p className="text-[10px] text-slate-500">
+            <h4 className="font-medium text-xs text-foreground">Gates</h4>
+            <p className="text-[10px] text-muted-foreground">
               {stage.gates?.length ?? 0} gate(s)
             </p>
           </div>
@@ -446,7 +446,7 @@ export function StageProperties({
 
           {/* Add Gate Form */}
           {isAddingGate && (
-            <div className="space-y-3 p-3 bg-slate-50 rounded-lg border border-slate-200">
+            <div className="space-y-3 p-3 bg-muted/50 rounded-lg border border-border">
               <div className="space-y-1.5">
                 <Label htmlFor="gate-type" className="text-xs">
                   Gate Type
@@ -497,7 +497,7 @@ export function StageProperties({
 
           {/* Empty State */}
           {(!stage.gates || stage.gates.length === 0) && !isAddingGate && (
-            <div className="text-center py-4 text-xs text-slate-500">
+            <div className="text-center py-4 text-xs text-muted-foreground">
               No gates defined. Gates enforce rules before stage transitions.
             </div>
           )}

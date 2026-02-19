@@ -336,9 +336,9 @@ export function ProjectTimelineView({
   const columnWidth = zoom === "week" ? 40 : zoom === "month" ? 80 : 120;
 
   return (
-    <div className="h-full flex flex-col bg-white">
+    <div className="h-full flex flex-col bg-card">
       {/* Toolbar */}
-      <div className="flex items-center gap-2 p-2 border-b bg-slate-50">
+      <div className="flex items-center gap-2 p-2 border-b bg-muted/50">
         <Button
           variant="outline"
           size="sm"
@@ -375,7 +375,7 @@ export function ProjectTimelineView({
         <div className="flex min-w-max">
           {/* Left column - task names */}
           <div
-            className="flex-shrink-0 border-r bg-white sticky left-0 z-20"
+            className="flex-shrink-0 border-r bg-card sticky left-0 z-20"
             style={{ width: LEFT_COLUMN_WIDTH }}
           >
             {/* Header */}
@@ -720,7 +720,7 @@ function createTimelineRange(
  */
 function TimelineSkeleton() {
   return (
-    <div className="h-full flex flex-col bg-white">
+    <div className="h-full flex flex-col bg-card">
       <div className="flex items-center gap-2 p-2 border-b">
         <Skeleton className="h-8 w-8" />
         <Skeleton className="h-8 w-8" />

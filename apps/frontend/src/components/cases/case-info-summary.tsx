@@ -19,9 +19,21 @@ const STATUS_CONFIG: Record<
   CaseStatus,
   { bg: string; text: string; label: string }
 > = {
-  NEW: { bg: "bg-blue-100", text: "text-blue-800", label: "New" },
-  OPEN: { bg: "bg-yellow-100", text: "text-yellow-800", label: "Open" },
-  CLOSED: { bg: "bg-gray-100", text: "text-gray-800", label: "Closed" },
+  NEW: {
+    bg: "bg-blue-100 dark:bg-blue-900/50",
+    text: "text-blue-800 dark:text-blue-200",
+    label: "New",
+  },
+  OPEN: {
+    bg: "bg-yellow-100 dark:bg-yellow-900/50",
+    text: "text-yellow-800 dark:text-yellow-200",
+    label: "Open",
+  },
+  CLOSED: {
+    bg: "bg-gray-100 dark:bg-gray-800/50",
+    text: "text-gray-800 dark:text-gray-200",
+    label: "Closed",
+  },
 };
 
 /**
@@ -31,9 +43,21 @@ const SEVERITY_CONFIG: Record<
   Severity,
   { bg: string; text: string; label: string }
 > = {
-  LOW: { bg: "bg-green-100", text: "text-green-800", label: "Low" },
-  MEDIUM: { bg: "bg-yellow-100", text: "text-yellow-800", label: "Medium" },
-  HIGH: { bg: "bg-orange-100", text: "text-orange-800", label: "High" },
+  LOW: {
+    bg: "bg-green-100 dark:bg-green-900/50",
+    text: "text-green-800 dark:text-green-200",
+    label: "Low",
+  },
+  MEDIUM: {
+    bg: "bg-yellow-100 dark:bg-yellow-900/50",
+    text: "text-yellow-800 dark:text-yellow-200",
+    label: "Medium",
+  },
+  HIGH: {
+    bg: "bg-orange-100 dark:bg-orange-900/50",
+    text: "text-orange-800 dark:text-orange-200",
+    label: "High",
+  },
 };
 
 /**
@@ -44,26 +68,26 @@ const SLA_CONFIG: Record<
   { bg: string; text: string; icon: typeof Check; label: string }
 > = {
   ON_TRACK: {
-    bg: "bg-green-50",
-    text: "text-green-700",
+    bg: "bg-green-50 dark:bg-green-950/50",
+    text: "text-green-700 dark:text-green-300",
     icon: Check,
     label: "On Track",
   },
   WARNING: {
-    bg: "bg-yellow-50",
-    text: "text-yellow-700",
+    bg: "bg-yellow-50 dark:bg-yellow-950/50",
+    text: "text-yellow-700 dark:text-yellow-300",
     icon: AlertTriangle,
     label: "Warning",
   },
   BREACHED: {
-    bg: "bg-red-50",
-    text: "text-red-700",
+    bg: "bg-red-50 dark:bg-red-950/50",
+    text: "text-red-700 dark:text-red-300",
     icon: AlertCircle,
     label: "Breached",
   },
   CRITICAL: {
-    bg: "bg-red-100",
-    text: "text-red-800",
+    bg: "bg-red-100 dark:bg-red-900/50",
+    text: "text-red-800 dark:text-red-200",
     icon: AlertCircle,
     label: "Critical",
   },
@@ -117,9 +141,9 @@ export function CaseInfoSummary({ caseData, isLoading }: CaseInfoSummaryProps) {
   );
 
   return (
-    <div className="bg-white p-4">
+    <div className="bg-card p-4">
       {/* Reference Number */}
-      <h2 className="text-lg font-bold text-gray-900 font-mono mb-3">
+      <h2 className="text-lg font-bold text-foreground font-mono mb-3">
         {caseData.referenceNumber}
       </h2>
 
@@ -152,9 +176,9 @@ export function CaseInfoSummary({ caseData, isLoading }: CaseInfoSummaryProps) {
         {/* Pipeline Stage */}
         {caseData.pipelineStage && (
           <div className="flex items-center gap-2 text-sm">
-            <Shield className="w-4 h-4 text-gray-400" />
-            <span className="text-gray-500">Stage:</span>
-            <span className="font-medium text-gray-900 capitalize">
+            <Shield className="w-4 h-4 text-muted-foreground/70" />
+            <span className="text-muted-foreground">Stage:</span>
+            <span className="font-medium text-foreground capitalize">
               {caseData.pipelineStage.toLowerCase().replace("_", " ")}
             </span>
           </div>
@@ -162,9 +186,9 @@ export function CaseInfoSummary({ caseData, isLoading }: CaseInfoSummaryProps) {
 
         {/* Days Open */}
         <div className="flex items-center gap-2 text-sm">
-          <Clock className="w-4 h-4 text-gray-400" />
-          <span className="text-gray-500">Open:</span>
-          <span className="font-medium text-gray-900">
+          <Clock className="w-4 h-4 text-muted-foreground/70" />
+          <span className="text-muted-foreground">Open:</span>
+          <span className="font-medium text-foreground">
             {daysOpen === 0
               ? "Today"
               : daysOpen === 1
@@ -175,9 +199,9 @@ export function CaseInfoSummary({ caseData, isLoading }: CaseInfoSummaryProps) {
 
         {/* Created Date */}
         <div className="flex items-center gap-2 text-sm">
-          <Calendar className="w-4 h-4 text-gray-400" />
-          <span className="text-gray-500">Created:</span>
-          <span className="font-medium text-gray-900">
+          <Calendar className="w-4 h-4 text-muted-foreground/70" />
+          <span className="text-muted-foreground">Created:</span>
+          <span className="font-medium text-foreground">
             {formattedCreatedDate}
           </span>
         </div>
@@ -186,7 +210,7 @@ export function CaseInfoSummary({ caseData, isLoading }: CaseInfoSummaryProps) {
         {slaConfig && (
           <div className="flex items-center gap-2 text-sm">
             <slaConfig.icon className={cn("w-4 h-4", slaConfig.text)} />
-            <span className="text-gray-500">SLA:</span>
+            <span className="text-muted-foreground">SLA:</span>
             <span
               className={cn(
                 "inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium",
@@ -213,7 +237,7 @@ export function CaseInfoSummary({ caseData, isLoading }: CaseInfoSummaryProps) {
  */
 function CaseInfoSummarySkeleton() {
   return (
-    <div className="bg-white p-4">
+    <div className="bg-card p-4">
       {/* Reference Number */}
       <Skeleton className="h-6 w-36 mb-3" />
 

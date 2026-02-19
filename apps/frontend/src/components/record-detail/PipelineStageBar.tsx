@@ -184,7 +184,7 @@ export function PipelineStageBar({
 
   return (
     <>
-      <div className="sticky top-0 z-10 bg-white border-b border-gray-200 py-4 px-4">
+      <div className="sticky top-0 z-10 bg-card border-b border-border py-4 px-4">
         <TooltipProvider>
           <div className="flex items-center justify-between">
             {stages.map((stage, index) => {
@@ -216,7 +216,7 @@ export function PipelineStageBar({
                               "ring-4 ring-opacity-30 animate-pulse",
                             ],
                             status === "future" && [
-                              "border-2 border-gray-300 bg-white text-gray-400",
+                              "border-2 border-gray-300 dark:border-gray-600 bg-card text-gray-400 dark:text-gray-500",
                               canTransitionTo(stage.id)
                                 ? "hover:border-blue-400 hover:text-blue-500 cursor-pointer"
                                 : "cursor-not-allowed",
@@ -303,9 +303,9 @@ export function PipelineStageBar({
                     <span
                       className={cn(
                         "mt-2 text-xs text-center max-w-[80px] truncate",
-                        status === "current" && "font-bold text-gray-900",
-                        status === "completed" && "text-gray-700",
-                        status === "future" && "text-gray-400",
+                        status === "current" && "font-bold text-foreground",
+                        status === "completed" && "text-foreground/80",
+                        status === "future" && "text-muted-foreground",
                       )}
                     >
                       {stage.name}
@@ -359,7 +359,7 @@ export function PipelineStageBar({
           <div className="py-4">
             <label
               htmlFor="rationale"
-              className="text-sm font-medium text-gray-700"
+              className="text-sm font-medium text-foreground"
             >
               Rationale (optional)
             </label>

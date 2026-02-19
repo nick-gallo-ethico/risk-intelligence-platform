@@ -111,18 +111,18 @@ export function RecordDetailLayout({
   return (
     <div className="flex flex-col h-full">
       {breadcrumb && (
-        <div className="flex-shrink-0 border-b bg-white px-4 py-2">
+        <div className="flex-shrink-0 border-b bg-card px-4 py-2">
           {breadcrumb}
         </div>
       )}
 
       {/* Toggle buttons for tablet/mobile - positioned above the content area */}
       {!isDesktop && (
-        <div className="flex-shrink-0 flex items-center justify-between px-4 py-2 bg-white border-b">
+        <div className="flex-shrink-0 flex items-center justify-between px-4 py-2 bg-card border-b">
           <Button
             variant="ghost"
             size="sm"
-            className="gap-1.5 text-gray-600 hover:text-gray-900"
+            className="gap-1.5 text-muted-foreground hover:text-foreground"
             onClick={handleOpenLeft}
             aria-label="Open case details sidebar"
           >
@@ -132,7 +132,7 @@ export function RecordDetailLayout({
           <Button
             variant="ghost"
             size="sm"
-            className="gap-1.5 text-gray-600 hover:text-gray-900"
+            className="gap-1.5 text-muted-foreground hover:text-foreground"
             onClick={handleOpenRight}
             aria-label="Open connected items sidebar"
           >
@@ -146,17 +146,15 @@ export function RecordDetailLayout({
       <div className="flex-1 grid grid-cols-1 xl:grid-cols-[300px_1fr_300px] min-h-0">
         {/* Left sidebar - visible only on desktop */}
         {isDesktop && (
-          <div className="border-r overflow-y-auto bg-white">{leftSidebar}</div>
+          <div className="border-r overflow-y-auto bg-card">{leftSidebar}</div>
         )}
 
         {/* Center column - always visible, takes full width on tablet/mobile */}
-        <div className="overflow-y-auto bg-gray-50">{centerColumn}</div>
+        <div className="overflow-y-auto bg-muted/30">{centerColumn}</div>
 
         {/* Right sidebar - visible only on desktop */}
         {isDesktop && (
-          <div className="border-l overflow-y-auto bg-white">
-            {rightSidebar}
-          </div>
+          <div className="border-l overflow-y-auto bg-card">{rightSidebar}</div>
         )}
       </div>
 

@@ -132,22 +132,22 @@ export function RecordHeader({
   };
 
   return (
-    <div className="bg-white p-4">
+    <div className="bg-card p-4">
       {/* Reference Number with Copy Button */}
       <div className="flex items-center gap-2 mb-3">
-        <h2 className="text-lg font-bold text-gray-900 font-mono">
+        <h2 className="text-lg font-bold text-foreground font-mono">
           {referenceNumber}
         </h2>
         <button
           onClick={handleCopyReference}
-          className="p-1 rounded hover:bg-gray-100 transition-colors"
+          className="p-1 rounded hover:bg-muted transition-colors"
           aria-label="Copy reference number"
           title="Copy reference number"
         >
           {copied ? (
             <Check className="w-4 h-4 text-green-600" />
           ) : (
-            <Copy className="w-4 h-4 text-gray-400 hover:text-gray-600" />
+            <Copy className="w-4 h-4 text-muted-foreground hover:text-foreground" />
           )}
         </button>
       </div>
@@ -182,48 +182,48 @@ export function RecordHeader({
       <div className="space-y-2 text-sm">
         {/* Category */}
         {category && (
-          <div className="text-gray-700 font-medium">{category}</div>
+          <div className="text-foreground font-medium">{category}</div>
         )}
 
         {/* Open Date */}
-        <div className="text-gray-500">
-          <span className="text-gray-400">Opened:</span>{" "}
-          <span className="text-gray-700">{openDate}</span>
+        <div className="text-muted-foreground">
+          <span className="text-muted-foreground/70">Opened:</span>{" "}
+          <span className="text-foreground">{openDate}</span>
         </div>
 
         {/* Case Age */}
-        <div className="text-gray-500">{caseAge}</div>
+        <div className="text-muted-foreground">{caseAge}</div>
 
         {/* Assigned To */}
         {assignedTo.length > 0 && (
           <div className="flex items-center gap-2 pt-1">
-            <span className="text-gray-400 text-xs">Assigned:</span>
+            <span className="text-muted-foreground/70 text-xs">Assigned:</span>
             <div className="flex -space-x-2">
               {assignedTo.slice(0, 3).map((user) => (
                 <Avatar
                   key={user.id}
-                  className="w-6 h-6 border-2 border-white"
+                  className="w-6 h-6 border-2 border-background"
                   title={user.name}
                 >
                   <AvatarImage src={user.avatarUrl} alt={user.name} />
-                  <AvatarFallback className="text-[10px] bg-gray-100">
+                  <AvatarFallback className="text-[10px] bg-muted">
                     {getInitials(user.name)}
                   </AvatarFallback>
                 </Avatar>
               ))}
               {assignedTo.length > 3 && (
                 <div
-                  className="w-6 h-6 rounded-full bg-gray-100 border-2 border-white flex items-center justify-center"
+                  className="w-6 h-6 rounded-full bg-muted border-2 border-background flex items-center justify-center"
                   title={`${assignedTo.length - 3} more`}
                 >
-                  <span className="text-[10px] text-gray-600 font-medium">
+                  <span className="text-[10px] text-muted-foreground font-medium">
                     +{assignedTo.length - 3}
                   </span>
                 </div>
               )}
             </div>
             {assignedTo.length <= 2 && (
-              <span className="text-gray-700 text-xs truncate max-w-[120px]">
+              <span className="text-foreground text-xs truncate max-w-[120px]">
                 {assignedTo.map((u) => u.name.split(" ")[0]).join(", ")}
               </span>
             )}
@@ -239,7 +239,7 @@ export function RecordHeader({
  */
 function RecordHeaderSkeleton() {
   return (
-    <div className="bg-white p-4">
+    <div className="bg-card p-4">
       {/* Reference Number */}
       <div className="flex items-center gap-2 mb-3">
         <Skeleton className="h-6 w-36" />
