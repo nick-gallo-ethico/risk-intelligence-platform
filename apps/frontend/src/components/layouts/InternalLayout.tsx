@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 /**
  * Internal Operations Layout
@@ -7,10 +7,10 @@
  * Includes navigation, tenant context display, and session management.
  */
 
-import { ReactNode } from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { cn } from '@/lib/utils';
+import { ReactNode } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { cn } from "@/lib/utils";
 import {
   Building2,
   Settings,
@@ -19,7 +19,7 @@ import {
   LayoutDashboard,
   LogOut,
   User,
-} from 'lucide-react';
+} from "lucide-react";
 
 interface InternalLayoutProps {
   children: ReactNode;
@@ -27,23 +27,23 @@ interface InternalLayoutProps {
 
 const NAV_ITEMS = [
   {
-    label: 'Support',
-    href: '/internal/support',
+    label: "Support",
+    href: "/internal/support",
     icon: Headphones,
   },
   {
-    label: 'Implementation',
-    href: '/internal/implementation',
+    label: "Implementation",
+    href: "/internal/implementation",
     icon: Building2,
   },
   {
-    label: 'Client Health',
-    href: '/internal/health',
+    label: "Client Health",
+    href: "/internal/health",
     icon: LayoutDashboard,
   },
   {
-    label: 'Admin',
-    href: '/internal/admin',
+    label: "Admin",
+    href: "/internal/admin",
     icon: Settings,
   },
 ];
@@ -52,9 +52,9 @@ export function InternalLayout({ children }: InternalLayoutProps) {
   const pathname = usePathname();
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-muted/50">
       {/* Top navigation bar */}
-      <header className="sticky top-0 z-50 bg-white border-b shadow-sm">
+      <header className="sticky top-0 z-50 bg-card border-b shadow-sm">
         <div className="flex items-center justify-between h-14 px-4">
           {/* Logo and title */}
           <div className="flex items-center gap-4">
@@ -77,10 +77,10 @@ export function InternalLayout({ children }: InternalLayoutProps) {
                     key={item.href}
                     href={item.href}
                     className={cn(
-                      'flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors',
+                      "flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors",
                       isActive
-                        ? 'bg-blue-100 text-blue-700'
-                        : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                        ? "bg-primary/10 text-primary"
+                        : "text-muted-foreground hover:bg-muted hover:text-foreground",
                     )}
                   >
                     <item.icon className="h-4 w-4" />
@@ -93,11 +93,11 @@ export function InternalLayout({ children }: InternalLayoutProps) {
 
           {/* User menu */}
           <div className="flex items-center gap-4">
-            <button className="flex items-center gap-2 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900">
+            <button className="flex items-center gap-2 px-3 py-1.5 text-sm text-muted-foreground hover:text-foreground">
               <User className="h-4 w-4" />
               <span className="hidden sm:inline">Internal User</span>
             </button>
-            <button className="flex items-center gap-2 px-3 py-1.5 text-sm text-gray-600 hover:text-red-600">
+            <button className="flex items-center gap-2 px-3 py-1.5 text-sm text-muted-foreground hover:text-destructive">
               <LogOut className="h-4 w-4" />
               <span className="hidden sm:inline">Sign Out</span>
             </button>

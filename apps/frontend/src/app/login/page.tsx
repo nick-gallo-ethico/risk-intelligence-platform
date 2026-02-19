@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { useAuth } from '@/contexts/auth-context';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { useAuth } from "@/contexts/auth-context";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Card,
   CardContent,
@@ -14,16 +14,16 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { AxiosError } from 'axios';
-import type { ApiError } from '@/lib/api';
+} from "@/components/ui/card";
+import { AxiosError } from "axios";
+import type { ApiError } from "@/lib/api";
 
 export default function LoginPage() {
   const router = useRouter();
   const { login, isLoading: authLoading } = useAuth();
 
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -34,16 +34,16 @@ export default function LoginPage() {
 
     try {
       await login({ email, password });
-      router.push('/dashboard');
+      router.push("/dashboard");
     } catch (err) {
       const axiosError = err as AxiosError<ApiError>;
       const message = axiosError.response?.data?.message;
       setError(
-        typeof message === 'string'
+        typeof message === "string"
           ? message
           : Array.isArray(message)
             ? message[0]
-            : 'Login failed. Please check your credentials.'
+            : "Login failed. Please check your credentials.",
       );
     } finally {
       setIsSubmitting(false);
@@ -53,7 +53,7 @@ export default function LoginPage() {
   const isLoading = authLoading || isSubmitting;
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-muted/50 px-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <div className="flex items-center justify-center mb-4">
@@ -69,7 +69,7 @@ export default function LoginPage() {
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
             {error && (
-              <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-md">
+              <div className="p-3 text-sm text-destructive bg-destructive/10 border border-destructive/20 rounded-md">
                 {error}
               </div>
             )}
@@ -103,11 +103,11 @@ export default function LoginPage() {
           </CardContent>
           <CardFooter className="flex flex-col space-y-4">
             <Button type="submit" className="w-full" disabled={isLoading}>
-              {isSubmitting ? 'Signing in...' : 'Sign in'}
+              {isSubmitting ? "Signing in..." : "Sign in"}
             </Button>
             <Link
               href="/"
-              className="text-sm text-gray-500 hover:text-gray-700 text-center"
+              className="text-sm text-muted-foreground hover:text-foreground text-center"
             >
               Back to home
             </Link>

@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 /**
  * CommandPalette Component
@@ -14,9 +14,15 @@
  * - Remembers recent items
  */
 
-import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { useRouter } from 'next/navigation';
-import { useHotkeys } from 'react-hotkeys-hook';
+import React, {
+  useState,
+  useEffect,
+  useMemo,
+  useCallback,
+  useRef,
+} from "react";
+import { useRouter } from "next/navigation";
+import { useHotkeys } from "react-hotkeys-hook";
 import {
   ArrowRight,
   Briefcase,
@@ -29,15 +35,11 @@ import {
   User,
   Clock,
   Command,
-} from 'lucide-react';
-import {
-  Dialog,
-  DialogContent,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { cn } from '@/lib/utils';
-import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
+} from "lucide-react";
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
 /**
  * Command definition for the palette.
@@ -45,7 +47,7 @@ import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 export interface PaletteCommand {
   id: string;
   label: string;
-  category: 'navigation' | 'action' | 'recent' | 'search';
+  category: "navigation" | "action" | "recent" | "search";
   icon?: React.ReactNode;
   shortcut?: string;
   action: () => void;
@@ -63,7 +65,7 @@ export interface CommandPaletteProps {
   recentItems?: Array<{
     id: string;
     label: string;
-    type: 'case' | 'investigation' | 'page';
+    type: "case" | "investigation" | "page";
     href: string;
   }>;
 }
@@ -72,32 +74,32 @@ export interface CommandPaletteProps {
  * Category display configuration.
  */
 const CATEGORY_CONFIG: Record<
-  PaletteCommand['category'],
+  PaletteCommand["category"],
   { label: string; icon: React.ReactNode }
 > = {
-  navigation: { label: 'Go to', icon: <ArrowRight className="h-3 w-3" /> },
-  action: { label: 'Actions', icon: <Plus className="h-3 w-3" /> },
-  recent: { label: 'Recent', icon: <Clock className="h-3 w-3" /> },
-  search: { label: 'Search', icon: <Search className="h-3 w-3" /> },
+  navigation: { label: "Go to", icon: <ArrowRight className="h-3 w-3" /> },
+  action: { label: "Actions", icon: <Plus className="h-3 w-3" /> },
+  recent: { label: "Recent", icon: <Clock className="h-3 w-3" /> },
+  search: { label: "Search", icon: <Search className="h-3 w-3" /> },
 };
 
 /**
  * Category display order.
  */
-const CATEGORY_ORDER: PaletteCommand['category'][] = [
-  'recent',
-  'navigation',
-  'action',
-  'search',
+const CATEGORY_ORDER: PaletteCommand["category"][] = [
+  "recent",
+  "navigation",
+  "action",
+  "search",
 ];
 
 /**
  * Formats a keyboard shortcut for display.
  */
 function formatShortcut(shortcut: string): string {
-  if (typeof window !== 'undefined') {
-    const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
-    return shortcut.replace(/mod/g, isMac ? '\u2318' : 'Ctrl');
+  if (typeof window !== "undefined") {
+    const isMac = navigator.platform.toUpperCase().indexOf("MAC") >= 0;
+    return shortcut.replace(/mod/g, isMac ? "\u2318" : "Ctrl");
   }
   return shortcut;
 }
@@ -116,7 +118,11 @@ function fuzzyMatch(text: string, query: string): boolean {
 
   // Fuzzy match - all characters in order
   let queryIndex = 0;
-  for (let i = 0; i < searchText.length && queryIndex < searchQuery.length; i++) {
+  for (
+    let i = 0;
+    i < searchText.length && queryIndex < searchQuery.length;
+    i++
+  ) {
     if (searchText[i] === searchQuery[queryIndex]) {
       queryIndex++;
     }
@@ -129,16 +135,16 @@ function fuzzyMatch(text: string, query: string): boolean {
  */
 function ShortcutBadge({ shortcut }: { shortcut: string }) {
   const formatted = formatShortcut(shortcut);
-  const keys = formatted.split('+').map((k) => k.trim());
+  const keys = formatted.split("+").map((k) => k.trim());
 
   return (
-    <span className="flex items-center gap-0.5 text-xs text-gray-400">
+    <span className="flex items-center gap-0.5 text-xs text-muted-foreground">
       {keys.map((key, index) => (
         <kbd
           key={index}
           className="inline-flex items-center justify-center min-w-[20px] h-5 px-1
-                     text-[10px] font-medium font-mono text-gray-500
-                     bg-gray-100 border border-gray-200 rounded"
+                     text-[10px] font-medium font-mono text-muted-foreground
+                     bg-muted border border-border rounded"
         >
           {key}
         </kbd>
@@ -165,16 +171,16 @@ function CommandItem({
     <button
       type="button"
       className={cn(
-        'flex items-center justify-between w-full px-3 py-2 text-left rounded-md',
-        'hover:bg-gray-100 transition-colors',
-        isSelected && 'bg-gray-100'
+        "flex items-center justify-between w-full px-3 py-2 text-left rounded-md",
+        "hover:bg-accent transition-colors",
+        isSelected && "bg-accent",
       )}
       onClick={onSelect}
       onMouseEnter={onHover}
     >
       <div className="flex items-center gap-3">
-        <span className="text-gray-400">{command.icon}</span>
-        <span className="text-sm text-gray-900">{command.label}</span>
+        <span className="text-muted-foreground">{command.icon}</span>
+        <span className="text-sm text-foreground">{command.label}</span>
       </div>
       {command.shortcut && <ShortcutBadge shortcut={command.shortcut} />}
     </button>
@@ -191,7 +197,7 @@ export function CommandPalette({
   recentItems = [],
 }: CommandPaletteProps) {
   const router = useRouter();
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -200,89 +206,89 @@ export function CommandPalette({
     () => [
       // Navigation
       {
-        id: 'nav-dashboard',
-        label: 'Dashboard',
-        category: 'navigation',
+        id: "nav-dashboard",
+        label: "Dashboard",
+        category: "navigation",
         icon: <Home className="h-4 w-4" />,
-        action: () => router.push('/dashboard'),
-        keywords: ['home', 'overview'],
+        action: () => router.push("/dashboard"),
+        keywords: ["home", "overview"],
       },
       {
-        id: 'nav-cases',
-        label: 'Cases',
-        category: 'navigation',
+        id: "nav-cases",
+        label: "Cases",
+        category: "navigation",
         icon: <Briefcase className="h-4 w-4" />,
-        action: () => router.push('/cases'),
-        keywords: ['list', 'all'],
+        action: () => router.push("/cases"),
+        keywords: ["list", "all"],
       },
       {
-        id: 'nav-investigations',
-        label: 'Investigations',
-        category: 'navigation',
+        id: "nav-investigations",
+        label: "Investigations",
+        category: "navigation",
         icon: <FileSearch className="h-4 w-4" />,
-        action: () => router.push('/investigations'),
-        keywords: ['list', 'all'],
+        action: () => router.push("/investigations"),
+        keywords: ["list", "all"],
       },
       {
-        id: 'nav-settings',
-        label: 'Settings',
-        category: 'navigation',
+        id: "nav-settings",
+        label: "Settings",
+        category: "navigation",
         icon: <Settings className="h-4 w-4" />,
-        action: () => router.push('/settings'),
-        keywords: ['preferences', 'config'],
+        action: () => router.push("/settings"),
+        keywords: ["preferences", "config"],
       },
       {
-        id: 'nav-profile',
-        label: 'My Profile',
-        category: 'navigation',
+        id: "nav-profile",
+        label: "My Profile",
+        category: "navigation",
         icon: <User className="h-4 w-4" />,
-        action: () => router.push('/profile'),
-        keywords: ['account', 'user'],
+        action: () => router.push("/profile"),
+        keywords: ["account", "user"],
       },
 
       // Actions
       {
-        id: 'action-new-case',
-        label: 'Create New Case',
-        category: 'action',
+        id: "action-new-case",
+        label: "Create New Case",
+        category: "action",
         icon: <Plus className="h-4 w-4" />,
-        shortcut: 'mod+shift+c',
-        action: () => router.push('/cases/new'),
-        keywords: ['add', 'create'],
+        shortcut: "mod+shift+c",
+        action: () => router.push("/cases/new"),
+        keywords: ["add", "create"],
       },
       {
-        id: 'action-new-investigation',
-        label: 'Create New Investigation',
-        category: 'action',
+        id: "action-new-investigation",
+        label: "Create New Investigation",
+        category: "action",
         icon: <Plus className="h-4 w-4" />,
-        shortcut: 'mod+shift+i',
+        shortcut: "mod+shift+i",
         action: () => {
           // Would typically open a modal or navigate to case selection
-          console.log('New investigation');
+          console.log("New investigation");
         },
-        keywords: ['add', 'create'],
+        keywords: ["add", "create"],
       },
 
       // Search
       {
-        id: 'search-cases',
-        label: 'Search Cases...',
-        category: 'search',
+        id: "search-cases",
+        label: "Search Cases...",
+        category: "search",
         icon: <Search className="h-4 w-4" />,
-        action: () => router.push('/cases?focus=search'),
-        keywords: ['find'],
+        action: () => router.push("/cases?focus=search"),
+        keywords: ["find"],
       },
       {
-        id: 'search-all',
-        label: 'Search Everything...',
-        category: 'search',
+        id: "search-all",
+        label: "Search Everything...",
+        category: "search",
         icon: <Search className="h-4 w-4" />,
-        shortcut: '/',
-        action: () => router.push('/search'),
-        keywords: ['global', 'find'],
+        shortcut: "/",
+        action: () => router.push("/search"),
+        keywords: ["global", "find"],
       },
     ],
-    [router]
+    [router],
   );
 
   // Build recent commands from recent items
@@ -291,24 +297,24 @@ export function CommandPalette({
       recentItems.slice(0, 5).map((item) => ({
         id: `recent-${item.id}`,
         label: item.label,
-        category: 'recent' as const,
+        category: "recent" as const,
         icon:
-          item.type === 'case' ? (
+          item.type === "case" ? (
             <Briefcase className="h-4 w-4" />
-          ) : item.type === 'investigation' ? (
+          ) : item.type === "investigation" ? (
             <FileSearch className="h-4 w-4" />
           ) : (
             <Clock className="h-4 w-4" />
           ),
         action: () => router.push(item.href),
       })),
-    [recentItems, router]
+    [recentItems, router],
   );
 
   // Combine all commands
   const allCommands = useMemo(
     () => [...recentCommands, ...defaultCommands, ...additionalCommands],
-    [recentCommands, defaultCommands, additionalCommands]
+    [recentCommands, defaultCommands, additionalCommands],
   );
 
   // Filter commands based on query
@@ -330,7 +336,7 @@ export function CommandPalette({
 
   // Group filtered commands by category
   const groupedCommands = useMemo(() => {
-    const groups: Record<PaletteCommand['category'], PaletteCommand[]> = {
+    const groups: Record<PaletteCommand["category"], PaletteCommand[]> = {
       recent: [],
       navigation: [],
       action: [],
@@ -351,7 +357,7 @@ export function CommandPalette({
   // Flatten for keyboard navigation
   const flatCommands = useMemo(
     () => groupedCommands.flatMap((group) => group.commands),
-    [groupedCommands]
+    [groupedCommands],
   );
 
   // Reset selection when query changes
@@ -362,7 +368,7 @@ export function CommandPalette({
   // Reset query when dialog opens
   useEffect(() => {
     if (open) {
-      setQuery('');
+      setQuery("");
       setSelectedIndex(0);
       // Focus input after dialog animation
       setTimeout(() => inputRef.current?.focus(), 50);
@@ -380,30 +386,30 @@ export function CommandPalette({
 
   // Keyboard navigation within palette
   useHotkeys(
-    'up',
+    "up",
     (e) => {
       e.preventDefault();
       setSelectedIndex((prev) => Math.max(0, prev - 1));
     },
-    { enableOnFormTags: true, enabled: open }
+    { enableOnFormTags: true, enabled: open },
   );
 
   useHotkeys(
-    'down',
+    "down",
     (e) => {
       e.preventDefault();
       setSelectedIndex((prev) => Math.min(flatCommands.length - 1, prev + 1));
     },
-    { enableOnFormTags: true, enabled: open }
+    { enableOnFormTags: true, enabled: open },
   );
 
   useHotkeys(
-    'enter',
+    "enter",
     (e) => {
       e.preventDefault();
       executeSelected();
     },
-    { enableOnFormTags: true, enabled: open }
+    { enableOnFormTags: true, enabled: open },
   );
 
   return (
@@ -418,8 +424,8 @@ export function CommandPalette({
         </VisuallyHidden>
 
         {/* Search input */}
-        <div className="flex items-center gap-3 px-4 py-3 border-b">
-          <Command className="h-4 w-4 text-gray-400 flex-shrink-0" />
+        <div className="flex items-center gap-3 px-4 py-3 border-b border-border">
+          <Command className="h-4 w-4 text-muted-foreground flex-shrink-0" />
           <Input
             ref={inputRef}
             value={query}
@@ -430,7 +436,7 @@ export function CommandPalette({
             autoCorrect="off"
             spellCheck="false"
           />
-          <kbd className="text-xs text-gray-400 bg-gray-100 px-1.5 py-0.5 rounded border">
+          <kbd className="text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded border border-border">
             esc
           </kbd>
         </div>
@@ -438,13 +444,13 @@ export function CommandPalette({
         {/* Command list */}
         <div className="max-h-[400px] overflow-y-auto py-2">
           {groupedCommands.length === 0 ? (
-            <div className="px-4 py-8 text-center text-sm text-gray-500">
+            <div className="px-4 py-8 text-center text-sm text-muted-foreground">
               No commands found for &ldquo;{query}&rdquo;
             </div>
           ) : (
             groupedCommands.map(({ category, commands }) => (
               <div key={category} className="mb-2 last:mb-0">
-                <div className="flex items-center gap-2 px-4 py-1.5 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <div className="flex items-center gap-2 px-4 py-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   {CATEGORY_CONFIG[category].icon}
                   {CATEGORY_CONFIG[category].label}
                 </div>
@@ -471,26 +477,26 @@ export function CommandPalette({
         </div>
 
         {/* Footer hint */}
-        <div className="flex items-center justify-between px-4 py-2 border-t bg-gray-50 text-xs text-gray-500">
+        <div className="flex items-center justify-between px-4 py-2 border-t border-border bg-muted/50 text-xs text-muted-foreground">
           <div className="flex items-center gap-4">
             <span className="flex items-center gap-1">
-              <kbd className="px-1 py-0.5 bg-white border rounded text-[10px]">
+              <kbd className="px-1 py-0.5 bg-background border border-border rounded text-[10px]">
                 ↑
               </kbd>
-              <kbd className="px-1 py-0.5 bg-white border rounded text-[10px]">
+              <kbd className="px-1 py-0.5 bg-background border border-border rounded text-[10px]">
                 ↓
               </kbd>
               to navigate
             </span>
             <span className="flex items-center gap-1">
-              <kbd className="px-1.5 py-0.5 bg-white border rounded text-[10px]">
+              <kbd className="px-1.5 py-0.5 bg-background border border-border rounded text-[10px]">
                 ↵
               </kbd>
               to select
             </span>
           </div>
           <span className="flex items-center gap-1">
-            <kbd className="px-1.5 py-0.5 bg-white border rounded text-[10px]">
+            <kbd className="px-1.5 py-0.5 bg-background border border-border rounded text-[10px]">
               esc
             </kbd>
             to close

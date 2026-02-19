@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 /**
  * ShortcutsHelpDialog Component
@@ -13,16 +13,19 @@
  * - Can be closed with Escape key
  */
 
-import React, { useMemo } from 'react';
-import { Keyboard } from 'lucide-react';
+import React, { useMemo } from "react";
+import { Keyboard } from "lucide-react";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { SHORTCUT_INFO, ShortcutCategory } from '@/hooks/use-keyboard-shortcuts';
+} from "@/components/ui/dialog";
+import {
+  SHORTCUT_INFO,
+  ShortcutCategory,
+} from "@/hooks/use-keyboard-shortcuts";
 
 export interface ShortcutsHelpDialogProps {
   /** Whether the dialog is open */
@@ -35,30 +38,30 @@ export interface ShortcutsHelpDialogProps {
  * Display name for each category.
  */
 const CATEGORY_LABELS: Record<ShortcutCategory, string> = {
-  global: 'Global',
-  navigation: 'Navigation',
-  actions: 'Quick Actions',
-  list: 'List Operations',
-  checklist: 'Checklist',
+  global: "Global",
+  navigation: "Navigation",
+  actions: "Quick Actions",
+  list: "List Operations",
+  checklist: "Checklist",
 };
 
 /**
  * Order in which categories should be displayed.
  */
 const CATEGORY_ORDER: ShortcutCategory[] = [
-  'global',
-  'navigation',
-  'actions',
-  'list',
-  'checklist',
+  "global",
+  "navigation",
+  "actions",
+  "list",
+  "checklist",
 ];
 
 /**
  * Detects if the user is on a Mac.
  */
 function isMac(): boolean {
-  if (typeof window === 'undefined') return false;
-  return navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+  if (typeof window === "undefined") return false;
+  return navigator.platform.toUpperCase().indexOf("MAC") >= 0;
 }
 
 /**
@@ -68,9 +71,9 @@ function isMac(): boolean {
 function formatKeyForPlatform(key: string): string {
   const mac = isMac();
   return key
-    .replace(/Cmd/g, mac ? '\u2318' : 'Ctrl') // Command symbol or Ctrl
-    .replace(/Shift/g, mac ? '\u21E7' : 'Shift') // Shift symbol or Shift
-    .replace(/\+/g, mac ? '' : '+'); // Remove + on Mac for cleaner look
+    .replace(/Cmd/g, mac ? "\u2318" : "Ctrl") // Command symbol or Ctrl
+    .replace(/Shift/g, mac ? "\u21E7" : "Shift") // Shift symbol or Shift
+    .replace(/\+/g, mac ? "" : "+"); // Remove + on Mac for cleaner look
 }
 
 /**
@@ -78,7 +81,7 @@ function formatKeyForPlatform(key: string): string {
  */
 function KeyBadge({ keyText }: { keyText: string }) {
   // Split combined keys (e.g., "Cmd+K" -> ["Cmd", "K"])
-  const keys = keyText.split('+').map((k) => k.trim());
+  const keys = keyText.split("+").map((k) => k.trim());
 
   return (
     <span className="inline-flex items-center gap-0.5">
@@ -86,13 +89,13 @@ function KeyBadge({ keyText }: { keyText: string }) {
         <React.Fragment key={index}>
           <kbd
             className="inline-flex items-center justify-center min-w-[24px] h-6 px-1.5
-                       text-xs font-medium font-mono text-gray-700
-                       bg-gray-100 border border-gray-300 rounded shadow-sm"
+                       text-xs font-medium font-mono text-foreground
+                       bg-muted border border-border rounded shadow-sm"
           >
             {formatKeyForPlatform(key)}
           </kbd>
           {index < keys.length - 1 && (
-            <span className="text-gray-400 text-xs mx-0.5">+</span>
+            <span className="text-muted-foreground text-xs mx-0.5">+</span>
           )}
         </React.Fragment>
       ))}
@@ -116,16 +119,15 @@ function ShortcutSection({
 
   return (
     <div className="mb-6 last:mb-0">
-      <h3 className="text-sm font-semibold text-gray-900 mb-3">
+      <h3 className="text-sm font-semibold text-foreground mb-3">
         {CATEGORY_LABELS[category]}
       </h3>
       <div className="space-y-2">
         {categoryShortcuts.map((shortcut, index) => (
-          <div
-            key={index}
-            className="flex items-center justify-between py-1.5"
-          >
-            <span className="text-sm text-gray-600">{shortcut.description}</span>
+          <div key={index} className="flex items-center justify-between py-1.5">
+            <span className="text-sm text-muted-foreground">
+              {shortcut.description}
+            </span>
             <KeyBadge keyText={shortcut.key} />
           </div>
         ))}
@@ -163,10 +165,10 @@ export function ShortcutsHelpDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="mt-4 divide-y divide-gray-100">
+        <div className="mt-4 divide-y divide-border">
           {categorizedShortcuts.map(({ category, shortcuts }) => (
             <div key={category} className="py-4 first:pt-0 last:pb-0">
-              <h3 className="text-sm font-semibold text-gray-900 mb-3">
+              <h3 className="text-sm font-semibold text-foreground mb-3">
                 {CATEGORY_LABELS[category]}
               </h3>
               <div className="space-y-2">
@@ -175,7 +177,7 @@ export function ShortcutsHelpDialog({
                     key={index}
                     className="flex items-center justify-between py-1.5"
                   >
-                    <span className="text-sm text-gray-600">
+                    <span className="text-sm text-muted-foreground">
                       {shortcut.description}
                     </span>
                     <KeyBadge keyText={shortcut.key} />
@@ -186,8 +188,8 @@ export function ShortcutsHelpDialog({
           ))}
         </div>
 
-        <div className="mt-4 pt-4 border-t">
-          <p className="text-xs text-gray-500 text-center">
+        <div className="mt-4 pt-4 border-t border-border">
+          <p className="text-xs text-muted-foreground text-center">
             {isMac() ? (
               <>
                 <KeyBadge keyText="Cmd" /> represents the Command key on your
