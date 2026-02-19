@@ -44,8 +44,8 @@ export function PropertySection({
       <Collapsible open={isOpen} onOpenChange={setIsOpen}>
         <CardHeader
           className={cn(
-            "pb-2 cursor-pointer hover:bg-gray-50 transition-colors select-none py-3 px-4",
-            isOpen && "border-b border-gray-100"
+            "pb-2 cursor-pointer hover:bg-muted/50 transition-colors select-none py-3 px-4",
+            isOpen && "border-b border-border"
           )}
         >
           <div className="flex items-center justify-between">
@@ -53,18 +53,18 @@ export function PropertySection({
               <div className="flex items-center gap-2 flex-1">
                 <ChevronRight
                   className={cn(
-                    "h-4 w-4 text-gray-500 transition-transform duration-200 flex-shrink-0",
+                    "h-4 w-4 text-muted-foreground transition-transform duration-200 flex-shrink-0",
                     isOpen && "rotate-90"
                   )}
                 />
-                <CardTitle className="text-sm font-semibold text-gray-700">
+                <CardTitle className="text-sm font-semibold text-foreground">
                   {title}
                 </CardTitle>
               </div>
             </CollapsibleTrigger>
             {showSettings && (
               <Settings2
-                className="h-4 w-4 text-gray-400 hover:text-gray-600 cursor-pointer flex-shrink-0"
+                className="h-4 w-4 text-muted-foreground hover:text-foreground cursor-pointer flex-shrink-0"
                 onClick={(e) => {
                   e.stopPropagation();
                   onSettingsClick?.();

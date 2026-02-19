@@ -34,10 +34,14 @@ interface PolicyTranslationsPanelProps {
 
 // Translation status colors
 const STATUS_COLORS: Record<string, string> = {
-  PENDING_REVIEW: "bg-yellow-100 text-yellow-800 border-yellow-200",
-  APPROVED: "bg-blue-100 text-blue-800 border-blue-200",
-  PUBLISHED: "bg-green-100 text-green-800 border-green-200",
-  NEEDS_REVISION: "bg-red-100 text-red-800 border-red-200",
+  PENDING_REVIEW:
+    "bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-300 dark:border-yellow-800",
+  APPROVED:
+    "bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800",
+  PUBLISHED:
+    "bg-green-100 text-green-800 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800",
+  NEEDS_REVISION:
+    "bg-red-100 text-red-800 border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-800",
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -272,7 +276,7 @@ function TranslationCard({
 
           {/* Stale indicator */}
           {translation.isStale && (
-            <div className="flex items-center gap-1 text-sm text-yellow-700 bg-yellow-50 px-2 py-1 rounded mb-3">
+            <div className="flex items-center gap-1 text-sm text-yellow-700 bg-yellow-50 dark:bg-yellow-900/20 dark:text-yellow-300 px-2 py-1 rounded mb-3">
               <AlertTriangle className="h-4 w-4" />
               <span>Translation is stale</span>
             </div>

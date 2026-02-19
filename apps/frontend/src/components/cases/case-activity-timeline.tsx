@@ -107,7 +107,7 @@ export function CaseActivityTimeline({
   return (
     <div className="flex flex-col h-full">
       {/* Actions Bar */}
-      <div className="px-6 py-4 border-b bg-gray-50">
+      <div className="px-6 py-4 border-b bg-muted/50">
         <div className="flex items-center gap-3">
           <Button
             variant="outline"
@@ -136,7 +136,7 @@ export function CaseActivityTimeline({
             <CardTitle className="text-lg">Case Details</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-gray-700 whitespace-pre-wrap">
+            <p className="text-foreground whitespace-pre-wrap">
               {caseData.details}
             </p>
           </CardContent>
@@ -149,7 +149,7 @@ export function CaseActivityTimeline({
         <div className="px-6 py-4 border-b space-y-4">
           {/* Row 1: Count indicator + user/team dropdowns */}
           <div className="flex items-center gap-4 flex-wrap">
-            <span className="text-sm text-gray-600">
+            <span className="text-sm text-muted-foreground">
               Filter activity ({visibleCount}/{totalCount})
             </span>
 
@@ -186,7 +186,7 @@ export function CaseActivityTimeline({
 
           {/* Row 2: Search bar */}
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Search activities..."
               value={searchQuery}
@@ -213,7 +213,7 @@ export function CaseActivityTimeline({
           {activitiesLoading ? (
             <ActivityTimelineSkeleton />
           ) : error ? (
-            <div className="text-center py-8 text-gray-500">
+            <div className="text-center py-8 text-muted-foreground">
               <p className="mb-3">
                 Failed to load activities. Please try again.
               </p>
@@ -234,8 +234,8 @@ export function CaseActivityTimeline({
               {/* Pinned section */}
               {pinnedActivities.length > 0 && (
                 <div className="border-b pb-4 mb-4">
-                  <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3 flex items-center gap-2">
-                    <Pin className="h-4 w-4 text-blue-600" />
+                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3 flex items-center gap-2">
+                    <Pin className="h-4 w-4 text-primary" />
                     Pinned
                   </h3>
                   <div className="space-y-2">
@@ -259,7 +259,7 @@ export function CaseActivityTimeline({
               {/* Upcoming section */}
               {upcomingActivities.length > 0 && (
                 <div className="border-b pb-4 mb-4">
-                  <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3 flex items-center gap-2">
+                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3 flex items-center gap-2">
                     <Clock className="h-4 w-4" />
                     Upcoming
                   </h3>
@@ -284,7 +284,7 @@ export function CaseActivityTimeline({
 
               {/* Filtered activities empty state */}
               {filteredActivities.length === 0 && totalCount > 0 && (
-                <div className="text-center py-8 text-gray-500">
+                <div className="text-center py-8 text-muted-foreground">
                   <p className="text-sm">
                     No activities match your current filters.
                   </p>
@@ -302,7 +302,7 @@ export function CaseActivityTimeline({
               {/* Date-grouped activities */}
               {groupedActivities.map((group) => (
                 <div key={group.label}>
-                  <h4 className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">
+                  <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-3">
                     {group.label}
                   </h4>
                   <div className="space-y-0">
@@ -336,11 +336,11 @@ export function CaseActivityTimeline({
 function EmptyState() {
   return (
     <div className="text-center py-12" data-testid="empty-state">
-      <ClipboardList className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-      <h4 className="text-sm font-medium text-gray-900 mb-1">
+      <ClipboardList className="w-12 h-12 text-muted-foreground/50 mx-auto mb-4" />
+      <h4 className="text-sm font-medium text-foreground mb-1">
         No activities yet
       </h4>
-      <p className="text-sm text-gray-500 max-w-sm mx-auto">
+      <p className="text-sm text-muted-foreground max-w-sm mx-auto">
         Use the quick actions to log notes, emails, calls, or other case
         activity.
       </p>
@@ -368,7 +368,7 @@ export function CaseActivityTimelineSkeleton() {
   return (
     <div className="flex flex-col h-full">
       {/* Actions Bar skeleton */}
-      <div className="px-6 py-4 border-b bg-gray-50">
+      <div className="px-6 py-4 border-b bg-muted/50">
         <div className="flex gap-3">
           <Skeleton className="h-9 w-28" />
           <Skeleton className="h-9 w-24" />

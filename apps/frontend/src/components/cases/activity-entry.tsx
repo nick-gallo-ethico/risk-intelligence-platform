@@ -113,8 +113,8 @@ export function ActivityEntry({
     <div
       className={cn(
         "group flex gap-3 relative",
-        isUpcoming && "bg-amber-50 -mx-2 px-2 py-1 rounded-lg",
-        isPinned && !isUpcoming && "bg-blue-50/50 -mx-2 px-2 py-1 rounded-lg",
+        isUpcoming && "bg-amber-50 dark:bg-amber-900/20 -mx-2 px-2 py-1 rounded-lg",
+        isPinned && !isUpcoming && "bg-blue-50/50 dark:bg-blue-900/20 -mx-2 px-2 py-1 rounded-lg",
       )}
       data-testid="activity-entry"
       data-activity-id={activity.id}
@@ -124,16 +124,16 @@ export function ActivityEntry({
         <div
           className={cn(
             "flex items-center justify-center w-8 h-8 rounded-full",
-            isUpcoming ? "bg-amber-100" : isPinned ? "bg-blue-100" : bgColor,
+            isUpcoming ? "bg-amber-100 dark:bg-amber-900/30" : isPinned ? "bg-blue-100 dark:bg-blue-900/30" : bgColor,
           )}
         >
           <Icon
             className={cn(
               "w-4 h-4",
               isUpcoming
-                ? "text-amber-600"
+                ? "text-amber-600 dark:text-amber-400"
                 : isPinned
-                  ? "text-blue-600"
+                  ? "text-blue-600 dark:text-blue-400"
                   : color,
             )}
             aria-hidden="true"
@@ -144,10 +144,10 @@ export function ActivityEntry({
             className={cn(
               "flex-1 w-px my-2",
               isUpcoming
-                ? "bg-amber-200"
+                ? "bg-amber-200 dark:bg-amber-800"
                 : isPinned
-                  ? "bg-blue-200"
-                  : "bg-gray-200",
+                  ? "bg-blue-200 dark:bg-blue-800"
+                  : "bg-border",
             )}
             aria-hidden="true"
           />
@@ -159,7 +159,7 @@ export function ActivityEntry({
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0 flex-1">
             <p
-              className="text-sm text-gray-900"
+              className="text-sm text-foreground"
               data-testid="activity-description"
             >
               {displayDescription}
@@ -184,7 +184,7 @@ export function ActivityEntry({
               </button>
             )}
 
-            <p className="text-xs text-gray-500 mt-0.5">
+            <p className="text-xs text-muted-foreground mt-0.5">
               by <span className="font-medium">{actorDisplay}</span>
             </p>
           </div>
@@ -202,7 +202,7 @@ export function ActivityEntry({
                       size="icon"
                       className={cn(
                         "h-7 w-7",
-                        isPinned && "text-blue-600 bg-blue-50",
+                        isPinned && "text-blue-600 bg-blue-50 dark:text-blue-400 dark:bg-blue-900/30",
                       )}
                       onClick={handlePinToggle}
                     >
@@ -281,7 +281,7 @@ export function ActivityEntry({
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-7 w-7 text-red-600 hover:text-red-700 hover:bg-red-50"
+                            className="h-7 w-7 text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-900/30"
                           >
                             <Trash2 className="h-3.5 w-3.5" />
                             <span className="sr-only">Delete</span>
@@ -317,7 +317,7 @@ export function ActivityEntry({
             <time
               className={cn(
                 "text-xs whitespace-nowrap ml-1",
-                isUpcoming ? "text-amber-600 font-medium" : "text-gray-400",
+                isUpcoming ? "text-amber-600 dark:text-amber-400 font-medium" : "text-muted-foreground",
               )}
               dateTime={activity.createdAt}
               title={new Date(activity.createdAt).toLocaleString()}
@@ -330,7 +330,7 @@ export function ActivityEntry({
 
         {/* Show changes if available */}
         {activity.changes && Object.keys(activity.changes).length > 0 && (
-          <div className="mt-2 text-xs bg-gray-50 rounded-md p-2 border">
+          <div className="mt-2 text-xs bg-muted rounded-md p-2 border border-border">
             <ActivityChangesDisplay changes={activity.changes} />
           </div>
         )}
@@ -356,14 +356,14 @@ function ActivityChangesDisplay({ changes }: ActivityChangesDisplayProps) {
     <div className="space-y-1">
       {entries.map(([field, { old: oldValue, new: newValue }]) => (
         <div key={field} className="flex items-center gap-2">
-          <span className="text-gray-500 capitalize">
+          <span className="text-muted-foreground capitalize">
             {formatFieldName(field)}:
           </span>
-          <span className="text-gray-400 line-through">
+          <span className="text-muted-foreground/70 line-through">
             {formatValue(oldValue)}
           </span>
-          <span className="text-gray-400">-&gt;</span>
-          <span className="text-gray-700 font-medium">
+          <span className="text-muted-foreground/70">-&gt;</span>
+          <span className="text-foreground font-medium">
             {formatValue(newValue)}
           </span>
         </div>

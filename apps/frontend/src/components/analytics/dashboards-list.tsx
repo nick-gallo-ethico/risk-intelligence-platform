@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 /**
  * DashboardsList Component
@@ -7,9 +7,9 @@
  * Shows pre-built system dashboards separately from user-created ones.
  */
 
-import { Star, MoreHorizontal, Eye, Pencil, Trash2 } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
-import { Button } from '@/components/ui/button';
+import { Star, MoreHorizontal, Eye, Pencil, Trash2 } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -17,16 +17,16 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
+} from "@/components/ui/table";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Skeleton } from '@/components/ui/skeleton';
-import { cn } from '@/lib/utils';
-import type { Dashboard } from '@/types/analytics';
+} from "@/components/ui/dropdown-menu";
+import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
+import type { Dashboard } from "@/types/analytics";
 
 export interface DashboardsListProps {
   dashboards: Dashboard[];
@@ -40,11 +40,11 @@ export interface DashboardsListProps {
  * Format last viewed date
  */
 function formatLastViewed(date: string | undefined): string {
-  if (!date) return 'Never';
+  if (!date) return "Never";
   try {
     return formatDistanceToNow(new Date(date), { addSuffix: true });
   } catch {
-    return 'Unknown';
+    return "Unknown";
   }
 }
 
@@ -111,10 +111,10 @@ function DashboardRow({
         >
           <Star
             className={cn(
-              'h-4 w-4',
+              "h-4 w-4",
               dashboard.isFavorite
-                ? 'fill-yellow-400 text-yellow-400'
-                : 'text-muted-foreground'
+                ? "fill-yellow-400 text-yellow-400"
+                : "text-muted-foreground",
             )}
           />
         </Button>
@@ -131,11 +131,11 @@ function DashboardRow({
       </TableCell>
       <TableCell onClick={() => onSelect?.(dashboard.id)}>
         {dashboard.isSystem ? (
-          <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
+          <span className="text-xs bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 px-2 py-1 rounded">
             System
           </span>
         ) : (
-          dashboard.ownerName || 'You'
+          dashboard.ownerName || "You"
         )}
       </TableCell>
       <TableCell

@@ -76,10 +76,10 @@ const RISK_LEVEL_OPTIONS = [
 ];
 
 const RISK_LEVEL_COLORS: Record<string, string> = {
-  LOW: "bg-green-100 text-green-800",
-  MEDIUM: "bg-yellow-100 text-yellow-800",
-  HIGH: "bg-orange-100 text-orange-800",
-  CRITICAL: "bg-red-100 text-red-800",
+  LOW: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300",
+  MEDIUM: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300",
+  HIGH: "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300",
+  CRITICAL: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300",
 };
 
 /** Predefined regulatory framework options per spec Section 14.6 */
@@ -427,7 +427,7 @@ export function CasePropertiesPanel({
       renderValue: (val) => {
         if (!val || typeof val !== "string") return null;
         const colorClass =
-          RISK_LEVEL_COLORS[val] ?? "bg-gray-100 text-gray-800";
+          RISK_LEVEL_COLORS[val] ?? "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300";
         const label =
           RISK_LEVEL_OPTIONS.find((o) => o.value === val)?.label ?? val;
         return (
@@ -485,7 +485,7 @@ export function CasePropertiesPanel({
         showSettingsGear={false}
       >
         {/* CategorySelector rendered as custom children above the standard fields */}
-        <div className="pb-2 border-b border-gray-100">
+        <div className="pb-2 border-b border-border">
           <CategorySelector
             primaryCategoryId={caseData.categoryId}
             secondaryCategoryId={caseData.secondaryCategoryId}
@@ -516,7 +516,7 @@ export function CasePropertiesPanelSkeleton() {
             {[1, 2, 3, 4].map((row) => (
               <div
                 key={row}
-                className="flex justify-between py-2 border-b border-gray-100 last:border-0"
+                className="flex justify-between py-2 border-b border-border last:border-0"
               >
                 <Skeleton className="h-4 w-20" />
                 <Skeleton className="h-4 w-24" />

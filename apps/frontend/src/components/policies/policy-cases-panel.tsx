@@ -1,13 +1,19 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { format } from 'date-fns';
-import { Plus, FileWarning, ExternalLink, Trash2, MoreHorizontal } from 'lucide-react';
-import Link from 'next/link';
+import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { format } from "date-fns";
+import {
+  Plus,
+  FileWarning,
+  ExternalLink,
+  Trash2,
+  MoreHorizontal,
+} from "lucide-react";
+import Link from "next/link";
 
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -15,7 +21,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
+} from "@/components/ui/table";
 import {
   Dialog,
   DialogContent,
@@ -23,18 +29,18 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-} from '@/components/ui/dialog';
+} from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Skeleton } from '@/components/ui/skeleton';
-import { cn } from '@/lib/utils';
-import { policiesApi } from '@/services/policies';
-import type { PolicyCaseAssociation, PolicyCaseLinkType } from '@/types/policy';
-import { POLICY_LINK_TYPE_LABELS } from '@/types/policy';
+} from "@/components/ui/dropdown-menu";
+import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
+import { policiesApi } from "@/services/policies";
+import type { PolicyCaseAssociation, PolicyCaseLinkType } from "@/types/policy";
+import { POLICY_LINK_TYPE_LABELS } from "@/types/policy";
 
 interface PolicyCasesPanelProps {
   policyId: string;
@@ -42,9 +48,12 @@ interface PolicyCasesPanelProps {
 
 // Link type badge colors
 const LINK_TYPE_COLORS: Record<PolicyCaseLinkType, string> = {
-  VIOLATION: 'bg-red-100 text-red-800 border-red-200',
-  REFERENCE: 'bg-blue-100 text-blue-800 border-blue-200',
-  GOVERNING: 'bg-gray-100 text-gray-800 border-gray-200',
+  VIOLATION:
+    "bg-red-100 text-red-800 border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-800",
+  REFERENCE:
+    "bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800",
+  GOVERNING:
+    "bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700",
 };
 
 /**
@@ -64,15 +73,18 @@ export function PolicyCasesPanel({ policyId }: PolicyCasesPanelProps) {
 
   // Fetch case associations
   const { data: associations, isLoading } = useQuery({
-    queryKey: ['policy-case-associations', policyId],
+    queryKey: ["policy-case-associations", policyId],
     queryFn: () => policiesApi.getCaseAssociations(policyId),
   });
 
   // Unlink mutation
   const unlinkMutation = useMutation({
-    mutationFn: (associationId: string) => policiesApi.unlinkCase(associationId),
+    mutationFn: (associationId: string) =>
+      policiesApi.unlinkCase(associationId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['policy-case-associations', policyId] });
+      queryClient.invalidateQueries({
+        queryKey: ["policy-case-associations", policyId],
+      });
       setUnlinkingId(null);
     },
   });
@@ -124,7 +136,8 @@ export function PolicyCasesPanel({ policyId }: PolicyCasesPanelProps) {
                         href={`/cases/${association.caseId}`}
                         className="font-medium text-primary hover:underline"
                       >
-                        {association.case?.referenceNumber || association.caseId}
+                        {association.case?.referenceNumber ||
+                          association.caseId}
                       </Link>
                       {association.case?.title && (
                         <p className="text-sm text-muted-foreground line-clamp-1">
@@ -138,11 +151,14 @@ export function PolicyCasesPanel({ policyId }: PolicyCasesPanelProps) {
                   </TableCell>
                   <TableCell>
                     {association.violationDate
-                      ? format(new Date(association.violationDate), 'MMM d, yyyy')
-                      : '-'}
+                      ? format(
+                          new Date(association.violationDate),
+                          "MMM d, yyyy",
+                        )
+                      : "-"}
                   </TableCell>
                   <TableCell>
-                    {format(new Date(association.createdAt), 'MMM d, yyyy')}
+                    {format(new Date(association.createdAt), "MMM d, yyyy")}
                   </TableCell>
                   <TableCell>
                     <DropdownMenu>
@@ -190,8 +206,8 @@ export function PolicyCasesPanel({ policyId }: PolicyCasesPanelProps) {
           <DialogHeader>
             <DialogTitle>Unlink Case?</DialogTitle>
             <DialogDescription>
-              This will remove the link between this policy and the case. The case
-              itself will not be affected.
+              This will remove the link between this policy and the case. The
+              case itself will not be affected.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -203,7 +219,7 @@ export function PolicyCasesPanel({ policyId }: PolicyCasesPanelProps) {
               onClick={() => unlinkingId && handleUnlink(unlinkingId)}
               disabled={unlinkMutation.isPending}
             >
-              {unlinkMutation.isPending ? 'Unlinking...' : 'Unlink'}
+              {unlinkMutation.isPending ? "Unlinking..." : "Unlink"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -225,7 +241,7 @@ interface LinkTypeBadgeProps {
 
 function LinkTypeBadge({ type }: LinkTypeBadgeProps) {
   return (
-    <Badge className={cn('border', LINK_TYPE_COLORS[type])}>
+    <Badge className={cn("border", LINK_TYPE_COLORS[type])}>
       {POLICY_LINK_TYPE_LABELS[type]}
     </Badge>
   );

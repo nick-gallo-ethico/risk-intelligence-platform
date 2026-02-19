@@ -146,7 +146,7 @@ export function EditableField({
       return renderValue(value);
     }
     return (
-      <span className={cn(!displayValue && 'text-gray-400')}>
+      <span className={cn(!displayValue && 'text-muted-foreground')}>
         {displayValue || placeholder}
       </span>
     );
@@ -155,11 +155,11 @@ export function EditableField({
   return (
     <div
       className={cn(
-        'flex justify-between items-start py-2 border-b border-gray-100 last:border-0 group',
+        'flex justify-between items-start py-2 border-b border-border last:border-0 group',
         className
       )}
     >
-      <span className="text-sm text-gray-500 flex-shrink-0">{label}</span>
+      <span className="text-sm text-muted-foreground flex-shrink-0">{label}</span>
       <div className="flex-1 flex justify-end items-center gap-1 min-w-0 ml-2">
         {isEditing ? (
           <div className="flex items-center gap-1 w-full max-w-[180px]">
@@ -194,7 +194,7 @@ export function EditableField({
                 />
                 <button
                   onClick={handleCancel}
-                  className="p-1 text-gray-400 hover:text-gray-600"
+                  className="p-1 text-muted-foreground hover:text-foreground"
                   aria-label="Cancel edit"
                   tabIndex={-1}
                 >
@@ -203,7 +203,7 @@ export function EditableField({
                 <button
                   onClick={handleSave}
                   disabled={isSaving}
-                  className="p-1 text-gray-400 hover:text-green-600 disabled:opacity-50"
+                  className="p-1 text-muted-foreground hover:text-green-600 dark:hover:text-green-400 disabled:opacity-50"
                   aria-label="Save"
                   tabIndex={-1}
                 >
@@ -217,14 +217,14 @@ export function EditableField({
             onClick={handleStartEdit}
             disabled={readOnly}
             className={cn(
-              'flex items-center gap-1 text-sm font-medium text-gray-900 text-right max-w-[60%] truncate',
-              !readOnly && 'hover:bg-gray-50 rounded px-1 -mx-1 cursor-pointer',
+              'flex items-center gap-1 text-sm font-medium text-foreground text-right max-w-[60%] truncate',
+              !readOnly && 'hover:bg-muted/50 rounded px-1 -mx-1 cursor-pointer',
               readOnly && 'cursor-default'
             )}
           >
             {renderDisplayValue()}
             {!readOnly && (
-              <Pencil className="h-3 w-3 text-gray-400 opacity-0 group-hover:opacity-100 flex-shrink-0" />
+              <Pencil className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 flex-shrink-0" />
             )}
           </button>
         )}

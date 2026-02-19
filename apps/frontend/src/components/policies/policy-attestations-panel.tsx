@@ -1,18 +1,21 @@
-'use client';
+"use client";
 
-import { useQuery } from '@tanstack/react-query';
-import { format } from 'date-fns';
-import { Plus, ClipboardCheck, ExternalLink } from 'lucide-react';
-import Link from 'next/link';
+import { useQuery } from "@tanstack/react-query";
+import { format } from "date-fns";
+import { Plus, ClipboardCheck, ExternalLink } from "lucide-react";
+import Link from "next/link";
 
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { Skeleton } from '@/components/ui/skeleton';
-import { cn } from '@/lib/utils';
-import { policiesApi } from '@/services/policies';
-import type { AttestationCampaign, AttestationCampaignStatus } from '@/types/policy';
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
+import { policiesApi } from "@/services/policies";
+import type {
+  AttestationCampaign,
+  AttestationCampaignStatus,
+} from "@/types/policy";
 
 interface PolicyAttestationsPanelProps {
   policyId: string;
@@ -20,21 +23,27 @@ interface PolicyAttestationsPanelProps {
 
 // Campaign status colors
 const STATUS_COLORS: Record<AttestationCampaignStatus, string> = {
-  DRAFT: 'bg-gray-100 text-gray-800 border-gray-200',
-  SCHEDULED: 'bg-purple-100 text-purple-800 border-purple-200',
-  ACTIVE: 'bg-blue-100 text-blue-800 border-blue-200',
-  PAUSED: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-  COMPLETED: 'bg-green-100 text-green-800 border-green-200',
-  CANCELLED: 'bg-red-100 text-red-800 border-red-200',
+  DRAFT:
+    "bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700",
+  SCHEDULED:
+    "bg-purple-100 text-purple-800 border-purple-200 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-800",
+  ACTIVE:
+    "bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800",
+  PAUSED:
+    "bg-yellow-100 text-yellow-800 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-300 dark:border-yellow-800",
+  COMPLETED:
+    "bg-green-100 text-green-800 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800",
+  CANCELLED:
+    "bg-red-100 text-red-800 border-red-200 dark:bg-red-900/30 dark:text-red-300 dark:border-red-800",
 };
 
 const STATUS_LABELS: Record<AttestationCampaignStatus, string> = {
-  DRAFT: 'Draft',
-  SCHEDULED: 'Scheduled',
-  ACTIVE: 'Active',
-  PAUSED: 'Paused',
-  COMPLETED: 'Completed',
-  CANCELLED: 'Cancelled',
+  DRAFT: "Draft",
+  SCHEDULED: "Scheduled",
+  ACTIVE: "Active",
+  PAUSED: "Paused",
+  COMPLETED: "Completed",
+  CANCELLED: "Cancelled",
 };
 
 /**
@@ -46,9 +55,11 @@ const STATUS_LABELS: Record<AttestationCampaignStatus, string> = {
  * - Due date
  * - Link to view campaign details
  */
-export function PolicyAttestationsPanel({ policyId }: PolicyAttestationsPanelProps) {
+export function PolicyAttestationsPanel({
+  policyId,
+}: PolicyAttestationsPanelProps) {
   const { data: campaigns, isLoading } = useQuery({
-    queryKey: ['policy-attestation-campaigns', policyId],
+    queryKey: ["policy-attestation-campaigns", policyId],
     queryFn: () => policiesApi.getAttestationCampaigns(policyId),
   });
 
@@ -93,7 +104,8 @@ export function PolicyAttestationsPanel({ policyId }: PolicyAttestationsPanelPro
           <ClipboardCheck className="h-12 w-12 text-muted-foreground mb-4" />
           <h3 className="text-lg font-medium">No Attestation Campaigns</h3>
           <p className="text-muted-foreground mt-1 max-w-sm">
-            Create an attestation campaign to track employee acknowledgment of this policy.
+            Create an attestation campaign to track employee acknowledgment of
+            this policy.
           </p>
         </div>
       )}
@@ -115,8 +127,10 @@ function CampaignCard({ campaign }: CampaignCardProps) {
     <Card>
       <CardHeader className="pb-2">
         <div className="flex items-start justify-between">
-          <CardTitle className="text-base font-medium">{campaign.name}</CardTitle>
-          <Badge className={cn('border', STATUS_COLORS[campaign.status])}>
+          <CardTitle className="text-base font-medium">
+            {campaign.name}
+          </CardTitle>
+          <Badge className={cn("border", STATUS_COLORS[campaign.status])}>
             {STATUS_LABELS[campaign.status]}
           </Badge>
         </div>
@@ -139,9 +153,7 @@ function CampaignCard({ campaign }: CampaignCardProps) {
           </div>
           <Progress value={progressPercent} />
           {overdue > 0 && (
-            <p className="text-sm text-destructive">
-              {overdue} overdue
-            </p>
+            <p className="text-sm text-destructive">{overdue} overdue</p>
           )}
         </div>
 
@@ -149,7 +161,7 @@ function CampaignCard({ campaign }: CampaignCardProps) {
         {campaign.dueDate && (
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">Due Date</span>
-            <span>{format(new Date(campaign.dueDate), 'MMM d, yyyy')}</span>
+            <span>{format(new Date(campaign.dueDate), "MMM d, yyyy")}</span>
           </div>
         )}
 

@@ -73,15 +73,15 @@ function getStatusColor(status: string) {
   switch (status.toLowerCase()) {
     case "completed":
     case "closed":
-      return "bg-green-100 text-green-700 border-green-200";
+      return "bg-green-100 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800";
     case "in_progress":
     case "active":
-      return "bg-blue-100 text-blue-700 border-blue-200";
+      return "bg-blue-100 text-blue-700 border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800";
     case "pending":
     case "new":
-      return "bg-amber-100 text-amber-700 border-amber-200";
+      return "bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800";
     default:
-      return "bg-gray-100 text-gray-700 border-gray-200";
+      return "bg-gray-100 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700";
   }
 }
 
@@ -119,7 +119,7 @@ function ExpandableInvestigationCard({
     >
       <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
         <CollapsibleTrigger asChild>
-          <CardHeader className="pb-2 cursor-pointer hover:bg-gray-50 rounded-t-lg">
+          <CardHeader className="pb-2 cursor-pointer hover:bg-muted/50 rounded-t-lg">
             <div className="flex items-start justify-between gap-2">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
@@ -139,17 +139,17 @@ function ExpandableInvestigationCard({
                       className={cn(
                         "text-xs shrink-0",
                         investigation.slaStatus === "OVERDUE"
-                          ? "bg-red-50 text-red-700 border-red-200"
+                          ? "bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-300 dark:border-red-800"
                           : investigation.slaStatus === "WARNING"
-                            ? "bg-amber-50 text-amber-700 border-amber-200"
-                            : "bg-gray-50 text-gray-700 border-gray-200",
+                            ? "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:text-amber-300 dark:border-amber-800"
+                            : "bg-gray-50 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700",
                       )}
                     >
                       {investigation.slaStatus.replace("_", " ")}
                     </Badge>
                   )}
                 </div>
-                <p className="text-sm font-medium text-gray-900 mt-1 truncate">
+                <p className="text-sm font-medium text-foreground mt-1 truncate">
                   {`Investigation #${investigation.investigationNumber}`}
                 </p>
                 {investigation.type && (
@@ -160,9 +160,9 @@ function ExpandableInvestigationCard({
               </div>
               <div className="shrink-0">
                 {isExpanded ? (
-                  <ChevronUp className="h-4 w-4 text-gray-400" />
+                  <ChevronUp className="h-4 w-4 text-muted-foreground" />
                 ) : (
-                  <ChevronDown className="h-4 w-4 text-gray-400" />
+                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
                 )}
               </div>
             </div>
@@ -175,7 +175,7 @@ function ExpandableInvestigationCard({
               <div className="grid grid-cols-2 gap-3 text-sm">
                 {investigation.primaryInvestigator && (
                   <div className="flex items-center gap-2">
-                    <User className="h-4 w-4 text-gray-400" />
+                    <User className="h-4 w-4 text-muted-foreground" />
                     <div>
                       <p className="text-xs text-muted-foreground">
                         Assigned to
@@ -188,7 +188,7 @@ function ExpandableInvestigationCard({
                   </div>
                 )}
                 <div className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4 text-gray-400" />
+                  <Calendar className="h-4 w-4 text-muted-foreground" />
                   <div>
                     <p className="text-xs text-muted-foreground">Created</p>
                     <p className="font-medium">
@@ -204,7 +204,7 @@ function ExpandableInvestigationCard({
                   <p className="text-xs text-muted-foreground mb-1">
                     Findings Summary
                   </p>
-                  <p className="text-sm text-gray-700 line-clamp-2">
+                  <p className="text-sm text-muted-foreground line-clamp-2">
                     {investigation.findingsSummary}
                   </p>
                 </div>
@@ -374,7 +374,7 @@ export function CaseInvestigationsPanel({
       {/* Header with count and action buttons */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <h3 className="text-sm font-semibold text-gray-700">
+          <h3 className="text-sm font-semibold text-foreground">
             Investigations
           </h3>
           {investigations.length > 0 && (

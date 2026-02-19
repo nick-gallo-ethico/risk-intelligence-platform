@@ -1,22 +1,22 @@
-'use client';
+"use client";
 
-import { useEffect, useRef, useState, useCallback } from 'react';
-import { useForm, Controller } from 'react-hook-form';
-import { FileText, Send, Upload, Clock } from 'lucide-react';
-import { RichTextEditor } from '@/components/rich-text/rich-text-editor';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { useEffect, useRef, useState, useCallback } from "react";
+import { useForm, Controller } from "react-hook-form";
+import { FileText, Send, Upload, Clock } from "lucide-react";
+import { RichTextEditor } from "@/components/rich-text/rich-text-editor";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { cn } from '@/lib/utils';
-import type { Policy, UpdatePolicyDto, PolicyType } from '@/types/policy';
-import { POLICY_TYPE_LABELS } from '@/types/policy';
+} from "@/components/ui/select";
+import { cn } from "@/lib/utils";
+import type { Policy, UpdatePolicyDto, PolicyType } from "@/types/policy";
+import { POLICY_TYPE_LABELS } from "@/types/policy";
 
 interface PolicyEditorProps {
   policy?: Policy;
@@ -29,18 +29,18 @@ interface PolicyEditorProps {
 const AUTOSAVE_DELAY = 2500; // 2.5 seconds per context doc
 
 const POLICY_TYPES: PolicyType[] = [
-  'CODE_OF_CONDUCT',
-  'ANTI_HARASSMENT',
-  'ANTI_BRIBERY',
-  'DATA_PRIVACY',
-  'INFORMATION_SECURITY',
-  'GIFT_ENTERTAINMENT',
-  'CONFLICTS_OF_INTEREST',
-  'TRAVEL_EXPENSE',
-  'WHISTLEBLOWER',
-  'SOCIAL_MEDIA',
-  'ACCEPTABLE_USE',
-  'OTHER',
+  "CODE_OF_CONDUCT",
+  "ANTI_HARASSMENT",
+  "ANTI_BRIBERY",
+  "DATA_PRIVACY",
+  "INFORMATION_SECURITY",
+  "GIFT_ENTERTAINMENT",
+  "CONFLICTS_OF_INTEREST",
+  "TRAVEL_EXPENSE",
+  "WHISTLEBLOWER",
+  "SOCIAL_MEDIA",
+  "ACCEPTABLE_USE",
+  "OTHER",
 ];
 
 /**
@@ -52,14 +52,14 @@ function formatRelativeTime(date: Date): string {
   const diffSecs = Math.floor(diffMs / 1000);
   const diffMins = Math.floor(diffSecs / 60);
 
-  if (diffSecs < 10) return 'just now';
+  if (diffSecs < 10) return "just now";
   if (diffSecs < 60) return `${diffSecs} seconds ago`;
-  if (diffMins === 1) return '1 minute ago';
+  if (diffMins === 1) return "1 minute ago";
   if (diffMins < 60) return `${diffMins} minutes ago`;
 
-  return date.toLocaleTimeString('en-US', {
-    hour: 'numeric',
-    minute: '2-digit',
+  return date.toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
   });
 }
 
@@ -89,33 +89,33 @@ export function PolicyEditor({
   onPublish,
   isSubmitting = false,
 }: PolicyEditorProps) {
-  const [content, setContent] = useState(policy?.draftContent || '');
+  const [content, setContent] = useState(policy?.draftContent || "");
   const [lastSaved, setLastSaved] = useState<Date | null>(
-    policy?.draftUpdatedAt ? new Date(policy.draftUpdatedAt) : null
+    policy?.draftUpdatedAt ? new Date(policy.draftUpdatedAt) : null,
   );
   const [isSaving, setIsSaving] = useState(false);
   const [displayTime, setDisplayTime] = useState<string | null>(null);
   const autosaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const lastSavedContentRef = useRef(policy?.draftContent || '');
+  const lastSavedContentRef = useRef(policy?.draftContent || "");
 
   const { control, watch, getValues } = useForm<FormData>({
     defaultValues: {
-      title: policy?.title || '',
-      policyType: policy?.policyType || 'OTHER',
-      category: policy?.category || '',
-      effectiveDate: policy?.effectiveDate?.split('T')[0] || '',
-      reviewDate: policy?.reviewDate?.split('T')[0] || '',
+      title: policy?.title || "",
+      policyType: policy?.policyType || "OTHER",
+      category: policy?.category || "",
+      effectiveDate: policy?.effectiveDate?.split("T")[0] || "",
+      reviewDate: policy?.reviewDate?.split("T")[0] || "",
     },
   });
 
-  const title = watch('title');
-  const policyType = watch('policyType');
-  const category = watch('category');
-  const effectiveDate = watch('effectiveDate');
-  const reviewDate = watch('reviewDate');
+  const title = watch("title");
+  const policyType = watch("policyType");
+  const category = watch("category");
+  const effectiveDate = watch("effectiveDate");
+  const reviewDate = watch("reviewDate");
 
-  const isEditable = policy?.status !== 'PENDING_APPROVAL';
-  const isDraft = !policy || policy.status === 'DRAFT';
+  const isEditable = policy?.status !== "PENDING_APPROVAL";
+  const isDraft = !policy || policy.status === "DRAFT";
   const hasContent = !!content?.trim();
 
   // Update display time every 30 seconds
@@ -183,14 +183,14 @@ export function PolicyEditor({
   // Keyboard shortcut: Mod+S for save
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 's') {
+      if ((e.metaKey || e.ctrlKey) && e.key === "s") {
         e.preventDefault();
         savePolicy();
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, [savePolicy]);
 
   // Handle content change from editor
@@ -204,23 +204,23 @@ export function PolicyEditor({
       {isDraft && (
         <div
           className={cn(
-            'flex items-center gap-3 px-4 py-3 rounded-lg',
-            'bg-gray-50 border border-gray-200 text-gray-700'
+            "flex items-center gap-3 px-4 py-3 rounded-lg",
+            "bg-muted/50 border border-border text-foreground",
           )}
         >
-          <FileText className="h-5 w-5 text-gray-500" />
+          <FileText className="h-5 w-5 text-muted-foreground" />
           <div className="flex-1">
             <span className="font-medium">DRAFT</span>
             {displayTime && (
-              <span className="ml-2 text-gray-500">
+              <span className="ml-2 text-muted-foreground">
                 Last saved {displayTime}
               </span>
             )}
             {isSaving && (
-              <span className="ml-2 text-gray-500">Saving...</span>
+              <span className="ml-2 text-muted-foreground">Saving...</span>
             )}
           </div>
-          <div className="text-xs text-gray-400">
+          <div className="text-xs text-muted-foreground">
             <Clock className="inline h-3 w-3 mr-1" />
             Autosave enabled
           </div>
@@ -228,17 +228,17 @@ export function PolicyEditor({
       )}
 
       {/* Pending Approval Banner */}
-      {policy?.status === 'PENDING_APPROVAL' && (
+      {policy?.status === "PENDING_APPROVAL" && (
         <div
           className={cn(
-            'flex items-center gap-3 px-4 py-3 rounded-lg',
-            'bg-yellow-50 border border-yellow-200 text-yellow-800'
+            "flex items-center gap-3 px-4 py-3 rounded-lg",
+            "bg-yellow-50 border border-yellow-200 text-yellow-800 dark:bg-yellow-900/20 dark:border-yellow-800 dark:text-yellow-200",
           )}
         >
-          <Send className="h-5 w-5 text-yellow-600" />
+          <Send className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />
           <div className="flex-1">
             <span className="font-medium">In Approval Workflow</span>
-            <span className="ml-2 text-yellow-700">
+            <span className="ml-2 text-yellow-700 dark:text-yellow-300">
               Editing disabled during review
             </span>
           </div>
@@ -370,7 +370,7 @@ export function PolicyEditor({
             onClick={savePolicy}
             disabled={isSubmitting || isSaving}
           >
-            {isSaving ? 'Saving...' : 'Save Draft'}
+            {isSaving ? "Saving..." : "Save Draft"}
           </Button>
         )}
 
@@ -386,12 +386,9 @@ export function PolicyEditor({
         )}
 
         {/* Publish - for APPROVED or DRAFT without workflow */}
-        {(policy?.status === 'APPROVED' ||
+        {(policy?.status === "APPROVED" ||
           (isDraft && onPublish && !onSubmitForApproval)) && (
-          <Button
-            onClick={onPublish}
-            disabled={isSubmitting || !hasContent}
-          >
+          <Button onClick={onPublish} disabled={isSubmitting || !hasContent}>
             <Upload className="mr-2 h-4 w-4" />
             Publish
           </Button>
