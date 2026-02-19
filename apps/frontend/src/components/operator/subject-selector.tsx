@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 /**
  * SubjectSelector - Subject Search and Entry Component
@@ -16,18 +16,18 @@
  * @see useHrisSearch for search functionality
  */
 
-import { useState, useCallback } from 'react';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
+import { useState, useCallback } from "react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
 import {
   Search,
   User,
@@ -36,11 +36,11 @@ import {
   X,
   ChevronRight,
   HelpCircle,
-} from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { useHrisSearch } from '@/hooks/useHrisSearch';
-import type { HrisResult } from '@/types/operator.types';
-import type { IntakeSubject } from '@/hooks/useIntake';
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { useHrisSearch } from "@/hooks/useHrisSearch";
+import type { HrisResult } from "@/types/operator.types";
+import type { IntakeSubject } from "@/hooks/useIntake";
 
 export interface SubjectSelectorProps {
   /** Client organization ID */
@@ -50,7 +50,7 @@ export interface SubjectSelectorProps {
   /** Called when subject is selected from HRIS */
   onSelect: (employee: HrisResult) => void;
   /** Called when subject is entered manually */
-  onManualEntry: (subject: Omit<IntakeSubject, 'type'>) => void;
+  onManualEntry: (subject: Omit<IntakeSubject, "type">) => void;
   /** Whether inputs are disabled */
   disabled?: boolean;
 }
@@ -59,12 +59,12 @@ export interface SubjectSelectorProps {
  * Relationship options for manual entry.
  */
 const relationshipOptions = [
-  { value: 'employee', label: 'Employee' },
-  { value: 'contractor', label: 'Contractor' },
-  { value: 'vendor', label: 'Vendor' },
-  { value: 'customer', label: 'Customer' },
-  { value: 'former_employee', label: 'Former Employee' },
-  { value: 'other', label: 'Other' },
+  { value: "employee", label: "Employee" },
+  { value: "contractor", label: "Contractor" },
+  { value: "vendor", label: "Vendor" },
+  { value: "customer", label: "Customer" },
+  { value: "former_employee", label: "Former Employee" },
+  { value: "other", label: "Other" },
 ];
 
 /**
@@ -80,19 +80,20 @@ export function SubjectSelector({
   onManualEntry,
   disabled = false,
 }: SubjectSelectorProps) {
-  const [mode, setMode] = useState<'search' | 'manual'>('search');
+  const [mode, setMode] = useState<"search" | "manual">("search");
   const [isUnknown, setIsUnknown] = useState(false);
 
   // Manual entry state
-  const [manualData, setManualData] = useState<Omit<IntakeSubject, 'type'>>({
-    firstName: '',
-    lastName: '',
-    jobTitle: '',
-    department: '',
-    relationship: '',
+  const [manualData, setManualData] = useState<Omit<IntakeSubject, "type">>({
+    firstName: "",
+    lastName: "",
+    jobTitle: "",
+    department: "",
+    relationship: "",
   });
 
-  const { search, results, isSearching, clearResults } = useHrisSearch(clientId);
+  const { search, results, isSearching, clearResults } =
+    useHrisSearch(clientId);
 
   /**
    * Handle search input change.
@@ -105,7 +106,7 @@ export function SubjectSelector({
         clearResults();
       }
     },
-    [search, clearResults]
+    [search, clearResults],
   );
 
   /**
@@ -116,15 +117,15 @@ export function SubjectSelector({
       onSelect(employee);
       clearResults();
     },
-    [onSelect, clearResults]
+    [onSelect, clearResults],
   );
 
   /**
    * Handle manual entry field change.
    */
   const handleManualChange = (
-    field: keyof Omit<IntakeSubject, 'type'>,
-    value: string
+    field: keyof Omit<IntakeSubject, "type">,
+    value: string,
   ) => {
     setManualData((prev) => ({ ...prev, [field]: value }));
   };
@@ -156,11 +157,11 @@ export function SubjectSelector({
   const handleClear = () => {
     setIsUnknown(false);
     setManualData({
-      firstName: '',
-      lastName: '',
-      jobTitle: '',
-      department: '',
-      relationship: '',
+      firstName: "",
+      lastName: "",
+      jobTitle: "",
+      department: "",
+      relationship: "",
     });
     clearResults();
   };
@@ -170,13 +171,15 @@ export function SubjectSelector({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <User className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm font-medium">Subject of Report (Optional)</span>
+          <span className="text-sm font-medium">
+            Subject of Report (Optional)
+          </span>
         </div>
 
         {/* Unknown subject toggle */}
         <Button
           type="button"
-          variant={isUnknown ? 'default' : 'ghost'}
+          variant={isUnknown ? "default" : "ghost"}
           size="sm"
           onClick={handleToggleUnknown}
           disabled={disabled}
@@ -198,7 +201,7 @@ export function SubjectSelector({
 
       {/* Unknown Subject Message */}
       {isUnknown && (
-        <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-700">
+        <div className="p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg text-sm text-amber-700 dark:text-amber-300">
           Subject is unknown or not specified
         </div>
       )}
@@ -209,9 +212,9 @@ export function SubjectSelector({
           <div className="flex gap-2">
             <Button
               type="button"
-              variant={mode === 'search' ? 'default' : 'outline'}
+              variant={mode === "search" ? "default" : "outline"}
               size="sm"
-              onClick={() => setMode('search')}
+              onClick={() => setMode("search")}
               disabled={disabled}
             >
               <Search className="h-3 w-3 mr-1" />
@@ -219,9 +222,9 @@ export function SubjectSelector({
             </Button>
             <Button
               type="button"
-              variant={mode === 'manual' ? 'default' : 'outline'}
+              variant={mode === "manual" ? "default" : "outline"}
               size="sm"
-              onClick={() => setMode('manual')}
+              onClick={() => setMode("manual")}
               disabled={disabled}
             >
               <UserPlus className="h-3 w-3 mr-1" />
@@ -230,7 +233,7 @@ export function SubjectSelector({
           </div>
 
           {/* Search Mode */}
-          {mode === 'search' && (
+          {mode === "search" && (
             <div className="space-y-2">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -272,7 +275,7 @@ export function SubjectSelector({
           )}
 
           {/* Manual Entry Mode */}
-          {mode === 'manual' && (
+          {mode === "manual" && (
             <div className="space-y-3">
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
@@ -282,8 +285,10 @@ export function SubjectSelector({
                   <Input
                     id="subjectFirstName"
                     placeholder="First name..."
-                    value={manualData.firstName || ''}
-                    onChange={(e) => handleManualChange('firstName', e.target.value)}
+                    value={manualData.firstName || ""}
+                    onChange={(e) =>
+                      handleManualChange("firstName", e.target.value)
+                    }
                     disabled={disabled}
                   />
                 </div>
@@ -294,8 +299,10 @@ export function SubjectSelector({
                   <Input
                     id="subjectLastName"
                     placeholder="Last name..."
-                    value={manualData.lastName || ''}
-                    onChange={(e) => handleManualChange('lastName', e.target.value)}
+                    value={manualData.lastName || ""}
+                    onChange={(e) =>
+                      handleManualChange("lastName", e.target.value)
+                    }
                     disabled={disabled}
                   />
                 </div>
@@ -309,8 +316,10 @@ export function SubjectSelector({
                   <Input
                     id="subjectTitle"
                     placeholder="Job title..."
-                    value={manualData.jobTitle || ''}
-                    onChange={(e) => handleManualChange('jobTitle', e.target.value)}
+                    value={manualData.jobTitle || ""}
+                    onChange={(e) =>
+                      handleManualChange("jobTitle", e.target.value)
+                    }
                     disabled={disabled}
                   />
                 </div>
@@ -321,8 +330,10 @@ export function SubjectSelector({
                   <Input
                     id="subjectDept"
                     placeholder="Department..."
-                    value={manualData.department || ''}
-                    onChange={(e) => handleManualChange('department', e.target.value)}
+                    value={manualData.department || ""}
+                    onChange={(e) =>
+                      handleManualChange("department", e.target.value)
+                    }
                     disabled={disabled}
                   />
                 </div>
@@ -333,8 +344,10 @@ export function SubjectSelector({
                   Relationship to Organization
                 </Label>
                 <Select
-                  value={manualData.relationship || ''}
-                  onValueChange={(value) => handleManualChange('relationship', value)}
+                  value={manualData.relationship || ""}
+                  onValueChange={(value) =>
+                    handleManualChange("relationship", value)
+                  }
                   disabled={disabled}
                 >
                   <SelectTrigger id="subjectRelation">
@@ -354,7 +367,9 @@ export function SubjectSelector({
                 type="button"
                 size="sm"
                 onClick={handleSaveManual}
-                disabled={disabled || (!manualData.firstName && !manualData.lastName)}
+                disabled={
+                  disabled || (!manualData.firstName && !manualData.lastName)
+                }
               >
                 Add Subject
               </Button>
@@ -381,7 +396,8 @@ function SelectedSubjectCard({
   disabled,
 }: SelectedSubjectCardProps) {
   const fullName =
-    [subject.firstName, subject.lastName].filter(Boolean).join(' ') || 'Unknown';
+    [subject.firstName, subject.lastName].filter(Boolean).join(" ") ||
+    "Unknown";
 
   return (
     <div className="flex items-center justify-between p-3 bg-primary/10 border border-primary/20 rounded-lg">
@@ -402,7 +418,7 @@ function SelectedSubjectCard({
             )}
           </div>
           <p className="text-xs text-muted-foreground">
-            {subject.type === 'hris' ? 'From HRIS' : 'Manually entered'}
+            {subject.type === "hris" ? "From HRIS" : "Manually entered"}
           </p>
         </div>
       </div>
@@ -439,9 +455,9 @@ function EmployeeResultCard({
       onClick={onSelect}
       disabled={disabled}
       className={cn(
-        'w-full flex items-center gap-3 p-2 rounded-lg border bg-card',
-        'hover:bg-muted transition-colors text-left',
-        disabled && 'opacity-50 cursor-not-allowed'
+        "w-full flex items-center gap-3 p-2 rounded-lg border bg-card",
+        "hover:bg-muted transition-colors text-left",
+        disabled && "opacity-50 cursor-not-allowed",
       )}
     >
       <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">

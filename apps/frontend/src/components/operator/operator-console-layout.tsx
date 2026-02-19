@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 /**
  * OperatorConsoleLayout - Main Layout Component
@@ -11,10 +11,10 @@
  * This is the container that orchestrates all operator console components.
  */
 
-import { useState } from 'react';
-import { CallControls } from './call-controls';
-import { ContextTabs } from './context-tabs';
-import type { ClientProfile } from '@/types/operator.types';
+import { useState } from "react";
+import { CallControls } from "./call-controls";
+import { ContextTabs } from "./context-tabs";
+import type { ClientProfile } from "@/types/operator.types";
 
 export interface OperatorConsoleLayoutProps {
   /** Currently loaded client profile (null if no client) */
@@ -48,8 +48,8 @@ export function OperatorConsoleLayout({
   // Track intake progress for directive stage highlighting
   const [intakeInProgress, setIntakeInProgress] = useState(false);
   const [currentIntakeStage, setCurrentIntakeStage] = useState<
-    'opening' | 'intake' | 'closing'
-  >('opening');
+    "opening" | "intake" | "closing"
+  >("opening");
 
   return (
     <div className="h-screen flex flex-col">
@@ -66,7 +66,7 @@ export function OperatorConsoleLayout({
       {/* Main Content: Split Screen */}
       <div className="flex-1 flex overflow-hidden">
         {/* Left Panel: Intake Form (60%) */}
-        <div className="w-3/5 border-r overflow-y-auto p-6">
+        <div className="w-3/5 border-r border-border bg-card overflow-y-auto p-6">
           {intakeFormSlot ? (
             intakeFormSlot
           ) : (
@@ -78,7 +78,7 @@ export function OperatorConsoleLayout({
         </div>
 
         {/* Right Panel: Context Tabs (40%) */}
-        <div className="w-2/5 overflow-hidden flex flex-col">
+        <div className="w-2/5 overflow-hidden flex flex-col bg-background">
           <ContextTabs
             clientProfile={clientProfile}
             currentStage={currentIntakeStage}
@@ -117,9 +117,7 @@ function IntakeFormPlaceholder({
       <div className="h-full flex items-center justify-center text-muted-foreground">
         <div className="text-center">
           <p className="text-lg font-medium">Ready for call</p>
-          <p className="text-sm mt-1">
-            Client: {clientProfile.name}
-          </p>
+          <p className="text-sm mt-1">Client: {clientProfile.name}</p>
         </div>
       </div>
     );

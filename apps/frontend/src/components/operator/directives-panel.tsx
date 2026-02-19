@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 /**
  * DirectivesPanel - Script/Guide Tab Content
@@ -15,33 +15,37 @@
  * - Expand/collapse for long scripts
  */
 
-import { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { cn } from '@/lib/utils';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
+import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from '@/components/ui/collapsible';
-import { Volume2, ChevronDown, ChevronRight, FileText } from 'lucide-react';
-import { apiClient } from '@/lib/api';
-import type { ClientProfile, CallDirectives, Directive } from '@/types/operator.types';
+} from "@/components/ui/collapsible";
+import { Volume2, ChevronDown, ChevronRight, FileText } from "lucide-react";
+import { apiClient } from "@/lib/api";
+import type {
+  ClientProfile,
+  CallDirectives,
+  Directive,
+} from "@/types/operator.types";
 
 export interface DirectivesPanelProps {
   /** Currently loaded client profile */
   clientProfile: ClientProfile | null;
   /** Current intake stage for highlighting */
-  currentStage?: 'opening' | 'intake' | 'closing';
+  currentStage?: "opening" | "intake" | "closing";
   /** Selected category ID for category-specific directives */
   selectedCategoryId?: string;
 }
 
 export function DirectivesPanel({
   clientProfile,
-  currentStage = 'opening',
+  currentStage = "opening",
   selectedCategoryId,
 }: DirectivesPanelProps) {
   // Fetch directives for the client
@@ -50,14 +54,14 @@ export function DirectivesPanel({
     isLoading,
     error,
   } = useQuery({
-    queryKey: ['operator', 'directives', clientProfile?.id, selectedCategoryId],
+    queryKey: ["operator", "directives", clientProfile?.id, selectedCategoryId],
     queryFn: async () => {
       if (!clientProfile?.id) return null;
       const params = selectedCategoryId
         ? `?categoryId=${selectedCategoryId}`
-        : '';
+        : "";
       return apiClient.get<CallDirectives>(
-        `/operator/clients/${clientProfile.id}/directives/call${params}`
+        `/operator/clients/${clientProfile.id}/directives/call${params}`,
       );
     },
     enabled: !!clientProfile?.id,
@@ -78,7 +82,7 @@ export function DirectivesPanel({
   if (isLoading) {
     return (
       <div className="space-y-4">
-        {['Opening', 'Intake', 'Closing'].map((stage) => (
+        {["Opening", "Intake", "Closing"].map((stage) => (
           <div key={stage} className="space-y-2">
             <Skeleton className="h-6 w-24" />
             <Skeleton className="h-20 w-full" />
@@ -106,7 +110,7 @@ export function DirectivesPanel({
         title="Opening"
         stage="opening"
         directives={directives.opening}
-        isCurrentStage={currentStage === 'opening'}
+        isCurrentStage={currentStage === "opening"}
       />
 
       {/* Intake Stage */}
@@ -114,7 +118,7 @@ export function DirectivesPanel({
         title="Intake Guidance"
         stage="intake"
         directives={directives.intake}
-        isCurrentStage={currentStage === 'intake'}
+        isCurrentStage={currentStage === "intake"}
       />
 
       {/* Category-Specific (only show if category selected and directives exist) */}
@@ -123,7 +127,7 @@ export function DirectivesPanel({
           title="Category-Specific"
           stage="category"
           directives={directives.categorySpecific}
-          isCurrentStage={currentStage === 'intake'}
+          isCurrentStage={currentStage === "intake"}
         />
       )}
 
@@ -132,7 +136,7 @@ export function DirectivesPanel({
         title="Closing"
         stage="closing"
         directives={directives.closing}
-        isCurrentStage={currentStage === 'closing'}
+        isCurrentStage={currentStage === "closing"}
       />
     </div>
   );
@@ -173,8 +177,8 @@ function DirectiveStageSection({
         <Button
           variant="ghost"
           className={cn(
-            'w-full justify-between py-2 px-3 h-auto',
-            isCurrentStage && 'bg-primary/10 hover:bg-primary/15'
+            "w-full justify-between py-2 px-3 h-auto",
+            isCurrentStage && "bg-primary/10 hover:bg-primary/15",
           )}
         >
           <div className="flex items-center gap-2">
@@ -212,10 +216,10 @@ function DirectiveCard({ directive }: { directive: Directive }) {
   return (
     <div
       className={cn(
-        'rounded-lg border p-3',
+        "rounded-lg border p-3",
         directive.isReadAloud
-          ? 'bg-blue-50 border-blue-200 dark:bg-blue-950 dark:border-blue-800'
-          : 'bg-card'
+          ? "bg-blue-50 border-blue-200 dark:bg-blue-950 dark:border-blue-800"
+          : "bg-card",
       )}
     >
       <div className="flex items-start gap-2">
@@ -228,7 +232,7 @@ function DirectiveCard({ directive }: { directive: Directive }) {
             {directive.isReadAloud && (
               <Badge
                 variant="outline"
-                className="text-xs text-blue-600 border-blue-300"
+                className="text-xs text-blue-600 dark:text-blue-400 border-blue-300 dark:border-blue-700"
               >
                 Read Aloud
               </Badge>
@@ -236,8 +240,8 @@ function DirectiveCard({ directive }: { directive: Directive }) {
           </div>
           <p
             className={cn(
-              'text-sm text-muted-foreground whitespace-pre-wrap',
-              !isExpanded && isLong && 'line-clamp-3'
+              "text-sm text-muted-foreground whitespace-pre-wrap",
+              !isExpanded && isLong && "line-clamp-3",
             )}
           >
             {directive.content}
@@ -249,7 +253,7 @@ function DirectiveCard({ directive }: { directive: Directive }) {
               className="mt-1 h-auto p-0 text-xs"
               onClick={() => setIsExpanded(!isExpanded)}
             >
-              {isExpanded ? 'Show less' : 'Show more'}
+              {isExpanded ? "Show less" : "Show more"}
             </Button>
           )}
         </div>

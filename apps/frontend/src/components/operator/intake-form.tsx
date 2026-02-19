@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 /**
  * IntakeForm - Main Hotline Intake Form
@@ -21,21 +21,21 @@
  * @see SubjectSelector for subject search/entry
  */
 
-import { useCallback } from 'react';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Input } from '@/components/ui/input';
-import { Checkbox } from '@/components/ui/checkbox';
+import { useCallback } from "react";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   AlertCircle,
   Save,
@@ -45,14 +45,22 @@ import {
   User,
   Phone,
   ShieldAlert,
-} from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { RiuTypeSelector } from './riu-type-selector';
-import { CategoryQuestions } from './category-questions';
-import { SubjectSelector } from './subject-selector';
-import { AiNoteCleanup } from './ai-note-cleanup';
-import { useIntake, type IntakeSubject, type AnonymityTier } from '@/hooks/useIntake';
-import type { ClientProfile, CategoryInfo, HrisResult } from '@/types/operator.types';
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { RiuTypeSelector } from "./riu-type-selector";
+import { CategoryQuestions } from "./category-questions";
+import { SubjectSelector } from "./subject-selector";
+import { AiNoteCleanup } from "./ai-note-cleanup";
+import {
+  useIntake,
+  type IntakeSubject,
+  type AnonymityTier,
+} from "@/hooks/useIntake";
+import type {
+  ClientProfile,
+  CategoryInfo,
+  HrisResult,
+} from "@/types/operator.types";
 
 export interface IntakeFormProps {
   /** Currently loaded client profile */
@@ -72,19 +80,19 @@ const anonymityOptions: Array<{
   description: string;
 }> = [
   {
-    value: 'ANONYMOUS',
-    label: 'Anonymous',
-    description: 'No identifying information collected',
+    value: "ANONYMOUS",
+    label: "Anonymous",
+    description: "No identifying information collected",
   },
   {
-    value: 'CONFIDENTIAL',
-    label: 'Confidential',
-    description: 'Identity known but protected',
+    value: "CONFIDENTIAL",
+    label: "Confidential",
+    description: "Identity known but protected",
   },
   {
-    value: 'IDENTIFIED',
-    label: 'Identified',
-    description: 'Identity shared for follow-up',
+    value: "IDENTIFIED",
+    label: "Identified",
+    description: "Identity shared for follow-up",
   },
 ];
 
@@ -116,7 +124,7 @@ export function IntakeForm({
 
   // Get current category info
   const selectedCategory = clientProfile.categories.find(
-    (c) => c.id === intakeData.categoryId
+    (c) => c.id === intakeData.categoryId,
   );
 
   /**
@@ -124,11 +132,11 @@ export function IntakeForm({
    */
   const handleCategoryChange = useCallback(
     (categoryId: string) => {
-      updateField('categoryId', categoryId);
+      updateField("categoryId", categoryId);
       // Reset category answers when category changes
       updateCategoryAnswers({});
     },
-    [updateField, updateCategoryAnswers]
+    [updateField, updateCategoryAnswers],
   );
 
   /**
@@ -137,7 +145,7 @@ export function IntakeForm({
   const handleSubjectSelect = useCallback(
     (employee: HrisResult) => {
       setSubject({
-        type: 'hris',
+        type: "hris",
         hrisEmployeeId: employee.id,
         firstName: employee.firstName,
         lastName: employee.lastName,
@@ -145,20 +153,20 @@ export function IntakeForm({
         department: employee.department || undefined,
       });
     },
-    [setSubject]
+    [setSubject],
   );
 
   /**
    * Handle manual subject entry.
    */
   const handleManualSubject = useCallback(
-    (subject: Omit<IntakeSubject, 'type'>) => {
+    (subject: Omit<IntakeSubject, "type">) => {
       setSubject({
-        type: 'manual',
+        type: "manual",
         ...subject,
       });
     },
-    [setSubject]
+    [setSubject],
   );
 
   /**
@@ -167,9 +175,9 @@ export function IntakeForm({
   const handleApplyCleanup = useCallback(
     (cleanedContent: string) => {
       updateContent(cleanedContent);
-      updateField('aiCleanupApplied', true);
+      updateField("aiCleanupApplied", true);
     },
-    [updateContent, updateField]
+    [updateContent, updateField],
   );
 
   /**
@@ -198,9 +206,9 @@ export function IntakeForm({
   };
 
   // Determine if form is for a Report type (shows additional fields)
-  const isReport = intakeData.riuType === 'REPORT';
-  const isWrongNumber = intakeData.riuType === 'WRONG_NUMBER';
-  const isRequestForInfo = intakeData.riuType === 'REQUEST_FOR_INFO';
+  const isReport = intakeData.riuType === "REPORT";
+  const isWrongNumber = intakeData.riuType === "WRONG_NUMBER";
+  const isRequestForInfo = intakeData.riuType === "REQUEST_FOR_INFO";
 
   // Form validation
   const canSubmit =
@@ -220,12 +228,15 @@ export function IntakeForm({
           </h2>
           {intakeData.id && (
             <p className="text-sm text-muted-foreground">
-              Draft saved {isDirty && '(unsaved changes)'}
+              Draft saved {isDirty && "(unsaved changes)"}
             </p>
           )}
         </div>
         {isDirty && (
-          <Badge variant="outline" className="text-amber-600">
+          <Badge
+            variant="outline"
+            className="text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-800"
+          >
             Unsaved
           </Badge>
         )}
@@ -246,10 +257,10 @@ export function IntakeForm({
       <RiuTypeSelector
         selected={intakeData.riuType}
         onSelect={(type) => {
-          updateField('riuType', type);
+          updateField("riuType", type);
           // Reset category when type changes
-          if (type !== 'REPORT') {
-            updateField('categoryId', null);
+          if (type !== "REPORT") {
+            updateField("categoryId", null);
           }
         }}
         disabled={isSaving || isSubmitting}
@@ -262,7 +273,7 @@ export function IntakeForm({
             Category <span className="text-destructive">*</span>
           </Label>
           <Select
-            value={intakeData.categoryId || ''}
+            value={intakeData.categoryId || ""}
             onValueChange={handleCategoryChange}
             disabled={isSaving || isSubmitting}
           >
@@ -307,7 +318,7 @@ export function IntakeForm({
           id="content"
           placeholder={
             isWrongNumber
-              ? 'Brief note about the call...'
+              ? "Brief note about the call..."
               : isRequestForInfo
                 ? "Caller's question or request..."
                 : "Capture the caller's report details..."
@@ -346,7 +357,7 @@ export function IntakeForm({
             <Select
               value={intakeData.anonymityTier}
               onValueChange={(value: AnonymityTier) =>
-                updateField('anonymityTier', value)
+                updateField("anonymityTier", value)
               }
               disabled={isSaving || isSubmitting}
             >
@@ -377,9 +388,9 @@ export function IntakeForm({
                 id="callerPhone"
                 type="tel"
                 placeholder="(555) 555-5555"
-                value={intakeData.callerPhoneNumber || ''}
+                value={intakeData.callerPhoneNumber || ""}
                 onChange={(e) =>
-                  updateField('callerPhoneNumber', e.target.value || undefined)
+                  updateField("callerPhoneNumber", e.target.value || undefined)
                 }
                 disabled={isSaving || isSubmitting}
                 className="pl-9"
@@ -389,15 +400,15 @@ export function IntakeForm({
         </div>
 
         {/* Caller Name (for non-anonymous) */}
-        {intakeData.anonymityTier !== 'ANONYMOUS' && (
+        {intakeData.anonymityTier !== "ANONYMOUS" && (
           <div className="space-y-2">
             <Label htmlFor="callerName">Caller Name</Label>
             <Input
               id="callerName"
               placeholder="Caller's name..."
-              value={intakeData.callerName || ''}
+              value={intakeData.callerName || ""}
               onChange={(e) =>
-                updateField('callerName', e.target.value || undefined)
+                updateField("callerName", e.target.value || undefined)
               }
               disabled={isSaving || isSubmitting}
             />
@@ -426,7 +437,7 @@ export function IntakeForm({
                 id="isUrgent"
                 checked={intakeData.isUrgent}
                 onCheckedChange={(checked) =>
-                  updateField('isUrgent', checked === true)
+                  updateField("isUrgent", checked === true)
                 }
                 disabled={isSaving || isSubmitting}
               />
@@ -488,10 +499,7 @@ export function IntakeForm({
         <div className="flex items-center gap-2">
           {/* Wrong Number: Save & Close */}
           {isWrongNumber && (
-            <Button
-              onClick={handleSaveAndClose}
-              disabled={!canSubmit}
-            >
+            <Button onClick={handleSaveAndClose} disabled={!canSubmit}>
               {isSaving ? (
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
               ) : (
@@ -506,9 +514,7 @@ export function IntakeForm({
             <Button
               onClick={handleSubmit}
               disabled={!canSubmit}
-              className={cn(
-                isReport && 'bg-blue-600 hover:bg-blue-700'
-              )}
+              className={cn(isReport && "bg-blue-600 hover:bg-blue-700")}
             >
               {isSubmitting ? (
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />

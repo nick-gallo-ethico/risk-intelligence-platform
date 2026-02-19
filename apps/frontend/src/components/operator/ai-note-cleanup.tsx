@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 /**
  * AiNoteCleanup - AI-powered Note Cleanup Component
@@ -14,17 +14,17 @@
  * @see useAiNoteCleanup for AI API integration
  */
 
-import { useState, useCallback } from 'react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Textarea } from '@/components/ui/textarea';
+import { useState, useCallback } from "react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
 import {
   Sparkles,
   Loader2,
@@ -33,9 +33,9 @@ import {
   Pencil,
   RefreshCw,
   AlertCircle,
-} from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { useAiNoteCleanup, type CleanupStyle } from '@/hooks/useAiNoteCleanup';
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { useAiNoteCleanup, type CleanupStyle } from "@/hooks/useAiNoteCleanup";
 
 export interface AiNoteCleanupProps {
   /** Original content to clean up */
@@ -54,10 +54,10 @@ export function AiNoteCleanup({
   originalContent,
   onApply,
 }: AiNoteCleanupProps) {
-  const [style, setStyle] = useState<CleanupStyle>('light');
+  const [style, setStyle] = useState<CleanupStyle>("light");
   const [showComparison, setShowComparison] = useState(false);
   const [editMode, setEditMode] = useState(false);
-  const [editedContent, setEditedContent] = useState('');
+  const [editedContent, setEditedContent] = useState("");
 
   const { cleanup, cleanedContent, isProcessing, error, rateLimitRetryAfter } =
     useAiNoteCleanup();
@@ -83,7 +83,7 @@ export function AiNoteCleanup({
     if (content) {
       onApply(content);
       setShowComparison(false);
-      setEditedContent('');
+      setEditedContent("");
     }
   }, [onApply, cleanedContent, editMode, editedContent]);
 
@@ -93,7 +93,7 @@ export function AiNoteCleanup({
   const handleKeepOriginal = useCallback(() => {
     setShowComparison(false);
     setEditMode(false);
-    setEditedContent('');
+    setEditedContent("");
   }, []);
 
   /**
@@ -101,7 +101,7 @@ export function AiNoteCleanup({
    */
   const handleEdit = useCallback(() => {
     setEditMode(true);
-    setEditedContent(cleanedContent || '');
+    setEditedContent(cleanedContent || "");
   }, [cleanedContent]);
 
   /**
@@ -114,11 +114,11 @@ export function AiNoteCleanup({
   // Rate limit display
   if (rateLimitRetryAfter && rateLimitRetryAfter > 0) {
     return (
-      <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
+      <div className="p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
         <div className="flex items-center gap-2">
-          <AlertCircle className="h-4 w-4 text-amber-600" />
-          <span className="text-sm text-amber-700">
-            AI cleanup rate limit reached. Please wait{' '}
+          <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+          <span className="text-sm text-amber-700 dark:text-amber-300">
+            AI cleanup rate limit reached. Please wait{" "}
             {Math.ceil(rateLimitRetryAfter / 1000)} seconds before trying again.
           </span>
         </div>
@@ -155,7 +155,7 @@ export function AiNoteCleanup({
             <Sparkles className="h-4 w-4 text-primary" />
             <span className="text-sm font-medium">AI Cleanup Preview</span>
             <Badge variant="secondary" className="text-xs">
-              {style === 'light' ? 'Light' : 'Full'} style
+              {style === "light" ? "Light" : "Full"} style
             </Badge>
           </div>
           <div className="flex items-center gap-1">
@@ -176,10 +176,14 @@ export function AiNoteCleanup({
         </div>
 
         {/* Side-by-side comparison or edit mode */}
-        <div className={cn('grid gap-4', editMode ? 'grid-cols-1' : 'grid-cols-2')}>
+        <div
+          className={cn("grid gap-4", editMode ? "grid-cols-1" : "grid-cols-2")}
+        >
           {!editMode && (
             <div className="space-y-1">
-              <p className="text-xs font-medium text-muted-foreground">Original</p>
+              <p className="text-xs font-medium text-muted-foreground">
+                Original
+              </p>
               <div className="p-3 bg-background rounded border text-sm max-h-48 overflow-y-auto whitespace-pre-wrap">
                 {originalContent}
               </div>
@@ -188,7 +192,7 @@ export function AiNoteCleanup({
 
           <div className="space-y-1">
             <p className="text-xs font-medium text-muted-foreground">
-              {editMode ? 'Edit Cleaned Version' : 'Cleaned'}
+              {editMode ? "Edit Cleaned Version" : "Cleaned"}
             </p>
             {editMode ? (
               <Textarea
@@ -197,7 +201,7 @@ export function AiNoteCleanup({
                 className="min-h-[150px]"
               />
             ) : (
-              <div className="p-3 bg-primary/5 rounded border border-primary/20 text-sm max-h-48 overflow-y-auto whitespace-pre-wrap">
+              <div className="p-3 bg-primary/5 dark:bg-primary/10 rounded border border-primary/20 dark:border-primary/30 text-sm max-h-48 overflow-y-auto whitespace-pre-wrap">
                 {cleanedContent}
               </div>
             )}
@@ -241,7 +245,7 @@ export function AiNoteCleanup({
           </SelectContent>
         </Select>
         <span className="text-xs text-muted-foreground">
-          {style === 'light' ? 'Preserves voice' : 'Formal rewrite'}
+          {style === "light" ? "Preserves voice" : "Formal rewrite"}
         </span>
       </div>
 

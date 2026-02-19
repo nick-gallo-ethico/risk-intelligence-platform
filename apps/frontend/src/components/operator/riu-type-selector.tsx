@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 /**
  * RiuTypeSelector - RIU Type Selection Component
@@ -11,9 +11,9 @@
  * Selection changes subsequent form fields in the intake form.
  */
 
-import { FileText, HelpCircle, PhoneOff } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import type { RiuType } from '@/hooks/useIntake';
+import { FileText, HelpCircle, PhoneOff } from "lucide-react";
+import { cn } from "@/lib/utils";
+import type { RiuType } from "@/hooks/useIntake";
 
 export interface RiuTypeSelectorProps {
   /** Currently selected RIU type */
@@ -39,31 +39,34 @@ interface RiuTypeConfig {
 
 const riuTypes: RiuTypeConfig[] = [
   {
-    type: 'REPORT',
-    label: 'Report',
-    description: 'Creates case for investigation',
+    type: "REPORT",
+    label: "Report",
+    description: "Creates case for investigation",
     icon: FileText,
-    color: 'text-blue-700',
-    bgColor: 'bg-blue-50',
-    borderColor: 'border-blue-200 hover:border-blue-400',
+    color: "text-blue-700 dark:text-blue-300",
+    bgColor: "bg-blue-50 dark:bg-blue-900/30",
+    borderColor:
+      "border-blue-200 hover:border-blue-400 dark:border-blue-800 dark:hover:border-blue-600",
   },
   {
-    type: 'REQUEST_FOR_INFO',
-    label: 'Request for Information',
-    description: 'Non-issue inquiry',
+    type: "REQUEST_FOR_INFO",
+    label: "Request for Information",
+    description: "Non-issue inquiry",
     icon: HelpCircle,
-    color: 'text-amber-700',
-    bgColor: 'bg-amber-50',
-    borderColor: 'border-amber-200 hover:border-amber-400',
+    color: "text-amber-700 dark:text-amber-300",
+    bgColor: "bg-amber-50 dark:bg-amber-900/30",
+    borderColor:
+      "border-amber-200 hover:border-amber-400 dark:border-amber-800 dark:hover:border-amber-600",
   },
   {
-    type: 'WRONG_NUMBER',
-    label: 'Wrong Number',
-    description: 'Log and end call',
+    type: "WRONG_NUMBER",
+    label: "Wrong Number",
+    description: "Log and end call",
     icon: PhoneOff,
-    color: 'text-gray-700',
-    bgColor: 'bg-gray-50',
-    borderColor: 'border-gray-200 hover:border-gray-400',
+    color: "text-gray-700 dark:text-gray-300",
+    bgColor: "bg-muted/50",
+    borderColor:
+      "border-border hover:border-gray-400 dark:hover:border-gray-600",
   },
 ];
 
@@ -95,28 +98,31 @@ export function RiuTypeSelector({
               disabled={disabled}
               onClick={() => onSelect(config.type)}
               className={cn(
-                'relative flex flex-col items-center justify-center p-4 rounded-lg border-2 transition-all',
-                'focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
-                disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer',
+                "relative flex flex-col items-center justify-center p-4 rounded-lg border-2 transition-all",
+                "focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+                disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer",
                 isSelected
-                  ? cn(config.bgColor, 'border-primary ring-2 ring-primary/20')
-                  : cn('bg-background', config.borderColor)
+                  ? cn(config.bgColor, "border-primary ring-2 ring-primary/20")
+                  : cn("bg-background", config.borderColor),
               )}
             >
               <div
                 className={cn(
-                  'w-10 h-10 rounded-full flex items-center justify-center mb-2',
-                  isSelected ? config.bgColor : 'bg-muted'
+                  "w-10 h-10 rounded-full flex items-center justify-center mb-2",
+                  isSelected ? config.bgColor : "bg-muted",
                 )}
               >
                 <Icon
-                  className={cn('h-5 w-5', isSelected ? config.color : 'text-muted-foreground')}
+                  className={cn(
+                    "h-5 w-5",
+                    isSelected ? config.color : "text-muted-foreground",
+                  )}
                 />
               </div>
               <span
                 className={cn(
-                  'text-sm font-medium text-center',
-                  isSelected ? 'text-foreground' : 'text-muted-foreground'
+                  "text-sm font-medium text-center",
+                  isSelected ? "text-foreground" : "text-muted-foreground",
                 )}
               >
                 {config.label}
