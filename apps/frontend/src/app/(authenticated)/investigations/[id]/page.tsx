@@ -292,12 +292,12 @@ export default function InvestigationDetailPage() {
 
   if (error || !investigation) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">
+          <h2 className="text-xl font-semibold text-foreground mb-2">
             Investigation Not Found
           </h2>
-          <p className="text-gray-600 mb-4">
+          <p className="text-muted-foreground mb-4">
             {error || "Investigation not found"}
           </p>
           <Button onClick={() => router.back()}>Go back</Button>
@@ -307,9 +307,9 @@ export default function InvestigationDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col">
       {/* Full-width header */}
-      <div className="border-b bg-white">
+      <div className="border-b bg-card">
         <div className="max-w-[1800px] mx-auto px-6 py-4">
           <InvestigationHeader
             investigation={investigation}
@@ -337,7 +337,7 @@ export default function InvestigationDetailPage() {
           </div>
 
           {/* Center Column - Tabs */}
-          <div className="min-h-0 bg-white border rounded-lg overflow-hidden">
+          <div className="min-h-0 bg-card border rounded-lg overflow-hidden">
             <Tabs
               value={activeTab}
               onValueChange={setActiveTab}
@@ -358,7 +358,7 @@ export default function InvestigationDetailPage() {
                   <FileText className="h-4 w-4" />
                   Checklist
                   {checklistProgress && (
-                    <span className="text-xs text-gray-500 ml-1">
+                    <span className="text-xs text-muted-foreground ml-1">
                       ({Math.round(checklistProgress.progressPercent)}%)
                     </span>
                   )}
@@ -368,7 +368,7 @@ export default function InvestigationDetailPage() {
                   Notes
                   {investigation.notesCount !== undefined &&
                     investigation.notesCount > 0 && (
-                      <span className="text-xs bg-gray-200 rounded-full px-1.5">
+                      <span className="text-xs bg-muted rounded-full px-1.5">
                         {investigation.notesCount}
                       </span>
                     )}
@@ -411,12 +411,12 @@ export default function InvestigationDetailPage() {
                     loading={checklistLoading}
                   />
                 ) : (
-                  <div className="text-center py-12 border rounded-lg bg-gray-50">
-                    <FileText className="h-12 w-12 mx-auto text-gray-400" />
-                    <h3 className="mt-4 text-lg font-medium text-gray-900">
+                  <div className="text-center py-12 border rounded-lg bg-muted/50">
+                    <FileText className="h-12 w-12 mx-auto text-muted-foreground" />
+                    <h3 className="mt-4 text-lg font-medium text-foreground">
                       No checklist applied
                     </h3>
-                    <p className="mt-1 text-sm text-gray-500">
+                    <p className="mt-1 text-sm text-muted-foreground">
                       Apply a template to guide your investigation with a
                       structured checklist.
                     </p>
@@ -503,10 +503,10 @@ export default function InvestigationDetailPage() {
             {/* AI Assistant Button */}
             <Button
               variant="outline"
-              className="w-full justify-start gap-2 bg-gradient-to-r from-purple-50 to-blue-50 hover:from-purple-100 hover:to-blue-100 border-purple-200"
+              className="w-full justify-start gap-2 bg-gradient-to-r from-purple-50 to-blue-50 hover:from-purple-100 hover:to-blue-100 border-purple-200 dark:from-purple-950/30 dark:to-blue-950/30 dark:hover:from-purple-900/40 dark:hover:to-blue-900/40 dark:border-purple-800"
               onClick={() => setAiPanelOpen(true)}
             >
-              <Sparkles className="h-4 w-4 text-purple-600" />
+              <Sparkles className="h-4 w-4 text-purple-600 dark:text-purple-400" />
               <span>Ask AI Assistant</span>
             </Button>
           </div>
@@ -547,15 +547,15 @@ export default function InvestigationDetailPage() {
  */
 function InvestigationDetailPageSkeleton() {
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col">
       {/* Header skeleton */}
-      <div className="bg-white border-b px-6 py-4">
+      <div className="bg-card border-b px-6 py-4">
         <div className="max-w-[1800px] mx-auto">
           <div className="flex items-center gap-2 mb-3">
             <Skeleton className="h-4 w-12" />
-            <span className="text-gray-300">/</span>
+            <span className="text-muted-foreground/50">/</span>
             <Skeleton className="h-4 w-24" />
-            <span className="text-gray-300">/</span>
+            <span className="text-muted-foreground/50">/</span>
             <Skeleton className="h-4 w-32" />
           </div>
           <div className="flex items-start justify-between">
@@ -586,7 +586,7 @@ function InvestigationDetailPageSkeleton() {
           {/* Left column skeleton */}
           <div className="hidden lg:block space-y-4">
             {/* Summary card skeleton */}
-            <div className="rounded-lg border bg-white p-4 space-y-3">
+            <div className="rounded-lg border bg-card p-4 space-y-3">
               <Skeleton className="h-5 w-32" />
               <div className="flex gap-2">
                 <Skeleton className="h-5 w-16 rounded-full" />
@@ -602,7 +602,7 @@ function InvestigationDetailPageSkeleton() {
               </div>
             </div>
             {/* Actions skeleton */}
-            <div className="rounded-lg border bg-white p-4">
+            <div className="rounded-lg border bg-card p-4">
               <Skeleton className="h-3 w-24 mb-3" />
               <div className="grid grid-cols-3 gap-2">
                 {[1, 2, 3, 4, 5].map((i) => (
@@ -611,7 +611,7 @@ function InvestigationDetailPageSkeleton() {
               </div>
             </div>
             {/* Properties skeleton */}
-            <div className="rounded-lg border bg-white p-4 space-y-4">
+            <div className="rounded-lg border bg-card p-4 space-y-4">
               {[1, 2, 3].map((i) => (
                 <div key={i} className="space-y-2">
                   <Skeleton className="h-4 w-28" />
@@ -622,7 +622,7 @@ function InvestigationDetailPageSkeleton() {
           </div>
 
           {/* Center column skeleton */}
-          <div className="bg-white border rounded-lg p-6">
+          <div className="bg-card border rounded-lg p-6">
             <div className="flex gap-4 mb-6">
               {[1, 2, 3, 4, 5].map((i) => (
                 <Skeleton key={i} className="h-8 w-24" />
@@ -636,7 +636,7 @@ function InvestigationDetailPageSkeleton() {
 
           {/* Right column skeleton */}
           <div className="hidden lg:block">
-            <div className="rounded-lg border bg-white p-4">
+            <div className="rounded-lg border bg-card p-4">
               <Skeleton className="h-4 w-full" />
             </div>
           </div>

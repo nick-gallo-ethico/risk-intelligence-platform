@@ -294,12 +294,12 @@ function CaseDetailPageContent() {
   // Error state
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">
+          <h2 className="text-xl font-semibold text-foreground mb-2">
             Case Not Found
           </h2>
-          <p className="text-gray-600 mb-4">{error}</p>
+          <p className="text-muted-foreground mb-4">{error}</p>
           <Button onClick={() => router.push("/cases")}>Back to Cases</Button>
         </div>
       </div>
@@ -484,7 +484,7 @@ function CaseDetailPageContent() {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col">
       <RecordDetailLayout
         config={CASES_DETAIL_CONFIG}
         leftSidebar={leftSidebarContent}
@@ -577,12 +577,12 @@ function CaseDetailPageContent() {
  */
 function CaseDetailPageSkeleton() {
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col">
       {/* Header skeleton */}
-      <div className="bg-white border-b px-6 py-4">
+      <div className="bg-card border-b px-6 py-4">
         <div className="flex items-center gap-2 mb-3">
           <Skeleton className="h-4 w-12" />
-          <span className="text-gray-300">/</span>
+          <span className="text-muted-foreground/50">/</span>
           <Skeleton className="h-4 w-32" />
         </div>
         <div className="flex items-start justify-between">
@@ -602,7 +602,7 @@ function CaseDetailPageSkeleton() {
       {/* Three-column layout skeleton */}
       <div className="flex-1 grid grid-cols-1 lg:grid-cols-[300px_1fr_300px]">
         {/* Left column skeleton */}
-        <aside className="hidden lg:block bg-white border-r">
+        <aside className="hidden lg:block bg-card border-r">
           {/* CaseInfoSummary skeleton */}
           <div className="p-4">
             <Skeleton className="h-6 w-36 mb-3" />
@@ -640,7 +640,7 @@ function CaseDetailPageSkeleton() {
         </aside>
 
         {/* Center column skeleton */}
-        <main className="bg-white p-6">
+        <main className="bg-card p-6">
           <div className="flex gap-4 mb-6">
             {[1, 2, 3, 4, 5, 6].map((i) => (
               <Skeleton key={i} className="h-8 w-24" />
@@ -653,7 +653,7 @@ function CaseDetailPageSkeleton() {
         </main>
 
         {/* Right column skeleton */}
-        <aside className="hidden lg:block bg-gray-50/50 border-l p-4 space-y-4">
+        <aside className="hidden lg:block bg-muted/50 border-l p-4 space-y-4">
           {/* Connected People skeleton */}
           <div className="rounded-lg border bg-card p-4 space-y-3">
             <div className="flex items-center justify-between">
