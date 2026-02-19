@@ -1158,7 +1158,11 @@ Plans:
 2. Campaign reminder scheduler calls processRemindersInBatches() (cursor-based) instead of non-paginated method
 3. JwtWsGuard file and its spec are deleted — no HS256 WebSocket auth code remains in codebase
 
-Plans: TBD (created by /gsd:plan-phase 37)
+**Plans:** 1 plan
+
+Plans:
+
+- [ ] 37-01-PLAN.md — Fix RedisCacheModule DI, wire batch processor, delete JwtWsGuard
 
 ---
 
