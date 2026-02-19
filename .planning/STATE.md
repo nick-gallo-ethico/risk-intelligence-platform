@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-15)
 ## Current Position
 
 Phase: 22 of v1.2 (Dark Mode & Theme)
-Plan: 14 of 15 complete (22-01, 22-02, 22-03, 22-04, 22-05, 22-06, 22-07, 22-08, 22-09, 22-10, 22-11, 22-12, 22-13, 22-15)
-Status: In progress
-Last activity: 2026-02-19 - Completed 22-15-PLAN.md (DataTable Column Width Flexibility)
+Plan: 15 of 15 complete (22-01 through 22-15)
+Status: COMPLETE
+Last activity: 2026-02-19 - Completed 22-14-PLAN.md (Final Verification and Gap Closure)
 
-Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10 plans), Phase 34 COMPLETE (5/5 plans), Phase 35 COMPLETE (6/6 plans), Phase 36 COMPLETE (13/13 plans), Phase 25.1 COMPLETE (10/10 plans), Phase 22 in progress (14/15 plans).
+Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10 plans), Phase 34 COMPLETE (5/5 plans), Phase 35 COMPLETE (6/6 plans), Phase 36 COMPLETE (13/13 plans), Phase 25.1 COMPLETE (10/10 plans), Phase 22 COMPLETE (15/15 plans).
 
 ## Shipped Milestones
 
@@ -41,7 +41,7 @@ Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10
 3. Phase 34: Performance & Scalability - 11 requirements [COMPLETE - 5/5 plans]
 4. Phase 35: Code Quality & Architecture - 5 requirements [COMPLETE - 6/6 plans]
 5. Phase 36: Test Coverage Expansion - 10 requirements [COMPLETE - 13/13 plans]
-6. Phase 22: Dark Mode & Theme - 7 requirements (existing plans)
+6. Phase 22: Dark Mode & Theme - 7 requirements [COMPLETE - 15/15 plans]
 7. Phase 23: Help & Support System - 5 requirements (existing plans)
 8. Phase 25.1: Case Detail Vision - 10 requirements [COMPLETE - 10/10 plans, verified]
 
@@ -210,6 +210,9 @@ Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10
 - 22-15: Remove width from th/td elements for flexible column sizing
 - 22-15: Only select/actions columns retain minWidth (fixed UI controls)
 - 22-15: whitespace-nowrap on headers so header text determines minimum width
+- 22-14: Gap closure fixed 20 files not in prior plans (workflow builder, projects, record-detail, cases)
+- 22-14: Workflow builder components used slate-\* colors (non-standard), migrated to semantic tokens
+- 22-14: Status/severity/SLA configs now have dark: variants (bg-color-900/50, text-color-200 pattern)
 
 ### Blockers
 
@@ -218,6 +221,6 @@ None currently.
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: Completed 22-15-PLAN.md (DataTable Column Width Flexibility)
+Stopped at: Completed 22-14-PLAN.md (Final Verification and Gap Closure)
 Resume file: None
-Next action: Continue Phase 22 with remaining plan (22-14)
+Next action: Phase 22 COMPLETE. Proceed to Phase 23 (Help & Support System)
