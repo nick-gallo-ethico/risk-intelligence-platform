@@ -1179,7 +1179,23 @@ Plans:
 3. DataTable renders with proper dark shadow variants and all modal components use semantic tokens (THEME-06)
 4. Visual spot-check of top 5 affected files (investigation-properties-panel, merge-modal, investigation-files-tab, investigation-interviews-tab, linked-riu-form-answers) passes in dark mode
 
-Plans: TBD (created by /gsd:plan-phase 38)
+**Plans:** 13 plans in 6 waves
+
+Plans:
+
+- [ ] 38-01-PLAN.md (Wave 1) — Migrate investigation components (6 files, 60+ occurrences)
+- [ ] 38-02-PLAN.md (Wave 1) — Migrate remaining investigation + record-detail components (8 files)
+- [ ] 38-03-PLAN.md (Wave 1) — Complete record-detail + layout/shared components (6 files)
+- [ ] 38-04-PLAN.md (Wave 2) — Migrate high-occurrence case components (6 files, 55 occurrences)
+- [ ] 38-05-PLAN.md (Wave 2) — Migrate case sidebar/association cards (8 files)
+- [ ] 38-06-PLAN.md (Wave 2) — Complete case modals, remediation, AI chat (9 files)
+- [ ] 38-07-PLAN.md (Wave 3) — Migrate project task components (7 files, 60 occurrences)
+- [ ] 38-08-PLAN.md (Wave 3) — Complete project views and column config (10 files)
+- [ ] 38-09-PLAN.md (Wave 4) — Migrate AI, workflows, exports, policies (12 files)
+- [ ] 38-10-PLAN.md (Wave 4) — Migrate remaining components + DataTable THEME-06 fix (12 files)
+- [ ] 38-11-PLAN.md (Wave 5) — Migrate page files (6 files)
+- [ ] 38-12-PLAN.md (Wave 5) — Update test files with semantic token assertions (6 files)
+- [ ] 38-13-PLAN.md (Wave 6) — Verification checkpoint with visual spot-check
 
 ---
 
@@ -1258,7 +1274,7 @@ Plans:
 | 35. Code Quality & Architecture         | v1.2      | 0/6            | Planned     | -          |
 | 36. Test Coverage Expansion             | v1.2      | 0/13           | Planned     | -          |
 | 37. Critical Integration Fixes          | v1.2      | 0/TBD          | Not started | -          |
-| 38. Dark Mode Gap Closure               | v1.2      | 0/TBD          | Not started | -          |
+| 38. Dark Mode Gap Closure               | v1.2      | 0/13           | Not started | -          |
 | 39. Frontend Test Repair                | v1.2      | 0/5            | Planned     | -          |
 
 ---
