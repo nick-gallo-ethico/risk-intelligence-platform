@@ -622,7 +622,7 @@ export function ScheduleConfig({
               </div>
 
               {config.launchDate && isBlackoutDate(config.launchDate) && (
-                <div className="flex items-center gap-2 rounded-md bg-amber-50 p-3 text-amber-800">
+                <div className="flex items-center gap-2 rounded-md bg-amber-50 p-3 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300">
                   <AlertTriangle className="h-4 w-4" />
                   <span className="text-sm">
                     This date is marked as a blackout period. Consider choosing
@@ -811,7 +811,8 @@ export function ScheduleConfig({
                       blackout: blackoutDates,
                     }}
                     modifiersClassNames={{
-                      blackout: "bg-amber-100 text-amber-800",
+                      blackout:
+                        "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300",
                     }}
                     initialFocus
                   />
@@ -819,7 +820,7 @@ export function ScheduleConfig({
               </Popover>
 
               {deadlineInBlackout && (
-                <div className="flex items-center gap-2 rounded-md bg-amber-50 p-3 text-amber-800">
+                <div className="flex items-center gap-2 rounded-md bg-amber-50 p-3 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300">
                   <AlertTriangle className="h-4 w-4" />
                   <span className="text-sm">
                     This deadline falls during a blackout period. The deadline

@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Megaphone, Clock, CheckCircle, Users } from 'lucide-react';
-import type { CampaignDashboardStats } from '@/types/campaign';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Megaphone, Clock, CheckCircle, Users } from "lucide-react";
+import type { CampaignDashboardStats } from "@/types/campaign";
 
 interface CampaignsSummaryCardsProps {
   stats: CampaignDashboardStats | undefined;
@@ -14,37 +14,40 @@ interface CampaignsSummaryCardsProps {
  * Summary cards showing campaign statistics.
  * Displays Active Campaigns, Pending Review, Completed, and Total Reach.
  */
-export function CampaignsSummaryCards({ stats, isLoading }: CampaignsSummaryCardsProps) {
+export function CampaignsSummaryCards({
+  stats,
+  isLoading,
+}: CampaignsSummaryCardsProps) {
   const cards = [
     {
-      title: 'Active Campaigns',
+      title: "Active Campaigns",
       value: stats?.activeCampaigns ?? 0,
       icon: Megaphone,
-      iconColor: 'text-green-600',
-      bgColor: 'bg-green-50',
+      iconColor: "text-green-600 dark:text-green-400",
+      bgColor: "bg-green-50 dark:bg-green-900/20",
     },
     {
-      title: 'Pending Review',
+      title: "Pending Review",
       value: stats?.draftCampaigns ?? 0,
       icon: Clock,
-      iconColor: 'text-yellow-600',
-      bgColor: 'bg-yellow-50',
-      subtitle: 'drafts',
+      iconColor: "text-yellow-600 dark:text-yellow-400",
+      bgColor: "bg-yellow-50 dark:bg-yellow-900/20",
+      subtitle: "drafts",
     },
     {
-      title: 'Completed',
+      title: "Completed",
       value: stats?.completedCampaigns ?? 0,
       icon: CheckCircle,
-      iconColor: 'text-purple-600',
-      bgColor: 'bg-purple-50',
+      iconColor: "text-purple-600 dark:text-purple-400",
+      bgColor: "bg-purple-50 dark:bg-purple-900/20",
     },
     {
-      title: 'Total Reach',
+      title: "Total Reach",
       value: stats?.totalAssignments ?? 0,
       icon: Users,
-      iconColor: 'text-blue-600',
-      bgColor: 'bg-blue-50',
-      subtitle: 'assignments',
+      iconColor: "text-blue-600 dark:text-blue-400",
+      bgColor: "bg-blue-50 dark:bg-blue-900/20",
+      subtitle: "assignments",
     },
   ];
 
@@ -69,7 +72,9 @@ export function CampaignsSummaryCards({ stats, isLoading }: CampaignsSummaryCard
                   {card.value.toLocaleString()}
                 </span>
                 {card.subtitle && (
-                  <span className="text-sm text-muted-foreground">{card.subtitle}</span>
+                  <span className="text-sm text-muted-foreground">
+                    {card.subtitle}
+                  </span>
                 )}
               </div>
             )}

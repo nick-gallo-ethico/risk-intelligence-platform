@@ -806,7 +806,7 @@ export function CampaignBuilder({
 
             {/* Launch warning */}
             {!canLaunch && (
-              <div className="flex items-center gap-2 rounded-md bg-amber-50 p-4 text-amber-800">
+              <div className="flex items-center gap-2 rounded-md bg-amber-50 p-4 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300">
                 <AlertTriangle className="h-5 w-5" />
                 <span className="text-sm">
                   Please complete all required fields before launching.
