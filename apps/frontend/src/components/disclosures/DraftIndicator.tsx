@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { cn } from '@/lib/utils';
+import { cn } from "@/lib/utils";
 
 /**
  * Save status for draft indicator.
  */
-export type SaveStatus = 'idle' | 'saving' | 'saved' | 'unsaved' | 'error';
+export type SaveStatus = "idle" | "saving" | "saved" | "unsaved" | "error";
 
 /**
  * Props for DraftIndicator component.
@@ -31,15 +31,11 @@ interface StatusConfig {
  */
 function getStatusConfig(status: SaveStatus): StatusConfig {
   switch (status) {
-    case 'saving':
+    case "saving":
       return {
-        label: 'Saving...',
+        label: "Saving...",
         icon: (
-          <svg
-            className="w-4 h-4 animate-spin"
-            fill="none"
-            viewBox="0 0 24 24"
-          >
+          <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
             <circle
               className="opacity-25"
               cx="12"
@@ -55,11 +51,11 @@ function getStatusConfig(status: SaveStatus): StatusConfig {
             />
           </svg>
         ),
-        className: 'text-muted-foreground',
+        className: "text-muted-foreground",
       };
-    case 'saved':
+    case "saved":
       return {
-        label: 'All changes saved',
+        label: "All changes saved",
         icon: (
           <svg
             className="w-4 h-4"
@@ -75,11 +71,11 @@ function getStatusConfig(status: SaveStatus): StatusConfig {
             />
           </svg>
         ),
-        className: 'text-green-600',
+        className: "text-green-600 dark:text-green-400",
       };
-    case 'unsaved':
+    case "unsaved":
       return {
-        label: 'Unsaved changes',
+        label: "Unsaved changes",
         icon: (
           <svg
             className="w-4 h-4"
@@ -90,11 +86,11 @@ function getStatusConfig(status: SaveStatus): StatusConfig {
             <circle cx="12" cy="12" r="3" fill="currentColor" />
           </svg>
         ),
-        className: 'text-amber-600',
+        className: "text-amber-600 dark:text-amber-400",
       };
-    case 'error':
+    case "error":
       return {
-        label: 'Save failed',
+        label: "Save failed",
         icon: (
           <svg
             className="w-4 h-4"
@@ -110,14 +106,14 @@ function getStatusConfig(status: SaveStatus): StatusConfig {
             />
           </svg>
         ),
-        className: 'text-destructive',
+        className: "text-destructive",
       };
-    case 'idle':
+    case "idle":
     default:
       return {
-        label: '',
+        label: "",
         icon: null,
-        className: 'text-transparent',
+        className: "text-transparent",
       };
   }
 }
@@ -138,16 +134,16 @@ export function DraftIndicator({ status, className }: DraftIndicatorProps) {
   const config = getStatusConfig(status);
 
   // Don't render anything when idle
-  if (status === 'idle') {
+  if (status === "idle") {
     return null;
   }
 
   return (
     <div
       className={cn(
-        'flex items-center gap-1.5 text-xs transition-opacity',
+        "flex items-center gap-1.5 text-xs transition-opacity",
         config.className,
-        className
+        className,
       )}
       role="status"
       aria-live="polite"
@@ -195,9 +191,9 @@ export interface AttachmentEvidenceChainProps {
  * Format file size for display.
  */
 function formatFileSize(bytes: number): string {
-  if (bytes === 0) return '0 Bytes';
+  if (bytes === 0) return "0 Bytes";
   const k = 1024;
-  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const sizes = ["Bytes", "KB", "MB", "GB"];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
   return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
 }
@@ -206,9 +202,9 @@ function formatFileSize(bytes: number): string {
  * Format date for display.
  */
 function formatDate(date: Date): string {
-  return new Intl.DateTimeFormat('en-US', {
-    dateStyle: 'medium',
-    timeStyle: 'short',
+  return new Intl.DateTimeFormat("en-US", {
+    dateStyle: "medium",
+    timeStyle: "short",
   }).format(date);
 }
 
@@ -239,8 +235,8 @@ export function AttachmentEvidenceChain({
   return (
     <div
       className={cn(
-        'text-xs text-muted-foreground space-y-1 border-l-2 border-muted pl-2',
-        className
+        "text-xs text-muted-foreground space-y-1 border-l-2 border-muted pl-2",
+        className,
       )}
     >
       {/* Timestamp */}
@@ -304,7 +300,7 @@ export function AttachmentEvidenceChain({
 
       {/* Version indicator */}
       {attachment.version > 1 && (
-        <div className="flex items-center gap-1 text-amber-600">
+        <div className="flex items-center gap-1 text-amber-600 dark:text-amber-400">
           <svg
             className="w-3 h-3"
             fill="none"
@@ -343,10 +339,10 @@ export interface LinkedAttachmentProps {
  * Get file type icon based on MIME type.
  */
 function getFileTypeIcon(mimeType: string): React.ReactNode {
-  if (mimeType.startsWith('image/')) {
+  if (mimeType.startsWith("image/")) {
     return (
       <svg
-        className="w-5 h-5 text-blue-500"
+        className="w-5 h-5 text-blue-500 dark:text-blue-400"
         fill="none"
         stroke="currentColor"
         viewBox="0 0 24 24"
@@ -360,10 +356,10 @@ function getFileTypeIcon(mimeType: string): React.ReactNode {
       </svg>
     );
   }
-  if (mimeType === 'application/pdf') {
+  if (mimeType === "application/pdf") {
     return (
       <svg
-        className="w-5 h-5 text-red-500"
+        className="w-5 h-5 text-red-500 dark:text-red-400"
         fill="none"
         stroke="currentColor"
         viewBox="0 0 24 24"
@@ -379,7 +375,7 @@ function getFileTypeIcon(mimeType: string): React.ReactNode {
   }
   return (
     <svg
-      className="w-5 h-5 text-gray-500"
+      className="w-5 h-5 text-muted-foreground"
       fill="none"
       stroke="currentColor"
       viewBox="0 0 24 24"
@@ -409,8 +405,8 @@ export function LinkedAttachment({
   return (
     <div
       className={cn(
-        'flex items-start gap-3 p-3 border rounded-lg bg-muted/20',
-        className
+        "flex items-start gap-3 p-3 border rounded-lg bg-muted/20",
+        className,
       )}
     >
       {/* File type icon */}
@@ -425,7 +421,7 @@ export function LinkedAttachment({
             {attachment.originalFilename}
           </span>
           {attachment.version > 1 && (
-            <span className="text-xs bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded">
+            <span className="text-xs bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300 px-1.5 py-0.5 rounded">
               v{attachment.version}
             </span>
           )}

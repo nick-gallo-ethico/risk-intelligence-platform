@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useReducer, useCallback, useEffect, useRef, useState } from 'react';
+import { useReducer, useCallback, useEffect, useRef, useState } from "react";
 import {
   DndContext,
   DragOverlay,
@@ -13,15 +13,15 @@ import {
   KeyboardSensor,
   closestCenter,
   UniqueIdentifier,
-} from '@dnd-kit/core';
+} from "@dnd-kit/core";
 import {
   SortableContext,
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
   useSortable,
   arrayMove,
-} from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import {
   Plus,
   GripVertical,
@@ -32,14 +32,18 @@ import {
   ChevronRight,
   X,
   Repeat,
-} from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Checkbox } from '@/components/ui/checkbox';
-import { FieldPalette, FIELD_TYPES, type FieldTypeDefinition } from './FieldPalette';
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  FieldPalette,
+  FIELD_TYPES,
+  type FieldTypeDefinition,
+} from "./FieldPalette";
 
 // ============================================================================
 // Types
@@ -62,13 +66,18 @@ export interface FormField {
   };
   conditionalLogic?: {
     enabled: boolean;
-    action: 'show' | 'hide';
+    action: "show" | "hide";
     conditions: Array<{
       fieldId: string;
-      operator: 'equals' | 'not_equals' | 'contains' | 'greater_than' | 'less_than';
+      operator:
+        | "equals"
+        | "not_equals"
+        | "contains"
+        | "greater_than"
+        | "less_than";
       value: string;
     }>;
-    match: 'all' | 'any';
+    match: "all" | "any";
   };
   config: Record<string, unknown>;
 }
@@ -100,19 +109,40 @@ export interface FormBuilderState {
 }
 
 type FormBuilderAction =
-  | { type: 'ADD_SECTION' }
-  | { type: 'UPDATE_SECTION'; sectionId: string; updates: Partial<FormSection> }
-  | { type: 'DELETE_SECTION'; sectionId: string }
-  | { type: 'REORDER_SECTIONS'; fromIndex: number; toIndex: number }
-  | { type: 'TOGGLE_SECTION_COLLAPSE'; sectionId: string }
-  | { type: 'ADD_FIELD'; sectionId: string; fieldType: FieldTypeDefinition; index?: number }
-  | { type: 'UPDATE_FIELD'; sectionId: string; fieldId: string; updates: Partial<FormField> }
-  | { type: 'DELETE_FIELD'; sectionId: string; fieldId: string }
-  | { type: 'REORDER_FIELDS'; sectionId: string; fromIndex: number; toIndex: number }
-  | { type: 'MOVE_FIELD_BETWEEN_SECTIONS'; fromSectionId: string; toSectionId: string; fieldId: string; toIndex: number }
-  | { type: 'SELECT_FIELD'; fieldId: string | null; sectionId: string | null }
-  | { type: 'MARK_SAVED' }
-  | { type: 'LOAD_STATE'; state: FormBuilderState };
+  | { type: "ADD_SECTION" }
+  | { type: "UPDATE_SECTION"; sectionId: string; updates: Partial<FormSection> }
+  | { type: "DELETE_SECTION"; sectionId: string }
+  | { type: "REORDER_SECTIONS"; fromIndex: number; toIndex: number }
+  | { type: "TOGGLE_SECTION_COLLAPSE"; sectionId: string }
+  | {
+      type: "ADD_FIELD";
+      sectionId: string;
+      fieldType: FieldTypeDefinition;
+      index?: number;
+    }
+  | {
+      type: "UPDATE_FIELD";
+      sectionId: string;
+      fieldId: string;
+      updates: Partial<FormField>;
+    }
+  | { type: "DELETE_FIELD"; sectionId: string; fieldId: string }
+  | {
+      type: "REORDER_FIELDS";
+      sectionId: string;
+      fromIndex: number;
+      toIndex: number;
+    }
+  | {
+      type: "MOVE_FIELD_BETWEEN_SECTIONS";
+      fromSectionId: string;
+      toSectionId: string;
+      fieldId: string;
+      toIndex: number;
+    }
+  | { type: "SELECT_FIELD"; fieldId: string | null; sectionId: string | null }
+  | { type: "MARK_SAVED" }
+  | { type: "LOAD_STATE"; state: FormBuilderState };
 
 // ============================================================================
 // Reducer
@@ -122,9 +152,12 @@ function generateId(): string {
   return `id_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 }
 
-function formBuilderReducer(state: FormBuilderState, action: FormBuilderAction): FormBuilderState {
+function formBuilderReducer(
+  state: FormBuilderState,
+  action: FormBuilderAction,
+): FormBuilderState {
   switch (action.type) {
-    case 'ADD_SECTION': {
+    case "ADD_SECTION": {
       const newSection: FormSection = {
         id: generateId(),
         name: `Section ${state.sections.length + 1}`,
@@ -137,36 +170,41 @@ function formBuilderReducer(state: FormBuilderState, action: FormBuilderAction):
       };
     }
 
-    case 'UPDATE_SECTION': {
+    case "UPDATE_SECTION": {
       return {
         ...state,
         sections: state.sections.map((section) =>
           section.id === action.sectionId
             ? { ...section, ...action.updates }
-            : section
+            : section,
         ),
         isDirty: true,
       };
     }
 
-    case 'DELETE_SECTION': {
+    case "DELETE_SECTION": {
       return {
         ...state,
         sections: state.sections.filter((s) => s.id !== action.sectionId),
         selectedSectionId:
-          state.selectedSectionId === action.sectionId ? null : state.selectedSectionId,
-        selectedFieldId:
-          state.sections.find((s) => s.id === action.sectionId)?.fields.some(
-            (f) => f.id === state.selectedFieldId
-          )
+          state.selectedSectionId === action.sectionId
             ? null
-            : state.selectedFieldId,
+            : state.selectedSectionId,
+        selectedFieldId: state.sections
+          .find((s) => s.id === action.sectionId)
+          ?.fields.some((f) => f.id === state.selectedFieldId)
+          ? null
+          : state.selectedFieldId,
         isDirty: true,
       };
     }
 
-    case 'REORDER_SECTIONS': {
-      const newSections = arrayMove(state.sections, action.fromIndex, action.toIndex);
+    case "REORDER_SECTIONS": {
+      const newSections = arrayMove(
+        state.sections,
+        action.fromIndex,
+        action.toIndex,
+      );
       return {
         ...state,
         sections: newSections,
@@ -174,18 +212,18 @@ function formBuilderReducer(state: FormBuilderState, action: FormBuilderAction):
       };
     }
 
-    case 'TOGGLE_SECTION_COLLAPSE': {
+    case "TOGGLE_SECTION_COLLAPSE": {
       return {
         ...state,
         sections: state.sections.map((section) =>
           section.id === action.sectionId
             ? { ...section, collapsed: !section.collapsed }
-            : section
+            : section,
         ),
       };
     }
 
-    case 'ADD_FIELD': {
+    case "ADD_FIELD": {
       const newField: FormField = {
         id: generateId(),
         type: action.fieldType.type,
@@ -208,7 +246,7 @@ function formBuilderReducer(state: FormBuilderState, action: FormBuilderAction):
       };
     }
 
-    case 'UPDATE_FIELD': {
+    case "UPDATE_FIELD": {
       return {
         ...state,
         sections: state.sections.map((section) => {
@@ -216,7 +254,9 @@ function formBuilderReducer(state: FormBuilderState, action: FormBuilderAction):
           return {
             ...section,
             fields: section.fields.map((field) =>
-              field.id === action.fieldId ? { ...field, ...action.updates } : field
+              field.id === action.fieldId
+                ? { ...field, ...action.updates }
+                : field,
             ),
           };
         }),
@@ -224,7 +264,7 @@ function formBuilderReducer(state: FormBuilderState, action: FormBuilderAction):
       };
     }
 
-    case 'DELETE_FIELD': {
+    case "DELETE_FIELD": {
       return {
         ...state,
         sections: state.sections.map((section) => {
@@ -235,12 +275,14 @@ function formBuilderReducer(state: FormBuilderState, action: FormBuilderAction):
           };
         }),
         selectedFieldId:
-          state.selectedFieldId === action.fieldId ? null : state.selectedFieldId,
+          state.selectedFieldId === action.fieldId
+            ? null
+            : state.selectedFieldId,
         isDirty: true,
       };
     }
 
-    case 'REORDER_FIELDS': {
+    case "REORDER_FIELDS": {
       return {
         ...state,
         sections: state.sections.map((section) => {
@@ -254,8 +296,10 @@ function formBuilderReducer(state: FormBuilderState, action: FormBuilderAction):
       };
     }
 
-    case 'MOVE_FIELD_BETWEEN_SECTIONS': {
-      const fromSection = state.sections.find((s) => s.id === action.fromSectionId);
+    case "MOVE_FIELD_BETWEEN_SECTIONS": {
+      const fromSection = state.sections.find(
+        (s) => s.id === action.fromSectionId,
+      );
       const field = fromSection?.fields.find((f) => f.id === action.fieldId);
       if (!field) return state;
 
@@ -280,7 +324,7 @@ function formBuilderReducer(state: FormBuilderState, action: FormBuilderAction):
       };
     }
 
-    case 'SELECT_FIELD': {
+    case "SELECT_FIELD": {
       return {
         ...state,
         selectedFieldId: action.fieldId,
@@ -288,7 +332,7 @@ function formBuilderReducer(state: FormBuilderState, action: FormBuilderAction):
       };
     }
 
-    case 'MARK_SAVED': {
+    case "MARK_SAVED": {
       return {
         ...state,
         isDirty: false,
@@ -296,7 +340,7 @@ function formBuilderReducer(state: FormBuilderState, action: FormBuilderAction):
       };
     }
 
-    case 'LOAD_STATE': {
+    case "LOAD_STATE": {
       return action.state;
     }
 
@@ -308,8 +352,8 @@ function formBuilderReducer(state: FormBuilderState, action: FormBuilderAction):
 const initialBuilderState: FormBuilderState = {
   sections: [
     {
-      id: 'default-section',
-      name: 'Section 1',
+      id: "default-section",
+      name: "Section 1",
       fields: [],
     },
   ],
@@ -331,7 +375,13 @@ interface SortableFieldProps {
   onDelete: () => void;
 }
 
-function SortableField({ field, sectionId, isSelected, onSelect, onDelete }: SortableFieldProps) {
+function SortableField({
+  field,
+  sectionId,
+  isSelected,
+  onSelect,
+  onDelete,
+}: SortableFieldProps) {
   const {
     attributes,
     listeners,
@@ -341,7 +391,7 @@ function SortableField({ field, sectionId, isSelected, onSelect, onDelete }: Sor
     isDragging,
   } = useSortable({
     id: field.id,
-    data: { type: 'field', sectionId, field },
+    data: { type: "field", sectionId, field },
   });
 
   const style = {
@@ -357,35 +407,37 @@ function SortableField({ field, sectionId, isSelected, onSelect, onDelete }: Sor
       ref={setNodeRef}
       style={style}
       className={cn(
-        'flex items-center gap-3 p-3 bg-white rounded-lg border transition-all',
-        isSelected && 'ring-2 ring-blue-500 border-blue-500',
-        isDragging && 'opacity-50 shadow-lg',
-        !isSelected && 'hover:border-gray-300'
+        "flex items-center gap-3 p-3 bg-card rounded-lg border transition-all",
+        isSelected && "ring-2 ring-blue-500 border-blue-500",
+        isDragging && "opacity-50 shadow-lg",
+        !isSelected && "hover:border-muted-foreground/30",
       )}
       onClick={onSelect}
     >
       <button
         {...attributes}
         {...listeners}
-        className="cursor-grab active:cursor-grabbing p-1 hover:bg-gray-100 rounded"
+        className="cursor-grab active:cursor-grabbing p-1 hover:bg-muted rounded"
       >
-        <GripVertical className="h-4 w-4 text-gray-400" />
+        <GripVertical className="h-4 w-4 text-muted-foreground" />
       </button>
 
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
           {Icon && (
-            <div className="w-6 h-6 rounded bg-gray-100 flex items-center justify-center flex-shrink-0">
-              <Icon className="h-3 w-3 text-gray-600" />
+            <div className="w-6 h-6 rounded bg-muted flex items-center justify-center flex-shrink-0">
+              <Icon className="h-3 w-3 text-muted-foreground" />
             </div>
           )}
           <span className="font-medium text-sm truncate">{field.label}</span>
           {field.required && (
-            <span className="text-red-500 text-xs">*</span>
+            <span className="text-destructive text-xs">*</span>
           )}
         </div>
         {field.description && (
-          <p className="text-xs text-gray-500 mt-0.5 truncate">{field.description}</p>
+          <p className="text-xs text-muted-foreground mt-0.5 truncate">
+            {field.description}
+          </p>
         )}
       </div>
 
@@ -394,7 +446,7 @@ function SortableField({ field, sectionId, isSelected, onSelect, onDelete }: Sor
           e.stopPropagation();
           onDelete();
         }}
-        className="p-1 hover:bg-red-100 rounded text-gray-400 hover:text-red-600"
+        className="p-1 hover:bg-destructive/10 rounded text-muted-foreground hover:text-destructive"
       >
         <Trash2 className="h-4 w-4" />
       </button>
@@ -436,7 +488,7 @@ function FormSectionComponent({
     isDragging,
   } = useSortable({
     id: section.id,
-    data: { type: 'section', section },
+    data: { type: "section", section },
   });
 
   const style = {
@@ -451,28 +503,28 @@ function FormSectionComponent({
       ref={setNodeRef}
       style={style}
       className={cn(
-        'bg-white rounded-xl border shadow-sm',
-        isDragging && 'opacity-50 shadow-lg'
+        "bg-card rounded-xl border shadow-sm",
+        isDragging && "opacity-50 shadow-lg",
       )}
     >
       {/* Section Header */}
-      <div className="flex items-center gap-2 p-4 border-b bg-gray-50 rounded-t-xl">
+      <div className="flex items-center gap-2 p-4 border-b bg-muted/50 rounded-t-xl">
         <button
           {...attributes}
           {...listeners}
-          className="cursor-grab active:cursor-grabbing p-1 hover:bg-gray-200 rounded"
+          className="cursor-grab active:cursor-grabbing p-1 hover:bg-muted rounded"
         >
-          <GripVertical className="h-4 w-4 text-gray-400" />
+          <GripVertical className="h-4 w-4 text-muted-foreground" />
         </button>
 
         <button
           onClick={onToggleCollapse}
-          className="p-1 hover:bg-gray-200 rounded"
+          className="p-1 hover:bg-muted rounded"
         >
           {section.collapsed ? (
-            <ChevronRight className="h-4 w-4 text-gray-500" />
+            <ChevronRight className="h-4 w-4 text-muted-foreground" />
           ) : (
-            <ChevronDown className="h-4 w-4 text-gray-500" />
+            <ChevronDown className="h-4 w-4 text-muted-foreground" />
           )}
         </button>
 
@@ -481,13 +533,13 @@ function FormSectionComponent({
             value={section.name}
             onChange={(e) => onUpdateSection({ name: e.target.value })}
             onBlur={() => setIsEditing(false)}
-            onKeyDown={(e) => e.key === 'Enter' && setIsEditing(false)}
+            onKeyDown={(e) => e.key === "Enter" && setIsEditing(false)}
             className="h-7 text-sm font-semibold"
             autoFocus
           />
         ) : (
           <span
-            className="font-semibold text-gray-900 cursor-pointer hover:text-blue-600"
+            className="font-semibold text-foreground cursor-pointer hover:text-blue-600 dark:hover:text-blue-400"
             onClick={() => setIsEditing(true)}
           >
             {section.name}
@@ -495,19 +547,19 @@ function FormSectionComponent({
         )}
 
         {section.repeater?.enabled && (
-          <span className="flex items-center gap-1 text-xs bg-purple-100 text-purple-700 px-2 py-0.5 rounded">
+          <span className="flex items-center gap-1 text-xs bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 px-2 py-0.5 rounded">
             <Repeat className="h-3 w-3" />
             Repeater
           </span>
         )}
 
-        <span className="text-xs text-gray-500 ml-auto">
-          {section.fields.length} field{section.fields.length !== 1 ? 's' : ''}
+        <span className="text-xs text-muted-foreground ml-auto">
+          {section.fields.length} field{section.fields.length !== 1 ? "s" : ""}
         </span>
 
         <button
           onClick={onDeleteSection}
-          className="p-1 hover:bg-red-100 rounded text-gray-400 hover:text-red-600"
+          className="p-1 hover:bg-destructive/10 rounded text-muted-foreground hover:text-destructive"
         >
           <Trash2 className="h-4 w-4" />
         </button>
@@ -517,7 +569,7 @@ function FormSectionComponent({
       {!section.collapsed && (
         <div className="p-4 space-y-2 min-h-[100px]">
           {section.fields.length === 0 ? (
-            <div className="border-2 border-dashed border-gray-200 rounded-lg p-8 text-center text-gray-400">
+            <div className="border-2 border-dashed border-border rounded-lg p-8 text-center text-muted-foreground">
               <p className="text-sm">Drag fields here from the palette</p>
             </div>
           ) : (
@@ -555,19 +607,25 @@ interface FieldConfigPanelProps {
   onClose: () => void;
 }
 
-function FieldConfigPanel({ field, sectionId, allFields, onUpdate, onClose }: FieldConfigPanelProps) {
+function FieldConfigPanel({
+  field,
+  sectionId,
+  allFields,
+  onUpdate,
+  onClose,
+}: FieldConfigPanelProps) {
   const fieldType = FIELD_TYPES.find((ft) => ft.type === field.type);
 
   return (
-    <div className="w-80 bg-white border-l flex flex-col overflow-hidden">
+    <div className="w-80 bg-card border-l flex flex-col overflow-hidden">
       {/* Header */}
       <div className="p-4 border-b flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Settings className="h-4 w-4 text-gray-500" />
-          <h3 className="font-semibold text-gray-900">Field Settings</h3>
+          <Settings className="h-4 w-4 text-muted-foreground" />
+          <h3 className="font-semibold text-foreground">Field Settings</h3>
         </div>
-        <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded">
-          <X className="h-4 w-4 text-gray-500" />
+        <button onClick={onClose} className="p-1 hover:bg-muted rounded">
+          <X className="h-4 w-4 text-muted-foreground" />
         </button>
       </div>
 
@@ -575,7 +633,7 @@ function FieldConfigPanel({ field, sectionId, allFields, onUpdate, onClose }: Fi
       <div className="flex-1 overflow-y-auto p-4 space-y-6">
         {/* Basic Settings */}
         <div className="space-y-4">
-          <h4 className="text-sm font-medium text-gray-700">Basic</h4>
+          <h4 className="text-sm font-medium text-muted-foreground">Basic</h4>
 
           <div className="space-y-2">
             <Label htmlFor="field-label">Label</Label>
@@ -590,7 +648,7 @@ function FieldConfigPanel({ field, sectionId, allFields, onUpdate, onClose }: Fi
             <Label htmlFor="field-description">Description</Label>
             <Textarea
               id="field-description"
-              value={field.description || ''}
+              value={field.description || ""}
               onChange={(e) => onUpdate({ description: e.target.value })}
               rows={2}
               placeholder="Help text shown below the field"
@@ -601,7 +659,7 @@ function FieldConfigPanel({ field, sectionId, allFields, onUpdate, onClose }: Fi
             <Label htmlFor="field-placeholder">Placeholder</Label>
             <Input
               id="field-placeholder"
-              value={field.placeholder || ''}
+              value={field.placeholder || ""}
               onChange={(e) => onUpdate({ placeholder: e.target.value })}
               placeholder="Placeholder text"
             />
@@ -611,7 +669,9 @@ function FieldConfigPanel({ field, sectionId, allFields, onUpdate, onClose }: Fi
             <Checkbox
               id="field-required"
               checked={field.required}
-              onCheckedChange={(checked) => onUpdate({ required: checked === true })}
+              onCheckedChange={(checked) =>
+                onUpdate({ required: checked === true })
+              }
             />
             <Label htmlFor="field-required" className="cursor-pointer">
               Required field
@@ -621,9 +681,11 @@ function FieldConfigPanel({ field, sectionId, allFields, onUpdate, onClose }: Fi
 
         {/* Validation */}
         <div className="space-y-4">
-          <h4 className="text-sm font-medium text-gray-700">Validation</h4>
+          <h4 className="text-sm font-medium text-muted-foreground">
+            Validation
+          </h4>
 
-          {(field.type === 'text' || field.type === 'textarea') && (
+          {(field.type === "text" || field.type === "textarea") && (
             <div className="grid grid-cols-2 gap-2">
               <div className="space-y-2">
                 <Label htmlFor="validation-minLength">Min Length</Label>
@@ -631,12 +693,14 @@ function FieldConfigPanel({ field, sectionId, allFields, onUpdate, onClose }: Fi
                   id="validation-minLength"
                   type="number"
                   min={0}
-                  value={field.validation?.minLength ?? ''}
+                  value={field.validation?.minLength ?? ""}
                   onChange={(e) =>
                     onUpdate({
                       validation: {
                         ...field.validation,
-                        minLength: e.target.value ? parseInt(e.target.value) : undefined,
+                        minLength: e.target.value
+                          ? parseInt(e.target.value)
+                          : undefined,
                       },
                     })
                   }
@@ -648,12 +712,14 @@ function FieldConfigPanel({ field, sectionId, allFields, onUpdate, onClose }: Fi
                   id="validation-maxLength"
                   type="number"
                   min={0}
-                  value={field.validation?.maxLength ?? ''}
+                  value={field.validation?.maxLength ?? ""}
                   onChange={(e) =>
                     onUpdate({
                       validation: {
                         ...field.validation,
-                        maxLength: e.target.value ? parseInt(e.target.value) : undefined,
+                        maxLength: e.target.value
+                          ? parseInt(e.target.value)
+                          : undefined,
                       },
                     })
                   }
@@ -662,19 +728,21 @@ function FieldConfigPanel({ field, sectionId, allFields, onUpdate, onClose }: Fi
             </div>
           )}
 
-          {(field.type === 'number' || field.type === 'dollar-threshold') && (
+          {(field.type === "number" || field.type === "dollar-threshold") && (
             <div className="grid grid-cols-2 gap-2">
               <div className="space-y-2">
                 <Label htmlFor="validation-min">Min Value</Label>
                 <Input
                   id="validation-min"
                   type="number"
-                  value={field.validation?.min ?? ''}
+                  value={field.validation?.min ?? ""}
                   onChange={(e) =>
                     onUpdate({
                       validation: {
                         ...field.validation,
-                        min: e.target.value ? parseFloat(e.target.value) : undefined,
+                        min: e.target.value
+                          ? parseFloat(e.target.value)
+                          : undefined,
                       },
                     })
                   }
@@ -685,12 +753,14 @@ function FieldConfigPanel({ field, sectionId, allFields, onUpdate, onClose }: Fi
                 <Input
                   id="validation-max"
                   type="number"
-                  value={field.validation?.max ?? ''}
+                  value={field.validation?.max ?? ""}
                   onChange={(e) =>
                     onUpdate({
                       validation: {
                         ...field.validation,
-                        max: e.target.value ? parseFloat(e.target.value) : undefined,
+                        max: e.target.value
+                          ? parseFloat(e.target.value)
+                          : undefined,
                       },
                     })
                   }
@@ -703,7 +773,7 @@ function FieldConfigPanel({ field, sectionId, allFields, onUpdate, onClose }: Fi
             <Label htmlFor="validation-pattern">Regex Pattern</Label>
             <Input
               id="validation-pattern"
-              value={field.validation?.pattern || ''}
+              value={field.validation?.pattern || ""}
               onChange={(e) =>
                 onUpdate({
                   validation: {
@@ -720,24 +790,27 @@ function FieldConfigPanel({ field, sectionId, allFields, onUpdate, onClose }: Fi
         {/* Conditional Logic */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h4 className="text-sm font-medium text-gray-700">Conditional Logic</h4>
+            <h4 className="text-sm font-medium text-muted-foreground">
+              Conditional Logic
+            </h4>
             <Checkbox
               checked={field.conditionalLogic?.enabled ?? false}
               onCheckedChange={(checked) =>
                 onUpdate({
                   conditionalLogic: {
                     enabled: checked === true,
-                    action: field.conditionalLogic?.action ?? 'show',
+                    action: field.conditionalLogic?.action ?? "show",
                     conditions: field.conditionalLogic?.conditions ?? [],
-                    match: field.conditionalLogic?.match ?? 'all',
+                    match: field.conditionalLogic?.match ?? "all",
                   },
                 })
               }
             />
           </div>
           {field.conditionalLogic?.enabled && (
-            <p className="text-xs text-gray-500">
-              Configure when this field should be shown/hidden based on other field values.
+            <p className="text-xs text-muted-foreground">
+              Configure when this field should be shown/hidden based on other
+              field values.
             </p>
           )}
         </div>
@@ -745,8 +818,10 @@ function FieldConfigPanel({ field, sectionId, allFields, onUpdate, onClose }: Fi
         {/* Type-specific Settings */}
         {fieldType && (
           <div className="space-y-4">
-            <h4 className="text-sm font-medium text-gray-700">Type Settings</h4>
-            <p className="text-xs text-gray-500">
+            <h4 className="text-sm font-medium text-muted-foreground">
+              Type Settings
+            </h4>
+            <p className="text-xs text-muted-foreground">
               Configure {fieldType.name.toLowerCase()}-specific options.
             </p>
             {/* Type-specific config would be rendered here based on field.type */}
@@ -767,17 +842,21 @@ interface SectionConfigPanelProps {
   onClose: () => void;
 }
 
-function SectionConfigPanel({ section, onUpdate, onClose }: SectionConfigPanelProps) {
+function SectionConfigPanel({
+  section,
+  onUpdate,
+  onClose,
+}: SectionConfigPanelProps) {
   return (
-    <div className="w-80 bg-white border-l flex flex-col overflow-hidden">
+    <div className="w-80 bg-card border-l flex flex-col overflow-hidden">
       {/* Header */}
       <div className="p-4 border-b flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Settings className="h-4 w-4 text-gray-500" />
-          <h3 className="font-semibold text-gray-900">Section Settings</h3>
+          <Settings className="h-4 w-4 text-muted-foreground" />
+          <h3 className="font-semibold text-foreground">Section Settings</h3>
         </div>
-        <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded">
-          <X className="h-4 w-4 text-gray-500" />
+        <button onClick={onClose} className="p-1 hover:bg-muted rounded">
+          <X className="h-4 w-4 text-muted-foreground" />
         </button>
       </div>
 
@@ -785,7 +864,7 @@ function SectionConfigPanel({ section, onUpdate, onClose }: SectionConfigPanelPr
       <div className="flex-1 overflow-y-auto p-4 space-y-6">
         {/* Basic Settings */}
         <div className="space-y-4">
-          <h4 className="text-sm font-medium text-gray-700">Basic</h4>
+          <h4 className="text-sm font-medium text-muted-foreground">Basic</h4>
 
           <div className="space-y-2">
             <Label htmlFor="section-name">Name</Label>
@@ -800,7 +879,7 @@ function SectionConfigPanel({ section, onUpdate, onClose }: SectionConfigPanelPr
             <Label htmlFor="section-description">Description</Label>
             <Textarea
               id="section-description"
-              value={section.description || ''}
+              value={section.description || ""}
               onChange={(e) => onUpdate({ description: e.target.value })}
               rows={2}
               placeholder="Optional section description"
@@ -811,7 +890,9 @@ function SectionConfigPanel({ section, onUpdate, onClose }: SectionConfigPanelPr
         {/* Repeater Configuration */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h4 className="text-sm font-medium text-gray-700">Repeater</h4>
+            <h4 className="text-sm font-medium text-muted-foreground">
+              Repeater
+            </h4>
             <Checkbox
               checked={section.repeater?.enabled ?? false}
               onCheckedChange={(checked) =>
@@ -820,13 +901,14 @@ function SectionConfigPanel({ section, onUpdate, onClose }: SectionConfigPanelPr
                     enabled: checked === true,
                     minItems: section.repeater?.minItems,
                     maxItems: section.repeater?.maxItems,
-                    addButtonText: section.repeater?.addButtonText ?? 'Add Another',
+                    addButtonText:
+                      section.repeater?.addButtonText ?? "Add Another",
                   },
                 })
               }
             />
           </div>
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-muted-foreground">
             Allow users to add multiple entries for this section.
           </p>
 
@@ -839,12 +921,14 @@ function SectionConfigPanel({ section, onUpdate, onClose }: SectionConfigPanelPr
                     id="repeater-min"
                     type="number"
                     min={0}
-                    value={section.repeater.minItems ?? ''}
+                    value={section.repeater.minItems ?? ""}
                     onChange={(e) =>
                       onUpdate({
                         repeater: {
                           ...section.repeater!,
-                          minItems: e.target.value ? parseInt(e.target.value) : undefined,
+                          minItems: e.target.value
+                            ? parseInt(e.target.value)
+                            : undefined,
                         },
                       })
                     }
@@ -856,12 +940,14 @@ function SectionConfigPanel({ section, onUpdate, onClose }: SectionConfigPanelPr
                     id="repeater-max"
                     type="number"
                     min={1}
-                    value={section.repeater.maxItems ?? ''}
+                    value={section.repeater.maxItems ?? ""}
                     onChange={(e) =>
                       onUpdate({
                         repeater: {
                           ...section.repeater!,
-                          maxItems: e.target.value ? parseInt(e.target.value) : undefined,
+                          maxItems: e.target.value
+                            ? parseInt(e.target.value)
+                            : undefined,
                         },
                       })
                     }
@@ -873,7 +959,7 @@ function SectionConfigPanel({ section, onUpdate, onClose }: SectionConfigPanelPr
                 <Label htmlFor="repeater-button">Add Button Text</Label>
                 <Input
                   id="repeater-button"
-                  value={section.repeater.addButtonText ?? 'Add Another'}
+                  value={section.repeater.addButtonText ?? "Add Another"}
                   onChange={(e) =>
                     onUpdate({
                       repeater: {
@@ -888,7 +974,9 @@ function SectionConfigPanel({ section, onUpdate, onClose }: SectionConfigPanelPr
               {/* Nested Repeater (max 2 levels per RS.23) */}
               <div className="pt-4 border-t">
                 <div className="flex items-center justify-between mb-2">
-                  <h5 className="text-sm font-medium text-gray-600">Nested Repeater</h5>
+                  <h5 className="text-sm font-medium text-muted-foreground">
+                    Nested Repeater
+                  </h5>
                   <Checkbox
                     checked={section.nestedRepeater?.enabled ?? false}
                     onCheckedChange={(checked) =>
@@ -901,7 +989,7 @@ function SectionConfigPanel({ section, onUpdate, onClose }: SectionConfigPanelPr
                     }
                   />
                 </div>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-muted-foreground">
                   Allow nested items within each repeater entry (max 2 levels).
                 </p>
 
@@ -953,18 +1041,20 @@ export function FormBuilder({
 }: FormBuilderProps) {
   const [state, dispatch] = useReducer(
     formBuilderReducer,
-    initialState ?? { ...initialBuilderState }
+    initialState ?? { ...initialBuilderState },
   );
   const [paletteCollapsed, setPaletteCollapsed] = useState(false);
   const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
-  const [activeType, setActiveType] = useState<'section' | 'field' | 'palette-field' | null>(null);
+  const [activeType, setActiveType] = useState<
+    "section" | "field" | "palette-field" | null
+  >(null);
   const autoSaveTimerRef = useRef<NodeJS.Timeout | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
   // Initialize from state if provided
   useEffect(() => {
     if (initialState) {
-      dispatch({ type: 'LOAD_STATE', state: initialState });
+      dispatch({ type: "LOAD_STATE", state: initialState });
     }
   }, [initialState]);
 
@@ -980,9 +1070,9 @@ export function FormBuilder({
       setIsSaving(true);
       try {
         await onSave(state);
-        dispatch({ type: 'MARK_SAVED' });
+        dispatch({ type: "MARK_SAVED" });
       } catch (error) {
-        console.error('Auto-save failed:', error);
+        console.error("Auto-save failed:", error);
       } finally {
         setIsSaving(false);
       }
@@ -1004,7 +1094,7 @@ export function FormBuilder({
     }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
-    })
+    }),
   );
 
   const handleDragStart = useCallback((event: DragStartEvent) => {
@@ -1012,12 +1102,12 @@ export function FormBuilder({
     setActiveId(active.id);
 
     const data = active.data.current;
-    if (data?.type === 'section') {
-      setActiveType('section');
-    } else if (data?.type === 'field') {
-      setActiveType('field');
-    } else if (data?.type === 'palette-field') {
-      setActiveType('palette-field');
+    if (data?.type === "section") {
+      setActiveType("section");
+    } else if (data?.type === "field") {
+      setActiveType("field");
+    } else if (data?.type === "palette-field") {
+      setActiveType("palette-field");
     }
   }, []);
 
@@ -1033,16 +1123,16 @@ export function FormBuilder({
       const overData = over.data.current;
 
       // Handle palette field dropped onto canvas
-      if (activeData?.type === 'palette-field') {
+      if (activeData?.type === "palette-field") {
         const fieldType = activeData.fieldType as FieldTypeDefinition;
 
         // Find target section
         let targetSectionId: string | null = null;
         let targetIndex: number | undefined;
 
-        if (overData?.type === 'section') {
+        if (overData?.type === "section") {
           targetSectionId = overData.section.id;
-        } else if (overData?.type === 'field') {
+        } else if (overData?.type === "field") {
           targetSectionId = overData.sectionId;
           const section = state.sections.find((s) => s.id === targetSectionId);
           if (section) {
@@ -1057,7 +1147,7 @@ export function FormBuilder({
 
         if (targetSectionId) {
           dispatch({
-            type: 'ADD_FIELD',
+            type: "ADD_FIELD",
             sectionId: targetSectionId,
             fieldType,
             index: targetIndex,
@@ -1067,28 +1157,30 @@ export function FormBuilder({
       }
 
       // Handle section reordering
-      if (activeData?.type === 'section' && overData?.type === 'section') {
+      if (activeData?.type === "section" && overData?.type === "section") {
         const fromIndex = state.sections.findIndex((s) => s.id === active.id);
         const toIndex = state.sections.findIndex((s) => s.id === over.id);
         if (fromIndex !== toIndex) {
-          dispatch({ type: 'REORDER_SECTIONS', fromIndex, toIndex });
+          dispatch({ type: "REORDER_SECTIONS", fromIndex, toIndex });
         }
         return;
       }
 
       // Handle field reordering within same section
-      if (activeData?.type === 'field' && overData?.type === 'field') {
+      if (activeData?.type === "field" && overData?.type === "field") {
         const fromSectionId = activeData.sectionId;
         const toSectionId = overData.sectionId;
 
         if (fromSectionId === toSectionId) {
           const section = state.sections.find((s) => s.id === fromSectionId);
           if (section) {
-            const fromIndex = section.fields.findIndex((f) => f.id === active.id);
+            const fromIndex = section.fields.findIndex(
+              (f) => f.id === active.id,
+            );
             const toIndex = section.fields.findIndex((f) => f.id === over.id);
             if (fromIndex !== toIndex) {
               dispatch({
-                type: 'REORDER_FIELDS',
+                type: "REORDER_FIELDS",
                 sectionId: fromSectionId,
                 fromIndex,
                 toIndex,
@@ -1101,7 +1193,7 @@ export function FormBuilder({
           if (toSection) {
             const toIndex = toSection.fields.findIndex((f) => f.id === over.id);
             dispatch({
-              type: 'MOVE_FIELD_BETWEEN_SECTIONS',
+              type: "MOVE_FIELD_BETWEEN_SECTIONS",
               fromSectionId,
               toSectionId,
               fieldId: active.id as string,
@@ -1111,12 +1203,16 @@ export function FormBuilder({
         }
       }
     },
-    [state.sections]
+    [state.sections],
   );
 
   // Get selected field and section
-  const selectedSection = state.sections.find((s) => s.id === state.selectedSectionId);
-  const selectedField = selectedSection?.fields.find((f) => f.id === state.selectedFieldId);
+  const selectedSection = state.sections.find(
+    (s) => s.id === state.selectedSectionId,
+  );
+  const selectedField = selectedSection?.fields.find(
+    (f) => f.id === state.selectedFieldId,
+  );
   const allFields = state.sections.flatMap((s) => s.fields);
 
   return (
@@ -1126,7 +1222,7 @@ export function FormBuilder({
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <div className={cn('flex h-full', className)}>
+      <div className={cn("flex h-full", className)}>
         {/* Left: Field Palette */}
         <FieldPalette
           collapsed={paletteCollapsed}
@@ -1134,16 +1230,16 @@ export function FormBuilder({
         />
 
         {/* Center: Form Canvas */}
-        <div className="flex-1 bg-gray-100 overflow-y-auto p-6">
+        <div className="flex-1 bg-muted/50 overflow-y-auto p-6">
           <div className="max-w-3xl mx-auto space-y-4">
             {/* Auto-save indicator */}
             {state.isDirty && (
-              <div className="text-xs text-gray-500 text-right">
-                {isSaving ? 'Saving...' : 'Unsaved changes'}
+              <div className="text-xs text-muted-foreground text-right">
+                {isSaving ? "Saving..." : "Unsaved changes"}
               </div>
             )}
             {state.lastSaved && !state.isDirty && (
-              <div className="text-xs text-green-600 text-right">
+              <div className="text-xs text-green-600 dark:text-green-400 text-right">
                 Last saved: {state.lastSaved.toLocaleTimeString()}
               </div>
             )}
@@ -1160,34 +1256,37 @@ export function FormBuilder({
                   selectedFieldId={state.selectedFieldId}
                   onUpdateSection={(updates) =>
                     dispatch({
-                      type: 'UPDATE_SECTION',
+                      type: "UPDATE_SECTION",
                       sectionId: section.id,
                       updates,
                     })
                   }
                   onDeleteSection={() =>
-                    dispatch({ type: 'DELETE_SECTION', sectionId: section.id })
+                    dispatch({ type: "DELETE_SECTION", sectionId: section.id })
                   }
                   onToggleCollapse={() =>
-                    dispatch({ type: 'TOGGLE_SECTION_COLLAPSE', sectionId: section.id })
+                    dispatch({
+                      type: "TOGGLE_SECTION_COLLAPSE",
+                      sectionId: section.id,
+                    })
                   }
                   onSelectField={(fieldId) =>
                     dispatch({
-                      type: 'SELECT_FIELD',
+                      type: "SELECT_FIELD",
                       fieldId,
                       sectionId: section.id,
                     })
                   }
                   onDeleteField={(fieldId) =>
                     dispatch({
-                      type: 'DELETE_FIELD',
+                      type: "DELETE_FIELD",
                       sectionId: section.id,
                       fieldId,
                     })
                   }
                   onDropField={(fieldType, index) =>
                     dispatch({
-                      type: 'ADD_FIELD',
+                      type: "ADD_FIELD",
                       sectionId: section.id,
                       fieldType,
                       index,
@@ -1201,7 +1300,7 @@ export function FormBuilder({
             <Button
               variant="outline"
               className="w-full border-dashed"
-              onClick={() => dispatch({ type: 'ADD_SECTION' })}
+              onClick={() => dispatch({ type: "ADD_SECTION" })}
             >
               <Plus className="h-4 w-4 mr-2" />
               Add Section
@@ -1217,14 +1316,14 @@ export function FormBuilder({
             allFields={allFields}
             onUpdate={(updates) =>
               dispatch({
-                type: 'UPDATE_FIELD',
+                type: "UPDATE_FIELD",
                 sectionId: selectedSection.id,
                 fieldId: selectedField.id,
                 updates,
               })
             }
             onClose={() =>
-              dispatch({ type: 'SELECT_FIELD', fieldId: null, sectionId: null })
+              dispatch({ type: "SELECT_FIELD", fieldId: null, sectionId: null })
             }
           />
         )}
@@ -1235,13 +1334,13 @@ export function FormBuilder({
             section={selectedSection}
             onUpdate={(updates) =>
               dispatch({
-                type: 'UPDATE_SECTION',
+                type: "UPDATE_SECTION",
                 sectionId: selectedSection.id,
                 updates,
               })
             }
             onClose={() =>
-              dispatch({ type: 'SELECT_FIELD', fieldId: null, sectionId: null })
+              dispatch({ type: "SELECT_FIELD", fieldId: null, sectionId: null })
             }
           />
         )}
@@ -1249,8 +1348,8 @@ export function FormBuilder({
 
       {/* Drag Overlay */}
       <DragOverlay>
-        {activeId && activeType === 'palette-field' && (
-          <div className="bg-white rounded-lg border shadow-lg p-3 opacity-80">
+        {activeId && activeType === "palette-field" && (
+          <div className="bg-card rounded-lg border shadow-lg p-3 opacity-80">
             Dropping field...
           </div>
         )}

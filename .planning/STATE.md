@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-15)
 ## Current Position
 
 Phase: 22 of v1.2 (Dark Mode & Theme)
-Plan: 8 of 15 complete (22-01, 22-02, 22-03, 22-04, 22-05, 22-06, 22-07, 22-08)
+Plan: 10 of 15 complete (22-01, 22-02, 22-03, 22-04, 22-05, 22-06, 22-07, 22-08, 22-09, 22-13)
 Status: In progress
-Last activity: 2026-02-19 - Completed 22-06-PLAN.md (Case Detail Components Dark Mode)
+Last activity: 2026-02-19 - Completed 22-09-PLAN.md (Ethics Portal & Conflict Review Dark Mode)
 
-Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10 plans), Phase 34 COMPLETE (5/5 plans), Phase 35 COMPLETE (6/6 plans), Phase 36 COMPLETE (13/13 plans), Phase 25.1 COMPLETE (10/10 plans), Phase 22 in progress (6/15 plans).
+Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10 plans), Phase 34 COMPLETE (5/5 plans), Phase 35 COMPLETE (6/6 plans), Phase 36 COMPLETE (13/13 plans), Phase 25.1 COMPLETE (10/10 plans), Phase 22 in progress (10/15 plans).
 
 ## Shipped Milestones
 
@@ -188,6 +188,12 @@ Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10
 - 22-06: Task 1 files already themed in 3ba1cd0 (22-08) - only activity-filters.tsx needed updates
 - 22-06: Files tab drop zone pattern: border-border default, dark:bg-blue-900/20 for drag state
 - 22-06: Investigation card STATUS_COLORS and SLA_COLORS records with explicit dark variants
+- 22-13: entityTypeConfig in search page uses dark: variants for badge colors
+- 22-13: Internal module cards use dark:bg-{color}-950/30 for 30% opacity in dark mode
+- 22-13: Admin module uses fully semantic tokens (no colored variants needed)
+- 22-09: Most ethics components already had dark: variants - only theme-skeleton.tsx needed updates
+- 22-09: SEVERITY_COLORS pattern: bg-color-100 text-color-800 dark:bg-color-900/30 dark:text-color-300
+- 22-09: EVENT_TYPE_CONFIG pattern with color/bgColor dark variants for all 6 timeline event types
 
 ### Blockers
 
@@ -196,6 +202,6 @@ None currently.
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: Completed 22-06-PLAN.md (Case Detail Components Dark Mode)
+Stopped at: Completed 22-09-PLAN.md (Ethics Portal & Conflict Review Dark Mode)
 Resume file: None
-Next action: Continue Phase 22 with remaining plans (22-09, 22-10, etc.)
+Next action: Continue Phase 22 with remaining plans (22-10, 22-11, 22-12, 22-14, 22-15)
