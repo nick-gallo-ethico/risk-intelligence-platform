@@ -30,7 +30,7 @@ export class ElasticsearchHealthIndicator extends HealthIndicator {
    */
   async isHealthy(key: string): Promise<HealthIndicatorResult> {
     if (!this.esService) {
-      return this.getStatus(key, true, { status: "not_configured" });
+      return this.getStatus(key, true, { clusterStatus: "not_configured" });
     }
 
     try {
@@ -38,7 +38,7 @@ export class ElasticsearchHealthIndicator extends HealthIndicator {
       const isHealthy = ["green", "yellow"].includes(health.status);
 
       return this.getStatus(key, isHealthy, {
-        status: health.status,
+        clusterStatus: health.status,
         numberOfNodes: health.number_of_nodes,
         activeShards: health.active_shards,
       });
