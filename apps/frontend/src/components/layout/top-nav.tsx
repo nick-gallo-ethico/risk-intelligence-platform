@@ -37,6 +37,7 @@ import { useAuth } from "@/contexts/auth-context";
 import { cn } from "@/lib/utils";
 import { api } from "@/lib/api";
 import { formatDistanceToNow } from "date-fns";
+import { ThemeToggleItems } from "./theme-toggle";
 
 interface NotificationItem {
   id: string;
@@ -390,6 +391,11 @@ export function TopNav() {
                 <span>Settings</span>
               </Link>
             </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
+              Theme
+            </DropdownMenuLabel>
+            <ThemeToggleItems />
             <DropdownMenuSeparator />
             <DropdownMenuItem
               className="cursor-pointer text-destructive focus:text-destructive"
