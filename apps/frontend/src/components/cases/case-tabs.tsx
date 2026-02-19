@@ -128,7 +128,7 @@ export function CaseTabs({
       className="h-full flex flex-col"
     >
       {/* Tab List with horizontal scroll on mobile */}
-      <div className="border-b bg-white sticky top-0 z-10">
+      <div className="border-b border-border bg-card sticky top-0 z-10">
         <TabsList className="h-12 w-full justify-start rounded-none border-0 bg-transparent p-0 overflow-x-auto">
           {TABS.map((tab) => {
             const count = counts[tab.id as keyof TabCounts];
@@ -140,8 +140,8 @@ export function CaseTabs({
                 value={tab.id}
                 className={cn(
                   "relative h-12 rounded-none border-b-2 border-transparent px-4 py-2 font-medium",
-                  "data-[state=active]:border-blue-600 data-[state=active]:text-blue-600",
-                  "data-[state=inactive]:text-gray-500 data-[state=inactive]:hover:text-gray-700",
+                  "data-[state=active]:border-primary data-[state=active]:text-primary",
+                  "data-[state=inactive]:text-muted-foreground data-[state=inactive]:hover:text-foreground",
                   "transition-colors",
                 )}
               >
@@ -437,16 +437,16 @@ function OverviewTab({
       {/* Section 3: Case Details (Collapsible, collapsed by default) */}
       <Card>
         <Collapsible open={detailsOpen} onOpenChange={setDetailsOpen}>
-          <CardHeader className="py-3 cursor-pointer hover:bg-gray-50">
+          <CardHeader className="py-3 cursor-pointer hover:bg-muted/50">
             <CollapsibleTrigger asChild>
               <div className="flex items-center gap-2">
                 <ChevronRight
                   className={cn(
-                    "h-4 w-4 text-gray-500 transition-transform",
+                    "h-4 w-4 text-muted-foreground transition-transform",
                     detailsOpen && "rotate-90",
                   )}
                 />
-                <CardTitle className="text-sm font-semibold text-gray-700">
+                <CardTitle className="text-sm font-semibold text-foreground">
                   Case Details
                 </CardTitle>
               </div>
@@ -455,8 +455,8 @@ function OverviewTab({
           <CollapsibleContent>
             <CardContent className="pt-0 space-y-4">
               {/* Details text */}
-              <div className="bg-gray-50 rounded-lg p-4">
-                <p className="text-sm text-gray-700 whitespace-pre-wrap">
+              <div className="bg-muted rounded-lg p-4">
+                <p className="text-sm text-foreground whitespace-pre-wrap">
                   {caseData.details || "No case details available."}
                 </p>
               </div>
@@ -464,24 +464,26 @@ function OverviewTab({
               {/* Two-column property grid */}
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <span className="text-gray-500">Category:</span>
-                  <span className="ml-2 font-medium">
+                  <span className="text-muted-foreground">Category:</span>
+                  <span className="ml-2 font-medium text-foreground">
                     {caseData.category?.name || "Not categorized"}
                   </span>
                 </div>
                 <div>
-                  <span className="text-gray-500">Case Type:</span>
-                  <span className="ml-2 font-medium">{caseData.caseType}</span>
+                  <span className="text-muted-foreground">Case Type:</span>
+                  <span className="ml-2 font-medium text-foreground">
+                    {caseData.caseType}
+                  </span>
                 </div>
                 <div>
-                  <span className="text-gray-500">Reporter Type:</span>
-                  <span className="ml-2 font-medium">
+                  <span className="text-muted-foreground">Reporter Type:</span>
+                  <span className="ml-2 font-medium text-foreground">
                     {caseData.reporterType}
                   </span>
                 </div>
                 <div>
-                  <span className="text-gray-500">Location:</span>
-                  <span className="ml-2 font-medium">
+                  <span className="text-muted-foreground">Location:</span>
+                  <span className="ml-2 font-medium text-foreground">
                     {[
                       caseData.locationCity,
                       caseData.locationState,
@@ -492,14 +494,14 @@ function OverviewTab({
                   </span>
                 </div>
                 <div>
-                  <span className="text-gray-500">Created:</span>
-                  <span className="ml-2 font-medium">
+                  <span className="text-muted-foreground">Created:</span>
+                  <span className="ml-2 font-medium text-foreground">
                     {new Date(caseData.createdAt).toLocaleDateString()}
                   </span>
                 </div>
                 <div>
-                  <span className="text-gray-500">Last Updated:</span>
-                  <span className="ml-2 font-medium">
+                  <span className="text-muted-foreground">Last Updated:</span>
+                  <span className="ml-2 font-medium text-foreground">
                     {new Date(caseData.updatedAt).toLocaleDateString()}
                   </span>
                 </div>
@@ -508,7 +510,7 @@ function OverviewTab({
               {/* View All Properties link */}
               <Button
                 variant="link"
-                className="text-blue-600 p-0 h-auto text-sm"
+                className="text-primary p-0 h-auto text-sm"
                 onClick={() => {
                   /* TODO: open full properties panel */
                 }}
@@ -528,13 +530,13 @@ function OverviewTab({
       <Card>
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-sm font-semibold text-gray-700">
+            <CardTitle className="text-sm font-semibold text-foreground">
               Recent Activities
             </CardTitle>
             {activities.length > 3 && (
               <Button
                 variant="link"
-                className="text-blue-600 p-0 h-auto text-sm"
+                className="text-primary p-0 h-auto text-sm"
                 onClick={onViewAllActivities}
               >
                 View all
@@ -551,7 +553,7 @@ function OverviewTab({
               ))}
             </div>
           ) : recentActivities.length === 0 ? (
-            <p className="text-sm text-gray-500 text-center py-4">
+            <p className="text-sm text-muted-foreground text-center py-4">
               No activities yet. Use the quick actions above to log your first
               activity.
             </p>
@@ -573,13 +575,13 @@ function OverviewTab({
       <Card>
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+            <CardTitle className="text-sm font-semibold text-foreground flex items-center gap-2">
               <CheckSquare className="h-4 w-4" />
               Upcoming Tasks
             </CardTitle>
             <Button
               variant="link"
-              className="text-blue-600 p-0 h-auto text-sm"
+              className="text-primary p-0 h-auto text-sm"
               onClick={() => {
                 /* TODO: navigate to tasks view */
               }}
@@ -591,7 +593,7 @@ function OverviewTab({
         </CardHeader>
         <CardContent>
           {mockTasks.length === 0 ? (
-            <p className="text-sm text-gray-500 text-center py-4">
+            <p className="text-sm text-muted-foreground text-center py-4">
               No upcoming tasks. Create a task from the quick actions or right
               sidebar.
             </p>
@@ -600,7 +602,7 @@ function OverviewTab({
               {mockTasks.map((task) => (
                 <div
                   key={task.id}
-                  className="flex items-start gap-3 py-2 border-b last:border-0"
+                  className="flex items-start gap-3 py-2 border-b border-border last:border-0"
                 >
                   <Checkbox
                     checked={task.isCompleted}
@@ -612,14 +614,15 @@ function OverviewTab({
                   <div className="flex-1 min-w-0">
                     <p
                       className={cn(
-                        "text-sm font-medium",
-                        task.isCompleted && "line-through text-gray-400",
+                        "text-sm font-medium text-foreground",
+                        task.isCompleted &&
+                          "line-through text-muted-foreground",
                       )}
                     >
                       {task.title}
                     </p>
                     {task.dueDate && (
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-muted-foreground">
                         Due{" "}
                         {new Date(task.dueDate).toLocaleDateString("en-US", {
                           month: "short",
@@ -645,7 +648,7 @@ export function CaseTabsSkeleton() {
   return (
     <div className="h-full flex flex-col">
       {/* Tab List Skeleton - 6 tabs */}
-      <div className="border-b bg-white">
+      <div className="border-b border-border bg-card">
         <div className="flex items-center gap-4 p-2">
           {[1, 2, 3, 4, 5, 6].map((i) => (
             <Skeleton key={i} className="h-8 w-24" />

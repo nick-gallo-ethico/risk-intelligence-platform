@@ -4,20 +4,8 @@ import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { Case, CaseStatus, Severity } from "@/types/case";
-
-const STATUS_COLORS: Record<CaseStatus, string> = {
-  NEW: "bg-blue-100 text-blue-800",
-  OPEN: "bg-yellow-100 text-yellow-800",
-  CLOSED: "bg-gray-100 text-gray-800",
-};
-
-// Severity matches backend Prisma enum
-const SEVERITY_COLORS: Record<Severity, string> = {
-  LOW: "bg-green-100 text-green-800",
-  MEDIUM: "bg-yellow-100 text-yellow-800",
-  HIGH: "bg-orange-100 text-orange-800",
-};
+import { getStatusColor, getSeverityColor } from "@/lib/theme-colors";
+import type { Case } from "@/types/case";
 
 interface CaseHeaderProps {
   caseData: Case | null;
@@ -36,18 +24,18 @@ export function CaseHeader({ caseData, isLoading }: CaseHeaderProps) {
   }
 
   return (
-    <div className="bg-white border-b">
+    <div className="bg-card border-b border-border">
       <div className="px-6 py-4">
         {/* Breadcrumb */}
-        <nav className="flex items-center text-sm text-gray-500 mb-3">
+        <nav className="flex items-center text-sm text-muted-foreground mb-3">
           <button
             onClick={() => router.push("/cases")}
-            className="hover:text-gray-700 transition-colors"
+            className="hover:text-foreground transition-colors"
           >
             Cases
           </button>
           <span className="mx-2">/</span>
-          <span className="text-gray-900 font-medium">
+          <span className="text-foreground font-medium">
             {caseData.referenceNumber}
           </span>
         </nav>
@@ -55,20 +43,20 @@ export function CaseHeader({ caseData, isLoading }: CaseHeaderProps) {
         {/* Header Content */}
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-4">
-            <h1 className="text-2xl font-bold text-gray-900 font-mono">
+            <h1 className="text-2xl font-bold text-foreground font-mono">
               {caseData.referenceNumber}
             </h1>
             <div className="flex items-center gap-2">
               <Badge
                 variant="outline"
-                className={STATUS_COLORS[caseData.status]}
+                className={getStatusColor(caseData.status)}
               >
                 {caseData.status}
               </Badge>
               {caseData.severity && (
                 <Badge
                   variant="outline"
-                  className={SEVERITY_COLORS[caseData.severity]}
+                  className={getSeverityColor(caseData.severity)}
                 >
                   {caseData.severity}
                 </Badge>
@@ -88,7 +76,9 @@ export function CaseHeader({ caseData, isLoading }: CaseHeaderProps) {
 
         {/* Summary Line */}
         {caseData.summary && (
-          <p className="mt-2 text-gray-600 line-clamp-2">{caseData.summary}</p>
+          <p className="mt-2 text-muted-foreground line-clamp-2">
+            {caseData.summary}
+          </p>
         )}
       </div>
     </div>
@@ -97,12 +87,12 @@ export function CaseHeader({ caseData, isLoading }: CaseHeaderProps) {
 
 export function CaseHeaderSkeleton() {
   return (
-    <div className="bg-white border-b">
+    <div className="bg-card border-b border-border">
       <div className="px-6 py-4">
         {/* Breadcrumb skeleton */}
         <div className="flex items-center gap-2 mb-3">
           <Skeleton className="h-4 w-12" />
-          <span className="text-gray-300">/</span>
+          <span className="text-muted-foreground">/</span>
           <Skeleton className="h-4 w-32" />
         </div>
 

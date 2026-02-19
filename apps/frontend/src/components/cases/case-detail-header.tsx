@@ -41,18 +41,18 @@ export function CaseDetailHeader({
   }
 
   return (
-    <div className="bg-white border-b">
+    <div className="bg-card border-b border-border">
       <div className="px-6 py-3">
         {/* Breadcrumb navigation */}
-        <nav className="flex items-center text-sm text-gray-500">
+        <nav className="flex items-center text-sm text-muted-foreground">
           <button
             onClick={() => router.push("/cases")}
-            className="hover:text-gray-700 transition-colors"
+            className="hover:text-foreground transition-colors"
           >
             Cases
           </button>
           <span className="mx-2">/</span>
-          <span className="text-gray-900 font-medium">
+          <span className="text-foreground font-medium">
             {caseData.referenceNumber}
           </span>
         </nav>
@@ -66,11 +66,11 @@ export function CaseDetailHeader({
  */
 export function CaseDetailHeaderSkeleton() {
   return (
-    <div className="bg-white border-b">
+    <div className="bg-card border-b border-border">
       <div className="px-6 py-3">
         <div className="flex items-center gap-2">
           <Skeleton className="h-4 w-12" />
-          <span className="text-gray-300">/</span>
+          <span className="text-muted-foreground">/</span>
           <Skeleton className="h-4 w-32" />
         </div>
       </div>

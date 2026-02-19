@@ -188,7 +188,7 @@ function DateRangePicker({
               initialFocus
             />
           </div>
-          <div className="border-t pt-4 space-y-2">
+          <div className="border-t border-border pt-4 space-y-2">
             <Label className="text-sm font-medium">To</Label>
             <Calendar
               mode="single"
@@ -202,7 +202,7 @@ function DateRangePicker({
               disabled={(date) => (fromDate ? date < fromDate : false)}
             />
           </div>
-          <div className="flex justify-end gap-2 pt-2 border-t">
+          <div className="flex justify-end gap-2 pt-2 border-t border-border">
             <Button
               variant="ghost"
               size="sm"
