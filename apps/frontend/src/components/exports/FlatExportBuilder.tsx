@@ -1,19 +1,25 @@
-'use client';
+"use client";
 
-import { useState, useMemo } from 'react';
-import { useQuery, useMutation } from '@tanstack/react-query';
-import { apiClient } from '@/lib/api';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Calendar } from '@/components/ui/calendar';
+import { useState, useMemo } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { apiClient } from "@/lib/api";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from '@/components/ui/popover';
+} from "@/components/ui/popover";
 import {
   Table,
   TableBody,
@@ -21,16 +27,30 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { toast } from 'sonner';
-import { Download, Eye, FileSpreadsheet, FileText, Loader2, CalendarIcon, AlertTriangle } from 'lucide-react';
-import { format } from 'date-fns';
-import { cn } from '@/lib/utils';
+} from "@/components/ui/table";
+import { toast } from "sonner";
+import {
+  Download,
+  Eye,
+  FileSpreadsheet,
+  FileText,
+  Loader2,
+  CalendarIcon,
+  AlertTriangle,
+} from "lucide-react";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 
 /**
  * Field tag types matching backend enum.
  */
-type FieldTag = 'AUDIT' | 'BOARD' | 'PII' | 'SENSITIVE' | 'EXTERNAL' | 'MIGRATION';
+type FieldTag =
+  | "AUDIT"
+  | "BOARD"
+  | "PII"
+  | "SENSITIVE"
+  | "EXTERNAL"
+  | "MIGRATION";
 
 /**
  * Export preset configuration.
@@ -54,12 +74,15 @@ interface PreviewData {
  * Color mapping for field tags.
  */
 const tagColors: Record<FieldTag, string> = {
-  AUDIT: 'bg-blue-100 text-blue-800',
-  BOARD: 'bg-purple-100 text-purple-800',
-  PII: 'bg-red-100 text-red-800',
-  SENSITIVE: 'bg-orange-100 text-orange-800',
-  EXTERNAL: 'bg-green-100 text-green-800',
-  MIGRATION: 'bg-gray-100 text-gray-800',
+  AUDIT: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
+  BOARD:
+    "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300",
+  PII: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300",
+  SENSITIVE:
+    "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300",
+  EXTERNAL:
+    "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300",
+  MIGRATION: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300",
 };
 
 /**
@@ -76,53 +99,61 @@ const tagColors: Record<FieldTag, string> = {
 export function FlatExportBuilder() {
   const [selectedPreset, setSelectedPreset] = useState<string | null>(null);
   const [includeTags, setIncludeTags] = useState<FieldTag[]>([]);
-  const [excludeTags, setExcludeTags] = useState<FieldTag[]>(['PII', 'SENSITIVE']);
-  const [exportFormat, setExportFormat] = useState<'csv' | 'xlsx'>('xlsx');
-  const [exportMode, setExportMode] = useState<'normalized' | 'denormalized'>('denormalized');
+  const [excludeTags, setExcludeTags] = useState<FieldTag[]>([
+    "PII",
+    "SENSITIVE",
+  ]);
+  const [exportFormat, setExportFormat] = useState<"csv" | "xlsx">("xlsx");
+  const [exportMode, setExportMode] = useState<"normalized" | "denormalized">(
+    "denormalized",
+  );
   const [dateRange, setDateRange] = useState<{ from?: Date; to?: Date }>({});
-  const [reason, setReason] = useState('');
+  const [reason, setReason] = useState("");
   const [preview, setPreview] = useState<PreviewData | null>(null);
 
   // Fetch presets
   const { data: presetsData } = useQuery({
-    queryKey: ['export-presets'],
+    queryKey: ["export-presets"],
     queryFn: async () => {
-      return apiClient.get<{ presets: Preset[] }>('/exports/flat/presets');
+      return apiClient.get<{ presets: Preset[] }>("/exports/flat/presets");
     },
   });
 
   // Fetch tags
   const { data: tagsData } = useQuery({
-    queryKey: ['export-tags'],
+    queryKey: ["export-tags"],
     queryFn: async () => {
-      return apiClient.get<{ tags: { value: FieldTag; label: string; description: string }[] }>(
-        '/exports/flat/tags',
-      );
+      return apiClient.get<{
+        tags: { value: FieldTag; label: string; description: string }[];
+      }>("/exports/flat/tags");
     },
   });
 
   // Preview mutation
   const previewMutation = useMutation({
     mutationFn: async () => {
-      return apiClient.post<PreviewData>('/exports/flat/preview', {
+      return apiClient.post<PreviewData>("/exports/flat/preview", {
         includeTags: includeTags.length > 0 ? includeTags : undefined,
         excludeTags: excludeTags.length > 0 ? excludeTags : undefined,
         format: exportFormat,
         mode: exportMode,
-        filters: dateRange.from && dateRange.to ? {
-          dateRange: {
-            start: dateRange.from.toISOString(),
-            end: dateRange.to.toISOString(),
-          },
-        } : undefined,
+        filters:
+          dateRange.from && dateRange.to
+            ? {
+                dateRange: {
+                  start: dateRange.from.toISOString(),
+                  end: dateRange.to.toISOString(),
+                },
+              }
+            : undefined,
       });
     },
     onSuccess: (data) => {
       setPreview(data);
     },
     onError: () => {
-      toast.error('Preview failed', {
-        description: 'Failed to generate preview. Please try again.',
+      toast.error("Preview failed", {
+        description: "Failed to generate preview. Please try again.",
       });
     },
   });
@@ -130,47 +161,50 @@ export function FlatExportBuilder() {
   // Export mutation
   const exportMutation = useMutation({
     mutationFn: async () => {
-      const response = await fetch('/api/v1/exports/flat/export', {
-        method: 'POST',
+      const response = await fetch("/api/v1/exports/flat/export", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           includeTags: includeTags.length > 0 ? includeTags : undefined,
           excludeTags: excludeTags.length > 0 ? excludeTags : undefined,
           format: exportFormat,
           mode: exportMode,
-          filters: dateRange.from && dateRange.to ? {
-            dateRange: {
-              start: dateRange.from.toISOString(),
-              end: dateRange.to.toISOString(),
-            },
-          } : undefined,
+          filters:
+            dateRange.from && dateRange.to
+              ? {
+                  dateRange: {
+                    start: dateRange.from.toISOString(),
+                    end: dateRange.to.toISOString(),
+                  },
+                }
+              : undefined,
           reason,
         }),
       });
 
       if (!response.ok) {
-        throw new Error('Export failed');
+        throw new Error("Export failed");
       }
 
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
+      const a = document.createElement("a");
       a.href = url;
-      a.download = `case-export-${format(new Date(), 'yyyy-MM-dd')}.${exportFormat}`;
+      a.download = `case-export-${format(new Date(), "yyyy-MM-dd")}.${exportFormat}`;
       document.body.appendChild(a);
       a.click();
       window.URL.revokeObjectURL(url);
       document.body.removeChild(a);
 
-      toast.success('Export downloaded', {
-        description: 'Your export file has been downloaded.',
+      toast.success("Export downloaded", {
+        description: "Your export file has been downloaded.",
       });
     },
     onError: () => {
-      toast.error('Export failed', {
-        description: 'Failed to generate export. Please try again.',
+      toast.error("Export failed", {
+        description: "Failed to generate export. Please try again.",
       });
     },
   });
@@ -202,8 +236,14 @@ export function FlatExportBuilder() {
   };
 
   // Check for PII/Sensitive inclusion
-  const includesPii = useMemo(() => !excludeTags.includes('PII'), [excludeTags]);
-  const includesSensitive = useMemo(() => !excludeTags.includes('SENSITIVE'), [excludeTags]);
+  const includesPii = useMemo(
+    () => !excludeTags.includes("PII"),
+    [excludeTags],
+  );
+  const includesSensitive = useMemo(
+    () => !excludeTags.includes("SENSITIVE"),
+    [excludeTags],
+  );
 
   return (
     <div className="space-y-6">
@@ -220,7 +260,7 @@ export function FlatExportBuilder() {
             {presetsData?.presets.map((preset) => (
               <Button
                 key={preset.name}
-                variant={selectedPreset === preset.name ? 'default' : 'outline'}
+                variant={selectedPreset === preset.name ? "default" : "outline"}
                 className="h-auto py-3 flex flex-col items-start text-left"
                 onClick={() => applyPreset(preset)}
               >
@@ -240,7 +280,8 @@ export function FlatExportBuilder() {
           <CardHeader>
             <CardTitle>Field Selection by Tags</CardTitle>
             <CardDescription>
-              Choose which types of fields to include or exclude from your export
+              Choose which types of fields to include or exclude from your
+              export
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -252,10 +293,10 @@ export function FlatExportBuilder() {
                     key={tag.value}
                     variant="outline"
                     className={cn(
-                      'cursor-pointer transition-colors',
+                      "cursor-pointer transition-colors",
                       includeTags.includes(tag.value)
                         ? tagColors[tag.value]
-                        : 'bg-gray-50 text-gray-400 hover:bg-gray-100',
+                        : "bg-gray-50 text-gray-400 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-500 dark:hover:bg-gray-700",
                     )}
                     onClick={() => toggleIncludeTag(tag.value)}
                   >
@@ -276,10 +317,10 @@ export function FlatExportBuilder() {
                     key={tag.value}
                     variant="outline"
                     className={cn(
-                      'cursor-pointer transition-colors',
+                      "cursor-pointer transition-colors",
                       excludeTags.includes(tag.value)
-                        ? 'bg-red-100 text-red-800 line-through'
-                        : 'bg-gray-50 text-gray-400 hover:bg-gray-100',
+                        ? "bg-red-100 text-red-800 line-through dark:bg-red-900/30 dark:text-red-300"
+                        : "bg-gray-50 text-gray-400 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-500 dark:hover:bg-gray-700",
                     )}
                     onClick={() => toggleExcludeTag(tag.value)}
                   >
@@ -290,18 +331,18 @@ export function FlatExportBuilder() {
             </div>
 
             {(includesPii || includesSensitive) && (
-              <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-start gap-2">
-                <AlertTriangle className="h-5 w-5 text-amber-600 mt-0.5 shrink-0" />
+              <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg flex items-start gap-2 dark:bg-amber-900/20 dark:border-amber-800">
+                <AlertTriangle className="h-5 w-5 text-amber-600 mt-0.5 shrink-0 dark:text-amber-400" />
                 <div>
-                  <p className="text-sm font-medium text-amber-800">
+                  <p className="text-sm font-medium text-amber-800 dark:text-amber-300">
                     Data Sensitivity Warning
                   </p>
-                  <p className="text-sm text-amber-700">
-                    Export will include{' '}
-                    {includesPii && 'PII (Personal Information)'}
-                    {includesPii && includesSensitive && ' and '}
-                    {includesSensitive && 'Sensitive data'}
-                    . This will be logged for audit purposes.
+                  <p className="text-sm text-amber-700 dark:text-amber-400">
+                    Export will include{" "}
+                    {includesPii && "PII (Personal Information)"}
+                    {includesPii && includesSensitive && " and "}
+                    {includesSensitive && "Sensitive data"}. This will be logged
+                    for audit purposes.
                   </p>
                 </div>
               </div>
@@ -319,17 +360,17 @@ export function FlatExportBuilder() {
               <Label className="mb-2 block">Format</Label>
               <div className="flex gap-2">
                 <Button
-                  variant={exportFormat === 'xlsx' ? 'default' : 'outline'}
+                  variant={exportFormat === "xlsx" ? "default" : "outline"}
                   size="sm"
-                  onClick={() => setExportFormat('xlsx')}
+                  onClick={() => setExportFormat("xlsx")}
                 >
                   <FileSpreadsheet className="h-4 w-4 mr-2" />
                   Excel
                 </Button>
                 <Button
-                  variant={exportFormat === 'csv' ? 'default' : 'outline'}
+                  variant={exportFormat === "csv" ? "default" : "outline"}
                   size="sm"
-                  onClick={() => setExportFormat('csv')}
+                  onClick={() => setExportFormat("csv")}
                 >
                   <FileText className="h-4 w-4 mr-2" />
                   CSV
@@ -341,16 +382,18 @@ export function FlatExportBuilder() {
               <Label className="mb-2 block">Structure</Label>
               <div className="flex gap-2">
                 <Button
-                  variant={exportMode === 'denormalized' ? 'default' : 'outline'}
+                  variant={
+                    exportMode === "denormalized" ? "default" : "outline"
+                  }
                   size="sm"
-                  onClick={() => setExportMode('denormalized')}
+                  onClick={() => setExportMode("denormalized")}
                 >
                   Single Sheet
                 </Button>
                 <Button
-                  variant={exportMode === 'normalized' ? 'default' : 'outline'}
+                  variant={exportMode === "normalized" ? "default" : "outline"}
                   size="sm"
-                  onClick={() => setExportMode('normalized')}
+                  onClick={() => setExportMode("normalized")}
                 >
                   Multi-Sheet
                 </Button>
@@ -365,19 +408,23 @@ export function FlatExportBuilder() {
                     <Button
                       variant="outline"
                       className={cn(
-                        'justify-start text-left font-normal flex-1',
-                        !dateRange.from && 'text-muted-foreground',
+                        "justify-start text-left font-normal flex-1",
+                        !dateRange.from && "text-muted-foreground",
                       )}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {dateRange.from ? format(dateRange.from, 'MMM dd, yyyy') : 'From'}
+                      {dateRange.from
+                        ? format(dateRange.from, "MMM dd, yyyy")
+                        : "From"}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
                     <Calendar
                       mode="single"
                       selected={dateRange.from}
-                      onSelect={(date) => setDateRange((prev) => ({ ...prev, from: date }))}
+                      onSelect={(date) =>
+                        setDateRange((prev) => ({ ...prev, from: date }))
+                      }
                     />
                   </PopoverContent>
                 </Popover>
@@ -386,19 +433,23 @@ export function FlatExportBuilder() {
                     <Button
                       variant="outline"
                       className={cn(
-                        'justify-start text-left font-normal flex-1',
-                        !dateRange.to && 'text-muted-foreground',
+                        "justify-start text-left font-normal flex-1",
+                        !dateRange.to && "text-muted-foreground",
                       )}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {dateRange.to ? format(dateRange.to, 'MMM dd, yyyy') : 'To'}
+                      {dateRange.to
+                        ? format(dateRange.to, "MMM dd, yyyy")
+                        : "To"}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0" align="start">
                     <Calendar
                       mode="single"
                       selected={dateRange.to}
-                      onSelect={(date) => setDateRange((prev) => ({ ...prev, to: date }))}
+                      onSelect={(date) =>
+                        setDateRange((prev) => ({ ...prev, to: date }))
+                      }
                     />
                   </PopoverContent>
                 </Popover>
@@ -442,7 +493,8 @@ export function FlatExportBuilder() {
         {preview && (
           <CardContent>
             <p className="text-sm text-muted-foreground mb-4">
-              {preview.fields.length} columns, {preview.rowCount.toLocaleString()} total rows
+              {preview.fields.length} columns,{" "}
+              {preview.rowCount.toLocaleString()} total rows
             </p>
             <div className="border rounded-lg overflow-x-auto">
               <Table>
@@ -459,8 +511,11 @@ export function FlatExportBuilder() {
                   {preview.sampleData.map((row, i) => (
                     <TableRow key={i}>
                       {preview.fields.map((f) => (
-                        <TableCell key={f.field} className="max-w-[200px] truncate">
-                          {String(row[f.field] ?? '')}
+                        <TableCell
+                          key={f.field}
+                          className="max-w-[200px] truncate"
+                        >
+                          {String(row[f.field] ?? "")}
                         </TableCell>
                       ))}
                     </TableRow>

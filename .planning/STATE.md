@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-15)
 ## Current Position
 
 Phase: 22 of v1.2 (Dark Mode & Theme)
-Plan: 10 of 15 complete (22-01, 22-02, 22-03, 22-04, 22-05, 22-06, 22-07, 22-08, 22-09, 22-13)
+Plan: 11 of 15 complete (22-01, 22-02, 22-03, 22-04, 22-05, 22-06, 22-07, 22-08, 22-09, 22-10, 22-13)
 Status: In progress
-Last activity: 2026-02-19 - Completed 22-09-PLAN.md (Ethics Portal & Conflict Review Dark Mode)
+Last activity: 2026-02-19 - Completed 22-10-PLAN.md (Operator Console Dark Mode)
 
-Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10 plans), Phase 34 COMPLETE (5/5 plans), Phase 35 COMPLETE (6/6 plans), Phase 36 COMPLETE (13/13 plans), Phase 25.1 COMPLETE (10/10 plans), Phase 22 in progress (10/15 plans).
+Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10 plans), Phase 34 COMPLETE (5/5 plans), Phase 35 COMPLETE (6/6 plans), Phase 36 COMPLETE (13/13 plans), Phase 25.1 COMPLETE (10/10 plans), Phase 22 in progress (11/15 plans).
 
 ## Shipped Milestones
 

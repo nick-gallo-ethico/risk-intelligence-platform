@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { useState, useMemo } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiClient } from '@/lib/api';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { useState, useMemo } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiClient } from "@/lib/api";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -13,21 +13,27 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
+} from "@/components/ui/table";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { toast } from 'sonner';
-import { Search, Save, RotateCcw } from 'lucide-react';
+} from "@/components/ui/select";
+import { toast } from "sonner";
+import { Search, Save, RotateCcw } from "lucide-react";
 
 /**
  * Field tag types matching backend enum.
  */
-type FieldTag = 'AUDIT' | 'BOARD' | 'PII' | 'SENSITIVE' | 'EXTERNAL' | 'MIGRATION';
+type FieldTag =
+  | "AUDIT"
+  | "BOARD"
+  | "PII"
+  | "SENSITIVE"
+  | "EXTERNAL"
+  | "MIGRATION";
 
 /**
  * Tagged field definition.
@@ -55,12 +61,17 @@ interface FieldTagInfo {
  * Color mapping for field tags.
  */
 const tagColors: Record<FieldTag, string> = {
-  AUDIT: 'bg-blue-100 text-blue-800 hover:bg-blue-200',
-  BOARD: 'bg-purple-100 text-purple-800 hover:bg-purple-200',
-  PII: 'bg-red-100 text-red-800 hover:bg-red-200',
-  SENSITIVE: 'bg-orange-100 text-orange-800 hover:bg-orange-200',
-  EXTERNAL: 'bg-green-100 text-green-800 hover:bg-green-200',
-  MIGRATION: 'bg-gray-100 text-gray-800 hover:bg-gray-200',
+  AUDIT:
+    "bg-blue-100 text-blue-800 hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:hover:bg-blue-900/50",
+  BOARD:
+    "bg-purple-100 text-purple-800 hover:bg-purple-200 dark:bg-purple-900/30 dark:text-purple-300 dark:hover:bg-purple-900/50",
+  PII: "bg-red-100 text-red-800 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-300 dark:hover:bg-red-900/50",
+  SENSITIVE:
+    "bg-orange-100 text-orange-800 hover:bg-orange-200 dark:bg-orange-900/30 dark:text-orange-300 dark:hover:bg-orange-900/50",
+  EXTERNAL:
+    "bg-green-100 text-green-800 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-300 dark:hover:bg-green-900/50",
+  MIGRATION:
+    "bg-gray-100 text-gray-800 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700",
 };
 
 /**
@@ -72,41 +83,45 @@ const tagColors: Record<FieldTag, string> = {
 export function TaggedFieldConfig() {
   const queryClient = useQueryClient();
 
-  const [search, setSearch] = useState('');
-  const [entityFilter, setEntityFilter] = useState<string>('all');
-  const [pendingChanges, setPendingChanges] = useState<Map<string, FieldTag[]>>(new Map());
+  const [search, setSearch] = useState("");
+  const [entityFilter, setEntityFilter] = useState<string>("all");
+  const [pendingChanges, setPendingChanges] = useState<Map<string, FieldTag[]>>(
+    new Map(),
+  );
 
   // Fetch fields with their tags
   const { data: fieldsData, isLoading: fieldsLoading } = useQuery({
-    queryKey: ['export-fields'],
+    queryKey: ["export-fields"],
     queryFn: async () => {
-      return apiClient.get<{ fields: TaggedField[] }>('/exports/flat/fields');
+      return apiClient.get<{ fields: TaggedField[] }>("/exports/flat/fields");
     },
   });
 
   // Fetch available tags
   const { data: tagsData } = useQuery({
-    queryKey: ['export-tags'],
+    queryKey: ["export-tags"],
     queryFn: async () => {
-      return apiClient.get<{ tags: FieldTagInfo[] }>('/exports/flat/tags');
+      return apiClient.get<{ tags: FieldTagInfo[] }>("/exports/flat/tags");
     },
   });
 
   // Save mutation
   const saveMutation = useMutation({
-    mutationFn: async (updates: { entity: string; field: string; tags: FieldTag[] }[]) => {
-      return apiClient.post('/exports/flat/fields/tags', updates);
+    mutationFn: async (
+      updates: { entity: string; field: string; tags: FieldTag[] }[],
+    ) => {
+      return apiClient.post("/exports/flat/fields/tags", updates);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['export-fields'] });
+      queryClient.invalidateQueries({ queryKey: ["export-fields"] });
       setPendingChanges(new Map());
-      toast.success('Field tags updated', {
-        description: 'Your field tag configuration has been saved.',
+      toast.success("Field tags updated", {
+        description: "Your field tag configuration has been saved.",
       });
     },
     onError: () => {
-      toast.error('Update failed', {
-        description: 'Failed to update field tags. Please try again.',
+      toast.error("Update failed", {
+        description: "Failed to update field tags. Please try again.",
       });
     },
   });
@@ -122,11 +137,12 @@ export function TaggedFieldConfig() {
     if (!fieldsData?.fields) return [];
     return fieldsData.fields.filter((field) => {
       const matchesSearch =
-        search === '' ||
+        search === "" ||
         field.label.toLowerCase().includes(search.toLowerCase()) ||
         field.field.toLowerCase().includes(search.toLowerCase()) ||
         field.entity.toLowerCase().includes(search.toLowerCase());
-      const matchesEntity = entityFilter === 'all' || field.entity === entityFilter;
+      const matchesEntity =
+        entityFilter === "all" || field.entity === entityFilter;
       return matchesSearch && matchesEntity;
     });
   }, [fieldsData, search, entityFilter]);
@@ -151,7 +167,7 @@ export function TaggedFieldConfig() {
   // Save all pending changes
   const handleSave = () => {
     const updates = Array.from(pendingChanges.entries()).map(([key, tags]) => {
-      const [entity, field] = key.split('.');
+      const [entity, field] = key.split(".");
       return { entity, field, tags };
     });
     saveMutation.mutate(updates);
@@ -247,7 +263,11 @@ export function TaggedFieldConfig() {
               return (
                 <TableRow
                   key={key}
-                  className={isModified ? 'bg-yellow-50 dark:bg-yellow-950/20' : undefined}
+                  className={
+                    isModified
+                      ? "bg-yellow-50 dark:bg-yellow-950/20"
+                      : undefined
+                  }
                 >
                   <TableCell className="font-medium">{field.entity}</TableCell>
                   <TableCell>
@@ -272,7 +292,7 @@ export function TaggedFieldConfig() {
                           className={`cursor-pointer transition-colors ${
                             fieldTags.includes(tag.value)
                               ? tagColors[tag.value]
-                              : 'bg-gray-50 text-gray-400 hover:bg-gray-100 dark:bg-gray-900 dark:hover:bg-gray-800'
+                              : "bg-gray-50 text-gray-400 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-500 dark:hover:bg-gray-700"
                           }`}
                           onClick={() => toggleTag(field, tag.value)}
                           title={tag.description}
@@ -287,7 +307,10 @@ export function TaggedFieldConfig() {
             })}
             {filteredFields.length === 0 && (
               <TableRow>
-                <TableCell colSpan={3} className="text-center py-8 text-muted-foreground">
+                <TableCell
+                  colSpan={3}
+                  className="text-center py-8 text-muted-foreground"
+                >
                   No fields match your search criteria
                 </TableCell>
               </TableRow>
@@ -298,7 +321,8 @@ export function TaggedFieldConfig() {
 
       {/* Summary */}
       <div className="text-sm text-muted-foreground">
-        Showing {filteredFields.length} of {fieldsData?.fields.length || 0} fields
+        Showing {filteredFields.length} of {fieldsData?.fields.length || 0}{" "}
+        fields
         {hasChanges && (
           <span className="ml-2 text-yellow-600 dark:text-yellow-400">
             ({pendingChanges.size} unsaved changes)

@@ -1,13 +1,13 @@
-'use client';
+"use client";
 
-import { useCallback, useState, useRef } from 'react';
-import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
-import { Badge } from '@/components/ui/badge';
-import { toast } from '@/components/ui/toaster';
-import { attachmentsApi } from '@/lib/attachments-api';
-import type { Attachment, AttachmentEntityType } from '@/types/attachment';
+import { useCallback, useState, useRef } from "react";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
+import { toast } from "@/components/ui/toaster";
+import { attachmentsApi } from "@/lib/attachments-api";
+import type { Attachment, AttachmentEntityType } from "@/types/attachment";
 
 /**
  * File item in the upload queue with upload state
@@ -16,7 +16,7 @@ interface QueuedFile {
   id: string;
   file: File;
   progress: number;
-  status: 'pending' | 'uploading' | 'complete' | 'error';
+  status: "pending" | "uploading" | "complete" | "error";
   error?: string;
   preview?: string;
 }
@@ -43,37 +43,37 @@ const DEFAULT_MAX_FILES = 10;
 
 // Matches backend ALLOWED_MIME_TYPES
 const DEFAULT_ACCEPT = [
-  'application/pdf',
-  'application/msword',
-  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-  'application/vnd.ms-excel',
-  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-  'application/vnd.ms-powerpoint',
-  'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-  'text/plain',
-  'text/csv',
-  'application/rtf',
-  'image/jpeg',
-  'image/png',
-  'image/gif',
-  'image/webp',
-  'image/tiff',
-  'audio/mpeg',
-  'audio/wav',
-  'video/mp4',
-  'video/webm',
-  'application/zip',
-  'application/x-rar-compressed',
-  'application/x-7z-compressed',
-].join(',');
+  "application/pdf",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "application/vnd.ms-excel",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  "application/vnd.ms-powerpoint",
+  "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+  "text/plain",
+  "text/csv",
+  "application/rtf",
+  "image/jpeg",
+  "image/png",
+  "image/gif",
+  "image/webp",
+  "image/tiff",
+  "audio/mpeg",
+  "audio/wav",
+  "video/mp4",
+  "video/webm",
+  "application/zip",
+  "application/x-rar-compressed",
+  "application/x-7z-compressed",
+].join(",");
 
 /**
  * Format file size for display
  */
 function formatFileSize(bytes: number): string {
-  if (bytes === 0) return '0 Bytes';
+  if (bytes === 0) return "0 Bytes";
   const k = 1024;
-  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const sizes = ["Bytes", "KB", "MB", "GB"];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
   return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
 }
@@ -81,16 +81,30 @@ function formatFileSize(bytes: number): string {
 /**
  * Get file type badge color
  */
-function getFileTypeBadge(mimeType: string): { label: string; variant: 'default' | 'secondary' | 'outline' } {
-  if (mimeType.startsWith('image/')) return { label: 'Image', variant: 'default' };
-  if (mimeType.startsWith('video/')) return { label: 'Video', variant: 'secondary' };
-  if (mimeType.startsWith('audio/')) return { label: 'Audio', variant: 'secondary' };
-  if (mimeType === 'application/pdf') return { label: 'PDF', variant: 'default' };
-  if (mimeType.includes('word')) return { label: 'Word', variant: 'outline' };
-  if (mimeType.includes('excel') || mimeType.includes('spreadsheet')) return { label: 'Excel', variant: 'outline' };
-  if (mimeType.includes('powerpoint') || mimeType.includes('presentation')) return { label: 'PPT', variant: 'outline' };
-  if (mimeType.includes('zip') || mimeType.includes('rar') || mimeType.includes('7z')) return { label: 'Archive', variant: 'secondary' };
-  return { label: 'File', variant: 'outline' };
+function getFileTypeBadge(mimeType: string): {
+  label: string;
+  variant: "default" | "secondary" | "outline";
+} {
+  if (mimeType.startsWith("image/"))
+    return { label: "Image", variant: "default" };
+  if (mimeType.startsWith("video/"))
+    return { label: "Video", variant: "secondary" };
+  if (mimeType.startsWith("audio/"))
+    return { label: "Audio", variant: "secondary" };
+  if (mimeType === "application/pdf")
+    return { label: "PDF", variant: "default" };
+  if (mimeType.includes("word")) return { label: "Word", variant: "outline" };
+  if (mimeType.includes("excel") || mimeType.includes("spreadsheet"))
+    return { label: "Excel", variant: "outline" };
+  if (mimeType.includes("powerpoint") || mimeType.includes("presentation"))
+    return { label: "PPT", variant: "outline" };
+  if (
+    mimeType.includes("zip") ||
+    mimeType.includes("rar") ||
+    mimeType.includes("7z")
+  )
+    return { label: "Archive", variant: "secondary" };
+  return { label: "File", variant: "outline" };
 }
 
 /**
@@ -133,16 +147,16 @@ export function FileUpload({
   const validateFile = useCallback(
     (file: File): string | null => {
       // Check file type
-      const acceptedTypes = accept.split(',').map((t) => t.trim());
+      const acceptedTypes = accept.split(",").map((t) => t.trim());
       const isValidType = acceptedTypes.some((type) => {
-        if (type.endsWith('/*')) {
-          return file.type.startsWith(type.replace('/*', ''));
+        if (type.endsWith("/*")) {
+          return file.type.startsWith(type.replace("/*", ""));
         }
         return file.type === type;
       });
 
       if (!isValidType) {
-        return `File type "${file.type || 'unknown'}" is not allowed`;
+        return `File type "${file.type || "unknown"}" is not allowed`;
       }
 
       // Check file size
@@ -152,7 +166,7 @@ export function FileUpload({
 
       return null;
     },
-    [accept, maxSize]
+    [accept, maxSize],
   );
 
   /**
@@ -164,7 +178,9 @@ export function FileUpload({
       const availableSlots = maxFiles - queue.length;
 
       if (fileArray.length > availableSlots) {
-        toast.error(`Can only add ${availableSlots} more file(s). Maximum is ${maxFiles}.`);
+        toast.error(
+          `Can only add ${availableSlots} more file(s). Maximum is ${maxFiles}.`,
+        );
         return;
       }
 
@@ -172,7 +188,7 @@ export function FileUpload({
 
       fileArray.forEach((file) => {
         const error = validateFile(file);
-        const preview = file.type.startsWith('image/')
+        const preview = file.type.startsWith("image/")
           ? URL.createObjectURL(file)
           : undefined;
 
@@ -180,7 +196,7 @@ export function FileUpload({
           id: generateId(),
           file,
           progress: 0,
-          status: error ? 'error' : 'pending',
+          status: error ? "error" : "pending",
           error: error || undefined,
           preview,
         });
@@ -188,7 +204,7 @@ export function FileUpload({
 
       setQueue((prev) => [...prev, ...newQueuedFiles]);
     },
-    [queue.length, maxFiles, validateFile]
+    [queue.length, maxFiles, validateFile],
   );
 
   /**
@@ -210,7 +226,9 @@ export function FileUpload({
   const uploadFile = useCallback(
     async (queuedFile: QueuedFile) => {
       setQueue((prev) =>
-        prev.map((f) => (f.id === queuedFile.id ? { ...f, status: 'uploading' } : f))
+        prev.map((f) =>
+          f.id === queuedFile.id ? { ...f, status: "uploading" } : f,
+        ),
       );
 
       try {
@@ -220,15 +238,19 @@ export function FileUpload({
           entityId,
           onProgress: (progress) => {
             setQueue((prev) =>
-              prev.map((f) => (f.id === queuedFile.id ? { ...f, progress } : f))
+              prev.map((f) =>
+                f.id === queuedFile.id ? { ...f, progress } : f,
+              ),
             );
           },
         });
 
         setQueue((prev) =>
           prev.map((f) =>
-            f.id === queuedFile.id ? { ...f, status: 'complete', progress: 100 } : f
-          )
+            f.id === queuedFile.id
+              ? { ...f, status: "complete", progress: 100 }
+              : f,
+          ),
         );
 
         toast.success(`Uploaded ${queuedFile.file.name}`);
@@ -239,23 +261,25 @@ export function FileUpload({
           removeFile(queuedFile.id);
         }, 1500);
       } catch (err) {
-        const message = err instanceof Error ? err.message : 'Upload failed';
+        const message = err instanceof Error ? err.message : "Upload failed";
         setQueue((prev) =>
           prev.map((f) =>
-            f.id === queuedFile.id ? { ...f, status: 'error', error: message } : f
-          )
+            f.id === queuedFile.id
+              ? { ...f, status: "error", error: message }
+              : f,
+          ),
         );
         toast.error(`Failed to upload ${queuedFile.file.name}`);
       }
     },
-    [entityType, entityId, onUploadComplete, removeFile]
+    [entityType, entityId, onUploadComplete, removeFile],
   );
 
   /**
    * Upload all pending files
    */
   const uploadAll = useCallback(() => {
-    const pendingFiles = queue.filter((f) => f.status === 'pending');
+    const pendingFiles = queue.filter((f) => f.status === "pending");
     pendingFiles.forEach((file) => {
       uploadFile(file);
     });
@@ -286,7 +310,7 @@ export function FileUpload({
         addFiles(e.dataTransfer.files);
       }
     },
-    [addFiles]
+    [addFiles],
   );
 
   /**
@@ -298,9 +322,9 @@ export function FileUpload({
         addFiles(e.target.files);
       }
       // Reset input so same file can be selected again
-      e.target.value = '';
+      e.target.value = "";
     },
-    [addFiles]
+    [addFiles],
   );
 
   /**
@@ -310,11 +334,11 @@ export function FileUpload({
     fileInputRef.current?.click();
   }, []);
 
-  const pendingCount = queue.filter((f) => f.status === 'pending').length;
-  const uploadingCount = queue.filter((f) => f.status === 'uploading').length;
+  const pendingCount = queue.filter((f) => f.status === "pending").length;
+  const uploadingCount = queue.filter((f) => f.status === "uploading").length;
 
   return (
-    <div className={cn('space-y-4', className)}>
+    <div className={cn("space-y-4", className)}>
       {/* Drop zone */}
       <div
         onDragOver={handleDragOver}
@@ -322,11 +346,11 @@ export function FileUpload({
         onDrop={handleDrop}
         onClick={openFileBrowser}
         className={cn(
-          'relative flex flex-col items-center justify-center gap-2 p-6',
-          'border-2 border-dashed rounded-lg cursor-pointer transition-colors',
+          "relative flex flex-col items-center justify-center gap-2 p-6",
+          "border-2 border-dashed rounded-lg cursor-pointer transition-colors",
           isDragging
-            ? 'border-primary bg-primary/5'
-            : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
+            ? "border-primary bg-primary/5"
+            : "border-border hover:border-muted-foreground/50 hover:bg-muted/50",
         )}
       >
         <input
@@ -341,8 +365,8 @@ export function FileUpload({
         {/* Upload icon */}
         <svg
           className={cn(
-            'w-10 h-10 transition-colors',
-            isDragging ? 'text-primary' : 'text-gray-400'
+            "w-10 h-10 transition-colors",
+            isDragging ? "text-primary" : "text-muted-foreground",
           )}
           fill="none"
           stroke="currentColor"
@@ -357,11 +381,11 @@ export function FileUpload({
         </svg>
 
         <div className="text-center">
-          <p className="text-sm text-gray-600">
-            <span className="font-medium text-primary">Click to upload</span> or drag and
-            drop
+          <p className="text-sm text-muted-foreground">
+            <span className="font-medium text-primary">Click to upload</span> or
+            drag and drop
           </p>
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-muted-foreground/80 mt-1">
             Max {formatFileSize(maxSize)} per file, up to {maxFiles} files
           </p>
         </div>
@@ -371,7 +395,7 @@ export function FileUpload({
       {queue.length > 0 && (
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-gray-700">
+            <span className="text-sm font-medium text-foreground">
               {queue.length} file(s) selected
             </span>
             {pendingCount > 0 && uploadingCount === 0 && (
@@ -413,12 +437,14 @@ function FileQueueItem({ queuedFile, onRemove, onRetry }: FileQueueItemProps) {
   return (
     <div
       className={cn(
-        'flex items-center gap-3 p-3 rounded-lg border',
-        status === 'error' ? 'border-red-200 bg-red-50' : 'border-gray-200 bg-white'
+        "flex items-center gap-3 p-3 rounded-lg border",
+        status === "error"
+          ? "border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20"
+          : "border-border bg-card",
       )}
     >
       {/* Preview or icon */}
-      <div className="flex-shrink-0 w-12 h-12 rounded overflow-hidden bg-gray-100 flex items-center justify-center">
+      <div className="flex-shrink-0 w-12 h-12 rounded overflow-hidden bg-muted flex items-center justify-center">
         {preview ? (
           <img
             src={preview}
@@ -427,7 +453,7 @@ function FileQueueItem({ queuedFile, onRemove, onRetry }: FileQueueItemProps) {
           />
         ) : (
           <svg
-            className="w-6 h-6 text-gray-400"
+            className="w-6 h-6 text-muted-foreground"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -445,45 +471,54 @@ function FileQueueItem({ queuedFile, onRemove, onRetry }: FileQueueItemProps) {
       {/* File info */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-gray-900 truncate">
+          <span className="text-sm font-medium text-foreground truncate">
             {file.name}
           </span>
           <Badge variant={typeBadge.variant} className="text-xs">
             {typeBadge.label}
           </Badge>
         </div>
-        <p className="text-xs text-gray-500">{formatFileSize(file.size)}</p>
+        <p className="text-xs text-muted-foreground">
+          {formatFileSize(file.size)}
+        </p>
 
         {/* Progress bar */}
-        {status === 'uploading' && (
+        {status === "uploading" && (
           <Progress value={progress} className="mt-2 h-1" />
         )}
 
         {/* Error message */}
-        {status === 'error' && error && (
-          <p className="text-xs text-red-600 mt-1">{error}</p>
+        {status === "error" && error && (
+          <p className="text-xs text-red-600 dark:text-red-400 mt-1">{error}</p>
         )}
 
         {/* Complete indicator */}
-        {status === 'complete' && (
-          <p className="text-xs text-green-600 mt-1">Uploaded successfully</p>
+        {status === "complete" && (
+          <p className="text-xs text-green-600 dark:text-green-400 mt-1">
+            Uploaded successfully
+          </p>
         )}
       </div>
 
       {/* Actions */}
       <div className="flex-shrink-0 flex items-center gap-2">
-        {status === 'error' && (
+        {status === "error" && (
           <Button variant="outline" size="sm" onClick={onRetry}>
             Retry
           </Button>
         )}
-        {(status === 'pending' || status === 'error') && (
+        {(status === "pending" || status === "error") && (
           <button
             onClick={onRemove}
-            className="p-1 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded"
+            className="p-1 text-muted-foreground hover:text-foreground hover:bg-muted rounded"
             aria-label="Remove file"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -493,12 +528,12 @@ function FileQueueItem({ queuedFile, onRemove, onRetry }: FileQueueItemProps) {
             </svg>
           </button>
         )}
-        {status === 'uploading' && (
-          <span className="text-xs text-gray-500">{progress}%</span>
+        {status === "uploading" && (
+          <span className="text-xs text-muted-foreground">{progress}%</span>
         )}
-        {status === 'complete' && (
+        {status === "complete" && (
           <svg
-            className="w-5 h-5 text-green-500"
+            className="w-5 h-5 text-green-500 dark:text-green-400"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"

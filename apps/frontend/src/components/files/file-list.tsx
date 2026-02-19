@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useState, useCallback } from 'react';
-import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
+import { useState, useCallback } from "react";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Dialog,
   DialogContent,
@@ -12,11 +12,11 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { toast } from '@/components/ui/toaster';
-import { attachmentsApi } from '@/lib/attachments-api';
-import { FilePreview } from './file-preview';
-import type { Attachment } from '@/types/attachment';
+} from "@/components/ui/dialog";
+import { toast } from "@/components/ui/toaster";
+import { attachmentsApi } from "@/lib/attachments-api";
+import { FilePreview } from "./file-preview";
+import type { Attachment } from "@/types/attachment";
 
 export interface FileListProps {
   /** List of attachments to display */
@@ -35,9 +35,9 @@ export interface FileListProps {
  * Format file size for display
  */
 function formatFileSize(bytes: number): string {
-  if (bytes === 0) return '0 B';
+  if (bytes === 0) return "0 B";
   const k = 1024;
-  const sizes = ['B', 'KB', 'MB', 'GB'];
+  const sizes = ["B", "KB", "MB", "GB"];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
   return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
 }
@@ -46,10 +46,10 @@ function formatFileSize(bytes: number): string {
  * Format date for display
  */
 function formatDate(dateString: string): string {
-  return new Date(dateString).toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
+  return new Date(dateString).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
   });
 }
 
@@ -57,9 +57,14 @@ function formatDate(dateString: string): string {
  * Get file icon based on MIME type
  */
 function getFileIcon(mimeType: string): React.ReactNode {
-  if (mimeType.startsWith('image/')) {
+  if (mimeType.startsWith("image/")) {
     return (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg
+        className="w-5 h-5"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
         <path
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -69,9 +74,14 @@ function getFileIcon(mimeType: string): React.ReactNode {
       </svg>
     );
   }
-  if (mimeType === 'application/pdf') {
+  if (mimeType === "application/pdf") {
     return (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg
+        className="w-5 h-5"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
         <path
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -81,9 +91,14 @@ function getFileIcon(mimeType: string): React.ReactNode {
       </svg>
     );
   }
-  if (mimeType.startsWith('video/')) {
+  if (mimeType.startsWith("video/")) {
     return (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg
+        className="w-5 h-5"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
         <path
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -93,9 +108,14 @@ function getFileIcon(mimeType: string): React.ReactNode {
       </svg>
     );
   }
-  if (mimeType.startsWith('audio/')) {
+  if (mimeType.startsWith("audio/")) {
     return (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg
+        className="w-5 h-5"
+        fill="none"
+        stroke="currentColor"
+        viewBox="0 0 24 24"
+      >
         <path
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -107,7 +127,12 @@ function getFileIcon(mimeType: string): React.ReactNode {
   }
   // Default document icon
   return (
-    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <svg
+      className="w-5 h-5"
+      fill="none"
+      stroke="currentColor"
+      viewBox="0 0 24 24"
+    >
       <path
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -130,7 +155,9 @@ export function FileList({
 }: FileListProps) {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [previewAttachment, setPreviewAttachment] = useState<Attachment | null>(null);
+  const [previewAttachment, setPreviewAttachment] = useState<Attachment | null>(
+    null,
+  );
 
   const handleDelete = useCallback(async () => {
     if (!deleteId) return;
@@ -138,10 +165,11 @@ export function FileList({
     setIsDeleting(true);
     try {
       await attachmentsApi.delete(deleteId);
-      toast.success('Attachment deleted');
+      toast.success("Attachment deleted");
       onDelete?.(deleteId);
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to delete attachment';
+      const message =
+        err instanceof Error ? err.message : "Failed to delete attachment";
       toast.error(message);
     } finally {
       setIsDeleting(false);
@@ -151,7 +179,7 @@ export function FileList({
 
   const handleDownload = useCallback((attachment: Attachment) => {
     // Open download URL in new tab
-    window.open(attachment.downloadUrl, '_blank', 'noopener,noreferrer');
+    window.open(attachment.downloadUrl, "_blank", "noopener,noreferrer");
   }, []);
 
   if (isLoading) {
@@ -160,9 +188,9 @@ export function FileList({
 
   if (attachments.length === 0) {
     return (
-      <div className={cn('text-center py-8 text-gray-500', className)}>
+      <div className={cn("text-center py-8 text-muted-foreground", className)}>
         <svg
-          className="w-12 h-12 mx-auto mb-3 text-gray-300"
+          className="w-12 h-12 mx-auto mb-3 text-muted-foreground/50"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -181,14 +209,14 @@ export function FileList({
 
   return (
     <>
-      <div className={cn('space-y-2', className)}>
+      <div className={cn("space-y-2", className)}>
         {attachments.map((attachment) => (
           <div
             key={attachment.id}
-            className="flex items-center gap-3 p-3 rounded-lg border border-gray-200 bg-white hover:bg-gray-50 transition-colors"
+            className="flex items-center gap-3 p-3 rounded-lg border border-border bg-card hover:bg-muted/50 transition-colors"
           >
             {/* File icon */}
-            <div className="flex-shrink-0 w-10 h-10 rounded bg-gray-100 flex items-center justify-center text-gray-500">
+            <div className="flex-shrink-0 w-10 h-10 rounded bg-muted flex items-center justify-center text-muted-foreground">
               {getFileIcon(attachment.mimeType)}
             </div>
 
@@ -196,16 +224,19 @@ export function FileList({
             <div className="flex-1 min-w-0">
               <button
                 onClick={() => setPreviewAttachment(attachment)}
-                className="text-sm font-medium text-gray-900 hover:text-primary truncate block text-left w-full"
+                className="text-sm font-medium text-foreground hover:text-primary truncate block text-left w-full"
               >
                 {attachment.fileName}
               </button>
-              <div className="flex items-center gap-2 text-xs text-gray-500">
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <span>{formatFileSize(attachment.fileSize)}</span>
                 <span>•</span>
                 <span>{formatDate(attachment.createdAt)}</span>
                 {attachment.isEvidence && (
-                  <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                  <Badge
+                    variant="secondary"
+                    className="text-[10px] px-1.5 py-0"
+                  >
                     Evidence
                   </Badge>
                 )}
@@ -216,7 +247,7 @@ export function FileList({
             <div className="flex-shrink-0 flex items-center gap-1">
               <button
                 onClick={() => handleDownload(attachment)}
-                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-md transition-colors"
+                className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"
                 title="Download"
               >
                 <svg
@@ -236,7 +267,7 @@ export function FileList({
               {canDelete && (
                 <button
                   onClick={() => setDeleteId(attachment.id)}
-                  className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
+                  className="p-2 text-muted-foreground hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-md transition-colors"
                   title="Delete"
                 >
                   <svg
@@ -260,16 +291,24 @@ export function FileList({
       </div>
 
       {/* Delete confirmation dialog */}
-      <Dialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
+      <Dialog
+        open={!!deleteId}
+        onOpenChange={(open) => !open && setDeleteId(null)}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Delete Attachment</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete this attachment? This action cannot be undone.
+              Are you sure you want to delete this attachment? This action
+              cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteId(null)} disabled={isDeleting}>
+            <Button
+              variant="outline"
+              onClick={() => setDeleteId(null)}
+              disabled={isDeleting}
+            >
               Cancel
             </Button>
             <Button
@@ -277,7 +316,7 @@ export function FileList({
               onClick={handleDelete}
               disabled={isDeleting}
             >
-              {isDeleting ? 'Deleting...' : 'Delete'}
+              {isDeleting ? "Deleting..." : "Delete"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -290,10 +329,14 @@ export function FileList({
           open={!!previewAttachment}
           onClose={() => setPreviewAttachment(null)}
           onDownload={() => handleDownload(previewAttachment)}
-          onDelete={canDelete ? () => {
-            setDeleteId(previewAttachment.id);
-            setPreviewAttachment(null);
-          } : undefined}
+          onDelete={
+            canDelete
+              ? () => {
+                  setDeleteId(previewAttachment.id);
+                  setPreviewAttachment(null);
+                }
+              : undefined
+          }
         />
       )}
     </>
@@ -307,7 +350,10 @@ function FileListSkeleton() {
   return (
     <div className="space-y-2">
       {[1, 2, 3].map((i) => (
-        <div key={i} className="flex items-center gap-3 p-3 rounded-lg border border-gray-200">
+        <div
+          key={i}
+          className="flex items-center gap-3 p-3 rounded-lg border border-border"
+        >
           <Skeleton className="w-10 h-10 rounded" />
           <div className="flex-1">
             <Skeleton className="h-4 w-40 mb-1" />
