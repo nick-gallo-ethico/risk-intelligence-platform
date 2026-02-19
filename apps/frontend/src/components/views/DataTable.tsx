@@ -375,11 +375,15 @@ export function DataTable<T extends Record<string, unknown>>({
                     <th
                       key={header.id}
                       className={cn(
-                        "px-3 py-2 text-left text-sm font-medium text-muted-foreground border-b bg-muted",
+                        "px-3 py-2 text-left text-sm font-medium text-muted-foreground border-b bg-muted whitespace-nowrap",
                         header.column.getCanResize() && "relative",
                       )}
                       style={{
-                        width: header.getSize(),
+                        minWidth:
+                          header.column.id === "select" ||
+                          header.column.id === "actions"
+                            ? header.getSize()
+                            : undefined,
                       }}
                     >
                       {header.isPlaceholder
@@ -443,13 +447,7 @@ export function DataTable<T extends Record<string, unknown>>({
                 >
                   {row.getVisibleCells().map((cell) => {
                     return (
-                      <td
-                        key={cell.id}
-                        className="px-3 py-3 text-sm border-b"
-                        style={{
-                          width: cell.column.getSize(),
-                        }}
-                      >
+                      <td key={cell.id} className="px-3 py-3 text-sm border-b">
                         {flexRender(
                           cell.column.columnDef.cell,
                           cell.getContext(),
