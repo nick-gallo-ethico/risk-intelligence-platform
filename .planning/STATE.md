@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-15)
 ## Current Position
 
 Phase: 22 of v1.2 (Dark Mode & Theme)
-Plan: 11 of 15 complete (22-01, 22-02, 22-03, 22-04, 22-05, 22-06, 22-07, 22-08, 22-09, 22-10, 22-13)
+Plan: 12 of 15 complete (22-01, 22-02, 22-03, 22-04, 22-05, 22-06, 22-07, 22-08, 22-09, 22-10, 22-11, 22-13)
 Status: In progress
-Last activity: 2026-02-19 - Completed 22-10-PLAN.md (Operator Console Dark Mode)
+Last activity: 2026-02-19 - Completed 22-11-PLAN.md (Employee Portal, Campaigns, Disclosure Form Builder)
 
-Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10 plans), Phase 34 COMPLETE (5/5 plans), Phase 35 COMPLETE (6/6 plans), Phase 36 COMPLETE (13/13 plans), Phase 25.1 COMPLETE (10/10 plans), Phase 22 in progress (11/15 plans).
+Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10 plans), Phase 34 COMPLETE (5/5 plans), Phase 35 COMPLETE (6/6 plans), Phase 36 COMPLETE (13/13 plans), Phase 25.1 COMPLETE (10/10 plans), Phase 22 in progress (12/15 plans).
 
 ## Shipped Milestones
 
@@ -194,6 +194,14 @@ Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10
 - 22-09: Most ethics components already had dark: variants - only theme-skeleton.tsx needed updates
 - 22-09: SEVERITY_COLORS pattern: bg-color-100 text-color-800 dark:bg-color-900/30 dark:text-color-300
 - 22-09: EVENT_TYPE_CONFIG pattern with color/bgColor dark variants for all 6 timeline event types
+- 22-10: Use getSeverityColor() centralized utility for all severity badges in QA components
+- 22-10: bg-muted/50 for WRONG_NUMBER type selector (semantic, auto-adapts)
+- 22-10: Split-screen panels use bg-card (left) and bg-background (right)
+- 22-11: Employee portal files already themed from prior Phase 22 executions - no changes needed
+- 22-11: Campaign warning messages use dark:bg-amber-900/30 dark:text-amber-300 pattern
+- 22-11: campaigns-summary-cards use dark:bg-{color}-900/20 for icon backgrounds
+- 22-11: FormBuilder/FormPreview (104 combined hardcoded colors) migrated to semantic tokens
+- 22-11: FieldPalette uses bg-card, bg-muted, text-foreground, text-muted-foreground
 
 ### Blockers
 
@@ -202,6 +210,6 @@ None currently.
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: Completed 22-09-PLAN.md (Ethics Portal & Conflict Review Dark Mode)
+Stopped at: Completed 22-11-PLAN.md (Employee Portal, Campaigns, Disclosure Form Builder)
 Resume file: None
-Next action: Continue Phase 22 with remaining plans (22-10, 22-11, 22-12, 22-14, 22-15)
+Next action: Continue Phase 22 with remaining plans (22-12, 22-14, 22-15)
