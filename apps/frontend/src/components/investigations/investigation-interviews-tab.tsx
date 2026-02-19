@@ -50,10 +50,12 @@ interface InvestigationInterviewsTabProps {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  SCHEDULED: "bg-blue-100 text-blue-800",
-  IN_PROGRESS: "bg-yellow-100 text-yellow-800",
-  COMPLETED: "bg-green-100 text-green-800",
-  CANCELLED: "bg-gray-100 text-gray-800",
+  SCHEDULED: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
+  IN_PROGRESS:
+    "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300",
+  COMPLETED:
+    "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300",
+  CANCELLED: "bg-muted text-muted-foreground",
 };
 
 const INTERVIEWEE_TYPE_LABELS: Record<string, string> = {
@@ -100,7 +102,7 @@ export function InvestigationInterviewsTab({
     <div className="p-6">
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-lg font-semibold text-gray-900">Interviews</h2>
+        <h2 className="text-lg font-semibold text-foreground">Interviews</h2>
         <Button onClick={onScheduleInterview}>
           <Plus className="h-4 w-4 mr-2" />
           Schedule Interview
@@ -109,12 +111,12 @@ export function InvestigationInterviewsTab({
 
       {/* Interview list */}
       {interviews.length === 0 ? (
-        <div className="text-center py-12 border rounded-lg bg-gray-50">
-          <User className="h-12 w-12 mx-auto text-gray-400" />
-          <h3 className="mt-4 text-lg font-medium text-gray-900">
+        <div className="text-center py-12 border rounded-lg bg-muted">
+          <User className="h-12 w-12 mx-auto text-muted-foreground" />
+          <h3 className="mt-4 text-lg font-medium text-foreground">
             No interviews yet
           </h3>
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-sm text-muted-foreground">
             Schedule interviews with subjects, witnesses, or other parties.
           </p>
           <Button className="mt-4" onClick={onScheduleInterview}>
@@ -130,12 +132,12 @@ export function InvestigationInterviewsTab({
                 <div className="flex items-start justify-between">
                   {/* Left: Interview info */}
                   <div className="flex items-start gap-3">
-                    <div className="p-2 bg-gray-100 rounded-full">
-                      <User className="h-5 w-5 text-gray-600" />
+                    <div className="p-2 bg-muted rounded-full">
+                      <User className="h-5 w-5 text-muted-foreground" />
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="font-medium text-gray-900">
+                        <span className="font-medium text-foreground">
                           {interview.intervieweeName || "Unknown"}
                         </span>
                         <Badge variant="outline" className="text-xs">
@@ -144,7 +146,7 @@ export function InvestigationInterviewsTab({
                       </div>
 
                       {/* Schedule/Completion info */}
-                      <div className="mt-1 flex items-center gap-4 text-sm text-gray-500">
+                      <div className="mt-1 flex items-center gap-4 text-sm text-muted-foreground">
                         {interview.status === "COMPLETED" ? (
                           <>
                             <span className="flex items-center gap-1">
@@ -163,7 +165,7 @@ export function InvestigationInterviewsTab({
                           </>
                         ) : interview.status === "CANCELLED" ? (
                           <span className="flex items-center gap-1">
-                            <XCircle className="h-3 w-3 text-gray-400" />
+                            <XCircle className="h-3 w-3 text-muted-foreground" />
                             Cancelled
                           </span>
                         ) : (
@@ -194,7 +196,7 @@ export function InvestigationInterviewsTab({
 
                       {/* Conductor info */}
                       {interview.conductedBy && (
-                        <p className="mt-2 text-xs text-gray-500">
+                        <p className="mt-2 text-xs text-muted-foreground">
                           Conducted by: {interview.conductedBy.firstName}{" "}
                           {interview.conductedBy.lastName}
                         </p>
@@ -202,7 +204,7 @@ export function InvestigationInterviewsTab({
 
                       {/* Notes excerpt */}
                       {interview.notes && interview.status === "COMPLETED" && (
-                        <p className="mt-2 text-sm text-gray-600 line-clamp-2 italic">
+                        <p className="mt-2 text-sm text-muted-foreground line-clamp-2 italic">
                           &ldquo;{interview.notes}&rdquo;
                         </p>
                       )}

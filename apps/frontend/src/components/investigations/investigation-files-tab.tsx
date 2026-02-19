@@ -61,11 +61,13 @@ interface InvestigationFilesTabProps {
 }
 
 const FILE_TYPE_COLORS: Record<string, string> = {
-  EVIDENCE: "bg-red-100 text-red-800",
-  SUPPORTING_DOCUMENT: "bg-blue-100 text-blue-800",
-  TRANSCRIPT: "bg-purple-100 text-purple-800",
-  PHOTO: "bg-green-100 text-green-800",
-  OTHER: "bg-gray-100 text-gray-800",
+  EVIDENCE: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300",
+  SUPPORTING_DOCUMENT:
+    "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
+  TRANSCRIPT:
+    "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300",
+  PHOTO: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300",
+  OTHER: "bg-muted text-muted-foreground",
 };
 
 function getFileIcon(mimeType: string) {
@@ -124,10 +126,10 @@ export function InvestigationFilesTab({
     <div className="p-6">
       {/* Header */}
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-lg font-semibold text-gray-900">
+        <h2 className="text-lg font-semibold text-foreground">
           Files & Evidence
           {files.length > 0 && (
-            <span className="ml-2 text-sm font-normal text-gray-500">
+            <span className="ml-2 text-sm font-normal text-muted-foreground">
               ({files.length})
             </span>
           )}
@@ -161,12 +163,12 @@ export function InvestigationFilesTab({
 
       {/* Files content */}
       {files.length === 0 ? (
-        <div className="text-center py-12 border rounded-lg bg-gray-50 border-dashed">
-          <File className="h-12 w-12 mx-auto text-gray-400" />
-          <h3 className="mt-4 text-lg font-medium text-gray-900">
+        <div className="text-center py-12 border rounded-lg bg-muted border-dashed">
+          <File className="h-12 w-12 mx-auto text-muted-foreground" />
+          <h3 className="mt-4 text-lg font-medium text-foreground">
             No files uploaded
           </h3>
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-sm text-muted-foreground">
             Upload evidence, documents, or transcripts for this investigation.
           </p>
           <Button className="mt-4" onClick={onUploadFile}>
@@ -186,13 +188,13 @@ export function InvestigationFilesTab({
               >
                 <CardContent className="p-4">
                   <div className="flex flex-col items-center text-center">
-                    <div className="p-3 bg-gray-100 rounded-lg mb-3">
-                      <Icon className="h-8 w-8 text-gray-600" />
+                    <div className="p-3 bg-muted rounded-lg mb-3">
+                      <Icon className="h-8 w-8 text-muted-foreground" />
                     </div>
-                    <p className="font-medium text-sm text-gray-900 truncate w-full">
+                    <p className="font-medium text-sm text-foreground truncate w-full">
                       {file.originalFilename}
                     </p>
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-muted-foreground mt-1">
                       {formatFileSize(file.size)}
                     </p>
                     <Badge
@@ -239,7 +241,7 @@ export function InvestigationFilesTab({
                 <TableRow key={file.id}>
                   <TableCell>
                     <div className="flex items-center gap-2">
-                      <Icon className="h-4 w-4 text-gray-400" />
+                      <Icon className="h-4 w-4 text-muted-foreground" />
                       <span className="font-medium">
                         {file.originalFilename}
                       </span>
@@ -250,15 +252,15 @@ export function InvestigationFilesTab({
                       {file.fileType.replace("_", " ")}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-gray-500">
+                  <TableCell className="text-muted-foreground">
                     {formatFileSize(file.size)}
                   </TableCell>
-                  <TableCell className="text-gray-500">
+                  <TableCell className="text-muted-foreground">
                     {file.uploadedBy
                       ? `${file.uploadedBy.firstName} ${file.uploadedBy.lastName}`
                       : "Unknown"}
                   </TableCell>
-                  <TableCell className="text-gray-500">
+                  <TableCell className="text-muted-foreground">
                     {new Date(file.createdAt).toLocaleDateString()}
                   </TableCell>
                   <TableCell>
