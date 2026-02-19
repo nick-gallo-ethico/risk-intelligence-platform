@@ -216,7 +216,7 @@ export function PipelineStageBar({
                               "ring-4 ring-opacity-30 animate-pulse",
                             ],
                             status === "future" && [
-                              "border-2 border-gray-300 dark:border-gray-600 bg-card text-gray-400 dark:text-gray-500",
+                              "border-2 border-border bg-card text-muted-foreground",
                               canTransitionTo(stage.id)
                                 ? "hover:border-blue-400 hover:text-blue-500 cursor-pointer"
                                 : "cursor-not-allowed",
@@ -331,9 +331,7 @@ export function PipelineStageBar({
                     <div
                       className={cn(
                         "flex-1 h-0.5 mx-2",
-                        index < currentStageIndex
-                          ? "bg-green-500"
-                          : "bg-gray-200",
+                        index < currentStageIndex ? "bg-green-500" : "bg-muted",
                       )}
                     />
                   )}

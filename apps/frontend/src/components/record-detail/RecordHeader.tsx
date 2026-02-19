@@ -15,13 +15,37 @@ const STATUS_CONFIG: Record<
   string,
   { bg: string; text: string; label: string }
 > = {
-  NEW: { bg: "bg-blue-100", text: "text-blue-800", label: "New" },
-  OPEN: { bg: "bg-yellow-100", text: "text-yellow-800", label: "Open" },
-  ACTIVE: { bg: "bg-green-100", text: "text-green-800", label: "Active" },
-  ASSIGNED: { bg: "bg-indigo-100", text: "text-indigo-800", label: "Assigned" },
-  REVIEW: { bg: "bg-purple-100", text: "text-purple-800", label: "Review" },
-  CLOSED: { bg: "bg-gray-100", text: "text-gray-800", label: "Closed" },
-  ARCHIVED: { bg: "bg-gray-200", text: "text-gray-600", label: "Archived" },
+  NEW: {
+    bg: "bg-blue-100 dark:bg-blue-900/30",
+    text: "text-blue-800 dark:text-blue-300",
+    label: "New",
+  },
+  OPEN: {
+    bg: "bg-yellow-100 dark:bg-yellow-900/30",
+    text: "text-yellow-800 dark:text-yellow-300",
+    label: "Open",
+  },
+  ACTIVE: {
+    bg: "bg-green-100 dark:bg-green-900/30",
+    text: "text-green-800 dark:text-green-300",
+    label: "Active",
+  },
+  ASSIGNED: {
+    bg: "bg-indigo-100 dark:bg-indigo-900/30",
+    text: "text-indigo-800 dark:text-indigo-300",
+    label: "Assigned",
+  },
+  REVIEW: {
+    bg: "bg-purple-100 dark:bg-purple-900/30",
+    text: "text-purple-800 dark:text-purple-300",
+    label: "Review",
+  },
+  CLOSED: { bg: "bg-muted", text: "text-muted-foreground", label: "Closed" },
+  ARCHIVED: {
+    bg: "bg-muted",
+    text: "text-muted-foreground",
+    label: "Archived",
+  },
 };
 
 /**
@@ -31,10 +55,26 @@ const SEVERITY_CONFIG: Record<
   string,
   { bg: string; text: string; label: string }
 > = {
-  LOW: { bg: "bg-green-100", text: "text-green-800", label: "Low" },
-  MEDIUM: { bg: "bg-yellow-100", text: "text-yellow-800", label: "Medium" },
-  HIGH: { bg: "bg-orange-100", text: "text-orange-800", label: "High" },
-  CRITICAL: { bg: "bg-red-100", text: "text-red-800", label: "Critical" },
+  LOW: {
+    bg: "bg-green-100 dark:bg-green-900/30",
+    text: "text-green-800 dark:text-green-300",
+    label: "Low",
+  },
+  MEDIUM: {
+    bg: "bg-yellow-100 dark:bg-yellow-900/30",
+    text: "text-yellow-800 dark:text-yellow-300",
+    label: "Medium",
+  },
+  HIGH: {
+    bg: "bg-orange-100 dark:bg-orange-900/30",
+    text: "text-orange-800 dark:text-orange-300",
+    label: "High",
+  },
+  CRITICAL: {
+    bg: "bg-red-100 dark:bg-red-900/30",
+    text: "text-red-800 dark:text-red-300",
+    label: "Critical",
+  },
 };
 
 interface AssignedUser {
@@ -109,15 +149,15 @@ export function RecordHeader({
   }
 
   const statusConfig = STATUS_CONFIG[status.toUpperCase()] ?? {
-    bg: "bg-gray-100",
-    text: "text-gray-800",
+    bg: "bg-muted",
+    text: "text-muted-foreground",
     label: status,
   };
 
   const severityConfig = severity
     ? (SEVERITY_CONFIG[severity.toUpperCase()] ?? {
-        bg: "bg-gray-100",
-        text: "text-gray-800",
+        bg: "bg-muted",
+        text: "text-muted-foreground",
         label: severity,
       })
     : null;

@@ -68,13 +68,13 @@ export function StatusHistoryTimeline({
   return (
     <Card className={cn("border shadow-sm", className)}>
       <CardHeader className="pb-2">
-        <CardTitle className="text-sm font-semibold text-gray-700">
+        <CardTitle className="text-sm font-semibold text-foreground">
           Status History
         </CardTitle>
       </CardHeader>
       <CardContent>
         {!changes || changes.length === 0 ? (
-          <p className="text-sm text-gray-500 text-center py-4">
+          <p className="text-sm text-muted-foreground text-center py-4">
             No status changes recorded
           </p>
         ) : (
@@ -127,7 +127,7 @@ function TimelineEntry({ change, isFirst, isLast }: TimelineEntryProps) {
           }}
         />
         {/* Connector line */}
-        {!isLast && <div className="w-0.5 flex-1 bg-gray-200 mt-1" />}
+        {!isLast && <div className="w-0.5 flex-1 bg-muted mt-1" />}
       </div>
 
       {/* Content */}
@@ -137,15 +137,17 @@ function TimelineEntry({ change, isFirst, isLast }: TimelineEntryProps) {
           <span className="text-sm font-semibold" style={{ color: dotColor }}>
             {change.status}
           </span>
-          <span className="text-xs text-gray-400">{formattedDate}</span>
+          <span className="text-xs text-muted-foreground">{formattedDate}</span>
         </div>
 
         {/* User */}
-        <p className="text-xs text-gray-500 mt-0.5">by {change.changedBy}</p>
+        <p className="text-xs text-muted-foreground mt-0.5">
+          by {change.changedBy}
+        </p>
 
         {/* Rationale quote */}
         {change.rationale && (
-          <blockquote className="mt-1.5 text-xs text-gray-600 italic border-l-2 border-gray-200 pl-2">
+          <blockquote className="mt-1.5 text-xs text-muted-foreground italic border-l-2 border-border pl-2">
             &ldquo;{change.rationale}&rdquo;
           </blockquote>
         )}

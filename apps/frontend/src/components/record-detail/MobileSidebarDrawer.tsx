@@ -56,7 +56,7 @@ export function MobileSidebarDrawer({
       >
         {title && (
           <SheetHeader className="px-4 pt-4 pb-2 border-b">
-            <SheetTitle className="text-sm font-semibold text-gray-700">
+            <SheetTitle className="text-sm font-semibold text-foreground">
               {title}
             </SheetTitle>
           </SheetHeader>
