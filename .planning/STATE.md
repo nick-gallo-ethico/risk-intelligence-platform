@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-02-15)
 
 ## Current Position
 
-Phase: 25.1 of v1.2 (Case Detail Page Vision Revision)
-Plan: 10 of 10 complete (25.1-01 through 25.1-10)
-Status: Phase 25.1 COMPLETE
-Last activity: 2026-02-19 - Completed Phase 25.1 execution (all plans previously executed, verification passed)
+Phase: 22 of v1.2 (Dark Mode & Theme)
+Plan: 2 of 7 complete (22-01 previously, 22-02 just completed)
+Status: In progress
+Last activity: 2026-02-19 - Completed 22-02-PLAN.md (Theme Toggle and Status Colors)
 
-Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10 plans), Phase 34 COMPLETE (5/5 plans), Phase 35 COMPLETE (6/6 plans), Phase 36 COMPLETE (13/13 plans), Phase 25.1 COMPLETE (10/10 plans).
+Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10 plans), Phase 34 COMPLETE (5/5 plans), Phase 35 COMPLETE (6/6 plans), Phase 36 COMPLETE (13/13 plans), Phase 25.1 COMPLETE (10/10 plans), Phase 22 in progress (2/7 plans).
 
 ## Shipped Milestones
 
@@ -172,6 +172,6 @@ None currently.
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: Phase 25.1 complete (all plans executed, verified 11/11 must-haves)
+Stopped at: Completed 22-02-PLAN.md (Theme Toggle and Status Colors)
 Resume file: None
-Next action: Phase 22 (Dark Mode & Theme) or Phase 23 (Help & Support System)
+Next action: Continue Phase 22 with 22-03-PLAN.md (Component dark mode updates)
