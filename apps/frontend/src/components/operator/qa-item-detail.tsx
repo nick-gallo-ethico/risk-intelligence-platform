@@ -38,14 +38,9 @@ import {
 } from 'lucide-react';
 
 /**
- * Severity colors mapping.
+ * Severity colors - using centralized theme-colors utility.
  */
-const SEVERITY_COLORS: Record<string, string> = {
-  CRITICAL: 'bg-red-100 text-red-800 border-red-200',
-  HIGH: 'bg-orange-100 text-orange-800 border-orange-200',
-  MEDIUM: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-  LOW: 'bg-green-100 text-green-800 border-green-200',
-};
+import { getSeverityColor } from '@/lib/theme-colors';
 
 /**
  * Flag display configuration.
@@ -57,27 +52,27 @@ const FLAG_CONFIG: Record<
   HIGH_SEVERITY: {
     icon: AlertTriangle,
     label: 'High Severity',
-    color: 'text-red-600 bg-red-50',
+    color: 'text-red-600 bg-red-50 dark:text-red-400 dark:bg-red-900/30',
   },
   KEYWORD_TRIGGER: {
     icon: Tag,
     label: 'Keyword Match',
-    color: 'text-purple-600 bg-purple-50',
+    color: 'text-purple-600 bg-purple-50 dark:text-purple-400 dark:bg-purple-900/30',
   },
   HIGH_RISK_CATEGORY: {
     icon: Flag,
     label: 'High-Risk Category',
-    color: 'text-orange-600 bg-orange-50',
+    color: 'text-orange-600 bg-orange-50 dark:text-orange-400 dark:bg-orange-900/30',
   },
   URGENT: {
     icon: Clock,
     label: 'Urgent',
-    color: 'text-red-500 bg-red-50',
+    color: 'text-red-500 bg-red-50 dark:text-red-400 dark:bg-red-900/30',
   },
   RESUBMISSION: {
     icon: RefreshCw,
     label: 'Resubmission',
-    color: 'text-blue-600 bg-blue-50',
+    color: 'text-blue-600 bg-blue-50 dark:text-blue-400 dark:bg-blue-900/30',
   },
 };
 
@@ -158,9 +153,7 @@ export function QaItemDetail({ item, className }: QaItemDetailProps) {
           )}
           {item.severity && (
             <Badge
-              className={cn(
-                SEVERITY_COLORS[item.severity] || 'bg-gray-100 text-gray-800'
-              )}
+              className={getSeverityColor(item.severity)}
             >
               {item.severity}
             </Badge>
@@ -309,10 +302,10 @@ export function QaItemDetail({ item, className }: QaItemDetailProps) {
             <RefreshCw className="h-4 w-4" />
             Previous QA Review
           </h3>
-          <Card className="p-4 bg-yellow-50 border-yellow-200">
+          <Card className="p-4 bg-yellow-50 dark:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800">
             {item.qaRejectionReason && (
               <div className="mb-2">
-                <p className="text-sm font-medium text-red-700">
+                <p className="text-sm font-medium text-red-700 dark:text-red-400">
                   Rejection Reason:
                 </p>
                 <p className="text-sm mt-1">{item.qaRejectionReason}</p>

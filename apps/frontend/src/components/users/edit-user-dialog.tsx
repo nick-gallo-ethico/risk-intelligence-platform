@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
 import {
   Dialog,
   DialogContent,
@@ -9,22 +9,22 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { toast } from 'sonner';
-import { usersApi } from '@/lib/users-api';
-import { USER_ROLES, ROLE_LABELS } from '@/types/user';
-import type { UpdateUserInput, User } from '@/types/user';
-import type { UserRole } from '@/types/auth';
+} from "@/components/ui/select";
+import { toast } from "sonner";
+import { usersApi } from "@/lib/users-api";
+import { USER_ROLES, ROLE_LABELS } from "@/types/user";
+import type { UpdateUserInput, User } from "@/types/user";
+import type { UserRole } from "@/types/auth";
 
 interface EditUserDialogProps {
   open: boolean;
@@ -60,13 +60,13 @@ export function EditUserDialog({
     formState: { errors },
   } = useForm<FormData>({
     defaultValues: {
-      firstName: '',
-      lastName: '',
-      role: 'EMPLOYEE',
+      firstName: "",
+      lastName: "",
+      role: "EMPLOYEE",
     },
   });
 
-  const selectedRole = watch('role');
+  const selectedRole = watch("role");
 
   // Reset form when user changes
   useEffect(() => {
@@ -95,14 +95,14 @@ export function EditUserDialog({
       }
 
       const updatedUser = await usersApi.update(user.id, input);
-      toast.success('User updated successfully');
+      toast.success("User updated successfully");
       onSuccess(updatedUser);
       onOpenChange(false);
     } catch (error: unknown) {
-      console.error('Failed to update user:', error);
+      console.error("Failed to update user:", error);
       const message =
-        error instanceof Error ? error.message : 'Failed to update user';
-      toast.error('Error updating user', { description: message });
+        error instanceof Error ? error.message : "Failed to update user";
+      toast.error("Error updating user", { description: message });
     } finally {
       setIsSubmitting(false);
     }
@@ -131,14 +131,16 @@ export function EditUserDialog({
               <Label htmlFor="edit-firstName">First Name</Label>
               <Input
                 id="edit-firstName"
-                {...register('firstName', {
-                  required: 'First name is required',
-                  minLength: { value: 1, message: 'First name is required' },
-                  maxLength: { value: 100, message: 'Max 100 characters' },
+                {...register("firstName", {
+                  required: "First name is required",
+                  minLength: { value: 1, message: "First name is required" },
+                  maxLength: { value: 100, message: "Max 100 characters" },
                 })}
               />
               {errors.firstName && (
-                <p className="text-sm text-red-600">{errors.firstName.message}</p>
+                <p className="text-sm text-destructive">
+                  {errors.firstName.message}
+                </p>
               )}
             </div>
 
@@ -146,14 +148,16 @@ export function EditUserDialog({
               <Label htmlFor="edit-lastName">Last Name</Label>
               <Input
                 id="edit-lastName"
-                {...register('lastName', {
-                  required: 'Last name is required',
-                  minLength: { value: 1, message: 'Last name is required' },
-                  maxLength: { value: 100, message: 'Max 100 characters' },
+                {...register("lastName", {
+                  required: "Last name is required",
+                  minLength: { value: 1, message: "Last name is required" },
+                  maxLength: { value: 100, message: "Max 100 characters" },
                 })}
               />
               {errors.lastName && (
-                <p className="text-sm text-red-600">{errors.lastName.message}</p>
+                <p className="text-sm text-destructive">
+                  {errors.lastName.message}
+                </p>
               )}
             </div>
           </div>
@@ -164,9 +168,9 @@ export function EditUserDialog({
               id="edit-email"
               value={user.email}
               disabled
-              className="bg-gray-50"
+              className="bg-muted"
             />
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-muted-foreground">
               Email cannot be changed. Contact support for email updates.
             </p>
           </div>
@@ -175,7 +179,7 @@ export function EditUserDialog({
             <Label htmlFor="edit-role">Role</Label>
             <Select
               value={selectedRole}
-              onValueChange={(value) => setValue('role', value as UserRole)}
+              onValueChange={(value) => setValue("role", value as UserRole)}
               disabled={isEditingSelf}
             >
               <SelectTrigger>
@@ -190,7 +194,7 @@ export function EditUserDialog({
               </SelectContent>
             </Select>
             {isEditingSelf && (
-              <p className="text-xs text-amber-600">
+              <p className="text-xs text-amber-600 dark:text-amber-400">
                 You cannot change your own role.
               </p>
             )}
@@ -202,14 +206,14 @@ export function EditUserDialog({
               <span
                 className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                   user.isActive
-                    ? 'bg-green-100 text-green-800'
-                    : 'bg-red-100 text-red-800'
+                    ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300"
+                    : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300"
                 }`}
               >
-                {user.isActive ? 'Active' : 'Inactive'}
+                {user.isActive ? "Active" : "Inactive"}
               </span>
               {isEditingSelf && (
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-muted-foreground">
                   Status changes must be done from the user list.
                 </p>
               )}
@@ -221,7 +225,7 @@ export function EditUserDialog({
               Cancel
             </Button>
             <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Saving...' : 'Save Changes'}
+              {isSubmitting ? "Saving..." : "Save Changes"}
             </Button>
           </DialogFooter>
         </form>

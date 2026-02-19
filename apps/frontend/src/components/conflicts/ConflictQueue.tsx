@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import * as React from 'react';
+import * as React from "react";
 import {
   Search,
   Filter,
@@ -12,26 +12,26 @@ import {
   Sparkles,
   PartyPopper,
   XCircle,
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from '@/components/ui/popover';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Label } from '@/components/ui/label';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+} from "@/components/ui/popover";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   ConflictAlert,
   ConflictAlertData,
@@ -43,19 +43,19 @@ import {
   CONFLICT_TYPE_LABELS,
   DISMISSAL_CATEGORY_LABELS,
   DismissalCategory,
-} from './ConflictAlert';
-import { cn } from '@/lib/utils';
+} from "./ConflictAlert";
+import { cn } from "@/lib/utils";
 
 // ===========================================
 // Types
 // ===========================================
 
 export interface ConflictQueueFilters {
-  status: ConflictStatus | 'ALL';
-  conflictType: ConflictType | 'ALL';
-  severity: ConflictSeverity | 'ALL';
+  status: ConflictStatus | "ALL";
+  conflictType: ConflictType | "ALL";
+  severity: ConflictSeverity | "ALL";
   search: string;
-  sortBy: 'date_desc' | 'date_asc' | 'severity' | 'confidence';
+  sortBy: "date_desc" | "date_asc" | "severity" | "confidence";
 }
 
 export interface ConflictQueueStats {
@@ -73,7 +73,10 @@ export interface ConflictQueueProps {
   onFiltersChange?: (filters: ConflictQueueFilters) => void;
   onDismiss?: (id: string, request: DismissConflictRequest) => Promise<void>;
   onEscalate?: (id: string) => Promise<void>;
-  onBulkDismiss?: (ids: string[], request: DismissConflictRequest) => Promise<void>;
+  onBulkDismiss?: (
+    ids: string[],
+    request: DismissConflictRequest,
+  ) => Promise<void>;
   onViewEntity?: (entityName: string) => void;
   onViewDetails?: (id: string) => void;
   onRefresh?: () => void;
@@ -84,21 +87,26 @@ export interface ConflictQueueProps {
 }
 
 const DEFAULT_FILTERS: ConflictQueueFilters = {
-  status: 'ALL',
-  conflictType: 'ALL',
-  severity: 'ALL',
-  search: '',
-  sortBy: 'date_desc',
+  status: "ALL",
+  conflictType: "ALL",
+  severity: "ALL",
+  search: "",
+  sortBy: "date_desc",
 };
 
 const SORT_OPTIONS = [
-  { value: 'date_desc', label: 'Newest First' },
-  { value: 'date_asc', label: 'Oldest First' },
-  { value: 'severity', label: 'Severity (High to Low)' },
-  { value: 'confidence', label: 'Confidence (High to Low)' },
+  { value: "date_desc", label: "Newest First" },
+  { value: "date_asc", label: "Oldest First" },
+  { value: "severity", label: "Severity (High to Low)" },
+  { value: "confidence", label: "Confidence (High to Low)" },
 ];
 
-const SEVERITY_ORDER: ConflictSeverity[] = ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW'];
+const SEVERITY_ORDER: ConflictSeverity[] = [
+  "CRITICAL",
+  "HIGH",
+  "MEDIUM",
+  "LOW",
+];
 
 // ===========================================
 // Component
@@ -130,7 +138,7 @@ export function ConflictQueue({
   const [isBulkDismissOpen, setIsBulkDismissOpen] = React.useState(false);
   const [bulkDismissCategory, setBulkDismissCategory] =
     React.useState<DismissalCategory | null>(null);
-  const [bulkDismissReason, setBulkDismissReason] = React.useState('');
+  const [bulkDismissReason, setBulkDismissReason] = React.useState("");
   const [isSubmitting, setIsSubmitting] = React.useState(false);
 
   const filters = externalFilters
@@ -151,17 +159,17 @@ export function ConflictQueue({
     let result = [...alerts];
 
     // Filter by status
-    if (filters.status !== 'ALL') {
+    if (filters.status !== "ALL") {
       result = result.filter((a) => a.status === filters.status);
     }
 
     // Filter by conflict type
-    if (filters.conflictType !== 'ALL') {
+    if (filters.conflictType !== "ALL") {
       result = result.filter((a) => a.conflictType === filters.conflictType);
     }
 
     // Filter by severity
-    if (filters.severity !== 'ALL') {
+    if (filters.severity !== "ALL") {
       result = result.filter((a) => a.severity === filters.severity);
     }
 
@@ -171,27 +179,27 @@ export function ConflictQueue({
       result = result.filter(
         (a) =>
           a.matchedEntity.toLowerCase().includes(searchLower) ||
-          a.summary.toLowerCase().includes(searchLower)
+          a.summary.toLowerCase().includes(searchLower),
       );
     }
 
     // Sort
     result.sort((a, b) => {
       switch (filters.sortBy) {
-        case 'date_asc':
+        case "date_asc":
           return (
             new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
           );
-        case 'date_desc':
+        case "date_desc":
           return (
             new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
           );
-        case 'severity':
+        case "severity":
           return (
             SEVERITY_ORDER.indexOf(a.severity) -
             SEVERITY_ORDER.indexOf(b.severity)
           );
-        case 'confidence':
+        case "confidence":
           return b.matchConfidence - a.matchConfidence;
         default:
           return 0;
@@ -202,7 +210,7 @@ export function ConflictQueue({
   }, [alerts, filters]);
 
   // Open alerts (for selection)
-  const openAlerts = filteredAlerts.filter((a) => a.status === 'OPEN');
+  const openAlerts = filteredAlerts.filter((a) => a.status === "OPEN");
   const allSelected =
     openAlerts.length > 0 && openAlerts.every((a) => selectedIds.has(a.id));
   const someSelected = openAlerts.some((a) => selectedIds.has(a.id));
@@ -244,7 +252,7 @@ export function ConflictQueue({
       setSelectedIds(new Set());
       setIsBulkDismissOpen(false);
       setBulkDismissCategory(null);
-      setBulkDismissReason('');
+      setBulkDismissReason("");
     } finally {
       setIsSubmitting(false);
     }
@@ -258,18 +266,18 @@ export function ConflictQueue({
     const sevenDaysAgo = now - 7 * 24 * 60 * 60 * 1000;
 
     return {
-      openCount: alerts.filter((a) => a.status === 'OPEN').length,
+      openCount: alerts.filter((a) => a.status === "OPEN").length,
       highSeverityCount: alerts.filter(
         (a) =>
-          a.status === 'OPEN' &&
-          (a.severity === 'HIGH' || a.severity === 'CRITICAL')
+          a.status === "OPEN" &&
+          (a.severity === "HIGH" || a.severity === "CRITICAL"),
       ).length,
       pendingOver7DaysCount: alerts.filter(
         (a) =>
-          a.status === 'OPEN' && new Date(a.createdAt).getTime() < sevenDaysAgo
+          a.status === "OPEN" && new Date(a.createdAt).getTime() < sevenDaysAgo,
       ).length,
-      dismissedCount: alerts.filter((a) => a.status === 'DISMISSED').length,
-      escalatedCount: alerts.filter((a) => a.status === 'ESCALATED').length,
+      dismissedCount: alerts.filter((a) => a.status === "DISMISSED").length,
+      escalatedCount: alerts.filter((a) => a.status === "ESCALATED").length,
     };
   }, [alerts, stats]);
 
@@ -286,17 +294,17 @@ export function ConflictQueue({
       });
       if (node) observerRef.current.observe(node);
     },
-    [isLoading, hasMore, onLoadMore]
+    [isLoading, hasMore, onLoadMore],
   );
 
   return (
-    <div className={cn('space-y-4', className)}>
+    <div className={cn("space-y-4", className)}>
       {/* Stats Header */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
         <Card className="p-3">
           <div className="flex items-center gap-2">
-            <div className="rounded-lg bg-blue-100 p-2">
-              <AlertTriangle className="h-4 w-4 text-blue-600" />
+            <div className="rounded-lg bg-blue-100 dark:bg-blue-900/30 p-2">
+              <AlertTriangle className="h-4 w-4 text-blue-600 dark:text-blue-400" />
             </div>
             <div>
               <p className="text-2xl font-bold">{computedStats.openCount}</p>
@@ -306,8 +314,8 @@ export function ConflictQueue({
         </Card>
         <Card className="p-3">
           <div className="flex items-center gap-2">
-            <div className="rounded-lg bg-red-100 p-2">
-              <AlertTriangle className="h-4 w-4 text-red-600" />
+            <div className="rounded-lg bg-red-100 dark:bg-red-900/30 p-2">
+              <AlertTriangle className="h-4 w-4 text-red-600 dark:text-red-400" />
             </div>
             <div>
               <p className="text-2xl font-bold">
@@ -319,8 +327,8 @@ export function ConflictQueue({
         </Card>
         <Card className="p-3">
           <div className="flex items-center gap-2">
-            <div className="rounded-lg bg-orange-100 p-2">
-              <Clock className="h-4 w-4 text-orange-600" />
+            <div className="rounded-lg bg-orange-100 dark:bg-orange-900/30 p-2">
+              <Clock className="h-4 w-4 text-orange-600 dark:text-orange-400" />
             </div>
             <div>
               <p className="text-2xl font-bold">
@@ -332,8 +340,8 @@ export function ConflictQueue({
         </Card>
         <Card className="p-3 hidden sm:block">
           <div className="flex items-center gap-2">
-            <div className="rounded-lg bg-gray-100 p-2">
-              <XCircle className="h-4 w-4 text-gray-600" />
+            <div className="rounded-lg bg-muted p-2">
+              <XCircle className="h-4 w-4 text-muted-foreground" />
             </div>
             <div>
               <p className="text-2xl font-bold">
@@ -345,8 +353,8 @@ export function ConflictQueue({
         </Card>
         <Card className="p-3 hidden lg:block">
           <div className="flex items-center gap-2">
-            <div className="rounded-lg bg-purple-100 p-2">
-              <Sparkles className="h-4 w-4 text-purple-600" />
+            <div className="rounded-lg bg-purple-100 dark:bg-purple-900/30 p-2">
+              <Sparkles className="h-4 w-4 text-purple-600 dark:text-purple-400" />
             </div>
             <div>
               <p className="text-2xl font-bold">
@@ -363,7 +371,9 @@ export function ConflictQueue({
         {/* Status Tabs */}
         <Tabs
           value={filters.status}
-          onValueChange={(v) => setFilters({ status: v as ConflictStatus | 'ALL' })}
+          onValueChange={(v) =>
+            setFilters({ status: v as ConflictStatus | "ALL" })
+          }
           className="w-full sm:w-auto"
         >
           <TabsList>
@@ -398,14 +408,14 @@ export function ConflictQueue({
             <Button variant="outline" size="sm">
               <Filter className="mr-1.5 h-4 w-4" />
               Filters
-              {(filters.conflictType !== 'ALL' ||
-                filters.severity !== 'ALL') && (
+              {(filters.conflictType !== "ALL" ||
+                filters.severity !== "ALL") && (
                 <Badge
                   variant="secondary"
                   className="ml-1.5 px-1.5 h-5 min-w-5"
                 >
-                  {(filters.conflictType !== 'ALL' ? 1 : 0) +
-                    (filters.severity !== 'ALL' ? 1 : 0)}
+                  {(filters.conflictType !== "ALL" ? 1 : 0) +
+                    (filters.severity !== "ALL" ? 1 : 0)}
                 </Badge>
               )}
             </Button>
@@ -417,7 +427,7 @@ export function ConflictQueue({
                 <Select
                   value={filters.conflictType}
                   onValueChange={(v) =>
-                    setFilters({ conflictType: v as ConflictType | 'ALL' })
+                    setFilters({ conflictType: v as ConflictType | "ALL" })
                   }
                 >
                   <SelectTrigger>
@@ -430,7 +440,7 @@ export function ConflictQueue({
                         <SelectItem key={value} value={value}>
                           {label}
                         </SelectItem>
-                      )
+                      ),
                     )}
                   </SelectContent>
                 </Select>
@@ -441,7 +451,7 @@ export function ConflictQueue({
                 <Select
                   value={filters.severity}
                   onValueChange={(v) =>
-                    setFilters({ severity: v as ConflictSeverity | 'ALL' })
+                    setFilters({ severity: v as ConflictSeverity | "ALL" })
                   }
                 >
                   <SelectTrigger>
@@ -464,7 +474,7 @@ export function ConflictQueue({
                   value={filters.sortBy}
                   onValueChange={(v) =>
                     setFilters({
-                      sortBy: v as ConflictQueueFilters['sortBy'],
+                      sortBy: v as ConflictQueueFilters["sortBy"],
                     })
                   }
                 >
@@ -487,9 +497,9 @@ export function ConflictQueue({
                 className="w-full"
                 onClick={() =>
                   setFilters({
-                    conflictType: 'ALL',
-                    severity: 'ALL',
-                    sortBy: 'date_desc',
+                    conflictType: "ALL",
+                    severity: "ALL",
+                    sortBy: "date_desc",
                   })
                 }
               >
@@ -507,9 +517,7 @@ export function ConflictQueue({
             onClick={onRefresh}
             disabled={isLoading}
           >
-            <RefreshCw
-              className={cn('h-4 w-4', isLoading && 'animate-spin')}
-            />
+            <RefreshCw className={cn("h-4 w-4", isLoading && "animate-spin")} />
           </Button>
         )}
       </div>
@@ -526,7 +534,10 @@ export function ConflictQueue({
             {selectedIds.size} selected
           </span>
           <div className="ml-auto flex items-center gap-2">
-            <Popover open={isBulkDismissOpen} onOpenChange={setIsBulkDismissOpen}>
+            <Popover
+              open={isBulkDismissOpen}
+              onOpenChange={setIsBulkDismissOpen}
+            >
               <PopoverTrigger asChild>
                 <Button variant="outline" size="sm">
                   <XCircle className="mr-1.5 h-4 w-4" />
@@ -542,7 +553,7 @@ export function ConflictQueue({
                   <div className="space-y-2">
                     <Label>Category</Label>
                     <Select
-                      value={bulkDismissCategory ?? ''}
+                      value={bulkDismissCategory ?? ""}
                       onValueChange={(v) =>
                         setBulkDismissCategory(v as DismissalCategory)
                       }
@@ -556,7 +567,7 @@ export function ConflictQueue({
                             <SelectItem key={value} value={value}>
                               {label}
                             </SelectItem>
-                          )
+                          ),
                         )}
                       </SelectContent>
                     </Select>
@@ -588,7 +599,7 @@ export function ConflictQueue({
                         isSubmitting
                       }
                     >
-                      {isSubmitting ? 'Dismissing...' : 'Dismiss All'}
+                      {isSubmitting ? "Dismissing..." : "Dismiss All"}
                     </Button>
                   </div>
                 </div>
@@ -609,10 +620,7 @@ export function ConflictQueue({
       {/* Select All Toggle (when no selection) */}
       {selectedIds.size === 0 && openAlerts.length > 0 && onBulkDismiss && (
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Checkbox
-            checked={false}
-            onCheckedChange={handleSelectAll}
-          />
+          <Checkbox checked={false} onCheckedChange={handleSelectAll} />
           <span>Select all to enable batch actions</span>
         </div>
       )}
@@ -622,29 +630,31 @@ export function ConflictQueue({
         {filteredAlerts.length === 0 ? (
           <Card className="p-8">
             <div className="flex flex-col items-center justify-center text-center">
-              <div className="rounded-full bg-green-100 p-4 mb-4">
-                <PartyPopper className="h-8 w-8 text-green-600" />
+              <div className="rounded-full bg-green-100 dark:bg-green-900/30 p-4 mb-4">
+                <PartyPopper className="h-8 w-8 text-green-600 dark:text-green-400" />
               </div>
               <h3 className="text-lg font-semibold mb-1">
                 No conflicts to review
               </h3>
               <p className="text-muted-foreground max-w-sm">
-                {filters.search || filters.conflictType !== 'ALL' || filters.severity !== 'ALL'
-                  ? 'No conflicts match your current filters. Try adjusting your search criteria.'
-                  : 'Great work! All conflict alerts have been addressed.'}
+                {filters.search ||
+                filters.conflictType !== "ALL" ||
+                filters.severity !== "ALL"
+                  ? "No conflicts match your current filters. Try adjusting your search criteria."
+                  : "Great work! All conflict alerts have been addressed."}
               </p>
               {(filters.search ||
-                filters.conflictType !== 'ALL' ||
-                filters.severity !== 'ALL') && (
+                filters.conflictType !== "ALL" ||
+                filters.severity !== "ALL") && (
                 <Button
                   variant="outline"
                   size="sm"
                   className="mt-4"
                   onClick={() =>
                     setFilters({
-                      search: '',
-                      conflictType: 'ALL',
-                      severity: 'ALL',
+                      search: "",
+                      conflictType: "ALL",
+                      severity: "ALL",
                     })
                   }
                 >
@@ -662,7 +672,7 @@ export function ConflictQueue({
               onEscalate={onEscalate}
               onViewEntity={onViewEntity}
               onViewDetails={onViewDetails}
-              selectable={alert.status === 'OPEN' && !!onBulkDismiss}
+              selectable={alert.status === "OPEN" && !!onBulkDismiss}
               selected={selectedIds.has(alert.id)}
               onSelectionChange={handleSelectionChange}
             />

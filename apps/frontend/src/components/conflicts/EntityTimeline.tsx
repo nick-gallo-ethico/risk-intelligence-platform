@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import * as React from 'react';
+import * as React from "react";
 import {
   FileText,
   AlertTriangle,
@@ -14,38 +14,38 @@ import {
   ChevronDown,
   ChevronUp,
   TrendingUp,
-} from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Label } from '@/components/ui/label';
+} from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from '@/components/ui/popover';
+} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Skeleton } from '@/components/ui/skeleton';
-import { cn } from '@/lib/utils';
+} from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
 
 // ===========================================
 // Types
 // ===========================================
 
 export type EntityTimelineEventType =
-  | 'DISCLOSURE_SUBMITTED'
-  | 'CONFLICT_DETECTED'
-  | 'CONFLICT_DISMISSED'
-  | 'CONFLICT_ESCALATED'
-  | 'CASE_INVOLVEMENT'
-  | 'EXCLUSION_CREATED';
+  | "DISCLOSURE_SUBMITTED"
+  | "CONFLICT_DETECTED"
+  | "CONFLICT_DISMISSED"
+  | "CONFLICT_ESCALATED"
+  | "CASE_INVOLVEMENT"
+  | "EXCLUSION_CREATED";
 
 export interface EntityTimelineItem {
   eventType: EntityTimelineEventType;
@@ -101,49 +101,49 @@ const EVENT_TYPE_CONFIG: Record<
 > = {
   DISCLOSURE_SUBMITTED: {
     icon: FileText,
-    color: 'text-blue-600',
-    bgColor: 'bg-blue-100',
-    label: 'Disclosure',
+    color: "text-blue-600 dark:text-blue-400",
+    bgColor: "bg-blue-100 dark:bg-blue-900/30",
+    label: "Disclosure",
   },
   CONFLICT_DETECTED: {
     icon: AlertTriangle,
-    color: 'text-orange-600',
-    bgColor: 'bg-orange-100',
-    label: 'Conflict Detected',
+    color: "text-orange-600 dark:text-orange-400",
+    bgColor: "bg-orange-100 dark:bg-orange-900/30",
+    label: "Conflict Detected",
   },
   CONFLICT_DISMISSED: {
     icon: XCircle,
-    color: 'text-gray-600',
-    bgColor: 'bg-gray-100',
-    label: 'Dismissed',
+    color: "text-gray-600 dark:text-gray-400",
+    bgColor: "bg-gray-100 dark:bg-gray-800",
+    label: "Dismissed",
   },
   CONFLICT_ESCALATED: {
     icon: ArrowUpRight,
-    color: 'text-red-600',
-    bgColor: 'bg-red-100',
-    label: 'Escalated',
+    color: "text-red-600 dark:text-red-400",
+    bgColor: "bg-red-100 dark:bg-red-900/30",
+    label: "Escalated",
   },
   CASE_INVOLVEMENT: {
     icon: Shield,
-    color: 'text-purple-600',
-    bgColor: 'bg-purple-100',
-    label: 'Case',
+    color: "text-purple-600 dark:text-purple-400",
+    bgColor: "bg-purple-100 dark:bg-purple-900/30",
+    label: "Case",
   },
   EXCLUSION_CREATED: {
     icon: Shield,
-    color: 'text-emerald-600',
-    bgColor: 'bg-emerald-100',
-    label: 'Exclusion',
+    color: "text-emerald-600 dark:text-emerald-400",
+    bgColor: "bg-emerald-100 dark:bg-emerald-900/30",
+    label: "Exclusion",
   },
 };
 
 const ALL_EVENT_TYPES: EntityTimelineEventType[] = [
-  'DISCLOSURE_SUBMITTED',
-  'CONFLICT_DETECTED',
-  'CONFLICT_DISMISSED',
-  'CONFLICT_ESCALATED',
-  'CASE_INVOLVEMENT',
-  'EXCLUSION_CREATED',
+  "DISCLOSURE_SUBMITTED",
+  "CONFLICT_DETECTED",
+  "CONFLICT_DISMISSED",
+  "CONFLICT_ESCALATED",
+  "CASE_INVOLVEMENT",
+  "EXCLUSION_CREATED",
 ];
 
 // ===========================================
@@ -164,8 +164,12 @@ export function EntityTimeline({
   const [visibleEventTypes, setVisibleEventTypes] = React.useState<
     Set<EntityTimelineEventType>
   >(new Set(ALL_EVENT_TYPES));
-  const [dateRange, setDateRange] = React.useState<'all' | '30d' | '90d' | '1y'>('all');
-  const [expandedEvents, setExpandedEvents] = React.useState<Set<number>>(new Set());
+  const [dateRange, setDateRange] = React.useState<
+    "all" | "30d" | "90d" | "1y"
+  >("all");
+  const [expandedEvents, setExpandedEvents] = React.useState<Set<number>>(
+    new Set(),
+  );
 
   // Filter events
   const filteredEvents = React.useMemo(() => {
@@ -174,17 +178,17 @@ export function EntityTimeline({
     let events = data.events.filter((e) => visibleEventTypes.has(e.eventType));
 
     // Filter by date range
-    if (dateRange !== 'all') {
+    if (dateRange !== "all") {
       const now = new Date();
       const cutoff = new Date();
       switch (dateRange) {
-        case '30d':
+        case "30d":
           cutoff.setDate(now.getDate() - 30);
           break;
-        case '90d':
+        case "90d":
           cutoff.setDate(now.getDate() - 90);
           break;
-        case '1y':
+        case "1y":
           cutoff.setFullYear(now.getFullYear() - 1);
           break;
       }
@@ -215,23 +219,23 @@ export function EntityTimeline({
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
     });
   };
 
   const formatTime = (dateString: string) => {
-    return new Date(dateString).toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit',
+    return new Date(dateString).toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
   if (isLoading) {
     return (
-      <Card className={cn('h-full flex flex-col', className)}>
+      <Card className={cn("h-full flex flex-col", className)}>
         <CardHeader className="pb-3 border-b">
           <Skeleton className="h-6 w-48" />
           <Skeleton className="h-4 w-32 mt-1" />
@@ -255,7 +259,7 @@ export function EntityTimeline({
 
   if (!data) {
     return (
-      <Card className={cn('h-full flex flex-col', className)}>
+      <Card className={cn("h-full flex flex-col", className)}>
         <CardContent className="flex-1 flex items-center justify-center">
           <div className="text-center text-muted-foreground">
             <TrendingUp className="h-12 w-12 mx-auto mb-3 opacity-50" />
@@ -267,7 +271,7 @@ export function EntityTimeline({
   }
 
   return (
-    <Card className={cn('h-full flex flex-col', className)}>
+    <Card className={cn("h-full flex flex-col", className)}>
       {/* Header */}
       <CardHeader className="pb-3 border-b">
         <div className="flex items-start justify-between">
@@ -343,8 +347,8 @@ export function EntityTimeline({
                       htmlFor={type}
                       className="flex items-center gap-2 cursor-pointer text-sm"
                     >
-                      <div className={cn('rounded p-0.5', config.bgColor)}>
-                        <config.icon className={cn('h-3 w-3', config.color)} />
+                      <div className={cn("rounded p-0.5", config.bgColor)}>
+                        <config.icon className={cn("h-3 w-3", config.color)} />
                       </div>
                       {config.label}
                     </Label>
@@ -356,7 +360,10 @@ export function EntityTimeline({
         </Popover>
 
         {/* Date Range Filter */}
-        <Select value={dateRange} onValueChange={(v) => setDateRange(v as typeof dateRange)}>
+        <Select
+          value={dateRange}
+          onValueChange={(v) => setDateRange(v as typeof dateRange)}
+        >
           <SelectTrigger className="w-28 h-8">
             <SelectValue />
           </SelectTrigger>
@@ -397,18 +404,18 @@ export function EntityTimeline({
                     {/* Icon */}
                     <div
                       className={cn(
-                        'relative z-10 rounded-full p-1.5 shrink-0',
-                        config.bgColor
+                        "relative z-10 rounded-full p-1.5 shrink-0",
+                        config.bgColor,
                       )}
                     >
-                      <Icon className={cn('h-4 w-4', config.color)} />
+                      <Icon className={cn("h-4 w-4", config.color)} />
                     </div>
 
                     {/* Content */}
                     <div
                       className={cn(
-                        'flex-1 rounded-lg border p-3 transition-colors',
-                        onEventClick && 'cursor-pointer hover:bg-muted/50'
+                        "flex-1 rounded-lg border p-3 transition-colors",
+                        onEventClick && "cursor-pointer hover:bg-muted/50",
                       )}
                       onClick={() => {
                         if (event.metadata) {
@@ -419,10 +426,7 @@ export function EntityTimeline({
                     >
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex-1">
-                          <Badge
-                            variant="secondary"
-                            className="text-xs mb-1.5"
-                          >
+                          <Badge variant="secondary" className="text-xs mb-1.5">
                             {config.label}
                           </Badge>
                           <p className="text-sm">{event.description}</p>
@@ -437,16 +441,21 @@ export function EntityTimeline({
                           {/* Metadata (expanded) */}
                           {isExpanded && event.metadata && (
                             <div className="mt-3 pt-3 border-t text-xs space-y-1">
-                              {Object.entries(event.metadata).map(([key, value]) => (
-                                <div key={key} className="flex justify-between">
-                                  <span className="text-muted-foreground capitalize">
-                                    {key.replace(/_/g, ' ')}:
-                                  </span>
-                                  <span className="font-medium">
-                                    {String(value)}
-                                  </span>
-                                </div>
-                              ))}
+                              {Object.entries(event.metadata).map(
+                                ([key, value]) => (
+                                  <div
+                                    key={key}
+                                    className="flex justify-between"
+                                  >
+                                    <span className="text-muted-foreground capitalize">
+                                      {key.replace(/_/g, " ")}:
+                                    </span>
+                                    <span className="font-medium">
+                                      {String(value)}
+                                    </span>
+                                  </div>
+                                ),
+                              )}
                             </div>
                           )}
                         </div>
@@ -487,15 +496,16 @@ export function EntityTimeline({
       </CardContent>
 
       {/* Footer with date range */}
-      {data.statistics.dateRange.earliest && data.statistics.dateRange.latest && (
-        <div className="px-4 py-2 border-t text-xs text-muted-foreground flex items-center gap-1">
-          <Calendar className="h-3 w-3" />
-          <span>
-            {formatDate(data.statistics.dateRange.earliest)} -{' '}
-            {formatDate(data.statistics.dateRange.latest)}
-          </span>
-        </div>
-      )}
+      {data.statistics.dateRange.earliest &&
+        data.statistics.dateRange.latest && (
+          <div className="px-4 py-2 border-t text-xs text-muted-foreground flex items-center gap-1">
+            <Calendar className="h-3 w-3" />
+            <span>
+              {formatDate(data.statistics.dateRange.earliest)} -{" "}
+              {formatDate(data.statistics.dateRange.latest)}
+            </span>
+          </div>
+        )}
     </Card>
   );
 }

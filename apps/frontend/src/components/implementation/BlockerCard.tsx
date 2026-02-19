@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 /**
  * Blocker Card Component
@@ -10,9 +10,9 @@
  * - Escalation status indicator
  */
 
-import { AlertTriangle, Clock, ArrowUp } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
-import { cn } from '@/lib/utils';
+import { AlertTriangle, Clock, ArrowUp } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
+import { cn } from "@/lib/utils";
 
 interface BlockerCardProps {
   blocker: {
@@ -28,56 +28,56 @@ interface BlockerCardProps {
 }
 
 function formatCategory(category: string): string {
-  return category
-    .replace(/_/g, ' ')
-    .toLowerCase();
+  return category.replace(/_/g, " ").toLowerCase();
 }
 
 export function BlockerCard({ blocker }: BlockerCardProps) {
   const isEscalatedToManager = !!blocker.escalatedToManagerAt;
   const isEscalatedToDirector = !!blocker.escalatedToDirectorAt;
   const isEscalated = isEscalatedToManager || isEscalatedToDirector;
-  const isResolved = blocker.status === 'RESOLVED';
+  const isResolved = blocker.status === "RESOLVED";
 
   // Determine card styling based on escalation level
   const cardStyles = isResolved
-    ? 'border-gray-200 bg-gray-50'
+    ? "border-gray-200 bg-gray-50 dark:border-gray-700 dark:bg-gray-800/50"
     : isEscalatedToDirector
-      ? 'border-red-400 bg-red-50'
+      ? "border-red-400 bg-red-50 dark:border-red-800 dark:bg-red-900/20"
       : isEscalatedToManager
-        ? 'border-orange-300 bg-orange-50'
-        : 'border-yellow-300 bg-yellow-50';
+        ? "border-orange-300 bg-orange-50 dark:border-orange-800 dark:bg-orange-900/20"
+        : "border-yellow-300 bg-yellow-50 dark:border-yellow-800 dark:bg-yellow-900/20";
 
   const iconColor = isResolved
-    ? 'text-gray-400'
+    ? "text-gray-400 dark:text-gray-500"
     : isEscalatedToDirector
-      ? 'text-red-500'
+      ? "text-red-500"
       : isEscalatedToManager
-        ? 'text-orange-500'
-        : 'text-yellow-500';
+        ? "text-orange-500"
+        : "text-yellow-500";
 
   return (
     <div
       className={cn(
-        'p-4 border rounded-lg transition-all',
+        "p-4 border rounded-lg transition-all",
         cardStyles,
-        isResolved && 'opacity-60'
+        isResolved && "opacity-60",
       )}
     >
       <div className="flex items-start gap-3">
-        <AlertTriangle className={cn('h-5 w-5 mt-0.5 flex-shrink-0', iconColor)} />
+        <AlertTriangle
+          className={cn("h-5 w-5 mt-0.5 flex-shrink-0", iconColor)}
+        />
         <div className="flex-1 min-w-0">
           <div className="flex items-start justify-between gap-2">
             <div
               className={cn(
-                'font-medium text-sm',
-                isResolved && 'line-through text-gray-500'
+                "font-medium text-sm",
+                isResolved && "line-through text-muted-foreground",
               )}
             >
               {blocker.title}
             </div>
             {isResolved && (
-              <span className="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded flex-shrink-0">
+              <span className="text-xs px-2 py-0.5 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300 rounded flex-shrink-0">
                 Resolved
               </span>
             )}
@@ -86,8 +86,8 @@ export function BlockerCard({ blocker }: BlockerCardProps) {
           {blocker.description && (
             <p
               className={cn(
-                'text-xs mt-1',
-                isResolved ? 'text-gray-400' : 'text-gray-600'
+                "text-xs mt-1",
+                isResolved ? "text-muted-foreground" : "text-muted-foreground",
               )}
             >
               {blocker.description}
@@ -96,12 +96,12 @@ export function BlockerCard({ blocker }: BlockerCardProps) {
 
           <div className="flex items-center flex-wrap gap-2 mt-3">
             {/* Category badge */}
-            <span className="px-2 py-0.5 bg-white rounded text-xs text-gray-600 border">
+            <span className="px-2 py-0.5 bg-background rounded text-xs text-muted-foreground border border-border">
               {formatCategory(blocker.category)}
             </span>
 
             {/* Time created */}
-            <span className="flex items-center gap-1 text-xs text-gray-500">
+            <span className="flex items-center gap-1 text-xs text-muted-foreground">
               <Clock className="h-3 w-3" />
               {formatDistanceToNow(new Date(blocker.createdAt), {
                 addSuffix: true,
@@ -112,14 +112,16 @@ export function BlockerCard({ blocker }: BlockerCardProps) {
             {isEscalated && !isResolved && (
               <span
                 className={cn(
-                  'flex items-center gap-1 text-xs font-medium',
-                  isEscalatedToDirector ? 'text-red-600' : 'text-orange-600'
+                  "flex items-center gap-1 text-xs font-medium",
+                  isEscalatedToDirector
+                    ? "text-red-600 dark:text-red-400"
+                    : "text-orange-600 dark:text-orange-400",
                 )}
               >
                 <ArrowUp className="h-3 w-3" />
                 {isEscalatedToDirector
-                  ? 'Escalated to Director'
-                  : 'Escalated to Manager'}
+                  ? "Escalated to Director"
+                  : "Escalated to Manager"}
               </span>
             )}
           </div>

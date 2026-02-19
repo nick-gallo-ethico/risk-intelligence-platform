@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -8,12 +8,12 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { AlertTriangle } from 'lucide-react';
-import { toast } from 'sonner';
-import { usersApi } from '@/lib/users-api';
-import type { User } from '@/types/user';
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { AlertTriangle } from "lucide-react";
+import { toast } from "sonner";
+import { usersApi } from "@/lib/users-api";
+import type { User } from "@/types/user";
 
 interface DeactivateUserDialogProps {
   open: boolean;
@@ -36,16 +36,16 @@ export function DeactivateUserDialog({
     setIsSubmitting(true);
     try {
       const updatedUser = await usersApi.deactivate(user.id);
-      toast.success('User deactivated', {
+      toast.success("User deactivated", {
         description: `${user.firstName} ${user.lastName} has been deactivated and can no longer access the platform.`,
       });
       onSuccess(updatedUser);
       onOpenChange(false);
     } catch (error: unknown) {
-      console.error('Failed to deactivate user:', error);
+      console.error("Failed to deactivate user:", error);
       const message =
-        error instanceof Error ? error.message : 'Failed to deactivate user';
-      toast.error('Error deactivating user', { description: message });
+        error instanceof Error ? error.message : "Failed to deactivate user";
+      toast.error("Error deactivating user", { description: message });
     } finally {
       setIsSubmitting(false);
     }
@@ -67,23 +67,26 @@ export function DeactivateUserDialog({
         </DialogHeader>
 
         <div className="py-4">
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-            <p className="text-sm font-medium text-amber-800">
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 dark:bg-amber-900/20 dark:border-amber-800">
+            <p className="text-sm font-medium text-amber-800 dark:text-amber-300">
               {user.firstName} {user.lastName}
             </p>
-            <p className="text-sm text-amber-700">{user.email}</p>
+            <p className="text-sm text-amber-700 dark:text-amber-400">
+              {user.email}
+            </p>
           </div>
 
           <div className="mt-4 space-y-2">
-            <p className="text-sm text-gray-600">
-              <strong>Warning:</strong> Deactivating this user will:
+            <p className="text-sm text-muted-foreground">
+              <strong className="text-foreground">Warning:</strong> Deactivating
+              this user will:
             </p>
-            <ul className="text-sm text-gray-600 list-disc list-inside space-y-1 ml-2">
+            <ul className="text-sm text-muted-foreground list-disc list-inside space-y-1 ml-2">
               <li>Immediately revoke their access to the platform</li>
               <li>Remove them from any active assignments</li>
               <li>Preserve their historical data and activity logs</li>
             </ul>
-            <p className="text-sm text-gray-500 mt-3">
+            <p className="text-sm text-muted-foreground mt-3">
               You can reactivate this user later if needed.
             </p>
           </div>
@@ -103,7 +106,7 @@ export function DeactivateUserDialog({
             onClick={handleDeactivate}
             disabled={isSubmitting}
           >
-            {isSubmitting ? 'Deactivating...' : 'Deactivate User'}
+            {isSubmitting ? "Deactivating..." : "Deactivate User"}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { MoreHorizontal, Pencil, UserX, UserCheck } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { MoreHorizontal, Pencil, UserX, UserCheck } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -10,20 +10,20 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
+} from "@/components/ui/table";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from '@/components/ui/popover';
-import { ROLE_LABELS } from '@/types/user';
-import type { User } from '@/types/user';
+} from "@/components/ui/popover";
+import { ROLE_LABELS } from "@/types/user";
+import type { User } from "@/types/user";
 
 interface UsersTableProps {
   users: User[];
   currentUserId: string;
   sortBy: string;
-  sortOrder: 'asc' | 'desc';
+  sortOrder: "asc" | "desc";
   onSort: (field: string) => void;
   onEdit: (user: User) => void;
   onDeactivate: (user: User) => void;
@@ -31,16 +31,23 @@ interface UsersTableProps {
 }
 
 const ROLE_COLORS: Record<string, string> = {
-  SYSTEM_ADMIN: 'bg-purple-100 text-purple-800',
-  CCO: 'bg-blue-100 text-blue-800',
-  COMPLIANCE_OFFICER: 'bg-blue-100 text-blue-800',
-  TRIAGE_LEAD: 'bg-indigo-100 text-indigo-800',
-  INVESTIGATOR: 'bg-teal-100 text-teal-800',
-  HR_PARTNER: 'bg-pink-100 text-pink-800',
-  LEGAL_COUNSEL: 'bg-amber-100 text-amber-800',
-  DEPARTMENT_ADMIN: 'bg-cyan-100 text-cyan-800',
-  READ_ONLY: 'bg-gray-100 text-gray-800',
-  EMPLOYEE: 'bg-slate-100 text-slate-800',
+  SYSTEM_ADMIN:
+    "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300",
+  CCO: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
+  COMPLIANCE_OFFICER:
+    "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
+  TRIAGE_LEAD:
+    "bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300",
+  INVESTIGATOR:
+    "bg-teal-100 text-teal-800 dark:bg-teal-900/30 dark:text-teal-300",
+  HR_PARTNER:
+    "bg-pink-100 text-pink-800 dark:bg-pink-900/30 dark:text-pink-300",
+  LEGAL_COUNSEL:
+    "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300",
+  DEPARTMENT_ADMIN:
+    "bg-cyan-100 text-cyan-800 dark:bg-cyan-900/30 dark:text-cyan-300",
+  READ_ONLY: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300",
+  EMPLOYEE: "bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300",
 };
 
 export function UsersTable({
@@ -54,19 +61,19 @@ export function UsersTable({
   onReactivate,
 }: UsersTableProps) {
   const formatDate = (dateString: string | null | undefined) => {
-    if (!dateString) return '—';
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
+    if (!dateString) return "—";
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
   const getSortIndicator = (field: string) => {
     if (sortBy !== field) return null;
-    return sortOrder === 'asc' ? ' ↑' : ' ↓';
+    return sortOrder === "asc" ? " ↑" : " ↓";
   };
 
   const handleSort = (field: string) => {
@@ -75,7 +82,7 @@ export function UsersTable({
 
   if (users.length === 0) {
     return (
-      <div className="text-center py-8 text-gray-500">
+      <div className="text-center py-8 text-muted-foreground">
         No users found matching your criteria.
       </div>
     );
@@ -86,24 +93,24 @@ export function UsersTable({
       <TableHeader>
         <TableRow>
           <TableHead
-            className="cursor-pointer hover:bg-gray-50"
-            onClick={() => handleSort('firstName')}
+            className="cursor-pointer hover:bg-muted/50"
+            onClick={() => handleSort("firstName")}
           >
-            Name{getSortIndicator('firstName')}
+            Name{getSortIndicator("firstName")}
           </TableHead>
           <TableHead
-            className="cursor-pointer hover:bg-gray-50"
-            onClick={() => handleSort('email')}
+            className="cursor-pointer hover:bg-muted/50"
+            onClick={() => handleSort("email")}
           >
-            Email{getSortIndicator('email')}
+            Email{getSortIndicator("email")}
           </TableHead>
           <TableHead>Role</TableHead>
           <TableHead>Status</TableHead>
           <TableHead
-            className="cursor-pointer hover:bg-gray-50"
-            onClick={() => handleSort('lastLoginAt')}
+            className="cursor-pointer hover:bg-muted/50"
+            onClick={() => handleSort("lastLoginAt")}
           >
-            Last Login{getSortIndicator('lastLoginAt')}
+            Last Login{getSortIndicator("lastLoginAt")}
           </TableHead>
           <TableHead className="text-right">Actions</TableHead>
         </TableRow>
@@ -124,11 +131,16 @@ export function UsersTable({
                   )}
                 </div>
               </TableCell>
-              <TableCell className="text-gray-600">{user.email}</TableCell>
+              <TableCell className="text-muted-foreground">
+                {user.email}
+              </TableCell>
               <TableCell>
                 <Badge
                   variant="outline"
-                  className={ROLE_COLORS[user.role] || 'bg-gray-100 text-gray-800'}
+                  className={
+                    ROLE_COLORS[user.role] ||
+                    "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300"
+                  }
                 >
                   {ROLE_LABELS[user.role] || user.role}
                 </Badge>
@@ -138,14 +150,14 @@ export function UsersTable({
                   variant="outline"
                   className={
                     user.isActive
-                      ? 'bg-green-100 text-green-800'
-                      : 'bg-red-100 text-red-800'
+                      ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300"
+                      : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300"
                   }
                 >
-                  {user.isActive ? 'Active' : 'Inactive'}
+                  {user.isActive ? "Active" : "Inactive"}
                 </Badge>
               </TableCell>
-              <TableCell className="text-sm text-gray-600">
+              <TableCell className="text-sm text-muted-foreground">
                 {formatDate(user.lastLoginAt)}
               </TableCell>
               <TableCell className="text-right">
@@ -170,7 +182,7 @@ export function UsersTable({
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="w-full justify-start gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                        className="w-full justify-start gap-2 text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-900/20"
                         onClick={() => onDeactivate(user)}
                         disabled={isCurrentUser}
                       >
@@ -181,7 +193,7 @@ export function UsersTable({
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="w-full justify-start gap-2 text-green-600 hover:text-green-700 hover:bg-green-50"
+                        className="w-full justify-start gap-2 text-green-600 hover:text-green-700 hover:bg-green-50 dark:text-green-400 dark:hover:text-green-300 dark:hover:bg-green-900/20"
                         onClick={() => onReactivate(user)}
                       >
                         <UserCheck className="h-4 w-4" />

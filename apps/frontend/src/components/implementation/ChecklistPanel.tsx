@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 /**
  * Checklist Panel Component
@@ -10,7 +10,7 @@
  * - Required task indicators
  */
 
-import { useState } from 'react';
+import { useState } from "react";
 import {
   CheckCircle,
   Circle,
@@ -18,9 +18,9 @@ import {
   ChevronDown,
   ChevronRight,
   Clock,
-} from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { format } from 'date-fns';
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { format } from "date-fns";
 
 interface ChecklistPanelProps {
   phase: string;
@@ -45,7 +45,7 @@ const STATUS_ICONS: Record<string, typeof Circle> = {
 
 function formatPhase(phase: string): string {
   return phase
-    .replace(/_/g, ' ')
+    .replace(/_/g, " ")
     .toLowerCase()
     .replace(/\b\w/g, (l) => l.toUpperCase());
 }
@@ -57,47 +57,49 @@ export function ChecklistPanel({
 }: ChecklistPanelProps) {
   const [isExpanded, setIsExpanded] = useState(true);
 
-  const completedCount = tasks.filter((t) => t.status === 'COMPLETED').length;
+  const completedCount = tasks.filter((t) => t.status === "COMPLETED").length;
   const progress =
     tasks.length > 0 ? Math.round((completedCount / tasks.length) * 100) : 0;
 
   // Determine phase status icon color
   const phaseStatus =
     progress === 100
-      ? 'text-green-500'
+      ? "text-green-500"
       : progress > 0
-        ? 'text-blue-500'
-        : 'text-gray-300';
+        ? "text-blue-500"
+        : "text-gray-300 dark:text-gray-600";
 
   return (
-    <div className="bg-white border rounded-lg shadow-sm overflow-hidden">
+    <div className="bg-card border rounded-lg shadow-sm overflow-hidden">
       {/* Phase header */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full p-4 flex items-center justify-between text-left hover:bg-gray-50 transition-colors"
+        className="w-full p-4 flex items-center justify-between text-left hover:bg-muted/50 transition-colors"
       >
         <div className="flex items-center gap-3">
           {isExpanded ? (
-            <ChevronDown className="h-5 w-5 text-gray-400" />
+            <ChevronDown className="h-5 w-5 text-muted-foreground" />
           ) : (
-            <ChevronRight className="h-5 w-5 text-gray-400" />
+            <ChevronRight className="h-5 w-5 text-muted-foreground" />
           )}
-          <span className="font-medium text-gray-900">{formatPhase(phase)}</span>
-          <span className="text-sm text-gray-500">
+          <span className="font-medium text-foreground">
+            {formatPhase(phase)}
+          </span>
+          <span className="text-sm text-muted-foreground">
             {completedCount}/{tasks.length} complete
           </span>
         </div>
         <div className="flex items-center gap-3">
-          <span className="text-sm text-gray-500">{progress}%</span>
-          <div className="w-24 h-2 bg-gray-200 rounded-full overflow-hidden">
+          <span className="text-sm text-muted-foreground">{progress}%</span>
+          <div className="w-24 h-2 bg-secondary rounded-full overflow-hidden">
             <div
               className={cn(
-                'h-full transition-all rounded-full',
+                "h-full transition-all rounded-full",
                 progress === 100
-                  ? 'bg-green-500'
+                  ? "bg-green-500"
                   : progress > 0
-                    ? 'bg-blue-500'
-                    : 'bg-gray-200'
+                    ? "bg-blue-500"
+                    : "bg-secondary",
               )}
               style={{ width: `${progress}%` }}
             />
@@ -107,84 +109,84 @@ export function ChecklistPanel({
 
       {/* Task list */}
       {isExpanded && (
-        <div className="border-t divide-y">
+        <div className="border-t divide-y divide-border">
           {tasks.map((task) => {
             const Icon = STATUS_ICONS[task.status] || Circle;
-            const isCompleted = task.status === 'COMPLETED';
-            const isBlocked = task.status === 'BLOCKED';
-            const isInProgress = task.status === 'IN_PROGRESS';
+            const isCompleted = task.status === "COMPLETED";
+            const isBlocked = task.status === "BLOCKED";
+            const isInProgress = task.status === "IN_PROGRESS";
 
             return (
               <div
                 key={task.id}
                 className={cn(
-                  'p-3 flex items-start gap-3 hover:bg-gray-50 transition-colors',
-                  isBlocked && 'bg-red-50'
+                  "p-3 flex items-start gap-3 hover:bg-muted/50 transition-colors",
+                  isBlocked && "bg-red-50 dark:bg-red-900/20",
                 )}
               >
                 <button
                   onClick={() => {
-                    const newStatus = isCompleted ? 'PENDING' : 'COMPLETED';
+                    const newStatus = isCompleted ? "PENDING" : "COMPLETED";
                     onTaskUpdate(task.id, newStatus);
                   }}
                   className="flex-shrink-0 mt-0.5"
                   disabled={isBlocked}
                   title={
-                    isBlocked ? 'Resolve blocker first' : 'Toggle completion'
+                    isBlocked ? "Resolve blocker first" : "Toggle completion"
                   }
                 >
                   <Icon
                     className={cn(
-                      'h-5 w-5 transition-colors',
+                      "h-5 w-5 transition-colors",
                       isCompleted
-                        ? 'text-green-500 hover:text-green-600'
+                        ? "text-green-500 hover:text-green-600"
                         : isBlocked
-                          ? 'text-red-500'
+                          ? "text-red-500"
                           : isInProgress
-                            ? 'text-blue-500'
-                            : 'text-gray-300 hover:text-gray-400'
+                            ? "text-blue-500"
+                            : "text-gray-300 hover:text-gray-400 dark:text-gray-600 dark:hover:text-gray-500",
                     )}
                   />
                 </button>
                 <div className="flex-1 min-w-0">
                   <div
                     className={cn(
-                      'text-sm',
-                      isCompleted && 'line-through text-gray-400'
+                      "text-sm",
+                      isCompleted && "line-through text-muted-foreground",
                     )}
                   >
                     {task.name}
                     {task.isRequired && (
-                      <span className="ml-2 text-xs text-red-500 font-medium">
+                      <span className="ml-2 text-xs text-red-500 dark:text-red-400 font-medium">
                         *required
                       </span>
                     )}
                   </div>
                   {task.notes && (
-                    <div className="text-xs text-gray-500 mt-0.5">
+                    <div className="text-xs text-muted-foreground mt-0.5">
                       {task.notes}
                     </div>
                   )}
                   {task.dueDate && !isCompleted && (
-                    <div className="text-xs text-gray-400 mt-1 flex items-center gap-1">
+                    <div className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
                       <Clock className="h-3 w-3" />
-                      Due: {format(new Date(task.dueDate), 'MMM d')}
+                      Due: {format(new Date(task.dueDate), "MMM d")}
                     </div>
                   )}
                 </div>
                 <span
                   className={cn(
-                    'text-xs px-2 py-0.5 rounded',
+                    "text-xs px-2 py-0.5 rounded",
                     isCompleted
-                      ? 'bg-green-100 text-green-700'
+                      ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300"
                       : isBlocked
-                        ? 'bg-red-100 text-red-700'
+                        ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300"
                         : isInProgress
-                          ? 'bg-blue-100 text-blue-700'
-                          : 'bg-gray-100 text-gray-600'
+                          ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
+                          : "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-300",
                   )}
                 >
-                  {task.status.replace(/_/g, ' ')}
+                  {task.status.replace(/_/g, " ")}
                 </span>
               </div>
             );

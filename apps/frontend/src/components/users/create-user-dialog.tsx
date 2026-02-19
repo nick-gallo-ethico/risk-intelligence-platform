@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useState } from "react";
+import { useForm } from "react-hook-form";
 import {
   Dialog,
   DialogContent,
@@ -9,22 +9,22 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { toast } from 'sonner';
-import { usersApi } from '@/lib/users-api';
-import { USER_ROLES, ROLE_LABELS } from '@/types/user';
-import type { CreateUserInput, User } from '@/types/user';
-import type { UserRole } from '@/types/auth';
+} from "@/components/ui/select";
+import { toast } from "sonner";
+import { usersApi } from "@/lib/users-api";
+import { USER_ROLES, ROLE_LABELS } from "@/types/user";
+import type { CreateUserInput, User } from "@/types/user";
+import type { UserRole } from "@/types/auth";
 
 interface CreateUserDialogProps {
   open: boolean;
@@ -56,15 +56,15 @@ export function CreateUserDialog({
     formState: { errors },
   } = useForm<FormData>({
     defaultValues: {
-      email: '',
-      firstName: '',
-      lastName: '',
-      role: 'EMPLOYEE',
-      password: '',
+      email: "",
+      firstName: "",
+      lastName: "",
+      role: "EMPLOYEE",
+      password: "",
     },
   });
 
-  const selectedRole = watch('role');
+  const selectedRole = watch("role");
 
   const onSubmit = async (data: FormData) => {
     setIsSubmitting(true);
@@ -81,19 +81,19 @@ export function CreateUserDialog({
       }
 
       const user = await usersApi.create(input);
-      toast.success('User created successfully', {
+      toast.success("User created successfully", {
         description: data.password
-          ? 'The user can now log in with the provided password.'
-          : 'Send an invite link to allow the user to set their password.',
+          ? "The user can now log in with the provided password."
+          : "Send an invite link to allow the user to set their password.",
       });
       reset();
       onSuccess(user);
       onOpenChange(false);
     } catch (error: unknown) {
-      console.error('Failed to create user:', error);
+      console.error("Failed to create user:", error);
       const message =
-        error instanceof Error ? error.message : 'Failed to create user';
-      toast.error('Error creating user', { description: message });
+        error instanceof Error ? error.message : "Failed to create user";
+      toast.error("Error creating user", { description: message });
     } finally {
       setIsSubmitting(false);
     }
@@ -121,15 +121,17 @@ export function CreateUserDialog({
               <Label htmlFor="firstName">First Name</Label>
               <Input
                 id="firstName"
-                {...register('firstName', {
-                  required: 'First name is required',
-                  minLength: { value: 1, message: 'First name is required' },
-                  maxLength: { value: 100, message: 'Max 100 characters' },
+                {...register("firstName", {
+                  required: "First name is required",
+                  minLength: { value: 1, message: "First name is required" },
+                  maxLength: { value: 100, message: "Max 100 characters" },
                 })}
                 placeholder="John"
               />
               {errors.firstName && (
-                <p className="text-sm text-red-600">{errors.firstName.message}</p>
+                <p className="text-sm text-destructive">
+                  {errors.firstName.message}
+                </p>
               )}
             </div>
 
@@ -137,15 +139,17 @@ export function CreateUserDialog({
               <Label htmlFor="lastName">Last Name</Label>
               <Input
                 id="lastName"
-                {...register('lastName', {
-                  required: 'Last name is required',
-                  minLength: { value: 1, message: 'Last name is required' },
-                  maxLength: { value: 100, message: 'Max 100 characters' },
+                {...register("lastName", {
+                  required: "Last name is required",
+                  minLength: { value: 1, message: "Last name is required" },
+                  maxLength: { value: 100, message: "Max 100 characters" },
                 })}
                 placeholder="Doe"
               />
               {errors.lastName && (
-                <p className="text-sm text-red-600">{errors.lastName.message}</p>
+                <p className="text-sm text-destructive">
+                  {errors.lastName.message}
+                </p>
               )}
             </div>
           </div>
@@ -155,17 +159,17 @@ export function CreateUserDialog({
             <Input
               id="email"
               type="email"
-              {...register('email', {
-                required: 'Email is required',
+              {...register("email", {
+                required: "Email is required",
                 pattern: {
                   value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                  message: 'Invalid email address',
+                  message: "Invalid email address",
                 },
               })}
               placeholder="john.doe@example.com"
             />
             {errors.email && (
-              <p className="text-sm text-red-600">{errors.email.message}</p>
+              <p className="text-sm text-destructive">{errors.email.message}</p>
             )}
           </div>
 
@@ -173,7 +177,7 @@ export function CreateUserDialog({
             <Label htmlFor="role">Role</Label>
             <Select
               value={selectedRole}
-              onValueChange={(value) => setValue('role', value as UserRole)}
+              onValueChange={(value) => setValue("role", value as UserRole)}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select a role" />
@@ -193,16 +197,18 @@ export function CreateUserDialog({
             <Input
               id="password"
               type="password"
-              {...register('password', {
-                minLength: { value: 8, message: 'Minimum 8 characters' },
-                maxLength: { value: 128, message: 'Max 128 characters' },
+              {...register("password", {
+                minLength: { value: 8, message: "Minimum 8 characters" },
+                maxLength: { value: 128, message: "Max 128 characters" },
               })}
               placeholder="Leave blank to send invite link"
             />
             {errors.password && (
-              <p className="text-sm text-red-600">{errors.password.message}</p>
+              <p className="text-sm text-destructive">
+                {errors.password.message}
+              </p>
             )}
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-muted-foreground">
               If left blank, the user will need to set their password via an
               invite link.
             </p>
@@ -213,7 +219,7 @@ export function CreateUserDialog({
               Cancel
             </Button>
             <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Creating...' : 'Create User'}
+              {isSubmitting ? "Creating..." : "Create User"}
             </Button>
           </DialogFooter>
         </form>

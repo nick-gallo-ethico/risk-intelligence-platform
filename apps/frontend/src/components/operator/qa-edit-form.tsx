@@ -36,13 +36,15 @@ import {
 } from 'lucide-react';
 
 /**
- * Severity options.
+ * Severity options - using centralized theme-colors utility.
  */
+import { getSeverityColor } from '@/lib/theme-colors';
+
 const SEVERITY_OPTIONS = [
-  { value: 'CRITICAL', label: 'Critical', color: 'bg-red-100 text-red-800' },
-  { value: 'HIGH', label: 'High', color: 'bg-orange-100 text-orange-800' },
-  { value: 'MEDIUM', label: 'Medium', color: 'bg-yellow-100 text-yellow-800' },
-  { value: 'LOW', label: 'Low', color: 'bg-green-100 text-green-800' },
+  { value: 'CRITICAL', label: 'Critical' },
+  { value: 'HIGH', label: 'High' },
+  { value: 'MEDIUM', label: 'Medium' },
+  { value: 'LOW', label: 'Low' },
 ];
 
 /**
@@ -164,7 +166,7 @@ export function QaEditForm({
           placeholder="Enter or update the summary..."
           rows={4}
           className={cn(
-            changes.includes('summary') && 'border-blue-400 bg-blue-50/30'
+            changes.includes('summary') && 'border-blue-400 bg-blue-50/30 dark:border-blue-600 dark:bg-blue-900/20'
           )}
         />
         {item.summary && changes.includes('summary') && (
@@ -200,7 +202,7 @@ export function QaEditForm({
           <SelectTrigger
             id="edit-category"
             className={cn(
-              changes.includes('category') && 'border-blue-400 bg-blue-50/30'
+              changes.includes('category') && 'border-blue-400 bg-blue-50/30 dark:border-blue-600 dark:bg-blue-900/20'
             )}
           >
             <SelectValue placeholder="Select category" />
@@ -253,7 +255,7 @@ export function QaEditForm({
           <SelectTrigger
             id="edit-severity"
             className={cn(
-              changes.includes('severity') && 'border-blue-400 bg-blue-50/30'
+              changes.includes('severity') && 'border-blue-400 bg-blue-50/30 dark:border-blue-600 dark:bg-blue-900/20'
             )}
           >
             <SelectValue placeholder="Select severity" />
@@ -262,7 +264,7 @@ export function QaEditForm({
             {SEVERITY_OPTIONS.map((opt) => (
               <SelectItem key={opt.value} value={opt.value}>
                 <span className="flex items-center gap-2">
-                  <span className={cn('px-2 py-0.5 rounded text-xs', opt.color)}>
+                  <span className={cn('px-2 py-0.5 rounded text-xs', getSeverityColor(opt.value))}>
                     {opt.label}
                   </span>
                 </span>
@@ -274,17 +276,13 @@ export function QaEditForm({
           <div className="flex items-center gap-2 text-sm">
             <span className="text-muted-foreground">Changed from:</span>
             <Badge
-              className={cn(
-                SEVERITY_OPTIONS.find((o) => o.value === item.severity)?.color
-              )}
+              className={getSeverityColor(item.severity)}
             >
               {item.severity}
             </Badge>
             <span className="text-muted-foreground">to</span>
             <Badge
-              className={cn(
-                SEVERITY_OPTIONS.find((o) => o.value === severity)?.color
-              )}
+              className={severity ? getSeverityColor(severity) : ''}
             >
               {severity || 'None'}
             </Badge>
@@ -321,11 +319,11 @@ export function QaEditForm({
 
       {/* Changes Summary */}
       {hasChanges && (
-        <Card className="p-4 bg-blue-50 border-blue-200">
-          <p className="text-sm font-medium text-blue-800">
+        <Card className="p-4 bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800">
+          <p className="text-sm font-medium text-blue-800 dark:text-blue-300">
             {changes.length} field{changes.length > 1 ? 's' : ''} will be updated:
           </p>
-          <ul className="text-sm text-blue-700 mt-1 list-disc list-inside">
+          <ul className="text-sm text-blue-700 dark:text-blue-400 mt-1 list-disc list-inside">
             {changes.includes('summary') && <li>Summary</li>}
             {changes.includes('category') && <li>Category</li>}
             {changes.includes('severity') && <li>Severity</li>}

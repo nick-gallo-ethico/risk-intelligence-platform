@@ -1,24 +1,24 @@
-'use client';
+"use client";
 
-import { Search } from 'lucide-react';
-import { Input } from '@/components/ui/input';
+import { Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { USER_ROLES, ROLE_LABELS } from '@/types/user';
-import type { UserRole } from '@/types/auth';
+} from "@/components/ui/select";
+import { USER_ROLES, ROLE_LABELS } from "@/types/user";
+import type { UserRole } from "@/types/auth";
 
 interface UserFiltersProps {
   search: string;
-  role: UserRole | '';
-  isActive: boolean | '';
+  role: UserRole | "";
+  isActive: boolean | "";
   onSearchChange: (value: string) => void;
-  onRoleChange: (value: UserRole | '') => void;
-  onStatusChange: (value: boolean | '') => void;
+  onRoleChange: (value: UserRole | "") => void;
+  onStatusChange: (value: boolean | "") => void;
 }
 
 export function UserFilters({
@@ -33,7 +33,7 @@ export function UserFilters({
     <div className="flex flex-col sm:flex-row gap-4">
       {/* Search */}
       <div className="relative flex-1">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
           placeholder="Search by name or email..."
           value={search}
@@ -45,7 +45,9 @@ export function UserFilters({
       {/* Role filter */}
       <Select
         value={role}
-        onValueChange={(value) => onRoleChange(value === 'ALL' ? '' : (value as UserRole))}
+        onValueChange={(value) =>
+          onRoleChange(value === "ALL" ? "" : (value as UserRole))
+        }
       >
         <SelectTrigger className="w-full sm:w-[200px]">
           <SelectValue placeholder="All Roles" />
@@ -62,12 +64,12 @@ export function UserFilters({
 
       {/* Status filter */}
       <Select
-        value={isActive === '' ? 'ALL' : isActive ? 'active' : 'inactive'}
+        value={isActive === "" ? "ALL" : isActive ? "active" : "inactive"}
         onValueChange={(value) => {
-          if (value === 'ALL') {
-            onStatusChange('');
+          if (value === "ALL") {
+            onStatusChange("");
           } else {
-            onStatusChange(value === 'active');
+            onStatusChange(value === "active");
           }
         }}
       >

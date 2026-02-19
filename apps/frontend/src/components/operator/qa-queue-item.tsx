@@ -30,14 +30,9 @@ import {
 } from 'lucide-react';
 
 /**
- * Severity colors mapping.
+ * Severity colors mapping - using centralized theme-colors utility.
  */
-const SEVERITY_COLORS: Record<string, string> = {
-  CRITICAL: 'bg-red-100 text-red-800 border-red-200',
-  HIGH: 'bg-orange-100 text-orange-800 border-orange-200',
-  MEDIUM: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-  LOW: 'bg-green-100 text-green-800 border-green-200',
-};
+import { getSeverityColor } from '@/lib/theme-colors';
 
 /**
  * Flag display configuration.
@@ -181,7 +176,7 @@ export function QaQueueItem({
             <Badge
               className={cn(
                 'text-xs',
-                SEVERITY_COLORS[item.severityScore] || 'bg-gray-100 text-gray-800'
+                getSeverityColor(item.severityScore)
               )}
             >
               {item.severityScore}
