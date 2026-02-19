@@ -57,7 +57,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 20: Settings Overhaul (HubSpot-Style)** - Preferences, account management, data management, properties, permission sets
 - [x] **Phase 21: Project Management (Monday.com-Style)** - Kanban boards, task views, timelines, project tracking
 - [x] **Phase 22: Dark Mode & Theme** - Dark mode toggle, consistent nav theming, theme system (v1.2 continued)
-- [ ] **Phase 23: Help & Support System** - Knowledge base, in-platform ticket filing, real-time support (v1.2 continued)
+- [x] **Phase 23: Help & Support System** - Knowledge base, in-platform ticket filing, real-time support (v1.2 continued)
 - [x] **Phase 24: Policy Content & Seed Data** - Populate policies with properly formatted text, improve case seed data
 - [x] **Phase 25: Case & Investigation Page Redesign** - HubSpot three-column record pattern for case and investigation detail pages
 - [x] **Phase 25.1: Case Detail Page Vision Revision** - Rebuild case detail page to match revised HubSpot-style spec with pipeline bar, collapsible property cards, Activities tab pattern, and config-driven architecture (v1.2 continued)
@@ -921,11 +921,11 @@ Plans:
 
 Plans:
 
-- [ ] 23-01-PLAN.md (Wave 1) — Backend: Prisma models (KnowledgeBaseArticle, SupportTicket), NestJS help module with controllers, services, DTOs, event listener
-- [ ] 23-02-PLAN.md (Wave 2) — Frontend: Help API service, sidebar footer link, top nav help dropdown
-- [ ] 23-03-PLAN.md (Wave 2) — Frontend: Help center landing page, category grid, article search, article detail page
-- [ ] 23-04-PLAN.md (Wave 3) — Frontend: Ticket submission form, my tickets list, email confirmation template
-- [ ] 23-05-PLAN.md (Wave 4) — Seed data: 15+ knowledge base articles, contextual help link component, verification checkpoint
+- [x] 23-01-PLAN.md (Wave 1) — Backend: Prisma models (KnowledgeBaseArticle, SupportTicket), NestJS help module with controllers, services, DTOs, event listener
+- [x] 23-02-PLAN.md (Wave 2) — Frontend: Help API service, sidebar footer link, top nav help dropdown
+- [x] 23-03-PLAN.md (Wave 2) — Frontend: Help center landing page, category grid, article search, article detail page
+- [x] 23-04-PLAN.md (Wave 3) — Frontend: Ticket submission form, my tickets list, email confirmation template
+- [x] 23-05-PLAN.md (Wave 4) — Seed data: 15+ knowledge base articles, contextual help link component, verification checkpoint
 
 ### Phase 24: Policy Content & Seed Data
 
@@ -1179,7 +1179,7 @@ Plans:
 | 20. Settings Overhaul (HubSpot)         | v1.0      | 6/6            | Complete    | 2026-02-12 |
 | 21. Project Management (Monday.com)     | v1.0      | 10/10          | Complete    | 2026-02-12 |
 | 22. Dark Mode & Theme                   | v1.2      | 0/15           | Not started | -          |
-| 23. Help & Support System               | v1.2      | 0/5            | Not started | -          |
+| 23. Help & Support System               | v1.2      | 5/5            | Complete    | 2026-02-13 |
 | 24. Policy Content & Seed Data          | v1.0      | 3/3            | Complete    | 2026-02-12 |
 | 25. Case & Investigation Redesign       | v1.0      | 6/6            | Complete    | 2026-02-13 |
 | 25.1. Case Detail Vision Revision       | v1.2      | 0/10           | Not started | -          |

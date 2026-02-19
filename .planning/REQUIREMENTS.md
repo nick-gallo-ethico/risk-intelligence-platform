@@ -97,13 +97,13 @@ Dual-track milestone: (1) Remediate all findings from pre-Series A code review a
 - [x] **THEME-06**: Charts, tables, modals, and forms respect active theme
 - [x] **THEME-07**: Smooth theme transition with no flash of wrong theme on page load
 
-### Help & Support System (Phase 23 — 0/5 plans)
+### Help & Support System (Phase 23 — 5/5 plans)
 
-- [ ] **HELP-01**: Help & Support accessible from sidebar and user menu
-- [ ] **HELP-02**: Searchable knowledge base with articles organized by category
-- [ ] **HELP-03**: Users can file support tickets with subject, description, priority, screenshots
-- [ ] **HELP-04**: Users can view their open tickets and status
-- [ ] **HELP-05**: Contextual help links from relevant pages to related articles
+- [x] **HELP-01**: Help & Support accessible from sidebar and user menu
+- [x] **HELP-02**: Searchable knowledge base with articles organized by category
+- [x] **HELP-03**: Users can file support tickets with subject, description, priority, screenshots
+- [x] **HELP-04**: Users can view their open tickets and status
+- [x] **HELP-05**: Contextual help links from relevant pages to related articles
 
 ### Case Detail Vision Revision (Phase 25.1 — 10/10 plans)
 
@@ -203,11 +203,11 @@ Dual-track milestone: (1) Remediate all findings from pre-Series A code review a
 | THEME-05    | Phase 22   | Complete |
 | THEME-06    | Phase 22   | Complete |
 | THEME-07    | Phase 22   | Complete |
-| HELP-01     | Phase 23   | Pending  |
-| HELP-02     | Phase 23   | Pending  |
-| HELP-03     | Phase 23   | Pending  |
-| HELP-04     | Phase 23   | Pending  |
-| HELP-05     | Phase 23   | Pending  |
+| HELP-01     | Phase 23   | Complete |
+| HELP-02     | Phase 23   | Complete |
+| HELP-03     | Phase 23   | Complete |
+| HELP-04     | Phase 23   | Complete |
+| HELP-05     | Phase 23   | Complete |
 | CASE-01     | Phase 25.1 | Complete |
 | CASE-02     | Phase 25.1 | Complete |
 | CASE-03     | Phase 25.1 | Complete |
