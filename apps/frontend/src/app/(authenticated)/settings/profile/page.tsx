@@ -13,8 +13,13 @@ import {
   Loader2,
   Eye,
   EyeOff,
+  Palette,
+  Sun,
+  Moon,
+  Monitor,
 } from "lucide-react";
 
+import { useTheme } from "next-themes";
 import { useAuth } from "@/contexts/auth-context";
 import { usersApi } from "@/services/users";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -47,6 +52,7 @@ import { toast } from "sonner";
  * - Profile: Display name, email, phone, avatar, timezone, language
  * - Security: Change password, enable/disable MFA, active sessions
  * - Task Defaults: Default task reminders, preferred assignment mode
+ * - Appearance: Theme selection (Light, Dark, System)
  */
 export default function ProfilePage() {
   const searchParams = useSearchParams();
@@ -93,7 +99,7 @@ export default function ProfilePage() {
 
       {/* Tabbed Interface */}
       <Tabs defaultValue={defaultTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3 lg:w-auto lg:inline-flex">
+        <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:inline-flex">
           <TabsTrigger value="profile" className="flex items-center gap-2">
             <User className="h-4 w-4" />
             Profile
@@ -105,6 +111,10 @@ export default function ProfilePage() {
           <TabsTrigger value="tasks" className="flex items-center gap-2">
             <ListChecks className="h-4 w-4" />
             Task Defaults
+          </TabsTrigger>
+          <TabsTrigger value="appearance" className="flex items-center gap-2">
+            <Palette className="h-4 w-4" />
+            Appearance
           </TabsTrigger>
         </TabsList>
 
@@ -118,6 +128,10 @@ export default function ProfilePage() {
 
         <TabsContent value="tasks">
           <TaskDefaultsTab userId={user.id} />
+        </TabsContent>
+
+        <TabsContent value="appearance">
+          <AppearanceTab />
         </TabsContent>
       </Tabs>
     </div>
@@ -598,6 +612,74 @@ function TaskDefaultsTab({ userId }: TaskDefaultsTabProps) {
             Save Preferences
           </Button>
         </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+/**
+ * Appearance Tab - Theme selection (Light, Dark, System)
+ */
+function AppearanceTab() {
+  const { theme, setTheme } = useTheme();
+
+  const themeOptions = [
+    {
+      value: "light",
+      label: "Light",
+      description: "Use light theme",
+      icon: Sun,
+    },
+    {
+      value: "dark",
+      label: "Dark",
+      description: "Use dark theme",
+      icon: Moon,
+    },
+    {
+      value: "system",
+      label: "System",
+      description: "Follow your operating system setting",
+      icon: Monitor,
+    },
+  ];
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Appearance</CardTitle>
+        <CardDescription>Choose how the platform looks for you</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="grid grid-cols-3 gap-3">
+          {themeOptions.map((option) => (
+            <button
+              key={option.value}
+              onClick={() => setTheme(option.value)}
+              className={`flex flex-col items-center gap-2 p-4 rounded-lg border-2 transition-colors ${
+                theme === option.value
+                  ? "border-primary bg-primary/5"
+                  : "border-border hover:border-primary/50"
+              }`}
+            >
+              <option.icon
+                className={`h-6 w-6 ${
+                  theme === option.value
+                    ? "text-primary"
+                    : "text-muted-foreground"
+                }`}
+              />
+              <span className="text-sm font-medium">{option.label}</span>
+              <span className="text-xs text-muted-foreground text-center">
+                {option.description}
+              </span>
+            </button>
+          ))}
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Your theme preference is saved automatically and persists across
+          sessions.
+        </p>
       </CardContent>
     </Card>
   );

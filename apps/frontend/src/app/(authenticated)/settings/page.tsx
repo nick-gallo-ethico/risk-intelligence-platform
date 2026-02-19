@@ -5,6 +5,7 @@ import {
   User,
   Bell,
   ListChecks,
+  Palette,
   Settings2,
   Users,
   ClipboardList,
@@ -61,6 +62,12 @@ export default function SettingsPage() {
           description:
             "Default reminders, assignment preferences, and work settings",
           href: "/settings/profile?tab=tasks",
+        },
+        {
+          icon: Palette,
+          title: "Appearance",
+          description: "Theme preferences — choose light, dark, or system mode",
+          href: "/settings/profile?tab=appearance",
         },
       ],
     },
