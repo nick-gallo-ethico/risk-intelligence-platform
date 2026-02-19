@@ -63,8 +63,8 @@ export function InvestigationOverview({ investigation }: InvestigationOverviewPr
     <div className="space-y-6 py-4">
       {/* Assignment section */}
       <section>
-        <h3 className="text-sm font-semibold text-gray-900 mb-3">Assignment</h3>
-        <div className="bg-gray-50 rounded-lg p-4 space-y-4">
+        <h3 className="text-sm font-semibold text-foreground mb-3">Assignment</h3>
+        <div className="bg-muted/50 rounded-lg p-4 space-y-4">
           {/* Primary Investigator */}
           <div>
             <div className="text-xs text-muted-foreground mb-2 flex items-center gap-1">
@@ -129,7 +129,7 @@ export function InvestigationOverview({ investigation }: InvestigationOverviewPr
 
       {/* Properties section */}
       <section>
-        <h3 className="text-sm font-semibold text-gray-900 mb-3">Properties</h3>
+        <h3 className="text-sm font-semibold text-foreground mb-3">Properties</h3>
         <div className="border rounded-lg">
           <PropertyRow icon={Tag} label="Type">
             <Badge variant="outline" className="font-normal">
@@ -157,7 +157,7 @@ export function InvestigationOverview({ investigation }: InvestigationOverviewPr
 
           <PropertyRow icon={FileText} label="Status Rationale">
             {investigation.statusRationale ? (
-              <p className="text-gray-700">{investigation.statusRationale}</p>
+              <p className="text-foreground">{investigation.statusRationale}</p>
             ) : (
               <span className="text-muted-foreground italic">No rationale provided</span>
             )}
@@ -167,7 +167,7 @@ export function InvestigationOverview({ investigation }: InvestigationOverviewPr
 
       {/* Timeline section */}
       <section>
-        <h3 className="text-sm font-semibold text-gray-900 mb-3">Timeline</h3>
+        <h3 className="text-sm font-semibold text-foreground mb-3">Timeline</h3>
         <div className="border rounded-lg">
           <PropertyRow icon={Calendar} label="Created">
             {formatDate(investigation.createdAt)}

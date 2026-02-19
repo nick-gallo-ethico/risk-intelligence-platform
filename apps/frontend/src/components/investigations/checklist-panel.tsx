@@ -156,19 +156,19 @@ function ChecklistSection({
 
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-      <div className="border rounded-lg bg-white">
+      <div className="border rounded-lg bg-card">
         {/* Section header */}
         <CollapsibleTrigger asChild>
-          <button className="w-full flex items-center justify-between p-4 hover:bg-gray-50 transition-colors">
+          <button className="w-full flex items-center justify-between p-4 hover:bg-muted/50 transition-colors">
             <div className="flex items-center gap-3">
               {isOpen ? (
-                <ChevronDown className="h-5 w-5 text-gray-500" />
+                <ChevronDown className="h-5 w-5 text-muted-foreground" />
               ) : (
-                <ChevronRight className="h-5 w-5 text-gray-500" />
+                <ChevronRight className="h-5 w-5 text-muted-foreground" />
               )}
               <div className="text-left">
-                <h3 className="font-medium text-gray-900">{section.name}</h3>
-                <p className="text-sm text-gray-500">
+                <h3 className="font-medium text-foreground">{section.name}</h3>
+                <p className="text-sm text-muted-foreground">
                   {completedItems} of {totalItems} items complete
                 </p>
               </div>
@@ -178,9 +178,9 @@ function ChecklistSection({
                 <Progress value={progressPercent} />
               </div>
               {progressPercent === 100 ? (
-                <CheckCircle2 className="h-5 w-5 text-green-500" />
+                <CheckCircle2 className="h-5 w-5 text-green-500 dark:text-green-400" />
               ) : (
-                <Circle className="h-5 w-5 text-gray-300" />
+                <Circle className="h-5 w-5 text-muted-foreground/50" />
               )}
             </div>
           </button>
@@ -221,7 +221,7 @@ function ChecklistSection({
             </div>
 
             {/* Add custom item */}
-            <div className="p-3 border-t bg-gray-50">
+            <div className="p-3 border-t bg-muted/50">
               {showAddItem ? (
                 <div className="flex items-center gap-2">
                   <Input
@@ -264,7 +264,7 @@ function ChecklistSection({
                   variant="ghost"
                   size="sm"
                   onClick={() => setShowAddItem(true)}
-                  className="text-gray-500 hover:text-gray-700"
+                  className="text-muted-foreground hover:text-foreground"
                 >
                   <Plus className="h-4 w-4 mr-1" />
                   Add custom item
@@ -303,15 +303,15 @@ export function ChecklistPanel({
       <div className="flex items-start justify-between">
         <div>
           <div className="flex items-center gap-2">
-            <FileText className="h-5 w-5 text-gray-500" />
-            <h2 className="font-semibold text-gray-900">
+            <FileText className="h-5 w-5 text-muted-foreground" />
+            <h2 className="font-semibold text-foreground">
               {progress.template.name}
             </h2>
             <Badge variant="outline" className="text-xs">
               v{progress.templateVersion}
             </Badge>
           </div>
-          <p className="text-sm text-gray-500 mt-1">
+          <p className="text-sm text-muted-foreground mt-1">
             {progress.completedItems} of {progress.totalItems} items complete
             {progress.skippedCount > 0 && ` (${progress.skippedCount} skipped)`}
             {progress.customCount > 0 && ` (${progress.customCount} custom)`}
@@ -334,7 +334,7 @@ export function ChecklistPanel({
             {onRemoveChecklist && (
               <DropdownMenuItem
                 onClick={onRemoveChecklist}
-                className="text-red-600 focus:text-red-600"
+                className="text-destructive focus:text-destructive"
               >
                 <Trash2 className="h-4 w-4 mr-2" />
                 Remove checklist
@@ -347,11 +347,11 @@ export function ChecklistPanel({
       {/* Overall progress bar */}
       <div className="space-y-2">
         <div className="flex items-center justify-between text-sm">
-          <span className="text-gray-500">Overall progress</span>
+          <span className="text-muted-foreground">Overall progress</span>
           <span
             className={cn(
               'font-medium',
-              isComplete ? 'text-green-600' : 'text-gray-900'
+              isComplete ? 'text-green-600 dark:text-green-400' : 'text-foreground'
             )}
           >
             {Math.round(progressPercent)}%
@@ -359,7 +359,7 @@ export function ChecklistPanel({
         </div>
         <Progress
           value={progressPercent}
-          className={cn('h-2', isComplete && '[&>div]:bg-green-500')}
+          className={cn('h-2', isComplete && '[&>div]:bg-green-500 dark:[&>div]:bg-green-600')}
         />
       </div>
 
@@ -384,10 +384,10 @@ export function ChecklistPanel({
 
       {/* Skipped items summary */}
       {progress.skippedItems.length > 0 && (
-        <div className="border rounded-lg bg-gray-50 p-4">
+        <div className="border rounded-lg bg-muted/50 p-4">
           <button
             onClick={() => setShowSkippedItems(!showSkippedItems)}
-            className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900"
+            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground"
           >
             {showSkippedItems ? (
               <ChevronDown className="h-4 w-4" />
@@ -416,15 +416,15 @@ export function ChecklistPanel({
                 return (
                   <div
                     key={skipped.itemId}
-                    className="p-2 bg-white rounded border text-sm"
+                    className="p-2 bg-card rounded border text-sm"
                   >
-                    <p className="font-medium text-gray-600 line-through">
+                    <p className="font-medium text-muted-foreground line-through">
                       {itemText}
                     </p>
-                    <p className="text-gray-500 mt-1">
+                    <p className="text-muted-foreground mt-1">
                       <span className="font-medium">Reason:</span> {skipped.reason}
                     </p>
-                    <p className="text-xs text-gray-400 mt-1">
+                    <p className="text-xs text-muted-foreground/70 mt-1">
                       Skipped by {skipped.skippedByName} on{' '}
                       {new Date(skipped.skippedAt).toLocaleDateString()}
                     </p>
@@ -438,7 +438,7 @@ export function ChecklistPanel({
 
       {/* Completion timestamp */}
       {progress.completedAt && (
-        <p className="text-sm text-green-600 flex items-center gap-2">
+        <p className="text-sm text-green-600 dark:text-green-400 flex items-center gap-2">
           <CheckCircle2 className="h-4 w-4" />
           Checklist completed on{' '}
           {new Date(progress.completedAt).toLocaleDateString()}

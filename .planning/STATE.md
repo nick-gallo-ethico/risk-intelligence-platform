@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-15)
 ## Current Position
 
 Phase: 22 of v1.2 (Dark Mode & Theme)
-Plan: 5 of 15 complete (22-01, 22-02, 22-03, 22-04, 22-05)
+Plan: 6 of 15 complete (22-01, 22-02, 22-03, 22-04, 22-05, 22-08)
 Status: In progress
-Last activity: 2026-02-19 - Completed 22-05-PLAN.md (Dashboard & Case High-Traffic Areas Dark Mode)
+Last activity: 2026-02-19 - Completed 22-08-PLAN.md (Policies, Analytics, Gantt Chart, and Rich Text Dark Mode)
 
-Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10 plans), Phase 34 COMPLETE (5/5 plans), Phase 35 COMPLETE (6/6 plans), Phase 36 COMPLETE (13/13 plans), Phase 25.1 COMPLETE (10/10 plans), Phase 22 in progress (5/15 plans).
+Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10 plans), Phase 34 COMPLETE (5/5 plans), Phase 35 COMPLETE (6/6 plans), Phase 36 COMPLETE (13/13 plans), Phase 25.1 COMPLETE (10/10 plans), Phase 22 in progress (6/15 plans).
 
 ## Shipped Milestones
 
@@ -178,6 +178,9 @@ Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10
 - 22-05: priorityColors from theme-colors.ts for all priority badges
 - 22-05: getStatusColor/getSeverityColor helpers eliminate per-component color mappings
 - 22-05: Pattern: hover:bg-muted/50 for interactive list items in dark mode
+- 22-08: Color pair functions for Gantt chart inline styles (getStatusColorPair, getStatusBgColorPair)
+- 22-08: Marked original single-color gantt functions as @deprecated for backward compatibility
+- 22-08: rgba() for dark mode Gantt backgrounds for consistent 20% opacity
 
 ### Blockers
 
@@ -186,6 +189,6 @@ None currently.
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: Completed 22-05-PLAN.md (Dashboard & Case High-Traffic Areas Dark Mode)
+Stopped at: Completed 22-08-PLAN.md (Policies, Analytics, Gantt Chart, and Rich Text Dark Mode)
 Resume file: None
-Next action: Continue Phase 22 with 22-06-PLAN.md (Forms & Settings)
+Next action: Continue Phase 22 with remaining plans (22-06, 22-07, 22-09, etc.)

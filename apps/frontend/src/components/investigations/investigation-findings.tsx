@@ -10,15 +10,15 @@ interface InvestigationFindingsProps {
 }
 
 /**
- * Outcome badge color mapping
+ * Outcome badge color mapping with dark mode support
  */
 const OUTCOME_COLORS: Record<InvestigationOutcome, { bg: string; text: string }> = {
-  SUBSTANTIATED: { bg: 'bg-red-100', text: 'text-red-700' },
-  UNSUBSTANTIATED: { bg: 'bg-green-100', text: 'text-green-700' },
-  INCONCLUSIVE: { bg: 'bg-yellow-100', text: 'text-yellow-700' },
-  POLICY_VIOLATION: { bg: 'bg-red-100', text: 'text-red-700' },
-  NO_VIOLATION: { bg: 'bg-green-100', text: 'text-green-700' },
-  INSUFFICIENT_EVIDENCE: { bg: 'bg-gray-100', text: 'text-gray-700' },
+  SUBSTANTIATED: { bg: 'bg-red-100 dark:bg-red-900/30', text: 'text-red-700 dark:text-red-300' },
+  UNSUBSTANTIATED: { bg: 'bg-green-100 dark:bg-green-900/30', text: 'text-green-700 dark:text-green-300' },
+  INCONCLUSIVE: { bg: 'bg-yellow-100 dark:bg-yellow-900/30', text: 'text-yellow-700 dark:text-yellow-300' },
+  POLICY_VIOLATION: { bg: 'bg-red-100 dark:bg-red-900/30', text: 'text-red-700 dark:text-red-300' },
+  NO_VIOLATION: { bg: 'bg-green-100 dark:bg-green-900/30', text: 'text-green-700 dark:text-green-300' },
+  INSUFFICIENT_EVIDENCE: { bg: 'bg-gray-100 dark:bg-gray-800', text: 'text-gray-700 dark:text-gray-300' },
 };
 
 /**
@@ -51,7 +51,7 @@ function FindingsSection({
     <div className="border rounded-lg p-4">
       <div className="flex items-center gap-2 mb-3">
         <Icon className="h-4 w-4 text-muted-foreground" />
-        <h4 className="text-sm font-medium text-gray-900">{title}</h4>
+        <h4 className="text-sm font-medium text-foreground">{title}</h4>
       </div>
       <div className={cn('text-sm', isEmpty && 'text-muted-foreground italic')}>
         {children}
@@ -90,7 +90,7 @@ export function InvestigationFindings({ investigation }: InvestigationFindingsPr
     <div className="space-y-4 py-4">
       {/* Outcome */}
       {investigation.outcome && (
-        <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+        <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
           <div>
             <div className="text-xs text-muted-foreground mb-1">Outcome</div>
             <Badge

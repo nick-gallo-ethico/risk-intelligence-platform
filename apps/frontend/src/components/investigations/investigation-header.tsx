@@ -39,28 +39,28 @@ const PIPELINE_STAGES = [
   "Closed",
 ];
 
-// Status badge colors
+// Status badge colors with dark mode support
 const STATUS_COLORS: Record<InvestigationStatus, string> = {
-  NEW: "bg-blue-100 text-blue-800",
-  ASSIGNED: "bg-indigo-100 text-indigo-800",
-  INVESTIGATING: "bg-yellow-100 text-yellow-800",
-  PENDING_REVIEW: "bg-orange-100 text-orange-800",
-  CLOSED: "bg-gray-100 text-gray-800",
-  ON_HOLD: "bg-slate-100 text-slate-800",
+  NEW: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
+  ASSIGNED: "bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300",
+  INVESTIGATING: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300",
+  PENDING_REVIEW: "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300",
+  CLOSED: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300",
+  ON_HOLD: "bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300",
 };
 
-// Type badge colors
+// Type badge colors with dark mode support
 const TYPE_COLORS: Record<InvestigationType, string> = {
-  FULL: "bg-purple-100 text-purple-800",
-  LIMITED: "bg-blue-100 text-blue-800",
-  INQUIRY: "bg-gray-100 text-gray-800",
+  FULL: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300",
+  LIMITED: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
+  INQUIRY: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300",
 };
 
-// SLA status colors
+// SLA status colors with dark mode support
 const SLA_COLORS: Record<SlaStatus, string> = {
-  ON_TRACK: "bg-green-50 text-green-700 border-green-200",
-  WARNING: "bg-yellow-50 text-yellow-700 border-yellow-200",
-  OVERDUE: "bg-red-50 text-red-700 border-red-200",
+  ON_TRACK: "bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-300 dark:border-green-800",
+  WARNING: "bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-300 dark:border-yellow-800",
+  OVERDUE: "bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-300 dark:border-red-800",
 };
 
 /**
@@ -116,19 +116,19 @@ export function InvestigationHeader({
   return (
     <div className="space-y-4">
       {/* Breadcrumb */}
-      <nav className="flex items-center text-sm text-gray-500">
-        <Link href="/cases" className="hover:text-gray-700">
+      <nav className="flex items-center text-sm text-muted-foreground">
+        <Link href="/cases" className="hover:text-foreground">
           Cases
         </Link>
         <ChevronRight className="h-4 w-4 mx-1" />
         <Link
           href={`/cases/${investigation.caseId}`}
-          className="hover:text-gray-700"
+          className="hover:text-foreground"
         >
           {investigation.case?.referenceNumber || "Case"}
         </Link>
         <ChevronRight className="h-4 w-4 mx-1" />
-        <span className="text-gray-900 font-medium">
+        <span className="text-foreground font-medium">
           Investigation #{investigation.investigationNumber}
         </span>
       </nav>
@@ -138,7 +138,7 @@ export function InvestigationHeader({
         <div className="space-y-2">
           {/* Title + Badges */}
           <div className="flex items-center gap-3 flex-wrap">
-            <h1 className="text-2xl font-bold text-gray-900">
+            <h1 className="text-2xl font-bold text-foreground">
               Investigation #{investigation.investigationNumber}
             </h1>
             <Badge
@@ -173,7 +173,7 @@ export function InvestigationHeader({
 
           {/* Category */}
           {investigation.category && (
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-muted-foreground">
               {investigation.category.name}
             </p>
           )}
@@ -214,18 +214,18 @@ export function InvestigationHeader({
                 className={cn(
                   "w-24 h-2 rounded-full",
                   idx < currentStageIndex
-                    ? "bg-green-500"
+                    ? "bg-green-500 dark:bg-green-600"
                     : idx === currentStageIndex
                       ? investigation.status === "ON_HOLD"
-                        ? "bg-slate-400"
-                        : "bg-blue-500"
-                      : "bg-gray-200",
+                        ? "bg-slate-400 dark:bg-slate-500"
+                        : "bg-blue-500 dark:bg-blue-600"
+                      : "bg-secondary",
                 )}
               />
               {idx < PIPELINE_STAGES.length - 1 && <div className="w-1" />}
             </div>
           ))}
-          <span className="text-xs text-gray-500 ml-2">
+          <span className="text-xs text-muted-foreground ml-2">
             {investigation.status === "ON_HOLD"
               ? "On Hold"
               : PIPELINE_STAGES[currentStageIndex]}
@@ -233,7 +233,7 @@ export function InvestigationHeader({
         </div>
 
         {/* Meta info */}
-        <div className="flex items-center gap-6 text-sm text-gray-500">
+        <div className="flex items-center gap-6 text-sm text-muted-foreground">
           {/* Created date */}
           <div className="flex items-center gap-1">
             <Clock className="h-4 w-4" />
@@ -250,17 +250,17 @@ export function InvestigationHeader({
                 {assignedInvestigators.slice(0, 3).map((inv) => (
                   <Avatar
                     key={inv.id}
-                    className="h-6 w-6 border-2 border-white"
+                    className="h-6 w-6 border-2 border-background"
                   >
-                    <AvatarFallback className="text-xs bg-gray-200">
+                    <AvatarFallback className="text-xs bg-muted">
                       {inv.firstName?.[0]}
                       {inv.lastName?.[0]}
                     </AvatarFallback>
                   </Avatar>
                 ))}
                 {assignedInvestigators.length > 3 && (
-                  <Avatar className="h-6 w-6 border-2 border-white">
-                    <AvatarFallback className="text-xs bg-gray-200">
+                  <Avatar className="h-6 w-6 border-2 border-background">
+                    <AvatarFallback className="text-xs bg-muted">
                       +{assignedInvestigators.length - 3}
                     </AvatarFallback>
                   </Avatar>

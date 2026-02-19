@@ -121,31 +121,31 @@ export function ChecklistItem({
       <div
         className={cn(
           'group flex items-start gap-3 py-3 px-2 rounded-md transition-colors',
-          isPending && !isLocked && 'hover:bg-gray-50',
-          isCompleted && 'bg-green-50/50',
-          isSkipped && 'bg-gray-50/50',
+          isPending && !isLocked && 'hover:bg-muted/50',
+          isCompleted && 'bg-green-50/50 dark:bg-green-900/10',
+          isSkipped && 'bg-muted/30',
           isLocked && 'opacity-60'
         )}
       >
         {/* Status indicator / checkbox */}
         <div className="flex-shrink-0 mt-0.5">
           {isCompleted ? (
-            <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center">
+            <div className="w-5 h-5 rounded-full bg-green-500 dark:bg-green-600 flex items-center justify-center">
               <Check className="h-3 w-3 text-white" />
             </div>
           ) : isSkipped ? (
-            <div className="w-5 h-5 rounded-full bg-gray-400 flex items-center justify-center">
-              <Minus className="h-3 w-3 text-white" />
+            <div className="w-5 h-5 rounded-full bg-muted-foreground flex items-center justify-center">
+              <Minus className="h-3 w-3 text-white dark:text-gray-900" />
             </div>
           ) : isLocked ? (
-            <div className="w-5 h-5 rounded-full border-2 border-gray-300 flex items-center justify-center">
-              <Lock className="h-3 w-3 text-gray-400" />
+            <div className="w-5 h-5 rounded-full border-2 border-muted-foreground/50 flex items-center justify-center">
+              <Lock className="h-3 w-3 text-muted-foreground" />
             </div>
           ) : (
             <button
               onClick={handleCompleteClick}
               disabled={disabled}
-              className="w-5 h-5 rounded-full border-2 border-gray-300 hover:border-primary hover:bg-primary/10 transition-colors flex items-center justify-center disabled:cursor-not-allowed"
+              className="w-5 h-5 rounded-full border-2 border-muted-foreground/50 hover:border-primary hover:bg-primary/10 transition-colors flex items-center justify-center disabled:cursor-not-allowed"
             >
               <Circle className="h-3 w-3 text-transparent" />
             </button>
@@ -159,25 +159,25 @@ export function ChecklistItem({
             <span
               className={cn(
                 'text-sm',
-                isCompleted && 'text-gray-600',
-                isSkipped && 'text-gray-500 line-through'
+                isCompleted && 'text-muted-foreground',
+                isSkipped && 'text-muted-foreground line-through'
               )}
             >
               {item.text}
             </span>
             {isRequired && (
-              <Badge variant="outline" className="text-xs px-1.5 py-0 h-5 bg-red-50 text-red-700 border-red-200">
+              <Badge variant="outline" className="text-xs px-1.5 py-0 h-5 bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-300 dark:border-red-800">
                 Required
               </Badge>
             )}
             {needsEvidence && (
-              <Badge variant="outline" className="text-xs px-1.5 py-0 h-5 bg-blue-50 text-blue-700 border-blue-200">
+              <Badge variant="outline" className="text-xs px-1.5 py-0 h-5 bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-300 dark:border-blue-800">
                 <Paperclip className="h-3 w-3 mr-0.5" />
                 Evidence
               </Badge>
             )}
             {isCustom && (
-              <Badge variant="outline" className="text-xs px-1.5 py-0 h-5 bg-purple-50 text-purple-700 border-purple-200">
+              <Badge variant="outline" className="text-xs px-1.5 py-0 h-5 bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/20 dark:text-purple-300 dark:border-purple-800">
                 Custom
               </Badge>
             )}
@@ -185,7 +185,7 @@ export function ChecklistItem({
 
           {/* Locked message */}
           {isLocked && lockedByDependencies.length > 0 && (
-            <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+            <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
               <AlertCircle className="h-3 w-3" />
               Complete prerequisite items first
             </p>
@@ -193,13 +193,13 @@ export function ChecklistItem({
 
           {/* Completion info */}
           {isCompleted && state && (
-            <div className="mt-1.5 text-xs text-gray-500">
+            <div className="mt-1.5 text-xs text-muted-foreground">
               <span>Completed by {state.completedByName}</span>
               {state.completedAt && (
                 <span> on {new Date(state.completedAt).toLocaleDateString()}</span>
               )}
               {state.completionNotes && (
-                <p className="mt-1 text-gray-600 italic">&ldquo;{state.completionNotes}&rdquo;</p>
+                <p className="mt-1 text-muted-foreground italic">&ldquo;{state.completionNotes}&rdquo;</p>
               )}
               {state.attachmentIds && state.attachmentIds.length > 0 && (
                 <div className="flex items-center gap-1 mt-1">
@@ -212,7 +212,7 @@ export function ChecklistItem({
 
           {/* Skipped info */}
           {isSkipped && (
-            <p className="text-xs text-gray-500 mt-1">
+            <p className="text-xs text-muted-foreground mt-1">
               Skipped - reason will be shown in progress record
             </p>
           )}
@@ -234,10 +234,10 @@ export function ChecklistItem({
 
           {/* Expanded guidance */}
           {expanded && hasGuidance && (
-            <div className="mt-2 p-3 bg-blue-50 rounded-md border border-blue-100">
+            <div className="mt-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-md border border-blue-100 dark:border-blue-800">
               <div className="flex items-start gap-2">
-                <FileText className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
-                <p className="text-sm text-blue-800">{item.guidance}</p>
+                <FileText className="h-4 w-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                <p className="text-sm text-blue-800 dark:text-blue-200">{item.guidance}</p>
               </div>
             </div>
           )}
@@ -263,7 +263,7 @@ export function ChecklistItem({
                   size="sm"
                   onClick={() => setShowSkipDialog(true)}
                   disabled={disabled}
-                  className="h-7 px-2 text-xs text-gray-500 hover:text-gray-700"
+                  className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground"
                 >
                   <Minus className="h-3 w-3 mr-1" />
                   Skip
@@ -277,7 +277,7 @@ export function ChecklistItem({
               size="sm"
               onClick={handleUncomplete}
               disabled={disabled}
-              className="h-7 px-2 text-xs text-gray-500 hover:text-gray-700"
+              className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground"
             >
               Undo
             </Button>
@@ -298,13 +298,13 @@ export function ChecklistItem({
           </DialogHeader>
 
           <div className="space-y-4">
-            <div className="p-3 bg-gray-50 rounded-md">
+            <div className="p-3 bg-muted/50 rounded-md">
               <p className="text-sm font-medium">{item.text}</p>
             </div>
 
             <div>
               <label className="text-sm font-medium block mb-1.5">
-                Notes {needsEvidence && <span className="text-red-500">*</span>}
+                Notes {needsEvidence && <span className="text-destructive">*</span>}
               </label>
               <Textarea
                 value={completionNotes}
@@ -316,7 +316,7 @@ export function ChecklistItem({
 
             {/* TODO: Add attachment upload component */}
             {needsEvidence && (
-              <div className="text-sm text-gray-500 flex items-center gap-2">
+              <div className="text-sm text-muted-foreground flex items-center gap-2">
                 <Paperclip className="h-4 w-4" />
                 Attachment upload coming soon
               </div>
@@ -352,13 +352,13 @@ export function ChecklistItem({
           </DialogHeader>
 
           <div className="space-y-4">
-            <div className="p-3 bg-gray-50 rounded-md">
+            <div className="p-3 bg-muted/50 rounded-md">
               <p className="text-sm font-medium">{item.text}</p>
             </div>
 
             <div>
               <label className="text-sm font-medium block mb-1.5">
-                Reason for skipping <span className="text-red-500">*</span>
+                Reason for skipping <span className="text-destructive">*</span>
               </label>
               <Textarea
                 value={skipReason}

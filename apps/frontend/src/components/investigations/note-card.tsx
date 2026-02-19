@@ -13,14 +13,14 @@ interface NoteCardProps {
 }
 
 /**
- * Note type badge colors
+ * Note type badge colors with dark mode support
  */
 const NOTE_TYPE_COLORS: Record<NoteType, { bg: string; text: string }> = {
-  GENERAL: { bg: 'bg-gray-100', text: 'text-gray-700' },
-  INTERVIEW: { bg: 'bg-blue-100', text: 'text-blue-700' },
-  EVIDENCE: { bg: 'bg-purple-100', text: 'text-purple-700' },
-  FINDING: { bg: 'bg-orange-100', text: 'text-orange-700' },
-  RECOMMENDATION: { bg: 'bg-green-100', text: 'text-green-700' },
+  GENERAL: { bg: 'bg-gray-100 dark:bg-gray-800', text: 'text-gray-700 dark:text-gray-300' },
+  INTERVIEW: { bg: 'bg-blue-100 dark:bg-blue-900/30', text: 'text-blue-700 dark:text-blue-300' },
+  EVIDENCE: { bg: 'bg-purple-100 dark:bg-purple-900/30', text: 'text-purple-700 dark:text-purple-300' },
+  FINDING: { bg: 'bg-orange-100 dark:bg-orange-900/30', text: 'text-orange-700 dark:text-orange-300' },
+  RECOMMENDATION: { bg: 'bg-green-100 dark:bg-green-900/30', text: 'text-green-700 dark:text-green-300' },
 };
 
 /**
@@ -71,7 +71,7 @@ export function NoteCard({ note, onClick }: NoteCardProps) {
   return (
     <div
       className={cn(
-        'flex gap-3 p-4 border rounded-lg bg-white hover:bg-gray-50 transition-colors',
+        'flex gap-3 p-4 border rounded-lg bg-card hover:bg-muted/50 transition-colors',
         onClick && 'cursor-pointer'
       )}
       onClick={handleClick}
@@ -87,7 +87,7 @@ export function NoteCard({ note, onClick }: NoteCardProps) {
       <div className="flex-1 min-w-0">
         {/* Header row */}
         <div className="flex items-center gap-2 mb-1 flex-wrap">
-          <span className="font-medium text-sm text-gray-900">
+          <span className="font-medium text-sm text-foreground">
             {note.author.name}
           </span>
 
@@ -130,7 +130,7 @@ export function NoteCard({ note, onClick }: NoteCardProps) {
 
         {/* Note content preview */}
         <div
-          className="prose prose-sm max-w-none text-gray-700 line-clamp-3"
+          className="prose prose-sm max-w-none text-foreground dark:prose-invert line-clamp-3"
           dangerouslySetInnerHTML={{ __html: note.content }}
         />
 

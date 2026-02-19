@@ -90,7 +90,7 @@ function TemplateTierGroup({
 
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-      <CollapsibleTrigger className="flex items-center justify-between w-full py-2 px-3 hover:bg-gray-50 rounded-md">
+      <CollapsibleTrigger className="flex items-center justify-between w-full py-2 px-3 hover:bg-muted/50 rounded-md">
         <div className={cn("flex items-center gap-2", config.color)}>
           {config.icon}
           <span className="font-medium text-sm">{config.label}</span>
@@ -100,7 +100,7 @@ function TemplateTierGroup({
         </div>
         <ChevronDown
           className={cn(
-            "h-4 w-4 text-gray-500 transition-transform",
+            "h-4 w-4 text-muted-foreground transition-transform",
             isOpen && "rotate-180",
           )}
         />
@@ -117,7 +117,7 @@ function TemplateTierGroup({
                 "w-full flex items-center justify-between px-3 py-2 rounded-md text-left transition-colors",
                 selectedTemplateId === template.id
                   ? "bg-primary/10 text-primary"
-                  : "hover:bg-gray-100",
+                  : "hover:bg-accent",
               )}
             >
               <div className="flex items-center gap-2 min-w-0">
@@ -126,7 +126,7 @@ function TemplateTierGroup({
               </div>
               <div className="flex items-center gap-2 flex-shrink-0">
                 {template.estimatedDuration && (
-                  <span className="text-xs text-gray-500 flex items-center gap-1">
+                  <span className="text-xs text-muted-foreground flex items-center gap-1">
                     <Clock className="h-3 w-3" />
                     {template.estimatedDuration}
                   </span>
@@ -155,12 +155,12 @@ function TemplatePreview({ template }: { template: InvestigationTemplate }) {
   }, [template.sections]);
 
   return (
-    <div className="p-4 border-l bg-gray-50 min-w-[300px]">
-      <h4 className="font-medium text-gray-900">{template.name}</h4>
+    <div className="p-4 border-l bg-muted/50 min-w-[300px]">
+      <h4 className="font-medium text-foreground">{template.name}</h4>
       {template.description && (
-        <p className="text-sm text-gray-600 mt-1">{template.description}</p>
+        <p className="text-sm text-muted-foreground mt-1">{template.description}</p>
       )}
-      <div className="mt-3 flex items-center gap-4 text-sm text-gray-500">
+      <div className="mt-3 flex items-center gap-4 text-sm text-muted-foreground">
         <span>{template.sections.length} sections</span>
         <span>{totalItems} items</span>
         {template.estimatedDuration && (
@@ -171,17 +171,17 @@ function TemplatePreview({ template }: { template: InvestigationTemplate }) {
         )}
       </div>
       <div className="mt-3 space-y-2">
-        <p className="text-xs font-medium text-gray-700">Sections:</p>
-        <ul className="text-sm text-gray-600 space-y-1">
+        <p className="text-xs font-medium text-foreground">Sections:</p>
+        <ul className="text-sm text-muted-foreground space-y-1">
           {template.sections.slice(0, 5).map((section) => (
             <li key={section.id} className="flex items-center gap-2">
-              <span className="w-1 h-1 bg-gray-400 rounded-full" />
+              <span className="w-1 h-1 bg-muted-foreground rounded-full" />
               <span className="truncate">{section.name}</span>
-              <span className="text-gray-400">({section.items.length})</span>
+              <span className="text-muted-foreground/70">({section.items.length})</span>
             </li>
           ))}
           {template.sections.length > 5 && (
-            <li className="text-gray-400 text-xs">
+            <li className="text-muted-foreground/70 text-xs">
               + {template.sections.length - 5} more sections
             </li>
           )}
@@ -251,8 +251,8 @@ export function TemplateSelector({
   if (loading) {
     return (
       <div className="flex items-center justify-center py-8">
-        <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
-        <span className="ml-2 text-sm text-gray-500">Loading templates...</span>
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+        <span className="ml-2 text-sm text-muted-foreground">Loading templates...</span>
       </div>
     );
   }
@@ -260,7 +260,7 @@ export function TemplateSelector({
   if (error) {
     return (
       <div className="text-center py-8">
-        <p className="text-sm text-red-600">{error}</p>
+        <p className="text-sm text-destructive">{error}</p>
         <Button
           variant="outline"
           size="sm"
@@ -276,9 +276,9 @@ export function TemplateSelector({
   if (templates.length === 0) {
     return (
       <div className="text-center py-8">
-        <FileText className="h-8 w-8 mx-auto text-gray-400" />
-        <p className="mt-2 text-sm text-gray-500">No templates available</p>
-        <p className="text-xs text-gray-400">
+        <FileText className="h-8 w-8 mx-auto text-muted-foreground" />
+        <p className="mt-2 text-sm text-muted-foreground">No templates available</p>
+        <p className="text-xs text-muted-foreground/70">
           Create a template to use checklists for investigations
         </p>
       </div>
