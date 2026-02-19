@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-15)
 ## Current Position
 
 Phase: 22 of v1.2 (Dark Mode & Theme)
-Plan: 13 of 15 complete (22-01, 22-02, 22-03, 22-04, 22-05, 22-06, 22-07, 22-08, 22-09, 22-10, 22-11, 22-12, 22-13)
+Plan: 14 of 15 complete (22-01, 22-02, 22-03, 22-04, 22-05, 22-06, 22-07, 22-08, 22-09, 22-10, 22-11, 22-12, 22-13, 22-15)
 Status: In progress
-Last activity: 2026-02-19 - Completed 22-12-PLAN.md (Settings, Users, Implementation, Exports, Files)
+Last activity: 2026-02-19 - Completed 22-15-PLAN.md (DataTable Column Width Flexibility)
 
-Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10 plans), Phase 34 COMPLETE (5/5 plans), Phase 35 COMPLETE (6/6 plans), Phase 36 COMPLETE (13/13 plans), Phase 25.1 COMPLETE (10/10 plans), Phase 22 in progress (12/15 plans).
+Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10 plans), Phase 34 COMPLETE (5/5 plans), Phase 35 COMPLETE (6/6 plans), Phase 36 COMPLETE (13/13 plans), Phase 25.1 COMPLETE (10/10 plans), Phase 22 in progress (14/15 plans).
 
 ## Shipped Milestones
 
@@ -207,6 +207,9 @@ Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10
 - 22-12: tagColors in FlatExportBuilder/TaggedFieldConfig with 6 field tag dark variants
 - 22-12: File components (upload, list, preview) use semantic tokens exclusively
 - 22-12: View components (10 files) already dark mode ready via shadcn primitives
+- 22-15: Remove width from th/td elements for flexible column sizing
+- 22-15: Only select/actions columns retain minWidth (fixed UI controls)
+- 22-15: whitespace-nowrap on headers so header text determines minimum width
 
 ### Blockers
 
@@ -215,6 +218,6 @@ None currently.
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: Completed 22-12-PLAN.md (Settings, Users, Implementation, Exports, Files)
+Stopped at: Completed 22-15-PLAN.md (DataTable Column Width Flexibility)
 Resume file: None
-Next action: Continue Phase 22 with remaining plans (22-14, 22-15)
+Next action: Continue Phase 22 with remaining plan (22-14)
