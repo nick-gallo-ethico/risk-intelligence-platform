@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-15)
 ## Current Position
 
 Phase: 38 of v1.2 (Dark Mode Gap Closure)
-Plan: 2 of 10 complete (38-01, 38-02)
+Plan: 3 of 10 complete (38-01, 38-02, 38-03)
 Status: In progress
-Last activity: 2026-02-19 - Completed 38-02-PLAN.md (8 files migrated)
+Last activity: 2026-02-19 - Completed 38-03-PLAN.md (record-detail + quick-action-grid migrated)
 
-Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10 plans), Phase 34 COMPLETE (5/5 plans), Phase 35 COMPLETE (6/6 plans), Phase 36 COMPLETE (13/13 plans), Phase 25.1 COMPLETE (10/10 plans), Phase 22 COMPLETE (15/15 plans), Phase 23 COMPLETE (5/5 plans), Phase 37 COMPLETE (1/1 plans), Phase 38 IN PROGRESS (2/10 plans).
+Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10 plans), Phase 34 COMPLETE (5/5 plans), Phase 35 COMPLETE (6/6 plans), Phase 36 COMPLETE (13/13 plans), Phase 25.1 COMPLETE (10/10 plans), Phase 22 COMPLETE (15/15 plans), Phase 23 COMPLETE (5/5 plans), Phase 37 COMPLETE (1/1 plans), Phase 38 IN PROGRESS (3/10 plans).
 
 ## Shipped Milestones
 
@@ -45,7 +45,7 @@ Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10
 7. Phase 23: Help & Support System - 5 requirements [COMPLETE - 5/5 plans, verified]
 8. Phase 25.1: Case Detail Vision - 10 requirements [COMPLETE - 10/10 plans, verified]
 9. Phase 37: Critical Integration Fixes - 3 integration gaps [COMPLETE - 1/1 plans, verified]
-10. Phase 38: Dark Mode Gap Closure - 3 requirements [IN PROGRESS - 2/10 plans]
+10. Phase 38: Dark Mode Gap Closure - 3 requirements [IN PROGRESS - 3/10 plans]
 11. Phase 39: Frontend Test Repair - 50 test failures [NOT STARTED - gap closure]
 
 ## Accumulated Context
@@ -219,6 +219,9 @@ Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10
 - 38-02: Gray badges (CLOSED, GENERAL, INSUFFICIENT_EVIDENCE) use bg-muted text-muted-foreground
 - 38-02: Purple AI buttons get explicit dark: variants for purple-400/purple-800/purple-900 colors
 - 38-02: BADGE_COLOR_MAP and STATUS_COLORS records get full dark: variant treatment
+- 38-03: top-nav.tsx uses white/opacity patterns intentionally for dark nav - no changes needed
+- 38-03: STATUS_CONFIG and SEVERITY_CONFIG use dark:bg-color-900/30 dark:text-color-300 pattern
+- 38-03: Gray fallback badges use bg-muted text-muted-foreground (semantic)
 
 ### Blockers
 
@@ -227,6 +230,6 @@ None currently.
 ## Session Continuity
 
 Last session: 2026-02-19
-Stopped at: Completed 38-02-PLAN.md (investigations + record-detail components)
+Stopped at: Completed 38-03-PLAN.md (record-detail + quick-action-grid)
 Resume file: None
-Next action: Continue Phase 38 with 38-03-PLAN.md (remaining record-detail components)
+Next action: Continue Phase 38 with 38-04-PLAN.md
