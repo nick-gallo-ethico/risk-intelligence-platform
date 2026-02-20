@@ -137,7 +137,7 @@ export function ProjectGroupHeader({
   }, [group.id, deleteGroup, onRefresh]);
 
   return (
-    <div className="flex items-center gap-2 px-4 py-3 bg-gray-50/50">
+    <div className="flex items-center gap-2 px-4 py-3 bg-muted/50">
       {/* Selection checkbox */}
       <Checkbox
         checked={selectionState === "all"}
@@ -156,7 +156,7 @@ export function ProjectGroupHeader({
       {/* Collapse toggle */}
       <button
         onClick={onToggleCollapse}
-        className="p-0.5 rounded hover:bg-gray-200 transition-colors"
+        className="p-0.5 rounded hover:bg-accent transition-colors"
       >
         {isCollapsed ? (
           <ChevronRight className="h-4 w-4" />
@@ -205,7 +205,7 @@ export function ProjectGroupHeader({
       ) : (
         <button
           onClick={handleStartEditName}
-          className="group flex items-center gap-1 font-medium text-gray-800 hover:text-primary transition-colors"
+          className="group flex items-center gap-1 font-medium text-foreground hover:text-primary transition-colors"
         >
           {group.name}
           <Edit2 className="h-3 w-3 opacity-0 group-hover:opacity-50 transition-opacity" />

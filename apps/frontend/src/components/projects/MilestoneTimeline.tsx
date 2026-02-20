@@ -54,8 +54,8 @@ const statusConfig: Record<
   },
   CANCELLED: {
     icon: XCircle,
-    color: "text-gray-500 dark:text-gray-400",
-    bgColor: "bg-gray-100 dark:bg-gray-800",
+    color: "text-muted-foreground",
+    bgColor: "bg-muted",
     label: "Cancelled",
   },
 };

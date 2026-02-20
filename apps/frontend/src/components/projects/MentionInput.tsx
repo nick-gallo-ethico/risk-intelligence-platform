@@ -317,7 +317,7 @@ export function MentionInput({
   }, [mentionIndex, showMentionPopover, getOptionId]);
 
   return (
-    <div className="relative border rounded-lg bg-white">
+    <div className="relative border rounded-lg bg-card">
       {/* Screen reader live region for announcements */}
       <div
         role="status"
@@ -415,10 +415,10 @@ export function MentionInput({
       )}
 
       {/* Footer with submit button */}
-      <div className="flex items-center justify-between px-3 py-2 border-t bg-gray-50/50">
+      <div className="flex items-center justify-between px-3 py-2 border-t bg-muted/50">
         <div className="text-xs text-muted-foreground">
-          Press <kbd className="px-1 py-0.5 bg-gray-100 rounded text-xs">@</kbd>{" "}
-          to mention
+          Press <kbd className="px-1 py-0.5 bg-muted rounded text-xs">@</kbd> to
+          mention
         </div>
         <Button
           size="sm"
