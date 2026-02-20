@@ -87,11 +87,14 @@ export interface WorkflowListTableProps {
  * Badge colors per entity type.
  */
 const ENTITY_TYPE_COLORS: Record<WorkflowEntityType, string> = {
-  CASE: "bg-blue-100 text-blue-700",
-  INVESTIGATION: "bg-green-100 text-green-700",
-  DISCLOSURE: "bg-amber-100 text-amber-700",
-  POLICY: "bg-purple-100 text-purple-700",
-  CAMPAIGN: "bg-cyan-100 text-cyan-700",
+  CASE: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300",
+  INVESTIGATION:
+    "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300",
+  DISCLOSURE:
+    "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300",
+  POLICY:
+    "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300",
+  CAMPAIGN: "bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-300",
 };
 
 /**
@@ -235,8 +238,8 @@ function WorkflowRow({
             variant={template.isActive ? "default" : "secondary"}
             className={cn(
               template.isActive
-                ? "bg-green-100 text-green-700"
-                : "bg-gray-100 text-gray-600",
+                ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300"
+                : "bg-muted text-muted-foreground",
             )}
           >
             {template.isActive ? "Active" : "Inactive"}

@@ -70,10 +70,13 @@ const GATE_TYPES: Array<{ value: GateType; label: string }> = [
 ];
 
 const STEP_TYPE_COLORS: Record<StepType, string> = {
-  manual: "bg-blue-100 text-blue-800",
-  automatic: "bg-green-100 text-green-800",
-  approval: "bg-amber-100 text-amber-800",
-  notification: "bg-purple-100 text-purple-800",
+  manual: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
+  automatic:
+    "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300",
+  approval:
+    "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300",
+  notification:
+    "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300",
 };
 
 // ============================================================================
@@ -274,9 +277,9 @@ export function StageProperties({
           </Button>
         )}
         {isInitial && (
-          <div className="flex items-center gap-2 p-2 bg-green-50 rounded border border-green-200">
-            <Flag className="h-3.5 w-3.5 text-green-600" />
-            <span className="text-xs text-green-700 font-medium">
+          <div className="flex items-center gap-2 p-2 bg-green-50 dark:bg-green-950/30 rounded border border-green-200 dark:border-green-900/50">
+            <Flag className="h-3.5 w-3.5 text-green-600 dark:text-green-400" />
+            <span className="text-xs text-green-700 dark:text-green-300 font-medium">
               Initial Stage
             </span>
           </div>
@@ -416,7 +419,7 @@ export function StageProperties({
           {stage.gates?.map((gate, index) => (
             <div
               key={index}
-              className="flex items-center gap-2 p-2 bg-white rounded border border-slate-200 group"
+              className="flex items-center gap-2 p-2 bg-card rounded border border-border group"
             >
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
@@ -427,7 +430,7 @@ export function StageProperties({
                     {gate.type}
                   </Badge>
                 </div>
-                <p className="text-[10px] text-slate-500 truncate mt-0.5">
+                <p className="text-[10px] text-muted-foreground truncate mt-0.5">
                   {JSON.stringify(gate.config).slice(0, 50)}
                   {JSON.stringify(gate.config).length > 50 && "..."}
                 </p>

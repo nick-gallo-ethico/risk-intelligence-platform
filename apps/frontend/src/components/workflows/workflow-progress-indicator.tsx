@@ -93,7 +93,7 @@ function StageCircle({ stage, status, compact }: StageCircleProps) {
         status === "completed" && "bg-green-500 border-green-500",
         status === "current" &&
           "border-blue-500 bg-blue-500 animate-pulse shadow-md shadow-blue-500/30",
-        status === "future" && "border-gray-300 bg-card dark:border-gray-600",
+        status === "future" && "border-border bg-card",
       )}
       style={
         status === "future"
@@ -109,7 +109,7 @@ function StageCircle({ stage, status, compact }: StageCircleProps) {
       {status === "current" && (
         <div
           className={cn(
-            "rounded-full bg-white",
+            "rounded-full bg-background",
             compact ? "h-2 w-2" : "h-2.5 w-2.5",
           )}
         />
@@ -140,7 +140,7 @@ function ConnectorLine({ isCompleted, compact }: ConnectorLineProps) {
       className={cn(
         "h-0.5 transition-colors",
         width,
-        isCompleted ? "bg-green-500" : "bg-gray-200",
+        isCompleted ? "bg-green-500" : "bg-muted",
       )}
     />
   );
