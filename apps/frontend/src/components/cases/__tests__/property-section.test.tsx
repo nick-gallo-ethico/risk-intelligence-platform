@@ -1,160 +1,163 @@
-import { describe, it, expect } from 'vitest';
-import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { PropertySection } from '../property-section';
+import { describe, it, expect } from "vitest";
+import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { PropertySection } from "../property-section";
 
-describe('PropertySection', () => {
-  it('renders title correctly', () => {
+describe("PropertySection", () => {
+  it("renders title correctly", () => {
     render(
       <PropertySection title="Status & Classification">
         <div>Content</div>
-      </PropertySection>
+      </PropertySection>,
     );
 
-    expect(screen.getByText('Status & Classification')).toBeInTheDocument();
+    expect(screen.getByText("Status & Classification")).toBeInTheDocument();
   });
 
-  it('renders children content', () => {
+  it("renders children content", () => {
     render(
       <PropertySection title="Test Section">
         <div data-testid="child-content">Child content here</div>
-      </PropertySection>
+      </PropertySection>,
     );
 
-    expect(screen.getByTestId('child-content')).toBeInTheDocument();
+    expect(screen.getByTestId("child-content")).toBeInTheDocument();
   });
 
-  it('is expanded by default', () => {
+  it("is expanded by default", () => {
     render(
       <PropertySection title="Test Section">
         <div data-testid="content">Content</div>
-      </PropertySection>
+      </PropertySection>,
     );
 
     // Content should be visible
-    expect(screen.getByTestId('content')).toBeVisible();
+    expect(screen.getByTestId("content")).toBeVisible();
   });
 
-  it('can start collapsed when defaultOpen is false', () => {
+  it("can start collapsed when defaultOpen is false", () => {
     render(
       <PropertySection title="Test Section" defaultOpen={false}>
         <div data-testid="content">Content</div>
-      </PropertySection>
+      </PropertySection>,
     );
 
     // Content should not be visible (collapsed)
-    expect(screen.queryByTestId('content')).not.toBeInTheDocument();
+    expect(screen.queryByTestId("content")).not.toBeInTheDocument();
   });
 
-  it('collapses when header is clicked', async () => {
+  it("collapses when header is clicked", async () => {
     const user = userEvent.setup();
 
     render(
       <PropertySection title="Test Section">
         <div data-testid="content">Content</div>
-      </PropertySection>
+      </PropertySection>,
     );
 
     // Initially visible
-    expect(screen.getByTestId('content')).toBeVisible();
+    expect(screen.getByTestId("content")).toBeVisible();
 
     // Click header to collapse
-    await user.click(screen.getByText('Test Section'));
+    await user.click(screen.getByText("Test Section"));
 
     // Content should be hidden
-    expect(screen.queryByTestId('content')).not.toBeInTheDocument();
+    expect(screen.queryByTestId("content")).not.toBeInTheDocument();
   });
 
-  it('expands when collapsed header is clicked', async () => {
+  it("expands when collapsed header is clicked", async () => {
     const user = userEvent.setup();
 
     render(
       <PropertySection title="Test Section" defaultOpen={false}>
         <div data-testid="content">Content</div>
-      </PropertySection>
+      </PropertySection>,
     );
 
     // Initially hidden
-    expect(screen.queryByTestId('content')).not.toBeInTheDocument();
+    expect(screen.queryByTestId("content")).not.toBeInTheDocument();
 
     // Click header to expand
-    await user.click(screen.getByText('Test Section'));
+    await user.click(screen.getByText("Test Section"));
 
     // Content should be visible
-    expect(screen.getByTestId('content')).toBeVisible();
+    expect(screen.getByTestId("content")).toBeVisible();
   });
 
-  it('shows chevron icon that rotates when collapsed', async () => {
+  it("shows chevron icon that rotates when collapsed", async () => {
     const user = userEvent.setup();
 
     render(
       <PropertySection title="Test Section">
         <div>Content</div>
-      </PropertySection>
+      </PropertySection>,
     );
 
     // Find the chevron SVG
-    const chevron = document.querySelector('svg');
+    const chevron = document.querySelector("svg");
     expect(chevron).toBeInTheDocument();
 
     // Initially rotated (expanded state shows rotate-180)
-    expect(chevron).toHaveClass('rotate-180');
+    expect(chevron).toHaveClass("rotate-180");
 
     // Click to collapse
-    await user.click(screen.getByText('Test Section'));
+    await user.click(screen.getByText("Test Section"));
 
     // Chevron should not have rotate-180 class
-    expect(chevron).not.toHaveClass('rotate-180');
+    expect(chevron).not.toHaveClass("rotate-180");
   });
 
-  it('applies custom className', () => {
+  it("applies custom className", () => {
     const { container } = render(
       <PropertySection title="Test Section" className="custom-class">
         <div>Content</div>
-      </PropertySection>
+      </PropertySection>,
     );
 
     // The Card component should have the custom class
-    expect(container.firstChild).toHaveClass('custom-class');
+    expect(container.firstChild).toHaveClass("custom-class");
   });
 
-  it('has hover style on header', () => {
+  it("has hover style on header", () => {
     render(
       <PropertySection title="Test Section">
         <div>Content</div>
-      </PropertySection>
+      </PropertySection>,
     );
 
     // Find the header element (CardHeader with cursor-pointer class)
-    const header = screen.getByText('Test Section').closest('[class*="cursor-pointer"]');
-    expect(header).toHaveClass('cursor-pointer');
-    expect(header).toHaveClass('hover:bg-gray-50');
+    const header = screen
+      .getByText("Test Section")
+      .closest('[class*="cursor-pointer"]');
+    expect(header).toHaveClass("cursor-pointer");
+    // Check for hover:bg-muted/50 semantic token (replaces hover:bg-gray-50)
+    expect(header?.className).toContain("hover:bg-muted/50");
   });
 
-  it('toggles multiple times correctly', async () => {
+  it("toggles multiple times correctly", async () => {
     const user = userEvent.setup();
 
     render(
       <PropertySection title="Test Section">
         <div data-testid="content">Content</div>
-      </PropertySection>
+      </PropertySection>,
     );
 
-    const header = screen.getByText('Test Section');
+    const header = screen.getByText("Test Section");
 
     // Initial: expanded
-    expect(screen.getByTestId('content')).toBeVisible();
+    expect(screen.getByTestId("content")).toBeVisible();
 
     // Click 1: collapse
     await user.click(header);
-    expect(screen.queryByTestId('content')).not.toBeInTheDocument();
+    expect(screen.queryByTestId("content")).not.toBeInTheDocument();
 
     // Click 2: expand
     await user.click(header);
-    expect(screen.getByTestId('content')).toBeVisible();
+    expect(screen.getByTestId("content")).toBeVisible();
 
     // Click 3: collapse again
     await user.click(header);
-    expect(screen.queryByTestId('content')).not.toBeInTheDocument();
+    expect(screen.queryByTestId("content")).not.toBeInTheDocument();
   });
 });
