@@ -38,8 +38,7 @@ interface PolicyListProps {
  * DRAFT: gray, PENDING_APPROVAL: yellow, APPROVED: blue, PUBLISHED: green, RETIRED: red
  */
 const STATUS_STYLES: Record<PolicyStatus, string> = {
-  DRAFT:
-    "bg-gray-100 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700",
+  DRAFT: "bg-muted text-muted-foreground border-border",
   PENDING_APPROVAL:
     "bg-yellow-100 text-yellow-700 border-yellow-200 dark:bg-yellow-900/30 dark:text-yellow-300 dark:border-yellow-800",
   APPROVED:

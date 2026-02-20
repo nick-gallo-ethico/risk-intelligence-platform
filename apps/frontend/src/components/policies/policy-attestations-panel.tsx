@@ -23,8 +23,7 @@ interface PolicyAttestationsPanelProps {
 
 // Campaign status colors
 const STATUS_COLORS: Record<AttestationCampaignStatus, string> = {
-  DRAFT:
-    "bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700",
+  DRAFT: "bg-muted text-muted-foreground border-border",
   SCHEDULED:
     "bg-purple-100 text-purple-800 border-purple-200 dark:bg-purple-900/30 dark:text-purple-300 dark:border-purple-800",
   ACTIVE:

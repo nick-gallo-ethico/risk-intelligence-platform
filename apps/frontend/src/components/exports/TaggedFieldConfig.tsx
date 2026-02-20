@@ -70,8 +70,7 @@ const tagColors: Record<FieldTag, string> = {
     "bg-orange-100 text-orange-800 hover:bg-orange-200 dark:bg-orange-900/30 dark:text-orange-300 dark:hover:bg-orange-900/50",
   EXTERNAL:
     "bg-green-100 text-green-800 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-300 dark:hover:bg-green-900/50",
-  MIGRATION:
-    "bg-gray-100 text-gray-800 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700",
+  MIGRATION: "bg-muted text-muted-foreground hover:bg-muted/80",
 };
 
 /**
@@ -292,7 +291,7 @@ export function TaggedFieldConfig() {
                           className={`cursor-pointer transition-colors ${
                             fieldTags.includes(tag.value)
                               ? tagColors[tag.value]
-                              : "bg-gray-50 text-gray-400 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-500 dark:hover:bg-gray-700"
+                              : "bg-muted/50 text-muted-foreground hover:bg-muted"
                           }`}
                           onClick={() => toggleTag(field, tag.value)}
                           title={tag.description}
