@@ -74,12 +74,12 @@ const ACTIVITY_CONFIG: Record<
   },
   TITLE_CHANGED: {
     icon: FileText,
-    color: "text-gray-500",
+    color: "text-muted-foreground",
     label: "Title",
   },
   DESCRIPTION_CHANGED: {
     icon: FileText,
-    color: "text-gray-500",
+    color: "text-muted-foreground",
     label: "Description",
   },
   GROUP_CHANGED: {
@@ -129,7 +129,7 @@ const ACTIVITY_CONFIG: Record<
   },
   SUBSCRIBER_REMOVED: {
     icon: Bell,
-    color: "text-gray-400",
+    color: "text-muted-foreground",
     label: "Subscriber",
   },
 };
@@ -183,7 +183,7 @@ export function TaskActivityLog({ projectId, taskId }: TaskActivityLogProps) {
   const renderActivity = (activity: TaskActivity) => {
     const config = ACTIVITY_CONFIG[activity.activityType] || {
       icon: Activity,
-      color: "text-gray-500",
+      color: "text-muted-foreground",
       label: "Activity",
     };
     const Icon = config.icon;
@@ -193,7 +193,7 @@ export function TaskActivityLog({ projectId, taskId }: TaskActivityLogProps) {
         {/* Icon */}
         <div
           className={cn(
-            "flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center bg-gray-100",
+            "flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center bg-muted",
             config.color,
           )}
         >
@@ -233,7 +233,9 @@ export function TaskActivityLog({ projectId, taskId }: TaskActivityLogProps) {
           </div>
 
           {/* Description */}
-          <p className="text-sm text-gray-700 mt-0.5">{activity.description}</p>
+          <p className="text-sm text-foreground mt-0.5">
+            {activity.description}
+          </p>
 
           {/* Change details */}
           {activity.changes && (
@@ -306,10 +308,10 @@ export function TaskActivityLog({ projectId, taskId }: TaskActivityLogProps) {
         <div className="p-4">
           {filteredActivities.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
-              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                <Activity className="h-8 w-8 text-gray-400" />
+              <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
+                <Activity className="h-8 w-8 text-muted-foreground" />
               </div>
-              <h3 className="text-lg font-medium text-gray-900">
+              <h3 className="text-lg font-medium text-foreground">
                 No activity yet
               </h3>
               <p className="mt-1 text-sm text-muted-foreground max-w-sm">

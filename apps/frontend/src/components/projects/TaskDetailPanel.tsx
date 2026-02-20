@@ -118,18 +118,30 @@ const STATUS_CONFIG: Record<
   { bg: string; text: string; label: string }
 > = {
   NOT_STARTED: {
-    bg: "bg-gray-100",
-    text: "text-gray-700",
+    bg: "bg-muted",
+    text: "text-muted-foreground",
     label: "Not Started",
   },
   IN_PROGRESS: {
-    bg: "bg-blue-100",
-    text: "text-blue-700",
+    bg: "bg-blue-100 dark:bg-blue-900/30",
+    text: "text-blue-700 dark:text-blue-300",
     label: "In Progress",
   },
-  STUCK: { bg: "bg-red-100", text: "text-red-700", label: "Stuck" },
-  DONE: { bg: "bg-green-100", text: "text-green-700", label: "Done" },
-  CANCELLED: { bg: "bg-gray-100", text: "text-gray-400", label: "Cancelled" },
+  STUCK: {
+    bg: "bg-red-100 dark:bg-red-900/30",
+    text: "text-red-700 dark:text-red-300",
+    label: "Stuck",
+  },
+  DONE: {
+    bg: "bg-green-100 dark:bg-green-900/30",
+    text: "text-green-700 dark:text-green-300",
+    label: "Done",
+  },
+  CANCELLED: {
+    bg: "bg-muted",
+    text: "text-muted-foreground",
+    label: "Cancelled",
+  },
 };
 
 /**
@@ -139,10 +151,22 @@ const PRIORITY_CONFIG: Record<
   ProjectTaskPriority,
   { icon: React.ElementType; color: string; label: string }
 > = {
-  LOW: { icon: ArrowDown, color: "text-gray-500", label: "Low" },
-  MEDIUM: { icon: Minus, color: "text-yellow-600", label: "Medium" },
-  HIGH: { icon: ArrowUp, color: "text-orange-500", label: "High" },
-  CRITICAL: { icon: ChevronsUp, color: "text-red-600", label: "Critical" },
+  LOW: { icon: ArrowDown, color: "text-muted-foreground", label: "Low" },
+  MEDIUM: {
+    icon: Minus,
+    color: "text-yellow-600 dark:text-yellow-400",
+    label: "Medium",
+  },
+  HIGH: {
+    icon: ArrowUp,
+    color: "text-orange-500 dark:text-orange-400",
+    label: "High",
+  },
+  CRITICAL: {
+    icon: ChevronsUp,
+    color: "text-red-600 dark:text-red-400",
+    label: "Critical",
+  },
 };
 
 interface TaskDetailPanelProps {
@@ -344,7 +368,7 @@ export function TaskDetailPanel({
         className="w-[480px] sm:w-[540px] flex flex-col p-0 overflow-hidden"
       >
         {/* Header */}
-        <SheetHeader className="px-4 py-3 border-b bg-gray-50/50">
+        <SheetHeader className="px-4 py-3 border-b border-border bg-muted/50">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Badge variant="outline" className="text-xs font-mono">
@@ -400,7 +424,7 @@ export function TaskDetailPanel({
             value={editedTitle}
             onChange={(e) => setEditedTitle(e.target.value)}
             onBlur={handleTitleBlur}
-            className="mt-2 text-lg font-semibold h-auto py-1 px-2 border-transparent hover:border-gray-300 focus:border-gray-300"
+            className="mt-2 text-lg font-semibold h-auto py-1 px-2 border-transparent hover:border-border focus:border-border"
           />
         </SheetHeader>
 
