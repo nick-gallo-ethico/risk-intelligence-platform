@@ -66,8 +66,7 @@ function getPlanStatusBadge(status: RemediationPlanStatus): {
       return {
         variant: "secondary",
         label: "Draft",
-        className:
-          "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300",
+        className: "bg-muted text-muted-foreground",
       };
     case "ACTIVE":
       return {
@@ -87,8 +86,7 @@ function getPlanStatusBadge(status: RemediationPlanStatus): {
       return {
         variant: "secondary",
         label: "Cancelled",
-        className:
-          "bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400",
+        className: "bg-muted text-muted-foreground",
       };
     default:
       return {

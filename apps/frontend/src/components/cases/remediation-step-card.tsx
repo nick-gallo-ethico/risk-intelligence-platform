@@ -45,8 +45,7 @@ function getStatusBadge(status: RemediationStepStatus): {
       return {
         variant: "secondary",
         label: "Pending",
-        className:
-          "bg-gray-100 text-gray-700 hover:bg-gray-100 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-800",
+        className: "bg-muted text-muted-foreground hover:bg-muted",
       };
     case "IN_PROGRESS":
       return {
