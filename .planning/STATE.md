@@ -244,6 +244,9 @@ Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10
 - 38-10: Task 2 files (conflicts/implementation) already themed from prior Phase 22/38 executions
 - 38-10: Gray badge pattern: bg-muted text-muted-foreground for semantic neutral badges
 - 38-10: QR code container pattern: bg-background for proper visibility in both modes
+- 38-09: Gray badges (DRAFT, MIGRATION, GOVERNING) use bg-muted text-muted-foreground (semantic)
+- 38-09: Unselected tag states use bg-muted/50 text-muted-foreground hover:bg-muted
+- 38-09: STEP_TYPE_COLORS and ENTITY_TYPE_COLORS use explicit dark: variants for colored badges
 
 ### Blockers
 
