@@ -442,18 +442,20 @@ export function AiChatPanel({
   return (
     <div className="flex flex-col h-full bg-card">
       {/* Header */}
-      <div className="flex items-center gap-2 px-4 py-3 border-b bg-gradient-to-r from-purple-50 to-blue-50">
-        <Sparkles className="w-5 h-5 text-purple-600" />
+      <div className="flex items-center gap-2 px-4 py-3 border-b bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-950/30 dark:to-blue-950/30">
+        <Sparkles className="w-5 h-5 text-purple-600 dark:text-purple-400" />
         <h2 className="font-semibold text-foreground">AI Assistant</h2>
         <div className="ml-auto flex items-center gap-2">
           <Badge
             variant={connectionStatus === "connected" ? "default" : "secondary"}
             className={cn(
               "text-xs",
-              connectionStatus === "connected" && "bg-green-100 text-green-700",
+              connectionStatus === "connected" &&
+                "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300",
               connectionStatus === "connecting" &&
-                "bg-yellow-100 text-yellow-700",
-              connectionStatus === "error" && "bg-red-100 text-red-700",
+                "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-300",
+              connectionStatus === "error" &&
+                "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300",
             )}
           >
             {connectionStatus === "connected" && "Connected"}
@@ -466,14 +468,14 @@ export function AiChatPanel({
 
       {/* Error State */}
       {error && connectionStatus === "error" && (
-        <div className="mx-4 mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+        <div className="mx-4 mt-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
           <div className="flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+            <AlertCircle className="w-5 h-5 text-red-500 dark:text-red-400 flex-shrink-0 mt-0.5" />
             <div className="flex-1">
-              <p className="text-sm font-medium text-red-800">
+              <p className="text-sm font-medium text-red-800 dark:text-red-200">
                 AI Service Unavailable
               </p>
-              <p className="text-sm text-red-600 mt-1">{error}</p>
+              <p className="text-sm text-red-600 dark:text-red-400 mt-1">{error}</p>
               <Button
                 variant="outline"
                 size="sm"
@@ -525,7 +527,7 @@ export function AiChatPanel({
       </ScrollArea>
 
       {/* Input Area */}
-      <div className="border-t bg-gray-50 p-4">
+      <div className="border-t bg-muted p-4">
         <div className="flex gap-2">
           <Textarea
             ref={textareaRef}
@@ -608,13 +610,15 @@ function MessageBubble({ message }: { message: ChatMessage }) {
       <div
         className={cn(
           "flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center",
-          isUser ? "bg-blue-100" : "bg-purple-100",
+          isUser
+            ? "bg-blue-100 dark:bg-blue-900/30"
+            : "bg-purple-100 dark:bg-purple-900/30",
         )}
       >
         {isUser ? (
-          <User className="w-4 h-4 text-blue-600" />
+          <User className="w-4 h-4 text-blue-600 dark:text-blue-400" />
         ) : (
-          <Bot className="w-4 h-4 text-purple-600" />
+          <Bot className="w-4 h-4 text-purple-600 dark:text-purple-400" />
         )}
       </div>
       <div

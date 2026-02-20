@@ -77,7 +77,8 @@ const RISK_LEVEL_OPTIONS = [
 
 const RISK_LEVEL_COLORS: Record<string, string> = {
   LOW: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300",
-  MEDIUM: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300",
+  MEDIUM:
+    "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300",
   HIGH: "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300",
   CRITICAL: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300",
 };
@@ -427,7 +428,7 @@ export function CasePropertiesPanel({
       renderValue: (val) => {
         if (!val || typeof val !== "string") return null;
         const colorClass =
-          RISK_LEVEL_COLORS[val] ?? "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300";
+          RISK_LEVEL_COLORS[val] ?? "bg-muted text-muted-foreground";
         const label =
           RISK_LEVEL_OPTIONS.find((o) => o.value === val)?.label ?? val;
         return (

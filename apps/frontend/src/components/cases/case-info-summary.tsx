@@ -30,8 +30,8 @@ const STATUS_CONFIG: Record<
     label: "Open",
   },
   CLOSED: {
-    bg: "bg-gray-100 dark:bg-gray-800/50",
-    text: "text-gray-800 dark:text-gray-200",
+    bg: "bg-muted",
+    text: "text-muted-foreground",
     label: "Closed",
   },
 };
