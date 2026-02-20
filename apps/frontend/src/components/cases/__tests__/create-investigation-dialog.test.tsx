@@ -1,19 +1,27 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
-import { CreateInvestigationDialog } from '../create-investigation-dialog';
-import * as investigationApi from '@/lib/investigation-api';
-import type { Investigation } from '@/types/investigation';
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import {
+  render,
+  screen,
+  fireEvent,
+  waitFor,
+  act,
+} from "@testing-library/react";
+import { CreateInvestigationDialog } from "../create-investigation-dialog";
+import * as investigationApi from "@/lib/investigation-api";
+import type { Investigation } from "@/types/investigation";
 
 // Mock the investigation API
-vi.mock('@/lib/investigation-api', () => ({
+vi.mock("@/lib/investigation-api", () => ({
   createInvestigation: vi.fn(),
 }));
 
-// Mock sonner toast
-vi.mock('@/components/ui/toaster', () => ({
+// Mock sonner toast (used by @/lib/api-error-handler)
+vi.mock("sonner", () => ({
   toast: {
     success: vi.fn(),
     error: vi.fn(),
+    info: vi.fn(),
+    promise: vi.fn(),
   },
 }));
 
@@ -25,22 +33,22 @@ beforeEach(() => {
 });
 
 const mockInvestigation: Investigation = {
-  id: 'inv-123',
-  caseId: 'case-456',
-  organizationId: 'org-789',
+  id: "inv-123",
+  caseId: "case-456",
+  organizationId: "org-789",
   investigationNumber: 1,
   categoryId: null,
-  investigationType: 'FULL',
+  investigationType: "FULL",
   department: null,
   assignedTo: [],
   primaryInvestigatorId: null,
   assignedAt: null,
   assignedById: null,
-  status: 'NEW',
+  status: "NEW",
   statusRationale: null,
   statusChangedAt: null,
   dueDate: null,
-  slaStatus: 'ON_TRACK',
+  slaStatus: "ON_TRACK",
   findingsSummary: null,
   findingsDetail: null,
   outcome: null,
@@ -50,16 +58,16 @@ const mockInvestigation: Investigation = {
   closedAt: null,
   closedById: null,
   closureNotes: null,
-  createdAt: '2026-01-15T10:00:00Z',
-  updatedAt: '2026-01-15T10:00:00Z',
-  createdById: 'user-admin',
+  createdAt: "2026-01-15T10:00:00Z",
+  updatedAt: "2026-01-15T10:00:00Z",
+  createdById: "user-admin",
 };
 
-describe('CreateInvestigationDialog', () => {
+describe("CreateInvestigationDialog", () => {
   const mockOnOpenChange = vi.fn();
   const mockOnSuccess = vi.fn();
   const defaultProps = {
-    caseId: 'case-456',
+    caseId: "case-456",
     open: true,
     onOpenChange: mockOnOpenChange,
     onSuccess: mockOnSuccess,
@@ -67,67 +75,70 @@ describe('CreateInvestigationDialog', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (investigationApi.createInvestigation as ReturnType<typeof vi.fn>).mockResolvedValue(
-      mockInvestigation
-    );
+    (
+      investigationApi.createInvestigation as ReturnType<typeof vi.fn>
+    ).mockResolvedValue(mockInvestigation);
   });
 
   afterEach(() => {
     vi.clearAllMocks();
   });
 
-  it('renders dialog when open is true', () => {
+  it("renders dialog when open is true", () => {
     render(<CreateInvestigationDialog {...defaultProps} />);
 
     // Use role query to be more specific
-    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
     expect(
-      screen.getByText(/Start a new investigation for this case/)
+      screen.getByText(/Start a new investigation for this case/),
     ).toBeInTheDocument();
   });
 
-  it('does not render dialog when open is false', () => {
+  it("does not render dialog when open is false", () => {
     render(<CreateInvestigationDialog {...defaultProps} open={false} />);
 
-    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   });
 
-  it('renders form with required fields', () => {
+  it("renders form with required fields", () => {
     render(<CreateInvestigationDialog {...defaultProps} />);
 
-    expect(screen.getByText('Investigation Type')).toBeInTheDocument();
-    expect(screen.getByText('Department')).toBeInTheDocument();
-    expect(screen.getByText('Due Date')).toBeInTheDocument();
+    expect(screen.getByText("Investigation Type")).toBeInTheDocument();
+    expect(screen.getByText("Department")).toBeInTheDocument();
+    expect(screen.getByText("Due Date")).toBeInTheDocument();
   });
 
-  it('has Full Investigation selected by default', () => {
+  it("has Full Investigation selected by default", () => {
     render(<CreateInvestigationDialog {...defaultProps} />);
 
-    expect(screen.getByTestId('investigation-type-select')).toHaveTextContent(
-      'Full Investigation'
+    expect(screen.getByTestId("investigation-type-select")).toHaveTextContent(
+      "Full Investigation",
     );
   });
 
-  it('submits form with correct data', async () => {
+  it("submits form with correct data", async () => {
     render(<CreateInvestigationDialog {...defaultProps} />);
 
     // Submit with default values
-    const submitButton = screen.getByTestId('submit-button');
+    const submitButton = screen.getByTestId("submit-button");
     await act(async () => {
       fireEvent.click(submitButton);
     });
 
     await waitFor(() => {
-      expect(investigationApi.createInvestigation).toHaveBeenCalledWith('case-456', {
-        investigationType: 'FULL',
-      });
+      expect(investigationApi.createInvestigation).toHaveBeenCalledWith(
+        "case-456",
+        {
+          investigationType: "FULL",
+        },
+      );
     });
   });
 
-  it('calls onSuccess callback on successful creation', async () => {
+  it("calls onSuccess callback on successful creation", async () => {
     render(<CreateInvestigationDialog {...defaultProps} />);
 
-    const submitButton = screen.getByTestId('submit-button');
+    const submitButton = screen.getByTestId("submit-button");
     await act(async () => {
       fireEvent.click(submitButton);
     });
@@ -137,10 +148,10 @@ describe('CreateInvestigationDialog', () => {
     });
   });
 
-  it('closes dialog on successful creation', async () => {
+  it("closes dialog on successful creation", async () => {
     render(<CreateInvestigationDialog {...defaultProps} />);
 
-    const submitButton = screen.getByTestId('submit-button');
+    const submitButton = screen.getByTestId("submit-button");
     await act(async () => {
       fireEvent.click(submitButton);
     });
@@ -150,14 +161,19 @@ describe('CreateInvestigationDialog', () => {
     });
   });
 
-  it('shows loading state during submission', async () => {
-    (investigationApi.createInvestigation as ReturnType<typeof vi.fn>).mockImplementation(
-      () => new Promise((resolve) => setTimeout(() => resolve(mockInvestigation), 100))
+  it("shows loading state during submission", async () => {
+    (
+      investigationApi.createInvestigation as ReturnType<typeof vi.fn>
+    ).mockImplementation(
+      () =>
+        new Promise((resolve) =>
+          setTimeout(() => resolve(mockInvestigation), 100),
+        ),
     );
 
     render(<CreateInvestigationDialog {...defaultProps} />);
 
-    const submitButton = screen.getByTestId('submit-button');
+    const submitButton = screen.getByTestId("submit-button");
     await act(async () => {
       fireEvent.click(submitButton);
     });
@@ -165,34 +181,35 @@ describe('CreateInvestigationDialog', () => {
     expect(submitButton).toBeDisabled();
   });
 
-  it('shows error toast on API failure', async () => {
-    const { toast } = await import('@/components/ui/toaster');
-    (investigationApi.createInvestigation as ReturnType<typeof vi.fn>).mockRejectedValue(
-      new Error('Network error')
-    );
+  it("shows error toast on API failure", async () => {
+    const { toast } = await import("sonner");
+    (
+      investigationApi.createInvestigation as ReturnType<typeof vi.fn>
+    ).mockRejectedValue(new Error("Network error"));
 
     render(<CreateInvestigationDialog {...defaultProps} />);
 
-    const submitButton = screen.getByTestId('submit-button');
+    const submitButton = screen.getByTestId("submit-button");
     await act(async () => {
       fireEvent.click(submitButton);
     });
 
     await waitFor(() => {
+      // handleApiError combines context + error message
       expect(toast.error).toHaveBeenCalledWith(
-        'Failed to create investigation. Please try again.'
+        "Failed to create investigation: Network error",
       );
     });
   });
 
-  it('does not call onSuccess on API failure', async () => {
+  it("does not call onSuccess on API failure", async () => {
     // Create fresh mocks for this test specifically
     const localOnSuccess = vi.fn();
     const localOnOpenChange = vi.fn();
 
-    (investigationApi.createInvestigation as ReturnType<typeof vi.fn>).mockRejectedValue(
-      new Error('Network error')
-    );
+    (
+      investigationApi.createInvestigation as ReturnType<typeof vi.fn>
+    ).mockRejectedValue(new Error("Network error"));
 
     render(
       <CreateInvestigationDialog
@@ -200,10 +217,10 @@ describe('CreateInvestigationDialog', () => {
         open={true}
         onOpenChange={localOnOpenChange}
         onSuccess={localOnSuccess}
-      />
+      />,
     );
 
-    const submitButton = screen.getByTestId('submit-button');
+    const submitButton = screen.getByTestId("submit-button");
     await act(async () => {
       fireEvent.click(submitButton);
     });
@@ -217,10 +234,10 @@ describe('CreateInvestigationDialog', () => {
     expect(localOnSuccess).not.toHaveBeenCalled();
   });
 
-  it('calls onOpenChange when cancel button is clicked', async () => {
+  it("calls onOpenChange when cancel button is clicked", async () => {
     render(<CreateInvestigationDialog {...defaultProps} />);
 
-    const cancelButton = screen.getByRole('button', { name: 'Cancel' });
+    const cancelButton = screen.getByRole("button", { name: "Cancel" });
     await act(async () => {
       fireEvent.click(cancelButton);
     });
@@ -228,45 +245,50 @@ describe('CreateInvestigationDialog', () => {
     expect(mockOnOpenChange).toHaveBeenCalledWith(false);
   });
 
-  it('allows setting due date', async () => {
+  it("allows setting due date", async () => {
     render(<CreateInvestigationDialog {...defaultProps} />);
 
-    const dateInput = screen.getByTestId('due-date-input');
+    const dateInput = screen.getByTestId("due-date-input");
     await act(async () => {
-      fireEvent.change(dateInput, { target: { value: '2026-02-15' } });
+      fireEvent.change(dateInput, { target: { value: "2026-02-15" } });
     });
 
-    expect(dateInput).toHaveValue('2026-02-15');
+    expect(dateInput).toHaveValue("2026-02-15");
   });
 
-  it('disables cancel button while submitting', async () => {
-    (investigationApi.createInvestigation as ReturnType<typeof vi.fn>).mockImplementation(
-      () => new Promise((resolve) => setTimeout(() => resolve(mockInvestigation), 100))
+  it("disables cancel button while submitting", async () => {
+    (
+      investigationApi.createInvestigation as ReturnType<typeof vi.fn>
+    ).mockImplementation(
+      () =>
+        new Promise((resolve) =>
+          setTimeout(() => resolve(mockInvestigation), 100),
+        ),
     );
 
     render(<CreateInvestigationDialog {...defaultProps} />);
 
-    const submitButton = screen.getByTestId('submit-button');
+    const submitButton = screen.getByTestId("submit-button");
     await act(async () => {
       fireEvent.click(submitButton);
     });
 
-    const cancelButton = screen.getByRole('button', { name: 'Cancel' });
+    const cancelButton = screen.getByRole("button", { name: "Cancel" });
     expect(cancelButton).toBeDisabled();
   });
 
-  it('displays all form labels', () => {
+  it("displays all form labels", () => {
     render(<CreateInvestigationDialog {...defaultProps} />);
 
     expect(screen.getByLabelText(/Investigation Type/)).toBeInTheDocument();
-    expect(screen.getByLabelText('Department')).toBeInTheDocument();
-    expect(screen.getByLabelText('Due Date')).toBeInTheDocument();
+    expect(screen.getByLabelText("Department")).toBeInTheDocument();
+    expect(screen.getByLabelText("Due Date")).toBeInTheDocument();
   });
 
-  it('shows required indicator for investigation type', () => {
+  it("shows required indicator for investigation type", () => {
     render(<CreateInvestigationDialog {...defaultProps} />);
 
     // Investigation type label should have the required asterisk
-    expect(screen.getByText('*')).toBeInTheDocument();
+    expect(screen.getByText("*")).toBeInTheDocument();
   });
 });

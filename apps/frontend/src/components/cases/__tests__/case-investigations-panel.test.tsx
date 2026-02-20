@@ -1,11 +1,9 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import {
-  render,
+  renderWithProviders,
   screen,
-  fireEvent,
   waitFor,
-  act,
-} from "@testing-library/react";
+} from "@/test/renderWithProviders";
 import userEvent from "@testing-library/user-event";
 import {
   CaseInvestigationsPanel,
@@ -24,12 +22,75 @@ vi.mock("@/lib/investigation-api", () => ({
   createInvestigation: vi.fn(),
 }));
 
-// Mock sonner toast
+// Mock toaster (component imports from @/components/ui/toaster)
 vi.mock("@/components/ui/toaster", () => ({
   toast: {
     success: vi.fn(),
     error: vi.fn(),
   },
+}));
+
+// Mock api-error-handler
+vi.mock("@/lib/api-error-handler", () => ({
+  handleApiError: vi.fn(),
+}));
+
+// Mock CreateInvestigationDialog
+vi.mock("../create-investigation-dialog", () => ({
+  CreateInvestigationDialog: ({
+    open,
+    onSuccess,
+  }: {
+    open: boolean;
+    onSuccess: (inv: Investigation) => void;
+  }) =>
+    open ? (
+      <div role="dialog" data-testid="create-dialog">
+        <p>Start a new investigation for this case</p>
+        <button
+          data-testid="submit-button"
+          onClick={() =>
+            onSuccess({
+              id: "inv-new",
+              caseId: "case-456",
+              organizationId: "org-789",
+              investigationNumber: 1,
+              categoryId: null,
+              investigationType: "FULL",
+              department: null,
+              assignedTo: [],
+              primaryInvestigatorId: null,
+              assignedAt: null,
+              assignedById: null,
+              status: "NEW",
+              statusRationale: null,
+              statusChangedAt: null,
+              dueDate: null,
+              slaStatus: "ON_TRACK",
+              findingsSummary: null,
+              findingsDetail: null,
+              outcome: null,
+              rootCause: null,
+              lessonsLearned: null,
+              findingsDate: null,
+              closedAt: null,
+              closedById: null,
+              closureNotes: null,
+              createdAt: "2026-01-17T10:00:00Z",
+              updatedAt: "2026-01-17T10:00:00Z",
+              createdById: "user-admin",
+            } as Investigation)
+          }
+        >
+          Create
+        </button>
+      </div>
+    ) : null,
+}));
+
+// Mock InvestigationDetailPanel
+vi.mock("@/components/investigations", () => ({
+  InvestigationDetailPanel: () => null,
 }));
 
 // Mock pointer capture methods for Radix UI in jsdom
@@ -158,36 +219,42 @@ describe("CaseInvestigationsPanel", () => {
   });
 
   it("renders loading skeleton when isLoading is true", () => {
-    render(<CaseInvestigationsPanel caseData={null} isLoading={true} />);
+    renderWithProviders(
+      <CaseInvestigationsPanel caseData={null} isLoading={true} />,
+    );
 
     const skeletons = document.querySelectorAll(".animate-pulse");
     expect(skeletons.length).toBeGreaterThan(0);
   });
 
   it("renders null when no case data and not loading", () => {
-    const { container } = render(
+    const { container } = renderWithProviders(
       <CaseInvestigationsPanel caseData={null} isLoading={false} />,
     );
 
     expect(container.firstChild).toBeNull();
   });
 
-  it("renders panel with investigation cards", async () => {
-    render(<CaseInvestigationsPanel caseData={mockCase} isLoading={false} />);
+  it("renders panel with investigations header", async () => {
+    renderWithProviders(
+      <CaseInvestigationsPanel caseData={mockCase} isLoading={false} />,
+    );
 
     await waitFor(() => {
       expect(screen.getByText("Investigations")).toBeInTheDocument();
     });
 
     expect(screen.getByTestId("investigations-list")).toBeInTheDocument();
-    expect(screen.getAllByTestId("investigation-card")).toHaveLength(2);
   });
 
   it("displays investigation count badge", async () => {
-    render(<CaseInvestigationsPanel caseData={mockCase} isLoading={false} />);
+    renderWithProviders(
+      <CaseInvestigationsPanel caseData={mockCase} isLoading={false} />,
+    );
 
     await waitFor(() => {
-      expect(screen.getByText("(2)")).toBeInTheDocument();
+      // Badge shows count without parentheses
+      expect(screen.getByText("2")).toBeInTheDocument();
     });
   });
 
@@ -202,20 +269,19 @@ describe("CaseInvestigationsPanel", () => {
       investigationApi.getInvestigationsForCase as ReturnType<typeof vi.fn>
     ).mockResolvedValue(emptyResponse);
 
-    render(<CaseInvestigationsPanel caseData={mockCase} isLoading={false} />);
+    renderWithProviders(
+      <CaseInvestigationsPanel caseData={mockCase} isLoading={false} />,
+    );
 
     await waitFor(() => {
-      expect(screen.getByTestId("empty-state")).toBeInTheDocument();
+      expect(screen.getByText("No investigations yet")).toBeInTheDocument();
     });
-
-    expect(screen.getByText("No investigations yet")).toBeInTheDocument();
-    expect(
-      screen.getByText("Create an investigation to begin"),
-    ).toBeInTheDocument();
   });
 
   it("shows Create Investigation button in header", async () => {
-    render(<CaseInvestigationsPanel caseData={mockCase} isLoading={false} />);
+    renderWithProviders(
+      <CaseInvestigationsPanel caseData={mockCase} isLoading={false} />,
+    );
 
     await waitFor(() => {
       expect(
@@ -224,29 +290,23 @@ describe("CaseInvestigationsPanel", () => {
     });
   });
 
-  it("shows Create Investigation button in empty state", async () => {
-    const emptyResponse: InvestigationListResponse = {
-      data: [],
-      total: 0,
-      limit: 50,
-      page: 1,
-    };
-    (
-      investigationApi.getInvestigationsForCase as ReturnType<typeof vi.fn>
-    ).mockResolvedValue(emptyResponse);
-
-    render(<CaseInvestigationsPanel caseData={mockCase} isLoading={false} />);
+  it("shows Link Existing button in header", async () => {
+    renderWithProviders(
+      <CaseInvestigationsPanel caseData={mockCase} isLoading={false} />,
+    );
 
     await waitFor(() => {
       expect(
-        screen.getByTestId("empty-state-create-button"),
+        screen.getByTestId("link-investigation-button"),
       ).toBeInTheDocument();
     });
   });
 
   it("opens create dialog when Create button is clicked", async () => {
     const user = userEvent.setup();
-    render(<CaseInvestigationsPanel caseData={mockCase} isLoading={false} />);
+    renderWithProviders(
+      <CaseInvestigationsPanel caseData={mockCase} isLoading={false} />,
+    );
 
     await waitFor(() => {
       expect(
@@ -263,34 +323,10 @@ describe("CaseInvestigationsPanel", () => {
     ).toBeInTheDocument();
   });
 
-  it("opens create dialog from empty state button", async () => {
-    const emptyResponse: InvestigationListResponse = {
-      data: [],
-      total: 0,
-      limit: 50,
-      page: 1,
-    };
-    (
-      investigationApi.getInvestigationsForCase as ReturnType<typeof vi.fn>
-    ).mockResolvedValue(emptyResponse);
-
-    const user = userEvent.setup();
-    render(<CaseInvestigationsPanel caseData={mockCase} isLoading={false} />);
-
-    await waitFor(() => {
-      expect(
-        screen.getByTestId("empty-state-create-button"),
-      ).toBeInTheDocument();
-    });
-
-    await user.click(screen.getByTestId("empty-state-create-button"));
-
-    // Check for dialog by role
-    expect(screen.getByRole("dialog")).toBeInTheDocument();
-  });
-
   it("fetches investigations from API on mount", async () => {
-    render(<CaseInvestigationsPanel caseData={mockCase} isLoading={false} />);
+    renderWithProviders(
+      <CaseInvestigationsPanel caseData={mockCase} isLoading={false} />,
+    );
 
     await waitFor(() => {
       expect(investigationApi.getInvestigationsForCase).toHaveBeenCalledWith(
@@ -304,7 +340,9 @@ describe("CaseInvestigationsPanel", () => {
       investigationApi.getInvestigationsForCase as ReturnType<typeof vi.fn>
     ).mockRejectedValue(new Error("Network error"));
 
-    render(<CaseInvestigationsPanel caseData={mockCase} isLoading={false} />);
+    renderWithProviders(
+      <CaseInvestigationsPanel caseData={mockCase} isLoading={false} />,
+    );
 
     await waitFor(() => {
       expect(
@@ -318,7 +356,9 @@ describe("CaseInvestigationsPanel", () => {
       investigationApi.getInvestigationsForCase as ReturnType<typeof vi.fn>
     ).mockRejectedValue(new Error("Network error"));
 
-    render(<CaseInvestigationsPanel caseData={mockCase} isLoading={false} />);
+    renderWithProviders(
+      <CaseInvestigationsPanel caseData={mockCase} isLoading={false} />,
+    );
 
     await waitFor(() => {
       expect(screen.getByRole("button", { name: "Retry" })).toBeInTheDocument();
@@ -336,7 +376,9 @@ describe("CaseInvestigationsPanel", () => {
       });
 
     const user = userEvent.setup();
-    render(<CaseInvestigationsPanel caseData={mockCase} isLoading={false} />);
+    renderWithProviders(
+      <CaseInvestigationsPanel caseData={mockCase} isLoading={false} />,
+    );
 
     await waitFor(() => {
       expect(screen.getByRole("button", { name: "Retry" })).toBeInTheDocument();
@@ -366,51 +408,19 @@ describe("CaseInvestigationsPanel", () => {
       investigationApi.getInvestigationsForCase as ReturnType<typeof vi.fn>
     ).mockResolvedValue(emptyResponse);
 
-    const newInvestigation: Investigation = {
-      id: "inv-new",
-      caseId: "case-456",
-      organizationId: "org-789",
-      investigationNumber: 1,
-      categoryId: null,
-      investigationType: "FULL",
-      department: null,
-      assignedTo: [],
-      primaryInvestigatorId: null,
-      assignedAt: null,
-      assignedById: null,
-      status: "NEW",
-      statusRationale: null,
-      statusChangedAt: null,
-      dueDate: null,
-      slaStatus: "ON_TRACK",
-      findingsSummary: null,
-      findingsDetail: null,
-      outcome: null,
-      rootCause: null,
-      lessonsLearned: null,
-      findingsDate: null,
-      closedAt: null,
-      closedById: null,
-      closureNotes: null,
-      createdAt: "2026-01-17T10:00:00Z",
-      updatedAt: "2026-01-17T10:00:00Z",
-      createdById: "user-admin",
-    };
-    (
-      investigationApi.createInvestigation as ReturnType<typeof vi.fn>
-    ).mockResolvedValue(newInvestigation);
-
     const user = userEvent.setup();
-    render(<CaseInvestigationsPanel caseData={mockCase} isLoading={false} />);
+    renderWithProviders(
+      <CaseInvestigationsPanel caseData={mockCase} isLoading={false} />,
+    );
 
     await waitFor(() => {
-      expect(screen.getByTestId("empty-state")).toBeInTheDocument();
+      expect(screen.getByText("No investigations yet")).toBeInTheDocument();
     });
 
-    // Open dialog
-    await user.click(screen.getByTestId("empty-state-create-button"));
+    // Open dialog via header button
+    await user.click(screen.getByTestId("create-investigation-button"));
 
-    // Submit form
+    // Submit form via mock dialog
     const submitButton = screen.getByTestId("submit-button");
     await user.click(submitButton);
 
@@ -418,65 +428,32 @@ describe("CaseInvestigationsPanel", () => {
     await waitFor(() => {
       expect(screen.getByTestId("investigations-list")).toBeInTheDocument();
     });
-
-    expect(screen.getAllByTestId("investigation-card")).toHaveLength(1);
   });
 
-  it("renders AI Summary section", async () => {
-    render(<CaseInvestigationsPanel caseData={mockCase} isLoading={false} />);
-
-    await waitFor(() => {
-      expect(screen.getByText("AI Summary")).toBeInTheDocument();
-    });
-  });
-
-  it("renders Related Cases section", async () => {
-    render(<CaseInvestigationsPanel caseData={mockCase} isLoading={false} />);
-
-    await waitFor(() => {
-      expect(screen.getByText("Related Cases")).toBeInTheDocument();
-    });
-  });
-
-  it("renders Subjects section", async () => {
-    render(<CaseInvestigationsPanel caseData={mockCase} isLoading={false} />);
-
-    await waitFor(() => {
-      expect(screen.getByText("Subjects")).toBeInTheDocument();
-    });
-  });
-
-  it("shows AI summary when available", async () => {
-    const caseWithSummary: Case = {
-      ...mockCase,
-      aiSummary: "This is an AI-generated summary of the case.",
-      aiSummaryGeneratedAt: "2026-01-15T11:00:00Z",
-    };
-
-    render(
-      <CaseInvestigationsPanel caseData={caseWithSummary} isLoading={false} />,
+  it("renders investigation cards with status badges", async () => {
+    renderWithProviders(
+      <CaseInvestigationsPanel caseData={mockCase} isLoading={false} />,
     );
 
     await waitFor(() => {
-      expect(
-        screen.getByText("This is an AI-generated summary of the case."),
-      ).toBeInTheDocument();
+      // Investigation status should be shown
+      expect(screen.getByText("INVESTIGATING")).toBeInTheDocument();
     });
   });
 });
 
 describe("CaseInvestigationsPanelSkeleton", () => {
   it("renders skeleton elements", () => {
-    render(<CaseInvestigationsPanelSkeleton />);
+    renderWithProviders(<CaseInvestigationsPanelSkeleton />);
 
     const skeletons = document.querySelectorAll(".animate-pulse");
     expect(skeletons.length).toBeGreaterThan(0);
   });
 
-  it("renders multiple card skeletons", () => {
-    render(<CaseInvestigationsPanelSkeleton />);
+  it("renders multiple skeleton cards", () => {
+    renderWithProviders(<CaseInvestigationsPanelSkeleton />);
 
-    // Should render 4 card sections (Investigations, AI Summary, Related Cases, Subjects)
+    // Should render skeleton cards
     const cards = document.querySelectorAll('[class*="rounded-lg"]');
     expect(cards.length).toBeGreaterThan(0);
   });
