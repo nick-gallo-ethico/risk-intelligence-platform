@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-15)
 ## Current Position
 
 Phase: 38 of v1.2 (Dark Mode Gap Closure)
-Plan: 10 of 10 complete (38-01 through 38-10)
-Status: COMPLETE
-Last activity: 2026-02-20 - Completed 38-10-PLAN.md (remaining misc components migrated, THEME-06 verified)
+Plan: 11 of 13 complete (38-01 through 38-11)
+Status: In progress
+Last activity: 2026-02-20 - Completed 38-11-PLAN.md (page files migrated to semantic tokens)
 
-Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10 plans), Phase 34 COMPLETE (5/5 plans), Phase 35 COMPLETE (6/6 plans), Phase 36 COMPLETE (13/13 plans), Phase 25.1 COMPLETE (10/10 plans), Phase 22 COMPLETE (15/15 plans), Phase 23 COMPLETE (5/5 plans), Phase 37 COMPLETE (1/1 plans), Phase 38 COMPLETE (10/10 plans).
+Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10 plans), Phase 34 COMPLETE (5/5 plans), Phase 35 COMPLETE (6/6 plans), Phase 36 COMPLETE (13/13 plans), Phase 25.1 COMPLETE (10/10 plans), Phase 22 COMPLETE (15/15 plans), Phase 23 COMPLETE (5/5 plans), Phase 37 COMPLETE (1/1 plans), Phase 38 IN PROGRESS (11/13 plans).
 
 ## Shipped Milestones
 
@@ -45,7 +45,7 @@ Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10
 7. Phase 23: Help & Support System - 5 requirements [COMPLETE - 5/5 plans, verified]
 8. Phase 25.1: Case Detail Vision - 10 requirements [COMPLETE - 10/10 plans, verified]
 9. Phase 37: Critical Integration Fixes - 3 integration gaps [COMPLETE - 1/1 plans, verified]
-10. Phase 38: Dark Mode Gap Closure - 3 requirements [COMPLETE - 10/10 plans, verified]
+10. Phase 38: Dark Mode Gap Closure - 3 requirements [IN PROGRESS - 11/13 plans]
 11. Phase 39: Frontend Test Repair - 50 test failures [NOT STARTED - gap closure]
 
 ## Accumulated Context
@@ -247,6 +247,11 @@ Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10
 - 38-09: Gray badges (DRAFT, MIGRATION, GOVERNING) use bg-muted text-muted-foreground (semantic)
 - 38-09: Unselected tag states use bg-muted/50 text-muted-foreground hover:bg-muted
 - 38-09: STEP_TYPE_COLORS and ENTITY_TYPE_COLORS use explicit dark: variants for colored badges
+- 38-11: Colored status badges (NOT_STARTED, CANCELLED) with existing dark: variants are acceptable
+- 38-11: Use bg-muted text-muted-foreground for semantic gray badges (No Access, Archived, default)
+- 38-11: Skeleton backgrounds use bg-muted for proper dark mode visibility
+- 38-11: Info banner pattern: bg-blue-50 dark:bg-blue-900/20 with matching text colors
+- 38-11: Permission badge pattern: full/read/limited get explicit dark: variants, none gets semantic
 
 ### Blockers
 
@@ -255,6 +260,6 @@ None currently.
 ## Session Continuity
 
 Last session: 2026-02-20
-Stopped at: Completed 38-10-PLAN.md (Phase 38 complete)
+Stopped at: Completed 38-11-PLAN.md (page files migrated)
 Resume file: None
-Next action: Phase 39 Frontend Test Repair
+Next action: Execute 38-12-PLAN.md and 38-13-PLAN.md to complete Phase 38
