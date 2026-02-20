@@ -228,6 +228,9 @@ Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10
 - 38-06: Gray badges (DRAFT, CANCELLED, PENDING) use bg-muted text-muted-foreground (semantic)
 - 38-06: Gradient backgrounds get explicit dark variants (dark:from-purple-950/30)
 - 38-06: Connection status badges keep colored variants with explicit dark: pairs
+- 38-04: CLOSED status uses bg-muted text-muted-foreground for consistent semantic gray
+- 38-04: Boolean field badges: Yes=green with dark variant, No=muted semantic
+- 38-04: CollapsibleTrigger pattern: bg-muted hover:bg-accent for interactive sections
 
 ### Blockers
 
