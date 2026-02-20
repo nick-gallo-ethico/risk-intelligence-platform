@@ -231,6 +231,11 @@ Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10
 - 38-04: CLOSED status uses bg-muted text-muted-foreground for consistent semantic gray
 - 38-04: Boolean field badges: Yes=green with dark variant, No=muted semantic
 - 38-04: CollapsibleTrigger pattern: bg-muted hover:bg-accent for interactive sections
+- 38-07: Task STATUS_CONFIG: NOT_STARTED/CANCELLED use bg-muted text-muted-foreground (semantic gray)
+- 38-07: Task STATUS_CONFIG: IN_PROGRESS/STUCK/DONE use dark:bg-color-900/30 dark:text-color-300 pattern
+- 38-07: Task PRIORITY_CONFIG: LOW uses text-muted-foreground, MEDIUM/HIGH/CRITICAL use dark: variants
+- 38-07: TaskUpdateThread mention highlight: dark:bg-blue-900/30 dark:text-blue-300
+- 38-07: Empty state pattern: bg-muted icon circle, text-foreground heading, text-muted-foreground description
 - 38-08: STATUS_COLUMNS bgColor uses explicit dark: variants (not semantic) for colored status backgrounds
 - 38-08: PRIORITY_CONFIG uses text-muted-foreground for LOW, explicit dark: for colored priorities
 - 38-08: KpiCard trendColors/bgColors use explicit dark: variants for semantic clarity
