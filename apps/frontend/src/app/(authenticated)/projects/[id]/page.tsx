@@ -750,7 +750,7 @@ function ProjectDetailPageContent() {
       <ViewModeTabs mode={viewMode} onChange={setViewMode} />
 
       {/* Toolbar */}
-      <div className="bg-white border-b px-6 py-2 flex items-center justify-between">
+      <div className="bg-card border-b px-6 py-2 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Button
             size="sm"
@@ -841,7 +841,7 @@ function ProjectDetailPageSkeleton() {
       <div className="border-b px-6 py-2">
         <Skeleton className="h-10 w-64" />
       </div>
-      <div className="bg-white border-b px-6 py-2">
+      <div className="bg-card border-b px-6 py-2">
         <Skeleton className="h-9 w-24" />
       </div>
       <div className="flex-1 p-6">
