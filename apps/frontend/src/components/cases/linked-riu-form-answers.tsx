@@ -157,7 +157,7 @@ export function LinkedRiuFormAnswers({
   // Empty state
   if (!formData || formData.sections.length === 0) {
     return (
-      <div className="p-4 text-sm text-gray-500 text-center bg-gray-50 rounded-md">
+      <div className="p-4 text-sm text-muted-foreground text-center bg-muted rounded-md">
         No intake form data available.
       </div>
     );
@@ -187,11 +187,11 @@ export function LinkedRiuFormAnswers({
           open={expandedSections.has(section.id)}
           onOpenChange={(open) => toggleSection(section.id, open)}
         >
-          <CollapsibleTrigger className="flex items-center justify-between w-full p-3 bg-gray-50 hover:bg-gray-100 rounded-md transition-colors group">
-            <span className="font-medium text-sm text-gray-700">
+          <CollapsibleTrigger className="flex items-center justify-between w-full p-3 bg-muted hover:bg-accent rounded-md transition-colors group">
+            <span className="font-medium text-sm text-foreground">
               {section.title}
             </span>
-            <div className="flex items-center gap-2 text-gray-400 group-hover:text-gray-600">
+            <div className="flex items-center gap-2 text-muted-foreground group-hover:text-foreground">
               <span className="text-xs">
                 {section.fields.length} field
                 {section.fields.length !== 1 && "s"}
@@ -204,7 +204,7 @@ export function LinkedRiuFormAnswers({
             </div>
           </CollapsibleTrigger>
           <CollapsibleContent className="px-3 pb-2">
-            <div className="border-l-2 border-gray-100 pl-3 mt-2 space-y-2">
+            <div className="border-l-2 border-border pl-3 mt-2 space-y-2">
               {section.fields.map((field, idx) => (
                 <FormFieldDisplay key={`${section.id}-${idx}`} field={field} />
               ))}
@@ -222,10 +222,10 @@ export function LinkedRiuFormAnswers({
 function FormFieldDisplay({ field }: { field: FormField }) {
   return (
     <div className="py-1">
-      <dt className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+      <dt className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
         {field.label}
       </dt>
-      <dd className="text-sm text-gray-900 mt-0.5">
+      <dd className="text-sm text-foreground mt-0.5">
         {renderFieldValue(field)}
       </dd>
     </div>
@@ -240,7 +240,7 @@ function renderFieldValue(field: FormField): React.ReactNode {
 
   // Handle null/undefined
   if (value === null || value === undefined) {
-    return <span className="text-gray-400 italic">Not provided</span>;
+    return <span className="text-muted-foreground italic">Not provided</span>;
   }
 
   // Handle different types
@@ -250,7 +250,9 @@ function renderFieldValue(field: FormField): React.ReactNode {
         <span
           className={cn(
             "inline-flex items-center px-2 py-0.5 rounded text-xs font-medium",
-            value ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-600",
+            value
+              ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300"
+              : "bg-muted text-muted-foreground",
           )}
         >
           {value ? "Yes" : "No"}
@@ -259,7 +261,7 @@ function renderFieldValue(field: FormField): React.ReactNode {
 
     case "textarea":
       return (
-        <div className="whitespace-pre-wrap text-sm text-gray-700 bg-gray-50 rounded p-2 max-h-40 overflow-y-auto">
+        <div className="whitespace-pre-wrap text-sm text-foreground bg-muted rounded p-2 max-h-40 overflow-y-auto">
           {String(value)}
         </div>
       );
@@ -302,7 +304,7 @@ function renderFieldValue(field: FormField): React.ReactNode {
             {value.map((v, i) => (
               <span
                 key={i}
-                className="inline-flex items-center px-2 py-0.5 rounded bg-gray-100 text-xs text-gray-700"
+                className="inline-flex items-center px-2 py-0.5 rounded bg-muted text-xs text-foreground"
               >
                 {v}
               </span>

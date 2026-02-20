@@ -26,14 +26,14 @@ export function SummaryTab({ caseData }: SummaryTabProps) {
       {/* Section 1: Case Summary */}
       <section>
         <div className="flex items-center gap-2 mb-3">
-          <h3 className="text-sm font-semibold text-gray-700">Summary</h3>
+          <h3 className="text-sm font-semibold text-foreground">Summary</h3>
           {summaryText && (
             <Badge
               variant="secondary"
               className={
                 isAiGenerated
-                  ? "bg-purple-100 text-purple-700 hover:bg-purple-100"
-                  : "bg-gray-100 text-gray-600 hover:bg-gray-100"
+                  ? "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 hover:bg-purple-100 dark:hover:bg-purple-900/40"
+                  : "bg-muted text-muted-foreground hover:bg-muted"
               }
             >
               {isAiGenerated ? (
@@ -51,16 +51,16 @@ export function SummaryTab({ caseData }: SummaryTabProps) {
           )}
         </div>
 
-        <Card className="bg-blue-50/50 border-blue-100">
+        <Card className="bg-blue-50/50 dark:bg-blue-900/20 border-blue-100 dark:border-blue-800">
           <CardContent className="pt-4">
             {summaryText ? (
-              <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
+              <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
                 {summaryText}
               </p>
             ) : (
               <div className="text-center py-4">
-                <Sparkles className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-                <p className="text-sm text-gray-500">
+                <Sparkles className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
+                <p className="text-sm text-muted-foreground">
                   No summary available. Use the AI panel to generate one.
                 </p>
               </div>
@@ -70,7 +70,7 @@ export function SummaryTab({ caseData }: SummaryTabProps) {
 
         {/* Show when AI summary was generated */}
         {isAiGenerated && caseData.aiSummaryGeneratedAt && (
-          <p className="text-xs text-gray-400 mt-2">
+          <p className="text-xs text-muted-foreground mt-2">
             Generated{" "}
             {new Date(caseData.aiSummaryGeneratedAt).toLocaleDateString(
               "en-US",
@@ -88,19 +88,19 @@ export function SummaryTab({ caseData }: SummaryTabProps) {
 
       {/* Section 2: Full Write-Up / Details */}
       <section>
-        <h3 className="text-sm font-semibold text-gray-700 mb-3">
+        <h3 className="text-sm font-semibold text-foreground mb-3">
           Case Details
         </h3>
 
-        <Card className="bg-white border">
+        <Card className="bg-card border">
           <CardContent className="pt-4">
             {caseData.details ? (
-              <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
+              <p className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
                 {caseData.details}
               </p>
             ) : (
               <div className="text-center py-4">
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-muted-foreground">
                   No case details available.
                 </p>
               </div>
