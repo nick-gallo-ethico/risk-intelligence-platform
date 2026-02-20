@@ -43,8 +43,7 @@ const ASSOCIATION_CONFIG: Record<
   },
   RELATED: {
     label: "Related",
-    color:
-      "bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700",
+    color: "bg-muted text-muted-foreground border-border",
   },
   MERGED_FROM: {
     label: "Merged",
