@@ -514,17 +514,17 @@ function KpiCard({
   children,
 }: KpiCardProps) {
   const trendColors = {
-    good: "text-green-600",
-    warning: "text-yellow-600",
-    bad: "text-red-600",
-    neutral: "text-gray-600",
+    good: "text-green-600 dark:text-green-400",
+    warning: "text-yellow-600 dark:text-yellow-400",
+    bad: "text-red-600 dark:text-red-400",
+    neutral: "text-muted-foreground",
   };
 
   const bgColors = {
-    good: "bg-green-50",
-    warning: "bg-yellow-50",
-    bad: "bg-red-50",
-    neutral: "bg-gray-50",
+    good: "bg-green-50 dark:bg-green-900/30",
+    warning: "bg-yellow-50 dark:bg-yellow-900/30",
+    bad: "bg-red-50 dark:bg-red-900/30",
+    neutral: "bg-muted",
   };
 
   return (

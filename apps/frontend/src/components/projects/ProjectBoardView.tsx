@@ -82,21 +82,31 @@ const STATUS_COLUMNS: StatusColumnConfig[] = [
     id: "NOT_STARTED",
     label: "Not Started",
     color: "#6b7280",
-    bgColor: "bg-gray-50",
+    bgColor: "bg-slate-50 dark:bg-slate-800/50",
   },
   {
     id: "IN_PROGRESS",
     label: "In Progress",
     color: "#3b82f6",
-    bgColor: "bg-blue-50",
+    bgColor: "bg-blue-50 dark:bg-blue-900/30",
   },
-  { id: "STUCK", label: "Stuck", color: "#ef4444", bgColor: "bg-red-50" },
-  { id: "DONE", label: "Done", color: "#22c55e", bgColor: "bg-green-50" },
+  {
+    id: "STUCK",
+    label: "Stuck",
+    color: "#ef4444",
+    bgColor: "bg-red-50 dark:bg-red-900/30",
+  },
+  {
+    id: "DONE",
+    label: "Done",
+    color: "#22c55e",
+    bgColor: "bg-green-50 dark:bg-green-900/30",
+  },
   {
     id: "CANCELLED",
     label: "Cancelled",
     color: "#9ca3af",
-    bgColor: "bg-gray-50",
+    bgColor: "bg-slate-50 dark:bg-slate-800/50",
     defaultCollapsed: true,
   },
 ];
@@ -108,10 +118,10 @@ const PRIORITY_CONFIG: Record<
   ProjectTaskPriority,
   { icon: React.ElementType; color: string }
 > = {
-  LOW: { icon: ArrowDown, color: "text-gray-500" },
-  MEDIUM: { icon: Minus, color: "text-yellow-600" },
-  HIGH: { icon: ArrowUp, color: "text-orange-500" },
-  CRITICAL: { icon: ChevronsUp, color: "text-red-600" },
+  LOW: { icon: ArrowDown, color: "text-muted-foreground" },
+  MEDIUM: { icon: Minus, color: "text-yellow-600 dark:text-yellow-400" },
+  HIGH: { icon: ArrowUp, color: "text-orange-500 dark:text-orange-400" },
+  CRITICAL: { icon: ChevronsUp, color: "text-red-600 dark:text-red-400" },
 };
 
 interface ProjectBoardViewProps {
@@ -562,7 +572,7 @@ function TaskCard({ task, groupColor, onClick, isDragging }: TaskCardProps) {
           <div className="flex items-center gap-2">
             {/* Subtask progress */}
             {task.subtaskCount && task.subtaskCount > 0 && (
-              <span className="px-1.5 py-0.5 bg-gray-100 rounded text-[10px]">
+              <span className="px-1.5 py-0.5 bg-muted rounded text-[10px]">
                 {task.completedSubtaskCount ?? 0}/{task.subtaskCount}
               </span>
             )}

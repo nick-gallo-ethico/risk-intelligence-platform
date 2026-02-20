@@ -421,7 +421,7 @@ export function ProjectTaskTable({
           {/* Empty state */}
           {sortedGroups.length === 0 &&
             (tasksByGroup.get(null)?.length ?? 0) === 0 && (
-              <div className="bg-white rounded-lg border p-8 text-center text-muted-foreground">
+              <div className="bg-card rounded-lg border p-8 text-center text-muted-foreground">
                 <p className="mb-2">No tasks yet</p>
                 <p className="text-sm">
                   Add a group or create a task to get started

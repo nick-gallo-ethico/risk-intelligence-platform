@@ -315,7 +315,7 @@ function WorkloadRow({
       <div
         className={cn(
           "flex items-center gap-4 py-3 px-2 rounded-lg transition-colors cursor-pointer hover:bg-muted/50",
-          isOverloaded && "bg-red-50",
+          isOverloaded && "bg-red-50 dark:bg-red-900/30",
         )}
       >
         {/* User info */}
@@ -432,7 +432,7 @@ function WorkloadRow({
 
           {/* Capacity threshold line */}
           <div
-            className="absolute top-0 bottom-0 border-l-2 border-dashed border-gray-400"
+            className="absolute top-0 bottom-0 border-l-2 border-dashed border-border"
             style={{ left: `${capacityLinePosition}%` }}
           />
         </div>
