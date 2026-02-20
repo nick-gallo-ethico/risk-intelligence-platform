@@ -217,7 +217,7 @@ Keep these codes in a safe place. Each code can only be used once.
           {/* QR Code */}
           <div className="flex justify-center">
             <div
-              className="p-4 bg-white rounded-lg border"
+              className="p-4 bg-background rounded-lg border"
               data-testid="mfa-qr-code"
             >
               <img

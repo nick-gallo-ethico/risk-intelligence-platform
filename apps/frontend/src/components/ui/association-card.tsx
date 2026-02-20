@@ -100,13 +100,15 @@ export function AssociationCard({
             {collapsible && (
               <ChevronRight
                 className={cn(
-                  "h-4 w-4 text-gray-500 transition-transform duration-200",
+                  "h-4 w-4 text-muted-foreground transition-transform duration-200",
                   !collapsed && "rotate-90",
                 )}
               />
             )}
-            <Icon className="h-4 w-4 text-gray-600" />
-            <span className="text-sm font-semibold text-gray-900">{title}</span>
+            <Icon className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm font-semibold text-foreground">
+              {title}
+            </span>
             <Badge variant="secondary" className="h-5 px-1.5 text-xs">
               {count}
             </Badge>
@@ -132,7 +134,7 @@ export function AssociationCard({
                 className="h-7 w-7 p-0"
                 onClick={onSettings}
               >
-                <Settings2 className="h-4 w-4 text-gray-400" />
+                <Settings2 className="h-4 w-4 text-muted-foreground" />
                 <span className="sr-only">Settings</span>
               </Button>
             )}
@@ -142,7 +144,7 @@ export function AssociationCard({
         {/* Search input */}
         {showSearch && !collapsed && (
           <div className="mt-2 relative">
-            <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-gray-400" />
+            <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3 w-3 text-muted-foreground" />
             <Input
               placeholder={searchPlaceholder}
               value={searchQuery}

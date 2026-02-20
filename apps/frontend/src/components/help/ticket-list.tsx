@@ -45,11 +45,14 @@ const STATUS_FILTERS: Array<{ value: StatusFilter; label: string }> = [
 ];
 
 const STATUS_COLORS: Record<SupportTicket["status"], string> = {
-  OPEN: "bg-blue-100 text-blue-800",
-  IN_PROGRESS: "bg-yellow-100 text-yellow-800",
-  WAITING_ON_CUSTOMER: "bg-orange-100 text-orange-800",
-  RESOLVED: "bg-green-100 text-green-800",
-  CLOSED: "bg-gray-100 text-gray-800",
+  OPEN: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
+  IN_PROGRESS:
+    "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300",
+  WAITING_ON_CUSTOMER:
+    "bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300",
+  RESOLVED:
+    "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300",
+  CLOSED: "bg-muted text-muted-foreground",
 };
 
 const STATUS_LABELS: Record<SupportTicket["status"], string> = {
@@ -61,10 +64,10 @@ const STATUS_LABELS: Record<SupportTicket["status"], string> = {
 };
 
 const PRIORITY_COLORS: Record<SupportTicket["priority"], string> = {
-  LOW: "bg-gray-100 text-gray-600",
-  MEDIUM: "bg-blue-100 text-blue-600",
-  HIGH: "bg-orange-100 text-orange-600",
-  URGENT: "bg-red-100 text-red-600",
+  LOW: "bg-muted text-muted-foreground",
+  MEDIUM: "bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-300",
+  HIGH: "bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-300",
+  URGENT: "bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-300",
 };
 
 const PRIORITY_LABELS: Record<SupportTicket["priority"], string> = {
