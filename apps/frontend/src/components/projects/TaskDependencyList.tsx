@@ -95,11 +95,20 @@ const DEPENDENCY_TYPE_CONFIG: Record<
 
 // Status badge configuration
 const STATUS_CONFIG: Record<string, { bg: string; text: string }> = {
-  NOT_STARTED: { bg: "bg-gray-100", text: "text-gray-700" },
-  IN_PROGRESS: { bg: "bg-blue-100", text: "text-blue-700" },
-  STUCK: { bg: "bg-red-100", text: "text-red-700" },
-  DONE: { bg: "bg-green-100", text: "text-green-700" },
-  CANCELLED: { bg: "bg-gray-100", text: "text-gray-400" },
+  NOT_STARTED: { bg: "bg-muted", text: "text-muted-foreground" },
+  IN_PROGRESS: {
+    bg: "bg-blue-100 dark:bg-blue-900/30",
+    text: "text-blue-700 dark:text-blue-300",
+  },
+  STUCK: {
+    bg: "bg-red-100 dark:bg-red-900/30",
+    text: "text-red-700 dark:text-red-300",
+  },
+  DONE: {
+    bg: "bg-green-100 dark:bg-green-900/30",
+    text: "text-green-700 dark:text-green-300",
+  },
+  CANCELLED: { bg: "bg-muted", text: "text-muted-foreground" },
 };
 
 /**
@@ -180,21 +189,23 @@ export function TaskDependencyList({
     direction: "depends_on" | "blocking",
   ) => {
     const statusConfig = STATUS_CONFIG[dependency.dependsOnTask.status] || {
-      bg: "bg-gray-100",
-      text: "text-gray-700",
+      bg: "bg-muted",
+      text: "text-muted-foreground",
     };
     const typeConfig = DEPENDENCY_TYPE_CONFIG[dependency.type];
 
     return (
       <div
         key={dependency.id}
-        className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-50 transition-colors group"
+        className="flex items-center gap-2 p-2 rounded-lg hover:bg-muted transition-colors group"
       >
         {/* Direction icon */}
         <div
           className={cn(
             "flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center",
-            direction === "depends_on" ? "bg-amber-100" : "bg-blue-100",
+            direction === "depends_on"
+              ? "bg-amber-100 dark:bg-amber-900/30"
+              : "bg-blue-100 dark:bg-blue-900/30",
           )}
         >
           {direction === "depends_on" ? (
@@ -345,8 +356,8 @@ export function TaskDependencyList({
                 ) : (
                   availableTasks.map((task) => {
                     const statusConfig = STATUS_CONFIG[task.status] || {
-                      bg: "bg-gray-100",
-                      text: "text-gray-700",
+                      bg: "bg-muted",
+                      text: "text-muted-foreground",
                     };
                     return (
                       <button
@@ -381,9 +392,9 @@ export function TaskDependencyList({
 
       {/* No dependencies state */}
       {!hasAnyDependencies && (
-        <div className="flex flex-col items-center justify-center py-6 text-center border rounded-lg bg-gray-50/50">
-          <Link2 className="h-8 w-8 text-gray-400 mb-2" />
-          <p className="text-sm font-medium text-gray-700">No dependencies</p>
+        <div className="flex flex-col items-center justify-center py-6 text-center border border-border rounded-lg bg-muted/50">
+          <Link2 className="h-8 w-8 text-muted-foreground mb-2" />
+          <p className="text-sm font-medium text-foreground">No dependencies</p>
           <p className="text-xs text-muted-foreground mt-1 max-w-[200px]">
             Link this task to other tasks to define the order of work.
           </p>

@@ -205,10 +205,10 @@ export function TaskFileList({ projectId, taskId }: TaskFileListProps) {
     return (
       <div
         key={file.id}
-        className="border rounded-lg p-3 hover:bg-gray-50 transition-colors group"
+        className="border border-border rounded-lg p-3 hover:bg-muted transition-colors group"
       >
         {/* Preview/Icon */}
-        <div className="aspect-square rounded-md bg-gray-100 flex items-center justify-center mb-2 overflow-hidden">
+        <div className="aspect-square rounded-md bg-muted flex items-center justify-center mb-2 overflow-hidden">
           {isImage && file.downloadUrl ? (
             <img
               src={file.downloadUrl}
@@ -216,7 +216,7 @@ export function TaskFileList({ projectId, taskId }: TaskFileListProps) {
               className="w-full h-full object-cover"
             />
           ) : (
-            <Icon className="h-12 w-12 text-gray-400" />
+            <Icon className="h-12 w-12 text-muted-foreground" />
           )}
         </div>
 
@@ -247,7 +247,7 @@ export function TaskFileList({ projectId, taskId }: TaskFileListProps) {
           <Button
             size="sm"
             variant="outline"
-            className="h-7 text-red-600 hover:text-red-700 hover:bg-red-50"
+            className="h-7 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/30"
             onClick={() => {
               setDeleteTargetId(file.id);
               setDeleteDialogOpen(true);
@@ -267,11 +267,11 @@ export function TaskFileList({ projectId, taskId }: TaskFileListProps) {
     return (
       <div
         key={file.id}
-        className="flex items-center gap-3 p-3 border-b last:border-0 hover:bg-gray-50 transition-colors group"
+        className="flex items-center gap-3 p-3 border-b border-border last:border-0 hover:bg-muted transition-colors group"
       >
         {/* Icon */}
-        <div className="w-10 h-10 rounded-md bg-gray-100 flex items-center justify-center flex-shrink-0">
-          <Icon className="h-5 w-5 text-gray-500" />
+        <div className="w-10 h-10 rounded-md bg-muted flex items-center justify-center flex-shrink-0">
+          <Icon className="h-5 w-5 text-muted-foreground" />
         </div>
 
         {/* File info */}
@@ -327,7 +327,7 @@ export function TaskFileList({ projectId, taskId }: TaskFileListProps) {
           <Button
             size="sm"
             variant="ghost"
-            className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+            className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/30"
             onClick={() => {
               setDeleteTargetId(file.id);
               setDeleteDialogOpen(true);
@@ -372,8 +372,8 @@ export function TaskFileList({ projectId, taskId }: TaskFileListProps) {
           className={cn(
             "border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors",
             isDragging
-              ? "border-blue-500 bg-blue-50"
-              : "border-gray-200 hover:border-gray-300 hover:bg-gray-50",
+              ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
+              : "border-border hover:border-border hover:bg-muted",
           )}
         >
           <input
@@ -395,7 +395,7 @@ export function TaskFileList({ projectId, taskId }: TaskFileListProps) {
               <Cloud
                 className={cn(
                   "h-8 w-8 mx-auto mb-2",
-                  isDragging ? "text-blue-500" : "text-gray-400",
+                  isDragging ? "text-blue-500" : "text-muted-foreground",
                 )}
               />
               <p className="text-sm font-medium">
@@ -440,10 +440,12 @@ export function TaskFileList({ projectId, taskId }: TaskFileListProps) {
       <ScrollArea className="flex-1">
         {!files || files.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-center px-4">
-            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-              <File className="h-8 w-8 text-gray-400" />
+            <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
+              <File className="h-8 w-8 text-muted-foreground" />
             </div>
-            <h3 className="text-lg font-medium text-gray-900">No files yet</h3>
+            <h3 className="text-lg font-medium text-foreground">
+              No files yet
+            </h3>
             <p className="mt-1 text-sm text-muted-foreground max-w-sm">
               Drag and drop files above to attach them to this task.
             </p>
