@@ -493,8 +493,8 @@ describe("CaseActivityTimelineSkeleton", () => {
   it("renders action bar skeletons", () => {
     render(<CaseActivityTimelineSkeleton />);
 
-    // Should have 3 button skeletons in the action bar
-    const actionBar = document.querySelector(".bg-gray-50.border-b");
+    // Should have 3 button skeletons in the action bar (uses bg-muted/50)
+    const actionBar = document.querySelector(".bg-muted\\/50.border-b");
     const skeletons = actionBar?.querySelectorAll(".animate-pulse");
     expect(skeletons?.length).toBe(3);
   });

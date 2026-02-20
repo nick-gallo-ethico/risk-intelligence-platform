@@ -344,7 +344,7 @@ function PropertiesPageContent() {
                                   {property.isRequired ? (
                                     <Badge
                                       variant="default"
-                                      className="bg-amber-100 text-amber-800"
+                                      className="bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300"
                                     >
                                       Required
                                     </Badge>
@@ -358,14 +358,14 @@ function PropertiesPageContent() {
                                   {property.isActive ? (
                                     <Badge
                                       variant="outline"
-                                      className="bg-green-50 text-green-700 border-green-200"
+                                      className="bg-green-50 text-green-700 border-green-200 dark:bg-green-900/30 dark:text-green-300 dark:border-green-800"
                                     >
                                       Active
                                     </Badge>
                                   ) : (
                                     <Badge
                                       variant="outline"
-                                      className="bg-gray-50 text-gray-500 border-gray-200"
+                                      className="bg-muted text-muted-foreground border-border"
                                     >
                                       Archived
                                     </Badge>

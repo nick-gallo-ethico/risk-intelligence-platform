@@ -101,13 +101,13 @@ export default function RolesPage() {
       </div>
 
       {/* Info Banner - Custom Roles Coming Soon */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-start gap-3">
-        <Info className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+      <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 flex items-start gap-3">
+        <Info className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
         <div>
-          <p className="text-sm text-blue-800 font-medium">
+          <p className="text-sm text-blue-800 dark:text-blue-200 font-medium">
             Custom Permission Sets Coming Soon
           </p>
-          <p className="text-sm text-blue-700 mt-1">
+          <p className="text-sm text-blue-700 dark:text-blue-300 mt-1">
             In a future release, you&apos;ll be able to create custom permission
             sets tailored to your organization&apos;s unique needs. For now,
             users are assigned to predefined roles with standard permissions.
@@ -366,25 +366,25 @@ function RolePermissionsTableSingle({ role }: { role: UserRole }) {
     switch (level) {
       case "full":
         return (
-          <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
+          <Badge className="bg-green-100 text-green-800 hover:bg-green-100 dark:bg-green-900/30 dark:text-green-300 dark:hover:bg-green-900/40">
             Full Access
           </Badge>
         );
       case "read":
         return (
-          <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">
+          <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100 dark:bg-blue-900/30 dark:text-blue-300 dark:hover:bg-blue-900/40">
             Read Only
           </Badge>
         );
       case "limited":
         return (
-          <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-100">
+          <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-100 dark:bg-amber-900/30 dark:text-amber-300 dark:hover:bg-amber-900/40">
             Limited
           </Badge>
         );
       case "none":
         return (
-          <Badge className="bg-gray-100 text-gray-500 hover:bg-gray-100">
+          <Badge className="bg-muted text-muted-foreground hover:bg-muted">
             No Access
           </Badge>
         );

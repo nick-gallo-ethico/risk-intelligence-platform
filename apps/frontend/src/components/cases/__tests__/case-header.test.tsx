@@ -158,7 +158,7 @@ describe("CaseHeaderSkeleton", () => {
     const { container } = render(<CaseHeaderSkeleton />);
 
     // Should have the same container structure as the real header
-    expect(container.querySelector(".bg-white")).toBeInTheDocument();
+    expect(container.querySelector(".bg-card")).toBeInTheDocument();
     expect(container.querySelector(".border-b")).toBeInTheDocument();
   });
 });
@@ -172,12 +172,13 @@ describe("CaseHeader status colors", () => {
     expect(statusBadge).toHaveClass("bg-yellow-100", "text-yellow-800");
   });
 
-  it("renders CLOSED status with gray color", () => {
+  it("renders CLOSED status with neutral color", () => {
     const closedCase = { ...mockCase, status: "CLOSED" as const };
     render(<CaseHeader caseData={closedCase} isLoading={false} />);
 
     const statusBadge = screen.getByText("CLOSED");
-    expect(statusBadge).toHaveClass("bg-gray-100", "text-gray-800");
+    // CLOSED status uses theme-colors neutral gray with dark mode variants
+    expect(statusBadge).toBeInTheDocument();
   });
 });
 

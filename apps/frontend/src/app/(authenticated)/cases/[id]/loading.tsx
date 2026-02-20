@@ -111,7 +111,7 @@ export default function CaseDetailLoading() {
         </div>
 
         {/* Center column skeleton */}
-        <div className="bg-gray-50 p-4 space-y-4 overflow-y-auto">
+        <div className="bg-muted p-4 space-y-4 overflow-y-auto">
           {/* Pipeline bar skeleton */}
           <Skeleton className="h-12 w-full rounded-lg" />
 
