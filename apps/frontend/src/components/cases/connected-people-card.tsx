@@ -97,7 +97,7 @@ const LABEL_CONFIG: Record<
   },
   STAKEHOLDER: {
     display: "Stakeholder",
-    color: "bg-gray-100 text-gray-800 border-gray-200",
+    color: "bg-muted text-muted-foreground border-border",
     group: "role",
   },
   MANAGER_OF_SUBJECT: {
@@ -397,7 +397,7 @@ function PersonRow({
   return (
     <div className="flex items-center gap-3 py-1">
       <Avatar className="h-8 w-8">
-        <AvatarFallback className="text-xs bg-gray-100">
+        <AvatarFallback className="text-xs bg-muted">
           {getInitials(person)}
         </AvatarFallback>
       </Avatar>
@@ -420,19 +420,19 @@ function PersonRow({
         )}
         {person.email && (
           <div className="flex items-center gap-1 mt-0.5 group">
-            <Mail className="h-3 w-3 text-gray-400" />
-            <span className="text-xs text-gray-500 truncate">
+            <Mail className="h-3 w-3 text-muted-foreground" />
+            <span className="text-xs text-muted-foreground truncate">
               {person.email}
             </span>
             <button
               onClick={handleCopyEmail}
-              className="opacity-0 group-hover:opacity-100 transition-opacity p-0.5 hover:bg-gray-100 rounded"
+              className="opacity-0 group-hover:opacity-100 transition-opacity p-0.5 hover:bg-muted rounded"
               title="Copy email"
             >
               {copied ? (
                 <Check className="h-3 w-3 text-green-500" />
               ) : (
-                <Copy className="h-3 w-3 text-gray-400" />
+                <Copy className="h-3 w-3 text-muted-foreground" />
               )}
             </button>
           </div>

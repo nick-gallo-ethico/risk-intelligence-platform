@@ -74,22 +74,24 @@ export function RelatedPoliciesCard({ caseId }: RelatedPoliciesCardProps) {
       viewAllLabel="View all associated Policies"
     >
       {policies.length === 0 ? (
-        <p className="text-sm text-gray-500 py-2">No related policies</p>
+        <p className="text-sm text-muted-foreground py-2">
+          No related policies
+        </p>
       ) : (
         <div className="space-y-2">
           {policies.slice(0, 5).map((pl) => (
             <Link
               key={pl.id}
               href={`/policies/${pl.policy.id}`}
-              className="block p-2 rounded-md hover:bg-gray-50 border"
+              className="block p-2 rounded-md hover:bg-muted border"
             >
               <div className="flex items-start gap-2">
-                <FileText className="h-4 w-4 text-gray-400 mt-0.5" />
+                <FileText className="h-4 w-4 text-muted-foreground mt-0.5" />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-900 truncate">
+                  <p className="text-sm font-medium text-foreground truncate">
                     {pl.policy.title}
                   </p>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-muted-foreground">
                     v{pl.policy.version} · {pl.policy.status} ·{" "}
                     {pl.policy.department || "General"}
                   </p>

@@ -37,7 +37,9 @@ export function LinkedRiusCard({ riuAssociations }: LinkedRiusCardProps) {
       viewAllLabel="View all associated Records"
     >
       {riuAssociations.length === 0 ? (
-        <p className="text-sm text-gray-500 py-2">No intake records linked</p>
+        <p className="text-sm text-muted-foreground py-2">
+          No intake records linked
+        </p>
       ) : (
         <div className="space-y-2">
           {riuAssociations.map((assoc) => {
@@ -48,13 +50,15 @@ export function LinkedRiusCard({ riuAssociations }: LinkedRiusCardProps) {
               <Link
                 key={assoc.id}
                 href={`/rius/${assoc.riuId}`}
-                className={`block p-2 rounded-md hover:bg-gray-50 border ${
-                  isPrimary ? "border-blue-200 bg-blue-50/50" : ""
+                className={`block p-2 rounded-md hover:bg-muted border ${
+                  isPrimary
+                    ? "border-blue-200 bg-blue-50/50 dark:border-blue-800 dark:bg-blue-900/20"
+                    : ""
                 }`}
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Icon className="h-4 w-4 text-gray-400" />
+                    <Icon className="h-4 w-4 text-muted-foreground" />
                     <span className="text-sm font-medium">
                       {assoc.riu.referenceNumber}
                     </span>
@@ -69,7 +73,7 @@ export function LinkedRiusCard({ riuAssociations }: LinkedRiusCardProps) {
                     {assoc.associationType}
                   </Badge>
                 </div>
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-muted-foreground mt-1">
                   {RIU_TYPE_LABELS[assoc.riu.type] || assoc.riu.type} ·{" "}
                   {new Date(assoc.riu.createdAt).toLocaleDateString()}
                 </p>

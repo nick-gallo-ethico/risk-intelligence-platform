@@ -32,9 +32,9 @@ interface RelatedCasesCardProps {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  NEW: "bg-blue-100 text-blue-800",
-  OPEN: "bg-yellow-100 text-yellow-800",
-  CLOSED: "bg-gray-100 text-gray-800",
+  NEW: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
+  OPEN: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300",
+  CLOSED: "bg-muted text-muted-foreground",
 };
 
 export function RelatedCasesCard({ caseId }: RelatedCasesCardProps) {
@@ -85,36 +85,37 @@ export function RelatedCasesCard({ caseId }: RelatedCasesCardProps) {
       viewAllLabel="View all associated Cases"
     >
       {relatedCases.length === 0 ? (
-        <p className="text-sm text-gray-500 py-2">No related cases</p>
+        <p className="text-sm text-muted-foreground py-2">No related cases</p>
       ) : (
         <div className="space-y-2">
           {relatedCases.slice(0, 5).map((rc) => (
             <Link
               key={rc.id}
               href={`/cases/${rc.relatedCase.id}`}
-              className="block p-2 rounded-md hover:bg-gray-50 border"
+              className="block p-2 rounded-md hover:bg-muted border"
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <FileText className="h-4 w-4 text-gray-400" />
+                  <FileText className="h-4 w-4 text-muted-foreground" />
                   <span className="text-sm font-medium">
                     {rc.relatedCase.referenceNumber}
                   </span>
                 </div>
                 <Badge
                   className={
-                    STATUS_COLORS[rc.relatedCase.status] || "bg-gray-100"
+                    STATUS_COLORS[rc.relatedCase.status] ||
+                    "bg-muted text-muted-foreground"
                   }
                 >
                   {rc.relatedCase.status}
                 </Badge>
               </div>
               {rc.relatedCase.summary && (
-                <p className="text-xs text-gray-500 mt-1 line-clamp-1">
+                <p className="text-xs text-muted-foreground mt-1 line-clamp-1">
                   {rc.relatedCase.summary}
                 </p>
               )}
-              <p className="text-xs text-gray-400 mt-1">
+              <p className="text-xs text-muted-foreground/70 mt-1">
                 Association: {rc.relationshipType.replace("_", " ")}
               </p>
             </Link>
