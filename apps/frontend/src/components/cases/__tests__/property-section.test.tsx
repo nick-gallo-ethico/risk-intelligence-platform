@@ -97,14 +97,14 @@ describe("PropertySection", () => {
     const chevron = document.querySelector("svg");
     expect(chevron).toBeInTheDocument();
 
-    // Initially rotated (expanded state shows rotate-180)
-    expect(chevron).toHaveClass("rotate-180");
+    // Initially rotated (expanded state shows rotate-90)
+    expect(chevron).toHaveClass("rotate-90");
 
     // Click to collapse
     await user.click(screen.getByText("Test Section"));
 
-    // Chevron should not have rotate-180 class
-    expect(chevron).not.toHaveClass("rotate-180");
+    // Chevron should not have rotate-90 class when collapsed
+    expect(chevron).not.toHaveClass("rotate-90");
   });
 
   it("applies custom className", () => {
