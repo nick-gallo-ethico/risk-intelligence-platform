@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-15)
 ## Current Position
 
 Phase: 39 of v1.2 (Frontend Test Repair) - IN PROGRESS
-Plan: 2 of 5 complete (39-01, 39-02)
+Plan: 4 of 5 complete (39-01, 39-02, 39-03, 39-04)
 Status: In progress
-Last activity: 2026-02-20 - Completed 39-02-PLAN.md (CaseActivityTimeline test repair)
+Last activity: 2026-02-20 - Completed 39-04-PLAN.md (cases test files verification)
 
-Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10 plans), Phase 34 COMPLETE (5/5 plans), Phase 35 COMPLETE (6/6 plans), Phase 36 COMPLETE (13/13 plans), Phase 25.1 COMPLETE (10/10 plans), Phase 22 COMPLETE (15/15 plans), Phase 23 COMPLETE (5/5 plans), Phase 37 COMPLETE (1/1 plans), Phase 38 COMPLETE (13/13 plans), Phase 39 IN PROGRESS (2/5 plans).
+Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10 plans), Phase 34 COMPLETE (5/5 plans), Phase 35 COMPLETE (6/6 plans), Phase 36 COMPLETE (13/13 plans), Phase 25.1 COMPLETE (10/10 plans), Phase 22 COMPLETE (15/15 plans), Phase 23 COMPLETE (5/5 plans), Phase 37 COMPLETE (1/1 plans), Phase 38 COMPLETE (13/13 plans), Phase 39 IN PROGRESS (4/5 plans).
 
 ## Shipped Milestones
 
@@ -46,7 +46,7 @@ Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10
 8. Phase 25.1: Case Detail Vision - 10 requirements [COMPLETE - 10/10 plans, verified]
 9. Phase 37: Critical Integration Fixes - 3 integration gaps [COMPLETE - 1/1 plans, verified]
 10. Phase 38: Dark Mode Gap Closure - 3 requirements [COMPLETE - 13/13 plans, verified & approved]
-11. Phase 39: Frontend Test Repair - 50 test failures [IN PROGRESS - 1/5 plans]
+11. Phase 39: Frontend Test Repair - 50 test failures [IN PROGRESS - 4/5 plans]
 
 ## Accumulated Context
 
@@ -270,6 +270,13 @@ Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10
 - 39-02: Mock response format must match actual backend TimelineResponse structure
 - 39-02: localStorage.clear() in beforeEach/afterEach for pinned activities test isolation
 - 39-02: sonner toast mock needed for activity actions that use toast.success/info
+- 39-04: Fixes already applied by prior phases (38-12 CSS tokens, 39-03 sonner mocks)
+- 39-04: Mock sonner directly when component uses handleApiError from api-error-handler
+- 39-04: handleApiError error format: 'context: error_message' (not custom message)
+- 39-03: Mock CategorySelector to avoid nested QueryClient requirements in CasePropertiesPanel tests
+- 39-03: Mock CreateInvestigationDialog with simplified implementation for CaseInvestigationsPanel tests
+- 39-03: Update test assertions to match actual component structure (3 sections vs 5)
+- 39-03: Remove tests for non-existent sections (AI Summary, Related Cases, Subjects) in investigations panel
 
 ### Blockers
 
@@ -278,6 +285,6 @@ None currently.
 ## Session Continuity
 
 Last session: 2026-02-20
-Stopped at: Completed 39-02-PLAN.md (CaseActivityTimeline test repair)
+Stopped at: Completed 39-04-PLAN.md (cases test files verification)
 Resume file: None
-Next action: Execute 39-03-PLAN.md (remaining test repairs)
+Next action: Execute 39-05-PLAN.md (final test repairs)
