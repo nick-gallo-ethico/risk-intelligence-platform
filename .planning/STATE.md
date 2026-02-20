@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-15)
 ## Current Position
 
 Phase: 38 of v1.2 (Dark Mode Gap Closure)
-Plan: 5 of 10 complete (38-01, 38-02, 38-03, 38-04, 38-05)
+Plan: 6 of 10 complete (38-01, 38-02, 38-03, 38-04, 38-05, 38-06)
 Status: In progress
-Last activity: 2026-02-20 - Completed 38-05-PLAN.md (case sidebar cards migrated)
+Last activity: 2026-02-20 - Completed 38-06-PLAN.md (case modals, remediation, AI chat migrated)
 
-Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10 plans), Phase 34 COMPLETE (5/5 plans), Phase 35 COMPLETE (6/6 plans), Phase 36 COMPLETE (13/13 plans), Phase 25.1 COMPLETE (10/10 plans), Phase 22 COMPLETE (15/15 plans), Phase 23 COMPLETE (5/5 plans), Phase 37 COMPLETE (1/1 plans), Phase 38 IN PROGRESS (5/10 plans).
+Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10 plans), Phase 34 COMPLETE (5/5 plans), Phase 35 COMPLETE (6/6 plans), Phase 36 COMPLETE (13/13 plans), Phase 25.1 COMPLETE (10/10 plans), Phase 22 COMPLETE (15/15 plans), Phase 23 COMPLETE (5/5 plans), Phase 37 COMPLETE (1/1 plans), Phase 38 IN PROGRESS (6/10 plans).
 
 ## Shipped Milestones
 
@@ -45,7 +45,7 @@ Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10
 7. Phase 23: Help & Support System - 5 requirements [COMPLETE - 5/5 plans, verified]
 8. Phase 25.1: Case Detail Vision - 10 requirements [COMPLETE - 10/10 plans, verified]
 9. Phase 37: Critical Integration Fixes - 3 integration gaps [COMPLETE - 1/1 plans, verified]
-10. Phase 38: Dark Mode Gap Closure - 3 requirements [IN PROGRESS - 5/10 plans]
+10. Phase 38: Dark Mode Gap Closure - 3 requirements [IN PROGRESS - 6/10 plans]
 11. Phase 39: Frontend Test Repair - 50 test failures [NOT STARTED - gap closure]
 
 ## Accumulated Context
@@ -225,6 +225,9 @@ Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10
 - 38-05: STAKEHOLDER badge uses bg-muted text-muted-foreground (semantic gray)
 - 38-05: CLOSED status badge uses bg-muted text-muted-foreground (semantic)
 - 38-05: RELATED association type uses bg-muted text-muted-foreground border-border (semantic)
+- 38-06: Gray badges (DRAFT, CANCELLED, PENDING) use bg-muted text-muted-foreground (semantic)
+- 38-06: Gradient backgrounds get explicit dark variants (dark:from-purple-950/30)
+- 38-06: Connection status badges keep colored variants with explicit dark: pairs
 
 ### Blockers
 
@@ -233,6 +236,6 @@ None currently.
 ## Session Continuity
 
 Last session: 2026-02-20
-Stopped at: Completed 38-05-PLAN.md (case sidebar cards)
+Stopped at: Completed 38-06-PLAN.md (case modals, remediation, AI chat)
 Resume file: None
-Next action: Continue Phase 38 with 38-06-PLAN.md
+Next action: Continue Phase 38 with 38-07-PLAN.md
