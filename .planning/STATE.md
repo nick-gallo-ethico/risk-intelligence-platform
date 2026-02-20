@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-15)
 ## Current Position
 
 Phase: 39 of v1.2 (Frontend Test Repair) - IN PROGRESS
-Plan: 1 of 5 complete (39-01)
+Plan: 2 of 5 complete (39-01, 39-02)
 Status: In progress
-Last activity: 2026-02-20 - Completed 39-01-PLAN.md (renderWithProviders test utility)
+Last activity: 2026-02-20 - Completed 39-02-PLAN.md (CaseActivityTimeline test repair)
 
-Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10 plans), Phase 34 COMPLETE (5/5 plans), Phase 35 COMPLETE (6/6 plans), Phase 36 COMPLETE (13/13 plans), Phase 25.1 COMPLETE (10/10 plans), Phase 22 COMPLETE (15/15 plans), Phase 23 COMPLETE (5/5 plans), Phase 37 COMPLETE (1/1 plans), Phase 38 COMPLETE (13/13 plans), Phase 39 IN PROGRESS (1/5 plans).
+Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10 plans), Phase 34 COMPLETE (5/5 plans), Phase 35 COMPLETE (6/6 plans), Phase 36 COMPLETE (13/13 plans), Phase 25.1 COMPLETE (10/10 plans), Phase 22 COMPLETE (15/15 plans), Phase 23 COMPLETE (5/5 plans), Phase 37 COMPLETE (1/1 plans), Phase 38 COMPLETE (13/13 plans), Phase 39 IN PROGRESS (2/5 plans).
 
 ## Shipped Milestones
 
@@ -266,6 +266,10 @@ Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10
 - 39-01: retry: false to prevent test flakiness from query retries
 - 39-01: gcTime: 0 to prevent cache pollution between tests
 - 39-01: Re-export all RTL exports for single import convenience
+- 39-02: Test rewrite over preservation when component redesigned (checkbox filters vs tabs)
+- 39-02: Mock response format must match actual backend TimelineResponse structure
+- 39-02: localStorage.clear() in beforeEach/afterEach for pinned activities test isolation
+- 39-02: sonner toast mock needed for activity actions that use toast.success/info
 
 ### Blockers
 
@@ -274,6 +278,6 @@ None currently.
 ## Session Continuity
 
 Last session: 2026-02-20
-Stopped at: Completed 39-01-PLAN.md (renderWithProviders test utility)
+Stopped at: Completed 39-02-PLAN.md (CaseActivityTimeline test repair)
 Resume file: None
-Next action: Execute 39-02-PLAN.md (common test file updates)
+Next action: Execute 39-03-PLAN.md (remaining test repairs)
