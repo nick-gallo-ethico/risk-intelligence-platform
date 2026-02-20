@@ -73,7 +73,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 35: Code Quality & Architecture** - Fat service splits, any type replacement, strict mode, null safety (v1.2)
 - [x] **Phase 36: Test Coverage Expansion** - Auth guards/strategies, impersonation, E2E isolation, 26.4% backend coverage (3.3x from 7.9%) (v1.2)
 - [x] **Phase 37: Critical Integration Fixes** - RedisCacheModule registration, batch reminder wiring, JwtWsGuard cleanup (v1.2 gap closure)
-- [ ] **Phase 38: Dark Mode Gap Closure** - Migrate 323 hardcoded colors, settings toggle, DataTable/modal dark variants (v1.2 gap closure)
+- [x] **Phase 38: Dark Mode Gap Closure** - Migrate 323 hardcoded colors, settings toggle, DataTable/modal dark variants (v1.2 gap closure)
 - [ ] **Phase 39: Frontend Test Repair** - Fix 56 case-detail test failures from Phase 25.1 refactor (v1.2 gap closure)
 
 ## Phase Details
