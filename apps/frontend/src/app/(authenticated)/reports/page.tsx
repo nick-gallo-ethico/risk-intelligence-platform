@@ -100,11 +100,15 @@ const VISUALIZATION_ICONS: Record<string, React.ElementType> = {
  * Template category colors.
  */
 const CATEGORY_COLORS: Record<string, string> = {
-  compliance: "bg-blue-100 text-blue-700",
-  operational: "bg-green-100 text-green-700",
-  executive: "bg-purple-100 text-purple-700",
-  investigative: "bg-amber-100 text-amber-700",
-  default: "bg-gray-100 text-gray-700",
+  compliance:
+    "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300",
+  operational:
+    "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300",
+  executive:
+    "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300",
+  investigative:
+    "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300",
+  default: "bg-muted text-muted-foreground",
 };
 
 // =========================================================================

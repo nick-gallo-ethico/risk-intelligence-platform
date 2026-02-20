@@ -316,7 +316,7 @@ function SearchPageContent() {
                 label: group.entityType,
                 pluralLabel: group.entityType,
                 icon: FileText,
-                color: "bg-gray-100 text-gray-800",
+                color: "bg-muted text-muted-foreground",
                 basePath: `/${group.entityType}`,
               };
               const Icon = config.icon;
