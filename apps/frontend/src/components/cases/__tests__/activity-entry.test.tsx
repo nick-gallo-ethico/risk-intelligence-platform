@@ -1,7 +1,7 @@
-import { describe, it, expect } from 'vitest';
-import { render, screen } from '@testing-library/react';
-import { ActivityEntry } from '../activity-entry';
-import type { Activity } from '@/types/activity';
+import { describe, it, expect } from "vitest";
+import { render, screen } from "@testing-library/react";
+import { ActivityEntry } from "../activity-entry";
+import type { Activity } from "@/types/activity";
 
 // Helper to create dates relative to now
 const getRecentDate = (hoursAgo: number) => {
@@ -16,175 +16,192 @@ const getDateDaysAgo = (daysAgo: number) => {
   return date.toISOString();
 };
 
-describe('ActivityEntry', () => {
+describe("ActivityEntry", () => {
   const baseActivity: Activity = {
-    id: 'activity-1',
-    entityType: 'CASE',
-    entityId: 'case-123',
-    action: 'created',
-    actionDescription: 'John Doe created the case',
+    id: "activity-1",
+    entityType: "CASE",
+    entityId: "case-123",
+    action: "created",
+    actionDescription: "John Doe created the case",
     changes: null,
-    actorUserId: 'user-123',
-    actorType: 'USER',
-    actorName: 'John Doe',
+    actorUserId: "user-123",
+    actorType: "USER",
+    actorName: "John Doe",
     createdAt: getRecentDate(2),
   };
 
-  it('renders activity entry with description', () => {
+  it("renders activity entry with description", () => {
     render(<ActivityEntry activity={baseActivity} />);
 
-    expect(screen.getByTestId('activity-entry')).toBeInTheDocument();
-    expect(screen.getByTestId('activity-description')).toHaveTextContent(
-      'John Doe created the case'
+    expect(screen.getByTestId("activity-entry")).toBeInTheDocument();
+    expect(screen.getByTestId("activity-description")).toHaveTextContent(
+      "John Doe created the case",
     );
   });
 
-  it('displays actor name', () => {
+  it("displays actor name", () => {
     render(<ActivityEntry activity={baseActivity} />);
 
-    expect(screen.getByText('John Doe')).toBeInTheDocument();
+    expect(screen.getByText("John Doe")).toBeInTheDocument();
   });
 
-  it('displays System when no actor name', () => {
+  it("displays System when no actor name", () => {
     const activityWithoutActor = { ...baseActivity, actorName: null };
     render(<ActivityEntry activity={activityWithoutActor} />);
 
-    expect(screen.getByText('System')).toBeInTheDocument();
+    expect(screen.getByText("System")).toBeInTheDocument();
   });
 
-  it('displays relative timestamp', () => {
+  it("displays relative timestamp", () => {
     render(<ActivityEntry activity={baseActivity} />);
 
-    const timestamp = screen.getByTestId('activity-timestamp');
+    const timestamp = screen.getByTestId("activity-timestamp");
     expect(timestamp).toHaveTextContent(/hours? ago/);
   });
 
-  it('displays correct icon for created action', () => {
+  it("displays correct icon for created action", () => {
     render(<ActivityEntry activity={baseActivity} />);
 
-    const iconContainer = screen.getByTestId('activity-entry').querySelector('.rounded-full');
-    expect(iconContainer).toHaveClass('bg-green-100');
+    const iconContainer = screen
+      .getByTestId("activity-entry")
+      .querySelector(".rounded-full");
+    expect(iconContainer).toHaveClass("bg-green-100");
   });
 
-  it('displays correct icon for status_changed action', () => {
-    const statusActivity = { ...baseActivity, action: 'status_changed' as const };
+  it("displays correct icon for status_changed action", () => {
+    const statusActivity = {
+      ...baseActivity,
+      action: "status_changed" as const,
+    };
     render(<ActivityEntry activity={statusActivity} />);
 
-    const iconContainer = screen.getByTestId('activity-entry').querySelector('.rounded-full');
-    expect(iconContainer).toHaveClass('bg-purple-100');
+    const iconContainer = screen
+      .getByTestId("activity-entry")
+      .querySelector(".rounded-full");
+    expect(iconContainer).toHaveClass("bg-purple-100");
   });
 
-  it('displays correct icon for assigned action', () => {
-    const assignedActivity = { ...baseActivity, action: 'assigned' as const };
+  it("displays correct icon for assigned action", () => {
+    const assignedActivity = { ...baseActivity, action: "assigned" as const };
     render(<ActivityEntry activity={assignedActivity} />);
 
-    const iconContainer = screen.getByTestId('activity-entry').querySelector('.rounded-full');
-    expect(iconContainer).toHaveClass('bg-indigo-100');
+    const iconContainer = screen
+      .getByTestId("activity-entry")
+      .querySelector(".rounded-full");
+    expect(iconContainer).toHaveClass("bg-indigo-100");
   });
 
-  it('displays correct icon for commented action', () => {
-    const commentActivity = { ...baseActivity, action: 'commented' as const };
+  it("displays correct icon for commented action", () => {
+    const commentActivity = { ...baseActivity, action: "commented" as const };
     render(<ActivityEntry activity={commentActivity} />);
 
-    const iconContainer = screen.getByTestId('activity-entry').querySelector('.rounded-full');
-    expect(iconContainer).toHaveClass('bg-teal-100');
+    const iconContainer = screen
+      .getByTestId("activity-entry")
+      .querySelector(".rounded-full");
+    expect(iconContainer).toHaveClass("bg-teal-100");
   });
 
-  it('displays correct icon for file_uploaded action', () => {
-    const fileActivity = { ...baseActivity, action: 'file_uploaded' as const };
+  it("displays correct icon for file_uploaded action", () => {
+    const fileActivity = { ...baseActivity, action: "file_uploaded" as const };
     render(<ActivityEntry activity={fileActivity} />);
 
-    const iconContainer = screen.getByTestId('activity-entry').querySelector('.rounded-full');
-    expect(iconContainer).toHaveClass('bg-amber-100');
+    const iconContainer = screen
+      .getByTestId("activity-entry")
+      .querySelector(".rounded-full");
+    expect(iconContainer).toHaveClass("bg-amber-100");
   });
 
-  it('shows timeline connector when not last item', () => {
+  it("shows timeline connector when not last item", () => {
     render(<ActivityEntry activity={baseActivity} isLast={false} />);
 
-    const connector = screen.getByTestId('activity-entry').querySelector('.w-px.bg-gray-200');
+    const connector = screen
+      .getByTestId("activity-entry")
+      .querySelector(".w-px.bg-border");
     expect(connector).toBeInTheDocument();
   });
 
-  it('hides timeline connector when last item', () => {
+  it("hides timeline connector when last item", () => {
     render(<ActivityEntry activity={baseActivity} isLast={true} />);
 
-    const connectors = screen.getByTestId('activity-entry').querySelectorAll('.w-px.bg-gray-200');
+    const connectors = screen
+      .getByTestId("activity-entry")
+      .querySelectorAll(".w-px.bg-border");
     expect(connectors.length).toBe(0);
   });
 
-  it('displays changes when available', () => {
+  it("displays changes when available", () => {
     const activityWithChanges: Activity = {
       ...baseActivity,
-      action: 'status_changed',
-      actionDescription: 'John Doe changed status from NEW to OPEN',
+      action: "status_changed",
+      actionDescription: "John Doe changed status from NEW to OPEN",
       changes: {
-        status: { old: 'NEW', new: 'OPEN' },
+        status: { old: "NEW", new: "OPEN" },
       },
     };
 
     render(<ActivityEntry activity={activityWithChanges} />);
 
-    expect(screen.getByText('status:')).toBeInTheDocument();
-    expect(screen.getByText('NEW')).toBeInTheDocument();
-    expect(screen.getByText('OPEN')).toBeInTheDocument();
+    expect(screen.getByText("status:")).toBeInTheDocument();
+    expect(screen.getByText("NEW")).toBeInTheDocument();
+    expect(screen.getByText("OPEN")).toBeInTheDocument();
   });
 
-  it('formats field names correctly', () => {
+  it("formats field names correctly", () => {
     const activityWithChanges: Activity = {
       ...baseActivity,
-      action: 'updated',
+      action: "updated",
       changes: {
-        assigned_to_id: { old: null, new: 'user-456' },
+        assigned_to_id: { old: null, new: "user-456" },
       },
     };
 
     render(<ActivityEntry activity={activityWithChanges} />);
 
-    expect(screen.getByText('assigned to id:')).toBeInTheDocument();
+    expect(screen.getByText("assigned to id:")).toBeInTheDocument();
   });
 
-  it('displays none for null values in changes', () => {
+  it("displays none for null values in changes", () => {
     const activityWithChanges: Activity = {
       ...baseActivity,
-      action: 'assigned',
+      action: "assigned",
       changes: {
-        assignee: { old: null, new: 'Sarah' },
+        assignee: { old: null, new: "Sarah" },
       },
     };
 
     render(<ActivityEntry activity={activityWithChanges} />);
 
-    expect(screen.getByText('none')).toBeInTheDocument();
-    expect(screen.getByText('Sarah')).toBeInTheDocument();
+    expect(screen.getByText("none")).toBeInTheDocument();
+    expect(screen.getByText("Sarah")).toBeInTheDocument();
   });
 
-  it('has correct datetime attribute for accessibility', () => {
+  it("has correct datetime attribute for accessibility", () => {
     render(<ActivityEntry activity={baseActivity} />);
 
-    const timestamp = screen.getByTestId('activity-timestamp');
-    expect(timestamp).toHaveAttribute('dateTime', baseActivity.createdAt);
+    const timestamp = screen.getByTestId("activity-timestamp");
+    expect(timestamp).toHaveAttribute("dateTime", baseActivity.createdAt);
   });
 });
 
-describe('ActivityEntry relative timestamps', () => {
+describe("ActivityEntry relative timestamps", () => {
   const createActivity = (createdAt: string): Activity => ({
-    id: 'activity-1',
-    entityType: 'CASE',
-    entityId: 'case-123',
-    action: 'created',
-    actionDescription: 'Activity description',
+    id: "activity-1",
+    entityType: "CASE",
+    entityId: "case-123",
+    action: "created",
+    actionDescription: "Activity description",
     changes: null,
-    actorUserId: 'user-123',
-    actorType: 'USER',
-    actorName: 'Test User',
+    actorUserId: "user-123",
+    actorType: "USER",
+    actorName: "Test User",
     createdAt,
   });
 
-  it('shows time-relative text for recent activity', () => {
+  it("shows time-relative text for recent activity", () => {
     const activity = createActivity(getRecentDate(0));
     render(<ActivityEntry activity={activity} />);
 
-    const timestamp = screen.getByTestId('activity-timestamp');
+    const timestamp = screen.getByTestId("activity-timestamp");
     // Could be "Just now" or "X minutes ago" depending on exact timing
     expect(timestamp.textContent).toMatch(/Just now|minutes? ago/i);
   });
@@ -193,27 +210,35 @@ describe('ActivityEntry relative timestamps', () => {
     const activity = createActivity(getRecentDate(3));
     render(<ActivityEntry activity={activity} />);
 
-    expect(screen.getByTestId('activity-timestamp')).toHaveTextContent('3 hours ago');
+    expect(screen.getByTestId("activity-timestamp")).toHaveTextContent(
+      "3 hours ago",
+    );
   });
 
   it('shows "Yesterday" for activity from yesterday', () => {
     const activity = createActivity(getDateDaysAgo(1));
     render(<ActivityEntry activity={activity} />);
 
-    expect(screen.getByTestId('activity-timestamp')).toHaveTextContent('Yesterday');
+    expect(screen.getByTestId("activity-timestamp")).toHaveTextContent(
+      "Yesterday",
+    );
   });
 
   it('shows "X days ago" for activity within a week', () => {
     const activity = createActivity(getDateDaysAgo(3));
     render(<ActivityEntry activity={activity} />);
 
-    expect(screen.getByTestId('activity-timestamp')).toHaveTextContent('3 days ago');
+    expect(screen.getByTestId("activity-timestamp")).toHaveTextContent(
+      "3 days ago",
+    );
   });
 
   it('shows "X weeks ago" for older activity', () => {
     const activity = createActivity(getDateDaysAgo(14));
     render(<ActivityEntry activity={activity} />);
 
-    expect(screen.getByTestId('activity-timestamp')).toHaveTextContent('2 weeks ago');
+    expect(screen.getByTestId("activity-timestamp")).toHaveTextContent(
+      "2 weeks ago",
+    );
   });
 });

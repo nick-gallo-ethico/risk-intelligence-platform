@@ -1,60 +1,66 @@
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
-import { ActivityFilters } from '../activity-filters';
-import type { ActivityFilterType } from '@/types/activity';
+import { describe, it, expect, vi } from "vitest";
+import { render, screen, fireEvent } from "@testing-library/react";
+import { ActivityFilters } from "../activity-filters";
+import type { ActivityFilterType } from "@/types/activity";
 
-describe('ActivityFilters', () => {
+describe("ActivityFilters", () => {
   const defaultProps = {
-    activeFilter: 'all' as ActivityFilterType,
+    activeFilter: "all" as ActivityFilterType,
     onFilterChange: vi.fn(),
   };
 
-  it('renders all filter tabs', () => {
+  it("renders all filter tabs", () => {
     render(<ActivityFilters {...defaultProps} />);
 
-    expect(screen.getByRole('tab', { name: /all/i })).toBeInTheDocument();
-    expect(screen.getByRole('tab', { name: /notes/i })).toBeInTheDocument();
-    expect(screen.getByRole('tab', { name: /status changes/i })).toBeInTheDocument();
-    expect(screen.getByRole('tab', { name: /files/i })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: /all/i })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: /notes/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("tab", { name: /status changes/i }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: /files/i })).toBeInTheDocument();
   });
 
-  it('marks active filter as selected', () => {
+  it("marks active filter as selected", () => {
     render(<ActivityFilters {...defaultProps} activeFilter="notes" />);
 
-    const notesTab = screen.getByRole('tab', { name: /notes/i });
-    expect(notesTab).toHaveAttribute('aria-selected', 'true');
+    const notesTab = screen.getByRole("tab", { name: /notes/i });
+    expect(notesTab).toHaveAttribute("aria-selected", "true");
 
-    const allTab = screen.getByRole('tab', { name: /all/i });
-    expect(allTab).toHaveAttribute('aria-selected', 'false');
+    const allTab = screen.getByRole("tab", { name: /all/i });
+    expect(allTab).toHaveAttribute("aria-selected", "false");
   });
 
-  it('calls onFilterChange when tab is clicked', () => {
+  it("calls onFilterChange when tab is clicked", () => {
     const onFilterChange = vi.fn();
-    render(<ActivityFilters {...defaultProps} onFilterChange={onFilterChange} />);
+    render(
+      <ActivityFilters {...defaultProps} onFilterChange={onFilterChange} />,
+    );
 
-    fireEvent.click(screen.getByRole('tab', { name: /status changes/i }));
+    fireEvent.click(screen.getByRole("tab", { name: /status changes/i }));
 
-    expect(onFilterChange).toHaveBeenCalledWith('status');
+    expect(onFilterChange).toHaveBeenCalledWith("status");
   });
 
-  it('calls onFilterChange with correct filter value for each tab', () => {
+  it("calls onFilterChange with correct filter value for each tab", () => {
     const onFilterChange = vi.fn();
-    render(<ActivityFilters {...defaultProps} onFilterChange={onFilterChange} />);
+    render(
+      <ActivityFilters {...defaultProps} onFilterChange={onFilterChange} />,
+    );
 
-    fireEvent.click(screen.getByRole('tab', { name: /all/i }));
-    expect(onFilterChange).toHaveBeenCalledWith('all');
+    fireEvent.click(screen.getByRole("tab", { name: /all/i }));
+    expect(onFilterChange).toHaveBeenCalledWith("all");
 
-    fireEvent.click(screen.getByRole('tab', { name: /notes/i }));
-    expect(onFilterChange).toHaveBeenCalledWith('notes');
+    fireEvent.click(screen.getByRole("tab", { name: /notes/i }));
+    expect(onFilterChange).toHaveBeenCalledWith("notes");
 
-    fireEvent.click(screen.getByRole('tab', { name: /status changes/i }));
-    expect(onFilterChange).toHaveBeenCalledWith('status');
+    fireEvent.click(screen.getByRole("tab", { name: /status changes/i }));
+    expect(onFilterChange).toHaveBeenCalledWith("status");
 
-    fireEvent.click(screen.getByRole('tab', { name: /files/i }));
-    expect(onFilterChange).toHaveBeenCalledWith('files');
+    fireEvent.click(screen.getByRole("tab", { name: /files/i }));
+    expect(onFilterChange).toHaveBeenCalledWith("files");
   });
 
-  it('displays count badges when counts are provided', () => {
+  it("displays count badges when counts are provided", () => {
     const counts = {
       all: 10,
       notes: 3,
@@ -64,13 +70,13 @@ describe('ActivityFilters', () => {
 
     render(<ActivityFilters {...defaultProps} counts={counts} />);
 
-    expect(screen.getByText('10')).toBeInTheDocument();
-    expect(screen.getByText('3')).toBeInTheDocument();
-    expect(screen.getByText('5')).toBeInTheDocument();
-    expect(screen.getByText('2')).toBeInTheDocument();
+    expect(screen.getByText("10")).toBeInTheDocument();
+    expect(screen.getByText("3")).toBeInTheDocument();
+    expect(screen.getByText("5")).toBeInTheDocument();
+    expect(screen.getByText("2")).toBeInTheDocument();
   });
 
-  it('does not display count badges when counts are zero', () => {
+  it("does not display count badges when counts are zero", () => {
     const counts = {
       all: 5,
       notes: 0,
@@ -80,70 +86,74 @@ describe('ActivityFilters', () => {
 
     render(<ActivityFilters {...defaultProps} counts={counts} />);
 
-    expect(screen.getByText('5')).toBeInTheDocument();
+    expect(screen.getByText("5")).toBeInTheDocument();
     // Zero counts should not be displayed
-    expect(screen.queryAllByText('0')).toHaveLength(0);
+    expect(screen.queryAllByText("0")).toHaveLength(0);
   });
 
-  it('does not display count badges when counts are not provided', () => {
+  it("does not display count badges when counts are not provided", () => {
     render(<ActivityFilters {...defaultProps} />);
 
     // Should only have the filter labels, no count badges
-    const tabs = screen.getAllByRole('tab');
+    const tabs = screen.getAllByRole("tab");
     tabs.forEach((tab) => {
       // Count badges would be inside spans - none should exist
-      const badges = tab.querySelectorAll('.rounded-full');
+      const badges = tab.querySelectorAll(".rounded-full");
       expect(badges.length).toBe(0);
     });
   });
 
-  it('applies active styling to selected tab', () => {
+  it("applies active styling to selected tab", () => {
     render(<ActivityFilters {...defaultProps} activeFilter="all" />);
 
-    const activeTab = screen.getByRole('tab', { name: /all/i });
-    expect(activeTab).toHaveClass('border-blue-500');
-    expect(activeTab).toHaveClass('text-blue-600');
+    const activeTab = screen.getByRole("tab", { name: /all/i });
+    expect(activeTab).toHaveClass("border-blue-500");
+    expect(activeTab).toHaveClass("text-blue-600");
   });
 
-  it('applies inactive styling to non-selected tabs', () => {
+  it("applies inactive styling to non-selected tabs", () => {
     render(<ActivityFilters {...defaultProps} activeFilter="all" />);
 
-    const inactiveTab = screen.getByRole('tab', { name: /notes/i });
-    expect(inactiveTab).toHaveClass('border-transparent');
-    expect(inactiveTab).toHaveClass('text-gray-500');
+    const inactiveTab = screen.getByRole("tab", { name: /notes/i });
+    expect(inactiveTab).toHaveClass("border-transparent");
+    expect(inactiveTab).toHaveClass("text-muted-foreground");
   });
 
-  it('has correct aria-controls attribute', () => {
+  it("has correct aria-controls attribute", () => {
     render(<ActivityFilters {...defaultProps} />);
 
-    const allTab = screen.getByRole('tab', { name: /all/i });
-    expect(allTab).toHaveAttribute('aria-controls', 'activity-panel-all');
+    const allTab = screen.getByRole("tab", { name: /all/i });
+    expect(allTab).toHaveAttribute("aria-controls", "activity-panel-all");
 
-    const notesTab = screen.getByRole('tab', { name: /notes/i });
-    expect(notesTab).toHaveAttribute('aria-controls', 'activity-panel-notes');
+    const notesTab = screen.getByRole("tab", { name: /notes/i });
+    expect(notesTab).toHaveAttribute("aria-controls", "activity-panel-notes");
   });
 
-  it('has tablist role on container', () => {
+  it("has tablist role on container", () => {
     render(<ActivityFilters {...defaultProps} />);
 
-    expect(screen.getByRole('tablist')).toBeInTheDocument();
+    expect(screen.getByRole("tablist")).toBeInTheDocument();
   });
 
-  it('applies active count badge styling', () => {
+  it("applies active count badge styling", () => {
     const counts = { all: 10, notes: 0, status: 0, files: 0 };
-    render(<ActivityFilters {...defaultProps} activeFilter="all" counts={counts} />);
+    render(
+      <ActivityFilters {...defaultProps} activeFilter="all" counts={counts} />,
+    );
 
-    const countBadge = screen.getByText('10');
-    expect(countBadge).toHaveClass('bg-blue-100');
-    expect(countBadge).toHaveClass('text-blue-600');
+    const countBadge = screen.getByText("10");
+    expect(countBadge).toHaveClass("bg-blue-100");
+    expect(countBadge).toHaveClass("text-blue-600");
   });
 
-  it('applies inactive count badge styling', () => {
+  it("applies inactive count badge styling", () => {
     const counts = { all: 10, notes: 5, status: 0, files: 0 };
-    render(<ActivityFilters {...defaultProps} activeFilter="all" counts={counts} />);
+    render(
+      <ActivityFilters {...defaultProps} activeFilter="all" counts={counts} />,
+    );
 
-    const inactiveCountBadge = screen.getByText('5');
-    expect(inactiveCountBadge).toHaveClass('bg-gray-100');
-    expect(inactiveCountBadge).toHaveClass('text-gray-600');
+    const inactiveCountBadge = screen.getByText("5");
+    expect(inactiveCountBadge).toHaveClass("bg-muted");
+    expect(inactiveCountBadge).toHaveClass("text-muted-foreground");
   });
 });
