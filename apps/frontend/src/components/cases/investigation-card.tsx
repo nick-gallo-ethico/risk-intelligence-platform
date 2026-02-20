@@ -21,8 +21,8 @@ interface InvestigationCardProps {
 const STATUS_COLORS: Record<InvestigationStatus, { bg: string; text: string }> =
   {
     NEW: {
-      bg: "bg-gray-100 dark:bg-gray-800",
-      text: "text-gray-700 dark:text-gray-300",
+      bg: "bg-muted",
+      text: "text-muted-foreground",
     },
     ASSIGNED: {
       bg: "bg-blue-100 dark:bg-blue-900/30",

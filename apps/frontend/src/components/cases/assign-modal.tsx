@@ -151,13 +151,13 @@ export function AssignModal({
         <div className="py-4">
           {isLoading ? (
             <div className="flex items-center justify-center py-8">
-              <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
-              <span className="ml-2 text-sm text-gray-500">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+              <span className="ml-2 text-sm text-muted-foreground">
                 Loading users...
               </span>
             </div>
           ) : users.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
+            <div className="text-center py-8 text-muted-foreground">
               No investigators available
             </div>
           ) : (
@@ -171,8 +171,8 @@ export function AssignModal({
                     key={user.id}
                     className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${
                       isSelected
-                        ? "border-blue-500 bg-blue-50"
-                        : "border-gray-200 hover:bg-gray-50"
+                        ? "border-blue-500 bg-blue-50 dark:bg-blue-900/30"
+                        : "border-border hover:bg-muted"
                     }`}
                     onClick={() => handleToggleUser(user.id, !isSelected)}
                   >
@@ -198,12 +198,12 @@ export function AssignModal({
                           {user.firstName} {user.lastName}
                         </Label>
                         {wasAlreadyAssigned && (
-                          <span className="text-xs text-blue-600 bg-blue-100 px-1.5 py-0.5 rounded">
+                          <span className="text-xs text-blue-600 bg-blue-100 dark:bg-blue-900/30 dark:text-blue-300 px-1.5 py-0.5 rounded">
                             Current
                           </span>
                         )}
                       </div>
-                      <div className="text-xs text-gray-500">
+                      <div className="text-xs text-muted-foreground">
                         {getRoleLabel(user.role)}
                       </div>
                     </div>

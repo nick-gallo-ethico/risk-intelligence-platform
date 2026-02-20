@@ -111,7 +111,7 @@ export function AddNoteModal({
               autoFocus
             />
             {note.length > 0 && !isValidNote && (
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-muted-foreground">
                 {5 - note.trim().length} more characters required
               </p>
             )}

@@ -110,7 +110,7 @@ export function StatusChangeModal({
         <div className="grid gap-4 py-4">
           {/* Current Status Display */}
           <div className="grid gap-2">
-            <Label className="text-gray-500">Current Status</Label>
+            <Label className="text-muted-foreground">Current Status</Label>
             <div className="text-sm font-medium">
               {getStatusLabel(currentStatus)}
             </div>
@@ -164,7 +164,7 @@ export function StatusChangeModal({
               rows={3}
             />
             {rationale.length > 0 && !isValidRationale && (
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-muted-foreground">
                 {10 - rationale.trim().length} more characters required
               </p>
             )}

@@ -167,7 +167,7 @@ export function LogInterviewModal({
             />
             {intervieweeName.length > 0 &&
               intervieweeName.trim().length < 2 && (
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-muted-foreground">
                   Name must be at least 2 characters
                 </p>
               )}

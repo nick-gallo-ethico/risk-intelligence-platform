@@ -151,13 +151,13 @@ export function MergeModal({
   const getStatusColor = (status: CaseStatus) => {
     switch (status) {
       case "NEW":
-        return "bg-blue-100 text-blue-800";
+        return "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300";
       case "OPEN":
-        return "bg-green-100 text-green-800";
+        return "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300";
       case "CLOSED":
-        return "bg-gray-100 text-gray-800";
+        return "bg-muted text-muted-foreground";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-muted text-muted-foreground";
     }
   };
 
@@ -179,7 +179,7 @@ export function MergeModal({
           <div className="py-4">
             {/* Search Input */}
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search by case reference number or keyword..."
                 value={searchQuery}
@@ -193,24 +193,24 @@ export function MergeModal({
             <div className="mt-4 space-y-2 max-h-[300px] overflow-y-auto">
               {isSearching ? (
                 <div className="flex items-center justify-center py-8">
-                  <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
-                  <span className="ml-2 text-sm text-gray-500">
+                  <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+                  <span className="ml-2 text-sm text-muted-foreground">
                     Searching...
                   </span>
                 </div>
               ) : searchQuery.length < 2 ? (
-                <div className="text-center py-8 text-sm text-gray-500">
+                <div className="text-center py-8 text-sm text-muted-foreground">
                   Type at least 2 characters to search
                 </div>
               ) : searchResults.length === 0 ? (
-                <div className="text-center py-8 text-sm text-gray-500">
+                <div className="text-center py-8 text-sm text-muted-foreground">
                   No matching cases found
                 </div>
               ) : (
                 searchResults.map((c) => (
                   <div
                     key={c.id}
-                    className="p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
+                    className="p-3 border border-border rounded-lg cursor-pointer hover:bg-muted transition-colors"
                     onClick={() => handleSelectCase(c)}
                   >
                     <div className="flex items-center justify-between">
@@ -222,10 +222,10 @@ export function MergeModal({
                           {c.status}
                         </Badge>
                       </div>
-                      <ArrowRight className="h-4 w-4 text-gray-400" />
+                      <ArrowRight className="h-4 w-4 text-muted-foreground" />
                     </div>
                     {c.summary && (
-                      <p className="mt-1 text-sm text-gray-600 line-clamp-2">
+                      <p className="mt-1 text-sm text-muted-foreground line-clamp-2">
                         {c.summary}
                       </p>
                     )}
@@ -239,19 +239,19 @@ export function MergeModal({
         ) : (
           <div className="py-4 space-y-4">
             {/* Merge Preview */}
-            <div className="flex items-center justify-center gap-3 p-4 bg-gray-50 rounded-lg">
+            <div className="flex items-center justify-center gap-3 p-4 bg-muted rounded-lg">
               <div className="text-center">
                 <div className="font-medium text-sm">{caseReferenceNumber}</div>
-                <div className="text-xs text-gray-500">
+                <div className="text-xs text-muted-foreground">
                   Source (will be merged)
                 </div>
               </div>
-              <ArrowRight className="h-5 w-5 text-gray-400 flex-shrink-0" />
+              <ArrowRight className="h-5 w-5 text-muted-foreground flex-shrink-0" />
               <div className="text-center">
                 <div className="font-medium text-sm">
                   {selectedCase?.referenceNumber}
                 </div>
-                <div className="text-xs text-gray-500">
+                <div className="text-xs text-muted-foreground">
                   Target (will remain)
                 </div>
               </div>
@@ -280,7 +280,7 @@ export function MergeModal({
                 rows={3}
               />
               {reason.length > 0 && !isValidReason && (
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-muted-foreground">
                   {10 - reason.trim().length} more characters required
                 </p>
               )}

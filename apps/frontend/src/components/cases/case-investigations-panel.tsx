@@ -81,7 +81,7 @@ function getStatusColor(status: string) {
     case "new":
       return "bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800";
     default:
-      return "bg-gray-100 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700";
+      return "bg-muted text-muted-foreground border-border";
   }
 }
 
@@ -142,7 +142,7 @@ function ExpandableInvestigationCard({
                           ? "bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-300 dark:border-red-800"
                           : investigation.slaStatus === "WARNING"
                             ? "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/20 dark:text-amber-300 dark:border-amber-800"
-                            : "bg-gray-50 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700",
+                            : "bg-muted text-muted-foreground border-border",
                       )}
                     >
                       {investigation.slaStatus.replace("_", " ")}

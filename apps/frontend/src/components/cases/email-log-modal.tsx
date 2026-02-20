@@ -194,7 +194,7 @@ export function EmailLogModal({
               rows={3}
             />
             {summary.length > 0 && summary.trim().length < 5 && (
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-muted-foreground">
                 {5 - summary.trim().length} more characters required
               </p>
             )}

@@ -219,7 +219,7 @@ export function AttachDocumentModal({
               onChange={(e) => setTitle(e.target.value)}
             />
             {title.length > 0 && title.trim().length < 2 && (
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-muted-foreground">
                 Title must be at least 2 characters
               </p>
             )}

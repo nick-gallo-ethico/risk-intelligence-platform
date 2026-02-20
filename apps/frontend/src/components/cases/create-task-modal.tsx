@@ -214,7 +214,7 @@ export function CreateTaskModal({
               autoFocus
             />
             {title.length > 0 && title.trim().length < 3 && (
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-muted-foreground">
                 Title must be at least 3 characters
               </p>
             )}
