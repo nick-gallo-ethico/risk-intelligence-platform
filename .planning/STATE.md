@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-15)
 ## Current Position
 
 Phase: 38 of v1.2 (Dark Mode Gap Closure)
-Plan: 11 of 13 complete (38-01 through 38-11)
+Plan: 12 of 13 complete (38-01 through 38-12)
 Status: In progress
-Last activity: 2026-02-20 - Completed 38-11-PLAN.md (page files migrated to semantic tokens)
+Last activity: 2026-02-20 - Completed 38-12-PLAN.md (case test files updated to semantic tokens)
 
-Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10 plans), Phase 34 COMPLETE (5/5 plans), Phase 35 COMPLETE (6/6 plans), Phase 36 COMPLETE (13/13 plans), Phase 25.1 COMPLETE (10/10 plans), Phase 22 COMPLETE (15/15 plans), Phase 23 COMPLETE (5/5 plans), Phase 37 COMPLETE (1/1 plans), Phase 38 IN PROGRESS (11/13 plans).
+Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10 plans), Phase 34 COMPLETE (5/5 plans), Phase 35 COMPLETE (6/6 plans), Phase 36 COMPLETE (13/13 plans), Phase 25.1 COMPLETE (10/10 plans), Phase 22 COMPLETE (15/15 plans), Phase 23 COMPLETE (5/5 plans), Phase 37 COMPLETE (1/1 plans), Phase 38 IN PROGRESS (12/13 plans).
 
 ## Shipped Milestones
 
@@ -252,6 +252,14 @@ Progress: v1.0 + v1.1 complete. v1.2 Phase 32 COMPLETE, Phase 33 COMPLETE (10/10
 - 38-11: Skeleton backgrounds use bg-muted for proper dark mode visibility
 - 38-11: Info banner pattern: bg-blue-50 dark:bg-blue-900/20 with matching text colors
 - 38-11: Permission badge pattern: full/read/limited get explicit dark: variants, none gets semantic
+- 38-12: className.toContain() pattern for Tailwind classes with special characters like /50
+- 38-12: bg-gray-200 timeline connector -> bg-border (semantic)
+- 38-12: text-gray-500 inactive tabs -> text-muted-foreground (semantic)
+- 38-12: bg-gray-100/text-gray-600 inactive badges -> bg-muted/text-muted-foreground (semantic)
+- 38-12: bg-gray-50 action bar -> bg-muted/50 (semantic with opacity)
+- 38-12: bg-white skeleton container -> bg-card (semantic)
+- 38-12: bg-gray-100 NEW status badge -> bg-muted (semantic)
+- 38-12: hover:bg-gray-50 header hover -> hover:bg-muted/50 (semantic with opacity)
 
 ### Blockers
 
@@ -260,6 +268,6 @@ None currently.
 ## Session Continuity
 
 Last session: 2026-02-20
-Stopped at: Completed 38-11-PLAN.md (page files migrated)
+Stopped at: Completed 38-12-PLAN.md (case test files updated)
 Resume file: None
-Next action: Execute 38-12-PLAN.md and 38-13-PLAN.md to complete Phase 38
+Next action: Execute 38-13-PLAN.md to complete Phase 38
