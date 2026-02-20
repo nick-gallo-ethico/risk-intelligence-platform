@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
+import { useState } from "react";
 import {
   MoreHorizontal,
   Pencil,
@@ -8,10 +8,10 @@ import {
   UserCheck,
   Mail,
   KeyRound,
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Table,
   TableBody,
@@ -19,14 +19,14 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
+} from "@/components/ui/table";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+} from "@/components/ui/dropdown-menu";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -36,15 +36,15 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+} from "@/components/ui/alert-dialog";
 import {
   ROLE_LABELS,
   ROLE_COLORS,
   STATUS_LABELS,
   STATUS_COLORS,
   type UserStatus,
-} from '@/types/user';
-import type { User } from '@/types/user';
+} from "@/types/user";
+import type { User } from "@/types/user";
 
 /**
  * Get initials from a name for avatar fallback
@@ -57,7 +57,7 @@ function getInitials(firstName: string, lastName: string): string {
  * Format a date as relative time or absolute
  */
 function formatLastLogin(dateString: string | null | undefined): string {
-  if (!dateString) return 'Never';
+  if (!dateString) return "Never";
 
   const date = new Date(dateString);
   const now = new Date();
@@ -68,18 +68,18 @@ function formatLastLogin(dateString: string | null | undefined): string {
     const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
     if (diffHours === 0) {
       const diffMinutes = Math.floor(diffMs / (1000 * 60));
-      return diffMinutes <= 1 ? 'Just now' : `${diffMinutes} minutes ago`;
+      return diffMinutes <= 1 ? "Just now" : `${diffMinutes} minutes ago`;
     }
-    return diffHours === 1 ? '1 hour ago' : `${diffHours} hours ago`;
+    return diffHours === 1 ? "1 hour ago" : `${diffHours} hours ago`;
   } else if (diffDays === 1) {
-    return 'Yesterday';
+    return "Yesterday";
   } else if (diffDays < 7) {
     return `${diffDays} days ago`;
   } else {
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined,
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: date.getFullYear() !== now.getFullYear() ? "numeric" : undefined,
     });
   }
 }
@@ -90,9 +90,9 @@ function formatLastLogin(dateString: string | null | undefined): string {
 function getUserStatus(user: User): UserStatus {
   if (user.status) return user.status;
   // Fallback derivation for backwards compatibility
-  if (!user.isActive) return 'INACTIVE';
-  if (!user.lastLoginAt) return 'PENDING_INVITE';
-  return 'ACTIVE';
+  if (!user.isActive) return "INACTIVE";
+  if (!user.lastLoginAt) return "PENDING_INVITE";
+  return "ACTIVE";
 }
 
 interface UserListProps {
@@ -136,9 +136,9 @@ export function UserList({
 }: UserListProps) {
   const [confirmDialog, setConfirmDialog] = useState<{
     open: boolean;
-    type: 'deactivate' | 'reactivate' | 'resend' | 'mfa';
+    type: "deactivate" | "reactivate" | "resend" | "mfa";
     user: User | null;
-  }>({ open: false, type: 'deactivate', user: null });
+  }>({ open: false, type: "deactivate", user: null });
 
   const totalPages = Math.ceil(total / pageSize);
 
@@ -146,21 +146,21 @@ export function UserList({
     if (!confirmDialog.user) return;
 
     switch (confirmDialog.type) {
-      case 'deactivate':
+      case "deactivate":
         onDeactivate(confirmDialog.user);
         break;
-      case 'reactivate':
+      case "reactivate":
         onReactivate(confirmDialog.user);
         break;
-      case 'resend':
+      case "resend":
         onResendInvite(confirmDialog.user);
         break;
-      case 'mfa':
+      case "mfa":
         onResetMfa(confirmDialog.user);
         break;
     }
 
-    setConfirmDialog({ open: false, type: 'deactivate', user: null });
+    setConfirmDialog({ open: false, type: "deactivate", user: null });
   };
 
   if (users.length === 0 && !isLoading) {
@@ -220,16 +220,16 @@ export function UserList({
                   <TableCell>
                     <Badge
                       variant="outline"
-                      className={ROLE_COLORS[user.role] || 'bg-gray-100'}
+                      className={
+                        ROLE_COLORS[user.role] ||
+                        "bg-muted text-muted-foreground"
+                      }
                     >
                       {ROLE_LABELS[user.role] || user.role}
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    <Badge
-                      variant="outline"
-                      className={STATUS_COLORS[status]}
-                    >
+                    <Badge variant="outline" className={STATUS_COLORS[status]}>
                       {STATUS_LABELS[status]}
                     </Badge>
                   </TableCell>
@@ -250,12 +250,12 @@ export function UserList({
                           Edit
                         </DropdownMenuItem>
 
-                        {status === 'PENDING_INVITE' && (
+                        {status === "PENDING_INVITE" && (
                           <DropdownMenuItem
                             onClick={() =>
                               setConfirmDialog({
                                 open: true,
-                                type: 'resend',
+                                type: "resend",
                                 user,
                               })
                             }
@@ -270,7 +270,7 @@ export function UserList({
                             onClick={() =>
                               setConfirmDialog({
                                 open: true,
-                                type: 'mfa',
+                                type: "mfa",
                                 user,
                               })
                             }
@@ -282,12 +282,12 @@ export function UserList({
 
                         <DropdownMenuSeparator />
 
-                        {status === 'ACTIVE' || status === 'PENDING_INVITE' ? (
+                        {status === "ACTIVE" || status === "PENDING_INVITE" ? (
                           <DropdownMenuItem
                             onClick={() =>
                               setConfirmDialog({
                                 open: true,
-                                type: 'deactivate',
+                                type: "deactivate",
                                 user,
                               })
                             }
@@ -302,7 +302,7 @@ export function UserList({
                             onClick={() =>
                               setConfirmDialog({
                                 open: true,
-                                type: 'reactivate',
+                                type: "reactivate",
                                 user,
                               })
                             }
@@ -326,7 +326,7 @@ export function UserList({
       {totalPages > 1 && (
         <div className="flex items-center justify-between px-2 py-4">
           <div className="text-sm text-muted-foreground">
-            Showing {(page - 1) * pageSize + 1} to{' '}
+            Showing {(page - 1) * pageSize + 1} to{" "}
             {Math.min(page * pageSize, total)} of {total} users
           </div>
           <div className="flex items-center gap-2">
@@ -356,26 +356,24 @@ export function UserList({
       {/* Confirmation Dialogs */}
       <AlertDialog
         open={confirmDialog.open}
-        onOpenChange={(open) =>
-          setConfirmDialog((prev) => ({ ...prev, open }))
-        }
+        onOpenChange={(open) => setConfirmDialog((prev) => ({ ...prev, open }))}
       >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>
-              {confirmDialog.type === 'deactivate' && 'Deactivate User'}
-              {confirmDialog.type === 'reactivate' && 'Reactivate User'}
-              {confirmDialog.type === 'resend' && 'Resend Invitation'}
-              {confirmDialog.type === 'mfa' && 'Reset MFA'}
+              {confirmDialog.type === "deactivate" && "Deactivate User"}
+              {confirmDialog.type === "reactivate" && "Reactivate User"}
+              {confirmDialog.type === "resend" && "Resend Invitation"}
+              {confirmDialog.type === "mfa" && "Reset MFA"}
             </AlertDialogTitle>
             <AlertDialogDescription>
-              {confirmDialog.type === 'deactivate' &&
+              {confirmDialog.type === "deactivate" &&
                 `Are you sure you want to deactivate ${confirmDialog.user?.firstName} ${confirmDialog.user?.lastName}? They will no longer be able to access the platform.`}
-              {confirmDialog.type === 'reactivate' &&
+              {confirmDialog.type === "reactivate" &&
                 `Are you sure you want to reactivate ${confirmDialog.user?.firstName} ${confirmDialog.user?.lastName}? They will be able to access the platform again.`}
-              {confirmDialog.type === 'resend' &&
+              {confirmDialog.type === "resend" &&
                 `A new invitation email will be sent to ${confirmDialog.user?.email}.`}
-              {confirmDialog.type === 'mfa' &&
+              {confirmDialog.type === "mfa" &&
                 `This will reset MFA for ${confirmDialog.user?.firstName} ${confirmDialog.user?.lastName}. They will need to set up MFA again on their next login.`}
             </AlertDialogDescription>
           </AlertDialogHeader>
@@ -384,15 +382,15 @@ export function UserList({
             <AlertDialogAction
               onClick={handleConfirm}
               className={
-                confirmDialog.type === 'deactivate'
-                  ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90'
-                  : ''
+                confirmDialog.type === "deactivate"
+                  ? "bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  : ""
               }
             >
-              {confirmDialog.type === 'deactivate' && 'Deactivate'}
-              {confirmDialog.type === 'reactivate' && 'Reactivate'}
-              {confirmDialog.type === 'resend' && 'Send Invite'}
-              {confirmDialog.type === 'mfa' && 'Reset MFA'}
+              {confirmDialog.type === "deactivate" && "Deactivate"}
+              {confirmDialog.type === "reactivate" && "Reactivate"}
+              {confirmDialog.type === "resend" && "Send Invite"}
+              {confirmDialog.type === "mfa" && "Reset MFA"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

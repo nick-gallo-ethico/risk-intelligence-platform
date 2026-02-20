@@ -242,7 +242,9 @@ export function AiSummaryButton({
           >
             <Sparkles className="w-4 h-4 mr-2" />
             Brief Summary
-            <span className="text-xs text-gray-500 ml-2">1-2 paragraphs</span>
+            <span className="text-xs text-muted-foreground ml-2">
+              1-2 paragraphs
+            </span>
           </DropdownMenuItem>
           <DropdownMenuItem
             onClick={() => generateSummary("comprehensive")}
@@ -250,7 +252,9 @@ export function AiSummaryButton({
           >
             <Sparkles className="w-4 h-4 mr-2" />
             Comprehensive Summary
-            <span className="text-xs text-gray-500 ml-2">With sections</span>
+            <span className="text-xs text-muted-foreground ml-2">
+              With sections
+            </span>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

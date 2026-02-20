@@ -149,7 +149,7 @@ function getPriorityColor(priority: RiskScoreOutput["priority"]): string {
     case "LOW":
       return "bg-green-500 text-white";
     default:
-      return "bg-gray-500 text-white";
+      return "bg-muted text-muted-foreground";
   }
 }
 
@@ -272,9 +272,14 @@ export function AiRiskScore({
   // Error state
   if (error) {
     return (
-      <Card className={cn("border-red-200 bg-red-50", className)}>
+      <Card
+        className={cn(
+          "border-red-200 bg-red-50 dark:bg-red-950/30 dark:border-red-900/50",
+          className,
+        )}
+      >
         <CardContent className="py-3">
-          <div className="flex items-center gap-2 text-sm text-red-600">
+          <div className="flex items-center gap-2 text-sm text-red-600 dark:text-red-400">
             <AlertCircle className="w-4 h-4" />
             <span>{error.message}</span>
             <Button
@@ -297,9 +302,14 @@ export function AiRiskScore({
   if (rateLimitRetryAfter) {
     const seconds = Math.ceil(rateLimitRetryAfter / 1000);
     return (
-      <Card className={cn("border-yellow-200 bg-yellow-50", className)}>
+      <Card
+        className={cn(
+          "border-yellow-200 bg-yellow-50 dark:bg-yellow-950/30 dark:border-yellow-900/50",
+          className,
+        )}
+      >
         <CardContent className="py-3">
-          <div className="flex items-center gap-2 text-sm text-yellow-700">
+          <div className="flex items-center gap-2 text-sm text-yellow-700 dark:text-yellow-300">
             <Loader2 className="w-4 h-4 animate-spin" />
             <span>Rate limit exceeded. Retry in {seconds}s...</span>
           </div>
@@ -333,7 +343,7 @@ export function AiRiskScore({
             <Loader2 className="w-5 h-5 animate-spin text-purple-600" />
             <div>
               <p className="text-sm font-medium">Assessing risk...</p>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-muted-foreground">
                 Analyzing content for risk factors
               </p>
             </div>
@@ -382,7 +392,7 @@ export function AiRiskScore({
     <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
       <Card className={cn("border-purple-200", className)}>
         <CollapsibleTrigger asChild>
-          <CardHeader className="py-3 cursor-pointer hover:bg-gray-50">
+          <CardHeader className="py-3 cursor-pointer hover:bg-muted">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <Sparkles className="w-4 h-4 text-purple-600" />
@@ -420,7 +430,7 @@ export function AiRiskScore({
         <CollapsibleContent>
           <CardContent className="pt-0 space-y-4">
             {/* Summary */}
-            <div className="p-3 bg-gray-50 rounded-lg">
+            <div className="p-3 bg-muted rounded-lg">
               <p className="text-sm">{riskScore.summary}</p>
               {riskScore.confidence && (
                 <p
@@ -438,14 +448,14 @@ export function AiRiskScore({
             {/* Key Concerns */}
             {riskScore.keyConcerns.length > 0 && (
               <div className="space-y-2">
-                <h4 className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                   Key Concerns
                 </h4>
                 <ul className="space-y-1">
                   {riskScore.keyConcerns.map((concern, i) => (
                     <li
                       key={i}
-                      className="flex items-start gap-2 text-sm text-gray-700"
+                      className="flex items-start gap-2 text-sm text-foreground"
                     >
                       <AlertTriangle className="w-4 h-4 text-orange-500 flex-shrink-0 mt-0.5" />
                       {concern}
@@ -457,7 +467,7 @@ export function AiRiskScore({
 
             {/* Factor Breakdown */}
             <div className="space-y-2">
-              <h4 className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+              <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                 Risk Factors
               </h4>
               <div className="space-y-3">
@@ -496,7 +506,7 @@ export function AiRiskScore({
                           style={{ width: `${factor.score * 10}%` }}
                         />
                       </div>
-                      <p className="text-xs text-gray-500 line-clamp-1">
+                      <p className="text-xs text-muted-foreground line-clamp-1">
                         {factor.notes}
                       </p>
                     </div>

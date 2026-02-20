@@ -203,9 +203,14 @@ export function AiCategorySuggest({
   // Error state
   if (error) {
     return (
-      <Card className={cn("border-red-200 bg-red-50", className)}>
+      <Card
+        className={cn(
+          "border-red-200 bg-red-50 dark:bg-red-950/30 dark:border-red-900/50",
+          className,
+        )}
+      >
         <CardContent className="py-3">
-          <div className="flex items-center gap-2 text-sm text-red-600">
+          <div className="flex items-center gap-2 text-sm text-red-600 dark:text-red-400">
             <AlertCircle className="w-4 h-4" />
             <span>{error.message}</span>
             <Button
@@ -229,9 +234,14 @@ export function AiCategorySuggest({
   if (rateLimitRetryAfter) {
     const seconds = Math.ceil(rateLimitRetryAfter / 1000);
     return (
-      <Card className={cn("border-yellow-200 bg-yellow-50", className)}>
+      <Card
+        className={cn(
+          "border-yellow-200 bg-yellow-50 dark:bg-yellow-950/30 dark:border-yellow-900/50",
+          className,
+        )}
+      >
         <CardContent className="py-3">
-          <div className="flex items-center gap-2 text-sm text-yellow-700">
+          <div className="flex items-center gap-2 text-sm text-yellow-700 dark:text-yellow-300">
             <Loader2 className="w-4 h-4 animate-spin" />
             <span>Rate limit exceeded. Retry in {seconds}s...</span>
           </div>
@@ -265,7 +275,7 @@ export function AiCategorySuggest({
             <Loader2 className="w-5 h-5 animate-spin text-purple-600" />
             <div>
               <p className="text-sm font-medium">Analyzing content...</p>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-muted-foreground">
                 Finding the best category match
               </p>
             </div>
@@ -280,7 +290,7 @@ export function AiCategorySuggest({
     <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
       <Card className={cn("border-purple-200", className)}>
         <CollapsibleTrigger asChild>
-          <CardHeader className="py-3 cursor-pointer hover:bg-gray-50">
+          <CardHeader className="py-3 cursor-pointer hover:bg-muted">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-purple-600" />
@@ -312,7 +322,9 @@ export function AiCategorySuggest({
             {/* Key indicators */}
             {indicators.length > 0 && (
               <div className="flex flex-wrap gap-1 pb-2 border-b">
-                <span className="text-xs text-gray-500">Key indicators:</span>
+                <span className="text-xs text-muted-foreground">
+                  Key indicators:
+                </span>
                 {indicators.slice(0, 5).map((indicator, i) => (
                   <Badge key={i} variant="outline" className="text-xs">
                     {indicator}
@@ -330,8 +342,8 @@ export function AiCategorySuggest({
                   className={cn(
                     "w-full p-3 rounded-lg border text-left transition-colors",
                     selectedId === suggestion.categoryId
-                      ? "border-purple-500 bg-purple-50"
-                      : "border-gray-200 hover:border-gray-300 hover:bg-gray-50",
+                      ? "border-purple-500 bg-purple-50 dark:bg-purple-950/30"
+                      : "border-border hover:border-border hover:bg-muted",
                   )}
                 >
                   <div className="flex items-start justify-between gap-2">
@@ -344,7 +356,7 @@ export function AiCategorySuggest({
                           <Check className="w-4 h-4 text-purple-600" />
                         )}
                       </div>
-                      <p className="text-xs text-gray-500 mt-1 line-clamp-2">
+                      <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
                         {suggestion.reasoning}
                       </p>
                     </div>
@@ -357,7 +369,7 @@ export function AiCategorySuggest({
                       >
                         {Math.round(suggestion.confidence * 100)}%
                       </span>
-                      <span className="text-xs text-gray-400">
+                      <span className="text-xs text-muted-foreground">
                         {getConfidenceLabel(suggestion.confidence)}
                       </span>
                     </div>
