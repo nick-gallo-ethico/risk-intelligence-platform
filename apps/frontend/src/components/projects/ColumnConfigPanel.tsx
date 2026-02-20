@@ -504,7 +504,7 @@ function SortableLabelItem({
       ref={setNodeRef}
       style={style}
       className={cn(
-        "flex items-center gap-2 p-2 rounded-md border bg-white",
+        "flex items-center gap-2 p-2 rounded-md border bg-card",
         isDragging && "shadow-lg opacity-80",
       )}
     >
@@ -1033,7 +1033,7 @@ function TagsSettings({ settings, updateSettings }: TypeSettingsProps) {
         {tags.map((tag) => (
           <div
             key={tag.id}
-            className="flex items-center gap-2 p-2 rounded-md border bg-white"
+            className="flex items-center gap-2 p-2 rounded-md border bg-card"
           >
             <div className="relative">
               <input

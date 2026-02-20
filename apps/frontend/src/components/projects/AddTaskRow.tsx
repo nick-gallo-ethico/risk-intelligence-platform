@@ -103,7 +103,7 @@ export function AddTaskRow({
     return (
       <button
         onClick={handleStartAdding}
-        className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-muted-foreground hover:text-foreground hover:bg-gray-50 transition-colors"
+        className="w-full flex items-center gap-2 px-4 py-2.5 text-sm text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
       >
         <Plus className="h-4 w-4" />
         Add task

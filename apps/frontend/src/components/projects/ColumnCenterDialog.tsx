@@ -401,14 +401,14 @@ export function ColumnCenterDialog({
 
           <div className="flex-1 flex overflow-hidden">
             {/* Left sidebar - Categories */}
-            <div className="w-48 border-r bg-gray-50 p-4 space-y-1">
+            <div className="w-48 border-r bg-muted p-4 space-y-1">
               <button
                 onClick={() => setSelectedCategory("all")}
                 className={cn(
                   "w-full text-left px-3 py-2 rounded-md text-sm font-medium transition-colors",
                   selectedCategory === "all"
-                    ? "bg-white shadow-sm text-foreground"
-                    : "text-muted-foreground hover:bg-white/50",
+                    ? "bg-card shadow-sm text-foreground"
+                    : "text-muted-foreground hover:bg-card/50",
                 )}
               >
                 All Columns
@@ -422,8 +422,8 @@ export function ColumnCenterDialog({
                   className={cn(
                     "w-full text-left px-3 py-2 rounded-md text-sm font-medium transition-colors",
                     selectedCategory === category
-                      ? "bg-white shadow-sm text-foreground"
-                      : "text-muted-foreground hover:bg-white/50",
+                      ? "bg-card shadow-sm text-foreground"
+                      : "text-muted-foreground hover:bg-card/50",
                   )}
                 >
                   {CATEGORY_LABELS[category]}
@@ -579,7 +579,7 @@ function ColumnTypeCard({ typeInfo, onClick, isLoading }: ColumnTypeCardProps) {
       onClick={onClick}
       disabled={isLoading}
       className={cn(
-        "flex items-start gap-3 p-4 rounded-lg border bg-white text-left",
+        "flex items-start gap-3 p-4 rounded-lg border bg-card text-left",
         "hover:border-primary hover:shadow-sm transition-all",
         "disabled:opacity-50 disabled:cursor-not-allowed",
       )}
@@ -633,7 +633,7 @@ function SortableColumnItem({
       ref={setNodeRef}
       style={style}
       className={cn(
-        "flex items-center gap-3 p-3 rounded-lg border bg-white group",
+        "flex items-center gap-3 p-3 rounded-lg border bg-card group",
         isDragging && "shadow-lg opacity-80",
       )}
     >
@@ -644,8 +644,8 @@ function SortableColumnItem({
       >
         <GripVertical className="h-4 w-4 text-muted-foreground" />
       </div>
-      <div className="w-7 h-7 rounded-md bg-gray-100 flex items-center justify-center flex-shrink-0">
-        <Icon className="h-4 w-4 text-gray-600" />
+      <div className="w-7 h-7 rounded-md bg-muted flex items-center justify-center flex-shrink-0">
+        <Icon className="h-4 w-4 text-muted-foreground" />
       </div>
       <div className="flex-1 min-w-0">
         <div className="font-medium text-sm truncate">{column.name}</div>
