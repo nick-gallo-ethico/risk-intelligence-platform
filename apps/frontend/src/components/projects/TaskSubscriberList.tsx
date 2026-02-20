@@ -170,7 +170,7 @@ export function TaskSubscriberList({
                   </Avatar>
                 ))}
                 {remainingCount > 0 && (
-                  <div className="h-7 w-7 rounded-full bg-gray-200 border-2 border-white flex items-center justify-center text-xs font-medium">
+                  <div className="h-7 w-7 rounded-full bg-muted border-2 border-background flex items-center justify-center text-xs font-medium">
                     +{remainingCount}
                   </div>
                 )}
@@ -268,7 +268,7 @@ export function TaskSubscriberList({
 
       {/* Self-subscribe toggle */}
       {currentUserId && (
-        <div className="flex items-center justify-between px-4 py-2 bg-gray-50 mx-4 rounded-lg">
+        <div className="flex items-center justify-between px-4 py-2 bg-muted mx-4 rounded-lg">
           <div className="flex items-center gap-2">
             <Eye className="h-4 w-4 text-blue-500" />
             <span className="text-sm">Watch this task</span>
@@ -286,7 +286,7 @@ export function TaskSubscriberList({
         <div className="px-4 pb-4 space-y-2">
           {!subscribers || subscribers.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-6 text-center">
-              <Users className="h-8 w-8 text-gray-400 mb-2" />
+              <Users className="h-8 w-8 text-muted-foreground mb-2" />
               <p className="text-sm text-muted-foreground">
                 No one is watching this task yet
               </p>
@@ -295,7 +295,7 @@ export function TaskSubscriberList({
             subscribers.map((subscriber) => (
               <div
                 key={subscriber.id}
-                className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-50 transition-colors group"
+                className="flex items-center gap-2 p-2 rounded-lg hover:bg-muted transition-colors group"
               >
                 <Avatar className="h-8 w-8">
                   <AvatarFallback className="text-xs">

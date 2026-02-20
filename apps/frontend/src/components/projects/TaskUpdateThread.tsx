@@ -188,10 +188,7 @@ export function TaskUpdateThread({
     return (
       <div
         key={update.id}
-        className={cn(
-          "flex gap-3",
-          isReply && "pl-8 border-l-2 border-gray-200",
-        )}
+        className={cn("flex gap-3", isReply && "pl-8 border-l-2 border-border")}
       >
         <Avatar className="h-8 w-8 flex-shrink-0">
           <AvatarFallback className="text-xs">
@@ -265,7 +262,7 @@ export function TaskUpdateThread({
               </div>
             </div>
           ) : (
-            <div className="mt-1 text-sm text-gray-700 whitespace-pre-wrap">
+            <div className="mt-1 text-sm text-foreground whitespace-pre-wrap">
               {renderContentWithMentions(update.content)}
             </div>
           )}
@@ -401,7 +398,7 @@ export function TaskUpdateThread({
       parts.push(
         <span
           key={match.index}
-          className="inline-flex items-center px-1 py-0.5 rounded bg-blue-100 text-blue-800 text-sm font-medium"
+          className="inline-flex items-center px-1 py-0.5 rounded bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 text-sm font-medium"
         >
           @{match[1]}
         </span>,
@@ -458,10 +455,10 @@ export function TaskUpdateThread({
         <div className="p-4 space-y-6">
           {topLevelUpdates.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
-              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                <MessageSquare className="h-8 w-8 text-gray-400" />
+              <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
+                <MessageSquare className="h-8 w-8 text-muted-foreground" />
               </div>
-              <h3 className="text-lg font-medium text-gray-900">
+              <h3 className="text-lg font-medium text-foreground">
                 No updates yet
               </h3>
               <p className="mt-1 text-sm text-muted-foreground max-w-sm">

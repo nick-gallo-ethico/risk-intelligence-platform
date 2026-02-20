@@ -64,20 +64,28 @@ const STATUS_CONFIG: Record<
   { bg: string; text: string; label: string }
 > = {
   NOT_STARTED: {
-    bg: "bg-gray-100",
-    text: "text-gray-700",
+    bg: "bg-muted",
+    text: "text-muted-foreground",
     label: "Not Started",
   },
   IN_PROGRESS: {
-    bg: "bg-blue-100",
-    text: "text-blue-700",
+    bg: "bg-blue-100 dark:bg-blue-900/30",
+    text: "text-blue-700 dark:text-blue-300",
     label: "In Progress",
   },
-  STUCK: { bg: "bg-red-100", text: "text-red-700", label: "Stuck" },
-  DONE: { bg: "bg-green-100", text: "text-green-700", label: "Done" },
+  STUCK: {
+    bg: "bg-red-100 dark:bg-red-900/30",
+    text: "text-red-700 dark:text-red-300",
+    label: "Stuck",
+  },
+  DONE: {
+    bg: "bg-green-100 dark:bg-green-900/30",
+    text: "text-green-700 dark:text-green-300",
+    label: "Done",
+  },
   CANCELLED: {
-    bg: "bg-gray-100",
-    text: "text-gray-400 line-through",
+    bg: "bg-muted",
+    text: "text-muted-foreground line-through",
     label: "Cancelled",
   },
 };
@@ -89,10 +97,22 @@ const PRIORITY_CONFIG: Record<
   ProjectTaskPriority,
   { icon: React.ElementType; color: string; label: string }
 > = {
-  LOW: { icon: ArrowDown, color: "text-gray-500", label: "Low" },
-  MEDIUM: { icon: Minus, color: "text-yellow-600", label: "Medium" },
-  HIGH: { icon: ArrowUp, color: "text-orange-500", label: "High" },
-  CRITICAL: { icon: ChevronsUp, color: "text-red-600", label: "Critical" },
+  LOW: { icon: ArrowDown, color: "text-muted-foreground", label: "Low" },
+  MEDIUM: {
+    icon: Minus,
+    color: "text-yellow-600 dark:text-yellow-400",
+    label: "Medium",
+  },
+  HIGH: {
+    icon: ArrowUp,
+    color: "text-orange-500 dark:text-orange-400",
+    label: "High",
+  },
+  CRITICAL: {
+    icon: ChevronsUp,
+    color: "text-red-600 dark:text-red-400",
+    label: "Critical",
+  },
 };
 
 interface TaskRowProps {
@@ -267,7 +287,7 @@ export function TaskRow({
       ref={setNodeRef}
       style={{ ...style, gridTemplateColumns: gridCols }}
       className={cn(
-        "grid gap-2 items-center px-4 py-2 border-b last:border-b-0 hover:bg-gray-50 transition-colors group",
+        "grid gap-2 items-center px-4 py-2 border-b border-border last:border-b-0 hover:bg-muted transition-colors group",
         isDragging && "opacity-50 bg-blue-50",
         isSelected && "bg-blue-50/50",
       )}
@@ -490,7 +510,7 @@ export function TaskRow({
       {/* Subtask count */}
       <div className="text-xs text-muted-foreground">
         {task.subtaskCount && task.subtaskCount > 0 ? (
-          <span className="px-2 py-0.5 bg-gray-100 rounded-full">
+          <span className="px-2 py-0.5 bg-muted rounded-full">
             {task.completedSubtaskCount ?? 0}/{task.subtaskCount}
           </span>
         ) : (
