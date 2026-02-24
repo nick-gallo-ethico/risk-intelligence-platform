@@ -1,5 +1,32 @@
 # Project Milestones: Ethico Risk Intelligence Platform
 
+## v1.2 Production Hardening & Feature Completion (Shipped: 2026-02-20)
+
+**Delivered:** Raised platform from D+ to B+ code quality by remediating all pre-Series A code review findings across 6 dimensions, while completing 3 unfinished v1.0 feature phases and closing integration gaps.
+
+**Phases completed:** 32-39 (86 plans total, 11 phases)
+
+**Key accomplishments:**
+
+- Security & SOC 2: Fixed auth bypass, JWT algorithm pinning (RS256 only), WebSocket auth, MFA persistence, PII minimization
+- Slop cleanup: Removed 384 section separators, triaged 38 TODOs, implemented document processing, fixed placeholder AI actions
+- Performance: Cursor-based pagination, Redis caching (5 hot paths), connection pooling, N+1 batch fixes, LRU agent cache
+- Code quality: Split 12 fat services (800+ LOC → <400), replaced 90+ `any` types, enabled strict TypeScript
+- Test coverage: 3.3x improvement (7.9% → 26.4%), 16 tenant isolation E2E suites, auth guard/strategy tests
+- Dark mode: 323 hardcoded colors migrated to semantic tokens, settings toggle, DataTable/modal dark variants
+- Help system: Knowledge base, support tickets, contextual help links
+- Case detail: HubSpot three-column layout, pipeline bar, config-driven architecture, activity tabs
+- Gap closure: Redis cache module, batch reminders, dark mode remaining files, 56 frontend test repairs
+
+**Stats:**
+
+- 11 phases, 86 plans executed
+- 77 requirements shipped (13 Security, 11 Slop, 11 Performance, 5 Quality, 10 Tests, 5 Production, 7 Theme, 5 Help, 10 Case)
+
+**What's next:** v2.0 PRD Feature Parity & Intelligence Layer (~70 capability gaps)
+
+---
+
 ## v1.1 Code Review Remediation (Shipped: 2026-02-15)
 
 **Delivered:** Hardened the platform for production deployment by resolving all 36 findings from the unified code review and silent failure audit.

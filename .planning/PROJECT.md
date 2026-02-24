@@ -12,36 +12,50 @@ If everything else fails, this must work: the RIU→Case pipeline with AI-assist
 
 ## Current State
 
-**Shipped:** v1.1 Code Review Remediation (2026-02-15)
-**Previous:** v1.0 Feature Build (2026-02-13)
+**Shipped:** v1.2 Production Hardening & Feature Completion (2026-02-20)
+**Previous:** v1.1 Code Review Remediation (2026-02-15), v1.0 Feature Build (2026-02-13)
 
-The platform is production-hardened with all 36 audit findings resolved:
+The platform has solid CRUD workflows and hardened code quality (B+ grade). 39 phases, 300+ plans executed across 3 milestones. Core case management, investigations, campaigns, disclosures, policies, analytics, and 5 portals are functional. However, a comprehensive PRD gap analysis revealed ~70 missing capabilities across the intelligence, automation, and communication layers that differentiate this from a basic CRUD system.
 
-- Security layer tested and hardened (RLS, guards, CORS, body limits)
-- Containerized with Dockerfile, health checks, Azure Key Vault, graceful shutdown
-- Silent failures eliminated (NestJS exceptions, error boundaries, toast notifications)
-- Test coverage foundation (auth, core entities, campaigns/policies, frontend MSW)
-- Monolithic services decomposed, JWT RS256 with key rotation, Elasticsearch circuit breaker
-- ESLint max-lines guardrail (warn at 500 LOC) prevents service bloat
+Key gaps: No rules/automation engine (auto-routing, SLA enforcement, escalation triggers), no anonymous communication relay (Chinese Wall model), no RAG-powered AI intelligence (pgvector, knowledge base, policy Q&A chatbot), incomplete disclosure automation (rolling campaigns, bulk operations, external parties), shallow portal experiences (employee/manager/operator), and missing infrastructure (PWA, fact tables, scheduled reports).
 
-## Current Milestone: v1.2 Production Hardening & Feature Completion
+## Current Milestone: v2.0 PRD Feature Parity & Intelligence Layer
 
-**Goal:** Raise the platform from D+ to B+ overall code quality by remediating all findings from the pre-Series A code review across 6 dimensions, while completing the 3 unfinished v1.0 feature phases.
+**Goal:** Close all gaps between PRD specifications and the built platform across 6 waves, transforming it from a solid CRUD system into the "AI-first HubSpot for Compliance" described in the PRDs.
 
-**Track 1 — Code Review Remediation (targeting B+ overall grade):**
+**Wave 1 — Rules & Automation Engine:**
 
-- Security & SOC 2 hardening (auth bypass fixes, JWT algorithm, MIME validation, WebSocket auth)
-- AI code slop cleanup (hardcoded IDs, orphaned modules, section separators, dead code)
-- Performance & scalability (unbounded queries, Redis caching, connection pooling, N+1 fixes)
-- Code quality & architecture (fat services, `any` types, barrel exports, error handling)
-- Test coverage expansion (from 7.9% toward 60%+ backend coverage)
-- Production readiness (MIME validation, graceful degradation, observability)
+- Auto-routing rules (location, category, severity), SLA monitoring + warnings/breaches
+- Escalation triggers, case status auto-derivation, round-robin assignment
 
-**Track 2 — Unfinished v1.0 Feature Phases:**
+**Wave 2 — Anonymous Communication Relay:**
 
-- Dark Mode & Theme System (Phase 22 — 0/14 plans completed)
-- Help & Support System (Phase 23 — 0/5 plans completed)
-- Case Detail Vision Revision (Phase 25.1 — 0/10 plans completed)
+- Chinese Wall anonymous messaging relay, access code email delivery
+- Two-way ethics portal messaging, reporter visibility levels
+
+**Wave 3 — AI Intelligence Layer:**
+
+- pgvector + document embedding pipeline, RAG for policy Q&A with citations
+- Knowledge base, confidence-tiered chatbot, floating widget on portals
+- Note cleanup with preview, cross-case pattern detection alerts
+
+**Wave 4 — Disclosure & Campaign Automation:**
+
+- Rolling campaign triggers (HRIS events), auto-clear/reject rules, bulk operations
+- External party entity, multi-stage approval, condition reminders, proxy delegation
+- GT&E aggregation + currency conversion
+
+**Wave 5 — Portal Completeness:**
+
+- Manager team compliance dashboard, proxy reports, bulk reminders
+- Employee "My Reports" with combined timeline, condition self-service
+- Operator directive enforcement, quality metrics, AI question suggestions
+
+**Wave 6 — Infrastructure & Polish:**
+
+- PWA (service worker, offline, push notifications), scheduled report delivery
+- Fact tables, dashboard widget builder, GDPR deletion, data retention
+- Custom domains, branding depth, Terraform IaC
 
 ## Requirements
 
@@ -179,15 +193,15 @@ Requirements for v1 (Q1 delivery). Strategic differentiation approach: MVP for c
 
 ### Out of Scope
 
-Explicitly excluded from v1:
+Explicitly excluded:
 
-- Real-time collaborative editing (Y.js) — Complexity vs. value, defer to v2
-- Employee chatbot — High effort, not blocking core compliance flow
+- Real-time collaborative editing (Y.js) — Complexity vs. value, defer to v3
 - Video attachments — Storage costs, processing complexity
-- Mobile native apps — PWA sufficient for v1
-- Project management module — Nice-to-have, not core compliance
+- Mobile native apps — PWA covers mobile in v2.0
 - Client Success Dashboard — Internal tool, can use direct DB access
-- Sales Demo environment — Can use seeded tenant instead
+- Sales Demo self-service provisioning — Using seeded demo tenant
+- Slack/Teams integration — Defer to v2.1
+- SMS notifications — Defer to v2.1
 
 ## Context
 
@@ -250,9 +264,12 @@ Explicitly excluded from v1:
 | Thin coordinator pattern             | Main services delegate to domain-specific sub-services                          | ✓ Good — v1.1   |
 | AI services exempt from 300 LOC      | Complex orchestration logic needs different decomposition                       | ✓ Good — v1.1   |
 | ESLint max-lines guardrail           | Warn at 500 LOC prevents growth; decompose opportunistically                    | ✓ Good — v1.1   |
-| Dual-track v1.2 (hardening+features) | Pre-Series A review found D+ grade; combine remediation with feature completion | — Active — v1.2 |
-| B+ target grade                      | Investor-credible codebase requires measurable quality bar                      | — Active — v1.2 |
+| Dual-track v1.2 (hardening+features) | Pre-Series A review found D+ grade; combine remediation with feature completion | ✓ Good — v1.2   |
+| B+ target grade                      | Investor-credible codebase requires measurable quality bar                      | ✓ Good — v1.2   |
+| Full PRD parity in v2.0              | Gap analysis found ~70 missing PRD capabilities; close all gaps                 | — Active — v2.0 |
+| Chatbot in scope for v2.0            | RAG-powered policy Q&A is key differentiator vs NAVEX/Case IQ                   | — Active — v2.0 |
+| 6-wave attack plan                   | Rules→Relay→AI→Disclosure→Portal→Infrastructure ordering                        | — Active — v2.0 |
 
 ---
 
-_Last updated: 2026-02-15 after v1.2 milestone started_
+_Last updated: 2026-02-24 after v2.0 milestone started_
