@@ -137,23 +137,23 @@ Requirements for closing all PRD gaps. Each maps to roadmap phases starting at P
 
 ## Summary
 
-| Category                     | Requirements                     | Priority  |
-| ---------------------------- | -------------------------------- | --------- |
-| Rules & Automation Engine    | 9 (RULE-01 through RULE-09)     | CRITICAL  |
-| Anonymous Communication      | 7 (RELAY-01 through RELAY-07)   | CRITICAL  |
-| RAG Foundation               | 5 (RAG-01 through RAG-05)       | HIGH      |
-| Chatbot                      | 10 (CHAT-01 through CHAT-10)    | HIGH      |
-| Enhanced AI Features         | 5 (AIEX-01 through AIEX-05)     | HIGH      |
-| Disclosure Automation        | 12 (DISC-01 through DISC-12)    | HIGH      |
-| Employee Portal              | 7 (EMPL-01 through EMPL-07)     | MEDIUM    |
-| Operator Console             | 5 (OPER-01 through OPER-05)     | MEDIUM    |
-| Ethics Portal                | 4 (ETHP-01 through ETHP-04)     | MEDIUM    |
-| PWA                          | 4 (PWA-01 through PWA-04)       | MEDIUM    |
-| Analytics & Reporting        | 4 (ANAL-01 through ANAL-04)     | MEDIUM    |
-| Data & Compliance            | 3 (DATA-01 through DATA-03)     | HIGH      |
-| Branding & Enterprise        | 7 (BRAND-01 through BRAND-07)   | LOW       |
-| Deployment                   | 1 (DEPL-01)                     | LOW       |
-| **Total**                    | **83**                           |           |
+| Category | Requirements | Priority | Phase |
+|----------|-------------|----------|-------|
+| Rules & Automation Engine | 9 (RULE-01 through RULE-09) | CRITICAL | 40-41 |
+| Anonymous Communication | 7 (RELAY-01 through RELAY-07) | CRITICAL | 42 |
+| RAG Foundation | 5 (RAG-01 through RAG-05) | HIGH | 43 |
+| Chatbot | 10 (CHAT-01 through CHAT-10) | HIGH | 44 |
+| Enhanced AI Features | 5 (AIEX-01 through AIEX-05) | HIGH | 45 |
+| Disclosure Automation | 12 (DISC-01 through DISC-12) | HIGH | 46-47 |
+| Employee Portal | 7 (EMPL-01 through EMPL-07) | MEDIUM | 48 |
+| Operator Console | 5 (OPER-01 through OPER-05) | MEDIUM | 48 |
+| Ethics Portal | 4 (ETHP-01 through ETHP-04) | MEDIUM | 48 |
+| PWA | 4 (PWA-01 through PWA-04) | MEDIUM | 49 |
+| Analytics & Reporting | 4 (ANAL-01 through ANAL-04) | MEDIUM | 50 |
+| Data & Compliance | 3 (DATA-01 through DATA-03) | HIGH | 50 |
+| Branding & Enterprise | 7 (BRAND-01 through BRAND-07) | LOW | 51 |
+| Deployment | 1 (DEPL-01) | LOW | 51 |
+| **Total** | **83** | | |
 
 ## Future Requirements (v2.1+)
 
@@ -179,16 +179,97 @@ Requirements for closing all PRD gaps. Each maps to roadmap phases starting at P
 
 ## Traceability
 
-_Populated during roadmap creation._
-
 | Requirement | Phase | Status |
 |-------------|-------|--------|
+| RULE-01 | Phase 40 | Pending |
+| RULE-02 | Phase 40 | Pending |
+| RULE-03 | Phase 41 | Pending |
+| RULE-04 | Phase 41 | Pending |
+| RULE-05 | Phase 41 | Pending |
+| RULE-06 | Phase 40 | Pending |
+| RULE-07 | Phase 40 | Pending |
+| RULE-08 | Phase 40 | Pending |
+| RULE-09 | Phase 40 | Pending |
+| RELAY-01 | Phase 42 | Pending |
+| RELAY-02 | Phase 42 | Pending |
+| RELAY-03 | Phase 42 | Pending |
+| RELAY-04 | Phase 42 | Pending |
+| RELAY-05 | Phase 42 | Pending |
+| RELAY-06 | Phase 42 | Pending |
+| RELAY-07 | Phase 42 | Pending |
+| RAG-01 | Phase 43 | Pending |
+| RAG-02 | Phase 43 | Pending |
+| RAG-03 | Phase 43 | Pending |
+| RAG-04 | Phase 43 | Pending |
+| RAG-05 | Phase 43 | Pending |
+| CHAT-01 | Phase 44 | Pending |
+| CHAT-02 | Phase 44 | Pending |
+| CHAT-03 | Phase 44 | Pending |
+| CHAT-04 | Phase 44 | Pending |
+| CHAT-05 | Phase 44 | Pending |
+| CHAT-06 | Phase 44 | Pending |
+| CHAT-07 | Phase 44 | Pending |
+| CHAT-08 | Phase 44 | Pending |
+| CHAT-09 | Phase 44 | Pending |
+| CHAT-10 | Phase 44 | Pending |
+| AIEX-01 | Phase 45 | Pending |
+| AIEX-02 | Phase 45 | Pending |
+| AIEX-03 | Phase 45 | Pending |
+| AIEX-04 | Phase 45 | Pending |
+| AIEX-05 | Phase 45 | Pending |
+| DISC-01 | Phase 46 | Pending |
+| DISC-02 | Phase 46 | Pending |
+| DISC-03 | Phase 46 | Pending |
+| DISC-04 | Phase 46 | Pending |
+| DISC-05 | Phase 46 | Pending |
+| DISC-06 | Phase 46 | Pending |
+| DISC-07 | Phase 46 | Pending |
+| DISC-08 | Phase 46 | Pending |
+| DISC-09 | Phase 47 | Pending |
+| DISC-10 | Phase 47 | Pending |
+| DISC-11 | Phase 47 | Pending |
+| DISC-12 | Phase 47 | Pending |
+| EMPL-01 | Phase 48 | Pending |
+| EMPL-02 | Phase 48 | Pending |
+| EMPL-03 | Phase 48 | Pending |
+| EMPL-04 | Phase 48 | Pending |
+| EMPL-05 | Phase 48 | Pending |
+| EMPL-06 | Phase 48 | Pending |
+| EMPL-07 | Phase 48 | Pending |
+| OPER-01 | Phase 48 | Pending |
+| OPER-02 | Phase 48 | Pending |
+| OPER-03 | Phase 48 | Pending |
+| OPER-04 | Phase 48 | Pending |
+| OPER-05 | Phase 48 | Pending |
+| ETHP-01 | Phase 48 | Pending |
+| ETHP-02 | Phase 48 | Pending |
+| ETHP-03 | Phase 48 | Pending |
+| ETHP-04 | Phase 48 | Pending |
+| PWA-01 | Phase 49 | Pending |
+| PWA-02 | Phase 49 | Pending |
+| PWA-03 | Phase 49 | Pending |
+| PWA-04 | Phase 49 | Pending |
+| ANAL-01 | Phase 50 | Pending |
+| ANAL-02 | Phase 50 | Pending |
+| ANAL-03 | Phase 50 | Pending |
+| ANAL-04 | Phase 50 | Pending |
+| DATA-01 | Phase 50 | Pending |
+| DATA-02 | Phase 50 | Pending |
+| DATA-03 | Phase 50 | Pending |
+| BRAND-01 | Phase 51 | Pending |
+| BRAND-02 | Phase 51 | Pending |
+| BRAND-03 | Phase 51 | Pending |
+| BRAND-04 | Phase 51 | Pending |
+| BRAND-05 | Phase 51 | Pending |
+| BRAND-06 | Phase 51 | Pending |
+| BRAND-07 | Phase 51 | Pending |
+| DEPL-01 | Phase 51 | Pending |
 
 **Coverage:**
 - v2.0 requirements: 83 total
-- Mapped to phases: 0 (pending roadmap)
-- Unmapped: 83
+- Mapped to phases: 83
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-02-24*
-*Last updated: 2026-02-24 after research synthesis*
+*Last updated: 2026-02-24 after roadmap creation*

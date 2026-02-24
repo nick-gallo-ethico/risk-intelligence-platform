@@ -4,58 +4,67 @@
 
 See: .planning/PROJECT.md (updated 2026-02-24)
 
-**Core value:** Users can manage their entire compliance workflow - from anonymous report intake to investigation closure to board reporting - in one AI-assisted platform, with every task unified into a single "My Work" view.
-**Current focus:** v2.0 PRD Feature Parity & Intelligence Layer
+**Core value:** Users can manage their entire compliance workflow in one AI-assisted platform
+**Current focus:** Phase 40 - Rules Engine Foundation (v2.0)
 
 ## Current Position
 
-Phase: Not started (researching new capabilities)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-02-24 — Milestone v2.0 started after comprehensive PRD gap analysis
+Phase: 40 of 51 (Rules Engine Foundation)
+Plan: 0 of 8 in current phase
+Status: Ready to plan
+Last activity: 2026-02-24 — v2.0 roadmap created with 12 phases (40-51), 83 requirements mapped
 
-Progress: v1.0 complete (25 phases), v1.1 complete (6 phases), v1.2 complete (11 phases). Starting v2.0.
+Progress: [====================..........] 77% (39/51 phases complete across all milestones)
 
 ## Shipped Milestones
 
-| Milestone                            | Phases | Plans | Requirements | Shipped    |
-| ------------------------------------ | ------ | ----- | ------------ | ---------- |
-| v1.0 Feature Build                   | 1-25.1 | 242+  | 149          | 2026-02-13 |
-| v1.1 Code Review Remediation         | 26-31  | 43    | 36           | 2026-02-15 |
-| v1.2 Production Hardening & Features | 32-39  | 86    | 77           | 2026-02-20 |
+| Milestone | Phases | Plans | Requirements | Shipped |
+|-----------|--------|-------|--------------|---------|
+| v1.0 Feature Build | 1-25.1 | 242+ | 149 | 2026-02-13 |
+| v1.1 Code Review Remediation | 26-31 | 43 | 36 | 2026-02-15 |
+| v1.2 Production Hardening & Features | 32-39 | 57 | 77 | 2026-02-20 |
 
 ## v2.0 Milestone Overview
 
-**Goal:** Close all ~70 PRD gaps across 6 waves. Transform from CRUD to intelligent platform.
-**Phases:** TBD (continuing from Phase 40)
-**Status:** Researching new capabilities
+**Goal:** Close all 83 PRD gaps across 6 waves. Transform from CRUD to intelligent platform.
+**Phases:** 40-51 (12 phases, 106 planned plans)
+**Status:** Ready to plan Phase 40
 
-**Waves:**
+**Wave Summary:**
 
-1. Rules & Automation Engine — auto-routing, SLA, escalation, round-robin
-2. Anonymous Communication Relay — Chinese Wall messaging, access code delivery
-3. AI Intelligence Layer — pgvector, RAG, chatbot, knowledge base, pattern detection
-4. Disclosure & Campaign Automation — rolling triggers, bulk ops, external parties
-5. Portal Completeness — manager dashboard, operator tools, employee self-service
-6. Infrastructure & Polish — PWA, fact tables, scheduled reports, GDPR
+| Wave | Phases | Focus |
+|------|--------|-------|
+| 1 - Rules & Automation | 40-41 | Auto-routing, SLA, escalation |
+| 2 - Anonymous Relay | 42 | Chinese Wall messaging |
+| 3 - AI Intelligence | 43-45 | RAG, chatbot, pattern detection |
+| 4 - Disclosure Automation | 46-47 | Rolling campaigns, external parties |
+| 5 - Portal Completeness | 48 | Manager, employee, operator features |
+| 6 - Infrastructure | 49-51 | PWA, analytics, branding |
 
 ## Accumulated Context
 
 ### Key Decisions
 
-- v2.0 full PRD parity: all 6 waves in scope (not subset)
-- Chatbot/AI intelligence layer IN scope (was deferred in v1.x)
-- Research before requirements: 4 parallel researchers for new capabilities
-- Phase numbering continues from 40 (v1.2 ended at Phase 39)
-- Y.js collaborative editing still deferred (v3)
+- v2.0 full PRD parity: all 83 requirements in scope
+- pgvector + RLS: MUST use separate DocumentEmbedding table (CRIT-01)
+- GDPR vs immutable RIUs: cryptographic shredding pattern (CRIT-02)
+- Event handlers: idempotency keys + transactional outbox (CRIT-03)
+- Phase numbering: continues from 40 (v1.2 ended at Phase 39)
 
 ### Blockers
 
 None currently.
 
+### Research Flags
+
+Phases needing deeper research during planning:
+- Phase 43 (RAG): HNSW index tuning, chunking overlap strategy
+- Phase 44 (Chatbot): Confidence threshold tuning, escalation UX
+- Phase 50 (Analytics): Fact table granularity, reconciliation scheduling
+
 ## Session Continuity
 
 Last session: 2026-02-24
-Stopped at: Milestone v2.0 initialized, research phase starting
+Stopped at: v2.0 roadmap created, ready for Phase 40 planning
 Resume file: None
-Next action: Run 4 parallel research agents, then define requirements and roadmap
+Next action: `/gsd:plan-phase 40`

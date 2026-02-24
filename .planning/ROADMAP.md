@@ -2,7 +2,14 @@
 
 ## Overview
 
-This roadmap delivers a unified, AI-native compliance management platform ("HubSpot for Compliance") through 11 dependency-ordered phases. The architecture follows the RIU-Case pattern (immutable inputs to mutable work containers), with AI infrastructure built early so all features can leverage it. Foundation infrastructure (event bus, queues, audit) comes first, followed by demo tenant creation to serve as a continuous test bed, then core entities, portals, and advanced features. Every phase produces observable user value and maintains the demo tenant as living proof of capability.
+This roadmap delivers a unified, AI-native compliance management platform ("HubSpot for Compliance") through 51 dependency-ordered phases across 4 milestones. The architecture follows the RIU-Case pattern (immutable inputs to mutable work containers), with AI infrastructure built early so all features can leverage it. Foundation infrastructure (event bus, queues, audit) comes first, followed by demo tenant creation to serve as a continuous test bed, then core entities, portals, and advanced features. Every phase produces observable user value and maintains the demo tenant as living proof of capability.
+
+## Milestones
+
+- **v1.0 Feature Build** - Phases 1-25.1, 242+ plans (shipped 2026-02-13)
+- **v1.1 Code Review Remediation** - Phases 26-31, 43 plans (shipped 2026-02-15)
+- **v1.2 Production Hardening & Features** - Phases 32-39, 57 plans (shipped 2026-02-20)
+- **v2.0 PRD Feature Parity & Intelligence Layer** - Phases 40-51 (in progress)
 
 ## Demo Data Strategy ("Lived-in Home")
 
@@ -31,6 +38,9 @@ This roadmap delivers a unified, AI-native compliance management platform ("HubS
 
 Decimal phases appear between their surrounding integers in numeric order.
 
+<details>
+<summary>v1.0 Feature Build (Phases 1-25.1) - SHIPPED 2026-02-13</summary>
+
 - [x] **Phase 1: Foundation Infrastructure** - Event bus, job queues, audit logging, search infrastructure
 - [x] **Phase 2: Demo Tenant & Seed Data** - "Acme Co." demo with 3 years of realistic data as test bed
 - [x] **Phase 3: Authentication & SSO** - Multi-provider SSO, domain verification, MFA
@@ -56,1231 +66,477 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 19: Workflow Engine UI** - Visual workflow builder, workflow management section, apply to cases/approvals/disclosures
 - [x] **Phase 20: Settings Overhaul (HubSpot-Style)** - Preferences, account management, data management, properties, permission sets
 - [x] **Phase 21: Project Management (Monday.com-Style)** - Kanban boards, task views, timelines, project tracking
-- [x] **Phase 22: Dark Mode & Theme** - Dark mode toggle, consistent nav theming, theme system (v1.2 continued)
-- [x] **Phase 23: Help & Support System** - Knowledge base, in-platform ticket filing, real-time support (v1.2 continued)
 - [x] **Phase 24: Policy Content & Seed Data** - Populate policies with properly formatted text, improve case seed data
 - [x] **Phase 25: Case & Investigation Page Redesign** - HubSpot three-column record pattern for case and investigation detail pages
-- [x] **Phase 25.1: Case Detail Page Vision Revision** - Rebuild case detail page to match revised HubSpot-style spec with pipeline bar, collapsible property cards, Activities tab pattern, and config-driven architecture (v1.2 continued)
-- [x] **Phase 26: Emergency Fixes** - Critical import errors blocking startup (v1.1)
-- [x] **Phase 27: Security Hardening** - Auth guards, session management, CORS, body limits (v1.1)
-- [x] **Phase 28: Production Readiness** - Container, health checks, Key Vault, graceful shutdown (v1.1)
-- [x] **Phase 29: Error Handling & Reliability** - NestJS exceptions, error boundaries, toast notifications (v1.1)
-- [x] **Phase 30: Test Coverage Foundation** - Auth, core entities, campaigns/policies, frontend MSW (v1.1)
-- [x] **Phase 31: Code Quality & Performance** - Service decomposition, JWT RS256, Elasticsearch circuit breaker (v1.1)
-- [x] **Phase 32: Security & SOC 2 Fixes** - Auth bypass fixes, JWT algorithm pinning, WebSocket auth, MFA persistence (v1.2)
-- [x] **Phase 33: Slop Cleanup & Production Readiness** - Orphaned modules, dead code, MIME validation, placeholder removal (v1.2)
-- [x] **Phase 34: Performance & Scalability** - Unbounded queries, Redis caching, connection pooling, N+1 fixes (v1.2)
-- [x] **Phase 35: Code Quality & Architecture** - Fat service splits, any type replacement, strict mode, null safety (v1.2)
-- [x] **Phase 36: Test Coverage Expansion** - Auth guards/strategies, impersonation, E2E isolation, 26.4% backend coverage (3.3x from 7.9%) (v1.2)
-- [x] **Phase 37: Critical Integration Fixes** - RedisCacheModule registration, batch reminder wiring, JwtWsGuard cleanup (v1.2 gap closure)
-- [x] **Phase 38: Dark Mode Gap Closure** - Migrate 323 hardcoded colors, settings toggle, DataTable/modal dark variants (v1.2 gap closure)
-- [x] **Phase 39: Frontend Test Repair** - Fix 56 case-detail test failures from Phase 25.1 refactor (v1.2 gap closure)
+- [x] **Phase 25.1: Case Detail Page Vision Revision** - Rebuild case detail page to match revised HubSpot-style spec with pipeline bar, collapsible property cards, Activities tab pattern, and config-driven architecture
+
+</details>
+
+<details>
+<summary>v1.1 Code Review Remediation (Phases 26-31) - SHIPPED 2026-02-15</summary>
+
+- [x] **Phase 26: Emergency Fixes** - Critical import errors blocking startup
+- [x] **Phase 27: Security Hardening** - Auth guards, session management, CORS, body limits
+- [x] **Phase 28: Production Readiness** - Container, health checks, Key Vault, graceful shutdown
+- [x] **Phase 29: Error Handling & Reliability** - NestJS exceptions, error boundaries, toast notifications
+- [x] **Phase 30: Test Coverage Foundation** - Auth, core entities, campaigns/policies, frontend MSW
+- [x] **Phase 31: Code Quality & Performance** - Service decomposition, JWT RS256, Elasticsearch circuit breaker
+
+</details>
+
+<details>
+<summary>v1.2 Production Hardening & Features (Phases 32-39) - SHIPPED 2026-02-20</summary>
+
+- [x] **Phase 22: Dark Mode & Theme** - Dark mode toggle, consistent nav theming, theme system
+- [x] **Phase 23: Help & Support System** - Knowledge base, in-platform ticket filing, real-time support
+- [x] **Phase 32: Security & SOC 2 Fixes** - Auth bypass fixes, JWT algorithm pinning, WebSocket auth, MFA persistence
+- [x] **Phase 33: Slop Cleanup & Production Readiness** - Orphaned modules, dead code, MIME validation, placeholder removal
+- [x] **Phase 34: Performance & Scalability** - Unbounded queries, Redis caching, connection pooling, N+1 fixes
+- [x] **Phase 35: Code Quality & Architecture** - Fat service splits, any type replacement, strict mode, null safety
+- [x] **Phase 36: Test Coverage Expansion** - Auth guards/strategies, impersonation, E2E isolation, 26.4% backend coverage (3.3x from 7.9%)
+- [x] **Phase 37: Critical Integration Fixes** - RedisCacheModule registration, batch reminder wiring, JwtWsGuard cleanup
+- [x] **Phase 38: Dark Mode Gap Closure** - Migrate 323 hardcoded colors, settings toggle, DataTable/modal dark variants
+- [x] **Phase 39: Frontend Test Repair** - Fix 56 case-detail test failures from Phase 25.1 refactor
+
+</details>
+
+### v2.0 PRD Feature Parity & Intelligence Layer (In Progress)
+
+**Milestone Goal:** Close all gaps between PRD specifications and the built platform across 6 waves, transforming it from a solid CRUD system into the "AI-first HubSpot for Compliance" described in the PRDs.
+
+- [ ] **Phase 40: Rules Engine Foundation** - Auto-routing rules, round-robin assignment, status auto-derivation, rule testing
+- [ ] **Phase 41: SLA Monitoring & Escalation** - SLA warnings/breaches, escalation triggers, configurable timeouts
+- [ ] **Phase 42: Anonymous Communication Relay** - Chinese Wall messaging, access codes, reporter visibility levels
+- [ ] **Phase 43: RAG Infrastructure** - pgvector embeddings, document chunking, semantic search, embedding abstraction
+- [ ] **Phase 44: Employee Chatbot** - Floating widget, policy Q&A with citations, confidence tiers, FAQ database
+- [ ] **Phase 45: Enhanced AI Features** - Note cleanup preview, pattern detection alerts, trend identification
+- [ ] **Phase 46: Disclosure Automation Foundation** - Rolling campaigns, auto-clear/reject rules, bulk operations, proxy delegation
+- [ ] **Phase 47: External Parties & GT&E** - External party entity, gift aggregation, currency conversion, location rules
+- [ ] **Phase 48: Portal Completeness** - Manager dashboard, employee timeline, operator AI suggestions, ethics portal enhancements
+- [ ] **Phase 49: PWA & Push Notifications** - Service worker, offline forms, push notifications, tenant-scoped caching
+- [ ] **Phase 50: Analytics & Data Compliance** - Fact tables, dashboard builder, scheduled reports, GDPR deletion, virus scan
+- [ ] **Phase 51: Enterprise Branding & Deployment** - Custom domains, fonts, email domains, Terraform IaC
 
 ## Phase Details
 
-### Phase 1: Foundation Infrastructure
+### Phase 40: Rules Engine Foundation
 
-**Goal**: Establish the platform's nervous system - event-driven communication, background job processing, unified audit logging, and search infrastructure that all subsequent modules depend on.
-**Depends on**: Nothing (first phase); builds on existing ~15% codebase (auth, basic Case/Investigation CRUD)
-**Requirements**: FOUND-01, FOUND-02, FOUND-03, FOUND-06, FOUND-07, FOUND-08, FOUND-09, FOUND-10, FOUND-11, FOUND-12
+**Goal**: Enable admins to create routing rules that auto-assign cases and configure rule testing against historical data, establishing the foundation for all automation features.
+**Depends on**: Phase 1 (json-rules-engine already installed), Phase 4 (Case entity), Phase 5 (Event-driven architecture)
+**Requirements**: RULE-01, RULE-02, RULE-06, RULE-07, RULE-08, RULE-09
 **Success Criteria** (what must be TRUE):
 
-1. Events emitted from service layer are consumed by async handlers without blocking the request
-2. Background jobs (AI processing, email sends, report generation) execute with retry logic and dead-letter handling
-3. All mutations across the platform log to AUDIT_LOG with natural language descriptions queryable by entity
-4. Search queries against Elasticsearch return results from indexed entities within 500ms
-5. Workflow engine can transition entity states according to configurable pipeline definitions
-   **Plans**: 9 plans in 4 waves
+1. Admin can create routing rules with conditions (location, category, severity) and actions (assign to user/team)
+2. Admin can configure round-robin assignment distribution across a team
+3. Case status auto-derives from investigation states (all investigations closed = case moves to review)
+4. Admin can preview/test rules against historical cases before activating
+5. System logs all rule executions with outcome for audit trail
+
+**Plans**: TBD
 
 Plans:
 
-- [x] 01-01-PLAN.md (Wave 1) - Event bus setup with @nestjs/event-emitter
-- [x] 01-02-PLAN.md (Wave 2) - BullMQ job queue infrastructure with Redis
-- [x] 01-03-PLAN.md (Wave 2) - Unified AUDIT_LOG service with natural language descriptions
-- [x] 01-04-PLAN.md (Wave 3) - Workflow engine with pipeline/stage/transition models
-- [x] 01-05-PLAN.md (Wave 4) - SLA tracking and assignment rules engine
-- [x] 01-06-PLAN.md (Wave 3) - Elasticsearch indexing pipeline and search service
-- [x] 01-07-PLAN.md (Wave 3) - Form/schema engine for dynamic forms
-- [x] 01-08-PLAN.md (Wave 3) - Reporting engine with query builder framework
-- [x] 01-09-PLAN.md (Wave 2) - File storage service with Azure Blob integration
+- [ ] 40-01: RuleDefinition + RuleExecutionLog Prisma models, RulesModule, DTOs
+- [ ] 40-02: RulesEngineService with json-rules-engine integration, condition/action types
+- [ ] 40-03: Routing rule evaluation on case.created event, assignment actions
+- [ ] 40-04: Round-robin assignment strategy with team distribution tracking
+- [ ] 40-05: Case status auto-derivation from investigation states via event listeners
+- [ ] 40-06: Rule preview/testing service with historical data simulation
+- [ ] 40-07: Rules management UI (list, create, edit, test, activate)
+- [ ] 40-08: Verification checkpoint with demo data
 
-### Phase 2: Demo Tenant & Seed Data
+### Phase 41: SLA Monitoring & Escalation
 
-**Goal**: Create "Acme Co." demo tenant with 3 years of realistic compliance data - the living test bed that proves features work and enables sales demonstrations.
-**Depends on**: Phase 1 (needs audit logging, workflow engine for realistic data)
-**Requirements**: FOUND-04, FOUND-05, DEMO-01, DEMO-02, DEMO-03, DEMO-04, DEMO-05, DEMO-06, DEMO-07, DEMO-08
+**Goal**: Enable proactive case management through SLA warnings, breach notifications, and configurable escalation triggers.
+**Depends on**: Phase 40 (rules engine foundation), Phase 7 (notification infrastructure)
+**Requirements**: RULE-03, RULE-04, RULE-05
 **Success Criteria** (what must be TRUE):
 
-1. Demo tenant "Acme Co." exists with complete organizational structure (business units, locations, 500+ employees)
-2. Demo contains 3 years of historical data: 2,000+ RIUs, 1,500+ Cases, multiple completed campaigns
-3. Cases exist in all investigation stages with realistic progression timestamps
-4. Multiple user accounts with different roles can log in and see appropriate data
-5. Demo can be reset to fresh state with single command (for repeated sales demos)
-   **Plans**: 7 plans
+1. System monitors case SLAs and sends warning notification at 80% of target duration
+2. System sends breach notification when case SLA is exceeded
+3. Admin can configure escalation triggers (e.g., "if HIGH severity and unassigned >4hrs, escalate to CCO")
+4. Escalation rules integrate with existing rules engine and notification system
+
+**Plans**: TBD
 
 Plans:
 
-- [x] 02-01: Demo tenant provisioning service and "Acme Co." organization
-- [x] 02-02: Seed data generator for employees, business units, locations
-- [x] 02-03: Historical RIU generator (all types, all sources, 3-year spread)
-- [x] 02-04: Historical Case generator with realistic investigation progression
-- [x] 02-05: Historical Campaign generator (disclosures, attestations)
-- [x] 02-06: Demo user accounts with role variety
-- [x] 02-07: Demo reset command and verification
+- [ ] 41-01: SLA configuration model, SlaMonitoringService with BullMQ scheduled checks
+- [ ] 41-02: SLA warning notifications at configurable thresholds (default 80%)
+- [ ] 41-03: SLA breach detection and notification with case status update
+- [ ] 41-04: EscalationRule model and EscalationService with trigger evaluation
+- [ ] 41-05: Admin UI for SLA and escalation configuration
+- [ ] 41-06: Verification checkpoint with demo scenarios
 
-### Phase 3: Authentication & SSO
+### Phase 42: Anonymous Communication Relay
 
-**Goal**: Enable enterprise customers to use their identity providers (Azure AD, Google, SAML) with just-in-time provisioning, domain verification, and multi-factor authentication.
-**Depends on**: Phase 1 (needs audit logging for auth events); can partially parallelize with Phase 2
-**Requirements**: AUTH-01, AUTH-02, AUTH-03, AUTH-04, AUTH-05, AUTH-06, AUTH-07
+**Goal**: Enable two-way communication between investigators and anonymous reporters via a Chinese Wall relay that protects reporter identity.
+**Depends on**: Phase 6 (case management), Phase 7 (email notifications), Phase 8 (ethics portal)
+**Requirements**: RELAY-01, RELAY-02, RELAY-03, RELAY-04, RELAY-05, RELAY-06, RELAY-07
 **Success Criteria** (what must be TRUE):
 
-1. User can log in via Azure AD SSO and be automatically provisioned in correct tenant based on email domain
-2. User can log in via Google OAuth with domain-based tenant routing
-3. Enterprise customers can configure SAML 2.0 with their IdP
-4. Organization admins can verify domain ownership and configure SSO settings
-5. Users can enable TOTP-based MFA on their accounts
-   **Plans**: 8 plans in 4 waves
+1. Investigator can send message to anonymous reporter via relay (PII stripped from investigator message)
+2. Anonymous reporter can reply to investigator messages via ethics portal using access code
+3. System sends email notification to reporter (if email provided) with random 1-6hr delay to prevent timing attacks
+4. Access code is emailed to reporter on RIU creation (if email provided)
+5. Admin can configure reporter visibility levels per tenant (Minimal, Standard, Detailed, Transparent)
+6. Message thread displays in ethics portal status page with read receipts
+7. All relay messages logged to audit trail with sender/receiver roles (not identities for anonymous)
+
+**Plans**: TBD
 
 Plans:
 
-- [x] 03-01-PLAN.md (Wave 1) - Database schema: TenantDomain, TenantSsoConfig, User SSO/MFA fields
-- [x] 03-02-PLAN.md (Wave 1) - Rate limiting infrastructure with @nestjs/throttler
-- [x] 03-03-PLAN.md (Wave 2) - Domain verification service with DNS TXT validation
-- [x] 03-04-PLAN.md (Wave 2) - SSO service core with JIT user provisioning
-- [x] 03-05-PLAN.md (Wave 3) - Azure AD SSO strategy with passport-azure-ad
-- [x] 03-06-PLAN.md (Wave 3) - Google OAuth SSO strategy with passport-google-oauth20
-- [x] 03-07-PLAN.md (Wave 3) - SAML 2.0 multi-tenant strategy with @node-saml/passport-saml
-- [x] 03-08-PLAN.md (Wave 4) - MFA/TOTP implementation with recovery codes
+- [ ] 42-01: RelayMessage model, ReporterVisibilityLevel tenant config, relay DTOs
+- [ ] 42-02: MessageRelayService with PII detection and stripping
+- [ ] 42-03: Access code email delivery on RIU creation
+- [ ] 42-04: Delayed notification batching (1-6hr random delay) via BullMQ
+- [ ] 42-05: Ethics portal message thread UI with read receipts
+- [ ] 42-06: Investigator message composition UI in case detail
+- [ ] 42-07: Reporter visibility level configuration UI
+- [ ] 42-08: Relay audit logging and verification checkpoint
 
-### Phase 4: Core Entities
+### Phase 43: RAG Infrastructure
 
-**Goal**: Implement the HubSpot-inspired data model - Person (Contact), RIU (Ticket), Case (Deal), Campaign (Sequence), and labeled Associations that enable pattern detection and unified workflows.
-**Depends on**: Phase 1 (needs workflow engine, audit logging), Phase 3 (needs auth for user-entity links)
-**Requirements**: PERS-01, PERS-02, PERS-03, PERS-04, PERS-05, PERS-06, RIU-01, RIU-02, RIU-03, RIU-04, RIU-05, RIU-06, RIU-07, CASE-01, CASE-02, CASE-03, CASE-04, CASE-05, CASE-06, CAMP-01, CAMP-02, CAMP-03, CAMP-04, CAMP-05, CAMP-06, ASSOC-01, ASSOC-02, ASSOC-03, ASSOC-04
+**Goal**: Build the vector search foundation that powers all AI intelligence features - document embeddings, semantic search, and embedding model abstraction.
+**Depends on**: Phase 5 (AI infrastructure), Phase 10 (policy documents)
+**Requirements**: RAG-01, RAG-02, RAG-03, RAG-04, RAG-05
 **Success Criteria** (what must be TRUE):
 
-1. Person records can be created from HRIS sync, manual entry, or intake with correct type/source tracking
-2. RIUs are immutable after creation - intake content cannot be modified, corrections go on linked Case
-3. Cases can have multiple RIUs linked with association types (primary, related, merged_from)
-4. Campaigns can target audiences by business unit, location, role and generate assignments for each employee
-5. Pattern detection queries can find all Cases involving the same Person across different roles (reporter, subject, witness)
-   **Plans**: 10 plans in 4 waves
+1. pgvector extension enabled with separate DocumentEmbedding table (explicit organizationId, not RLS-dependent for vector queries)
+2. Admin can upload knowledge base documents (PDF, DOCX, TXT) that are chunked and embedded
+3. Policy documents auto-embed on publish (chunked by section)
+4. Semantic search returns relevant document chunks with similarity scores, filtered by tenant
+5. Embedding model abstraction layer supports swapping providers without re-indexing schema changes
+
+**Plans**: TBD
 
 Plans:
 
-- [x] 04-01-PLAN.md (Wave 1) - Person entity with types and sources
-- [x] 04-02-PLAN.md (Wave 2) - Employee fields and manager hierarchy
-- [x] 04-03-PLAN.md (Wave 3) - HRIS sync service with Merge.dev integration
-- [x] 04-04-PLAN.md (Wave 1) - RIU immutability enforcement and expanded status
-- [x] 04-05-PLAN.md (Wave 2) - RIU type-specific extension tables
-- [x] 04-06-PLAN.md (Wave 3) - RIU access code generation and status checking
-- [x] 04-07-PLAN.md (Wave 2) - Case pipeline stages and merge support
-- [x] 04-08-PLAN.md (Wave 3) - Campaign and CampaignAssignment entities with segment targeting
-- [x] 04-09-PLAN.md (Wave 4) - Association entities with role labels (Person-Case, Person-RIU, Case-Case, Person-Person)
-- [x] 04-10-PLAN.md (Wave 4) - Pattern detection queries and Elasticsearch denormalization
+- [ ] 43-01: pgvector extension, DocumentEmbedding table with explicit organizationId
+- [ ] 43-02: EmbeddingService abstraction with Voyage AI provider
+- [ ] 43-03: Document chunking strategies (section-based for policies, activity-based for cases)
+- [ ] 43-04: VectorStoreService with similarity search and tenant filtering
+- [ ] 43-05: Knowledge base document upload with chunk/embed pipeline
+- [ ] 43-06: Policy auto-embedding on publish via event listener
+- [ ] 43-07: Hybrid search combining Elasticsearch keyword + pgvector semantic
+- [ ] 43-08: Verification checkpoint with performance benchmarks (100K+ embeddings)
 
-### Phase 5: AI Infrastructure
+### Phase 44: Employee Chatbot
 
-**Goal**: Build the AI integration layer that all features consume - Claude API client, context hierarchy loading, skills registry, action catalog, and scoped agents per view.
-**Depends on**: Phase 4 (needs entities to provide context to AI)
-**Requirements**: AI-01, AI-02, AI-03, AI-04, AI-05, AI-06, AI-07, AI-08, AI-09, AI-10, AI-11, AI-12, AI-13, AI-14, AI-15, AI-16, AI-17, AI-18, AI-19, AI-20, AI-21, AI-22
+**Goal**: Deploy an AI chatbot that answers policy questions with citations, handles case status checks, and escalates appropriately.
+**Depends on**: Phase 43 (RAG infrastructure), Phase 8 (portals)
+**Requirements**: CHAT-01, CHAT-02, CHAT-03, CHAT-04, CHAT-05, CHAT-06, CHAT-07, CHAT-08, CHAT-09, CHAT-10
 **Success Criteria** (what must be TRUE):
 
-1. AI service calls Claude API with tenant-isolated context (never mixes data from multiple organizations)
-2. Note cleanup transforms bullet points into formal narrative within 5 seconds
-3. Case and investigation summaries generate automatically with confidence scores
-4. AI panel (slide-over drawer) is available on Case and Investigation detail pages
-5. Scoped agents (Investigation Agent, Case Agent) have different skills and action permissions
-   **Plans**: 11 plans in 4 waves
+1. Floating chatbot widget available on Ethics Portal (no login required)
+2. Floating chatbot widget available on Employee Portal (authenticated)
+3. Chatbot answers policy questions with specific section citations and links
+4. High confidence responses (>85%) show direct answer with source
+5. Medium confidence responses (50-85%) show clarifying questions with confidence indicator
+6. Low confidence responses (<50%) offer one-click escalation to compliance team
+7. Chatbot can check case status via access code (anonymous reporters)
+8. Consent capture before first chatbot interaction per session
+9. Full chatbot transcript stored for audit with conversation entity linkage
+10. FAQ database with curated answers that chatbot references before RAG fallback
+
+**Plans**: TBD
 
 Plans:
 
-- [x] 05-01-PLAN.md (Wave 1) - Claude API integration with @anthropic-ai/sdk
-- [x] 05-02-PLAN.md (Wave 2) - AIProvider abstraction for multi-LLM support
-- [x] 05-03-PLAN.md (Wave 2) - Per-tenant rate limiting with Redis sorted sets
-- [x] 05-04-PLAN.md (Wave 2) - Prompt versioning and template management with Handlebars
-- [x] 05-05-PLAN.md (Wave 1) - AI conversation logging (AiConversation, AiMessage tables)
-- [x] 05-06-PLAN.md (Wave 2) - Context hierarchy loading (platform/org/team/user/entity)
-- [x] 05-07-PLAN.md (Wave 3) - Skills registry with note-cleanup and summarize skills
-- [x] 05-08-PLAN.md (Wave 3) - Additional skills: category-suggest, risk-score, translate
-- [x] 05-09-PLAN.md (Wave 3) - Scoped agents (Investigation, Case, ComplianceManager)
-- [x] 05-10-PLAN.md (Wave 4) - Action catalog with preview-then-execute pattern
-- [x] 05-11-PLAN.md (Wave 4) - WebSocket gateway and REST controller for AI API
+- [ ] 44-01: EmployeeChatbotAgent with PolicySearchSkill, CaseStatusSkill, DisclosureGuideSkill
+- [ ] 44-02: FAQ model and FAQ management service with priority over RAG
+- [ ] 44-03: Confidence-tiered response formatting (High/Medium/Low)
+- [ ] 44-04: One-click escalation to compliance team (creates async inquiry)
+- [ ] 44-05: Consent capture modal and session tracking
+- [ ] 44-06: Case status lookup via access code (anonymous-safe)
+- [ ] 44-07: Floating chatbot widget component for Ethics Portal
+- [ ] 44-08: Floating chatbot widget for Employee Portal (authenticated context)
+- [ ] 44-09: Chatbot transcript storage with conversation entity linkage
+- [ ] 44-10: FAQ management UI and verification checkpoint
 
-### Phase 6: Case Management
+### Phase 45: Enhanced AI Features
 
-**Goal**: Complete the Case lifecycle - investigation workflows with templates, structured interviews, remediation plans, subject tracking, and two-way anonymous communication.
-**Depends on**: Phase 4 (needs Case/RIU entities), Phase 5 (needs AI for summaries)
-**Requirements**: INV-01, INV-02, INV-03, INV-04, INV-05, INV-06, INV-07, INV-08, CLIENT-01, CLIENT-02, CLIENT-03, UX-01, UX-02, UX-03, UX-04, UX-05, UX-06
+**Goal**: Deliver advanced AI capabilities - note cleanup with preview, cross-case pattern detection, trend identification, and pattern-based escalation.
+**Depends on**: Phase 43 (RAG), Phase 40 (rules engine), Phase 44 (chatbot escalation)
+**Requirements**: AIEX-01, AIEX-02, AIEX-03, AIEX-04, AIEX-05
 **Success Criteria** (what must be TRUE):
 
-1. Investigators can use category-specific templates with pre-populated checklists
-2. Structured interviews can be recorded with template questions and linked to investigations
-3. Remediation plans track steps with assignees, due dates, and completion status
-4. Two-way anonymous communication works via relay without revealing reporter identity
-5. Users can create and save custom filtered views across Cases and RIUs
-   **Demo Data Checkpoint** (Acme Co. additions):
+1. Note cleanup tool shows before/after preview (bullet points to formal narrative)
+2. Cross-case pattern detection alerts when same subject appears in 3+ cases
+3. Pattern-based escalation combines rules engine with detection (e.g., "5+ cases in 90 days = auto-escalate")
+4. AI trend identification surfaces statistical changes (e.g., "Harassment reports up 40% in Manufacturing")
+5. One-click escalation from chatbot creates async inquiry for compliance team
 
-- Investigation templates for each category (Harassment, Fraud, Ethics Violation, etc.)
-- Sample structured interviews linked to active investigations
-- Remediation plans with steps at various completion states
-- Anonymous messages in relay queue awaiting response
-- 5+ saved views demonstrating filter combinations
-  **Plans**: 17 plans in 5 waves
+**Plans**: TBD
 
 Plans:
 
-- [ ] 06-01-PLAN.md (Wave 1) - Investigation template model and service with versioning
-- [ ] 06-02-PLAN.md (Wave 1) - Structured interview model and service
-- [ ] 06-03-PLAN.md (Wave 1) - Remediation plan and step models with DAG validation
-- [ ] 06-04-PLAN.md (Wave 1) - Saved views infrastructure with filter persistence
-- [ ] 06-05-PLAN.md (Wave 1) - Custom properties infrastructure for tenant-configurable fields
-- [ ] 06-06-PLAN.md (Wave 2) - Template assignment by category with recommendation logic
-- [ ] 06-07-PLAN.md (Wave 2) - Checklist progress tracking with item completion
-- [ ] 06-08-PLAN.md (Wave 2) - Remediation step assignment and notifications
-- [ ] 06-09-PLAN.md (Wave 2) - Anonymous message relay with PII detection
-- [ ] 06-10-PLAN.md (Wave 3) - Unified search enhancement with custom properties
-- [ ] 06-11-PLAN.md (Wave 3) - Activity timeline service and component
-- [ ] 06-12-PLAN.md (Wave 3) - AI infrastructure polish (WebSocket E2E, auth integration)
-- [ ] 06-13-PLAN.md (Wave 4) - Case list page with advanced filtering and saved views
-- [ ] 06-14-PLAN.md (Wave 4) - Case detail page with linked RIUs and tabs
-- [ ] 06-15-PLAN.md (Wave 4) - Investigation detail page with checklist panel
-- [ ] 06-16-PLAN.md (Wave 5) - Keyboard shortcuts and command palette
-- [ ] 06-17-PLAN.md (Wave 5) - Final integration and human verification checkpoint
+- [ ] 45-01: Note cleanup preview component with before/after diff view
+- [ ] 45-02: PatternDetectionModule with repeat subject detection via PersonCaseAssociation queries
+- [ ] 45-03: PatternAlert model and nightly pattern detection job (BullMQ per tenant)
+- [ ] 45-04: Real-time repeat subject alert on case creation
+- [ ] 45-05: Pattern-based escalation rule integration with rules engine
+- [ ] 45-06: AI trend identification service with statistical change detection
+- [ ] 45-07: Trend dashboard widget showing category/location changes
+- [ ] 45-08: Pattern alert dashboard with accept/dismiss tracking
+- [ ] 45-09: Verification checkpoint
 
-### Phase 7: Notifications & Email
+### Phase 46: Disclosure Automation Foundation
 
-**Goal**: Deliver event-driven notifications through multiple channels (email, in-app) with user preferences, template management, and delivery tracking.
-**Depends on**: Phase 1 (needs event bus, job queues), Phase 4 (needs entities to notify about)
-**Requirements**: NOTIF-01, NOTIF-02, NOTIF-03, NOTIF-04, NOTIF-05
+**Goal**: Automate disclosure workflows with rolling campaigns, auto-clear/reject rules, bulk operations, and enhanced approval workflows.
+**Depends on**: Phase 9 (campaigns & disclosures), Phase 40 (rules engine), Phase 4 (HRIS sync)
+**Requirements**: DISC-01, DISC-02, DISC-03, DISC-04, DISC-05, DISC-06, DISC-07, DISC-08
 **Success Criteria** (what must be TRUE):
 
-1. Users receive email notifications for case assignments, status changes, and SLA breaches
-2. In-app notification center shows unread count and allows mark-as-read
-3. Users can configure notification preferences per event type (email, in-app, none)
-4. Failed email deliveries retry with exponential backoff and log to delivery tracking
-5. Notification templates support entity context rendering (case title, due date, assignee)
-   **Demo Data Checkpoint** (Acme Co. additions):
+1. Rolling campaigns auto-trigger on HRIS events (NEW_HIRE, ROLE_CHANGE, PROMOTION, ANNUAL_ANNIVERSARY)
+2. Admin can configure auto-clear rules (e.g., "nothing to disclose" auto-completes without review)
+3. Admin can configure auto-reject rules based on answer patterns
+4. Compliance officer can bulk approve/reject up to 100 disclosures at once
+5. System sends condition reminders at 14, 7, 3, and 1 day before due date
+6. Admin can configure multi-stage approval workflows for disclosures (up to 4 stages)
+7. Admin can set up proxy delegation (delegate authority with scope and validity period)
+8. Campaign can be paused and resumed by admin
 
-- Notification history for demo users (mix of read/unread)
-- Email delivery records with various statuses (sent, bounced, opened)
-- Configured notification preferences for different demo users
-- Daily digest configurations demonstrating aggregation
-  **Plans**: 8 plans in 4 waves
+**Plans**: TBD
 
 Plans:
 
-- [x] 07-01-PLAN.md (Wave 1) - Database schema: Notification, NotificationPreference, NotificationDelivery, OrgNotificationSettings models
-- [x] 07-02-PLAN.md (Wave 1) - Email template service with MJML and Handlebars integration
-- [x] 07-03-PLAN.md (Wave 2) - Notification preference service with 5-min cache and org enforcement
-- [x] 07-04-PLAN.md (Wave 2) - NotificationService core and event listeners (case, SLA, workflow)
-- [x] 07-05-PLAN.md (Wave 3) - In-app notification WebSocket gateway with tenant-isolated rooms
-- [x] 07-06-PLAN.md (Wave 3) - Daily digest service with smart aggregation and scheduling
-- [x] 07-07-PLAN.md (Wave 3) - Delivery tracking service and email processor (replaces Phase 1 placeholder)
-- [x] 07-08-PLAN.md (Wave 4) - REST API controllers for notifications and preferences
+- [ ] 46-01: RollingCampaignService with HRIS event triggers via hris.sync.completed listener
+- [ ] 46-02: HRIS sync completion fence to prevent race conditions
+- [ ] 46-03: Auto-clear and auto-reject rule configuration and evaluation
+- [ ] 46-04: Bulk disclosure operations (approve/reject up to 100)
+- [ ] 46-05: Condition reminder scheduling at 14/7/3/1 days
+- [ ] 46-06: Multi-stage approval workflow for disclosures (up to 4 stages)
+- [ ] 46-07: Proxy delegation model and service with scope and validity
+- [ ] 46-08: Campaign pause/resume functionality
+- [ ] 46-09: Rolling campaign UI and configuration
+- [ ] 46-10: Verification checkpoint
 
-### Phase 8: Portals
+### Phase 47: External Parties & GT&E
 
-**Goal**: Launch the three user-facing portals - Ethics Portal (anonymous reporting), Employee Portal (self-service), and Operator Console (hotline intake with AI assistance).
-**Depends on**: Phase 4 (needs RIU/Case/Campaign entities), Phase 5 (needs AI for note cleanup), Phase 7 (needs notifications)
-**Requirements**: ETHIC-01, ETHIC-02, ETHIC-03, ETHIC-04, ETHIC-05, ETHIC-06, EMP-01, EMP-02, EMP-03, EMP-04, EMP-05, EMP-06, OPER-01, OPER-02, OPER-03, OPER-04, OPER-05, OPER-06, OPER-07, OPER-08
+**Goal**: Complete gift and entertainment tracking with external party management, aggregation, currency conversion, and location-specific rules.
+**Depends on**: Phase 46 (disclosure automation), Phase 9 (existing disclosure infrastructure)
+**Requirements**: DISC-09, DISC-10, DISC-11, DISC-12
 **Success Criteria** (what must be TRUE):
 
-1. Anonymous reporters can submit reports and receive access codes without logging in
-2. Anonymous reporters can check status and exchange messages using only their access code
-3. Employees can log in via SSO and see their reports, disclosures, attestations, and tasks
-4. Managers can submit proxy reports on behalf of employees
-5. Operators can load client profiles by phone number and create RIUs with AI-assisted note cleanup
-   **Demo Data Checkpoint** (Acme Co. additions):
+1. External party entity with type, risk rating, aliases, tax ID, government/sanctioned flags
+2. GT&E transactions aggregate across gifts from same external party for threshold enforcement
+3. Currency conversion with daily exchange rates for multi-currency GT&E
+4. Location-specific disclosure rules (state/country thresholds for government officials)
 
-- Hotline-sourced RIUs with operator notes and AI-cleaned narratives
-- QA queue items at various review states
-- Employee self-service report history for demo employees
-- Manager proxy reports demonstrating escalation flow
-  **Plans**: 17 plans in 7 waves
+**Plans**: TBD
 
 Plans:
 
-- [x] 08-01-PLAN.md (Wave 1) - White-label branding service with CSS custom properties
-- [x] 08-02-PLAN.md (Wave 1) - Directives service for client-specific operator scripts
-- [x] 08-03-PLAN.md (Wave 1) - Client profile service with phone lookup and QA config
-- [x] 08-04-PLAN.md (Wave 1) - Employee tasks aggregation service
-- [x] 08-05-PLAN.md (Wave 2) - Ethics Portal API endpoints for public report submission
-- [x] 08-06-PLAN.md (Wave 2) - Employee Portal history views and manager proxy
-- [x] 08-07-PLAN.md (Wave 2) - Operator Console intake and QA queue APIs
-- [x] 08-08-PLAN.md (Wave 3) - Ethics Portal PWA setup with offline storage and i18n
-- [x] 08-09-PLAN.md (Wave 3) - Operator Console layout and client lookup UI
-- [x] 08-10-PLAN.md (Wave 4) - Anonymous report submission UI
-- [x] 08-11-PLAN.md (Wave 4) - Status check and messaging UI
-- [x] 08-12-PLAN.md (Wave 4) - White-label theming integration and home page
-- [x] 08-13-PLAN.md (Wave 5) - Employee dashboard with role-aware tabs
-- [x] 08-14-PLAN.md (Wave 5) - Manager proxy reporting UI
-- [x] 08-15-PLAN.md (Wave 6) - Hotline intake form with AI note cleanup
-- [x] 08-16-PLAN.md (Wave 6) - QA queue and review UI
-- [x] 08-17-PLAN.md (Wave 7) - Final integration and verification checkpoint
+- [ ] 47-01: ExternalParty model with type, risk rating, aliases, government flags
+- [ ] 47-02: GT&E aggregation service for same-party threshold enforcement
+- [ ] 47-03: Currency conversion service with daily exchange rate refresh
+- [ ] 47-04: Location-specific rule configuration for government official thresholds
+- [ ] 47-05: External party management UI
+- [ ] 47-06: GT&E reporting with aggregated views
+- [ ] 47-07: Verification checkpoint
 
-### Phase 9: Campaigns & Disclosures
+### Phase 48: Portal Completeness
 
-**Goal**: Enable outbound compliance campaigns - COI disclosures, gift tracking, outside employment, attestations - with threshold-based auto-case creation and conflict detection.
-**Depends on**: Phase 4 (needs Campaign entity), Phase 7 (needs notifications for reminders), Phase 8 (needs Employee Portal for submission)
-**Requirements**: RS.22-RS.60 (Disclosure Forms, Thresholds, Conflicts, Campaign Engine, AI Triage)
+**Goal**: Complete all three portals with manager dashboards, employee timelines, operator AI suggestions, and ethics portal enhancements.
+**Depends on**: Phase 8 (portals exist), Phase 44 (chatbot), Phase 40 (rules for suggestions)
+**Requirements**: EMPL-01 through EMPL-07, OPER-01 through OPER-05, ETHP-01 through ETHP-04
 **Success Criteria** (what must be TRUE):
 
-1. Compliance officers can create campaigns targeting employees by business unit, location, or role
-2. Employees receive campaign assignments and can complete disclosure forms
-3. Gift disclosures exceeding configured thresholds automatically create Cases for review
-4. Conflict detection flags potential issues across a person's disclosure history
-5. Campaign dashboards show completion rates, overdue counts, and send reminders
-   **Demo Data Checkpoint** (Acme Co. additions):
+**Employee Portal:**
+1. Manager sees Team Compliance Dashboard with outstanding disclosures/attestations per direct report
+2. Manager can submit proxy report on behalf of employee with proper attribution
+3. Manager can send bulk reminders to non-compliant team members
+4. Employee sees "My Reports" with combined RIU + linked Case timeline
+5. Employee can mark disclosure conditions as complete with supporting evidence upload
+6. Employee can export their disclosure history
+7. Session idle timeout warning modal (configurable countdown before auto-logout)
 
-- 3 years of COI disclosure campaigns with 85% completion rates
-- Gift disclosures including threshold breaches that created Cases
-- Outside employment disclosures with conflict flags
-- Repeat non-responders and late completers for reminder demos
-- Flagged conflicts awaiting review
-  **Plans**: 17 plans in 5 waves
+**Operator Console:**
+8. Operator sees AI-suggested follow-up questions during intake based on category
+9. Mandatory directive acknowledgment gate blocks RIU submission until directives reviewed
+10. QA manager sees operator quality metrics dashboard (QA return rate, average review time)
+11. Category selection dynamically loads category-specific intake questions
+12. Opening/closing statement management for operator scripts
+
+**Ethics Portal:**
+13. Crisis escalation banner displayed prominently (configurable per tenant, not dismissible)
+14. Emergency hotline phone number configurable per tenant and displayed on landing
+15. Multi-language auto-detection (URL param > user preference > browser header > HRIS > default)
+16. Program transparency display with anonymized statistics (configurable by admin)
+
+**Plans**: TBD
 
 Plans:
 
-- [x] 09-01-PLAN.md (Wave 1) - Disclosure form schema engine (Prisma models, field types, DTOs)
-- [x] 09-02-PLAN.md (Wave 2) - Form template CRUD service with version-on-publish
-- [x] 09-03-PLAN.md (Wave 1) - Threshold configuration engine with json-rules-engine
-- [x] 09-04-PLAN.md (Wave 1) - Conflict detection service with fuzzy matching
-- [x] 09-05-PLAN.md (Wave 2) - Conflict surfacing and dismissal API
-- [x] 09-06-PLAN.md (Wave 2) - Disclosure submission service orchestrating all services
-- [x] 09-07-PLAN.md (Wave 1) - Campaign targeting service (mom-test UX)
-- [x] 09-08-PLAN.md (Wave 1) - Campaign scheduling with waves and blackouts
-- [x] 09-09-PLAN.md (Wave 2) - Reminder sequence engine with repeat non-responder tracking
-- [x] 09-10-PLAN.md (Wave 2) - Campaign translation service with stale detection
-- [x] 09-11-PLAN.md (Wave 3) - SchemaIntrospectionService + AI triage with preview-then-execute
-- [x] 09-12-PLAN.md (Wave 3) - User-created tables feature
-- [x] 09-13-PLAN.md (Wave 2) - Campaign enhanced controller and dashboard service
-- [x] 09-14-PLAN.md (Wave 4) - Form builder UI with drag-drop sections
-- [x] 09-15-PLAN.md (Wave 4) - Campaign builder UI with segment builder
-- [x] 09-16-PLAN.md (Wave 4) - Disclosure submission UI with auto-save
-- [x] 09-17-PLAN.md (Wave 5) - Conflict review UI with entity timeline
+- [ ] 48-01: Manager Team Compliance Dashboard with direct report metrics
+- [ ] 48-02: Manager proxy report and bulk reminder functionality
+- [ ] 48-03: Employee "My Reports" combined RIU + Case timeline
+- [ ] 48-04: Disclosure condition completion with evidence upload
+- [ ] 48-05: Employee disclosure history export
+- [ ] 48-06: Session idle timeout warning modal
+- [ ] 48-07: Operator AI-suggested follow-up questions
+- [ ] 48-08: Directive acknowledgment gate for RIU submission
+- [ ] 48-09: QA manager quality metrics dashboard
+- [ ] 48-10: Category-specific intake questions
+- [ ] 48-11: Opening/closing statement management
+- [ ] 48-12: Ethics portal crisis banner and emergency phone
+- [ ] 48-13: Multi-language auto-detection
+- [ ] 48-14: Program transparency display
+- [ ] 48-15: Verification checkpoint
 
-### Phase 10: Policy Management
+### Phase 49: PWA & Push Notifications
 
-**Goal**: Complete policy lifecycle - document management with versioning, approval workflows, attestation campaigns, and AI-powered translation.
-**Depends on**: Phase 4 (needs Campaign entity for attestations), Phase 5 (needs AI for translation), Phase 9 (shares Campaign infrastructure)
-**Requirements**: POL-01, POL-02, POL-03, POL-04, POL-05, POL-06, POL-07, CLIENT-04, CLIENT-05, CLIENT-06, CLIENT-07
+**Goal**: Make the ethics portal installable as a PWA with offline form submission and push notifications for key events.
+**Depends on**: Phase 8 (ethics portal), Phase 7 (notifications), Phase 41 (SLA alerts)
+**Requirements**: PWA-01, PWA-02, PWA-03, PWA-04
 **Success Criteria** (what must be TRUE):
 
-1. Compliance officers can create policies with rich text content and publish versions
-2. Approval workflows route policy changes through configured reviewers before publishing
-3. Attestation campaigns distribute policies to employees and track read/acknowledge status
-4. AI translation preserves the original while creating localized versions
-5. Policy violations can be linked to Cases for tracking
-   **Demo Data Checkpoint** (Acme Co. additions):
+1. Ethics portal installable as PWA (manifest.json, service worker, icons)
+2. Push notifications for case status updates, campaign reminders, SLA warnings
+3. Offline form submission queuing (submits when connectivity restored)
+4. Tenant-scoped service worker caches (no cross-tenant data leakage)
 
-- 50+ policies with version history (Code of Conduct, Anti-Harassment, Gift Policy, etc.)
-- Policies in approval workflow at various stages
-- Completed attestation campaigns with read/acknowledge tracking
-- Policy-linked Cases showing violation tracking
-- Multi-language policy translations (Spanish, French, German, Mandarin)
-  **Plans**: 11 plans in 5 waves
+**Plans**: TBD
 
 Plans:
 
-- [x] 10-01-PLAN.md (Wave 1) - Policy database schema with versioning infrastructure
-- [x] 10-02-PLAN.md (Wave 2) - Policy service with version-on-publish pattern
-- [x] 10-03-PLAN.md (Wave 2) - Approval workflow integration using WorkflowEngine
-- [x] 10-04-PLAN.md (Wave 3) - Attestation campaigns from published policies
-- [x] 10-05-PLAN.md (Wave 3) - AI-powered policy translation service
-- [x] 10-06-PLAN.md (Wave 3) - Policy-to-case linking for violation tracking
-- [x] 10-07-PLAN.md (Wave 3) - Policy search with Elasticsearch indexing
-- [x] 10-08-PLAN.md (Wave 4) - Policy management UI (list, editor)
-- [x] 10-09-PLAN.md (Wave 4) - Policy detail page with version history and translations
-- [x] 10-10-PLAN.md (Wave 5) - User management and RBAC UI
-- [x] 10-11-PLAN.md (Wave 5) - Organization settings UI
+- [ ] 49-01: PWA manifest.json and app icons for ethics portal
+- [ ] 49-02: Service worker with @serwist/next, tenant-scoped cache names
+- [ ] 49-03: PushSubscription model and WebPushService backend
+- [ ] 49-04: Push notification triggers for case status, campaigns, SLA
+- [ ] 49-05: Offline form submission queue with IndexedDB (dexie)
+- [ ] 49-06: Network-first strategy for authenticated routes, cache clearing on logout
+- [ ] 49-07: Verification checkpoint with offline/online tests
 
-### Phase 11: Analytics & Reporting
+### Phase 50: Analytics & Data Compliance
 
-**Goal**: Deliver data-driven insights - pre-built dashboards, custom dashboard builder, board reports, AI natural language queries, flat file exports, and scheduled report delivery.
-**Depends on**: All previous phases (needs data volume), Phase 5 (needs AI for NL queries)
-**Requirements**: ANAL-01, ANAL-02, ANAL-03, ANAL-04, ANAL-05, ANAL-06, ANAL-07, ANAL-08, PROJ-01, PROJ-02, PROJ-03, PROJ-04, PROJ-05, PROJ-06, MIG-01, MIG-02, MIG-03, MIG-04, MIG-05, MIG-06, MIG-07, FLAT-01
+**Goal**: Build fact tables for fast analytics, dashboard widget builder, scheduled reports, and GDPR-compliant data deletion.
+**Depends on**: Phase 11 (analytics foundation), Phase 1 (BullMQ for scheduled jobs)
+**Requirements**: ANAL-01, ANAL-02, ANAL-03, ANAL-04, DATA-01, DATA-02, DATA-03
 **Success Criteria** (what must be TRUE):
 
-1. Pre-built dashboards show KPIs for RIUs, Cases, Campaigns, and overall compliance health
-2. Users can build custom dashboards by dragging and configuring widgets
-3. AI responds to natural language queries like "show me harassment cases from Q4 in EMEA"
-4. Board reports generate as PDFs with executive summaries and trend charts
-5. "My Work" unified queue aggregates tasks from Cases, Investigations, Disclosures, and Policies
-6. Flat file export produces denormalized "everything" file with configurable tagged fields
-   **Demo Data Checkpoint** (Acme Co. additions):
+1. Fact tables (FACT_RIU_DAILY, FACT_CASE_DAILY, FACT_CAMPAIGN_DAILY) with incremental aggregation
+2. Dashboard drag-and-drop widget builder with configurable layouts
+3. Scheduled report delivery via email (daily, weekly, monthly cron)
+4. Peer benchmarking data pipeline (anonymized cross-tenant aggregation)
+5. GDPR data deletion workflow using cryptographic shredding (encrypt PII per record, delete keys on erasure)
+6. Configurable data retention policies (auto-archive after N days/months/years)
+7. Document/attachment virus scan integration (ClamAV or Azure Defender)
 
-- Sample dashboards with realistic KPIs and trend charts
-- Scheduled reports configured for weekly delivery
-- Board report templates with executive summaries
-- Tagged field configurations for flat file exports
-- Sample AI-generated tables saved to dashboards
-  **Plans**: 21 plans
+**Plans**: TBD
 
 Plans:
 
-- [x] 11-01-PLAN.md (Wave 1) - Dashboard configuration infrastructure: Prisma models, DashboardConfigService
-- [x] 11-02-PLAN.md (Wave 1) - My Work unified task queue: TaskAggregatorService, MyWorkController
-- [x] 11-03-PLAN.md (Wave 1) - Flat file export infrastructure: ExportJob, ReportFieldTag, FlatFileService
-- [x] 11-04-PLAN.md (Wave 1) - Migration infrastructure: MigrationJob, MigrationFieldTemplate, MigrationService
-- [x] 11-05-PLAN.md (Wave 2) - Widget data service and pre-built widgets: CCO, Investigator, Campaign Manager dashboards
-- [x] 11-06-PLAN.md (Wave 2) - PDF and PPTX generation: Puppeteer, pptxgenjs, BoardReportService
-- [x] 11-07-PLAN.md (Wave 2) - Excel streaming export: ExcelExportService, FlatExportProcessor
-- [x] 11-08-PLAN.md (Wave 2) - AI natural language queries: AiQueryService, QueryToPrismaService with field whitelisting
-- [x] 11-09-PLAN.md (Wave 2) - Migration connectors base: BaseMigrationConnector abstract class
-- [x] 11-10-PLAN.md (Wave 3) - Dashboard controller: CRUD, scheduled refresh, DashboardGrid component
-- [x] 11-11-PLAN.md (Wave 3) - Migration controller and processor: MigrationController, MigrationProcessor
-- [x] 11-12-PLAN.md (Wave 3) - Scheduled exports: ScheduledExport model, ScheduledExportService, cron processor
-- [x] 11-13-PLAN.md (Wave 4) - Project milestones: Milestone, MilestoneItem models, MilestoneService
-- [x] 11-14-PLAN.md (Wave 4) - Gantt chart visualization: GanttChart component, timeline utilities
-- [x] 11-15-PLAN.md (Wave 3) - Migration file upload: MigrationUploadService with format auto-detection
-- [x] 11-16-PLAN.md (Wave 3) - Screenshot-to-form AI: ScreenshotToFormService using Claude vision API
-- [x] 11-17-PLAN.md (Wave 4) - NAVEX import connector: NavexConnector with NAVEX-specific mappings
-- [x] 11-18-PLAN.md (Wave 4) - EQS/Conversant import connector: EqsConnector with EQS-specific mappings
-- [x] 11-19-PLAN.md (Wave 4) - Generic CSV import: CsvConnector, MappingSuggestionService
-- [x] 11-20-PLAN.md (Wave 5) - Import preview and rollback: MigrationProcessor with validate/preview/import/rollback
-- [x] 11-21-PLAN.md (Wave 5) - Flat file export with tagged fields: TaggedFieldService, FlatExportBuilder UI
+- [ ] 50-01: Fact table models (FACT_RIU_DAILY, FACT_CASE_DAILY, FACT_CAMPAIGN_DAILY)
+- [ ] 50-02: Event-driven incremental aggregation + nightly reconciliation jobs
+- [ ] 50-03: Dashboard widget builder with drag-and-drop layouts
+- [ ] 50-04: Scheduled report delivery service with email cron
+- [ ] 50-05: Peer benchmarking pipeline (anonymized aggregation)
+- [ ] 50-06: GDPR cryptographic shredding service (piiEncryptionKeyId, purge workflow)
+- [ ] 50-07: Data retention policy configuration and auto-archive jobs
+- [ ] 50-08: Virus scan integration for document uploads
+- [ ] 50-09: Verification checkpoint
 
-### Phase 11.1: Frontend Navigation and UI Fixes (INSERTED)
+### Phase 51: Enterprise Branding & Deployment
 
-**Goal**: Add main navigation sidebar and fix broken case detail tabs so the demo environment is fully navigable and functional.
-**Depends on**: Phase 11 (uses existing frontend infrastructure)
-**Requirements**: URGENT - Demo environment needs navigation for sales demos
+**Goal**: Complete enterprise branding capabilities and infrastructure-as-code for production deployment.
+**Depends on**: Phase 8 (branding service exists), All prior phases complete
+**Requirements**: BRAND-01, BRAND-02, BRAND-03, BRAND-04, BRAND-05, BRAND-06, BRAND-07, DEPL-01
 **Success Criteria** (what must be TRUE):
 
-1. Main navigation sidebar visible on all authenticated pages with links to all modules
-2. Mobile bottom navigation bar on small screens
-3. Case detail Messages, Files, and Remediation tabs display real data (not placeholders)
-4. /campaigns page shows campaign list with filters
-5. /analytics page shows stats dashboard
-   **Plans**: 6 plans in 3 waves
+1. Custom domain SSL routing for enterprise tenants
+2. Custom font family upload and selection
+3. Hero image upload for ethics portal landing
+4. Custom email sender domain per tenant
+5. "Powered by Ethico" removal option
+6. Footer HTML customization
+7. Custom CSS injection for enterprise branding
+8. Terraform IaC for Azure infrastructure (App Service, PostgreSQL, Redis, Blob Storage, Search)
+
+**Plans**: TBD
 
 Plans:
 
-- [x] 11.1-01-PLAN.md (Wave 1) - shadcn/ui Sidebar infrastructure and authenticated layout
-- [x] 11.1-02-PLAN.md (Wave 1) - Mobile bottom navigation and AI panel shell
-- [x] 11.1-03-PLAN.md (Wave 2) - Case tab data wiring: Messages and Files
-- [x] 11.1-04-PLAN.md (Wave 2) - Case tab data wiring: Remediation with drag-reorder
-- [x] 11.1-05-PLAN.md (Wave 3) - Campaigns list page with filters and table
-- [x] 11.1-06-PLAN.md (Wave 3) - Analytics page with Dashboards/Reports tabs
-
-### Phase 12: Internal Operations Portal
-
-**Goal**: Build the internal tooling for Ethico teams - Support Console for issue diagnosis and client access, Implementation Portal for onboarding and migrations, Hotline Operations for directive management and QA, and Client Success Dashboard for health monitoring.
-**Depends on**: Phase 11 (needs analytics infrastructure), Phase 8 (needs existing portal patterns)
-**Requirements**: OPS-01 (Support Console), OPS-02 (Implementation Portal), OPS-03 (Hotline Operations), OPS-04 (Client Success), TECH-DEBT (accumulated items)
-**Success Criteria** (what must be TRUE):
-
-1. Support team can impersonate client accounts with full audit trail
-2. Implementation specialists can run data migrations with validation, preview, and 7-day rollback
-3. Hotline team can edit directives, bulk-manage QA queue, and reassign cases
-4. Client Success can view tenant health scores, usage metrics, and adoption tracking
-5. All cross-tenant operations require elevated permissions and produce audit logs
-   **Demo Data Checkpoint** (Acme Co. additions):
-
-- Sample implementation project with checklist tracking
-- Migration job history with various statuses
-- Directive configurations for multiple categories
-- Client health metrics and usage trends
-  **Plans**: 19 plans in 5 waves
-
-Plans:
-
-- [x] 12-01-PLAN.md (Wave 1) - Cross-tenant access infrastructure: ImpersonationService, ElevatedAccessGuard, audit logging
-- [x] 12-02-PLAN.md (Wave 1) - Implementation project models: ImplementationProject, ImplementationTask, ImplementationBlocker
-- [x] 12-03-PLAN.md (Wave 1) - Client health metrics: TenantHealthScore, UsageMetric, FeatureAdoption models
-- [x] 12-04-PLAN.md (Wave 2) - Support Console service: cross-tenant search, error log viewer, config inspector
-- [x] 12-05-PLAN.md (Wave 2) - Implementation checklist service: templates, task tracking, phase milestones
-- [x] 12-06-PLAN.md (Wave 2) - Migration wizard service: file upload, AI field mapping, validation, preview
-- [x] 12-07-PLAN.md (Wave 2) - Hotline operations service: directive CRUD, bulk QA actions, case reassignment
-- [x] 12-08-PLAN.md (Wave 3) - Client success service: health calculation, usage aggregation, renewal risk
-- [x] 12-09-PLAN.md (Wave 3) - Training administration: certification tracks, progress tracking, exam management
-- [x] 12-10-PLAN.md (Wave 3) - Go-live readiness: checklist engine, readiness score, sign-off workflow
-- [x] 12-11-PLAN.md (Wave 4) - Support Console UI: tenant switcher, error viewer, config browser
-- [x] 12-12-PLAN.md (Wave 4) - Implementation Portal UI: project dashboard, checklist tracker, blocker board
-- [x] 12-13-PLAN.md (Wave 4) - Migration Wizard UI: upload, mapping, preview, import, verify steps
-- [x] 12-14-PLAN.md (Wave 4) - Hotline Operations UI: directive editor, QA dashboard, assignment tools
-- [x] 12-15-PLAN.md (Wave 5) - Client Success UI: health dashboard, usage charts, adoption metrics
-- [x] 12-16-PLAN.md (Wave 5) - Training Portal UI: course catalog, certification status, exam interface
-- [x] 12-17-PLAN.md (Wave 5) - Internal admin settings: feature flags, tenant config, system health
-- [x] 12-18-PLAN.md (Tech Debt) - Backend tech debt: WebSocket E2E, auth edge cases, query optimization
-- [x] 12-19-PLAN.md (Tech Debt) - Frontend tech debt: bundle splitting, lazy loading, accessibility audit
-
-### Phase 13: HubSpot-Style Saved Views System
-
-**Goal**: Implement a reusable HubSpot-style Saved Views system across all pillar modules (Cases, Investigations, Disclosures, Intake Forms, Policies) with view tabs, column selection, advanced filters, table/board views, and sharing capabilities.
-**Depends on**: Phase 12 (builds on existing module pages), Phase 6 (saved views infrastructure exists)
-**Requirements**: Full specification in `.planning/hubspot-view-system-spec.md`
-**Success Criteria** (what must be TRUE):
-
-1. Users can create up to 50 saved views per module with custom columns, filters, and sort
-2. View tabs are draggable to reorder, with context menu for rename/clone/share/delete
-3. Column Selection Modal with searchable grouped columns, drag-to-reorder, frozen column support
-4. Advanced Filters slide-out with AND conditions within groups, OR between groups (max 2 groups, 20 conditions each)
-5. Real-time filter application updates table live as conditions change
-6. Table view with sortable/resizable columns, checkbox selection, bulk actions, pagination (25/50/100)
-7. Board/Kanban view toggle with drag-to-move cards between status lanes
-8. Export to Excel/CSV respecting current filters and column selection
-9. View sharing with private/team/everyone visibility scopes
-10. URL state sync for bookmarkable/shareable view links
-    **Demo Data Checkpoint** (Acme Co. additions):
-
-- Pre-built default views for each module (All Records, My Records, Recently Created, etc.)
-- Sample saved views demonstrating filter combinations
-- Team-shared views for compliance team
-  **Plans**: 16 plans in 5 waves
-
-Plans:
-
-- [x] 13-01-PLAN.md (Wave 1) - Extend SavedView Prisma model with frozenColumnCount, viewMode, boardGroupBy, recordCount fields
-- [x] 13-02-PLAN.md (Wave 1) - Install @tanstack/react-table, create types.ts, operators.ts, constants.ts, view-config.ts
-- [x] 13-03-PLAN.md (Wave 1) - Create SavedViewProvider context, useSavedViewContext hook, useSavedViewsApi hooks
-- [x] 13-04-PLAN.md (Wave 2) - Create ViewTabsBar, SortableViewTab, ViewTabContextMenu, AddViewButton, CreateViewDialog
-- [x] 13-05-PLAN.md (Wave 2) - Create ViewToolbar, ViewModeToggle, SaveButton, SortButton, ExportButton
-- [x] 13-06-PLAN.md (Wave 2) - Create ColumnSelectionModal with PropertyPicker and SelectedColumnsList
-- [x] 13-07-PLAN.md (Wave 2) - Create QuickFiltersRow with DateRangeFilter, MultiSelectFilter, QuickFilterDropdown
-- [x] 13-08-PLAN.md (Wave 3) - Create AdvancedFiltersPanel slide-out with FilterGroupCard and FilterConditionRow
-- [x] 13-09-PLAN.md (Wave 3) - Create DataTable with TanStack Table, PaginationBar, BulkActionsBar
-- [x] 13-10-PLAN.md (Wave 3) - Create BoardView with BoardColumn and BoardCard (drag-drop with @dnd-kit)
-- [x] 13-11-PLAN.md (Wave 4) - Cases module integration: config, hook, and page update
-- [x] 13-12-PLAN.md (Wave 4) - Investigations and Policies module integration
-- [x] 13-13-PLAN.md (Wave 4) - Disclosures and Intake Forms module integration
-- [x] 13-14-PLAN.md (Wave 5) - URL state sync with useViewUrlState hook, enhanced BulkActionsBar
-- [x] 13-15-PLAN.md (Wave 5) - Demo data seeder for saved views, verification checkpoint
-
-### Phase 13.1: Saved Views Fixes (INSERTED)
-
-**Goal**: Fix UAT issues discovered during Phase 13 verification - board view functionality, investigations endpoint, search, and export.
-**Depends on**: Phase 13 (HubSpot-Style Saved Views)
-**Requirements**: UAT gaps documented in `.planning/phases/13-hubspot-style-saved-views-system/13-UAT.md`
-**Success Criteria** (what must be TRUE):
-
-1. Board view cards display priority badge and owner avatar in lanes
-2. Board view drag-and-drop persists status changes to database
-3. Investigations page loads investigation data in table
-4. Search box filters cases without hiding all data
-5. Export button downloads Excel and CSV files respecting current filters
-   **Plans**: 1 plan
-
-Plans:
-
-- [x] 13.1-01-PLAN.md (Wave 1) - Board view fixes, investigations endpoint, search vector population, export endpoints
-
-### Phase 14: Critical Bug Fixes & Navigation
-
-**Goal**: Fix all broken routes (404s), non-functional UI elements (buttons, menus, search), runtime errors, and visual inconsistencies that make the application appear unfinished. These are the quick wins that immediately improve demo-readiness.
-**Depends on**: Phase 11.1 (frontend navigation infrastructure), Phase 12 (all backend services exist)
-**Requirements**: Issues documented in `.planning/V1-ISSUES-AND-GAPS.md` Phase 14 section
-**Success Criteria** (what must be TRUE):
-
-1. Audit Log link navigates to a working audit log page (not 404)
-2. Notifications "View All" navigates to a working notifications list page (not 404)
-3. Dashboard "View All Tasks" navigates to the tasks page (not 404)
-4. Clicking a case in "My Tasks" or "My Active Cases" navigates to the correct case detail page
-5. Dashboard "Create Case" quick action opens a working case creation form without Select.Item errors
-6. Global search bar returns results and navigates to them
-7. User dropdown menu links (Profile, Settings, Logout) all function correctly
-8. User display name in top-right updates correctly per logged-in session
-9. Top navigation bar matches side navigation bar styling (both dark)
-10. Ethico "E" logo displays in the top-left corner (not generic placeholder)
-11. Dashboard "My Active Cases" loads within 2 seconds (not hanging)
-    **Plans**: 5 plans in 2 waves
-
-Plans:
-
-- [x] 14-01-PLAN.md (Wave 1) — Top nav & sidebar overhaul: auth context, logout, Ethico SVG logo, dark nav theme
-- [x] 14-02-PLAN.md (Wave 1) — Create /notifications and /my-work pages (fix 404s)
-- [x] 14-03-PLAN.md (Wave 1) — Create /search and /profile pages, fix SelectItem empty string error
-- [x] 14-04-PLAN.md (Wave 1) — Dashboard performance (reduce fetch limit), task navigation, audit log verification
-- [x] 14-05-PLAN.md (Wave 2) — Verification checkpoint: automated checks + human verification of all 11 fixes
-
-### Phase 14.1: Data & Config Fixes (INSERTED)
-
-**Goal**: Address data seeding and configuration issues discovered during Phase 14 verification — notifications, search indexing, category dropdowns, task aggregation, and audit log access. These are not code bugs but missing data/infrastructure setup.
-**Depends on**: Phase 14 (code fixes complete)
-**Requirements**: Issues identified in Phase 14-05 verification
-**Success Criteria** (what must be TRUE):
-
-1. Notifications page shows seeded notification records (not empty)
-2. Search returns results for seeded cases, policies, investigations
-3. Category dropdowns in case creation form are populated
-4. My Tasks shows tasks for logged-in demo user (task aggregation queries work)
-5. Audit log is accessible for demo admin user
-
-**Plans**: 4 plans in 2 waves
-
-Plans:
-
-- [x] 14.1-01-PLAN.md (Wave 1) — Notification seeder for demo users (50-100 per user, diverse types)
-- [x] 14.1-02-PLAN.md (Wave 1) — Wire activity.seeder.ts into seed.ts (audit log data)
-- [x] 14.1-03-PLAN.md (Wave 1) — Demo user case ownership for My Tasks (createdById assignment)
-- [x] 14.1-04-PLAN.md (Wave 2) — Verification checkpoint: re-seed and human verification of all 5 fixes
-
-### Phase 14.2: Case Creation & Search Fixes (INSERTED)
-
-**Goal**: Add missing Category/Subcategory dropdowns to case creation form and fix unified search returning empty results.
-**Depends on**: Phase 14.1 (pagination fixes complete)
-**Requirements**: Issues identified in Phase 14.1 human verification
-**Success Criteria** (what must be TRUE):
-
-1. Case creation form shows Category dropdown with all level-0 categories
-2. Subcategory dropdown populates based on selected category (level-1 categories)
-3. Created cases have correct primaryCategoryId and secondaryCategoryId
-4. Unified search returns results for case content (e.g., "harassment")
-5. Unified search returns results for case numbers (e.g., "CASE-2025")
-
-**Plans**: 3 plans in 2 waves
-
-Plans:
-
-- [x] 14.2-01-PLAN.md (Wave 1) — Categories API endpoint and frontend integration
-- [x] 14.2-02-PLAN.md (Wave 1) — PostgreSQL FTS fallback for unified search
-- [x] 14.2-03-PLAN.md (Wave 2) — Verification checkpoint
-
-### Phase 15: Case Detail Page Overhaul
-
-**Goal**: Rebuild the case detail page into a three-column layout that serves as the primary workspace for investigators — with a complete activity feed, action buttons, AI panel, and connected entity cards. This is the page where users spend 80% of their time.
-**Depends on**: Phase 14 (routes must work), Phase 6 (case entities, activity timeline), Phase 4 (person/RIU associations)
-**Requirements**: Issues documented in `.planning/V1-ISSUES-AND-GAPS.md` Phase 15 section
-**Success Criteria** (what must be TRUE):
-
-1. Case detail page renders a three-column layout: left (1x), center (2x), right (1x)
-2. Left column shows case number, high-level info (date created, status, pipeline, days open), action buttons (Note, Interview, Document, Task, Email), and RIU-specific form answers organized by section
-3. Center column has working tabs: Overview (lifecycle info, recent/upcoming activities), Activities (descending feed of ALL interactions — tasks, notes, meetings, emails, calls, documents), Summary (AI-written or manual summary + full write-up)
-4. Right column shows cards for connected documents and connected people (witness, subject) with "Add" button that pulls from HRIS or free-form
-5. "Assign" button opens a modal with available users to assign the case to
-6. "Status" button lets users change case status including close/resolve
-7. "Merge" button opens case merge workflow
-8. Email button lets users compose and send an email from the case page, logging it to the activity feed; users can also log external emails (sent from inbox) to the case
-9. AI button slides out a panel over the right column where users can ask questions and AI can modify statuses/add notes directly to the activity feed
-10. Any change to fields or status automatically appears in the activity feed
-11. All case tabs (Overview, Investigations, Messages, Files, Activities, Remediation) switch content correctly
-12. Seeded Acme Co. case details are 200-400 words; summaries are 50-75 words
-    **Demo Data Checkpoint** (Acme Co. additions):
-
-- Updated case seed data with 200-400 word details and 50-75 word summaries
-- Activity feed entries (notes, status changes, assignments) on flagship cases
-- Connected people and documents on flagship cases
-  **Plans**: 11 plans in 4 waves (7 original + 4 gap closure)
-
-Plans:
-
-- [x] 15-01-PLAN.md (Wave 1) — Backend API gaps: merge endpoints, person-case association controller
-- [x] 15-07-PLAN.md (Wave 1) — Seed data enhancement: 200-400 word details, 50-75 word summaries, activities
-- [x] 15-02-PLAN.md (Wave 2) — Three-column grid layout + left column (CaseInfoSummary, ActionButtonRow)
-- [x] 15-03-PLAN.md (Wave 2) — Center column tabs: fix activity API path, add Summary tab, enhance Overview
-- [x] 15-04-PLAN.md (Wave 3) — Action modals: Assign, Status, Merge, AddNote, EmailLog wired to APIs
-- [x] 15-05-PLAN.md (Wave 3) — Right column: ConnectedPeople, ConnectedDocuments, AddPerson modal
-- [x] 15-06-PLAN.md (Wave 4) — AI slide-out panel with WebSocket streaming chat
-- [x] 15-08-PLAN.md (Gap Closure Wave 1) — Quick action modals: Interview, Document, Task
-- [x] 15-09-PLAN.md (Gap Closure Wave 1) — RIU form answers display in Overview tab
-- [x] 15-10-PLAN.md (Gap Closure Wave 1) — AI case note action and human verification checkpoint
-- [x] 15-11-PLAN.md (Gap Closure) — Email compose/send deferral documentation
-
-### Phase 16: AI Integration Fix
-
-**Goal**: Debug and fix the non-functional AI system end-to-end — from API connectivity to frontend panel. AI is a core differentiator; it must work reliably for demos.
-**Depends on**: Phase 5 (AI infrastructure — backend services, skills, agents, WebSocket gateway), Phase 14 (navigation working so AI panel is reachable)
-**Requirements**: Issues documented in `.planning/V1-ISSUES-AND-GAPS.md` Phase 16 section
-**Success Criteria** (what must be TRUE):
-
-1. Claude API calls succeed from the backend (ANTHROPIC_API_KEY configured and working)
-2. AI panel slide-out opens on case detail page and accepts user queries
-3. AI responds to natural language questions about case data within 5 seconds
-4. AI can execute actions: update case status, add notes to activity feed, generate summaries
-5. AI note cleanup (bullet → narrative) works on case and investigation notes
-6. AI category suggestion works on new RIU intake
-7. AI risk scoring returns confidence-scored assessments
-8. WebSocket /ai namespace connects successfully from frontend
-9. AI conversations are persisted and can be resumed
-10. AI features degrade gracefully when API key is missing or rate-limited
-    **Plans**: 8 plans in 5 waves (6 original + 2 gap closure/verification)
-
-**Important:** See `.planning/phases/16-ai-integration-fix/16-EXECUTION-NOTES.md` for Phase 15 overlap guidance.
-
-Plans:
-
-- [x] 16-01-PLAN.md (Wave 1) — Backend REST chat endpoint, auth guard, context-loader fallback
-- [x] 16-02-PLAN.md (Wave 2) — **SKIP** - Phase 15 built ai-chat-panel.tsx
-- [x] 16-03-PLAN.md (Wave 2) — **SKIP** - Phase 15 installed socket.io-client and WebSocket
-- [x] 16-04-PLAN.md (Wave 3) — AI skill components (summarize, category-suggest, risk-score)
-- [x] 16-05-PLAN.md (Wave 3) — AI action preview components (Tasks 1-2 only)
-- [x] 16-06-PLAN.md (Wave 4) — AI health check endpoint (Task 1 only)
-- [x] 16-07-PLAN.md (Wave 1) — Execution notes documenting Phase 15 overlap
-- [x] 16-08-PLAN.md (Wave 5) — End-to-end verification checkpoint
-
-### Phase 17: Campaigns Hub
-
-**Goal**: Build a centralized campaigns area where all outbound compliance campaigns (disclosures, attestations, stay interviews, distributed forms) live, can be edited, released, and tracked. Includes a link to view/manage all form types.
-**Depends on**: Phase 9 (campaign backend — targeting, scheduling, reminders, disclosures), Phase 14 (routes working), Phase 1 (form/schema engine)
-**Requirements**: Issues documented in `.planning/V1-ISSUES-AND-GAPS.md` Phase 17 section
-**Success Criteria** (what must be TRUE):
-
-1. Centralized /campaigns page shows all campaigns across types (disclosures, attestations, stay interviews, other forms) with filters and status
-2. Users can create new campaigns from the hub with type selection
-3. Campaign detail page allows editing all aspects: audience, schedule, form content, reminders
-4. Campaigns can be released/published from the detail page and status tracked
-5. Users can create new forms (form builder accessible from campaigns hub)
-6. Dedicated "Forms" section accessible from sidebar showing all RIU types: disclosures, hotline intake, surveys, proxy forms, web intake
-7. Campaign dashboard shows completion rates, overdue counts, and allows sending reminders
-8. Form builder supports creating/editing custom disclosure and attestation forms
-   **Demo Data Checkpoint** (Acme Co. additions):
-
-- Active and completed campaigns visible in hub
-- Draft campaign ready for editing demonstration
-- Multiple form types available in Forms section
-  **Plans**: 4 plans in 2 waves
-
-Plans:
-
-- [x] 17-01-PLAN.md (Wave 1) — Backend dashboard endpoints + sidebar navigation + /campaigns/new page
-- [x] 17-02-PLAN.md (Wave 1) — Campaign detail page with overview, assignments, lifecycle actions
-- [x] 17-03-PLAN.md (Wave 1) — Forms hub with list, create, and edit pages wrapping existing FormBuilder
-- [x] 17-04-PLAN.md (Wave 2) — Demo data seeding and verification checkpoint
-
-### Phase 18: Reports & Data Management
-
-**Goal**: Build a report designer UI so users can create custom reports from all platform data, with AI-assisted natural language report generation, pre-built templates, and scheduled delivery.
-**Depends on**: Phase 11 (reporting engine backend — QueryBuilder, Excel export, PDF generation), Phase 13 (saved views for column selection patterns), Phase 4 (core entities provide the data)
-**Requirements**: Issues documented in `.planning/V1-ISSUES-AND-GAPS.md` Phase 18 section
-**Success Criteria** (what must be TRUE):
-
-1. Report designer page allows users to create custom reports by selecting data source, columns, filters, grouping, and chart type
-2. All case fields (including custom properties) are available as report columns and filter/sort dimensions
-3. All RIU fields, person fields, campaign fields, and policy fields are reportable
-4. Reports can be saved with a name and re-run on demand
-5. Reports can be exported to Excel/CSV/PDF
-6. Pre-built report templates exist for common compliance reports (case volume by category, time-to-close trends, disclosure completion rates)
-7. Scheduled report delivery works (email on schedule)
-8. AI natural language queries generate reports from questions like "show me harassment cases from Q4 in EMEA"
-   **Plans**: 9 plans in 5 waves
-
-Plans:
-
-- [x] 18-01-PLAN.md (Wave 1) — SavedReport Prisma model, ReportFieldRegistryService, DTOs
-- [x] 18-02-PLAN.md (Wave 1) — ReportExecutionService and ReportService CRUD
-- [x] 18-03-PLAN.md (Wave 2) — ReportController REST API and ReportModule wiring
-- [x] 18-04-PLAN.md (Wave 2) — Pre-built report templates and demo data seeder
-- [x] 18-05-PLAN.md (Wave 3) — Report list page, TypeScript types, API client
-- [x] 18-06-PLAN.md (Wave 3) — Report designer wizard (5-step: data source, fields, filters, visualization, save)
-- [x] 18-07-PLAN.md (Wave 4) — Report detail page with chart/table/KPI visualizations (recharts)
-- [x] 18-08-PLAN.md (Wave 4) — AI report generation dialog and ExportButton backend wiring
-- [x] 18-09-PLAN.md (Wave 5) — Scheduled report delivery UI and backend schedule endpoints
-
-### Phase 19: Workflow Engine UI
-
-**Goal**: Build the visual workflow builder and management area. The workflow engine (Phase 1 backend) powers case assignments, approval routing, and disclosure approvals — but currently there is no UI to create, edit, or apply workflows. This is critical operational infrastructure.
-**Depends on**: Phase 1 (workflow engine backend — pipeline/stage/transition models), Phase 14 (routes working), Phase 6 (case management workflows), Phase 10 (policy approval workflows)
-**Requirements**: Issues documented in `.planning/V1-ISSUES-AND-GAPS.md` Phase 19 section
-**Success Criteria** (what must be TRUE):
-
-1. Dedicated Workflows section accessible from sidebar/settings
-2. Workflow list page shows all workflows with type, status, and where applied
-3. Visual workflow builder allows creating workflows with stages, transitions, conditions, and actions
-4. Workflow builder supports: sequential stages, parallel branches, conditional routing, approval gates
-5. Workflows can be applied to: case assignment/routing, approval routing, disclosure approval routing, policy approval routing
-6. Existing workflow templates (case investigation pipeline, policy approval) are editable
-7. Workflow execution shows current state and progress on case/policy detail pages
-8. Changes to workflow definitions handle in-flight instances correctly (version-on-publish pattern per Phase 1 decisions)
-   **Plans**: 7 plans in 4 waves
-
-Plans:
-
-- [x] 19-01-PLAN.md (Wave 1) — Backend API gaps: list instances, clone template, version history, instance count enrichment
-- [x] 19-02-PLAN.md (Wave 1) — Frontend foundation: install @xyflow/react, TypeScript types, API service, React Query hooks, navigation
-- [x] 19-03-PLAN.md (Wave 2) — Workflow list page with table, filters, row actions, create dialog
-- [x] 19-04-PLAN.md (Wave 2) — Visual workflow builder canvas with React Flow: custom stage nodes, transition edges, drag-from-palette
-- [x] 19-05-PLAN.md (Wave 3) — Property panels, toolbar, save/publish, create/edit page routes
-- [x] 19-06-PLAN.md (Wave 3) — Workflow instances page with table, bulk actions, detail dialog, progress indicator
-- [x] 19-07-PLAN.md (Wave 4) — Entity detail integration (case/policy workflow cards) and Acme Co. demo seed data
-
-### Phase 20: Settings Overhaul (HubSpot-Style)
-
-**Goal**: Rebuild the settings area to match HubSpot's organization and depth — four major sections (Preferences, Account Management, Data Management, Tools) each with sub-pages and tabs. Includes critical permission set management.
-**Depends on**: Phase 14 (route fixes), Phase 19 (workflow settings), Phase 7 (notification preferences backend), Phase 3 (auth/security settings), Phase 12 (audit log backend)
-**Requirements**: Issues documented in `.planning/V1-ISSUES-AND-GAPS.md` Phase 20 section. Reference HubSpot knowledge base for UX patterns.
-**Success Criteria** (what must be TRUE):
-
-1. Settings area has four top-level sections: Your Preferences, Account Management, Data Management, Tools
-2. **Your Preferences > General**: Profile editing, email connection (link inbox to system, manage signatures), security (password reset, passkey setup, account deletion), task settings
-3. **Your Preferences > Notifications**: Per-event-type control of email and desktop notifications (matching HubSpot's notification settings pattern)
-4. **Account Management > Account Defaults**: Org-wide default settings
-5. **Account Management > Audit Log**: Working audit log page (not 404) with filterable event history
-6. **Account Management > Users & Teams**: Super admin can manage users, seats, teams, and **permission sets** with role-based templates (research HubSpot permission sets — templates for different roles with granular permissions)
-7. **Account Management > Integrations**: Integration configuration page (HRIS, email, etc.)
-8. **Account Management > Approvals**: Approval workflow configuration
-9. **Account Management > AI Settings**: AI feature toggles, API key management, usage limits
-10. **Data Management > Properties**: Users can add/edit custom properties on objects and groups (HubSpot-style property management with field types, groups, required/optional)
-11. **Data Management > Objects**: View and configure platform objects (Forms, Cases, Investigations, Policies, Tickets, Disclosures, RIUs)
-12. Each sub-page has tabs for different components of that section
-    **Plans**: 6 plans in 4 waves
-
-Plans:
-
-- [x] 20-01-PLAN.md (Wave 1) — Settings hub restructure & user profile page
-- [x] 20-02-PLAN.md (Wave 1) — User notification preferences page
-- [x] 20-03-PLAN.md (Wave 2) — Account management pages (defaults, approvals, permission sets)
-- [x] 20-04-PLAN.md (Wave 2) — Integrations & AI settings pages
-- [x] 20-05-PLAN.md (Wave 3) — Data management: properties & objects pages
-- [x] 20-06-PLAN.md (Wave 4) — Settings navigation polish & verification
-
-### Phase 21: Project Management (Monday.com-Style)
-
-**Goal**: Build a comprehensive Monday.com-style project management module with Kanban boards, Gantt timelines with dependency arrows, conversation threads with @mentions, 15 custom column types, workload views, project dashboards, file attachments, subscriber notifications, and real-time WebSocket collaboration. This is a full reproduction of Monday.com's core experience within the Risk Intelligence Platform.
-**Depends on**: Phase 11 (project milestones backend exists from plans 11-13/11-14 — Milestone, MilestoneItem models, GanttChart component), Phase 14 (routes working)
-**Requirements**: Issues documented in `.planning/V1-ISSUES-AND-GAPS.md` Phase 21 section. Research in `.planning/phases/21-project-management/21-RESEARCH.md`.
-**Success Criteria** (what must be TRUE):
-
-1. Projects section accessible from sidebar with project list (saved views, table + board)
-2. Kanban board view with drag-to-move cards between status columns
-3. Table/list view with sortable columns, inline editing, and group management
-4. Timeline/Gantt view showing task scheduling with dependency arrows
-5. Workload view showing team member capacity with overload indicators
-6. Project dashboard with KPI cards, status charts, completion trends
-7. Task detail panel with 4 tabs: Details, Updates (conversation thread), Activity, Files
-8. @mention support in task conversations with user autocomplete
-9. Threaded replies on task updates (one level deep)
-10. File attachments with drag-and-drop upload on tasks
-11. Subscriber/watcher system controlling notification delivery
-12. 15 custom column types (status, people, date, timeline, text, numbers, dropdown, etc.)
-13. Column center for adding/configuring/reordering columns per project
-14. 5 event types dispatch preference-aware notifications (assignment, @mention, comment, status change, completion)
-15. WebSocket real-time updates for project collaborators
-16. Project tasks appear in My Work unified task queue
-17. 6 system project templates for common compliance projects
-18. Project templates with pre-populated groups and tasks
-    **Demo Data Checkpoint** (Acme Co. additions):
-
-- 5 projects at various stages (NOT_STARTED, IN_PROGRESS, AT_RISK, COMPLETED)
-- Tasks distributed across team members with realistic compliance scenarios
-- Conversation threads with @mentions and threaded replies
-- Task dependencies creating realistic chains
-- Custom columns demonstrating column flexibility
-- File attachments and subscriber records
-  **Plans**: 10 plans in 8 waves
-
-Plans:
-
-- [x] 21-01-PLAN.md (Wave 1) — Backend Prisma models: 4 new models (ProjectGroup, ProjectTask, ProjectColumn, ProjectTemplate), 15 column types, DTOs, 4 services
-- [x] 21-02-PLAN.md (Wave 2) — Backend controllers: 13+ REST endpoints for tasks and groups, ProjectTemplateController with 5 endpoints, My Work integration
-- [x] 21-03-PLAN.md (Wave 3) — Frontend project list page with saved views system (table + board), TypeScript types, view config, create dialog with template selector
-- [x] 21-04-PLAN.md (Wave 4) — Frontend project detail: grouped task table with inline editing, group management, add-task row, basic task detail panel, 12 React Query hooks
-- [x] 21-05-PLAN.md (Wave 5) — Frontend board view (drag-to-move between status columns) and timeline view (Gantt chart with SVG dependency arrows), view switching with URL persistence
-- [x] 21-06-PLAN.md (Wave 6) — Rich task detail panel: 4 tabs (Details, Updates, Activity, Files), MentionInput with @mention autocomplete, TaskUpdateThread with threaded replies, TaskActivityLog, TaskFileList, TaskSubscriberList, TaskDependencyList
-- [x] 21-07-PLAN.md (Wave 6) — Column configuration UI: ColumnCenterDialog with 15 column types, ColumnConfigPanel with type-specific settings, DynamicColumnCell rendering, drag-to-reorder headers, column resize
-- [x] 21-08-PLAN.md (Wave 7) — @Mentions & notifications: MentionService extraction, 5 event handlers with preference-aware NotificationService dispatch, WebSocket project rooms for real-time collaboration, MentionInput accessibility
-- [x] 21-09-PLAN.md (Wave 7) — Workload view (team capacity bars) and project dashboard (KPI cards, status chart, completion trend, group progress), backend stats endpoint, all 5 view modes integrated
-- [x] 21-10-PLAN.md (Wave 8) — Demo data seeder (5 projects with custom columns; 6 templates). Note: conversation/dependency/subscriber seeding skipped (missing Prisma models)
-
-### Phase 22: Dark Mode & Theme (v1.2 continued)
-
-**Goal**: Implement a working dark mode toggle and ensure consistent theming across the entire application. User explicitly flagged this as required for V1.
-**Depends on**: Phase 14 (nav color fixes), Phase 20 (settings area for theme toggle placement)
-**Requirements**: THEME-01, THEME-02, THEME-03, THEME-04, THEME-05, THEME-06, THEME-07
-**Success Criteria** (what must be TRUE):
-
-1. Dark mode toggle accessible from user menu and settings
-2. All pages render correctly in dark mode (no unreadable text, broken contrast, missing backgrounds)
-3. Dark mode preference persists across sessions (stored in user preferences)
-4. System preference detection: auto-detect OS dark mode setting as default
-5. Top navigation bar and side navigation bar are visually consistent in both light and dark modes
-6. Charts, tables, modals, and form elements all respect the active theme
-7. Theme transition is smooth (no flash of wrong theme on page load)
-   **Plans**: 15 plans in 5 waves (existing from v1.0)
-
-Plans:
-
-- [x] 22-01-PLAN.md (Wave 1) — Install next-themes, wire ThemeProvider, suppressHydrationWarning, Sonner toast theme
-- [x] 22-02-PLAN.md (Wave 1) — ThemeToggle component in user menu, create lib/theme-colors.ts status color utility
-- [x] 22-03-PLAN.md (Wave 2) — Migrate status-badge + severity-badge to theme-colors.ts, fix UI primitive hardcoded colors
-- [x] 22-04-PLAN.md (Wave 2) — Theme navigation (top-nav, sidebar, mobile), layouts, and common components
-- [x] 22-05-PLAN.md (Wave 3) — Theme dashboard components and case layout/header/tabs/filters
-- [x] 22-06-PLAN.md (Wave 3) — Theme remaining case components (panels, timeline, forms, investigation-card)
-- [x] 22-07-PLAN.md (Wave 3) — Theme investigation components, DataTable frozen column shadows, board/view components
-- [x] 22-08-PLAN.md (Wave 3) — Theme policy components, analytics, Gantt chart hex colors, rich text editor
-- [x] 22-09-PLAN.md (Wave 4) — Theme ethics portal (20 components), tenant branding coordination, conflict review
-- [x] 22-10-PLAN.md (Wave 4) — Theme operator console (17 components, split-screen layout, QA queue)
-- [x] 22-11-PLAN.md (Wave 4) — Theme employee portal, campaigns, disclosure form builder/preview
-- [x] 22-12-PLAN.md (Wave 4) — Theme settings, users, implementation, exports, files, remaining views
-- [x] 22-13-PLAN.md (Wave 4) — Sweep all 43 page.tsx files for page-level hardcoded colors
-- [x] 22-14-PLAN.md (Wave 5) — Verification checkpoint: TypeScript compilation, all 7 success criteria verified
-- [x] 22-15-PLAN.md (Wave 5) — Fix DataTable column width flexibility (allow columns to expand and shrink dynamically)
-
-### Phase 23: Help & Support System (v1.2 continued)
-
-**Goal**: Build a help and support system so users can access a knowledge base and file support tickets directly from the platform.
-**Depends on**: Phase 14 (routes working for Help & Support navigation)
-**Requirements**: HELP-01, HELP-02, HELP-03, HELP-04, HELP-05
-**Success Criteria** (what must be TRUE):
-
-1. Help & Support accessible from sidebar and user menu
-2. Knowledge base with searchable articles organized by category (Getting Started, Cases, Campaigns, Reports, Settings, etc.)
-3. Users can file support tickets from within the platform with subject, description, priority, and screenshots
-4. Support ticket submission sends confirmation email and creates ticket in support system
-5. Users can view their open tickets and status from the Help section
-6. Contextual help links from relevant pages (e.g., case detail page links to "Working with Cases" articles)
-   **Plans**: 5 plans in 4 waves (existing from v1.0)
-
-Plans:
-
-- [x] 23-01-PLAN.md (Wave 1) — Backend: Prisma models (KnowledgeBaseArticle, SupportTicket), NestJS help module with controllers, services, DTOs, event listener
-- [x] 23-02-PLAN.md (Wave 2) — Frontend: Help API service, sidebar footer link, top nav help dropdown
-- [x] 23-03-PLAN.md (Wave 2) — Frontend: Help center landing page, category grid, article search, article detail page
-- [x] 23-04-PLAN.md (Wave 3) — Frontend: Ticket submission form, my tickets list, email confirmation template
-- [x] 23-05-PLAN.md (Wave 4) — Seed data: 15+ knowledge base articles, contextual help link component, verification checkpoint
-
-### Phase 24: Policy Content & Seed Data
-
-**Goal**: Populate all seeded policies with properly formatted, realistic policy text. Update case seed data to meet content length requirements.
-**Depends on**: Phase 10 (policy management — documents, rich text), Phase 2 (seed data infrastructure)
-**Requirements**: Issues documented in `.planning/V1-ISSUES-AND-GAPS.md` Phase 24 section
-**Success Criteria** (what must be TRUE):
-
-1. All seeded policies (Code of Conduct, Anti-Harassment, Gift Policy, Whistleblower, etc.) contain properly formatted text with sections, headers, numbered lists, and definitions
-2. Policy content reads like real enterprise compliance policies (professional language, legal-style formatting)
-3. Policies have appropriate metadata: effective dates, review dates, owner, department
-4. Case detail seed data: case descriptions are 200-400 words, case summaries are 50-75 words
-5. Seed script is idempotent — running it again updates content without duplicating records
-   **Plans:** 3 plans
-
-Plans:
-
-- [x] 24-01-PLAN.md — Replace 26 boilerplate policies with substantial unique content, expand ADDITIONAL policies, add status/date variety
-- [x] 24-02-PLAN.md — Expand flagship case narratives to 200-400 words, fix AI summary generation to 50-75 words, enhance narrative templates
-- [x] 24-03-PLAN.md — Enable policy seeder in orchestrator, add Phase 24 verification checks for content quality and lengths
-
-### Phase 25: Case & Investigation Page Redesign
-
-**Goal**: Restructure the Case Detail and Investigation Detail pages to follow HubSpot's three-column record pattern — answering "What is this?" (left), "What happened?" (center), and "Who/what is connected?" (right). The case page needs activity-first defaults, enhanced timeline, and new association cards. The investigation page needs a complete three-column conversion from its current single-column layout.
-**Depends on**: Phase 15 (case detail page exists), Phase 6 (investigation detail page exists)
-**Requirements**: Full specification in `docs/CASE-INVESTIGATION-PAGE-REDESIGN.md`
-**Success Criteria** (what must be TRUE):
-
-1. Case detail Activities tab is the default tab (not Overview)
-2. Activity timeline has search bar, upcoming section (tasks/SLA pinned), date-grouped history (Today/Yesterday/This Week/etc.), and user/team filters
-3. Quick action buttons use horizontal icon+label grid layout (not vertical ghost stack)
-4. Right sidebar has association cards with count badges, gear icons, and "View all" links: Connected People, Linked RIUs, Related Cases, Related Policies, Connected Documents
-5. Investigation page uses three-column layout matching case detail
-6. Investigation has left sidebar with summary card, quick actions, and editable properties panel
-7. Investigation has right sidebar with Connected People, Parent Case, Evidence cards
-8. Investigation Activity tab is default, with real activity timeline (not placeholder)
-9. Investigation Interviews and Files tabs are implemented (not placeholders)
-10. Reusable shared components extracted: AssociationCard, ActivityTimeline, QuickActionGrid
-    **Plans**: 6 plans in 5 waves
-
-Plans:
-
-- [x] 25-01-PLAN.md (Wave 1) — Case tabs/activity timeline enhancement: reorder tabs, Activities default, search bar, upcoming section, date grouping, user/team filters
-- [x] 25-02-PLAN.md (Wave 1) — Quick actions grid and properties polish: QuickActionGrid shared component, LogCallModal, gear icons and chevron toggles
-- [x] 25-03-PLAN.md (Wave 2) — Right sidebar association cards: AssociationCard wrapper, RelatedCasesCard, RelatedPoliciesCard, LinkedRiusCard, refactor ConnectedPeopleCard/ConnectedDocumentsCard
-- [x] 25-04-PLAN.md (Wave 3) — Investigation three-column layout conversion: grid layout, header with breadcrumbs/badges, InvestigationInfoSummary, InvestigationActionButtons, InvestigationPropertiesPanel
-- [x] 25-05-PLAN.md (Wave 4) — Investigation activity timeline and tabs: InvestigationActivityTimeline, Activities default tab, InvestigationInterviewsTab, InvestigationFilesTab
-- [x] 25-06-PLAN.md (Wave 5) — Investigation right sidebar with human verification: ParentCaseCard, InvestigationEvidenceCard, ConnectedPeopleCard adaptation, AI Assistant button
-
-### Phase 25.1: Case Detail Page Vision Revision (v1.2 continued)
-
-**Goal**: Rebuild the Case Detail Page to match the revised HubSpot-style specification. Phase 25 delivered incremental improvements but does not match the owner's vision. This phase implements the full spec: sticky pipeline stage bar, collapsible left-sidebar property cards (About, Intake, Classification), HubSpot-exact Activities tab with type checkboxes/user filters/search/pinning, config-driven module architecture, proper Actions dropdown, Overview tab with lifecycle metrics and editable summary, and tenant-configurable pipeline stages (New -> Assigned -> Active -> Review -> Closed -> Remediation -> Archived).
-**Depends on**: Phase 25 (base components exist)
-**Requirements**: CASE-01, CASE-02, CASE-03, CASE-04, CASE-05, CASE-06, CASE-07, CASE-08, CASE-09, CASE-10
-**Success Criteria** (what must be TRUE):
-
-1. Sticky pipeline stage bar at top of center column showing current stage with click-to-advance
-2. Left sidebar has Actions dropdown (Assign, Change Status, Merge, Follow, View Properties, View History, Export, Delete)
-3. Left sidebar has 3 collapsible property cards: About This Case, Intake Information, Classification
-4. Classification card has dependent category/subcategory dropdowns (tenant-configurable)
-5. Overview tab is default, shows lifecycle metrics, editable summary, collapsible case details, status timeline, recent activities, upcoming tasks
-6. Activities tab follows exact HubSpot pattern: type checkboxes, user/team filter, search, pinning, per-activity actions
-7. Six tabs total: Overview, Activities, Investigations, Messages, Files, Remediation
-8. Messages tab handles official communications (reporter messages, platform emails, forwarded emails)
-9. Right sidebar has 9 cards: Workflow, People, RIUs, Cases, Policies, Documents, Tasks, Remediation Status, AI Assistant
-10. Config-driven architecture using module config objects (CASES_DETAIL_CONFIG pattern)
-11. Pipeline stages configurable per tenant with default: New -> Assigned -> Active -> Review -> Closed -> Remediation -> Archived
-12. Admin-only left sidebar field customization support
-
-**Plans**: 10 plans in 4 waves (existing from v1.0)
-
-Plans:
-
-- [x] 25.1-01-PLAN.md (Wave 1) — Config-driven foundation: RecordDetailLayout, CASES_DETAIL_CONFIG, TypeScript types, page.tsx restructure, dead code removal
-- [x] 25.1-02-PLAN.md (Wave 1) — Sticky PipelineStageBar: usePipeline hook, click-to-advance with confirmation dialog, hover tooltips, days-in-stage chip
-- [x] 25.1-03-PLAN.md (Wave 2) — Left sidebar restructure: RecordHeader, ActionsDropdown (8 items), CollapsiblePropertyCard, 3 property cards (About, Intake, Classification)
-- [x] 25.1-04-PLAN.md (Wave 3) — Classification card content: CategorySelector with dependent dropdowns, Risk Level, Regulatory Framework, Tags fields
-- [x] 25.1-05-PLAN.md (Wave 2) — Overview tab rebuild: DataHighlightsCard, EditableSummary with AI, StatusHistoryTimeline, 6-section layout, PipelineStageBar wiring
-- [x] 25.1-06-PLAN.md (Wave 2) — Activities tab HubSpot pattern: useActivities hook, 8 checkbox-style type filters, pinning, per-activity hover actions, expand/collapse
-- [x] 25.1-07-PLAN.md (Wave 2) — Tab cleanup: 6-tab config (Overview default, no URL state), Messages/Files/Investigations tab enhancements
-- [x] 25.1-08-PLAN.md (Wave 2) — Right sidebar additions: TasksCard with inline checkboxes, RemediationStatusCard with progress bar, 9-card sidebar wiring
-- [x] 25.1-09-PLAN.md (Wave 4) — Responsive & polish: tablet/mobile drawer sidebars, loading/error states, collapsible state persistence
-- [x] 25.1-10-PLAN.md (Wave 1) — Backend API integration: Pipeline configuration endpoint, activity pinning, activity type verification, status history
-
-### Phase 32: Security & SOC 2 Fixes (v1.2)
-
-**Goal**: Fix all CRITICAL security vulnerabilities identified in the pre-Series A code review. These fixes block production deployment and must be addressed first.
-**Depends on**: Phase 31 (v1.1 complete)
-**Requirements**: SEC-01, SEC-02, SEC-03, SEC-04, SEC-05, SEC-06, SEC-07, SEC-08, SEC-09, SEC-10, SEC-11, SEC-12, SEC-13
-**Success Criteria** (what must be TRUE):
-
-1. All 7 unauthenticated controllers require valid JWT and tenant context (no more TEMP_ORG_ID)
-2. WebSocket AI gateway validates JWT before accepting messages (no client-trust bypass)
-3. JWT tokens use RS256 algorithm only (algorithm confusion attack prevented)
-4. Application fails startup if JWT_REFRESH_SECRET is undefined
-5. MFA verification persists in JWT payload (session-bound, not per-request)
-
-**Plans**: 8 plans in 3 waves
-
-Plans:
-
-- [x] 32-01-PLAN.md (Wave 1) — Secure 4 controllers: campaigns, attestation, conflict, checklist with JwtAuthGuard + TenantGuard + RolesGuard
-- [x] 32-02-PLAN.md (Wave 1) — Secure remaining 2 controllers: migration, policy-approval with guards and decorators
-- [x] 32-03-PLAN.md (Wave 1) — Fix WebSocket AI gateway: verify JWT on connection, extract context from verified payload
-- [x] 32-04-PLAN.md (Wave 1) — Pin JWT algorithm to RS256 only, validate JWT_REFRESH_SECRET on startup
-- [x] 32-05-PLAN.md (Wave 2) — Fix DTOs: remove organizationId from chat DTO, add @MaxLength(72) to password, random demo passwords
-- [x] 32-06-PLAN.md (Wave 2) — Add mfaVerified to JWT payload for session-bound MFA verification
-- [x] 32-07-PLAN.md (Wave 2) — Add audit logging to relay service, minimize PII in logs, narrow operations middleware exemption
-- [x] 32-08-PLAN.md (Wave 3) — Human verification checkpoint for all security fixes
-
-### Phase 33: Slop Cleanup & Production Readiness (v1.2)
-
-**Goal**: Remove dead code, implement or delete stubs, and add production-grade file validation. Clean the codebase before writing tests.
-**Depends on**: Phase 32 (security fixes complete)
-**Requirements**: SLOP-01, SLOP-02, SLOP-03, SLOP-04, SLOP-05, SLOP-06, SLOP-07, SLOP-08, SLOP-09, SLOP-10, SLOP-11, PROD-01, PROD-02, PROD-03, PROD-04, PROD-05
-**Success Criteria** (what must be TRUE):
-
-1. All 3 orphaned modules are either registered in AppModule or deleted
-2. Document processing returns real results or honest errors (no fake success:false)
-3. 820+ section-separator comments removed across codebase
-4. All 54 TODO comments triaged (resolved or converted to tracked issues)
-5. File uploads validate magic bytes before processing (not just MIME header)
-
-**Plans**: 10 plans in 4 waves (7 original + 3 gap closure)
-
-Plans:
-
-- [x] 33-01-PLAN.md (Wave 1) - Register orphaned modules, ConfigService migration, Logger migration, faker devDep
-- [x] 33-02-PLAN.md (Wave 1) - Document processing implementation with pdf-parse/mammoth, magic-byte validation
-- [x] 33-03-PLAN.md (Wave 2) - Fix stub implementations (escalation, AI actions, support tickets, PDF export)
-- [x] 33-04-PLAN.md (Wave 2) - Section separator removal (common/, config/, modules A-D)
-- [x] 33-05-PLAN.md (Wave 2) - Section separator removal (modules E-W)
-- [x] 33-06-PLAN.md (Wave 3) - TODO triage, JSDoc cleanup
-- [x] 33-07-PLAN.md (Wave 3) - DTO splits, SLOP-09 documentation
-- [x] 33-08-PLAN.md (Wave 4, Gap Closure) - Complete separator removal (290 remaining in analytics/, remediation/, reporting/, rius/, search/)
-- [x] 33-09-PLAN.md (Wave 4, Gap Closure) - Complete TODO triage (37 remaining)
-- [x] 33-10-PLAN.md (Wave 4, Gap Closure) - Add DANGEROUS_EXTENSIONS check to attachments.controller.ts fileFilter
-
-### Phase 34: Performance & Scalability (v1.2)
-
-**Goal**: Fix unbounded queries, add caching for hot paths, configure connection pooling, and resolve N+1 patterns. Prepare for production-scale load.
-**Depends on**: Phase 33 (code cleanup complete)
-**Requirements**: PERF-01, PERF-02, PERF-03, PERF-04, PERF-05, PERF-06, PERF-07, PERF-08, PERF-09, PERF-10, PERF-11
-**Success Criteria** (what must be TRUE):
-
-1. Campaign reminder queries use cursor-based pagination (no unbounded fetches)
-2. User permissions, categories, branding load from Redis cache (sub-10ms on cache hit)
-3. Prisma connection pool configured with limits and timeouts
-4. Persons createFromEmployee and getManagerChain batch-fetch relations (no N+1)
-5. Dashboard cache uses Redis store (multi-instance safe)
-   **Plans**: 5 plans in 2 waves
-
-Plans:
-
-- [x] 34-01-PLAN.md (Wave 1) — Fix unbounded queries: cursor-based batch processing for campaign reminders, bounded getDueSchedules/getDirectReports, Prisma aggregate for compliance stats
-- [x] 34-02-PLAN.md (Wave 1) — Fix N+1 patterns: batch createFromEmployee with parallel relation fetching, recursive CTE for getManagerChain
-- [x] 34-03-PLAN.md (Wave 1) — Redis caching: TenantCacheService with tenant-isolated keys, Redis-backed CacheModule, dashboard cache migration
-- [x] 34-04-PLAN.md (Wave 2) — Resource management: Prisma connection pool configuration, LRU cache for agent instances with TTL/max eviction
-- [x] 34-05-PLAN.md (Wave 2) — Verification checkpoint: automated checks for all 11 PERF requirements, human verification
-
-### Phase 35: Code Quality & Architecture (v1.2)
-
-**Goal**: Split bloated services, replace any types with proper interfaces, enable strict TypeScript mode, and fix null safety issues. Improve code before testing it.
-**Depends on**: Phase 34 (performance fixes complete)
-**Requirements**: QUAL-01, QUAL-02, QUAL-03, QUAL-04, QUAL-05
-**Success Criteria** (what must be TRUE):
-
-1. All 12 fat services (800+ LOC) split into focused sub-services
-2. 90+ explicit any types replaced with proper TypeScript interfaces
-3. Backend tsconfig.json has strict: true with all code compiling
-4. Non-null assertions replaced with explicit null checks or runtime guards
-5. Forms controller uses matching DTO types (no as any casts)
-
-**Plans**: 6 plans in 4 waves
-
-Plans:
-
-- [x] 35-01-PLAN.md (Wave 1) — Split Level 0 services (schema-introspection, mapping-suggestion, query-to-prisma)
-- [x] 35-02-PLAN.md (Wave 2) — Split Level 1 services (ai-query, migration-parser)
-- [x] 35-03-PLAN.md (Wave 2) — Split Level 2 standalone services (ai-triage, user-table, project-template, context-loader)
-- [x] 35-04-PLAN.md (Wave 3) — Split final Level 2 services (policy-case-association, notification, campaign-scheduling)
-- [x] 35-05-PLAN.md (Wave 3) — Replace any types, create type definitions, fix forms.controller.ts
-- [x] 35-06-PLAN.md (Wave 4) — Enable strict mode, fix non-null assertions, verification
-
-### Phase 36: Test Coverage Expansion (v1.2)
-
-**Goal**: Expand test coverage from 7.9% to 60%+ on backend services. Test the now-clean, well-typed code.
-**Depends on**: Phase 35 (code quality fixes complete)
-**Requirements**: TEST-01, TEST-02, TEST-03, TEST-04, TEST-05, TEST-06, TEST-07, TEST-08, TEST-09, TEST-10
-**Success Criteria** (what must be TRUE):
-
-1. All 6 auth guards have 90%+ unit test coverage
-2. All 4 auth strategies have 90%+ unit test coverage
-3. Impersonation service, middleware, and guard have 90%+ unit test coverage
-4. 12+ modules have tenant isolation E2E tests
-5. Overall backend service coverage reaches 60%+ (from 7.9%)
-
-**Plans**: 13 plans in 5 waves
-
-Plans:
-
-- [ ] 36-01-PLAN.md (Wave 1) — Auth guard tests: jwt-ws, mfa, throttle-behind-proxy guards with 90%+ coverage
-- [ ] 36-02-PLAN.md (Wave 1) — Auth strategy tests: jwt, azure-ad, google, saml strategies with 90%+ coverage
-- [ ] 36-03-PLAN.md (Wave 1) — Impersonation tests: service, middleware, guard with 90%+ coverage
-- [ ] 36-04-PLAN.md (Wave 2) — Tenant isolation E2E: auth, campaigns, disclosures, policies modules
-- [ ] 36-05-PLAN.md (Wave 2) — Tenant isolation E2E: reporting, AI, forms, notifications modules
-- [ ] 36-06-PLAN.md (Wave 2) — Tenant isolation E2E: HRIS, workflow, search, projects modules
-- [ ] 36-07-PLAN.md (Wave 3) — Case merge and conflict detection service tests with 80%+ coverage
-- [ ] 36-08-PLAN.md (Wave 3) — AI services tests: ai-client, ai-orchestration, context-loader, conversation
-- [ ] 36-09-PLAN.md (Wave 3) — AI services tests: prompt, rate-limiter, action-executor
-- [ ] 36-10-PLAN.md (Wave 3) — Workflow engine and assignment strategy tests with 70%+ coverage
-- [ ] 36-11-PLAN.md (Wave 4) — Frontend tests: auth pages (login, MFA) and settings (profile, notifications)
-- [ ] 36-12-PLAN.md (Wave 4) — Frontend tests: form builder/renderer and workflow builder/canvas
-- [ ] 36-13-PLAN.md (Wave 5) — Coverage verification checkpoint with human verification
-
----
-
-### Phase 37: Critical Integration Fixes (v1.2 Gap Closure)
-
-**Goal**: Fix 3 integration issues found by milestone audit — a CRITICAL DI failure, dead batch processing code, and a security trap from dead WebSocket guard code.
-**Depends on**: Phase 36 (all prior v1.2 work complete)
-**Requirements**: Closes integration gaps from v1.2-MILESTONE-AUDIT.md
-**Gap Closure**: RedisCacheModule DI failure (CRITICAL), processRemindersInBatches dead code (MEDIUM), JwtWsGuard HS256 dead code (MEDIUM)
-**Success Criteria** (what must be TRUE):
-
-1. RedisCacheModule is registered in AppModule and all 7+ dependent services resolve CACHE_MANAGER without DI errors
-2. Campaign reminder scheduler calls processRemindersInBatches() (cursor-based) instead of non-paginated method
-3. JwtWsGuard file and its spec are deleted — no HS256 WebSocket auth code remains in codebase
-
-**Plans:** 1 plan
-
-Plans:
-
-- [x] 37-01-PLAN.md — Fix RedisCacheModule DI, wire batch processor, delete JwtWsGuard
-
----
-
-### Phase 38: Dark Mode Gap Closure (v1.2 Gap Closure)
-
-**Goal**: Complete dark mode support by migrating all hardcoded Tailwind color classes to semantic tokens and fixing remaining component gaps, so the entire application renders correctly in dark mode.
-**Depends on**: Phase 37 (critical fixes first)
-**Requirements**: THEME-01, THEME-02, THEME-06
-**Gap Closure**: 323 hardcoded colors across 60+ component files, missing settings page toggle, DataTable/modal dark variants
-**Success Criteria** (what must be TRUE):
-
-1. Theme toggle is accessible from both user dropdown AND settings page (THEME-01)
-2. Zero hardcoded Tailwind color classes (bg-white, text-gray-_, border-gray-_, etc.) remain in component files — all use semantic tokens (THEME-02)
-3. DataTable renders with proper dark shadow variants and all modal components use semantic tokens (THEME-06)
-4. Visual spot-check of top 5 affected files (investigation-properties-panel, merge-modal, investigation-files-tab, investigation-interviews-tab, linked-riu-form-answers) passes in dark mode
-
-**Plans:** 13 plans in 6 waves
-
-Plans:
-
-- [ ] 38-01-PLAN.md (Wave 1) — Migrate investigation components (6 files, 60+ occurrences)
-- [ ] 38-02-PLAN.md (Wave 1) — Migrate remaining investigation + record-detail components (8 files)
-- [ ] 38-03-PLAN.md (Wave 1) — Complete record-detail + layout/shared components (6 files)
-- [ ] 38-04-PLAN.md (Wave 2) — Migrate high-occurrence case components (6 files, 55 occurrences)
-- [ ] 38-05-PLAN.md (Wave 2) — Migrate case sidebar/association cards (8 files)
-- [ ] 38-06-PLAN.md (Wave 2) — Complete case modals, remediation, AI chat (9 files)
-- [ ] 38-07-PLAN.md (Wave 3) — Migrate project task components (7 files, 60 occurrences)
-- [ ] 38-08-PLAN.md (Wave 3) — Complete project views and column config (10 files)
-- [ ] 38-09-PLAN.md (Wave 4) — Migrate AI, workflows, exports, policies (12 files)
-- [ ] 38-10-PLAN.md (Wave 4) — Migrate remaining components + DataTable THEME-06 fix (12 files)
-- [ ] 38-11-PLAN.md (Wave 5) — Migrate page files (6 files)
-- [ ] 38-12-PLAN.md (Wave 5) — Update test files with semantic token assertions (6 files)
-- [ ] 38-13-PLAN.md (Wave 6) — Verification checkpoint with visual spot-check
-
----
-
-### Phase 39: Frontend Test Repair (v1.2 Gap Closure)
-
-**Goal**: Fix 56 broken frontend test failures caused by Phase 25.1 case-detail component refactoring after Phase 36 tests were written.
-**Depends on**: Phase 37 (critical fixes first; can parallel with Phase 38)
-**Requirements**: Contributes to TEST-10 (coverage improvement)
-**Gap Closure**: 56 frontend test failures across 8 case-detail test files (4 failure categories)
-**Success Criteria** (what must be TRUE):
-
-1. All 56 previously-failing frontend tests pass (0 failures in case-detail test files)
-2. Test assertions match current Phase 25.1 component APIs (props, element structure, data-testid attributes)
-3. No test functionality removed — tests are updated to match new component interfaces, not deleted
-   **Plans**: 5 plans in 3 waves
-
-Plans:
-
-- [ ] 39-01-PLAN.md (Wave 1) — Create renderWithProviders test utility with QueryClient wrapper
-- [ ] 39-02-PLAN.md (Wave 2) — Fix CaseActivityTimeline tests (23 failures)
-- [ ] 39-03-PLAN.md (Wave 2) — Fix CasePropertiesPanel + CaseInvestigationsPanel tests (30 failures)
-- [ ] 39-04-PLAN.md (Wave 2) — Fix remaining test files: activity-filters, property-section, case-header, create-investigation-dialog (8 failures)
-- [ ] 39-05-PLAN.md (Wave 3) — Verification: all 56 tests pass, no functionality removed
-
----
-
-## Milestones
-
-- **v1.0 Feature Build** — Phases 1-25.1, 242+ plans (shipped 2026-02-13) — See `milestones/v1.0-ROADMAP.md`
-- **v1.1 Code Review Remediation** — Phases 26-31, 43 plans (shipped 2026-02-15) — See `milestones/v1.1-ROADMAP.md`
-- **v1.2 Production Hardening & Feature Completion** — Phases 32-39 + Phases 22, 23, 25.1 continued (in progress)
+- [ ] 51-01: Custom domain SSL routing with Azure Front Door
+- [ ] 51-02: Custom font upload and tenant font selection
+- [ ] 51-03: Hero image upload for ethics portal
+- [ ] 51-04: Custom email sender domain configuration (SPF, DKIM)
+- [ ] 51-05: "Powered by Ethico" removal toggle
+- [ ] 51-06: Footer HTML customization
+- [ ] 51-07: Custom CSS injection with sanitization
+- [ ] 51-08: Terraform modules for Azure infrastructure
+- [ ] 51-09: Verification checkpoint and deployment guide
 
 ## Progress
 
-| Phase                                   | Milestone | Plans Complete | Status      | Completed  |
-| --------------------------------------- | --------- | -------------- | ----------- | ---------- |
-| 1. Foundation Infrastructure            | v1.0      | 9/9            | Complete    | 2026-02-02 |
-| 2. Demo Tenant & Seed Data              | v1.0      | 7/7            | Complete    | 2026-02-03 |
-| 3. Authentication & SSO                 | v1.0      | 8/8            | Complete    | 2026-02-03 |
-| 4. Core Entities                        | v1.0      | 10/10          | Complete    | 2026-02-03 |
-| 5. AI Infrastructure                    | v1.0      | 11/11          | Complete    | 2026-02-03 |
-| 6. Case Management                      | v1.0      | 11/17          | Complete    | 2026-02-04 |
-| 7. Notifications & Email                | v1.0      | 8/8            | Complete    | 2026-02-04 |
-| 8. Portals                              | v1.0      | 17/17          | Complete    | 2026-02-04 |
-| 9. Campaigns & Disclosures              | v1.0      | 17/17          | Complete    | 2026-02-04 |
-| 10. Policy Management                   | v1.0      | 11/11          | Complete    | 2026-02-05 |
-| 11. Analytics & Reporting               | v1.0      | 21/21          | Complete    | 2026-02-05 |
-| 11.1. Frontend Navigation (INSERTED)    | v1.0      | 6/6            | Complete    | 2026-02-05 |
-| 12. Internal Operations Portal          | v1.0      | 19/19          | Complete    | 2026-02-06 |
-| 13. HubSpot-Style Saved Views           | v1.0      | 15/15          | Complete    | 2026-02-07 |
-| 13.1. Saved Views Fixes (INSERTED)      | v1.0      | 1/1            | Verified    | 2026-02-09 |
-| 14. Critical Bug Fixes & Navigation     | v1.0      | 5/5            | Complete    | 2026-02-09 |
-| 14.1. Data & Config Fixes (INSERTED)    | v1.0      | 4/4            | Complete    | 2026-02-09 |
-| 14.2. Case Creation & Search (INSERTED) | v1.0      | 3/3            | Complete    | 2026-02-10 |
-| 15. Case Detail Page Overhaul           | v1.0      | 11/11          | Verified    | 2026-02-11 |
-| 16. AI Integration Fix                  | v1.0      | 8/8            | Complete    | 2026-02-11 |
-| 17. Campaigns Hub                       | v1.0      | 4/4            | Complete    | 2026-02-11 |
-| 18. Reports & Data Management           | v1.0      | 9/9            | Complete    | 2026-02-11 |
-| 19. Workflow Engine UI                  | v1.0      | 7/7            | Complete    | 2026-02-11 |
-| 20. Settings Overhaul (HubSpot)         | v1.0      | 6/6            | Complete    | 2026-02-12 |
-| 21. Project Management (Monday.com)     | v1.0      | 10/10          | Complete    | 2026-02-12 |
-| 22. Dark Mode & Theme                   | v1.2      | 0/15           | Not started | -          |
-| 23. Help & Support System               | v1.2      | 5/5            | Complete    | 2026-02-13 |
-| 24. Policy Content & Seed Data          | v1.0      | 3/3            | Complete    | 2026-02-12 |
-| 25. Case & Investigation Redesign       | v1.0      | 6/6            | Complete    | 2026-02-13 |
-| 25.1. Case Detail Vision Revision       | v1.2      | 0/10           | Not started | -          |
-| 26. Emergency Fixes                     | v1.1      | 2/2            | Verified    | 2026-02-14 |
-| 27. Security Hardening                  | v1.1      | 4/4            | Verified    | 2026-02-14 |
-| 28. Production Readiness                | v1.1      | 5/5            | Verified    | 2026-02-14 |
-| 29. Error Handling & Reliability        | v1.1      | 5/5            | Verified    | 2026-02-14 |
-| 30. Test Coverage Foundation            | v1.1      | 5/5            | Verified    | 2026-02-15 |
-| 31. Code Quality & Performance          | v1.1      | 22/22          | Verified    | 2026-02-15 |
-| 32. Security & SOC 2 Fixes              | v1.2      | 0/8            | Planned     | -          |
-| 33. Slop Cleanup & Production Readiness | v1.2      | 0/7            | Planned     | -          |
-| 34. Performance & Scalability           | v1.2      | 0/5            | Planned     | -          |
-| 35. Code Quality & Architecture         | v1.2      | 0/6            | Planned     | -          |
-| 36. Test Coverage Expansion             | v1.2      | 0/13           | Planned     | -          |
-| 37. Critical Integration Fixes          | v1.2      | 0/TBD          | Not started | -          |
-| 38. Dark Mode Gap Closure               | v1.2      | 0/13           | Not started | -          |
-| 39. Frontend Test Repair                | v1.2      | 0/5            | Planned     | -          |
+**Execution Order:**
+Phases execute in numeric order: 40 -> 41 -> 42 -> ... -> 51
+
+| Phase | Milestone | Plans Complete | Status | Completed |
+|-------|-----------|----------------|--------|-----------|
+| 1. Foundation Infrastructure | v1.0 | 9/9 | Complete | 2026-02-02 |
+| 2. Demo Tenant & Seed Data | v1.0 | 7/7 | Complete | 2026-02-03 |
+| 3. Authentication & SSO | v1.0 | 8/8 | Complete | 2026-02-03 |
+| 4. Core Entities | v1.0 | 10/10 | Complete | 2026-02-03 |
+| 5. AI Infrastructure | v1.0 | 11/11 | Complete | 2026-02-03 |
+| 6. Case Management | v1.0 | 11/17 | Complete | 2026-02-04 |
+| 7. Notifications & Email | v1.0 | 8/8 | Complete | 2026-02-04 |
+| 8. Portals | v1.0 | 17/17 | Complete | 2026-02-04 |
+| 9. Campaigns & Disclosures | v1.0 | 17/17 | Complete | 2026-02-04 |
+| 10. Policy Management | v1.0 | 11/11 | Complete | 2026-02-05 |
+| 11. Analytics & Reporting | v1.0 | 21/21 | Complete | 2026-02-05 |
+| 11.1. Frontend Navigation (INSERTED) | v1.0 | 6/6 | Complete | 2026-02-05 |
+| 12. Internal Operations Portal | v1.0 | 19/19 | Complete | 2026-02-06 |
+| 13. HubSpot-Style Saved Views | v1.0 | 15/15 | Complete | 2026-02-07 |
+| 13.1. Saved Views Fixes (INSERTED) | v1.0 | 1/1 | Complete | 2026-02-09 |
+| 14. Critical Bug Fixes & Navigation | v1.0 | 5/5 | Complete | 2026-02-09 |
+| 14.1. Data & Config Fixes (INSERTED) | v1.0 | 4/4 | Complete | 2026-02-09 |
+| 14.2. Case Creation & Search (INSERTED) | v1.0 | 3/3 | Complete | 2026-02-10 |
+| 15. Case Detail Page Overhaul | v1.0 | 11/11 | Complete | 2026-02-11 |
+| 16. AI Integration Fix | v1.0 | 8/8 | Complete | 2026-02-11 |
+| 17. Campaigns Hub | v1.0 | 4/4 | Complete | 2026-02-11 |
+| 18. Reports & Data Management | v1.0 | 9/9 | Complete | 2026-02-11 |
+| 19. Workflow Engine UI | v1.0 | 7/7 | Complete | 2026-02-11 |
+| 20. Settings Overhaul (HubSpot) | v1.0 | 6/6 | Complete | 2026-02-12 |
+| 21. Project Management (Monday.com) | v1.0 | 10/10 | Complete | 2026-02-12 |
+| 22. Dark Mode & Theme | v1.2 | 15/15 | Complete | 2026-02-18 |
+| 23. Help & Support System | v1.2 | 5/5 | Complete | 2026-02-13 |
+| 24. Policy Content & Seed Data | v1.0 | 3/3 | Complete | 2026-02-12 |
+| 25. Case & Investigation Redesign | v1.0 | 6/6 | Complete | 2026-02-13 |
+| 25.1. Case Detail Vision Revision | v1.2 | 10/10 | Complete | 2026-02-17 |
+| 26. Emergency Fixes | v1.1 | 2/2 | Complete | 2026-02-14 |
+| 27. Security Hardening | v1.1 | 4/4 | Complete | 2026-02-14 |
+| 28. Production Readiness | v1.1 | 5/5 | Complete | 2026-02-14 |
+| 29. Error Handling & Reliability | v1.1 | 5/5 | Complete | 2026-02-14 |
+| 30. Test Coverage Foundation | v1.1 | 5/5 | Complete | 2026-02-15 |
+| 31. Code Quality & Performance | v1.1 | 22/22 | Complete | 2026-02-15 |
+| 32. Security & SOC 2 Fixes | v1.2 | 8/8 | Complete | 2026-02-16 |
+| 33. Slop Cleanup & Production Readiness | v1.2 | 10/10 | Complete | 2026-02-17 |
+| 34. Performance & Scalability | v1.2 | 5/5 | Complete | 2026-02-18 |
+| 35. Code Quality & Architecture | v1.2 | 6/6 | Complete | 2026-02-18 |
+| 36. Test Coverage Expansion | v1.2 | 13/13 | Complete | 2026-02-19 |
+| 37. Critical Integration Fixes | v1.2 | 1/1 | Complete | 2026-02-19 |
+| 38. Dark Mode Gap Closure | v1.2 | 13/13 | Complete | 2026-02-20 |
+| 39. Frontend Test Repair | v1.2 | 5/5 | Complete | 2026-02-20 |
+| 40. Rules Engine Foundation | v2.0 | 0/8 | Not started | - |
+| 41. SLA Monitoring & Escalation | v2.0 | 0/6 | Not started | - |
+| 42. Anonymous Communication Relay | v2.0 | 0/8 | Not started | - |
+| 43. RAG Infrastructure | v2.0 | 0/8 | Not started | - |
+| 44. Employee Chatbot | v2.0 | 0/10 | Not started | - |
+| 45. Enhanced AI Features | v2.0 | 0/9 | Not started | - |
+| 46. Disclosure Automation Foundation | v2.0 | 0/10 | Not started | - |
+| 47. External Parties & GT&E | v2.0 | 0/7 | Not started | - |
+| 48. Portal Completeness | v2.0 | 0/15 | Not started | - |
+| 49. PWA & Push Notifications | v2.0 | 0/7 | Not started | - |
+| 50. Analytics & Data Compliance | v2.0 | 0/9 | Not started | - |
+| 51. Enterprise Branding & Deployment | v2.0 | 0/9 | Not started | - |
 
 ---
 
 _Roadmap created: 2026-02-02_
-_Updated: 2026-02-19 (gap closure phases 37-39 added from milestone audit)_
-_Total phases: 39 (+ decimal insertions)_
-_Total plans: 285+ completed across v1.0 and v1.1, TBD for v1.2_
-_Total requirements: 149 (v1.0) + 36 (v1.1) + 77 (v1.2) = 262_
+_Updated: 2026-02-24 (v2.0 milestone phases 40-51 added)_
+_Total phases: 51 (+ decimal insertions)_
+_Total plans: 300+ completed across v1.0, v1.1, v1.2; 106 planned for v2.0_
+_Total requirements: 262 (v1.0-v1.2) + 83 (v2.0) = 345_
