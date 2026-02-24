@@ -1,238 +1,194 @@
-# Requirements: v1.2 Production Hardening & Feature Completion
+# Requirements: v2.0 PRD Feature Parity & Intelligence Layer
 
-## Overview
+**Defined:** 2026-02-24
+**Core Value:** Users can manage their entire compliance workflow in one AI-assisted platform
+**Source:** Comprehensive PRD gap analysis + 4-dimension research (Stack, Features, Architecture, Pitfalls)
 
-Dual-track milestone: (1) Remediate all findings from pre-Series A code review across 6 dimensions, targeting B+ overall grade; (2) Complete 3 unfinished v1.0 feature phases.
+## v2.0 Requirements
 
-**Source:** `.planning/CODE-REVIEW-v1.2.md` (pre-Series A code review, 2026-02-15)
+Requirements for closing all PRD gaps. Each maps to roadmap phases starting at Phase 40.
 
----
+### Rules & Automation Engine
 
-## Track 1: Code Review Remediation
+- [ ] **RULE-01**: Admin can create routing rules that auto-assign new cases to users/teams based on location, category, or severity
+- [ ] **RULE-02**: Admin can configure round-robin assignment distribution across a team
+- [ ] **RULE-03**: System monitors case SLAs and sends warning notification at 80% of target duration
+- [ ] **RULE-04**: System sends breach notification when case SLA is exceeded
+- [ ] **RULE-05**: Admin can configure escalation triggers (e.g., "if HIGH severity and unassigned >4hrs, escalate to CCO")
+- [ ] **RULE-06**: Case status auto-derives from investigation states (e.g., all investigations closed = case moves to review)
+- [ ] **RULE-07**: Admin can preview/test rules against historical data before activating
+- [ ] **RULE-08**: System logs all rule executions with outcome for audit trail
+- [ ] **RULE-09**: Admin can configure auto-routing by severity with manual override capability
 
-### Security & SOC 2 (Grade: D+ → Target: B+)
+### Anonymous Communication Relay
 
-- [x] **SEC-01**: Fix 7 unauthenticated controllers — replace hardcoded TEMP_ORG_ID/TEMP_USER_ID/stub-org-id with @UseGuards(JwtAuthGuard, TenantGuard, RolesGuard) + @Roles decorators on migration, conflict, attestation, campaigns, policy-approval, checklist controllers
-- [x] **SEC-02**: Fix WebSocket auth bypass — AI gateway extractContext() must verify JWT instead of trusting client-provided organizationId/userId/userRole from handshake
-- [x] **SEC-03**: Pin JWT algorithm to RS256 only — remove HS256 from algorithms array in auth.module.ts to prevent algorithm confusion attack (CVE-2015-9235)
-- [x] **SEC-04**: Validate JWT_REFRESH_SECRET on startup — fail startup if undefined instead of signing tokens with undefined secret
-- [x] **SEC-05**: Remove organizationId from ChatMessage DTO — derive from @TenantId() instead of accepting from request body
-- [x] **SEC-06**: Fix hardcoded demo password — generate unique random passwords per demo account instead of Password123!
-- [x] **SEC-07**: Add @MaxLength() validation on login DTO — prevent CPU exhaustion via 1MB+ strings during bcrypt
-- [x] **SEC-08**: Replace @IsString() with @IsUUID() on all ID fields across DTOs
-- [x] **SEC-09**: Persist MFA verification in JWT payload — add mfaVerified boolean to AccessTokenPayload, issue new token post-MFA
-- [x] **SEC-10**: Fix tenant middleware JWT verification — use JwtKeyService.getVerificationKey() with algorithm detection instead of HS256-only
-- [x] **SEC-11**: Add audit logging to messaging relay service — SOC 2 requires all mutation paths logged
-- [x] **SEC-12**: Narrow Operations module TenantMiddleware exemption — restrict to specific endpoints instead of blanket api/v1/operations/(.\*)
-- [x] **SEC-13**: Minimize PII in logs — log user ID instead of email in MFA service, review Sentry body logging
+- [ ] **RELAY-01**: Investigator can send message to anonymous reporter via Chinese Wall relay (PII stripped)
+- [ ] **RELAY-02**: Anonymous reporter can reply to investigator messages via ethics portal using access code
+- [ ] **RELAY-03**: System sends email notification to reporter (if email provided) when new message available, with random 1-6hr delay to prevent timing attacks
+- [ ] **RELAY-04**: Access code is emailed to reporter on RIU creation (if email provided)
+- [ ] **RELAY-05**: Admin can configure reporter visibility levels per tenant (Minimal, Standard, Detailed, Transparent)
+- [ ] **RELAY-06**: Message thread displays in ethics portal status page with read receipts
+- [ ] **RELAY-07**: All relay messages logged to audit trail with sender/receiver roles (not identities for anonymous)
 
-### AI Code Slop Cleanup (Grade: C- → Target: B+)
+### AI Intelligence Layer — RAG Foundation
 
-- [x] **SLOP-01**: Register or delete 3 orphaned modules — feature-flags, metrics, sentry modules exist but are not imported in AppModule
-- [x] **SLOP-02**: Implement or disable document processing stubs — PDF, Office, RTF, OpenDocument extraction returning fake success:false
-- [x] **SLOP-03**: Fix usage metrics support ticket count — currently always returns 0, feeding 15% of health score calculation
-- [x] **SLOP-04**: Strip 384 section-separator comments (// ====...) across 84 files
-- [x] **SLOP-05**: Triage and resolve 38 TODO comments — 12 are auth-related security-blocking items
-- [x] **SLOP-06**: Implement or remove empty notification methods in escalation processor
-- [x] **SLOP-07**: Implement or remove placeholder AI actions returning { success: false, message: 'Placeholder' }
-- [x] **SLOP-08**: Fix PDF export silently returning Excel — implement PDF or return error explaining unavailability
-- [x] **SLOP-09**: Delete duplicate service file — pipeline.service.ts + case-pipeline.service.ts in same directory
-- [x] **SLOP-10**: Strip restating JSDoc comments that add no value (/\*_ Delete a feature flag. _/ async deleteFlag())
-- [x] **SLOP-11**: Split bloated DTO files — report.dto.ts (683 lines, 11 DTOs), conflict.dto.ts (605 lines)
+- [ ] **RAG-01**: pgvector extension enabled with separate DocumentEmbedding table (explicit organizationId, not RLS-dependent for vector queries)
+- [ ] **RAG-02**: Admin can upload knowledge base documents (PDF, DOCX, TXT) that are chunked and embedded
+- [ ] **RAG-03**: Policy documents auto-embed on publish (chunked by section)
+- [ ] **RAG-04**: Semantic search returns relevant document chunks with similarity scores, filtered by tenant
+- [ ] **RAG-05**: Embedding model abstraction layer supports swapping providers without re-indexing schema changes
 
-### Performance & Scalability (Grade: C → Target: B+)
+### AI Intelligence Layer — Chatbot
 
-- [x] **PERF-01**: Fix unbounded query in campaign-reminder.service.ts — add cursor-based batch processing instead of fetching all assignments
-- [x] **PERF-02**: Implement Redis caching for hot paths — user permissions, categories, business units, branding, org settings
-- [x] **PERF-03**: Fix N+1 in persons.service.ts createFromEmployee — batch-fetch manager, businessUnit, location relations
-- [x] **PERF-04**: Fix N+1 in persons.service.ts getManagerChain — replace per-level queries with recursive CTE or batch fetch
-- [x] **PERF-05**: Fix compliance profiles in-memory aggregation — use Prisma aggregate() or raw SQL instead of loading all profiles to JS
-- [x] **PERF-06**: Configure Prisma connection pool — add connection_limit=50&pool_timeout=30 to DATABASE_URL
-- [x] **PERF-07**: Fix unbounded repeat non-responder query — add take/skip pagination
-- [x] **PERF-08**: Switch dashboard cache from in-memory to Redis store — required for multi-instance deployment
-- [x] **PERF-09**: Use BullMQ addBulk() for reminder queueing instead of loop-based individual queue.add()
-- [x] **PERF-10**: Add batch limits to scheduled export and getDirectReports queries
-- [x] **PERF-11**: Add TTL/LRU eviction to agent instance Map to prevent unbounded growth
+- [ ] **CHAT-01**: Floating chatbot widget available on Ethics Portal (no login required)
+- [ ] **CHAT-02**: Floating chatbot widget available on Employee Portal (authenticated)
+- [ ] **CHAT-03**: Chatbot answers policy questions with specific section citations and links
+- [ ] **CHAT-04**: High confidence responses (>85%) show direct answer with source
+- [ ] **CHAT-05**: Medium confidence responses (50-85%) show clarifying questions with confidence indicator
+- [ ] **CHAT-06**: Low confidence responses (<50%) offer one-click escalation to compliance team
+- [ ] **CHAT-07**: Chatbot can check case status via access code (anonymous reporters)
+- [ ] **CHAT-08**: Consent capture before first chatbot interaction per session
+- [ ] **CHAT-09**: Full chatbot transcript stored for audit with conversation entity linkage
+- [ ] **CHAT-10**: FAQ database with curated answers that chatbot references before RAG fallback
 
-### Code Quality & Architecture (Grade: C+ → Target: B+)
+### AI Intelligence Layer — Enhanced AI Features
 
-- [x] **QUAL-01**: Split 12 fat services (800+ LOC each) — ai-triage, mapping-suggestion, query-to-prisma, user-table, project-template, context-loader, ai-query, migration-parser, policy-case-association, notification, campaign-scheduling, schema-introspection
-- [x] **QUAL-02**: Replace 90+ `any` type usages with proper interfaces — ai-triage (8), ai-query (9), threshold (5), auth.controller (3), workflow (4), create-workflow-template.dto (4)
-- [x] **QUAL-03**: Enable strict: true in backend tsconfig.json
-- [x] **QUAL-04**: Replace non-null assertions with proper null checks — tenant.middleware, keyvault.service, claude.provider, impersonation.middleware
-- [x] **QUAL-05**: Fix `as any` casts bypassing validation in forms.controller.ts — match DTO types to service signatures
+- [ ] **AIEX-01**: Note cleanup tool shows before/after preview (bullet points to formal narrative)
+- [ ] **AIEX-02**: Cross-case pattern detection alerts when same subject appears in 3+ cases
+- [ ] **AIEX-03**: Pattern-based escalation combines rules engine with detection (e.g., "5+ cases in 90 days = auto-escalate")
+- [ ] **AIEX-04**: AI trend identification surfaces statistical changes (e.g., "Harassment reports up 40% in Manufacturing")
+- [ ] **AIEX-05**: One-click escalation from chatbot creates async inquiry for compliance team
 
-### Test Coverage (Grade: F → Target: B)
+### Disclosure & Campaign Automation
 
-- [ ] **TEST-01**: Write unit tests for all 6 auth guards — jwt-auth, roles, tenant, jwt-ws, mfa, throttle-behind-proxy (0% → 90%+)
-- [ ] **TEST-02**: Write unit tests for all 4 auth strategies — jwt, azure-ad, google, saml (0% → 90%+)
-- [ ] **TEST-03**: Write unit tests for impersonation service, middleware, and guard (0% → 90%+)
-- [ ] **TEST-04**: Add tenant isolation E2E tests for remaining 12+ modules — auth/SSO, campaigns, disclosures, policies, reporting, AI, forms, notifications, HRIS, workflow
-- [ ] **TEST-05**: Write unit tests for case-merge.service.ts — merge, rollback, association transfer
-- [ ] **TEST-06**: Write unit tests for conflict-detection.service.ts and 3 related services — all 6 conflict types
-- [ ] **TEST-07**: Write unit tests for AI services — ai-client, ai-orchestration, context-loader, conversation, prompt, rate-limiter, action-executor
-- [ ] **TEST-08**: Write unit tests for workflow engine — assignment strategies, state transitions
-- [ ] **TEST-09**: Expand frontend test coverage — auth pages, portal forms, settings, workflow builder (13% → 40%+)
-- [ ] **TEST-10**: Achieve 60%+ overall backend service test coverage (currently 7.9%)
+- [ ] **DISC-01**: Rolling campaigns auto-trigger on HRIS events (NEW_HIRE, ROLE_CHANGE, PROMOTION, ANNUAL_ANNIVERSARY)
+- [ ] **DISC-02**: Admin can configure auto-clear rules (e.g., "nothing to disclose" auto-completes without review)
+- [ ] **DISC-03**: Admin can configure auto-reject rules based on answer patterns
+- [ ] **DISC-04**: Compliance officer can bulk approve/reject up to 100 disclosures at once
+- [ ] **DISC-05**: System sends condition reminders at 14, 7, 3, and 1 day before due date
+- [ ] **DISC-06**: Admin can configure multi-stage approval workflows for disclosures (up to 4 stages)
+- [ ] **DISC-07**: Admin can set up proxy delegation (delegate authority with scope and validity period)
+- [ ] **DISC-08**: Campaign can be paused and resumed by admin
+- [ ] **DISC-09**: External party entity with type, risk rating, aliases, tax ID, government/sanctioned flags
+- [ ] **DISC-10**: GT&E transactions aggregate across gifts from same external party for threshold enforcement
+- [ ] **DISC-11**: Currency conversion with daily exchange rates for multi-currency GT&E
+- [ ] **DISC-12**: Location-specific disclosure rules (state/country thresholds for government officials)
 
-### Production Readiness (Grade: B- → Target: A-)
+### Portal Completeness — Employee Portal
 
-- [x] **PROD-01**: Add magic-byte file validation with file-type npm package — MIME validation currently trusts client header only
-- [x] **PROD-02**: Add fileFilter to Multer attachment upload — reject dangerous extensions before processing
-- [x] **PROD-03**: Replace direct process.env.JWT_SECRET with ConfigService.get() in project.gateway.ts and notification.gateway.ts
-- [x] **PROD-04**: Move @faker-js/faker from production deps to devDependencies
-- [x] **PROD-05**: Replace console.error with NestJS Logger in storage.module.ts
+- [ ] **EMPL-01**: Manager sees Team Compliance Dashboard with outstanding disclosures/attestations per direct report
+- [ ] **EMPL-02**: Manager can submit proxy report on behalf of employee with proper attribution
+- [ ] **EMPL-03**: Manager can send bulk reminders to non-compliant team members
+- [ ] **EMPL-04**: Employee sees "My Reports" with combined RIU + linked Case timeline
+- [ ] **EMPL-05**: Employee can mark disclosure conditions as complete with supporting evidence upload
+- [ ] **EMPL-06**: Employee can export their disclosure history
+- [ ] **EMPL-07**: Session idle timeout warning modal (configurable countdown before auto-logout)
 
----
+### Portal Completeness — Operator Console
 
-## Track 2: Unfinished v1.0 Feature Phases
+- [ ] **OPER-01**: Operator sees AI-suggested follow-up questions during intake based on category
+- [ ] **OPER-02**: Mandatory directive acknowledgment gate blocks RIU submission until directives reviewed
+- [ ] **OPER-03**: QA manager sees operator quality metrics dashboard (QA return rate, average review time)
+- [ ] **OPER-04**: Category selection dynamically loads category-specific intake questions
+- [ ] **OPER-05**: Opening/closing statement management for operator scripts
 
-### Dark Mode & Theme System (Phase 22 — 15/15 plans) ✓
+### Portal Completeness — Ethics Portal
 
-- [x] **THEME-01**: User can toggle dark mode from user menu and settings
-- [x] **THEME-02**: All pages render correctly in dark mode with proper contrast
-- [x] **THEME-03**: Dark mode preference persists across sessions in user preferences
-- [x] **THEME-04**: System preference detection — auto-detect OS dark mode as default
-- [x] **THEME-05**: Navigation bars visually consistent in both light and dark modes
-- [x] **THEME-06**: Charts, tables, modals, and forms respect active theme
-- [x] **THEME-07**: Smooth theme transition with no flash of wrong theme on page load
+- [ ] **ETHP-01**: Crisis escalation banner displayed prominently (configurable per tenant, not dismissible)
+- [ ] **ETHP-02**: Emergency hotline phone number configurable per tenant and displayed on landing
+- [ ] **ETHP-03**: Multi-language auto-detection (URL param > user preference > browser header > HRIS > default)
+- [ ] **ETHP-04**: Program transparency display with anonymized statistics (configurable by admin)
 
-### Help & Support System (Phase 23 — 5/5 plans)
+### Infrastructure — PWA
 
-- [x] **HELP-01**: Help & Support accessible from sidebar and user menu
-- [x] **HELP-02**: Searchable knowledge base with articles organized by category
-- [x] **HELP-03**: Users can file support tickets with subject, description, priority, screenshots
-- [x] **HELP-04**: Users can view their open tickets and status
-- [x] **HELP-05**: Contextual help links from relevant pages to related articles
+- [ ] **PWA-01**: Ethics portal installable as PWA (manifest.json, service worker, icons)
+- [ ] **PWA-02**: Push notifications for case status updates, campaign reminders, SLA warnings
+- [ ] **PWA-03**: Offline form submission queuing (submits when connectivity restored)
+- [ ] **PWA-04**: Tenant-scoped service worker caches (no cross-tenant data leakage)
 
-### Case Detail Vision Revision (Phase 25.1 — 10/10 plans)
+### Infrastructure — Analytics & Reporting
 
-- [x] **CASE-01**: Sticky pipeline stage bar at top with click-to-advance
-- [x] **CASE-02**: Left sidebar Actions dropdown with 8 items (Assign, Change Status, Merge, Follow, View Properties, View History, Export, Delete)
-- [x] **CASE-03**: Left sidebar with 3 collapsible property cards (About, Intake, Classification)
-- [x] **CASE-04**: Classification card with dependent category/subcategory dropdowns
-- [x] **CASE-05**: Overview tab as default with lifecycle metrics, editable summary, status timeline
-- [x] **CASE-06**: Activities tab with exact HubSpot pattern — type checkboxes, user/team filter, search, pinning
-- [x] **CASE-07**: Six tabs total: Overview, Activities, Investigations, Messages, Files, Remediation
-- [x] **CASE-08**: Right sidebar with 9 cards (Workflow, People, RIUs, Cases, Policies, Documents, Tasks, Remediation Status, AI Assistant)
-- [x] **CASE-09**: Config-driven architecture using CASES_DETAIL_CONFIG module config pattern
-- [x] **CASE-10**: Tenant-configurable pipeline stages (default: New → Assigned → Active → Review → Closed → Remediation → Archived)
+- [ ] **ANAL-01**: Fact tables (FACT_RIU_DAILY, FACT_CASE_DAILY, FACT_CAMPAIGN_DAILY) with incremental aggregation
+- [ ] **ANAL-02**: Dashboard drag-and-drop widget builder with configurable layouts
+- [ ] **ANAL-03**: Scheduled report delivery via email (daily, weekly, monthly cron)
+- [ ] **ANAL-04**: Peer benchmarking data pipeline (anonymized cross-tenant aggregation)
+
+### Infrastructure — Data & Compliance
+
+- [ ] **DATA-01**: GDPR data deletion workflow using cryptographic shredding (encrypt PII per record, delete keys on erasure)
+- [ ] **DATA-02**: Configurable data retention policies (auto-archive after N days/months/years)
+- [ ] **DATA-03**: Document/attachment virus scan integration (ClamAV or Azure Defender)
+
+### Infrastructure — Branding & Enterprise
+
+- [ ] **BRAND-01**: Custom domain SSL routing for enterprise tenants
+- [ ] **BRAND-02**: Custom font family upload and selection
+- [ ] **BRAND-03**: Hero image upload for ethics portal landing
+- [ ] **BRAND-04**: Custom email sender domain per tenant
+- [ ] **BRAND-05**: "Powered by Ethico" removal option
+- [ ] **BRAND-06**: Footer HTML customization
+- [ ] **BRAND-07**: Custom CSS injection for enterprise branding
+
+### Infrastructure — Deployment
+
+- [ ] **DEPL-01**: Terraform IaC for Azure infrastructure (App Service, PostgreSQL, Redis, Blob Storage, Search)
 
 ---
 
 ## Summary
 
-| Category             | Requirements                  | Priority |
-| -------------------- | ----------------------------- | -------- |
-| Security & SOC 2     | 13 (SEC-01 through SEC-13)    | CRITICAL |
-| AI Code Slop         | 11 (SLOP-01 through SLOP-11)  | HIGH     |
-| Performance          | 11 (PERF-01 through PERF-11)  | HIGH     |
-| Code Quality         | 5 (QUAL-01 through QUAL-05)   | MEDIUM   |
-| Test Coverage        | 10 (TEST-01 through TEST-10)  | CRITICAL |
-| Production Readiness | 5 (PROD-01 through PROD-05)   | HIGH     |
-| Dark Mode & Theme    | 7 (THEME-01 through THEME-07) | MEDIUM   |
-| Help & Support       | 5 (HELP-01 through HELP-05)   | MEDIUM   |
-| Case Detail Vision   | 10 (CASE-01 through CASE-10)  | MEDIUM   |
-| **Total**            | **77**                        |          |
+| Category                     | Requirements                     | Priority  |
+| ---------------------------- | -------------------------------- | --------- |
+| Rules & Automation Engine    | 9 (RULE-01 through RULE-09)     | CRITICAL  |
+| Anonymous Communication      | 7 (RELAY-01 through RELAY-07)   | CRITICAL  |
+| RAG Foundation               | 5 (RAG-01 through RAG-05)       | HIGH      |
+| Chatbot                      | 10 (CHAT-01 through CHAT-10)    | HIGH      |
+| Enhanced AI Features         | 5 (AIEX-01 through AIEX-05)     | HIGH      |
+| Disclosure Automation        | 12 (DISC-01 through DISC-12)    | HIGH      |
+| Employee Portal              | 7 (EMPL-01 through EMPL-07)     | MEDIUM    |
+| Operator Console             | 5 (OPER-01 through OPER-05)     | MEDIUM    |
+| Ethics Portal                | 4 (ETHP-01 through ETHP-04)     | MEDIUM    |
+| PWA                          | 4 (PWA-01 through PWA-04)       | MEDIUM    |
+| Analytics & Reporting        | 4 (ANAL-01 through ANAL-04)     | MEDIUM    |
+| Data & Compliance            | 3 (DATA-01 through DATA-03)     | HIGH      |
+| Branding & Enterprise        | 7 (BRAND-01 through BRAND-07)   | LOW       |
+| Deployment                   | 1 (DEPL-01)                     | LOW       |
+| **Total**                    | **83**                           |           |
 
----
+## Future Requirements (v2.1+)
 
-## Traceability
-
-| Requirement | Phase      | Status   |
-| ----------- | ---------- | -------- |
-| SEC-01      | Phase 32   | Complete |
-| SEC-02      | Phase 32   | Complete |
-| SEC-03      | Phase 32   | Complete |
-| SEC-04      | Phase 32   | Complete |
-| SEC-05      | Phase 32   | Complete |
-| SEC-06      | Phase 32   | Complete |
-| SEC-07      | Phase 32   | Complete |
-| SEC-08      | Phase 32   | Complete |
-| SEC-09      | Phase 32   | Complete |
-| SEC-10      | Phase 32   | Complete |
-| SEC-11      | Phase 32   | Complete |
-| SEC-12      | Phase 32   | Complete |
-| SEC-13      | Phase 32   | Complete |
-| SLOP-01     | Phase 33   | Complete |
-| SLOP-02     | Phase 33   | Complete |
-| SLOP-03     | Phase 33   | Complete |
-| SLOP-04     | Phase 33   | Complete |
-| SLOP-05     | Phase 33   | Complete |
-| SLOP-06     | Phase 33   | Complete |
-| SLOP-07     | Phase 33   | Complete |
-| SLOP-08     | Phase 33   | Complete |
-| SLOP-09     | Phase 33   | Complete |
-| SLOP-10     | Phase 33   | Complete |
-| SLOP-11     | Phase 33   | Complete |
-| PROD-01     | Phase 33   | Complete |
-| PROD-02     | Phase 33   | Complete |
-| PROD-03     | Phase 33   | Complete |
-| PROD-04     | Phase 33   | Complete |
-| PROD-05     | Phase 33   | Complete |
-| PERF-01     | Phase 34   | Complete |
-| PERF-02     | Phase 34   | Complete |
-| PERF-03     | Phase 34   | Complete |
-| PERF-04     | Phase 34   | Complete |
-| PERF-05     | Phase 34   | Complete |
-| PERF-06     | Phase 34   | Complete |
-| PERF-07     | Phase 34   | Complete |
-| PERF-08     | Phase 34   | Complete |
-| PERF-09     | Phase 34   | Complete |
-| PERF-10     | Phase 34   | Complete |
-| PERF-11     | Phase 34   | Complete |
-| QUAL-01     | Phase 35   | Complete |
-| QUAL-02     | Phase 35   | Complete |
-| QUAL-03     | Phase 35   | Complete |
-| QUAL-04     | Phase 35   | Complete |
-| QUAL-05     | Phase 35   | Complete |
-| TEST-01     | Phase 36   | Pending  |
-| TEST-02     | Phase 36   | Pending  |
-| TEST-03     | Phase 36   | Pending  |
-| TEST-04     | Phase 36   | Pending  |
-| TEST-05     | Phase 36   | Pending  |
-| TEST-06     | Phase 36   | Pending  |
-| TEST-07     | Phase 36   | Pending  |
-| TEST-08     | Phase 36   | Pending  |
-| TEST-09     | Phase 36   | Pending  |
-| TEST-10     | Phase 36   | Pending  |
-| THEME-01    | Phase 22   | Complete |
-| THEME-02    | Phase 22   | Complete |
-| THEME-03    | Phase 22   | Complete |
-| THEME-04    | Phase 22   | Complete |
-| THEME-05    | Phase 22   | Complete |
-| THEME-06    | Phase 22   | Complete |
-| THEME-07    | Phase 22   | Complete |
-| HELP-01     | Phase 23   | Complete |
-| HELP-02     | Phase 23   | Complete |
-| HELP-03     | Phase 23   | Complete |
-| HELP-04     | Phase 23   | Complete |
-| HELP-05     | Phase 23   | Complete |
-| CASE-01     | Phase 25.1 | Complete |
-| CASE-02     | Phase 25.1 | Complete |
-| CASE-03     | Phase 25.1 | Complete |
-| CASE-04     | Phase 25.1 | Complete |
-| CASE-05     | Phase 25.1 | Complete |
-| CASE-06     | Phase 25.1 | Complete |
-| CASE-07     | Phase 25.1 | Complete |
-| CASE-08     | Phase 25.1 | Complete |
-| CASE-09     | Phase 25.1 | Complete |
-| CASE-10     | Phase 25.1 | Complete |
-
----
-
-## Future Requirements
-
-- Real-time collaborative editing (Y.js) — deferred to v2
-- Employee chatbot — deferred to v2
-- Mobile native apps — PWA sufficient for v1
-- Phase 6 remaining plans (06-01 through 06-17) — investigation templates, interviews, remediation plans not yet implemented
-- Phase 25 plans (25-01 through 25-06) — case & investigation page redesign plans not yet implemented
+- Real-time collaborative editing (Y.js) for policy co-authoring
+- Slack/Teams notification integration
+- SMS notifications and SMS relay for anonymous reporters
+- External party sanctions screening (Moody's, LSEG, Dow Jones integration)
+- Cross-organization benchmarking (anonymized aggregate pipeline)
+- Voice message transcription for hotline recordings
+- Natural language rule builder ("route harassment cases to Sarah")
+- Mobile native apps (iOS/Android)
 
 ## Out of Scope
 
-- Video attachments — Storage costs, processing complexity
-- Project management module enhancements — v1.0 already delivered Monday.com-style
-- Client Success Dashboard — Internal tool, deferred to v2
-- Sales Demo environment — Using seeded demo tenant
-- Systematic LOC reduction on already-compliant files — address opportunistically
+| Feature | Reason |
+|---------|--------|
+| Y.js collaborative editing | Complexity vs. value, defer to v3 |
+| Sanctions screening integration | Specialized vendor selection needed per customer |
+| SMS relay for anonymous reporters | Requires Twilio/provider selection, regulatory review |
+| Cross-org benchmarking | Needs anonymization pipeline, multi-customer data volume |
+| Natural language rule builder | Simple if/then UI sufficient for v2.0 |
+| Voice transcription | Complex, no competitor offers it, low demand signal |
+
+## Traceability
+
+_Populated during roadmap creation._
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+
+**Coverage:**
+- v2.0 requirements: 83 total
+- Mapped to phases: 0 (pending roadmap)
+- Unmapped: 83
+
+---
+*Requirements defined: 2026-02-24*
+*Last updated: 2026-02-24 after research synthesis*
