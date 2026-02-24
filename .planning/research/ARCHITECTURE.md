@@ -1,493 +1,269 @@
-# Architecture Patterns
+# Architecture Integration Research: v2.0 Intelligence Layer
 
-**Domain:** Enterprise Compliance SaaS - Multi-tenant workflow automation with AI integration
-**Researched:** 2026-02-02
-**Focus:** Adding AI integration layer, multi-provider SSO, unified notifications, cross-module task aggregation, event-driven workflows to existing NestJS/PostgreSQL RLS architecture
+**Project:** Risk Intelligence Platform v2.0
+**Researched:** 2026-02-24
+**Scope:** Integration of v2.0 intelligence layer capabilities with existing 42-module architecture
+**Confidence:** HIGH (based on direct codebase analysis)
 
 ---
 
 ## Executive Summary
 
-This research focuses on architecture patterns for the components being added to an **existing platform** that already has:
-- NestJS modular backend with TypeScript
-- PostgreSQL with Row-Level Security (RLS) for multi-tenancy
-- RIU (Risk Intelligence Unit) to Case pattern (immutable inputs to mutable work containers)
-- Activity logging with natural language descriptions
-- Prisma ORM
+The existing Risk Intelligence Platform has a well-structured, event-driven architecture with 42 NestJS modules, 127+ Prisma models, and established patterns for AI, workflows, campaigns, and real-time communication. The v2.0 intelligence layer capabilities can integrate through clear extension points rather than rewrites.
 
-The platform needs to add five architectural capabilities:
-1. **AI Integration Layer** - Scoped agents, skills registry, action framework
-2. **Multi-Provider SSO** - Azure AD, Google, SAML with JIT provisioning
-3. **Unified Notification System** - Event-driven, multi-channel delivery
-4. **Cross-Module Task Aggregation** - "My Work" unified queue
-5. **Event-Driven Workflows** - Shared workflow engine across modules
+**Key Finding:** The platform's existing event-driven architecture (`@nestjs/event-emitter`), job queue system (`BullMQ`), and AI module (`AiGateway`, `AgentRegistry`, `SkillRegistry`) provide natural integration points for all v2.0 capabilities.
 
 ---
 
-## Recommended Architecture
+## 1. Existing Architecture Inventory
 
-### Overall System Architecture
+### 1.1 Module Organization (42 modules)
 
 ```
-                                 ┌──────────────────────────────────────┐
-                                 │           FRONTEND LAYER              │
-                                 │  Next.js 14+ / shadcn/ui / Tailwind   │
-                                 │                                        │
-                                 │  ┌────────────┐  ┌────────────────┐   │
-                                 │  │ AI Drawer  │  │ "My Work" View │   │
-                                 │  │ (Slide-out)│  │  (Aggregated)  │   │
-                                 │  └────────────┘  └────────────────┘   │
-                                 └──────────────────┬─────────────────────┘
-                                                    │
-                                                    ▼
-┌────────────────────────────────────────────────────────────────────────────────┐
-│                              API GATEWAY LAYER                                  │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐       │
-│  │  JWT Auth    │  │ Rate Limiter │  │ Tenant       │  │ Request      │       │
-│  │  Guard       │  │ (Redis)      │  │ Middleware   │  │ Logging      │       │
-│  └──────────────┘  └──────────────┘  └──────────────┘  └──────────────┘       │
-└────────────────────────────────────────┬───────────────────────────────────────┘
-                                         │
-                    ┌────────────────────┼────────────────────┐
-                    │                    │                    │
-                    ▼                    ▼                    ▼
-         ┌──────────────────┐  ┌──────────────────┐  ┌──────────────────┐
-         │  DOMAIN MODULES  │  │   AI MODULE      │  │ WORKFLOW ENGINE  │
-         │                  │  │                  │  │                  │
-         │ • Cases          │  │ • Context Loader │  │ • State Machine  │
-         │ • Investigations │  │ • Skills Registry│  │ • Assignment     │
-         │ • Disclosures    │  │ • Action Catalog │  │ • SLA Tracking   │
-         │ • Policies       │  │ • Model Router   │  │ • Escalation     │
-         │ • Campaigns      │  │ • Scoped Agents  │  │                  │
-         └────────┬─────────┘  └────────┬─────────┘  └────────┬─────────┘
-                  │                     │                     │
-                  └─────────────────────┼─────────────────────┘
-                                        │
-                                        ▼
-         ┌──────────────────────────────────────────────────────────────┐
-         │                        EVENT BUS                             │
-         │              @nestjs/event-emitter + BullMQ                  │
-         │                                                              │
-         │  Events: case.created, investigation.assigned, sla.breached  │
-         └────────────────────────────┬─────────────────────────────────┘
-                                      │
-                  ┌───────────────────┼───────────────────┐
-                  │                   │                   │
-                  ▼                   ▼                   ▼
-       ┌──────────────────┐ ┌──────────────────┐ ┌──────────────────┐
-       │ NOTIFICATION SVC │ │  TASK AGG. SVC   │ │  AUDIT SVC       │
-       │                  │ │                  │ │                  │
-       │ • Email/In-app   │ │ • "My Work" view │ │ • AUDIT_LOG      │
-       │ • User prefs     │ │ • Due dates      │ │ • Field-level    │
-       │ • Digest mode    │ │ • Priority       │ │ • Immutable      │
-       └──────────────────┘ └──────────────────┘ └──────────────────┘
-                                      │
-                                      ▼
-         ┌──────────────────────────────────────────────────────────────┐
-         │                     DATA LAYER                               │
-         │                                                              │
-         │  PostgreSQL 15+        Redis 7           Azure Blob         │
-         │  ┌──────────────┐   ┌──────────────┐   ┌──────────────┐     │
-         │  │ + RLS        │   │ + BullMQ     │   │ + Per-tenant │     │
-         │  │ + pgvector   │   │ + Sessions   │   │   containers │     │
-         │  │ + Full-text  │   │ + Cache      │   │              │     │
-         │  └──────────────┘   └──────────────┘   └──────────────┘     │
-         └──────────────────────────────────────────────────────────────┘
+apps/backend/src/modules/
+├── ai/                    # AI infrastructure (gateway, agents, skills, actions)
+├── analytics/             # Dashboards, reports, exports, migration, my-work
+├── attachments/           # File upload/storage
+├── audit/                 # Activity logging
+├── auth/                  # JWT, SSO, MFA, guards
+├── branding/              # Tenant branding
+├── campaigns/             # Disclosure/attestation campaigns, targeting, waves
+├── cases/                 # Case CRUD, pipeline, merge, export
+├── custom-properties/     # Dynamic field definitions
+├── demo/                  # Demo environment isolation
+├── disclosures/           # Disclosure forms, threshold rules, conflict detection
+├── events/                # Global event emitter configuration
+├── feature-flags/         # Feature toggles
+├── forms/                 # Dynamic form builder
+├── health/                # Health checks
+├── help/                  # Knowledge base, support tickets
+├── hris/                  # Merge.dev HRIS integration
+├── investigation-notes/   # Note CRUD
+├── investigations/        # Investigation CRUD, checklists, interviews
+├── jobs/                  # BullMQ queues and processors
+├── messaging/             # Anonymous relay service
+├── metrics/               # Prometheus metrics
+├── notifications/         # Email, in-app, WebSocket, digests
+├── operations/            # Internal ops (client success, hotline, impersonation)
+├── organization/          # Org settings
+├── persons/               # Person records for pattern detection
+├── policies/              # Policy management, versions, translations
+├── portals/               # Ethics portal, employee portal, operator portal
+├── prisma/                # Database service
+├── projects/              # Implementation project management
+├── remediation/           # Remediation plans
+├── reporting/             # Report templates, execution
+├── rius/                  # Risk Intelligence Units (immutable intake)
+├── saved-views/           # HubSpot-style saved views
+├── search/                # Elasticsearch with permission filters
+├── sentry/                # Error tracking
+├── storage/               # Azure Blob storage
+├── tables/                # Data table configurations
+├── users/                 # User management
+└── workflow/              # Workflow engine, SLA, assignment strategies
 ```
+
+### 1.2 Key Infrastructure Services
+
+| Service | Module | Purpose | Existing Events |
+|---------|--------|---------|-----------------|
+| `EventEmitter2` | `events/` | Global event bus (wildcard patterns) | `case.*`, `investigation.*`, `sla.*`, `workflow.*` |
+| `BullMQ` | `jobs/` | Job queues | `email`, `ai`, `indexing`, `exports`, `campaigns` |
+| `AiGateway` | `ai/` | WebSocket streaming (`/ai` namespace) | `chat`, `skill_execute`, `action_execute` |
+| `NotificationGateway` | `notifications/` | Real-time notifications | `notification_push` |
+| `WorkflowEngineService` | `workflow/` | State machine with transitions | `workflow.transitioned`, `workflow.completed` |
+| `AssignmentRulesService` | `workflow/` | Pluggable assignment (round-robin, least-loaded, geographic) | N/A |
+| `HrisSyncService` | `hris/` | Merge.dev employee sync | `hris.sync.completed` |
+| `SearchService` | `search/` | Elasticsearch per-tenant indices | N/A |
+| `MessageRelayService` | `messaging/` | Anonymous reporter communication | N/A |
+| `ConflictDetectionService` | `disclosures/` | Disclosure conflict matching | N/A |
+
+### 1.3 Existing AI Module Structure
+
+```
+modules/ai/
+├── ai.module.ts           # Module definition, exports
+├── ai.gateway.ts          # WebSocket gateway (/ai namespace)
+├── ai.controller.ts       # REST endpoints
+├── agents/
+│   ├── agent.registry.ts  # Registry of available agents
+│   ├── base.agent.ts      # Base agent class
+│   ├── case.agent.ts      # Case-specific agent
+│   ├── investigation.agent.ts
+│   └── compliance-manager.agent.ts
+├── skills/
+│   ├── skill.registry.ts  # Registry of skills
+│   ├── skill.types.ts
+│   └── platform/
+│       ├── summarize.skill.ts
+│       ├── note-cleanup.skill.ts
+│       ├── category-suggest.skill.ts
+│       ├── risk-score.skill.ts
+│       └── translate.skill.ts
+├── actions/
+│   ├── action.catalog.ts  # Static action registry
+│   ├── action-executor.service.ts
+│   └── actions/
+│       ├── add-note.action.ts
+│       ├── change-status.action.ts
+│       ├── assign-case.action.ts
+│       └── update-case.action.ts
+├── services/
+│   ├── ai-client.service.ts      # Claude API wrapper
+│   ├── conversation.service.ts   # Conversation persistence
+│   ├── context-loader.service.ts # Entity context loading
+│   ├── context-cache.service.ts
+│   ├── hierarchy-loader.service.ts
+│   ├── prompt-builder.service.ts
+│   ├── prompt.service.ts
+│   └── rate-limiter.service.ts
+└── providers/
+    └── claude.provider.ts  # Claude AI provider
+```
+
+### 1.4 Database Model Patterns
+
+**Tenant Isolation:**
+- Every model has `organizationId` field
+- Row-Level Security via PostgreSQL policies
+- Index pattern: `@@index([organizationId, ...])`
+
+**AI-First Fields (existing on Case, RIU, Investigation):**
+```prisma
+aiSummary            String?   @map("ai_summary")
+aiSummaryGeneratedAt DateTime? @map("ai_summary_generated_at")
+aiModelVersion       String?   @map("ai_model_version")
+aiCategorySuggestion String?   @map("ai_category_suggestion")
+aiSeveritySuggestion Severity? @map("ai_severity_suggestion")
+aiConfidenceScore    Int?      @map("ai_confidence_score")
+```
+
+**Extension Table Pattern:**
+- `RiuHotlineExtension`, `RiuDisclosureExtension`, `RiuWebFormExtension`
+- Type-specific data stored in separate tables linked 1:1 to base RIU
 
 ---
 
-## Component Boundaries
+## 2. Integration Analysis by Capability
 
-### Component 1: AI Integration Layer
+### 2.1 Rules Engine
 
-| Component | Responsibility | Communicates With |
-|-----------|---------------|-------------------|
-| **ContextLoaderService** | Loads hierarchical context (platform -> org -> team -> user -> entity) for AI requests | Prisma, SkillsRegistry, ActionCatalog |
-| **SkillsRegistryService** | Stores and retrieves reusable AI "skills" (like slash commands) | Prisma, permission guards |
-| **ActionCatalogService** | Static registry of AI-executable actions, filtered by permissions | Domain modules (register handlers) |
-| **ModelRouterService** | Selects appropriate AI model (Haiku/Sonnet/Opus) based on task type and plan | AI providers |
-| **AgentSelectorService** | Picks scoped agent (Investigation, Case, Compliance Manager, etc.) based on view | ContextLoader, SkillsRegistry |
-| **AIProviderManager** | Factory for Claude/Azure OpenAI/self-hosted providers | External APIs |
+**Goal:** Configurable business rules for case routing, auto-assignment, SLA triggers, approval gates
 
-**Data Flow:**
+#### Existing Integration Points
+
+| Component | Location | How to Extend |
+|-----------|----------|---------------|
+| `WorkflowEngineService` | `workflow/engine/` | Add `RulesEvaluatorService` hook at `transition()` method |
+| `validateGates()` | `workflow/engine/` | Currently placeholder - implement with rules engine |
+| `AssignmentRulesService` | `workflow/assignment/` | Strategy pattern exists; add `rules-based.strategy.ts` |
+| `SlaSchedulerService` | `workflow/sla/` | Hook for dynamic SLA rules |
+| Event listeners | `events/events/case.events.ts` | Add `case.created` listener for auto-routing |
+
+#### New Components Needed
+
 ```
-User initiates AI request
-         │
-         ▼
-AgentSelectorService.selectAgent(viewType, entityType)
-         │
-         ▼
-ContextLoaderService.loadContextHierarchy(org, user, team, entity)
-         │
-         ▼
-ActionCatalogService.getAvailableActions(permissions, features, entityType)
-         │
-         ▼
-ModelRouterService.selectModel(taskType, plan, context)
-         │
-         ▼
-AIProviderManager.getProvider(selectedModel).complete(request)
-         │
-         ▼
-Response with suggestedActions[] or executed action result
-```
-
-### Component 2: Multi-Provider SSO
-
-| Component | Responsibility | Communicates With |
-|-----------|---------------|-------------------|
-| **AuthModule** | Coordinates authentication strategies | Passport.js strategies |
-| **AzureADStrategy** | Microsoft SSO via OIDC | Azure AD endpoints |
-| **GoogleStrategy** | Google OAuth 2.0 | Google OAuth endpoints |
-| **SAMLStrategy** | SAML 2.0 for enterprise IdPs | IdP metadata endpoints |
-| **TenantService** | Resolves tenant from email domain for JIT provisioning | Prisma (TenantDomain table) |
-| **JwtService** | Token generation, validation, refresh | Redis (revocation list) |
-
-**Data Flow:**
-```
-User clicks SSO login
-         │
-         ▼
-Passport redirects to IdP (Azure AD, Google, etc.)
-         │
-         ▼
-IdP authenticates, returns callback with code/token
-         │
-         ▼
-Strategy validates, extracts profile
-         │
-         ▼
-TenantService.findByEmailDomain(email) -> tenant resolution
-         │
-         ▼
-AuthService.findOrCreateSSOUser() -> JIT provisioning
-         │
-         ▼
-JwtService.generateTokens(user) -> access (15m) + refresh (7d)
-         │
-         ▼
-Set HTTP-only cookies, redirect to app
+modules/rules/
+├── rules.module.ts
+├── entities/
+│   ├── rule-definition.entity.ts    # Rule configuration storage
+│   └── rule-execution-log.entity.ts # Audit trail
+├── services/
+│   ├── rule-parser.service.ts       # Parse rule DSL/JSON
+│   ├── rule-evaluator.service.ts    # Evaluate conditions against entity
+│   └── rule-executor.service.ts     # Execute actions when conditions met
+├── strategies/
+│   └── rules-based.strategy.ts      # For workflow assignment
+├── listeners/
+│   ├── case-rule.listener.ts        # Listen to case.* events
+│   └── workflow-rule.listener.ts    # Listen to workflow.* events
+└── dto/
+    ├── create-rule.dto.ts
+    └── rule-execution.dto.ts
 ```
 
-### Component 3: Unified Notification System
+#### Database Changes
 
-| Component | Responsibility | Communicates With |
-|-----------|---------------|-------------------|
-| **NotificationModule** | Event consumers, preference management | Event bus, Prisma |
-| **NotificationPreferenceService** | User-level channel preferences per event type | Prisma |
-| **EmailAdapter** | SendGrid/SES delivery | External email APIs |
-| **InAppAdapter** | WebSocket push notifications | Socket.io server |
-| **DigestService** | Aggregates notifications for daily/weekly digest | BullMQ scheduled jobs |
-| **TemplateService** | Renders notification templates with entity context | Prisma (entity data) |
+```prisma
+model RuleDefinition {
+  id             String   @id @default(uuid())
+  organizationId String   @map("organization_id")
+  name           String
+  description    String?
+  triggerEvent   String   @map("trigger_event")    // 'case.created', 'workflow.transitioned'
+  triggerEntity  String   @map("trigger_entity")   // 'case', 'investigation'
+  conditions     Json                               // Rule conditions JSON
+  actions        Json                               // Actions to execute
+  priority       Int      @default(0)               // Higher = earlier evaluation
+  isActive       Boolean  @default(true) @map("is_active")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+  createdById    String?  @map("created_by_id")
 
-**Data Flow:**
-```
-Domain module emits event (case.assigned)
-         │
-         ▼
-Event bus routes to NotificationModule listener
-         │
-         ▼
-NotificationPreferenceService.getUserPreferences(userId, eventType)
-         │
-         ▼
-Filter by preferences (in-app, email, both, none)
-         │
-         ▼
-For each enabled channel:
-  ├── Email: Queue to BullMQ notifications queue
-  └── In-app: Push via Socket.io + persist to notifications table
-         │
-         ▼
-DigestService (cron): Aggregate queued items, send digest
-```
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  executions     RuleExecutionLog[]
 
-### Component 4: Cross-Module Task Aggregation ("My Work")
-
-| Component | Responsibility | Communicates With |
-|-----------|---------------|-------------------|
-| **TaskAggregationService** | Queries pending items across modules | Domain modules via typed queries |
-| **TaskSource** interface | Contract for modules to expose their task items | Implemented by Cases, Investigations, etc. |
-| **PriorityCalculator** | Scores tasks by SLA urgency, severity, age | Business rules configuration |
-| **MyWorkController** | API endpoint for unified task view | TaskAggregationService |
-
-**Design Pattern: Polymorphic Task Query**
-
-Each domain module implements a `TaskSource` interface:
-
-```typescript
-interface TaskSource {
-  getTasksForUser(userId: string, orgId: string): Promise<TaskItem[]>;
+  @@index([organizationId])
+  @@index([organizationId, triggerEvent, isActive])
+  @@map("rule_definitions")
 }
 
-interface TaskItem {
-  id: string;
-  entityType: 'case' | 'investigation' | 'disclosure_review' | 'attestation' | 'approval';
-  entityId: string;
-  title: string;
-  description: string;
-  dueDate?: Date;
-  slaStatus: 'ok' | 'warning' | 'breached';
-  priority: 'low' | 'medium' | 'high' | 'critical';
-  createdAt: Date;
-  url: string; // Deep link to entity
+model RuleExecutionLog {
+  id             String   @id @default(uuid())
+  organizationId String   @map("organization_id")
+  ruleId         String   @map("rule_id")
+  entityType     String   @map("entity_type")
+  entityId       String   @map("entity_id")
+  triggerEvent   String   @map("trigger_event")
+  conditionsMet  Boolean  @map("conditions_met")
+  actionsResult  Json?    @map("actions_result")
+  executionTime  Int      @map("execution_time")   // milliseconds
+  error          String?
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  rule           RuleDefinition @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+  organization   Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, ruleId])
+  @@index([organizationId, entityType, entityId])
+  @@index([createdAt])
+  @@map("rule_execution_logs")
 }
 ```
 
-**Data Flow:**
-```
-User loads "My Work" view
-         │
-         ▼
-TaskAggregationService.getTasksForUser(userId, orgId)
-         │
-         ├── CasesModule.getTasksForUser() -> assigned cases
-         ├── InvestigationsModule.getTasksForUser() -> assigned investigations
-         ├── DisclosuresModule.getTasksForUser() -> disclosures pending review
-         ├── WorkflowModule.getTasksForUser() -> pending approvals
-         └── CampaignModule.getTasksForUser() -> overdue attestations
-         │
-         ▼
-Merge all TaskItem[] arrays
-         │
-         ▼
-PriorityCalculator.sortByPriority(tasks)
-         │
-         ▼
-Return unified, sorted task list
-```
+#### Integration Code Pattern
 
-### Component 5: Event-Driven Workflow Engine
-
-| Component | Responsibility | Communicates With |
-|-----------|---------------|-------------------|
-| **WorkflowEngine** | Manages state machine transitions | Prisma, Event bus |
-| **WorkflowDefinition** | Configuration for a workflow (steps, transitions, SLAs) | Stored in database per org |
-| **WorkflowInstance** | Runtime state of a workflow on an entity | Prisma |
-| **AssignmentService** | Auto-assignment based on rules (round robin, location, category) | Employee/User services |
-| **SLATrackerService** | Monitors deadlines, triggers escalation events | BullMQ scheduled jobs |
-| **EscalationService** | Executes escalation actions (reassign, notify, auto-approve) | NotificationService, AssignmentService |
-
-**Data Flow:**
-```
-Entity created or status changed
-         │
-         ▼
-WorkflowEngine.evaluateTransitions(entityType, entityId, newStatus)
-         │
-         ▼
-Find applicable WorkflowDefinition for (org, entityType, category)
-         │
-         ▼
-WorkflowInstance.currentStep -> evaluate conditions for next step
-         │
-         ├── Auto-assignment rule?
-         │   └── AssignmentService.assign()
-         │
-         ├── SLA timer needed?
-         │   └── SLATrackerService.createTimer(deadline)
-         │
-         └── Notification rule?
-             └── Emit event for NotificationModule
-         │
-         ▼
-Update WorkflowInstance.currentStep, record in AUDIT_LOG
-```
-
----
-
-## Patterns to Follow
-
-### Pattern 1: Context Hierarchy for AI
-
-**What:** Load AI context in layers (platform -> org -> team -> user -> entity) with override capability.
-
-**When:** Every AI request that needs organizational or entity context.
-
-**Why:** Enables organizations to customize AI behavior without code changes (like CLAUDE.md in Claude Code).
-
-**Example:**
 ```typescript
-// Context hierarchy stored in Organization table
-const orgContext = await prisma.organization.findUnique({
-  where: { id: organizationId },
-  select: {
-    aiContextDocument: true,  // Org's CONTEXT.md equivalent
-    terminology: true,        // {"Employee": "Associate", "Case": "Matter"}
-    styleGuide: true,         // "Use formal tone, 3 paragraphs max"
-    businessRules: true,      // ["Retaliation cases always notify Legal"]
-  },
-});
-
-// Build system prompt with hierarchy
-const systemPrompt = `
-${PLATFORM_CONTEXT}
-
-## Organization Context
-${orgContext.aiContextDocument}
-
-## Terminology
-${JSON.stringify(orgContext.terminology)}
-
-## Style Guide
-${orgContext.styleGuide}
-
-## Business Rules
-${orgContext.businessRules.join('\n')}
-
-## Current Entity
-${entitySummary}
-`;
-```
-
-### Pattern 2: Action Catalog with Confirm Tiers
-
-**What:** Static registry of AI-executable actions with risk-tiered confirmation.
-
-**When:** AI needs to execute mutations, not just read data.
-
-**Why:** Compliance data is consequential. AI assists, humans decide.
-
-**Example:**
-```typescript
-// Action definition
-const assignCaseAction: AIAction = {
-  id: 'case.assign',
-  label: 'Assign Case',
-  module: 'cases',
-  requiredPermissions: ['cases.assign'],
-  confirmationLevel: 'single',  // One-click confirm
-  isDestructive: false,
-  isExternal: false,
-  handler: 'caseService.assignCase',
-};
-
-// Runtime filtering
-const availableActions = actionCatalog.getAvailableActions(
-  user.permissions,
-  org.enabledFeatures,
-  'case',
-  caseData,
-);
-// AI only sees actions user has permission to execute
-```
-
-### Pattern 3: Event-Driven Module Communication
-
-**What:** Modules communicate via domain events, not direct service calls.
-
-**When:** Cross-module side effects (case created -> notify assignee).
-
-**Why:** Decoupling enables independent scaling and easier testing.
-
-**Example:**
-```typescript
-// In CasesService
-async createCase(dto: CreateCaseDto, userId: string, orgId: string) {
+// In existing CasesService.create()
+async create(dto: CreateCaseDto, userId: string, orgId: string) {
   const case = await this.prisma.case.create({ ... });
 
-  // Emit event - don't call NotificationService directly
-  this.eventEmitter.emit('case.created', {
-    caseId: case.id,
+  // Existing event emission - rules engine listens to this
+  this.eventEmitter.emit('case.created', new CaseCreatedEvent({
     organizationId: orgId,
-    assigneeId: case.assigneeId,
+    caseId: case.id,
+    categoryId: case.primaryCategoryId,
     severity: case.severity,
-    category: case.categoryId,
-  });
+    sourceChannel: case.sourceChannel,
+  }));
 
   return case;
 }
 
-// In NotificationModule - separate listener
+// New listener in rules module
 @OnEvent('case.created')
-async handleCaseCreated(payload: CaseCreatedEvent) {
-  const preferences = await this.getPreferences(payload.assigneeId, 'case.created');
-  if (preferences.email) {
-    await this.queueEmail(payload);
-  }
-  if (preferences.inApp) {
-    await this.pushInApp(payload);
-  }
-}
-```
+async onCaseCreated(event: CaseCreatedEvent) {
+  const rules = await this.ruleDefinitionService.findByTrigger(
+    event.organizationId,
+    'case.created'
+  );
 
-### Pattern 4: Polymorphic Task Sources
+  for (const rule of rules.sort((a, b) => b.priority - a.priority)) {
+    const result = await this.ruleEvaluator.evaluate(rule, event);
+    await this.logExecution(rule, event, result);
 
-**What:** Each module implements a common TaskSource interface for "My Work" aggregation.
-
-**When:** Building unified task views across modules.
-
-**Why:** Enables adding new task sources without modifying the aggregator.
-
-**Example:**
-```typescript
-// Each module registers as a task source
-@Injectable()
-export class CasesTaskSource implements TaskSource {
-  async getTasksForUser(userId: string, orgId: string): Promise<TaskItem[]> {
-    const cases = await this.prisma.case.findMany({
-      where: {
-        organizationId: orgId,
-        assigneeId: userId,
-        status: { in: ['OPEN', 'IN_PROGRESS'] },
-      },
-    });
-
-    return cases.map(c => ({
-      id: `case:${c.id}`,
-      entityType: 'case',
-      entityId: c.id,
-      title: c.title,
-      dueDate: c.dueDate,
-      slaStatus: this.calculateSlaStatus(c),
-      priority: this.mapSeverity(c.severity),
-      url: `/cases/${c.id}`,
-    }));
-  }
-}
-
-// Aggregator collects from all registered sources
-@Injectable()
-export class TaskAggregationService {
-  constructor(
-    @Inject('TASK_SOURCES') private sources: TaskSource[],
-  ) {}
-
-  async getTasksForUser(userId: string, orgId: string): Promise<TaskItem[]> {
-    const taskArrays = await Promise.all(
-      this.sources.map(s => s.getTasksForUser(userId, orgId))
-    );
-    return this.priorityCalculator.sort(taskArrays.flat());
-  }
-}
-```
-
-### Pattern 5: Workflow Engine with External State
-
-**What:** Workflow engine operates on domain entities, doesn't maintain its own state.
-
-**When:** Implementing approval workflows, case progression, campaign assignment.
-
-**Why:** Keeps state with the entity it belongs to (DDD principle).
-
-**Example:**
-```typescript
-// Workflow operates on entity, doesn't duplicate state
-async advanceWorkflow(entityType: string, entityId: string, action: string) {
-  const entity = await this.loadEntity(entityType, entityId);
-  const workflow = await this.getWorkflowDefinition(entity);
-
-  const currentStep = workflow.steps.find(s => s.id === entity.workflowStepId);
-  const nextStep = currentStep.transitions.find(t => t.action === action)?.targetStep;
-
-  if (nextStep) {
-    // Update entity, not workflow instance
-    await this.updateEntityStep(entityType, entityId, nextStep.id);
-
-    // Execute step entry actions
-    for (const entryAction of nextStep.entryActions) {
-      await this.executeAction(entryAction, entity);
+    if (result.conditionsMet) {
+      await this.ruleExecutor.execute(rule.actions, event);
     }
   }
 }
@@ -495,216 +271,895 @@ async advanceWorkflow(entityType: string, entityId: string, action: string) {
 
 ---
 
-## Anti-Patterns to Avoid
+### 2.2 Anonymous Relay Enhancement
 
-### Anti-Pattern 1: Monolithic AI Service
+**Goal:** Two-way anonymous communication between reporters and investigators via access code with email delivery
 
-**What:** Single AI service that handles all AI operations with giant switch statements.
+#### Existing Integration Points
 
-**Why bad:** Becomes unmaintainable, hard to test, impossible to customize per context.
+| Component | Location | Current State | Extension Needed |
+|-----------|----------|---------------|------------------|
+| `CaseMessage` | Prisma schema | Has `direction`, `deliveryStatus` | Add email tracking fields |
+| `MessageRelayService` | `messaging/relay.service.ts` | Basic implementation | Add email delivery trigger |
+| `RiuAccessService` | `rius/riu-access.service.ts` | Generates/validates codes | Already functional |
+| `EthicsPortalService` | `portals/ethics/` | Has `getMessages()`, `sendMessage()` | Add notification trigger |
+| `NotificationService` | `notifications/` | Email infrastructure exists | Hook for relay notifications |
+| `EmailTemplateService` | `notifications/` | Template rendering | Add relay templates |
 
-**Instead:** Use scoped agents with specialized context loading and skills.
+#### New Components Needed
 
-### Anti-Pattern 2: Direct Cross-Module Service Calls
+```
+modules/messaging/
+├── (existing files)
+├── services/
+│   └── relay-notification.service.ts  # Email notifications for messages
+├── listeners/
+│   └── case-message.listener.ts       # React to message events
+└── dto/
+    └── relay-notification.dto.ts
+```
 
-**What:** CasesService directly calls NotificationService, AnalyticsService, etc.
+**New email templates:**
+```
+modules/notifications/templates/relay/
+├── reporter-new-message.hbs      # When investigator sends message
+├── investigator-new-message.hbs  # When reporter sends message
+└── reporter-status-update.hbs    # When case status changes
+```
 
-**Why bad:** Creates tight coupling, makes testing hard, prevents independent deployment.
+#### Database Changes
 
-**Instead:** Emit domain events, let interested modules subscribe.
+```prisma
+// Extend CaseMessage - add to existing model
+model CaseMessage {
+  // ... existing fields ...
 
-### Anti-Pattern 3: Global AI Context
+  // New fields for email tracking
+  emailSentAt      DateTime? @map("email_sent_at")
+  emailDeliveredAt DateTime? @map("email_delivered_at")
+  emailBouncedAt   DateTime? @map("email_bounced_at")
+  notificationId   String?   @map("notification_id")  // Link to Notification record
+}
+```
 
-**What:** Loading all organization data into every AI context.
+#### Integration Data Flow
 
-**Why bad:** Token waste, slower responses, potential data leakage across entity boundaries.
+```
+Reporter submits message via Ethics Portal
+    │
+    └─▶ EthicsPortalService.sendMessage(accessCode, content)
+            │
+            └─▶ MessageRelayService.receiveFromReporter()
+                    │
+                    ├─▶ Creates CaseMessage (direction: FROM_REPORTER)
+                    │
+                    └─▶ Emits 'case.message.received' event
+                            │
+                            └─▶ CaseMessageListener.onMessageReceived()
+                                    │
+                                    └─▶ NotificationService.notifyInvestigator()
 
-**Instead:** Use scoped agents that load only relevant context for the current view.
-
-### Anti-Pattern 4: Synchronous Workflow Processing
-
-**What:** Workflow transitions block the request until all side effects complete.
-
-**Why bad:** Slow response times, cascading failures if notifications fail.
-
-**Instead:** Queue side effects via BullMQ, return immediately after state update.
-
-### Anti-Pattern 5: Hardcoded Assignment Rules
-
-**What:** Assignment logic embedded in service code with if/else chains.
-
-**Why bad:** Requires code changes for each client, not configurable.
-
-**Instead:** Store assignment rules as data (WorkflowDefinition.assignmentRules), interpret at runtime.
-
-### Anti-Pattern 6: Separate Activity Tables per Module
-
-**What:** CaseActivity, DisclosureActivity, PolicyActivity tables with different schemas.
-
-**Why bad:** Impossible to query "all activity by this user" without UNION ALL across tables.
-
-**Instead:** Unified AUDIT_LOG table with entity_type discriminator.
+Investigator replies via Case Detail page
+    │
+    └─▶ CasesController.sendMessage(caseId, content)
+            │
+            └─▶ MessageRelayService.sendToReporter()
+                    │
+                    ├─▶ Creates CaseMessage (direction: TO_REPORTER)
+                    │
+                    ├─▶ If reporter has email:
+                    │       └─▶ Queue email with access code link
+                    │
+                    └─▶ Emits 'case.message.sent' event
+```
 
 ---
 
-## Build Order Implications
+### 2.3 pgvector RAG for Policy/Knowledge Search
 
-Based on component dependencies, recommended build order:
+**Goal:** Semantic search over policies and knowledge base using vector embeddings
 
-### Phase 1: Event Infrastructure (Foundation)
+#### Existing Integration Points
 
-**Build:**
-- Event bus setup (@nestjs/event-emitter)
-- BullMQ queue infrastructure
-- Unified AUDIT_LOG table and service
+| Component | Location | How to Extend |
+|-----------|----------|---------------|
+| `SearchService` | `search/search.service.ts` | Add semantic search as alternative path |
+| `IndexingService` | `search/indexing/` | Add embedding generation step |
+| `PolicyIndexer` | `search/indexing/indexers/` | Extend for embeddings |
+| `AiClientService` | `ai/services/` | Add embedding API calls |
+| `UnifiedSearchService` | `search/unified-search.service.ts` | Add hybrid search mode |
 
-**Why first:** All other components depend on event-driven communication.
+#### New Components Needed
 
-**Dependencies:** None
+```
+modules/search/
+├── (existing files)
+├── semantic/
+│   ├── embedding.service.ts         # Generate embeddings via API
+│   ├── vector-store.service.ts      # pgvector operations
+│   └── hybrid-search.service.ts     # Combine keyword + semantic
+├── indexing/
+│   └── embedding-indexer.service.ts # Batch embedding generation
+└── dto/
+    └── semantic-search.dto.ts
+```
 
-### Phase 2: Workflow Engine (Core Automation)
+#### Database Changes
 
-**Build:**
-- WorkflowDefinition schema and CRUD
-- WorkflowEngine state machine logic
-- AssignmentService with pluggable rules
-- SLA tracking and escalation
+```prisma
+model DocumentEmbedding {
+  id             String   @id @default(uuid())
+  organizationId String   @map("organization_id")
+  entityType     String   @map("entity_type")   // 'policy', 'article', 'case'
+  entityId       String   @map("entity_id")
+  chunkIndex     Int      @default(0) @map("chunk_index")  // For chunked docs
+  chunkText      String   @map("chunk_text")    // The text that was embedded
+  embedding      Bytes    @db.ByteA             // Binary storage for vector
+  metadata       Json?
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
 
-**Why second:** Cases, Disclosures, and Campaigns all need workflow automation.
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
-**Dependencies:** Event bus (Phase 1)
+  @@unique([organizationId, entityType, entityId, chunkIndex])
+  @@index([organizationId, entityType])
+  @@map("document_embeddings")
+}
+```
 
-### Phase 3: Multi-Provider SSO (Authentication)
+**Migration for pgvector:**
+```sql
+-- Enable pgvector extension
+CREATE EXTENSION IF NOT EXISTS vector;
 
-**Build:**
-- Passport.js strategies (Azure AD, Google, SAML)
-- TenantService with domain verification
-- JIT provisioning logic
-- JWT token management with refresh rotation
+-- Add vector column (1536 dimensions for text-embedding-3-small)
+ALTER TABLE document_embeddings
+ADD COLUMN embedding_vector vector(1536);
 
-**Why third:** AI features need authenticated users; can run in parallel with Phase 2.
+-- Create index for similarity search
+CREATE INDEX document_embeddings_vector_idx
+ON document_embeddings
+USING hnsw (embedding_vector vector_cosine_ops)
+WITH (m = 16, ef_construction = 64);
+```
 
-**Dependencies:** None (independent)
+#### Integration with AI Module
 
-### Phase 4: Unified Notification System
+```typescript
+// Extend AiClientService
+@Injectable()
+export class AiClientService {
+  // ... existing methods ...
 
-**Build:**
-- NotificationPreference schema and service
-- Email adapter (SendGrid)
-- In-app adapter (Socket.io push)
-- Digest aggregation service
+  async generateEmbedding(text: string): Promise<number[]> {
+    // Option 1: Use OpenAI embeddings (recommended for RAG)
+    const response = await this.openaiClient.embeddings.create({
+      model: 'text-embedding-3-small',
+      input: text,
+    });
+    return response.data[0].embedding;
 
-**Why fourth:** Workflows trigger notifications; depends on event bus.
+    // Option 2: Use Claude embeddings (if available)
+    // Note: Claude's embeddings may not be available via API
+  }
+}
 
-**Dependencies:** Event bus (Phase 1), Workflow engine (Phase 2) for SLA notifications
+// New VectorStoreService
+@Injectable()
+export class VectorStoreService {
+  async similaritySearch(
+    orgId: string,
+    entityType: string,
+    queryEmbedding: number[],
+    limit: number = 10
+  ): Promise<SearchResult[]> {
+    return this.prisma.$queryRaw`
+      SELECT entity_id, chunk_text,
+             1 - (embedding_vector <=> ${queryEmbedding}::vector) as similarity
+      FROM document_embeddings
+      WHERE organization_id = ${orgId}
+        AND entity_type = ${entityType}
+      ORDER BY embedding_vector <=> ${queryEmbedding}::vector
+      LIMIT ${limit}
+    `;
+  }
+}
+```
 
-### Phase 5: Task Aggregation ("My Work")
+---
 
-**Build:**
-- TaskSource interface
-- Module implementations (Cases, Investigations, Disclosures)
-- TaskAggregationService
-- PriorityCalculator
-- My Work API endpoint
+### 2.4 Employee-Facing Chatbot
 
-**Why fifth:** Requires domain modules to expose TaskSource implementations.
+**Goal:** AI chatbot for policy questions, case status checks, disclosure guidance
 
-**Dependencies:** Domain modules must implement TaskSource interface
+#### Existing Integration Points
 
-### Phase 6: AI Integration Layer
+| Component | Location | Current State | Extension Needed |
+|-----------|----------|---------------|------------------|
+| `AiGateway` | `ai/ai.gateway.ts` | Streaming WebSocket | Works as-is |
+| `AgentRegistry` | `ai/agents/agent.registry.ts` | Entity-scoped agents | Add `employee-chatbot` agent |
+| `SkillRegistry` | `ai/skills/skill.registry.ts` | Platform skills | Add employee-specific skills |
+| `ConversationService` | `ai/services/conversation.service.ts` | Conversation persistence | Works as-is |
+| `ContextLoaderService` | `ai/services/context-loader.service.ts` | Entity context | Add employee context |
 
-**Build:**
-- ContextLoaderService (hierarchy loading)
-- SkillsRegistryService (platform + org + user skills)
-- ActionCatalogService (action registration, filtering)
-- ModelRouterService (Haiku/Sonnet/Opus selection)
-- AgentSelectorService (scoped agents)
-- AI Provider abstraction (Claude primary)
+#### New Components Needed
 
-**Why last:** AI layer consumes context from all other components.
+```
+modules/ai/
+├── agents/
+│   └── employee-chatbot.agent.ts     # New agent for employee portal
+├── skills/
+│   └── employee/
+│       ├── policy-search.skill.ts    # RAG-powered policy lookup
+│       ├── case-status.skill.ts      # Check case status by access code
+│       ├── disclosure-guide.skill.ts # Guide through disclosure forms
+│       ├── faq-answer.skill.ts       # Answer common questions
+│       └── escalate-human.skill.ts   # Escalate to human support
+```
 
-**Dependencies:**
-- Workflow engine (for workflow-related actions)
-- Notifications (for AI-triggered notifications)
-- AUDIT_LOG (for action execution logging)
-- Domain modules (for action handlers)
+#### Agent Implementation
+
+```typescript
+// employee-chatbot.agent.ts
+@Injectable()
+export class EmployeeChatbotAgent extends BaseAgent {
+  static readonly agentType = 'employee-chatbot';
+
+  constructor(
+    private readonly policySearchSkill: PolicySearchSkill,
+    private readonly caseStatusSkill: CaseStatusSkill,
+    private readonly disclosureGuideSkill: DisclosureGuideSkill,
+    private readonly faqSkill: FaqAnswerSkill,
+    private readonly vectorStore: VectorStoreService,
+  ) {
+    super();
+  }
+
+  async initialize(context: AgentContext): Promise<void> {
+    this.context = context;
+    // Load employee-specific context
+    this.employeeProfile = await this.loadEmployeeProfile(context.userId);
+  }
+
+  async *chat(message: string, context: AgentContext): AsyncGenerator<StreamEvent> {
+    // Classify intent
+    const intent = await this.classifyIntent(message);
+
+    switch (intent.type) {
+      case 'policy_question':
+        yield* this.policySearchSkill.execute(message, context);
+        break;
+      case 'case_status':
+        yield* this.caseStatusSkill.execute(intent.accessCode, context);
+        break;
+      case 'disclosure_help':
+        yield* this.disclosureGuideSkill.execute(message, context);
+        break;
+      case 'general_question':
+        yield* this.faqSkill.execute(message, context);
+        break;
+      default:
+        yield* this.handleGeneralChat(message, context);
+    }
+  }
+}
+```
+
+**No database changes required** - leverages existing AI conversation infrastructure.
+
+---
+
+### 2.5 Rolling Disclosure Campaigns (HRIS-Triggered)
+
+**Goal:** Auto-assign disclosures when employees change roles or join company
+
+#### Existing Integration Points
+
+| Component | Location | Current State | Extension Needed |
+|-----------|----------|---------------|------------------|
+| `HrisSyncService` | `hris/hris-sync.service.ts` | Emits `hris.sync.completed` | Already functional |
+| `CampaignsService` | `campaigns/campaigns.service.ts` | Has `launchCampaign()` | Works as-is |
+| `CampaignAssignmentService` | `campaigns/assignments/` | Creates assignments | Works as-is |
+| `SegmentService` | `campaigns/targeting/segment.service.ts` | Builds audience | Works as-is |
+| `WaveSchedulerService` | `campaigns/services/wave-scheduler.service.ts` | Staggered rollout | Works as-is |
+
+#### New Components Needed
+
+```
+modules/campaigns/
+├── (existing files)
+├── rolling/
+│   ├── rolling-campaign.service.ts   # Manages rolling campaign logic
+│   ├── rolling-campaign.types.ts     # Type definitions
+│   └── hris-trigger.listener.ts      # Reacts to HRIS sync events
+```
+
+#### Database Changes
+
+```prisma
+// Extend Campaign model - add to existing
+model Campaign {
+  // ... existing fields ...
+
+  // Rolling campaign support
+  isRolling           Boolean   @default(false) @map("is_rolling")
+  rollingTriggerType  String?   @map("rolling_trigger_type")   // 'new_hire', 'role_change', 'location_change', 'manager_change'
+  rollingTriggerConfig Json?    @map("rolling_trigger_config") // Trigger conditions
+  rollingLastProcessed DateTime? @map("rolling_last_processed")
+}
+```
+
+#### Integration Event Flow
+
+```typescript
+// hris-trigger.listener.ts
+@Injectable()
+export class HrisTriggerListener {
+  @OnEvent('hris.sync.completed')
+  async onHrisSyncCompleted(event: HrisSyncCompletedEvent) {
+    // Get all rolling campaigns for this org
+    const rollingCampaigns = await this.campaignService.findRolling(
+      event.organizationId
+    );
+
+    // Get employee changes from sync
+    const changes = await this.getEmployeeChanges(event);
+
+    for (const campaign of rollingCampaigns) {
+      const matchingEmployees = this.filterByTrigger(
+        changes,
+        campaign.rollingTriggerType,
+        campaign.rollingTriggerConfig
+      );
+
+      for (const employee of matchingEmployees) {
+        // Check if already assigned
+        const existing = await this.assignmentService.findByEmployee(
+          campaign.id,
+          employee.id
+        );
+
+        if (!existing) {
+          await this.assignmentService.createAssignment(campaign.id, employee.id);
+          await this.notificationService.notifyEmployee(employee, campaign);
+        }
+      }
+    }
+  }
+
+  private filterByTrigger(
+    changes: EmployeeChange[],
+    triggerType: string,
+    config: RollingTriggerConfig
+  ): Employee[] {
+    switch (triggerType) {
+      case 'new_hire':
+        return changes.filter(c => c.type === 'created').map(c => c.employee);
+      case 'role_change':
+        return changes.filter(c =>
+          c.type === 'updated' &&
+          c.changedFields.includes('jobTitle')
+        ).map(c => c.employee);
+      case 'location_change':
+        return changes.filter(c =>
+          c.type === 'updated' &&
+          c.changedFields.includes('locationId')
+        ).map(c => c.employee);
+      // ... other trigger types
+    }
+  }
+}
+```
+
+---
+
+### 2.6 Pattern Detection Enhancement
+
+**Goal:** Detect repeat subjects, related cases, emerging patterns
+
+#### Existing Integration Points
+
+| Component | Location | Current State | Extension Needed |
+|-----------|----------|---------------|------------------|
+| `PersonCaseAssociation` | Prisma schema | Links persons to cases | Works as-is |
+| `PersonPersonAssociation` | Prisma schema | Tracks relationships | Works as-is |
+| `Subject` | Prisma schema | Named people in cases | Works as-is |
+| `ConflictMatchingService` | `disclosures/services/` | Fuzzy name matching | Reuse for patterns |
+| `Person` | Prisma schema | Foundation for pattern detection | Works as-is |
+
+#### New Components Needed
+
+```
+modules/associations/
+├── pattern-detection/
+│   ├── pattern-detection.module.ts
+│   ├── services/
+│   │   ├── pattern-detection.service.ts   # Core orchestration
+│   │   ├── repeat-subject.detector.ts     # Find repeat subjects
+│   │   ├── case-cluster.detector.ts       # Group related cases
+│   │   ├── trend-analyzer.service.ts      # Time-based analysis
+│   │   └── pattern-alert.service.ts       # Generate alerts
+│   ├── processors/
+│   │   └── pattern-detection.processor.ts # BullMQ processor
+│   └── dto/
+│       └── pattern-alert.dto.ts
+```
+
+#### Database Changes
+
+```prisma
+model PatternAlert {
+  id             String   @id @default(uuid())
+  organizationId String   @map("organization_id")
+  patternType    String   @map("pattern_type")   // 'repeat_subject', 'cluster', 'trend', 'anomaly'
+  severity       String                           // 'low', 'medium', 'high', 'critical'
+  title          String
+  description    String
+  entityIds      String[] @map("entity_ids")     // Related case/person IDs
+  metadata       Json?                            // Pattern-specific data
+  status         String   @default("new")        // 'new', 'reviewed', 'dismissed', 'actioned'
+  reviewedById   String?  @map("reviewed_by_id")
+  reviewedAt     DateTime? @map("reviewed_at")
+  reviewNotes    String?  @map("review_notes")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([organizationId, patternType])
+  @@index([organizationId, status])
+  @@index([createdAt])
+  @@map("pattern_alerts")
+}
+```
+
+#### Detection Implementation
+
+```typescript
+// repeat-subject.detector.ts
+@Injectable()
+export class RepeatSubjectDetector {
+  async detect(organizationId: string): Promise<PatternMatch[]> {
+    // Find persons appearing in multiple cases
+    const repeats = await this.prisma.$queryRaw`
+      SELECT p.id as person_id, p.first_name, p.last_name,
+             COUNT(DISTINCT pca.case_id) as case_count,
+             ARRAY_AGG(DISTINCT pca.case_id) as case_ids
+      FROM persons p
+      JOIN person_case_associations pca ON p.id = pca.person_id
+      WHERE p.organization_id = ${organizationId}
+        AND pca.created_at > NOW() - INTERVAL '90 days'
+      GROUP BY p.id
+      HAVING COUNT(DISTINCT pca.case_id) >= 3
+    `;
+
+    return repeats.map(r => ({
+      patternType: 'repeat_subject',
+      severity: r.case_count >= 5 ? 'high' : 'medium',
+      title: `Repeat subject: ${r.first_name} ${r.last_name}`,
+      description: `This person appears in ${r.case_count} cases in the last 90 days`,
+      entityIds: r.case_ids,
+      metadata: { personId: r.person_id, caseCount: r.case_count }
+    }));
+  }
+}
+
+// Scheduled job
+@Injectable()
+export class PatternDetectionScheduler {
+  @Cron('0 3 * * *')  // 3 AM daily
+  async runDetection() {
+    const orgs = await this.prisma.organization.findMany({
+      where: { isActive: true },
+      select: { id: true }
+    });
+
+    for (const org of orgs) {
+      await this.patternDetectionQueue.add('detect', {
+        organizationId: org.id
+      });
+    }
+  }
+}
+```
+
+---
+
+### 2.7 PWA (Progressive Web App)
+
+**Goal:** Offline-capable mobile experience for investigators
+
+#### Existing Integration Points
+
+| Component | Location | How to Extend |
+|-----------|----------|---------------|
+| Next.js frontend | `apps/frontend/` | Add PWA manifest, service worker |
+| API endpoints | REST + WebSocket | Add offline-first patterns |
+| `NotificationGateway` | `notifications/` | Add web push |
+
+#### Frontend Changes
+
+```
+apps/frontend/
+├── public/
+│   ├── manifest.json              # PWA manifest
+│   ├── sw.js                      # Service worker
+│   └── icons/                     # App icons (192x192, 512x512)
+├── src/
+│   └── lib/
+│       ├── offline/
+│       │   ├── sync-queue.ts      # Queue mutations when offline
+│       │   ├── cache-strategy.ts  # Cache-first patterns
+│       │   └── conflict-resolver.ts
+│       └── push/
+│           └── subscription.ts    # Web push subscription
+```
+
+#### Backend Changes
+
+```
+modules/notifications/
+├── (existing files)
+├── push/
+│   ├── web-push.service.ts        # Web Push API
+│   ├── subscription.service.ts    # Manage subscriptions
+│   └── push.controller.ts         # Subscribe/unsubscribe endpoints
+```
+
+#### Database Changes
+
+```prisma
+model PushSubscription {
+  id             String   @id @default(uuid())
+  organizationId String   @map("organization_id")
+  userId         String   @map("user_id")
+  endpoint       String
+  p256dh         String                           // Public key
+  auth           String                           // Auth secret
+  userAgent      String?  @map("user_agent")
+  deviceType     String?  @map("device_type")    // 'mobile', 'desktop', 'tablet'
+  createdAt      DateTime @default(now()) @map("created_at")
+  lastUsedAt     DateTime? @map("last_used_at")
+
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, endpoint])
+  @@index([organizationId])
+  @@index([userId])
+  @@map("push_subscriptions")
+}
+```
+
+---
+
+### 2.8 Fact Tables for Analytics
+
+**Goal:** Pre-aggregated data for fast dashboard queries
+
+#### Existing Integration Points
+
+| Component | Location | How to Extend |
+|-----------|----------|---------------|
+| `DashboardModule` | `analytics/dashboard/` | Query fact tables |
+| `WidgetDataService` | `analytics/dashboard/` | Use fact queries |
+| `WidgetCaseDataService` | `analytics/dashboard/services/` | Replace with fact queries |
+| `ScheduledRefreshService` | `analytics/dashboard/` | Trigger fact updates |
+| Event listeners | Various | Update facts incrementally |
+
+#### New Components Needed
+
+```
+modules/analytics/
+├── (existing files)
+├── fact-tables/
+│   ├── fact-tables.module.ts
+│   ├── services/
+│   │   ├── case-fact.service.ts           # Case metrics
+│   │   ├── campaign-fact.service.ts       # Campaign metrics
+│   │   ├── investigation-fact.service.ts  # Investigation metrics
+│   │   └── fact-refresh.service.ts        # Refresh orchestration
+│   ├── processors/
+│   │   └── fact-update.processor.ts       # BullMQ processor
+│   └── schedulers/
+│       └── fact-refresh.scheduler.ts      # Nightly refresh
+```
+
+#### Database Changes
+
+```prisma
+// Daily case metrics fact table
+model FactCaseDaily {
+  id                  String   @id @default(uuid())
+  organizationId      String   @map("organization_id")
+  date                DateTime @db.Date
+  categoryId          String?  @map("category_id")
+  businessUnitId      String?  @map("business_unit_id")
+  locationId          String?  @map("location_id")
+  sourceChannel       String?  @map("source_channel")
+
+  // Measures
+  casesCreated        Int      @default(0) @map("cases_created")
+  casesResolved       Int      @default(0) @map("cases_resolved")
+  casesClosed         Int      @default(0) @map("cases_closed")
+  casesEscalated      Int      @default(0) @map("cases_escalated")
+  avgResolutionDays   Float?   @map("avg_resolution_days")
+  slaBreaches         Int      @default(0) @map("sla_breaches")
+
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  organization        Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, date, categoryId, businessUnitId, locationId, sourceChannel])
+  @@index([organizationId, date])
+  @@map("fact_case_daily")
+}
+
+model FactCampaignDaily {
+  id                  String   @id @default(uuid())
+  organizationId      String   @map("organization_id")
+  campaignId          String   @map("campaign_id")
+  date                DateTime @db.Date
+
+  // Measures
+  assigned            Int      @default(0)
+  completed           Int      @default(0)
+  overdue             Int      @default(0)
+  inProgress          Int      @default(0) @map("in_progress")
+  responseRate        Float?   @map("response_rate")
+  avgCompletionDays   Float?   @map("avg_completion_days")
+
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  organization        Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  campaign            Campaign     @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, campaignId, date])
+  @@index([organizationId, date])
+  @@map("fact_campaign_daily")
+}
+```
+
+#### Hybrid Update Strategy
+
+```typescript
+// Incremental updates via events
+@OnEvent('case.created')
+async onCaseCreated(event: CaseCreatedEvent) {
+  await this.factUpdateQueue.add('increment', {
+    organizationId: event.organizationId,
+    date: new Date().toISOString().split('T')[0],
+    metric: 'casesCreated',
+    dimensions: {
+      categoryId: event.categoryId,
+      businessUnitId: event.businessUnitId,
+      sourceChannel: event.sourceChannel,
+    }
+  });
+}
+
+// Nightly full reconciliation
+@Cron('0 2 * * *')  // 2 AM daily
+async nightlyReconciliation() {
+  const orgs = await this.prisma.organization.findMany({
+    where: { isActive: true }
+  });
+
+  for (const org of orgs) {
+    // Recalculate yesterday's facts from source data
+    const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    await this.factRefreshService.refreshDate(org.id, yesterday);
+  }
+}
+```
+
+---
+
+## 3. Suggested Build Order
+
+Based on dependencies and foundational requirements:
+
+### Phase 1: Foundation (Weeks 1-3)
+
+**1a. Rules Engine** - Many features depend on configurable automation
+- `RuleDefinition` and `RuleExecutionLog` models
+- `RulesModule` with parser, evaluator, executor
+- Event listeners for `case.*`, `workflow.*`
+- Integration with `WorkflowEngineService.validateGates()`
+
+**1b. Fact Tables** - Independent, can parallel with rules
+- Fact table schemas
+- `FactTablesModule` with refresh services
+- Event-based incremental updates
+- Nightly reconciliation job
+
+**Rationale:** Rules engine enables automation backbone. Fact tables are isolated with clear boundaries.
+
+### Phase 2: Communication (Weeks 4-5)
+
+**2. Anonymous Relay Enhancement**
+- Email tracking fields on `CaseMessage`
+- `RelayNotificationService`
+- Email templates for relay messages
+- Event listeners for message flow
+
+**Rationale:** Small, well-contained enhancement with clear integration points. Builds on existing `MessageRelayService`.
+
+### Phase 3: Intelligence (Weeks 6-9)
+
+**3a. pgvector RAG**
+- pgvector extension setup
+- `DocumentEmbedding` model
+- `EmbeddingService` for generation
+- `VectorStoreService` for search
+- `HybridSearchService` combining keyword + semantic
+
+**3b. Employee Chatbot** (depends on 3a)
+- `EmployeeChatbotAgent`
+- Employee-specific skills (policy search, status check)
+- Integration with employee portal
+- RAG-powered policy answering
+
+**Rationale:** RAG must exist before chatbot can answer policy questions.
+
+### Phase 4: Automation (Weeks 10-12)
+
+**4a. Rolling Campaigns**
+- Campaign model extensions
+- `RollingCampaignService`
+- HRIS trigger listener
+- Assignment automation
+
+**4b. Pattern Detection**
+- `PatternAlert` model
+- Detector services (repeat subject, clusters, trends)
+- BullMQ processor for background detection
+- Alert notification integration
+
+**Rationale:** Both leverage rules engine maturity. Rolling campaigns builds on existing campaign infrastructure.
+
+### Phase 5: Experience (Weeks 13-14)
+
+**5. PWA**
+- Manifest and service worker
+- Offline sync queue
+- Web push subscriptions
+- Push notification backend
+
+**Rationale:** Frontend-focused, can be done after API stability.
 
 ### Dependency Graph
 
 ```
-Phase 1: Event Bus + AUDIT_LOG
-    │
-    ├──────────────────┐
-    │                  │
-    ▼                  │
-Phase 2: Workflow      │
-    │                  │
-    │                  │
-    ▼                  ▼
-Phase 4: Notifications Phase 3: SSO (parallel)
-    │
-    ▼
-Phase 5: Task Aggregation
-    │
-    ▼
-Phase 6: AI Integration
+Week 1-3:  [Rules Engine] ─────────────────┐
+           [Fact Tables]  ─────────────────┤ (parallel)
+                                           │
+Week 4-5:  [Anonymous Relay] ──────────────┤
+                                           │
+Week 6-9:  [pgvector RAG] ─────────────────┤
+              │                            │
+              └──▶ [Employee Chatbot] ─────┤
+                                           │
+Week 10-12: [Rolling Campaigns] ───────────┤ (depends on rules)
+            [Pattern Detection] ───────────┤ (depends on rules)
+                                           │
+Week 13-14: [PWA] ─────────────────────────┘ (independent)
 ```
 
 ---
 
-## Scalability Considerations
+## 4. New Events Summary
 
-| Concern | At 100 Users | At 10K Users | At 1M Users |
-|---------|--------------|--------------|-------------|
-| **AI Rate Limiting** | Per-org limits in application | Redis sliding window | Tiered quotas by plan + burst allowance |
-| **Event Processing** | In-process EventEmitter | BullMQ with Redis | Kafka partitioned by org_id |
-| **Task Aggregation** | Single query per source | Cached per-user (5 min TTL) | Materialized view + incremental refresh |
-| **Workflow SLA Checks** | Cron job every minute | BullMQ delayed jobs | Partitioned by org, distributed workers |
-| **Notification Delivery** | Direct send | Queue with retry | Regional email services + failover |
-| **Context Loading** | Load on demand | Cache org context (1 hour) | Pre-warm context on login |
+| Event | Emitter | Consumers | Phase |
+|-------|---------|-----------|-------|
+| `rule.evaluated` | RulesModule | AuditModule | 1 |
+| `rule.action.executed` | RulesModule | AuditModule, NotificationsModule | 1 |
+| `case.message.received` | MessagingModule | NotificationsModule | 2 |
+| `case.message.sent` | MessagingModule | NotificationsModule | 2 |
+| `embedding.generated` | SearchModule | AnalyticsModule | 3 |
+| `pattern.detected` | AssociationsModule | NotificationsModule | 4 |
+| `campaign.rolling.assigned` | CampaignsModule | NotificationsModule | 4 |
+| `fact.updated` | AnalyticsModule | DashboardModule | 1 |
+
+---
+
+## 5. Migration Summary
+
+### New Tables
+
+| Table | Purpose | Phase |
+|-------|---------|-------|
+| `rule_definitions` | Business rule configurations | 1 |
+| `rule_execution_logs` | Rule execution audit | 1 |
+| `document_embeddings` | Vector embeddings for RAG | 3 |
+| `pattern_alerts` | Detected pattern alerts | 4 |
+| `push_subscriptions` | Web push subscriptions | 5 |
+| `fact_case_daily` | Pre-aggregated case metrics | 1 |
+| `fact_campaign_daily` | Pre-aggregated campaign metrics | 1 |
+
+### Existing Table Modifications
+
+| Table | Changes | Phase |
+|-------|---------|-------|
+| `case_messages` | Add `emailSentAt`, `emailDeliveredAt`, `emailBouncedAt`, `notificationId` | 2 |
+| `campaigns` | Add `isRolling`, `rollingTriggerType`, `rollingTriggerConfig`, `rollingLastProcessed` | 4 |
+| `organizations` | Add relation to fact tables | 1 |
+
+### Database Extensions
+
+| Extension | Purpose | Phase |
+|-----------|---------|-------|
+| `pgvector` | Vector similarity search | 3 |
+
+---
+
+## 6. API Changes Summary
+
+### New REST Endpoints
+
+| Endpoint | Method | Purpose | Phase |
+|----------|--------|---------|-------|
+| `/api/v1/rules` | GET, POST | List/create rules | 1 |
+| `/api/v1/rules/:id` | GET, PATCH, DELETE | Rule CRUD | 1 |
+| `/api/v1/rules/:id/test` | POST | Test rule against sample | 1 |
+| `/api/v1/rules/:id/logs` | GET | Rule execution history | 1 |
+| `/api/v1/search/semantic` | POST | Semantic search | 3 |
+| `/api/v1/patterns` | GET | List pattern alerts | 4 |
+| `/api/v1/patterns/:id` | GET | Get pattern detail | 4 |
+| `/api/v1/patterns/:id/review` | POST | Review/action pattern | 4 |
+| `/api/v1/campaigns/:id/rolling` | GET | Rolling campaign status | 4 |
+| `/api/v1/push/subscribe` | POST | Subscribe to push | 5 |
+| `/api/v1/push/unsubscribe` | POST | Unsubscribe | 5 |
+
+### New WebSocket Events (on `/ai` namespace)
+
+| Event | Direction | Purpose | Phase |
+|-------|-----------|---------|-------|
+| `chatbot_intent` | Server→Client | Intent classification | 3 |
+| `policy_result` | Server→Client | RAG search result | 3 |
+
+### New WebSocket Events (on `/notifications` namespace)
+
+| Event | Direction | Purpose | Phase |
+|-------|-----------|---------|-------|
+| `pattern_alert` | Server→Client | Real-time pattern alert | 4 |
+
+---
+
+## 7. Risk Assessment
+
+| Risk | Impact | Probability | Mitigation |
+|------|--------|-------------|------------|
+| pgvector performance with large doc sets | HIGH | MEDIUM | HNSW index tuning, chunking strategy, caching |
+| Rules engine DSL complexity | MEDIUM | MEDIUM | Start simple, iterate; JSON-based conditions |
+| Fact table staleness | MEDIUM | LOW | Hybrid approach (event + nightly reconciliation) |
+| PWA offline conflicts | MEDIUM | MEDIUM | Last-write-wins with conflict UI, user notification |
+| Pattern detection false positives | LOW | MEDIUM | Configurable thresholds, human review required |
+| Embedding API rate limits | MEDIUM | LOW | Batch processing, queue-based generation |
+
+---
+
+## 8. Quality Gate Checklist
+
+- [x] Integration points identified with existing module names
+- [x] New vs modified components explicit
+- [x] Build order considers existing dependencies
+- [x] Prisma schema changes outlined
+- [x] Event/queue additions specified
+- [x] API changes documented
+- [x] Migration strategy clear
 
 ---
 
 ## Sources
 
-**HIGH Confidence (Official Documentation):**
-- Existing project specs: TECH-SPEC-AI-INTEGRATION.md, TECH-SPEC-AUTH-MULTITENANCY.md, WORKING-DECISIONS.md (versions 2.0-3.0)
-- Existing architecture: docs/ARCHITECTURE.md, 00-PLATFORM/01-PLATFORM-VISION.md
+- Direct codebase analysis: `apps/backend/src/modules/` (42 modules)
+- Prisma schema: `apps/backend/prisma/schema.prisma` (127+ models)
+- Event configuration: `modules/events/events.module.ts`
+- AI module: `modules/ai/*.ts` (55+ files)
+- Workflow module: `modules/workflow/*.ts` (30+ files)
+- Campaigns module: `modules/campaigns/*.ts` (50+ files)
 
-**MEDIUM Confidence (Industry Patterns):**
-- [SaaS Multitenant Solution Architecture - Microsoft](https://learn.microsoft.com/en-us/azure/architecture/guide/saas-multitenant-solution-architecture/)
-- [Architecting agent solutions - Microsoft Copilot Studio](https://learn.microsoft.com/en-us/microsoft-copilot-studio/guidance/architecture/overview)
-- [Event-Driven Architecture in NestJS](https://dev.to/geampiere/event-driven-architecture-in-nestjs-ccj)
-- [NestJS Workflow Engine](https://github.com/jescrich/nestjs-workflow)
-- [The Copilot Pattern - Vamsi Talks Tech](https://www.vamsitalkstech.com/ai/the-copilot-pattern-an-architectural-approach-to-ai-assisted-software/)
-
-**LOW Confidence (General Ecosystem):**
-- Multi-tenant SaaS best practices 2026 (web search)
-- AI copilot integration patterns (web search)
-
----
-
-## Confidence Assessment
-
-| Area | Confidence | Reason |
-|------|------------|--------|
-| AI Integration Layer | HIGH | Detailed spec exists in TECH-SPEC-AI-INTEGRATION.md v3.0 with code examples |
-| Multi-Provider SSO | HIGH | Full implementation guide in TECH-SPEC-AUTH-MULTITENANCY.md |
-| Notification System | MEDIUM | Architecture decided in WORKING-DECISIONS.md (D.3), implementation details to be defined |
-| Task Aggregation | MEDIUM | Pattern clear, no existing spec - based on standard polymorphic query patterns |
-| Workflow Engine | HIGH | Detailed decisions in WORKING-DECISIONS.md (G.1-G.5) |
-| Build Order | MEDIUM | Based on dependency analysis, may need adjustment during implementation |
-
----
-
-## Open Questions for Phase-Specific Research
-
-1. **AI Skills Marketplace:** How should community-shared skills be curated, versioned, and installed?
-2. **Cross-Tenant AI:** How do operators (Ethico staff) interact with AI across client tenants?
-3. **Workflow Versioning:** When workflow definitions change, how do in-progress instances migrate?
-4. **Task Aggregation Performance:** Should "My Work" use materialized views or live queries at scale?
-5. **Notification Localization:** How to template notifications for multi-language support?
-
----
-
-*End of Architecture Research*
+**Confidence Level:** HIGH - Based on direct code review of existing implementation.

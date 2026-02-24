@@ -1,431 +1,635 @@
-# Feature Landscape: Enterprise Compliance Management Platform
+# Feature Landscape: v2.0 Intelligence & Automation Layer
 
-**Domain:** Enterprise Compliance Management SaaS (Ethics Hotlines, Case Management, Disclosures, Policy Management)
-**Researched:** 2026-02-02
-**Confidence:** MEDIUM-HIGH (Multiple authoritative sources cross-referenced; competitor features verified via Gartner, G2, official sites)
+**Domain:** Intelligence/Automation Features for Enterprise Compliance Platform
+**Researched:** 2026-02-24
+**Research Type:** SUBSEQUENT MILESTONE - Adding capabilities to existing platform
+**Confidence:** MEDIUM-HIGH (Verified across competitor platforms, industry sources, and official documentation)
 
 ---
 
 ## Executive Summary
 
-The enterprise compliance management software market is experiencing rapid consolidation and AI transformation. Key findings:
+This research focuses on the intelligence and automation features needed for v2.0 of the Ethico Risk Intelligence Platform. The existing platform (v1) already has:
+- Case management with merge, export, activity timeline, status workflow
+- Investigation workflow with templates, checklists, findings, interviews
+- Campaign management with targeting, assignments, waves, reminders
+- Disclosure forms with conflict detection, threshold rules
+- Policy management with versioning, translations, approval workflows
+- AI chat panel with Claude streaming, scoped agents, skills, actions
+- Notifications (email + in-app + digest)
+- HubSpot-style saved views across all modules
+- Search (Elasticsearch + PostgreSQL FTS)
+- Ethics portal, Employee portal, Operator console
 
-1. **AI is becoming table stakes** - By mid-2026, AI-powered control validation and evidence generation are expected to be standard. Platforms without meaningful AI will appear dated.
+**Key v2.0 Themes:**
 
-2. **Market is fragmented vs. unified** - Competitors like NAVEX grew through acquisition, resulting in disconnected modules. This creates opportunity for a natively unified platform.
+1. **Rules/Automation Engines** - The market expects configurable routing, SLA enforcement, and escalation without developer intervention. NAVEX and Case IQ lead here; EQS is catching up.
 
-3. **UX expectations have shifted** - Users now expect HubSpot/Salesforce-quality interfaces, not 2010-era enterprise software. "Quieter, focused interfaces" are the 2026 trend.
+2. **Anonymous Communication Relay** - Two-way anonymous messaging is table stakes. The "Chinese Wall" model (Ethico as relay) is the industry standard approach.
 
-4. **Investigation-centric vs. intake-centric** - HR Acuity excels at investigations while EQS dominates whistleblowing intake. Few platforms do both well.
+3. **RAG-Powered Employee Chatbot** - Policy Q&A with confidence tiers is emerging as a differentiator. NAVEX launched AI Assistant in late 2025; Ethena has Policy Bot.
 
-5. **Healthcare compliance is specialized** - HIPAA requirements drive specific feature needs (PHI protection, breach reporting workflows, audit trails for regulators).
+4. **Disclosure Automation** - HRIS-triggered rolling campaigns (new hire, promotion) are expected by enterprise customers. Auto-clear and bulk operations reduce manual work.
 
----
+5. **Manager Dashboards** - Team compliance visibility and proxy actions are increasingly expected for larger organizations.
 
-## Table Stakes Features
+6. **PWA Capabilities** - Offline form submission and push notifications for SLA alerts are differentiators, not yet table stakes.
 
-Features users expect. Missing any of these = product feels incomplete and buyers will immediately notice.
+7. **External Party Management** - Gift/entertainment vendor tracking with sanctions screening and transaction aggregation is a specialized feature primarily for financial services and healthcare.
 
-### Case Management & Investigations
-
-| Feature | Why Expected | Complexity | Confidence | Notes |
-|---------|--------------|------------|------------|-------|
-| **Case intake from multiple channels** | All competitors offer hotline + web | Medium | HIGH | Phone, web form, email minimum; chatbot differentiator |
-| **Case assignment & routing** | Basic workflow requirement | Medium | HIGH | Manual and rule-based auto-assignment |
-| **Investigation tracking** | Core use case for compliance teams | High | HIGH | Status, timeline, notes, documents |
-| **Findings & outcomes documentation** | Required for defensibility | Medium | HIGH | Substantiated/Unsubstantiated/Inconclusive outcomes |
-| **Audit trail for all actions** | Regulatory requirement | Medium | HIGH | Immutable, timestamped, user-attributed |
-| **Role-based access control (RBAC)** | Security/compliance requirement | Medium | HIGH | Investigator, admin, read-only, etc. |
-| **Search & filtering** | Basic usability | Medium | HIGH | By status, category, date, assignee |
-| **Document/evidence attachment** | Investigation necessity | Low | HIGH | File upload, versioning, access control |
-| **Case notes & documentation** | Core investigator workflow | Low | HIGH | Rich text, multiple note types |
-| **SLA tracking & alerts** | Operational necessity | Medium | HIGH | Due dates, overdue flags, reminder notifications |
-| **Case status workflows** | All competitors offer | Medium | HIGH | Configurable stages and transitions |
-| **Reporter communication (2-way)** | Standard for whistleblowing | Medium | HIGH | Anonymous relay with access codes |
-
-### Whistleblowing & Ethics Hotline
-
-| Feature | Why Expected | Complexity | Confidence | Notes |
-|---------|--------------|------------|------------|-------|
-| **Anonymous reporting option** | Regulatory requirement (EU Directive) | Medium | HIGH | True anonymity with no IP/device tracking |
-| **24/7 hotline availability** | Industry standard | Low (outsourceable) | HIGH | NAVEX, EQS, HR Acuity all offer |
-| **Multilingual support** | Global workforce requirement | Medium | HIGH | EQS offers 80+ languages; minimum 20+ |
-| **Access code for anonymous status checks** | Standard anonymous follow-up mechanism | Low | HIGH | All competitors offer |
-| **Encryption (data at rest and in transit)** | Security requirement | Medium | HIGH | 2048-bit standard |
-| **EU Whistleblowing Directive compliance** | Regulatory requirement for EU customers | Medium | HIGH | Required by 2024; now enforced |
-| **GDPR compliance** | Regulatory requirement | Medium | HIGH | Data handling, retention, deletion |
-| **Anonymous two-way messaging** | Standard for follow-up without identity reveal | Medium | HIGH | Protect identity while enabling dialogue |
-
-### Disclosures & Conflict of Interest
-
-| Feature | Why Expected | Complexity | Confidence | Notes |
-|---------|--------------|------------|------------|-------|
-| **Configurable disclosure forms** | Different organizations need different questions | Medium | HIGH | COI, gifts, outside employment |
-| **Campaign/distribution management** | Annual disclosure cycles are standard | Medium | HIGH | Target audience, due dates, reminders |
-| **Completion tracking dashboard** | Admin visibility requirement | Low | HIGH | Who completed, who hasn't, overdue |
-| **Automated reminders** | Operational necessity | Low | HIGH | Email/notification before due date |
-| **Threshold-based case creation** | Risk-based review | Medium | MEDIUM | Gift > $X triggers review |
-| **Audit trail for submissions** | Compliance requirement | Low | HIGH | Who submitted what, when |
-| **Historical disclosure records** | Year-over-year comparison need | Low | HIGH | Archive past disclosures |
-
-### Policy Management
-
-| Feature | Why Expected | Complexity | Confidence | Notes |
-|---------|--------------|------------|------------|-------|
-| **Policy document storage** | Basic repository need | Low | HIGH | Centralized, organized |
-| **Version control** | Legal/compliance requirement | Medium | HIGH | Track changes, preserve history |
-| **Policy attestation/acknowledgment** | Compliance requirement | Medium | HIGH | Track who read and signed |
-| **Attestation tracking dashboard** | Admin visibility | Low | HIGH | Completion rates, overdue |
-| **Policy distribution campaigns** | Operational necessity | Medium | HIGH | Push policies to employees |
-| **Policy search** | Basic usability | Low | HIGH | Find relevant policies quickly |
-| **Access control by role/group** | Security requirement | Medium | HIGH | Some policies restricted |
-
-### Analytics & Reporting
-
-| Feature | Why Expected | Complexity | Confidence | Notes |
-|---------|--------------|------------|------------|-------|
-| **Dashboard with KPI cards** | Executive visibility | Medium | HIGH | Open cases, time to close, trends |
-| **Standard reports library** | Buyer expectation | Medium | HIGH | Pre-built common reports |
-| **Export to PDF/Excel** | Basic data extraction | Low | HIGH | All competitors offer |
-| **Filter/drill-down capability** | Data exploration need | Medium | HIGH | Click to see underlying records |
-| **Trend analysis over time** | Program effectiveness tracking | Medium | HIGH | Charts showing change |
-| **Category/severity breakdowns** | Standard compliance metrics | Low | HIGH | Distribution charts |
-
-### Security & Compliance
-
-| Feature | Why Expected | Complexity | Confidence | Notes |
-|---------|--------------|------------|------------|-------|
-| **SSO integration** | Enterprise requirement | Medium | HIGH | SAML, OIDC, Azure AD |
-| **Multi-factor authentication (MFA)** | Security standard | Low | HIGH | Required for enterprise |
-| **SOC 2 Type II certification** | Enterprise procurement requirement | High (process) | HIGH | Case IQ, HR Acuity certified |
-| **HIPAA compliance** | Healthcare vertical requirement | High | HIGH | PHI protection, BAAs |
-| **Data encryption** | Security baseline | Medium | HIGH | At rest and in transit |
-| **Role-based permissions** | Access control | Medium | HIGH | Granular permissions |
-| **Session management** | Security requirement | Low | HIGH | Timeout, concurrent session limits |
+8. **Cross-Case Pattern Detection** - Repeat subject alerts and trend identification are becoming expected; HR Acuity leads here.
 
 ---
 
-## Differentiators
+## 1. Rules/Automation Engine
 
-Features that set products apart. Not expected, but create competitive advantage when present.
+### Expected Behaviors from User Perspective
 
-### AI-Powered Features (Emerging Differentiators - Becoming Table Stakes by late 2026)
+**Routing Rules:**
+- When a case is created, automatically assign based on: category, severity, location, business unit, reporter type
+- Support AND/OR logic: "IF category = Harassment AND location = EMEA THEN assign to EU Legal Team"
+- Fallback routes when no rule matches (triage queue)
+- Override capability for manual assignment after auto-route
+- Rule preview: "Test this rule against recent cases to see what would have matched"
 
-| Feature | Value Proposition | Complexity | Confidence | Competitor Status |
-|---------|-------------------|------------|------------|-------------------|
-| **AI case summarization** | Save investigator time; consistent quality | Medium | HIGH | NAVEX announced Dec 2025; HR Acuity's olivER; Case IQ's Clairia |
-| **AI-powered note cleanup** | Convert bullets to formal narrative | Medium | MEDIUM | Ethico differentiator if done well |
-| **AI translation (compliance-trained)** | Accurate translation preserving context | Medium | HIGH | EQS offers 80+ languages with AI; NAVEX added in 2025 |
-| **AI risk scoring** | Automated triage prioritization | High | MEDIUM | Limited competitors; mostly rules-based |
-| **AI-suggested questions during intake** | Improve report quality | High | LOW | Few competitors offer real-time assist |
-| **AI document analysis** | Find relevant info in uploaded docs | High | MEDIUM | Advanced feature; few offer |
-| **Natural language search/querying** | "Show me harassment cases from EMEA" | High | HIGH | 2026 expectation from AI-first platforms |
-| **AI policy Q&A** | Employees get answers without reading full policy | High | MEDIUM | Chatbot differentiator |
-| **AI pattern detection across cases** | Surface recurring issues | High | MEDIUM | HR Acuity benchmarking; emerging |
+**SLA Enforcement:**
+- Define SLA by case type: "Harassment cases must have initial response within 24 hours"
+- Visual countdown timers on case cards (green/yellow/red status)
+- Automated escalation when SLA approaches (warning) or breaches
+- Escalation actions: notify supervisor, re-assign, add to priority queue, page on-call
+- SLA metrics in dashboards: compliance rate, average breach duration, trend
 
-### Modern UX Differentiators
+**Escalation Triggers:**
+- Keyword detection in intake: "retaliation", "CEO", "criminal"
+- Severity-based: all Critical cases auto-escalate to CCO
+- Time-based: no activity in 48 hours triggers reminder
+- Combination rules: "Category = Financial Fraud AND Amount > $100K"
 
-| Feature | Value Proposition | Complexity | Confidence | Notes |
-|---------|-------------------|------------|------------|-------|
-| **Saved views/custom filters** | HubSpot-style personalization | Medium | HIGH | Major UX differentiator vs. legacy platforms |
-| **Unified "My Work" queue** | Single view across all assigned items | Medium | MEDIUM | Cross-module aggregation; HubSpot pattern |
-| **Modern, clean interface** | User adoption, reduced training | High | HIGH | 2026 UX trend: "quieter, focused interfaces" |
-| **Drag-and-drop dashboards** | Self-service analytics | High | HIGH | HR Acuity offers; HubSpot-style |
-| **Configurable columns** | User personalization | Low | HIGH | Expected by HubSpot/Salesforce users |
-| **Mobile PWA** | Field access, manager approval on-the-go | High | MEDIUM | Limited competitors offer true PWA |
-| **White-label portal** | Brand consistency for clients | Medium | HIGH | EQS, Ethico offer; enterprise need |
-| **In-app notifications** | Real-time awareness | Medium | HIGH | Better than email-only |
+### Table Stakes
 
-### Investigation Excellence
+| Feature | Why Expected | Complexity | Dependencies | Notes |
+|---------|--------------|------------|--------------|-------|
+| **Basic routing rules (if/then)** | All competitors offer | Medium | Case entity, User/Team entities | NAVEX, Case IQ, HR Acuity all have |
+| **SLA definitions by case type** | Operational necessity | Medium | Case entity, Workflow module | Standard compliance requirement |
+| **SLA countdown/status indicators** | Visual management | Low | UI components, Case entity | Color-coded: green/yellow/red |
+| **Overdue case alerts (email)** | Basic notification | Low | Notification system (exists) | Extend existing notification |
+| **Manual override of auto-assignment** | User control | Low | Assignment UI | Always allow human override |
+| **Rule audit log** | Compliance requirement | Low | Audit system (exists) | Track rule changes |
 
-| Feature | Value Proposition | Complexity | Confidence | Notes |
-|---------|-------------------|------------|------------|-------|
-| **Investigation templates by category** | Consistent, complete investigations | Medium | HIGH | HR Acuity strength; Case IQ offers |
-| **Checklist-driven investigations** | Ensure nothing missed | Medium | HIGH | Defensibility requirement |
-| **Remediation plan library** | Reusable corrective actions | Medium | MEDIUM | Limited competitors; Ethico differentiator |
-| **Subject tracking across cases** | Pattern detection for repeat offenders | High | HIGH | HR Acuity's "repeat offender" analytics |
-| **Case merge capability** | Consolidate related reports | Medium | HIGH | All competitors offer some version |
-| **Multi-investigator collaboration** | Team investigations | Medium | HIGH | Assignment to multiple; primary designated |
-| **Interview documentation** | Structured interview capture | Medium | HIGH | HR Acuity strength |
+### Differentiators
 
-### Integration & Extensibility
+| Feature | Value Proposition | Complexity | Competitor Status | Notes |
+|---------|-------------------|------------|-------------------|-------|
+| **Rule preview/testing** | Reduce misconfigurations | Medium | Limited - most require "go live to see" | Test against historical data |
+| **Multi-step escalation chains** | Progressive urgency | High | Case IQ offers; NAVEX limited | Notify > Reassign > Page > Auto-escalate |
+| **AI-suggested routing rules** | Learn from historical patterns | High | No competitor offers | "Cases like this usually go to..." |
+| **Natural language rule builder** | Non-technical users | High | No competitor offers | "Assign harassment cases to HR" |
+| **SLA prediction (AI)** | Proactive management | High | Emerging | "This case likely to breach SLA based on..." |
+| **Cross-module SLA** | Unified tracking | Medium | Limited | SLA for case + investigation + remediation |
 
-| Feature | Value Proposition | Complexity | Confidence | Notes |
-|---------|-------------------|------------|------------|-------|
-| **HRIS integration** | Auto-sync employee data | High | HIGH | Workday, SAP, BambooHR; all competitors integrate |
-| **Custom fields (unlimited, reportable)** | Organizational flexibility | Medium | HIGH | Critical for enterprise; competitors limit |
-| **Webhook/event notifications** | Real-time integration | Medium | MEDIUM | Advanced integration pattern |
-| **REST API** | System integration | Medium | HIGH | Expected for enterprise |
-| **SSO with multiple providers** | Enterprise auth flexibility | Medium | HIGH | SAML, OIDC, Azure AD, Okta |
-| **Data import/migration tools** | Competitor data migration | High | MEDIUM | Ethico differentiator for switching cost reduction |
-
-### Healthcare-Specific (Vertical Differentiators)
-
-| Feature | Value Proposition | Complexity | Confidence | Notes |
-|---------|-------------------|------------|------------|-------|
-| **HIPAA-specific workflows** | Healthcare compliance | High | HIGH | Breach notification, PHI handling |
-| **PHI detection/redaction** | Protect patient data | High | MEDIUM | AI-assisted; differentiator |
-| **Healthcare category taxonomy** | Appropriate classifications | Low | HIGH | EMTALA, Stark, kickback categories |
-| **Sanction screening integration** | OIG/SAM exclusion checks | Medium | MEDIUM | Healthcare-specific need |
-| **BAA (Business Associate Agreement) support** | HIPAA requirement | Low | HIGH | Standard for healthcare vendors |
-
----
-
-## Anti-Features
-
-Features to explicitly NOT build. Common mistakes in this domain.
+### Anti-Features
 
 | Anti-Feature | Why Avoid | What to Do Instead |
 |--------------|-----------|-------------------|
-| **Over-complicated workflow builders** | Compliance teams aren't developers; unused complexity | Pre-built templates with simple customization; "sensible defaults" |
-| **Mandatory AI acceptance** | Compliance decisions require human judgment; regulatory concern | AI-assist that requires human review; optional, not blocking |
-| **Rigid reporting that requires IT** | Compliance officers need self-service | Drag-and-drop report builder; saved views |
-| **Email-only notifications** | Missed, buried in inbox | In-app notification center + email as fallback |
-| **Monolithic modules requiring all-or-nothing** | Customers want to start small | Modular pricing; can adopt incrementally |
-| **Complex pricing tiers** | Procurement friction | Transparent, predictable pricing |
-| **"AI black box" decisions** | Regulators require explainability | Transparent AI with reasoning shown; human override |
-| **Overly aggressive chatbot** | Users find intrusive; reduces trust | Non-intrusive AI (optional panels, not blocking) |
-| **Auto-closing cases without human review** | Legal/compliance risk | AI can suggest closure; human must confirm |
-| **Live chat requiring 24/7 staffing** | Compliance teams are small (1-5 people) | Async model with inquiry queue; hotline for urgent |
-| **Feature bloat for edge cases** | Complexity tax on all users | 80/20 rule; configurability for the 20% |
-| **Per-seat pricing for entire org** | Drives down adoption | Role-based tiers; unlimited viewers |
-| **Requiring training before use** | Delays time-to-value | Intuitive UX; contextual help; optional training |
+| **Complex visual workflow builder** | Compliance teams aren't developers | Simple if/then UI; templates for common patterns |
+| **Auto-close on SLA breach** | Legal risk; human judgment required | Auto-escalate, never auto-close |
+| **Unlimited nesting in rules** | Maintenance nightmare | Max 3 levels of AND/OR; suggest splitting |
+| **No fallback route** | Orphaned cases | Require default/fallback route |
+| **Rules without audit trail** | Compliance violation | Log all rule changes with who/when |
 
 ---
 
-## Feature Dependencies
+## 2. Anonymous Communication Relay
+
+### Expected Behaviors from User Perspective
+
+**Chinese Wall Model:**
+- Reporter provides contact info (email or phone) to Ethico system only
+- Client users never see reporter contact info
+- Messages from client appear in reporter's inbox with Ethico relay address
+- Reporter replies to relay address; message appears in case
+- Full conversation thread maintained on both sides
+- Works for both identified and anonymous reporters
+
+**Anonymous Status Checks:**
+- Reporter receives unique access code at submission
+- Can check status via web portal or phone
+- Can add additional information to existing case
+- Can receive and respond to questions from investigators
+- Access code never expires (or very long expiry: 5+ years)
+
+**Message Types:**
+- Questions from investigator to reporter
+- Updates from investigator to reporter (case status)
+- Additional information from reporter
+- Automated status notifications (case received, investigation started, closed)
+
+### Table Stakes
+
+| Feature | Why Expected | Complexity | Dependencies | Notes |
+|---------|--------------|------------|--------------|-------|
+| **Access code for anonymous status check** | All competitors offer | Low | RIU entity, Portal | Standard 8-12 digit alphanumeric |
+| **Web portal status check** | Standard UX | Low | Ethics Portal (exists) | Simple form: enter code, see status |
+| **Two-way messaging (async)** | Regulatory expectation | Medium | Messaging entity, RIU | EU Directive requires follow-up capability |
+| **Email relay (outbound)** | Standard communication | Medium | Email system (exists) | Send from noreply@ethico.com |
+| **Message history on case** | Audit requirement | Low | Case/RIU entity | Full conversation visible to investigator |
+| **Unsubscribe/opt-out for reporter** | Privacy requirement | Low | Message preferences | Reporter can stop communications |
+
+### Differentiators
+
+| Feature | Value Proposition | Complexity | Competitor Status | Notes |
+|---------|-------------------|------------|-------------------|-------|
+| **SMS relay** | Mobile-first reporters | Medium | HR Acuity announced; EQS has | Phone number hidden; messages proxied |
+| **Automated translations in relay** | Multilingual workforce | Medium | EQS leads (80+ languages) | AI translate in-thread |
+| **Rich media in messages** | Better communication | Medium | Limited competitor support | Images, documents in thread |
+| **Voice message transcription** | Alternative input | High | No competitor offers | Voicemail to text in thread |
+| **Proactive status updates** | Reporter engagement | Low | Some competitors; not universal | "Your case status changed to Under Investigation" |
+| **Multiple access code per case** | Team anonymous reporting | Low | Limited | Group can track single report |
+
+### Anti-Features
+
+| Anti-Feature | Why Avoid | What to Do Instead |
+|--------------|-----------|-------------------|
+| **Real-time chat requiring staff** | Compliance teams are small | Async messaging with SLA |
+| **Auto-reply bots in anonymous channel** | Trust issue; reporters expect human | Clear expectation: "Human will respond within X hours" |
+| **Message read receipts** | Privacy concern for reporters | No read receipts; just delivery confirmation |
+| **Reporter identity hints** | Defeats anonymity purpose | Never expose metadata (timezone, device, etc.) |
+| **Short access code expiry** | Reporters lose access | 5+ year expiry; recovery mechanism |
+
+---
+
+## 3. RAG-Powered Compliance Chatbot
+
+### Expected Behaviors from User Perspective
+
+**Policy Q&A Flow:**
+- Employee asks: "Can I accept a gift from a vendor?"
+- Chatbot searches policy documents using RAG
+- Returns answer with confidence tier:
+  - **Tier 1 (High confidence)**: Direct answer with policy citation
+  - **Tier 2 (Medium confidence)**: "Based on [Policy], the guidance is... but your situation may vary"
+  - **Tier 3 (Low confidence/Complex)**: "I found relevant information, but recommend checking with Compliance"
+- Always shows source document link
+- One-click escalation to human at any point
+
+**Knowledge Base:**
+- Ingests published policies from Policy Management module
+- Also ingests FAQ documents, training materials, custom uploads
+- Version-aware: uses current published version, not drafts
+- Tenant-isolated: never mixes organization data
+- Refresh when policies update
+
+**Escalation Path:**
+- "Ask a human" button always visible
+- Creates inquiry in queue (not a case, unless configured)
+- Compliance team can respond async
+- Response goes back to employee via chat interface
+
+### Table Stakes
+
+| Feature | Why Expected | Complexity | Dependencies | Notes |
+|---------|--------------|------------|--------------|-------|
+| **Policy search by keyword** | Basic functionality | Low | Policy module (exists), Search (exists) | Simple keyword match |
+| **Citation of source document** | Trust and verification | Low | RAG retrieval | Link to policy section |
+| **Escalation to human** | Complex questions | Low | Inquiry/ticket system | Always available option |
+| **Conversation history** | Context for follow-up | Low | Chatbot entity | Persisted per user |
+| **Tenant data isolation** | Security requirement | Critical | Multi-tenancy (exists) | Never mix org data |
+
+### Differentiators
+
+| Feature | Value Proposition | Complexity | Competitor Status | Notes |
+|---------|-------------------|------------|-------------------|-------|
+| **Confidence tier display** | Transparency builds trust | Medium | NAVEX AI Assistant started this | Show "High/Medium/Low confidence" |
+| **Situational guidance (Tier 2)** | More than simple lookup | High | Limited - most are Q&A only | "In your situation as a manager..." |
+| **Proactive suggestions** | Surface relevant policies | Medium | No competitor offers | "You might also want to know about [Related Policy]" |
+| **Multi-document reasoning** | Complex answers | High | Emerging | Synthesize from Code of Conduct + Gift Policy |
+| **Follow-up questions** | Clarification | Medium | NAVEX has; others limited | "Can you tell me more about the gift amount?" |
+| **Learning from escalations** | Continuous improvement | High | No competitor offers | When human corrects bot, improve future answers |
+
+### Anti-Features
+
+| Anti-Feature | Why Avoid | What to Do Instead |
+|--------------|-----------|-------------------|
+| **Black box answers** | Regulators require explainability | Always cite source; show reasoning |
+| **Overconfident responses** | Legal liability | Conservative confidence; recommend human for complex |
+| **Hallucinated policy content** | Critical compliance risk | Ground ALL responses in retrieved content; never generate |
+| **No human fallback** | User frustration; compliance risk | Always-visible escalation button |
+| **Auto-action from chatbot** | Compliance decisions need human | Chatbot informs; human decides |
+| **Storing sensitive details** | Privacy risk | Don't ask for names/specifics in chatbot; direct to report |
+
+---
+
+## 4. Disclosure Automation
+
+### Expected Behaviors from User Perspective
+
+**Rolling Campaigns (HRIS-Triggered):**
+- New hire: Automatically add to active disclosure campaigns when onboarding
+- Promotion/role change: Trigger additional disclosure if new role requires it
+- Annual renewal: Automatically re-issue disclosure 30 days before expiry
+- Termination: Mark assignments as exempt (employee left)
+- Manager change: Update approval routing
+
+**Auto-Clear/Auto-Reject Rules:**
+- Gift under $X with no relationship flag: Auto-clear, no case created
+- "Nothing to disclose" attestation: Auto-complete, no review needed
+- Gift over $Y OR relationship flag: Require manual review
+- Pattern detection: Same vendor multiple times triggers alert
+
+**Bulk Operations:**
+- Bulk approve: Select multiple pending disclosures, apply decision
+- Bulk remind: Send reminders to all overdue in one click
+- Bulk exempt: Mark group as exempt (e.g., contractor cohort leaving)
+- Bulk export: Download all disclosures for a campaign
+
+### Table Stakes
+
+| Feature | Why Expected | Complexity | Dependencies | Notes |
+|---------|--------------|------------|--------------|-------|
+| **Manual campaign creation** | Already exists | - | Campaign module (exists) | Foundation for automation |
+| **Email reminders** | Already exists | - | Notification system (exists) | Extend for triggers |
+| **Threshold rules for case creation** | Already exists | - | Campaign module (exists) | Foundation for auto-clear |
+| **Completion tracking dashboard** | Already exists | - | Analytics (exists) | Extend for automation metrics |
+
+### Differentiators
+
+| Feature | Value Proposition | Complexity | Competitor Status | Notes |
+|---------|-------------------|------------|-------------------|-------|
+| **HRIS-triggered enrollment** | Zero manual campaign management | High | NAVEX has; EQS limited | Integrate with HRIS sync events |
+| **Auto-clear rules** | Reduce manual review burden | Medium | GAN Integrity offers | Configurable threshold + conditions |
+| **Bulk approve/reject** | Efficiency for reviewers | Low | Most competitors have | Multi-select + action |
+| **Pattern detection alerts** | Proactive risk identification | High | Limited | Same vendor/amount patterns |
+| **Manager delegation** | Vacation coverage | Medium | HR Acuity has | Temporary delegation of approval |
+| **Disclosure comparison (year-over-year)** | Trend identification | Medium | NAVEX has | Side-by-side comparison |
+
+### Anti-Features
+
+| Anti-Feature | Why Avoid | What to Do Instead |
+|--------------|-----------|-------------------|
+| **Auto-approve anything with disclosure** | Risk of missing conflicts | Auto-clear only for explicit "nothing to disclose" |
+| **Auto-reject based on rules** | Legal risk; human judgment needed | Flag for review; never auto-reject |
+| **Complex HRIS trigger rules** | Maintenance nightmare | Simple triggers: new hire, termination, role change |
+| **Immediate enrollment for new hires** | Give time to settle | Configurable delay: 30/60/90 days after hire |
+
+---
+
+## 5. Manager Compliance Dashboard
+
+### Expected Behaviors from User Perspective
+
+**Team Metrics View:**
+- See all direct reports' compliance status in one view
+- Completion rates for: disclosures, attestations, training
+- Overdue items highlighted
+- Drill-down to individual employee details
+- Historical completion rates (trend)
+
+**Proxy Actions:**
+- Submit disclosure on behalf of employee (with reason capture)
+- Request exemption for employee
+- Send reminder to specific employee
+- Escalate non-compliance to HR
+
+**Reminder Tools:**
+- See who hasn't completed
+- Send individual reminder (customizable message)
+- Send bulk reminder to all overdue
+- Schedule reminder for specific date
+
+### Table Stakes
+
+| Feature | Why Expected | Complexity | Dependencies | Notes |
+|---------|--------------|------------|--------------|-------|
+| **View own team's completion status** | Management expectation | Medium | Employee hierarchy, Campaign assignments | Filter by manager_id |
+| **Overdue indicator** | Basic visibility | Low | Campaign assignments | Red highlight |
+| **Send reminder to individual** | Manager responsibility | Low | Notification system (exists) | Simple button |
+| **Drill-down to employee detail** | Context needed | Low | Employee profile | Click to see full status |
+
+### Differentiators
+
+| Feature | Value Proposition | Complexity | Competitor Status | Notes |
+|---------|-------------------|------------|-------------------|-------|
+| **Proxy submission** | Accessibility accommodation | Medium | Limited competitors | With audit trail |
+| **Manager-level analytics** | Comparative performance | Medium | HR Acuity has benchmarking | Team vs. org average |
+| **Delegation to another manager** | Vacation coverage | Medium | Limited | Temporary manager override |
+| **Scheduled bulk reminders** | Proactive management | Low | Limited | "Remind all overdue every Monday" |
+| **Compliance score by team** | Gamification/motivation | Medium | No competitor offers | Team leaderboard (optional) |
+
+### Anti-Features
+
+| Anti-Feature | Why Avoid | What to Do Instead |
+|--------------|-----------|-------------------|
+| **Manager can see disclosure content** | Privacy violation | Manager sees completion status only; not content |
+| **Manager can approve own team** | Conflict of interest | Approvals go to Compliance, not direct manager |
+| **Automatic HR escalation** | May be premature | Manager initiates escalation; not automatic |
+| **Team-level SLA enforcement** | Unfair to individuals | Individual tracking; team metrics for awareness only |
+
+---
+
+## 6. PWA (Progressive Web App) Capabilities
+
+### Expected Behaviors from User Perspective
+
+**Offline Form Submission:**
+- Employee starts disclosure form while connected
+- Connection drops mid-form
+- Form saves locally; notification "Will submit when online"
+- Connection restored; form auto-submits
+- User sees confirmation
+
+**Push Notifications:**
+- SLA approaching: "Case #1234 response due in 4 hours"
+- Assignment notification: "New case assigned to you"
+- Approval request: "Disclosure pending your review"
+- Reporter message: "New message on Case #1234"
+- Campaign reminder: "Annual disclosure due in 7 days"
+
+**Mobile-Optimized Experience:**
+- Responsive design for all form factors
+- Touch-friendly navigation
+- Reduced data usage for cellular
+- Home screen installable
+- Badge for unread notifications
+
+### Table Stakes
+
+| Feature | Why Expected | Complexity | Dependencies | Notes |
+|---------|--------------|------------|--------------|-------|
+| **Responsive web design** | Mobile users exist | Low | Frontend (exists) | Already implemented |
+| **Email notifications** | Basic communication | - | Notification system (exists) | Already implemented |
+
+### Differentiators
+
+| Feature | Value Proposition | Complexity | Competitor Status | Notes |
+|---------|-------------------|------------|-------------------|-------|
+| **Offline form save/submit** | Field workers; poor connectivity | High | Very few competitors | Service worker + IndexedDB |
+| **Push notifications** | Immediate SLA awareness | Medium | Native apps have; few PWAs | Requires opt-in; FCM/APNs |
+| **Home screen installable** | App-like experience | Low | Easy to add | Manifest + service worker |
+| **Background sync** | Reliable offline operations | High | Limited competitors | Queue and retry |
+| **Notification badges** | Unread indicator | Low | Standard PWA feature | Update count |
+
+### Anti-Features
+
+| Anti-Feature | Why Avoid | What to Do Instead |
+|--------------|-----------|-------------------|
+| **Native app requirement** | App store friction; maintenance burden | PWA gives 90% of benefits |
+| **Offline for everything** | Complexity; stale data risk | Offline only for submission; view requires connection |
+| **Excessive push notifications** | User disables; annoyance | Configurable; respect quiet hours |
+| **Full offline case management** | Data sync complexity; conflict resolution | Offline submit only; view/edit requires connection |
+
+---
+
+## 7. External Party Management (GT&E Focus)
+
+### Expected Behaviors from User Perspective
+
+**Vendor/External Party Registry:**
+- Maintain list of external parties (vendors, contractors, clients)
+- Store risk rating, relationship type, key contacts
+- Link to disclosures and transactions
+- Track interaction history
+
+**Sanctions Screening:**
+- Automatic check against OFAC, OIG, SAM lists
+- Alert when external party matches or fuzzy-matches
+- Re-screen on schedule (monthly/quarterly)
+- Clear audit trail of screening results
+
+**Transaction Aggregation:**
+- Track all gifts/entertainment with a given party
+- Aggregate across employees: "Total gifts to Vendor X this year: $5,200"
+- Per-employee caps: "You've given $400 of $500 limit to this vendor"
+- Alert when approaching or exceeding thresholds
+
+### Table Stakes
+
+| Feature | Why Expected | Complexity | Dependencies | Notes |
+|---------|--------------|------------|--------------|-------|
+| **Record external parties on disclosures** | Current design | Low | Disclosure module (exists) | Already captured |
+| **Manual aggregation reports** | Basic analytics | Medium | Analytics (exists) | Can be built as report |
+
+### Differentiators
+
+| Feature | Value Proposition | Complexity | Competitor Status | Notes |
+|---------|-------------------|------------|-------------------|-------|
+| **External party master record** | Single source of truth | Medium | NAVEX has; GAN Integrity | Dedupe; link across disclosures |
+| **Sanctions screening integration** | Regulatory requirement (healthcare) | High | Specialized vendors (Moody's, LSEG) | API integration |
+| **Real-time aggregation** | Instant threshold visibility | Medium | Limited competitors | Update on each disclosure |
+| **Risk rating workflow** | Due diligence process | High | GAN Integrity leads | Annual review cycle |
+| **Relationship network visualization** | Pattern detection | High | No competitor offers | Who knows whom at vendor |
+
+### Anti-Features
+
+| Anti-Feature | Why Avoid | What to Do Instead |
+|--------------|-----------|-------------------|
+| **Build sanctions database in-house** | Maintenance nightmare; liability | Integrate with established providers |
+| **Auto-block based on screening** | False positives; legal risk | Flag for human review |
+| **Complex relationship mapping** | Rarely used; over-engineering | Simple hierarchy: organization > contacts |
+| **Global tracking before need** | YAGNI; complexity | Start with US; add regions when customer need |
+
+---
+
+## 8. Cross-Case Pattern Detection
+
+### Expected Behaviors from User Perspective
+
+**Repeat Subject Alerts:**
+- When creating/updating case, system checks if subject appears in other cases
+- Alert: "John Smith appears in 3 other cases (2 open, 1 closed)"
+- Click to see related cases
+- Works for: employees (by ID), external names (fuzzy match), email, phone
+
+**Trend Identification:**
+- Dashboard widget: "Emerging trends"
+- AI-identified: "Harassment reports from Manufacturing up 40% this quarter"
+- Category concentration: "75% of cases from one location"
+- Seasonal patterns: "Reports spike in January (post-holiday parties)"
+
+**Pattern-Based Escalation:**
+- Rule: "If subject has 3+ cases in 12 months, auto-escalate to CCO"
+- Rule: "If location has 5+ cases in 30 days, alert Regional HR"
+- Rule: "If category spikes 50% month-over-month, notify Compliance"
+
+### Table Stakes
+
+| Feature | Why Expected | Complexity | Dependencies | Notes |
+|---------|--------------|------------|--------------|-------|
+| **Subject tracking on cases** | Already exists | - | Case module (exists) | Subject entity implemented |
+| **Basic reporting by subject** | Can be built | Medium | Analytics (exists) | Filter cases by subject |
+| **Category breakdown dashboard** | Already exists | - | Analytics (exists) | Standard widget |
+
+### Differentiators
+
+| Feature | Value Proposition | Complexity | Competitor Status | Notes |
+|---------|-------------------|------------|-------------------|-------|
+| **Automatic repeat subject alert** | Proactive pattern detection | Medium | HR Acuity leads here | Real-time check on case create |
+| **Fuzzy name matching** | Catch variations (Bob vs Robert) | Medium | Limited competitors | Phonetic + ML matching |
+| **AI trend identification** | Insights without queries | High | Emerging | "Here's what changed this month" |
+| **Pattern-based escalation rules** | Automated response to trends | High | Limited | Combine with rules engine |
+| **Cross-organization benchmarking** | Comparative insights | High | HR Acuity has | "Your harassment rate vs. industry" |
+| **Subject timeline view** | Complete history | Low | Case IQ has | All interactions with one person |
+
+### Anti-Features
+
+| Anti-Feature | Why Avoid | What to Do Instead |
+|--------------|-----------|-------------------|
+| **Auto-terminate based on patterns** | Legal risk; discrimination concern | Alert and recommend; human decides |
+| **Public subject "rap sheet"** | Privacy violation | Visible only to investigators with need-to-know |
+| **Cross-tenant pattern detection** | Data isolation breach | Benchmarking only with anonymized aggregates |
+| **Excessive alerting on patterns** | Alert fatigue | Configurable thresholds; weekly digest option |
+
+---
+
+## Feature Priority Matrix
+
+### Build Order Recommendation
+
+**Phase 1: Foundation Automation** (Highest ROI, builds on existing)
+1. Routing rules engine (extends case management)
+2. SLA enforcement with visual indicators
+3. Anonymous communication relay (email first, then SMS)
+4. Auto-clear rules for disclosures
+
+**Phase 2: Intelligence Layer**
+5. Repeat subject alerts
+6. RAG-powered policy chatbot
+7. HRIS-triggered disclosure campaigns
+8. Manager compliance dashboard
+
+**Phase 3: Advanced Automation**
+9. Pattern-based escalation rules
+10. AI trend identification
+11. Push notifications (PWA)
+12. Offline form submission
+
+**Phase 4: Specialized (Customer-Driven)**
+13. External party registry
+14. Sanctions screening integration
+15. Cross-organization benchmarking
+
+### Complexity vs. Value Matrix
 
 ```
-Foundation Layer (Must Build First)
-├── Multi-tenancy (RLS, organization isolation)
-├── User/Employee entities (separate: auth vs HRIS)
-├── RBAC (role-based access control)
-├── Unified audit log
-└── Core API patterns
+                    HIGH VALUE
+                        |
+    Pattern Detection   |   Routing Rules Engine
+    Repeat Subject      |   SLA Enforcement
+                        |   Auto-Clear Rules
+                        |   Anonymous Relay
+    ----------------+---+---+------------------
+                    |       |
+    Sanctions       |       |   RAG Chatbot
+    Screening       |       |   HRIS Triggers
+                    |       |   Manager Dashboard
+                        |
+                   LOW VALUE
 
-Case Management (Core Module)
-├── RIU (Risk Intelligence Unit) entity ─────────────┐
-├── Case entity (mutable work container)             │
-├── Investigation entity                             │ Requires
-├── Subject tracking                                 │ Foundation
-├── Case-RIU associations (many-to-many)             │
-├── Basic workflow (status transitions)              │
-└── Reporter communication (anonymous relay)         │
-
-Intake Channels (Parallel Development OK)
-├── Web Form Intake ─────────────────────────────────┤
-├── Operator Console (hotline intake) ───────────────┤ Creates
-├── Employee Chatbot ────────────────────────────────┤ RIUs
-└── Email intake (future) ───────────────────────────┘
-
-Disclosures Module
-├── Depends on: Case Management (for escalation)
-├── Depends on: Campaign/distribution engine
-├── COI disclosure forms
-├── Gift/entertainment tracking
-└── Threshold-based case creation
-
-Policy Management Module
-├── Depends on: Campaign/distribution engine
-├── Document repository
-├── Version control
-├── Attestation tracking
-└── Policy-Case linking (for violations)
-
-Analytics Module
-├── Depends on: All data-producing modules
-├── Dashboard builder
-├── Standard reports
-├── Cross-module reporting
-└── AI-powered queries (natural language)
-
-AI Features (Can Layer On)
-├── Summarization (Case, Investigation, RIU)
-├── Translation (at intake, on-demand)
-├── Risk scoring
-├── Pattern detection
-└── Natural language querying
-    All AI → Depends on data being available
-
-Campaign/Distribution Engine (Shared)
-├── Used by: Disclosures
-├── Used by: Policy attestations
-├── Used by: Surveys
-└── Target audience, scheduling, reminders
+        HIGH COMPLEXITY -------- LOW COMPLEXITY
 ```
 
 ---
 
-## Competitor Feature Matrix
+## Competitor Implementation Reference
 
-| Feature Category | NAVEX | EQS/Integrity Line | Case IQ | HR Acuity | Ethico (Planned) |
-|-----------------|-------|-------------------|---------|-----------|-----------------|
-| **Case Management** | Strong | Basic | Strong | Excellent | Strong (planned) |
-| **Hotline/Intake** | Strong | Excellent | Good | Excellent | Strong (existing + new) |
-| **Investigations** | Good | Basic | Good | Excellent | Strong (planned) |
-| **Disclosures/COI** | Strong | Strong | Basic | Limited | Strong (planned) |
-| **Policy Management** | Strong (PolicyTech) | Basic | Limited | Limited | Strong (planned) |
-| **Analytics** | Good | Good | Excellent (Yellowfin) | Excellent | Strong (planned) |
-| **AI Features** | New (Dec 2025) | Strong (translation) | Strong (Clairia) | Strong (olivER) | Native (AI-first) |
-| **Modern UX** | Legacy feel | Modern | Modern | Modern | Modern (planned) |
-| **Unified Platform** | Fragmented (acquisitions) | Unified | Unified | Focused (HR only) | Unified (planned) |
-| **Healthcare Focus** | General | General | General | HR focus | Healthcare focus |
-| **Pricing** | $2,600+/mo | Contact | Contact | Contact | TBD |
+### NAVEX One
 
-### Competitor Strengths to Learn From
+**Routing & Automation:**
+- Rule-based assignment (category, location, severity)
+- SLA tracking with configurable deadlines
+- Escalation on breach (email notification)
+- LIMITED: Complex workflow builder; requires professional services for advanced rules
 
-**NAVEX:**
-- PolicyTech is industry standard for policy management
-- Broad feature coverage across compliance domains
-- Strong regulatory intelligence (RCM announced Dec 2025)
-- Large customer base (13,000 organizations)
+**Anonymous Communication:**
+- EthicsPoint access codes (standard)
+- Two-way messaging via web portal
+- Email relay available
+- Phone callback scheduling
 
-**EQS Integrity Line:**
-- Excellent whistleblowing/anonymous reporting
-- Strong EU Whistleblowing Directive compliance
-- 80+ language AI translation
-- True end-to-end encryption
-- Clean, modern interface
+**AI Features (Dec 2025 launch):**
+- AI Assistant for policy Q&A
+- Case summarization
+- Translation assistance
+- EARLY: Not as mature as HR Acuity's olivER
 
-**Case IQ:**
-- Yellowfin BI integration for analytics
-- 75+ chart types for data visualization
-- AI assistant "Clairia" for case guidance
-- Strong investigation documentation
-- SOC 2 Type II certified
+### EQS Integrity Line
 
-**HR Acuity:**
-- Purpose-built for employee relations
-- olivER AI assistant (best-in-class)
-- Proprietary three-step methodology
+**Routing & Automation:**
+- Drag-and-drop workflow customization (no-code)
+- Auto-assignment by criteria
+- SLA monitoring
+- STRENGTH: EU Whistleblowing Directive compliance built-in
+
+**Anonymous Communication:**
+- Industry-leading anonymous channel
+- 80+ languages with AI translation
+- End-to-end encryption
+- True anonymity (no metadata)
+
+### Case IQ
+
+**Routing & Automation:**
+- Clairia AI assistant for case guidance
+- Automated workflows and notifications
+- Case linking and flags
+- STRENGTH: 75 chart types for analytics
+
+**Pattern Detection:**
+- Case linking and flags highlight connections
+- Personalized dashboards for pattern visibility
+- LIMITATION: Less sophisticated than HR Acuity for repeat offender tracking
+
+### HR Acuity
+
+**Pattern Detection (Industry Leader):**
+- Repeat offender identification
+- Cross-case subject tracking
 - Benchmarking against industry peers
-- Ranked #1 in multiple G2 categories (2025-2026)
-- Repeat offender pattern detection
+- olivER AI for insights
+- STRENGTH: Best-in-class employee relations analytics
 
-### Competitor Weaknesses to Exploit
-
-**NAVEX:**
-- Fragmented from acquisitions (inconsistent UX)
-- Legacy interface feel ("2010-era enterprise software")
-- Higher cost ($2,600+/month)
-- Limited customization (per user feedback)
-- Customer support concerns noted
-
-**EQS:**
-- Weaker case management/investigations
-- EU-focused (less US market presence)
-- Limited disclosure management
-
-**Case IQ:**
-- Limited policy management
-- Limited disclosure management
-- Investigation-focused, not end-to-end
-
-**HR Acuity:**
-- HR/ER focused only (not full compliance)
-- No policy management
-- No disclosure management
-- Limited whistleblowing (compared to EQS)
-
----
-
-## MVP Recommendation
-
-For MVP, prioritize these features to achieve competitive parity with fastest time-to-value:
-
-### Must Have for MVP (Table Stakes)
-
-1. **Case Management Core**
-   - Case creation, assignment, status tracking
-   - Investigation documentation
-   - Findings and outcomes
-   - Audit trail
-
-2. **Intake Channel (at least one)**
-   - Web form submission (simpler than operator console)
-   - Anonymous and identified reporting
-   - Access code for status checks
-
-3. **Basic Reporting**
-   - Dashboard with key metrics
-   - Case list with filters
-   - Export capability
-
-4. **Security Foundation**
-   - SSO integration
-   - Role-based access
-   - Multi-tenancy with RLS
-
-5. **Reporter Communication**
-   - Two-way messaging
-   - Anonymous relay
-
-### Include in MVP for Differentiation
-
-1. **AI Summarization** - Competitor parity by late 2025; must have
-2. **Modern UX with Saved Views** - Major differentiator vs. NAVEX legacy
-3. **Unified "My Work" Queue** - HubSpot-style cross-module view
-
-### Defer to Post-MVP
-
-| Feature | Reason to Defer | When to Add |
-|---------|-----------------|-------------|
-| Operator Console | Complex; existing Ethico system works | Phase 2 |
-| Disclosures/COI | Separate module; not core case management | Phase 2 |
-| Policy Management | Separate module; competitors have strong offerings | Phase 3 |
-| Advanced AI (pattern detection) | Needs data volume; complex | Phase 3+ |
-| Employee Chatbot | Complex; requires AI infrastructure | Phase 2-3 |
-| Mobile PWA | Nice-to-have; web works on mobile | Phase 3 |
-| Benchmarking against peers | Needs data from multiple customers | Phase 4+ |
+**Manager Dashboards:**
+- Team compliance visibility
+- Training completion tracking
+- Delegation and proxy capabilities
 
 ---
 
 ## Sources
 
-### Official Vendor Sources (HIGH confidence)
-- [NAVEX Platform](https://www.navex.com/en-us/platform/)
-- [EQS Integrity Line](https://www.integrityline.com/product/)
-- [Case IQ Platform Features](https://www.caseiq.com/platform/features)
-- [HR Acuity Platform](https://www.hracuity.com/platform/)
-- [NAVEX PolicyTech](https://www.navex.com/en-us/platform/employee-compliance/policytech-policy-management-software/)
+### Official Vendor Documentation (HIGH confidence)
+- [NAVEX AI Assistant](https://www.navex.com/en-us/platform/employee-compliance/ai-assistant/)
+- [Case IQ Platform](https://www.caseiq.com/platform)
+- [HR Acuity Whistleblower Hotline](https://www.hracuity.com/blog/best-whistleblower-hotline-2026/)
+- [EQS vs NAVEX Comparison](https://www.eqs.com/navex-vs-eqs-compliance-software-comparison/)
+- [GAN Integrity Disclosure Management](https://www.ganintegrity.com/use-case/disclosure-management/)
 - [NAVEX COI Disclosure Management](https://www.navex.com/en-us/platform/employee-compliance/coi-disclosure-management/)
 
-### Industry Analysis (MEDIUM confidence)
-- [Gartner Peer Insights - Whistleblowing Software](https://www.gartner.com/reviews/market/whistleblowing-software)
-- [Gartner Peer Insights - NAVEX](https://www.gartner.com/reviews/market/corporate-compliance-and-oversight-solutions/vendor/navex)
-- [G2 HR Acuity Reviews](https://www.g2.com/products/hr-acuity/reviews)
-- [G2 Case IQ Reviews](https://www.g2.com/products/case-iq/reviews)
-- [Best Whistleblowing Software - HR Acuity](https://www.hracuity.com/blog/best-whistleblower-hotline-2026/)
-- [Top Whistleblowing Software - SpeakUp](https://www.speakup.com/blog/top-whistleblowing-software-tools)
+### Industry Analysis (MEDIUM-HIGH confidence)
+- [Gartner Peer Insights - EQS vs NAVEX](https://www.gartner.com/reviews/market/corporate-compliance-and-oversight-solutions/compare/eqs-group-vs-navex)
+- [Best Whistleblowing Software 2026 - WhistleLink](https://www.whistlelink.com/blog/best-whistleblowing-software-2024-top-rated-digital-solutions/)
+- [Safecall Anonymous Two-Way Dialogue](https://www.safecall.co.uk/resource/anonymous-two-way-dialogue/)
 
-### Market Trends (MEDIUM confidence)
-- [NAVEX 2026 Compliance Trends](https://www.navex.com/en-us/blog/article/introducing-top-10-trends-risk-compliance-2026/)
-- [Compliance Management Software Market - Research and Markets](https://www.researchandmarkets.com/report/compliance-management-software)
-- [Best Compliance Management Software - Monday.com](https://monday.com/blog/service/compliance-management-software/)
-- [UX Design Trends 2026 - UX Design Institute](https://www.uxdesigninstitute.com/blog/the-top-ux-design-trends-in-2026/)
+### Automation & Rules Engine (MEDIUM confidence)
+- [How Automated Escalation Rules Reduce Bottlenecks - Cflow](https://www.cflowapps.com/how-automated-escalation-rules-reduce-approval-bottlenecks/)
+- [Business Rules Engines in Automation - Support Bench](https://www.supportbench.com/what-are-business-rules-engines-in-automation/)
+- [SLA Software Guide 2026 - Monday.com](https://monday.com/blog/service/sla-software/)
+- [Case Assignment Rules - Salesforce Patterns](https://www.saasguru.co/salesforce-case-assignment-rules/)
 
-### AI & Technology Trends (MEDIUM confidence)
-- [AI Compliance Tools - Drata](https://drata.com/blog/best-ai-compliance-tools)
-- [How AI Agents Will Redefine Compliance in 2026](https://fintech.global/2025/12/09/how-ai-agents-will-redefine-compliance-in-2026/)
-- [AI in Compliance Function - White & Case](https://www.whitecase.com/insight-our-thinking/2025-global-compliance-risk-benchmarking-survey-artificial-intelligence)
+### AI/RAG (MEDIUM confidence)
+- [Enterprise RAG Guide 2026 - Stack AI](https://www.stack-ai.com/blog/enterprise-rag-what-it-is-and-how-to-use-this-technology)
+- [Ethena Policy Bot](https://www.goethena.com/post/introducing-policy-bot-an-interactive-chatbot-powered-by-ai/)
+- [HR Chatbots Guide 2026 - Aisera](https://aisera.com/blog/hr-chatbot/)
 
-### Healthcare Compliance (MEDIUM confidence)
-- [HIPAA Compliance Software - HIPAA Journal](https://www.hipaajournal.com/hipaa-compliance-software/)
-- [Healthcare Compliance Software Guide](https://wtt-solutions.com/blog/healthcare-compliance-software)
-- [Top HIPAA Compliance Software 2026 - Sprinto](https://sprinto.com/blog/hipaa-compliance-software/)
+### PWA & Mobile (MEDIUM confidence)
+- [PWA Guide 2026 - Technocrat](https://atechnocrat.com/2026/01/31/progressive-web-apps-the-future-of-mobile-first-design-in-2026/)
+- [PWA Best Practices - MDN](https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps/Guides/Best_practices)
+- [Push Notifications for SaaS 2026 - EngageLab](https://www.engagelab.com/blog/push-notification-for-saas)
 
----
-
-## Confidence Assessment
-
-| Category | Confidence | Rationale |
-|----------|------------|-----------|
-| Table Stakes Features | HIGH | Multiple competitor feature pages verified; consistent across sources |
-| Competitor Capabilities | MEDIUM-HIGH | Official sites + Gartner/G2 reviews; some features may be outdated |
-| AI Feature Trends | MEDIUM | Rapidly evolving; announcements from late 2025; may change by implementation |
-| Pricing Information | LOW | Limited public pricing; NAVEX $2,600/mo from SelectHub; others "contact sales" |
-| Market Size/Growth | MEDIUM | Analyst reports; $31B to $70B projection from Research and Markets |
-| UX Expectations | MEDIUM-HIGH | General UX trends verified; compliance-specific UX less documented |
+### Sanctions & GT&E (MEDIUM confidence)
+- [Sanctions Compliance 2026 - AML Analytics](https://aml-analytics.com/2026/01/09/sanctions-complicance-in-2026/)
+- [FINRA Gift Rules - StarCompliance](https://www.starcompliance.com/finra-gifting/)
+- [GT&E Data to Track - GAN Integrity](https://www.ganintegrity.com/resources/blog/gifts-and-entertainment-data/)
+- [Vendor Sanction Screening - Ethico](https://ethico.com/credential-screening-monitoring/vendor-third-party-risk-monitoring/)
 
 ---
 
@@ -433,9 +637,13 @@ For MVP, prioritize these features to achieve competitive parity with fastest ti
 
 - [x] Categories are clear (table stakes vs differentiators vs anti-features)
 - [x] Complexity noted for each feature (Low/Medium/High)
-- [x] Dependencies between features identified
-- [x] Competitor comparison included
-- [x] Healthcare-specific features addressed
-- [x] AI features categorized with confidence levels
-- [x] MVP recommendation provided
+- [x] Dependencies on existing features identified
+- [x] Competitor approaches referenced where relevant
+- [x] Build order recommendation provided
 - [x] Sources documented with confidence levels
+- [x] Anti-features clearly documented to avoid over-engineering
+- [x] User perspective documented for each feature category
+
+---
+
+*End of v2.0 Intelligence Layer Feature Research*

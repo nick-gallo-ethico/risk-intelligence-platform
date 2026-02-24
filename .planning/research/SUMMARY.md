@@ -1,415 +1,532 @@
-# Project Research Summary
+# Project Research Summary: v2.0 Intelligence & Automation Layer
 
-**Project:** Ethico Risk Intelligence Platform
-**Domain:** Healthcare-focused Enterprise Compliance Management SaaS
-**Researched:** 2026-02-02
+**Project:** Ethico Risk Intelligence Platform - v2.0 Intelligence Layer
+**Domain:** Enterprise Compliance SaaS - Adding Intelligence/Automation to Existing Platform
+**Researched:** 2026-02-24
 **Confidence:** HIGH
 
 ## Executive Summary
 
-The Ethico Risk Intelligence Platform is a multi-tenant compliance management system designed around a **HubSpot-inspired architecture** (immutable inputs → mutable work containers) with **AI-first capabilities** throughout. Research confirms this approach is sound and differentiated: competitors grew through acquisition (fragmented UX, legacy feel), while a natively unified platform with modern AI integration addresses an emerging market gap.
+This v2.0 milestone adds intelligence and automation capabilities to the **existing** 42-module Risk Intelligence Platform. The platform has mature foundation (NestJS, PostgreSQL with RLS, Claude AI streaming, event-driven architecture) and proven patterns. The research focused on integrating ~70 new capabilities without disrupting the stable base.
 
-The recommended approach follows three architectural pillars: (1) **HubSpot data patterns** - RIU→Case architecture mimics Contact→Deal for clean separation of intake vs. work; saved views, pipelines, and property models for configurability; polymorphic task aggregation for "My Work" across modules. (2) **AI-first from ground up** - Context hierarchy (org→team→user→entity), scoped agents per view, action catalog with risk-tiered confirmation, skills registry for reusable prompts. (3) **PostgreSQL RLS multi-tenancy** - Database-enforced isolation with defense-in-depth application filtering, not bolt-on tenant checks.
+**Key Finding:** The platform's existing event-driven architecture (`EventEmitter2` with 100+ handlers), job queue system (`BullMQ` with 5 queues), and AI module infrastructure provide natural extension points. The recommended approach is **extension, not replacement** - leverage existing patterns rather than introduce competing abstractions. The critical risk is **pgvector + RLS performance collapse** which must be solved in Phase 1 before any RAG work.
 
-Key risks center on **multi-tenant security** (RLS false confidence is the #1 pitfall—test with non-superuser accounts), **AI data isolation** (prompt injection and cross-tenant context leakage), and **deadline-driven shortcuts** (Q1 deadline with 1,500 customer migration creates pressure to skip security gates). Mitigation requires non-negotiable security guardrails, scope reduction over quality reduction, and AI-first design from day one (cannot retrofit tenant isolation into AI features).
+**Recommended Approach:** Build intelligence features as event listeners and processors rather than inline in CRUD operations. Use the existing rules engine package (`json-rules-engine` already installed) rather than building custom DSL. Implement RAG through **separate embedding tables** to avoid RLS performance issues. Add fact tables for analytics through **incremental aggregation** rather than materialized views to prevent multi-tenant blocking.
+
+The research identified 6 critical pitfalls that require architectural decisions before implementation, 6 high-severity risks requiring careful design, and clear integration points across all 42 existing modules. All recommended stack additions (pgvector, voyageai, llamaindex, serwist, web-push) have TypeScript SDKs and integrate cleanly with NestJS.
 
 ## Key Findings
 
 ### Recommended Stack
 
-The core stack (NestJS + Next.js 14 + PostgreSQL/Prisma + shadcn/ui) is already established. Research focused on additional components to complete the platform: AI integration (@anthropic-ai/sdk with official TypeScript SDK), background jobs (BullMQ—TypeScript rewrite of Bull with flow producers for AI pipelines), HRIS unified API (Merge.dev for 50+ providers), email (Resend for modern DX with nodemailer fallback), real-time (Socket.IO + Y.js for collaboration), hybrid search (Elasticsearch + pgvector for keyword + semantic), report generation (Puppeteer for PDF, ExcelJS for Excel), and multi-provider SSO (passport-saml + passport-azure-ad).
+The existing stack (NestJS, PostgreSQL 15+, Prisma, Claude API, BullMQ, Elasticsearch) is production-ready. v2.0 adds focused capabilities rather than replacing foundations.
 
-**Core technologies:**
-- **@anthropic-ai/sdk** (AI) — Official Claude API client with streaming, tool use, MCP support; TypeScript-first
-- **BullMQ + @nestjs/bullmq** (Background Jobs) — Flow producers for AI pipeline orchestration, Redis-backed queues with Bull Board admin UI
-- **Merge.dev (@mergeapi/merge-hris-node)** (HRIS) — Single API for 50+ HRIS systems; SOC2 compliant, avoids maintaining individual adapters
-- **Elasticsearch + pgvector** (Search) — Hybrid: keyword search + facets via Elasticsearch, semantic similarity + RAG via pgvector
-- **Socket.IO + Y.js** (Real-time) — WebSocket gateway for notifications (Redis adapter for scaling), Y.js CRDT for policy co-editing
-- **Puppeteer + ExcelJS** (Reports) — HTML-to-PDF with full CSS/React components; streaming Excel for 1M+ rows
-- **passport-saml + passport-azure-ad** (SSO) — SAML 2.0 for any IdP + native Azure AD support; JIT provisioning with domain verification
+**New packages for v2.0:**
+
+- **voyageai ^0.1.0**: Embedding generation (Anthropic's recommended partner) — 1,024-dimension vectors, 35% better retrieval than alternatives
+- **llamaindex ^0.12.1**: RAG pipeline orchestration — retrieval-first architecture (vs LangChain's orchestration-first), 40% faster document retrieval
+- **pgvector extension 0.8.x**: Semantic search via PostgreSQL — keeps vectors under same RLS as other data, HNSW indexing for fast similarity search
+- **@serwist/next ^9.x**: PWA service worker (replaces @ducanh2912/next-pwa) — actively maintained Workbox fork with Next.js 14 support
+- **web-push ^3.x**: Push notifications backend — complements WebSocket for offline users
+- **open-exchange-rates + money**: Currency conversion for GT&E thresholds — free tier sufficient for daily refresh
+
+**Already installed (use as-is):**
+
+- **json-rules-engine 7.3.1**: Configurable business rules — already in package.json, no eval(), stores rules in JSON
+- **@nestjs/schedule + bullmq**: Scheduled report delivery — prevents duplicate jobs in multi-instance deployment
+- **puppeteer + exceljs**: PDF/Excel generation — already in stack for exports
+- **@anthropic-ai/sdk**: Claude API for RAG responses — extend existing AI module
+
+**Critical decision: Embedding model abstraction** — Must implement before first embedding to avoid lock-in (different models = different dimensions = migration pain).
 
 ### Expected Features
 
-**Must have (table stakes):**
-- **Case management core** — Multi-channel intake (phone, web, chatbot), investigation tracking with findings/outcomes, case assignment/routing with SLAs, audit trail (immutable, timestamped), document attachment with versioning
-- **Anonymous reporting** — True anonymity (no IP tracking), access codes for status checks, two-way relay communication, EU Whistleblowing Directive compliance
-- **Disclosures & COI** — Configurable forms (COI, gifts, outside employment), campaign distribution with completion tracking, threshold-based case creation (gift > $X triggers review)
-- **Policy management** — Document repository with version control, attestation campaigns with tracking, policy search and access control
-- **Analytics & reporting** — Dashboard with KPI cards, standard report library, PDF/Excel export, trend analysis with drill-down
-- **Security baseline** — SSO (SAML, Azure AD, Google), RBAC with granular permissions, SOC 2 Type II certification path, HIPAA compliance (BAAs, encryption, PHI protection), MFA
+Research analyzed 8 intelligence/automation capabilities against NAVEX, EQS Integrity, Case IQ, and HR Acuity. The competitive landscape shows:
 
-**Should have (competitive differentiators):**
-- **AI-powered features** (table stakes by late 2026) — Case summarization, AI note cleanup (operator bullets → formal narrative), compliance-trained translation (80+ languages), risk scoring for triage, natural language search ("show me harassment cases from EMEA"), policy Q&A chatbot
-- **Modern UX patterns** — Saved views/custom filters (HubSpot-style), unified "My Work" queue (cross-module task aggregation), clean interface ("quieter, focused" 2026 trend), drag-and-drop dashboards, configurable columns, in-app notifications (not email-only)
-- **Investigation excellence** — Category-specific templates with checklists, remediation plan library, subject tracking across cases (repeat offender detection), case merge, multi-investigator collaboration, structured interview capture
-- **Healthcare-specific** — HIPAA workflows (breach notification, PHI handling), PHI detection/redaction (AI-assisted), healthcare taxonomy (EMTALA, Stark, kickback), sanction screening (OIG/SAM), BAA support
+**Table stakes (must have for v2.0):**
 
-**Defer (v2+):**
-- **Advanced AI** (pattern detection across cases, document analysis) — Needs data volume; complex to implement correctly
-- **Mobile PWA** — Web works on mobile; nice-to-have for field access
-- **Benchmarking against peers** (HR Acuity feature) — Needs multi-customer data volume
-- **Live chat** — Async inquiry queue sufficient; compliance teams small (1-5 people)
+- **Routing rules engine** — All competitors offer if/then assignment based on category/severity/location; manual override essential
+- **SLA enforcement with visual indicators** — Color-coded countdown timers (green/yellow/red); email alerts on breach
+- **Anonymous two-way messaging** — Chinese Wall relay model with access codes; EU Whistleblowing Directive requires follow-up capability
+- **Auto-clear rules for disclosures** — Nothing-to-disclose responses auto-complete without review; threshold-based case creation
+- **HRIS-triggered campaign enrollment** — New hire/role change/termination triggers auto-assignment to active campaigns
+- **Repeat subject alerts** — When person appears in 3+ cases, alert investigator in real-time
+
+**Differentiators (competitive edge):**
+
+- **RAG-powered policy chatbot** — NAVEX launched AI Assistant late 2025; Ethena has Policy Bot; confidence-tier responses (High/Medium/Low)
+- **Rule preview/testing** — Test rules against historical data before activation; competitors require "go live to see"
+- **Pattern-based escalation** — Combine rules engine with pattern detection (e.g., "if subject has 5+ cases in 90 days, auto-escalate to CCO")
+- **PWA offline form submission** — Very few competitors offer; critical for field workers with poor connectivity
+- **Manager compliance dashboards** — HR Acuity leads here; team-level visibility with proxy actions
+- **AI trend identification** — "Harassment reports up 40% in Manufacturing" without manual querying
+
+**Defer to future (not v2.0):**
+
+- **External party sanctions screening** — Specialized for financial services/healthcare; integrate with vendors (Moody's, LSEG) when customer need emerges
+- **Cross-organization benchmarking** — HR Acuity differentiator; requires anonymized aggregate data pipeline
+- **Voice message transcription** — No competitor offers; complex to implement correctly
+- **Natural language rule builder** — High complexity; simple if/then UI sufficient for v2.0
+
+**Build order recommendation:** Phase 1 (Routing + SLA), Phase 2 (RAG chatbot + HRIS triggers), Phase 3 (Pattern detection + PWA), Phase 4 (Manager dashboards + advanced analytics).
 
 ### Architecture Approach
 
-The platform extends an existing NestJS/PostgreSQL RLS foundation with five new architectural capabilities, designed around event-driven module communication and scoped AI agents. The AI integration layer uses context hierarchy (platform→org→team→user→entity) for Claude Code-style customization, action catalog with risk-tiered confirmation (compliance data is consequential), and model routing (Haiku/Sonnet/Opus) based on task type and plan tier. Multi-provider SSO with JIT provisioning resolves tenants by email domain. Unified notifications use event bus (@nestjs/event-emitter + BullMQ) with user preferences per event type (email, in-app, digest). Task aggregation implements polymorphic TaskSource interface across modules for "My Work" view. Workflow engine operates on entity state (doesn't duplicate), with rule-based assignment and SLA escalation.
+The existing architecture is event-driven with clear module boundaries. The integration strategy is **extend through event listeners rather than modify existing services**.
 
-**Major components:**
-1. **AI Integration Layer** — ContextLoader (hierarchical), SkillsRegistry (reusable prompts), ActionCatalog (permission-filtered executable actions), ModelRouter (Haiku/Sonnet/Opus selection), AgentSelector (scoped by view), AIProviderManager (Claude primary, Azure OpenAI fallback)
-2. **Event Bus + Workflow Engine** — @nestjs/event-emitter for module decoupling, BullMQ for async side effects, WorkflowEngine for state machine transitions with SLA tracking, AssignmentService with pluggable rules (round robin, category-based, location-based), EscalationService for deadline breaches
-3. **Multi-Provider SSO** — Dynamic passport strategies (Azure AD, Google, SAML 2.0), TenantService for domain→org resolution with verification, JIT provisioning with role mapping, JWT with refresh rotation (15min access, 7d refresh), session revocation via Redis
-4. **Unified Notification System** — NotificationPreferences per user/event type, multi-channel adapters (email via Resend, in-app via Socket.IO), DigestService for daily/weekly aggregation, TemplateService for entity context rendering
-5. **Task Aggregation ("My Work")** — TaskSource interface implemented by each module (Cases, Investigations, Disclosures, Approvals), PriorityCalculator for SLA urgency scoring, TaskAggregationService for polymorphic query across sources
+**Major integration points:**
+
+1. **Rules Engine Module** — New module that listens to `case.created`, `workflow.transitioned`, `disclosure.submitted` events; evaluates conditions; executes actions via existing services (CasesService, NotificationService, WorkflowEngineService). Database storage: `RuleDefinition` + `RuleExecutionLog` tables. Uses existing `json-rules-engine` package.
+
+2. **RAG Search Enhancement** — Extend existing `SearchModule` with semantic search capabilities. **Critical: Separate `DocumentEmbedding` table** with explicit `organizationId` column to avoid RLS performance collapse. Integration with `PolicyModule` for ingestion, `AiModule` for embeddings, new `VectorStoreService` for similarity queries.
+
+3. **Pattern Detection Module** — Background jobs (BullMQ) run nightly per tenant, query `PersonCaseAssociation` for patterns, create `PatternAlert` records. Reuses existing `ConflictMatchingService` fuzzy matching logic. Dashboard widgets consume alerts.
+
+4. **Rolling Campaign Enhancement** — Extend `CampaignsModule` with `RollingCampaignService` that listens to `hris.sync.completed` event; filters employees by trigger type (new_hire, role_change); creates `CampaignAssignment` via existing services. Schema: add `isRolling`, `rollingTriggerType`, `rollingTriggerConfig` to `Campaign` model.
+
+5. **Fact Tables for Analytics** — New `FactTablesModule` with dual update strategy: (1) Event listeners increment metrics in real-time (`case.created` → increment `casesCreated` counter), (2) Nightly reconciliation job recalculates from source data. Avoids materialized view blocking. Dashboard queries use fact tables instead of live aggregation.
+
+6. **Anonymous Relay Enhancement** — Extend existing `MessageRelayService` with email notification batching (1-6 hour random delay to prevent timing attacks). Add `emailSentAt`, `emailDeliveredAt` tracking to `CaseMessage` model. New email templates in `notifications/templates/relay/`.
+
+7. **Employee Chatbot Agent** — New agent in existing `ai/agents/` using established `BaseAgent` pattern. Skills: `PolicySearchSkill` (RAG-powered), `CaseStatusSkill` (access code lookup), `DisclosureGuideSkill` (form help). Connects to employee portal via existing `AiGateway` WebSocket.
+
+8. **PWA Capabilities** — Frontend service worker with tenant-scoped cache names (`ethico-${orgId}-v${buildId}`). Backend: `PushSubscription` model + `WebPushService` for notifications. Network-first strategy for authenticated routes; cache only static assets.
+
+**Dependency chain:** Phase 1 must solve pgvector+RLS before RAG. Rules engine must exist before automation features. HRIS sync fence must exist before rolling campaigns.
 
 ### Critical Pitfalls
 
-1. **RLS False Confidence** — PostgreSQL RLS bypassed by superuser accounts (used in dev testing), contaminated by connection pooling, fails in complex queries (CVE-2024-10976 with subqueries/CTEs). **Avoid:** Test with non-superuser accounts matching production roles; defense-in-depth (application + RLS, not RLS alone); `SET LOCAL` on every request; dedicated tenant isolation E2E tests per entity; audit query plans with EXPLAIN.
+**Top 5 must-solve-before-implementation:**
 
-2. **AI Cross-Tenant Data Leakage** — Prompt templates pull from multiple tenants, shared vector indices leak via semantic search, LLM caching creates side-channel (PROMPTPEEK attack). **Avoid:** Tenant filter (`organizationId`) in every AI data fetch; per-tenant vector indices (no shared pgvector/Pinecone); prompt sanitization; AI interaction logging for audit; rate limiting per tenant; output validation for unexpected entity references.
+1. **pgvector + RLS performance collapse** — Vector similarity searches with `<->` operator combined with RLS policies force sequential scans instead of index scans. Queries go from 50ms to 5+ seconds. **Solution:** Create **separate embedding tables** (`case_embeddings`, `policy_embeddings`) with explicit `organizationId` column and composite indexes. Query pattern: filter by org BEFORE vector similarity. Benchmark with 100K+ embeddings in Phase 1.
 
-3. **Migration Data Corruption** — 1,500+ customer migration from legacy systems (Ethico legacy, NAVEX, Case IQ, EQS) causes lost audit trails, broken relationships, compliance gaps. 73% of migrations struggle; legacy format clashes cause 45% of failures. **Avoid:** Migration-ready schema (`source_system`, `source_record_id`, `migrated_at` on all entities); per-source-system adapters (not one-size-fits-all); validation framework comparing record counts and relationships; staged rollout (3-5 pilots, then batched); audit trail for migration operations.
+2. **GDPR Article 17 vs Immutable RIU conflict** — RIUs are designed as immutable (no `updatedAt` field) for audit integrity. GDPR requires data deletion. **Solution:** Cryptographic shredding via per-record encryption keys. On deletion: destroy key (makes data unrecoverable), replace PII with `[REDACTED - GDPR Request #X]`, keep structural fields for analytics. Add `piiEncryptionKeyId`, `piiPurgedAt`, `piiPurgedReason` fields.
 
-4. **HIPAA as Afterthought** — PHI cached in logs, transmitted to vendors without BAAs, exposed through analytics integrations. 540+ organizations reported breaches in 2023 (112M people). **Avoid:** BAA before integration (verify Anthropic's healthcare BAA status); PHI inventory documenting all flows; no PHI in logs (use correlation IDs); minimum necessary access (no "admin just in case"); privacy-by-design from start; continuous compliance monitoring.
+3. **Event handler race conditions** — Current `EventEmitter2` system (100+ handlers) processes events asynchronously without ordering guarantees. Multiple rules firing on same event can create duplicate cases, evaluate against stale data, or leak tenant data. **Solution:** (1) Idempotency keys on all automation triggers (`${entityId}-${ruleId}`), (2) Transactional outbox pattern for critical automations, (3) Explicit tenant validation in every handler, (4) Use existing BullMQ with job deduplication.
 
-5. **Deadline-Driven Security Shortcuts** — Q1 deadline pressure leads to "we'll fix it later" for security. These shortcuts become permanent (technical debt compounds, 20-40% productivity loss per McKinsey). **Avoid:** Security as non-negotiable gate; scope reduction over quality reduction; automated security gates that block deployment; explicit debt tracking with remediation timeline; MVP security cannot be compromised.
+4. **Embedding model lock-in** — pgvector requires dimension declaration (`vector(1536)`) at table creation. Changing models requires dropping columns, re-embedding entire corpus. **Solution:** (1) Embedding abstraction layer with `EmbeddingService` interface, (2) Store model metadata with every embedding (`modelId`, `modelVersion`, `embeddingDimension`), (3) Lazy migration strategy (re-compute on access), (4) Separate tables per model generation.
+
+5. **Materialized view refresh blocking** — Adding materialized views for analytics causes `REFRESH` operations to block reads (exclusive lock) or consume excessive resources. Multi-tenant refresh updates all orgs when only one changed. **Solution:** **Incremental aggregation tables** instead of materialized views. Dual strategy: (1) Event-driven incremental updates (`INSERT ON CONFLICT`), (2) Nightly reconciliation per tenant. Stagger refresh jobs during off-hours via BullMQ.
+
+**High-severity risks (careful design required):**
+
+- **Rules engine evaluation order** — Multiple rules on same event need explicit priority + first-match-wins for mutually exclusive actions
+- **Cross-case pattern detection false positives** — Fuzzy matching without context generates alert fatigue; need confidence thresholds + feedback loop
+- **Rolling campaign + HRIS sync race** — Campaign evaluation during partial sync creates wrong assignments; need completion fence
+- **PWA service worker cache invalidation** — Stale data, hydration errors, tenant data leakage; need tenant-scoped cache names + forced update on logout
+- **Anonymous relay metadata leakage** — Email timing, IP logs, browser fingerprints can compromise anonymity; need notification batching + metadata stripping
 
 ## Implications for Roadmap
 
-Based on research, suggested phase structure follows **dependency-driven order** (event infrastructure → workflow engine → domain modules → AI integration) rather than feature-driven. The HubSpot parallel guides entity modeling (RIU→Case mirrors Contact→Deal), while AI-first requirements shape every phase (context hierarchy, activity logs with natural language, AI enrichment fields on entities).
+Based on research, the v2.0 intelligence layer should be built in **6 waves** with clear dependencies:
 
-### Phase 1: Event Infrastructure Foundation
-**Rationale:** All other components depend on event-driven communication. Unified audit trail required before any domain modules. This phase establishes the "nervous system" for the platform—modules communicate via events, not direct calls, enabling loose coupling and independent scaling.
+### Wave 1: RAG Infrastructure (Foundation)
+
+**Rationale:** All intelligence features depend on semantic search and embeddings. Must solve pgvector+RLS performance issue (CRIT-01) before any RAG work. Embedding model lock-in (CRIT-04) requires abstraction layer before first embedding generated.
 
 **Delivers:**
-- Event bus setup (@nestjs/event-emitter)
-- BullMQ queue infrastructure with Redis
-- Unified AUDIT_LOG table and service (natural language descriptions)
-- Tenant middleware (SET LOCAL on every request)
-- Connection pool testing suite
+- pgvector extension enabled on PostgreSQL with HNSW indexes
+- Separate `DocumentEmbedding` table with explicit tenant isolation
+- `EmbeddingService` abstraction (supports multiple providers: Voyage AI primary, fallback architecture)
+- `VectorStoreService` for similarity search with performance benchmarks (100K+ embeddings)
+- Document chunking strategy per entity type (policies: section-based, cases: activity-based)
+- `HybridSearchService` combining Elasticsearch keyword + pgvector semantic
 
-**Stack elements:** BullMQ + @nestjs/bullmq, Redis, PostgreSQL session variables
+**Addresses features:**
+- Foundation for RAG-powered policy chatbot (Phase 2)
+- Semantic case search capability
+- Similar case detection infrastructure
 
-**Avoids Pitfall:** Connection pool tenant context contamination (Pitfall #6)—establish SET LOCAL pattern before domain modules use it
+**Avoids pitfalls:**
+- CRIT-01: pgvector+RLS collapse via separate tables
+- CRIT-04: Embedding lock-in via abstraction layer
+- MED-01: RAG chunking misalignment via structure-aware chunking
+- MED-03: Embedding regeneration thundering herd via rate limiting
+- MED-06: Context loader performance via token budgeting
 
-**Research needed:** None—standard NestJS patterns well-documented
+**Stack:**
+- pgvector 0.8.1 (PostgreSQL extension)
+- voyageai ^0.1.0 (embeddings)
+- llamaindex ^0.12.1 (RAG orchestration)
+- pgvector npm ^0.2.1 (Node.js utilities)
+
+**Research flags:**
+- Performance tuning required for HNSW index parameters (m, ef_construction)
+- Embedding dimension selection (1024 vs 1536 vs 3072)
+- Chunking overlap strategy needs experimentation
 
 ---
 
-### Phase 2: Workflow Engine Core
-**Rationale:** Cases, Disclosures, and Campaigns all need workflow automation. Building this before domain modules enables consistent workflow patterns across the platform. Workflow engine operates on entity state (DDD principle), doesn't maintain separate state.
+### Wave 2: Data Integrity & Privacy
+
+**Rationale:** GDPR compliance (CRIT-02) is non-negotiable for EU customers. Anonymous relay metadata leakage (HIGH-06) is legal liability risk. Must be solved before any EU deployment.
 
 **Delivers:**
-- WorkflowDefinition schema and CRUD
-- WorkflowEngine state machine logic
-- AssignmentService with pluggable rules (round robin, category, location)
-- SLA tracking and escalation via BullMQ delayed jobs
-- Workflow action hooks for domain modules
+- Cryptographic shredding implementation for GDPR Article 17
+- `piiEncryptionKeyId`, `piiPurgedAt`, `piiPurgedReason` fields on RIU
+- `GdprDeletionRequest` workflow with 30-day grace period
+- Anonymous relay notification batching (1-6 hour random delay)
+- Metadata stripping on all anonymous endpoints (IP logs, timing obfuscation)
+- Email tracking on `CaseMessage` (`emailSentAt`, `emailDeliveredAt`)
 
-**Stack elements:** Prisma schema extensions, BullMQ delayed jobs
+**Addresses features:**
+- Anonymous two-way messaging enhancement (table stakes)
+- GDPR compliance for EU Whistleblowing Directive
+- Reporter trust through metadata protection
 
-**Avoids Pitfall:** Hardcoded assignment rules (Anti-Pattern #5)—rules stored as data, interpreted at runtime
+**Avoids pitfalls:**
+- CRIT-02: GDPR vs immutable RIU via cryptographic shredding
+- HIGH-06: Anonymous relay metadata leakage via timing obfuscation
 
-**Research needed:** Minimal—workflow patterns defined in WORKING-DECISIONS.md (G.1-G.5)
+**Stack:**
+- Node.js crypto module (AES-256-GCM)
+- Existing email infrastructure (Resend/nodemailer)
+- Existing BullMQ for delayed notification jobs
+
+**Research flags:**
+- Key rotation strategy needs legal review
+- Data residency requirements per jurisdiction
+- Anonymization vs pseudonymization distinction
 
 ---
 
-### Phase 3: Multi-Provider SSO & Authentication
-**Rationale:** AI features and domain modules need authenticated users. Can run in parallel with Phase 2. SSO complexity front-loaded enables smooth onboarding for enterprise customers (1,500 customer migration requires self-service SSO setup).
+### Wave 3: Automation Engine
+
+**Rationale:** Rules engine is foundation for automation features. Must solve event handler race conditions (CRIT-03) before any rule execution. Many downstream features (rolling campaigns, pattern escalation) depend on rules engine.
 
 **Delivers:**
-- Passport.js strategies (Azure AD, Google, SAML 2.0)
-- TenantService with email domain verification
-- JIT provisioning with role mapping
-- JWT token management (access + refresh with rotation)
-- Session revocation via Redis
-- MFA support
+- `RulesModule` with `RuleDefinition` + `RuleExecutionLog` models
+- Integration with `json-rules-engine` (already installed)
+- Event listeners for `case.created`, `workflow.transitioned`, `disclosure.submitted`
+- Idempotency keys on all automation triggers
+- Transactional outbox pattern for critical automations
+- Explicit rule execution phases (VALIDATION → ENRICHMENT → ACTION → NOTIFICATION)
+- Basic routing rules UI (if/then conditions, action selection)
+- SLA enforcement with visual countdown timers (green/yellow/red)
+- Auto-clear rules for disclosures (threshold-based case creation)
 
-**Stack elements:** passport-saml, passport-azure-ad, passport-google-oauth20, @nestjs/passport
+**Addresses features:**
+- Routing rules engine (table stakes)
+- SLA enforcement (table stakes)
+- Auto-clear rules (table stakes)
+- Foundation for pattern-based escalation (Phase 4)
 
-**Avoids Pitfall:** JWT token bloat (Pitfall #13)—minimal claims only (sub, organizationId, role, sessionId, exp)
+**Avoids pitfalls:**
+- CRIT-03: Event handler race conditions via idempotency + outbox
+- HIGH-02: Rule evaluation order via explicit phases + priority
+- MED-02: AI action undo complexity via scope boundaries
 
-**Research needed:** None—fully specified in TECH-SPEC-AUTH-MULTITENANCY.md
+**Stack:**
+- json-rules-engine 7.3.1 (already installed)
+- Existing EventEmitter2 infrastructure
+- Existing BullMQ for job deduplication
+
+**Research flags:**
+- Rule conflict detection at save time (multiple rules same trigger)
+- Dry-run/preview mode implementation complexity
+- Rule versioning strategy
 
 ---
 
-### Phase 4: Case Management Core (RIU→Case Architecture)
-**Rationale:** Core domain module; other modules reference Cases. Establishes RIU (immutable input) → Case (mutable work container) pattern, the HubSpot Contact→Deal parallel. This phase proves the architecture works before expanding to other modules.
+### Wave 4: Rolling Campaigns & HRIS Automation
+
+**Rationale:** Builds on rules engine from Wave 3. HRIS-triggered campaigns are key differentiator. Must solve HRIS sync race condition (HIGH-04) before deployment.
 
 **Delivers:**
-- RIU entity (Risk Intelligence Unit—immutable)
-- Case entity (mutable work container)
-- Investigation entity with findings/outcomes
-- Subject tracking (for cross-case pattern detection)
-- RIU-Case associations (many-to-many with type: primary/related/merged_from)
-- Case assignment and routing
-- Basic workflow integration (status transitions)
-- Reporter communication (anonymous relay)
+- Campaign model extensions (`isRolling`, `rollingTriggerType`, `rollingTriggerConfig`)
+- `RollingCampaignService` with trigger evaluation logic
+- HRIS sync completion fence (prevents race conditions)
+- Event listener for `hris.sync.completed`
+- Trigger types: new_hire, role_change, location_change, manager_change, termination
+- Auto-assignment to active campaigns based on employee changes
+- Campaign dashboard showing rolling enrollment metrics
 
-**Stack elements:** Prisma entities, workflow engine integration, event emission
+**Addresses features:**
+- HRIS-triggered campaign enrollment (differentiator)
+- Auto-assignment on hire/promotion (table stakes extension)
+- Manager delegation for approvals (differentiator)
 
-**Avoids Pitfall:** RIU immutability violations (Pitfall #10)—no UPDATE endpoints for RIU content fields; corrections go on Case
+**Avoids pitfalls:**
+- HIGH-04: Rolling campaign + HRIS sync race via completion fence
+- MED-03 (partial): Thundering herd via staggered processing
 
-**Features addressed:** Case management core (table stakes), anonymous reporting, investigation tracking
+**Stack:**
+- Existing HrisSyncService
+- Existing CampaignsModule infrastructure
+- Existing BullMQ for background processing
 
-**Research needed:** Phase-specific research for anonymous relay implementation (encryption, access code generation, Chinese Wall model)
+**Research flags:**
+- Trigger configuration UI design
+- Retroactive enrollment rules (backfill for existing employees)
 
 ---
 
-### Phase 5: Unified Notification System
-**Rationale:** Workflows trigger notifications; depends on event bus. Enables real-time awareness and reduces email overload with user preferences. Notifications are infrastructure—all modules consume this service.
+### Wave 5: Intelligence Layer (RAG + Chatbot + Patterns)
+
+**Rationale:** Depends on RAG infrastructure (Wave 1) and rules engine (Wave 3). Combines semantic search with automation for intelligent features.
 
 **Delivers:**
-- NotificationPreference schema and service (per user, per event type)
-- Email adapter (Resend with nodemailer fallback)
-- In-app adapter (Socket.IO push with Redis adapter for scaling)
-- DigestService for daily/weekly aggregation (BullMQ cron)
-- TemplateService for entity context rendering
-- Event listeners for case.created, investigation.assigned, sla.breached
+- `EmployeeChatbotAgent` in existing AI module
+- Employee-specific skills: `PolicySearchSkill` (RAG), `CaseStatusSkill`, `DisclosureGuideSkill`
+- Confidence-tier responses (High/Medium/Low) with source citations
+- Integration with employee portal via existing `AiGateway` WebSocket
+- `PatternDetectionModule` with repeat subject, case cluster, trend detectors
+- `PatternAlert` model with review workflow
+- Nightly pattern detection job (BullMQ) per tenant
+- Real-time repeat subject alert on case creation
+- Fuzzy name matching with confidence thresholds
 
-**Stack elements:** Resend, @nestjs-modules/mailer, Socket.IO, @socket.io/redis-adapter
+**Addresses features:**
+- RAG-powered policy chatbot (differentiator)
+- Repeat subject alerts (table stakes)
+- AI trend identification (differentiator)
+- Pattern-based escalation (differentiator - combines with rules)
 
-**Avoids Pitfall:** Email-only notifications (Anti-Feature)—in-app notification center + email as fallback
+**Avoids pitfalls:**
+- HIGH-03: Pattern detection false positives via confidence thresholds + feedback loop
+- MED-01 (from Wave 1): Chunking misalignment via structure-aware strategy
+- MED-06 (from Wave 1): Context loader performance via token budgeting
 
-**Features addressed:** In-app notifications (differentiator vs. legacy competitors)
+**Stack:**
+- llamaindex ^0.12.1 (RAG pipeline)
+- voyageai ^0.1.0 (embeddings from Wave 1)
+- Existing ConflictMatchingService for fuzzy matching
+- Existing AI module infrastructure
 
-**Research needed:** None—notification patterns straightforward
+**Research flags:**
+- Confidence threshold tuning per pattern type
+- Employee chatbot escalation UX (when to hand off to human)
 
 ---
 
-### Phase 6: Web Form Intake (First RIU Source)
-**Rationale:** Simpler than Operator Console (existing system); proves RIU creation flow. Configurable forms establish pattern for Disclosures module. Web form submissions create RIUs immediately (no QA review like operator console).
+### Wave 6: Analytics & Fact Tables
+
+**Rationale:** Independent of other waves; can proceed in parallel with Wave 4-5. Must solve materialized view blocking (HIGH-01) before dashboard optimization.
 
 **Delivers:**
-- FormDefinition schema (field types, validation rules, conditional logic)
-- FormBuilder UI (drag-and-drop field configuration)
-- Public form submission endpoint (anonymous + authenticated)
-- RIU creation from submission
-- Automatic Case creation with routing rules
-- Form analytics (submission rates, completion time)
+- `FactCaseDaily` + `FactCampaignDaily` aggregation tables
+- Dual update strategy: event-driven incremental + nightly reconciliation
+- Event listeners for `case.created`, `case.resolved`, `campaign.assignment.completed`
+- Nightly reconciliation job (BullMQ) per tenant, staggered during off-hours
+- Dashboard widgets consuming fact tables (faster queries)
+- Manager compliance dashboard (team metrics, proxy actions)
+- Pattern alert dashboard with accept/dismiss tracking
 
-**Stack elements:** Prisma for form definitions, RIU entity from Phase 4
+**Addresses features:**
+- Manager compliance dashboards (differentiator)
+- Fast analytics for large datasets (performance)
+- Scheduled report delivery (uses existing puppeteer/exceljs)
 
-**Avoids Pitfall:** Over-complicated workflow builders (Anti-Feature)—pre-built templates with simple customization, not developer-grade complexity
+**Avoids pitfalls:**
+- HIGH-01: Materialized view blocking via incremental aggregation
+- MED-04: Dashboard widget N+1 via DataLoader pattern (already in codebase)
 
-**Features addressed:** Web form intake (table stakes), configurable forms (disclosures foundation)
+**Stack:**
+- Existing @nestjs/schedule + BullMQ
+- Existing puppeteer + exceljs for reports
+- Existing DataLoader pattern
 
-**Research needed:** Phase-specific research for form builder patterns (JSON schema validation, conditional logic engines)
+**Research flags:**
+- Fact table granularity (daily vs hourly)
+- Reconciliation job scheduling (avoid peak hours)
 
 ---
 
-### Phase 7: Task Aggregation & "My Work"
-**Rationale:** Requires domain modules (Cases, Investigations) to expose TaskSource implementations. Delivers HubSpot-style unified queue, major UX differentiator vs. legacy competitors' siloed views.
+### Wave 7: User Experience (PWA)
+
+**Rationale:** Frontend-focused; can proceed after API stability in Waves 1-6. PWA cache invalidation (HIGH-05) requires careful design.
 
 **Delivers:**
-- TaskSource interface definition
-- Module implementations (CasesTaskSource, InvestigationsTaskSource)
-- TaskAggregationService (polymorphic query)
-- PriorityCalculator (SLA urgency, severity, age scoring)
-- My Work API endpoint and UI view
-- Saved views/custom filters (HubSpot pattern)
+- Service worker with tenant-scoped cache names
+- PWA manifest for installable app
+- `PushSubscription` model + `WebPushService`
+- Offline form submission queue (IndexedDB via existing dexie)
+- Network-first strategy for authenticated routes
+- Cache clearing on logout (security)
+- Push notifications for SLA alerts, assignment, messages
 
-**Stack elements:** TypeScript interfaces, Prisma aggregation queries
+**Addresses features:**
+- PWA offline form submission (differentiator)
+- Push notifications (differentiator)
+- Home screen installable (table stakes for mobile)
 
-**Avoids Pitfall:** Monolithic AI service (Anti-Pattern #1)—scoped context per module via TaskSource interface
+**Avoids pitfalls:**
+- HIGH-05: PWA cache invalidation via tenant-scoped names + forced update
 
-**Features addressed:** Unified "My Work" queue (differentiator), saved views (HubSpot pattern)
+**Stack:**
+- @serwist/next ^9.x (replaces @ducanh2912/next-pwa)
+- web-push ^3.x (backend)
+- Existing dexie + dexie-encrypted for offline storage
 
-**Research needed:** Minimal—polymorphic query pattern standard
-
----
-
-### Phase 8: AI Integration Layer
-**Rationale:** AI layer consumes context from all other components. Must be designed in from start (cannot retrofit tenant isolation). Builds on entity data from Phases 4-7, uses workflow engine from Phase 2 for AI-triggered actions.
-
-**Delivers:**
-- ContextLoaderService (platform→org→team→user→entity hierarchy)
-- SkillsRegistryService (platform + org-custom + user-personal skills)
-- ActionCatalogService (static registry with permission filtering)
-- ModelRouterService (Haiku/Sonnet/Opus selection based on task type and plan tier)
-- AgentSelectorService (scoped agents: Investigation Agent, Case Agent, Compliance Manager Agent)
-- AIProviderManager (Claude primary, Azure OpenAI fallback)
-- AI interaction logging (audit trail)
-- Rate limiting per tenant (token bucket algorithm)
-
-**Stack elements:** @anthropic-ai/sdk, pgvector for embeddings, Redis for rate limiting
-
-**Avoids Pitfalls:**
-- **Cross-tenant AI leakage (Pitfall #2)** — Tenant filter in every data fetch for AI context; per-tenant vector indices
-- **AI rate limit exhaustion (Pitfall #8)** — Prompt caching (5-10x throughput), request batching, graceful degradation
-- **HIPAA violations (Pitfall #4)** — Verify Anthropic BAA before production; AI interaction logging; PHI inventory
-
-**Features addressed:** AI summarization, note cleanup, translation, risk scoring, natural language search (all differentiators becoming table stakes)
-
-**Research needed:** Phase-specific research for Claude Code skills patterns, prompt caching strategies, rate limit tier planning
-
----
-
-### Phase 9: Disclosures & COI Module
-**Rationale:** Builds on Web Form infrastructure (Phase 6) and Campaign engine. Separate module from Cases but shares workflow engine. Disclosures create RIUs, which create Cases if thresholds met.
-
-**Delivers:**
-- Disclosure form templates (COI, gifts & entertainment, outside employment)
-- Campaign/distribution engine (target audience, due dates, reminders)
-- CampaignAssignment tracking (who completed, who's overdue)
-- Threshold-based case creation (gift > $X triggers RIU → Case)
-- Completion tracking dashboard
-- Disclosure history (year-over-year comparison)
-
-**Stack elements:** Form definitions from Phase 6, workflow engine from Phase 2, notification system from Phase 5
-
-**Avoids Pitfall:** Monolithic modules requiring all-or-nothing (Anti-Feature)—modular pricing, can adopt incrementally
-
-**Features addressed:** Disclosures & COI (table stakes), campaign distribution (table stakes)
-
-**Research needed:** Minimal—extends established patterns
-
----
-
-### Phase 10: Policy Management Module
-**Rationale:** Separate module; competitors have strong offerings (NAVEX PolicyTech is industry standard). Defer until core case management proven. Uses Campaign engine for attestation distribution.
-
-**Delivers:**
-- Policy document repository (versioning with parentPolicyId chains)
-- Approval workflow integration
-- Attestation campaigns (distribution + tracking)
-- Policy translations (AI-powered with version control)
-- Policy search (full-text via Elasticsearch)
-- Policy-Case linking (for violation tracking)
-
-**Stack elements:** Azure Blob Storage for documents, Elasticsearch for search, AI translation via Phase 8
-
-**Avoids Pitfall:** Policy attestation forcing all-or-nothing (Anti-Feature)—policies can be published without attestation requirement
-
-**Features addressed:** Policy management (table stakes), AI translation (differentiator)
-
-**Research needed:** Phase-specific research for document versioning strategies, attestation workflow patterns
-
----
-
-### Phase 11: Analytics & Reporting
-**Rationale:** Depends on data-producing modules (Phases 4-10). Aggregates cross-module metrics. Analytics come late because they need data volume to be meaningful.
-
-**Delivers:**
-- Dashboard builder (drag-and-drop, HubSpot-style)
-- Standard report library (case aging, completion rates, category distribution)
-- Cross-module reporting (correlate policy attestations with case types)
-- PDF/Excel report generation (Puppeteer + ExcelJS)
-- AI-powered natural language queries ("show me Q4 harassment cases by region")
-- Trend analysis with drill-down
-
-**Stack elements:** Puppeteer, ExcelJS, Elasticsearch aggregations, AI query translation
-
-**Avoids Pitfall:** Rigid reporting requiring IT (Anti-Feature)—self-service with drag-and-drop
-
-**Features addressed:** Analytics & reporting (table stakes), AI natural language queries (differentiator)
-
-**Research needed:** Phase-specific research for drag-and-drop dashboard libraries, Puppeteer Azure deployment (may need container-based)
-
----
-
-### Phase 12: HRIS Integration & Employee Sync
-**Rationale:** Supports auto-assignment rules (by location, department), distribution targeting (send to "all managers in EMEA"), and employee data accuracy. Uses Merge.dev to avoid maintaining 50+ individual integrations.
-
-**Delivers:**
-- HRIS connection management (OAuth, API key storage per tenant)
-- Employee sync service (scheduled via BullMQ)
-- Field mapping UI (HRIS fields → Employee entity)
-- Sync conflict resolution
-- Employee directory (searchable via Elasticsearch)
-- Auto-assignment rule enhancements (location-based, role-based)
-
-**Stack elements:** @mergeapi/merge-hris-node, BullMQ for scheduled sync, Elasticsearch for directory
-
-**Avoids Pitfall:** Direct HRIS APIs (maintenance burden)—Merge.dev unified API handles 50+ providers
-
-**Features addressed:** HRIS integration (differentiator for enterprise), employee data accuracy
-
-**Research needed:** Phase-specific research for Merge.dev implementation patterns, sync conflict strategies
+**Research flags:**
+- Service worker scope and cache boundaries
+- Push notification opt-in UX
 
 ---
 
 ### Phase Ordering Rationale
 
-- **Foundation first (Phases 1-3)** — Event bus, workflow, auth are prerequisites for all domain modules. These establish patterns that modules follow.
-- **Prove core domain (Phase 4)** — Case management is the heart of the platform; RIU→Case architecture must work before expanding.
-- **Infrastructure when needed (Phase 5)** — Notifications after workflows can trigger them.
-- **Expand domain (Phases 6-10)** — Web forms → Task aggregation → AI → Disclosures → Policies. Each builds on previous; AI needs entity data to contextualize.
-- **Analytics last (Phase 11)** — Needs data volume from domain modules.
-- **Integration last (Phase 12)** — HRIS after core workflows proven; enhances rather than blocks.
+**Wave 1 must be first** because RAG infrastructure is foundational and pgvector+RLS performance issue is blocking. Embedding model abstraction must exist before any embeddings generated (cannot change later without full re-embedding).
 
-**Dependency-driven not feature-driven:** This order follows technical dependencies (event bus before events, entities before AI context) rather than business priority. The HubSpot parallel reinforces this: you build the platform infrastructure (properties, associations, pipelines) before you build modules that use it.
+**Wave 2 (privacy) is independent** and can parallel with Wave 1, but must complete before any EU customer onboarding. GDPR deletion without downtime requires careful design.
 
-**AI-first throughout:** Every phase includes AI considerations—audit logs with natural language (Phase 1), context hierarchy fields on entities (Phase 4), AI interaction patterns (Phase 8). Cannot retrofit AI-first design; must be baked in from foundation.
+**Wave 3 (automation) must precede Wave 4** because rolling campaigns depend on rules engine. Event handler race conditions must be solved before any automation rules fire.
 
-**Security non-negotiable:** Each phase includes tenant isolation tests, audit logging, permission checks. Security guardrails block phase completion if not met.
+**Wave 5 (intelligence) depends on Waves 1+3** — RAG chatbot needs embeddings (Wave 1), pattern-based escalation needs rules engine (Wave 3). Can parallel with Wave 4.
+
+**Wave 6 (analytics) is independent** — fact tables don't depend on other waves. Can proceed in parallel with Waves 4-5. Nightly jobs require tenant-specific scheduling to avoid blocking.
+
+**Wave 7 (PWA) is last** — frontend enhancement after API stability. Service worker cache invalidation is frontend-only risk.
+
+**Dependency graph:**
+```
+Wave 1 (RAG) ─────────────────┐
+                              │
+Wave 2 (Privacy) ─────────────┤ (parallel)
+                              │
+Wave 3 (Automation) ──────────┤ (depends on completed infrastructure)
+   │                          │
+   ├──▶ Wave 4 (Rolling) ─────┤
+   │                          │
+   └──▶ Wave 5 (Intelligence)─┤ (depends on Wave 1 + 3)
+                              │
+Wave 6 (Analytics) ───────────┤ (parallel)
+                              │
+Wave 7 (PWA) ─────────────────┘ (frontend-focused, last)
+```
 
 ### Research Flags
 
-Phases likely needing deeper research during planning:
+**Waves needing deeper research during planning:**
 
-- **Phase 4 (Case Management):** Anonymous relay implementation—encryption patterns, access code generation algorithms, Chinese Wall model for operator/client separation
-- **Phase 6 (Web Forms):** Form builder patterns—JSON schema validation libraries, conditional logic engines (show Field B if Field A = X), best practices for complex form state
-- **Phase 8 (AI Integration):** Claude Code skills patterns—how to structure reusable prompts, skills marketplace curation, prompt caching strategies for 5-10x throughput, rate limit tier planning (when to request enterprise tier)
-- **Phase 10 (Policy Management):** Document versioning strategies—conflict resolution when multiple users edit, branch/merge patterns for policy variants, attestation workflow patterns (partial completion, delegation)
-- **Phase 11 (Analytics):** Puppeteer Azure deployment—container requirements, Chrome binary packaging, memory considerations for concurrent PDF generation; drag-and-drop dashboard libraries (evaluate Tremor, Recharts, Victory for React)
-- **Phase 12 (HRIS Integration):** Merge.dev implementation patterns—webhook vs. polling for real-time sync, sync conflict resolution strategies (source of truth determination), field mapping best practices
+- **Wave 1 (RAG Infrastructure):** HNSW index tuning (m, ef_construction parameters), chunking overlap strategy, embedding dimension selection. Benchmark required with realistic data volumes (100K+ embeddings per tenant).
 
-Phases with standard patterns (skip deep research):
+- **Wave 2 (Privacy):** Key rotation strategy needs legal review. GDPR data residency requirements vary by jurisdiction. Anonymization vs pseudonymization distinction affects compliance.
 
-- **Phase 1 (Event Infrastructure):** NestJS event emitter well-documented, BullMQ patterns established
-- **Phase 2 (Workflow Engine):** State machine patterns defined in WORKING-DECISIONS.md (G.1-G.5)
-- **Phase 3 (SSO):** Fully specified in TECH-SPEC-AUTH-MULTITENANCY.md
-- **Phase 5 (Notifications):** Standard patterns, multiple reference implementations
-- **Phase 7 (Task Aggregation):** Polymorphic query pattern straightforward
-- **Phase 9 (Disclosures):** Extends Web Form patterns from Phase 6
+- **Wave 3 (Automation):** Rule conflict detection complexity (when do rules overlap?). Dry-run mode implementation (show what would happen without executing). Rule versioning strategy for audit trail.
+
+- **Wave 5 (Intelligence):** Confidence threshold tuning per pattern type (repeat subject vs cluster vs trend). Employee chatbot escalation UX (when to hand off to human). False positive feedback loop design.
+
+**Waves with standard patterns (skip deep research):**
+
+- **Wave 4 (Rolling Campaigns):** Well-documented pattern (event listener + database trigger). Similar to existing campaign infrastructure. Trigger configuration UI is CRUD.
+
+- **Wave 6 (Analytics):** Fact table pattern is standard data warehousing. Existing BullMQ infrastructure handles scheduling. Dashboard widgets extend existing patterns.
+
+- **Wave 7 (PWA):** Service worker patterns are well-documented. Serwist (Workbox fork) has clear Next.js integration guide. Push notifications via web-push package is standard.
 
 ## Confidence Assessment
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack | HIGH | All components verified with official docs, npm packages confirmed mature (2.9k+ dependents for @anthropic-ai/sdk); versions specified; NestJS ecosystem compatibility checked |
-| Features | MEDIUM-HIGH | Table stakes verified across 4+ competitors (NAVEX, EQS, Case IQ, HR Acuity); AI trends confirmed with late-2025 announcements; healthcare-specific features validated with HIPAA requirements; pricing low confidence (limited public data) |
-| Architecture | HIGH | Detailed specs exist in TECH-SPEC-AI-INTEGRATION.md v3.0, TECH-SPEC-AUTH-MULTITENANCY.md; patterns verified with Microsoft Azure SaaS architecture docs, NestJS official guides; HubSpot parallel reinforced by existing platform vision |
-| Pitfalls | HIGH | RLS vulnerability (CVE-2024-10976) documented by PostgreSQL; AI leakage patterns confirmed in research (PROMPTPEEK attack); migration failure rates (73%) from Gartner/Kanerika analysis; HIPAA breach statistics from HHS OCR; technical debt research from McKinsey |
+| Stack | **HIGH** | All recommended packages have official TypeScript SDKs, verified npm install, and NestJS integration examples. pgvector verified on Azure PostgreSQL. voyageai is Anthropic's official partner. llamaindex has active TypeScript port. |
+| Features | **HIGH** | Analyzed 4 major competitors (NAVEX, EQS, Case IQ, HR Acuity) with official documentation. Table stakes vs differentiators validated across multiple sources. Build order recommendation based on competitor implementation patterns. |
+| Architecture | **HIGH** | Based on direct codebase analysis (42 modules, 127 Prisma models). Integration points verified in existing event system (100+ handlers). Extension patterns match established codebase style. |
+| Pitfalls | **HIGH** | 6 critical pitfalls verified via official PostgreSQL docs, GDPR legal sources, and production architecture case studies. pgvector+RLS issue documented in multiple independent sources. Event race conditions based on existing EventEmitter2 analysis. |
 
-**Overall confidence:** HIGH
+**Overall confidence:** **HIGH**
 
 ### Gaps to Address
 
-Research was thorough, but several areas need validation during implementation:
+**Performance benchmarks needed (Wave 1):**
+- HNSW index parameter tuning (m, ef_construction) requires load testing with realistic data volumes
+- Vector similarity query performance with 100K+ embeddings per tenant
+- Chunking strategy effectiveness measured by retrieval accuracy
+- **Mitigation:** Dedicated performance testing phase in Wave 1 before RAG deployment
 
-- **Anthropic BAA for healthcare:** Verify Anthropic has signed HIPAA Business Associate Agreement; if not, Azure OpenAI required for PHI-containing prompts. Critical for Phase 8 (AI Integration).
-- **Merge.dev healthcare HRIS coverage:** Confirm Merge.dev supports healthcare-specific HRIS systems (e.g., Kronos, healthcare-focused vendors). May need direct integrations for niche systems. Affects Phase 12 (HRIS).
-- **Elasticsearch sizing for multi-tenancy:** Per-tenant indices (`org_{organizationId}_{type}`) need capacity planning. At 1,500 customers, may require index lifecycle management (ILM) policies. Research during Phase 11 (Analytics).
-- **Y.js persistence strategy:** If real-time policy collaboration needed (deferred from MVP), Y.js document storage requires research—database vs. Redis vs. separate Y.js server. Research if feature prioritized post-MVP.
-- **Puppeteer on Azure App Service:** May require container-based deployment with Chrome binary; memory considerations for concurrent PDF generation. Research during Phase 11 (Analytics).
-- **Cross-tenant AI benchmarking:** If "benchmarking against peers" feature (deferred to v2+) is prioritized, research anonymization strategies for cross-tenant pattern detection without PHI exposure. Research when/if feature prioritized.
+**Legal review required (Wave 2):**
+- GDPR cryptographic shredding implementation needs legal sign-off
+- Data residency requirements vary by jurisdiction (EU vs US vs other)
+- Anonymization vs pseudonymization distinction affects compliance obligations
+- **Mitigation:** Engage legal counsel during Wave 2 planning; block EU deployment until approved
 
-**Migration data quality:** The 1,500 customer migration from legacy systems (current Ethico platform, NAVEX, Case IQ, EQS) is the highest business risk. Schema is migration-ready (`source_system`, `source_record_id`, `migrated_at`), but validation framework and per-source adapters need detailed design during migration phase. Consider hiring migration specialists or partnering with data migration firm for large-volume customers.
+**Threshold tuning needed (Waves 3, 5):**
+- Rule priority conflict detection algorithm (when do rules overlap?)
+- Pattern detection confidence thresholds per match type
+- False positive acceptance rates (target: 80%+ pattern alerts actionable)
+- **Mitigation:** Implement feedback loop dashboard; iterate thresholds based on production data
 
-**Deadline pressure:** Q1 deadline creates elevated risk for security shortcuts. Mitigation requires organizational discipline—scope reduction over quality reduction, automated security gates that cannot be bypassed, explicit tracking of any technical debt with remediation timeline. Management must accept that some features may defer to Q2 if they conflict with security requirements.
+**Multi-tenant scaling unknowns:**
+- Fact table reconciliation job scheduling across 100+ tenants
+- Pattern detection nightly job resource consumption per tenant
+- Embedding regeneration cost when model changes
+- **Mitigation:** Stagger jobs during off-hours; monitor resource usage per tenant; implement rate limiting
+
+**Integration testing complexity:**
+- Event handler race conditions require concurrent test scenarios
+- Idempotency testing across multiple handlers
+- HRIS sync + rolling campaign race condition scenarios
+- **Mitigation:** Dedicated integration test suite in Wave 3; use existing BullMQ test infrastructure
 
 ## Sources
 
 ### Primary (HIGH confidence)
-- Existing project specs: TECH-SPEC-AI-INTEGRATION.md v3.0, TECH-SPEC-AUTH-MULTITENANCY.md, WORKING-DECISIONS.md (architecture decisions), 00-PLATFORM/01-PLATFORM-VISION.md (RIU→Case model)
-- Official vendor documentation: [Anthropic SDK npm](https://www.npmjs.com/package/@anthropic-ai/sdk), [NestJS Queues](https://docs.nestjs.com/techniques/queues), [BullMQ](https://docs.bullmq.io/guide/nestjs), [Merge.dev HRIS](https://docs.merge.dev/hris/), [PostgreSQL RLS](https://www.postgresql.org/docs/current/ddl-rowsecurity.html)
-- PostgreSQL security: [CVE-2024-10976](https://www.postgresql.org/support/security/CVE-2024-10976/), [Bytebase RLS Footguns](https://www.bytebase.com/blog/postgres-row-level-security-footguns/)
-- Competitor official sites: NAVEX Platform, EQS Integrity Line, Case IQ Features, HR Acuity Platform
+
+**Official Documentation:**
+- [Anthropic SDK](https://www.npmjs.com/package/@anthropic-ai/sdk) — Claude API integration, streaming, tool use
+- [Anthropic Embeddings Docs](https://platform.claude.com/docs/en/build-with-claude/embeddings) — Voyage AI partnership
+- [NestJS Queues](https://docs.nestjs.com/techniques/queues) — BullMQ integration patterns
+- [BullMQ NestJS Guide](https://docs.bullmq.io/guide/nestjs) — Official NestJS module usage
+- [pgvector GitHub](https://github.com/pgvector/pgvector) — PostgreSQL vector extension
+- [pgvector-node](https://github.com/pgvector/pgvector-node) — Node.js utilities
+- [Azure PostgreSQL pgvector](https://learn.microsoft.com/en-us/azure/postgresql/extensions/how-to-use-pgvector) — Azure-specific implementation
+- [Serwist Docs](https://serwist.pages.dev/docs/next/getting-started) — Next.js PWA integration
+- [LlamaIndex TypeScript](https://developers.llamaindex.ai/typescript/framework/) — RAG framework
+- [Voyage AI npm](https://www.npmjs.com/package/voyageai) — Embeddings API
+
+**Competitor Analysis:**
+- [NAVEX AI Assistant](https://www.navex.com/en-us/platform/employee-compliance/ai-assistant/) — AI features launch
+- [Case IQ Platform](https://www.caseiq.com/platform) — Workflow automation
+- [HR Acuity Benchmarking](https://www.hracuity.com/blog/best-whistleblower-hotline-2026/) — Pattern detection
+- [EQS vs NAVEX Comparison](https://www.eqs.com/navex-vs-eqs-compliance-software-comparison/) — Feature matrix
+- [Gartner Peer Insights](https://www.gartner.com/reviews/market/corporate-compliance-and-oversight-solutions/compare/eqs-group-vs-navex) — User reviews
+
+**PostgreSQL & Architecture:**
+- [PostgreSQL RLS Documentation](https://www.postgresql.org/docs/current/ddl-rowsecurity.html) — Row-level security
+- [PostgreSQL RLS Footguns](https://www.bytebase.com/blog/postgres-row-level-security-footguns/) — Common pitfalls
+- [RLS in Vector DBs](https://medium.com/@michael.hannecke/implementing-row-level-security-in-vector-dbs-for-rag-applications-fdbccb63d464) — pgvector+RLS performance
+- [NestJS EventEmitter](https://docs.nestjs.com/techniques/events) — Event-driven patterns
 
 ### Secondary (MEDIUM confidence)
-- Industry analysis: [Gartner Peer Insights - Whistleblowing Software](https://www.gartner.com/reviews/market/whistleblowing-software), [G2 Reviews (HR Acuity, Case IQ)](https://www.g2.com/), [NAVEX 2026 Compliance Trends](https://www.navex.com/en-us/blog/article/introducing-top-10-trends-risk-compliance-2026/)
-- Migration research: [Kanerika: 500+ Enterprise Reviews on Migration Failures](https://medium.com/@kanerika/what-500-enterprise-software-reviews-reveal-about-data-migration-failures-5878a3b6624a) (73% struggle rate), [IT Convergence: Cloud Migration Risks 2025](https://www.itconvergence.com/blog/cloud-migration-risks-in-2025-turning-compliance-and-security-challenges-into-resilience)
-- LLM security: [Sombra: LLM Security Risks 2026](https://sombrainc.com/blog/llm-security-risks-2026), [ClickIT: 4 Critical LLM Security Risks](https://www.clickittech.com/ai/llm-security/), [Medium: SaaS Security in AI-Driven World](https://medium.com/@jennyastor03/saas-security-in-an-ai-driven-world-pitfalls-solutions-for-2026-b13eb3501d51)
-- HIPAA compliance: [HIPAA Journal: Software Development](https://www.hipaajournal.com/hipaa-compliance-for-software-development/), [Mobidev: HIPAA-Compliant Application Best Practices 2026](https://mobidev.biz/blog/hipaa-compliant-software-development-checklist)
-- Technical debt: [McKinsey productivity loss data](https://www.mckinsey.com/capabilities/mckinsey-digital/our-insights/tech-debt-reclaiming-tech-equity), [VFunction: Managing Tech Debt 2025](https://vfunction.com/blog/how-to-manage-technical-debt/)
 
-### Tertiary (LOW confidence)
-- Market sizing: [Research and Markets: Compliance Management Software Market](https://www.researchandmarkets.com/report/compliance-management-software) ($31B to $70B projection—wide range, validate with analyst reports)
-- UX trends: [UX Design Institute: Top UX Trends 2026](https://www.uxdesigninstitute.com/blog/the-top-ux-design-trends-in-2026/) ("quieter, focused interfaces" trend—general observation, not compliance-specific)
-- Pricing: SelectHub NAVEX pricing ($2,600/mo)—single source, may be outdated; other competitors "contact sales" with no public pricing
+**Industry Best Practices:**
+- [RAG Guide 2025](https://medium.com/@illyism/chatgpt-rag-guide-2025-build-reliable-ai-with-retrieval-0f881a4714af) — RAG architecture patterns
+- [LlamaIndex vs LangChain](https://latenode.com/blog/platform-comparisons-alternatives/automation-platform-comparisons/langchain-vs-llamaindex-2025-complete-rag-framework-comparison) — Framework comparison
+- [Enterprise RAG Stack AI](https://www.stack-ai.com/blog/enterprise-rag-what-it-is-and-how-to-use-this-technology) — Production RAG patterns
+- [Next.js PWA 2026](https://blog.logrocket.com/nextjs-16-pwa-offline-support/) — PWA implementation
+- [Building Production Notifications NestJS](https://medium.com/@marufpulok98/building-a-production-ready-real-time-notification-system-in-nestjs-websockets-redis-offline-6cc2f1bd0b05) — Real-time patterns
+
+**Compliance & Privacy:**
+- [Right to be Forgotten vs Audit Trail](https://axiom.co/blog/the-right-to-be-forgotten-vs-audit-trail-mandates) — GDPR vs SOC2
+- [Immutable Ledgers and GDPR](https://www.serverion.com/uncategorized/how-immutable-ledgers-impact-gdpr-compliance/) — Compliance conflicts
+- [GDPR Data Deletion Best Practices](https://www.reform.app/blog/best-practices-gdpr-compliant-data-deletion) — Implementation guide
+- [Anonymous Whistleblower Best Practices](https://www.v-comply.com/blog/anonymous-whistleblower/) — Metadata protection
+
+**Automation & Rules:**
+- [Business Rules Engines](https://www.supportbench.com/what-are-business-rules-engines-in-automation/) — Rule engine patterns
+- [SLA Software Guide](https://monday.com/blog/service/sla-software/) — SLA implementation
+- [Salesforce Case Assignment](https://www.saasguru.co/salesforce-case-assignment-rules/) — Routing patterns
+
+### Tertiary (LOW confidence - validate during implementation)
+
+- [AML Case Management](https://www.sanctionscanner.com/blog/what-is-aml-case-management-for-compliance-1294) — Pattern detection context
+- [ExcelJS Streaming 2026](https://copyprogramming.com/howto/stream-huge-excel-file-using-exceljs-in-node) — Large file export
+- [PostgreSQL Anonymization](https://severalnines.com/blog/postgresql-anonymization-on-demand/) — Data anonymization techniques
+
+**Codebase Analysis:**
+- Direct review of 42 NestJS modules in `apps/backend/src/modules/`
+- Prisma schema analysis: 127+ models across `apps/backend/prisma/schema.prisma`
+- Event system mapping: 100+ `@OnEvent` handlers and `emit()` calls
+- AI module structure: 55+ files in `modules/ai/`
 
 ---
 
-*Research completed: 2026-02-02*
-*Ready for roadmap: yes*
+**Research completed:** 2026-02-24
+**Ready for roadmap:** Yes
+
+**Next steps:**
+1. Create Wave 1-7 roadmap phases with granular task breakdowns
+2. Define success metrics per wave (performance benchmarks, test coverage)
+3. Identify external dependencies (legal review Wave 2, load testing Wave 1)
+4. Estimate effort per wave (complexity × integration risk)
+5. Plan parallel execution where dependencies allow (Waves 2, 6 can parallel)

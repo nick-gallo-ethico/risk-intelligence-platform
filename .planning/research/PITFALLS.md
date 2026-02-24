@@ -1,520 +1,824 @@
-# Domain Pitfalls: Enterprise Compliance Management Platform
+# Domain Pitfalls: Adding Intelligence/Automation to Existing Compliance Platform
 
-**Domain:** Healthcare-focused multi-tenant compliance SaaS
-**Researched:** February 2, 2026
-**Context:** Ethico Risk Intelligence Platform - 1,500+ customer migration with Q1 deadline
-**Overall Confidence:** HIGH (multiple authoritative sources, relevant CVEs verified)
+**Domain:** Compliance platform intelligence layer (v2.0)
+**Researched:** 2026-02-24
+**Confidence:** HIGH (based on existing codebase analysis + industry research)
+**Context:** Adding ~70 intelligence/automation capabilities to existing 42-module NestJS platform
 
 ---
 
 ## Executive Summary
 
-Building an enterprise compliance platform under deadline pressure combines several high-risk domains: multi-tenant data isolation, AI/LLM integration, legacy system migration, and healthcare regulatory compliance (HIPAA). Each domain has well-documented failure modes that have caused significant breaches and project failures in 2024-2025.
+This document supplements the original v1.0 pitfalls with specific risks for adding intelligence/automation features to the **existing** Ethico platform. The existing codebase has 42 NestJS modules, 127 Prisma models, PostgreSQL RLS multi-tenancy, existing AI chat with Claude streaming, and event-driven architecture. Adding significant new functionality creates specific integration risks not covered in the initial platform pitfalls.
 
-The Q1 deadline creates compounding risk - deadline pressure is the #1 cause of technical debt that leads to security vulnerabilities. This document catalogs pitfalls specific to this project context, with detection strategies and prevention approaches.
+**Key Risk Categories:**
+1. pgvector + RLS interaction (vector search performance collapse)
+2. GDPR + immutable RIU conflict (legal compliance)
+3. Event handler race conditions (data corruption)
+4. Materialized views in multi-tenant context (analytics blocking)
+5. Anonymous relay metadata leakage (whistleblower protection)
 
 ---
 
 ## Critical Pitfalls
 
-Mistakes that cause rewrites, security breaches, or regulatory violations.
+Mistakes that cause rewrites, data breaches, or major architectural issues.
 
-### Pitfall 1: Row-Level Security (RLS) False Confidence
+### CRIT-01: pgvector + RLS Performance Collapse
 
-**What goes wrong:** Teams implement PostgreSQL RLS, test with superuser accounts (which bypass RLS by default), and ship to production believing data is isolated. CVE-2024-10976 demonstrated that even properly configured RLS can fail when queries are reused across role changes in subqueries, WITH clauses, or security invoker views.
+**What goes wrong:** Adding pgvector embeddings to existing RLS-protected tables causes catastrophic query performance degradation. Vector similarity searches with `<->` operator combined with RLS policies that use non-LEAKPROOF functions force PostgreSQL to apply row filtering BEFORE index scans, eliminating the benefit of HNSW/IVFFlat indexes.
 
-**Why it happens:**
-- PostgreSQL superusers and table owners bypass RLS by default
-- Testing environments often use elevated privileges for convenience
-- RLS policies aren't applied consistently across all query patterns (subqueries, CTEs, partitioned tables)
-- Connection pooling can contaminate tenant context if session variables aren't reset per request
+**Why it happens:** The existing schema uses `organizationId` filtering via RLS policies. When adding vector columns to tables like `Case`, `RiskIntelligenceUnit`, or `Policy`, the query planner cannot use vector indexes effectively because RLS filtering must happen first.
 
 **Consequences:**
-- Cross-tenant data leakage (catastrophic for compliance platform)
-- Regulatory violations (HIPAA breach notification required)
-- Customer trust destruction
-- Average cost: $4.44M globally, $10.22M in US (IBM 2025)
+- RAG queries that should take 50ms take 5+ seconds
+- Vector search becomes unusable at scale (10K+ embeddings per tenant)
+- Fallback to sequential scans across entire vector store
 
 **Warning signs:**
-- Tests pass in development but fail in staging/production
-- "Works on my machine" with developer credentials
-- No dedicated tenant isolation test suite
-- Connection pool exhaustion under load
+- `EXPLAIN ANALYZE` shows `Seq Scan` instead of `Index Scan` on vector columns
+- Query times increase linearly with table size instead of logarithmically
+- Memory spikes during vector queries
 
 **Prevention:**
-1. **Never test RLS with superuser accounts** - Create dedicated test users per tenant with exact production role hierarchy
-2. **Defense in depth** - Application-layer tenant filtering + RLS, not RLS alone
-3. **Dedicated tenant isolation E2E tests** - Every entity needs "Org B cannot access Org A data" tests (template exists in SECURITY-GUARDRAILS.md)
-4. **Connection pool tenant context reset** - Call `SET LOCAL app.current_organization = $1` on EVERY request, verify with middleware
-5. **Audit query plans** - Use `EXPLAIN` to verify RLS policies are applied in complex queries
-6. **Monitor CVEs** - PostgreSQL RLS vulnerabilities (CVE-2024-10976, optimizer statistics leaks) require version updates
+1. Create **separate embedding tables** with explicit `organizationId` column and composite indexes:
+   ```sql
+   CREATE TABLE case_embeddings (
+     id UUID PRIMARY KEY,
+     organization_id UUID NOT NULL,
+     case_id UUID NOT NULL REFERENCES cases(id),
+     embedding vector(1536),
+     created_at TIMESTAMPTZ DEFAULT NOW()
+   );
+   CREATE INDEX ON case_embeddings USING hnsw (embedding vector_cosine_ops);
+   CREATE INDEX ON case_embeddings (organization_id);
+   ```
+2. Query pattern: Filter by `organization_id` in WHERE clause BEFORE vector similarity
+3. Use `SET LOCAL` tenant context in application layer, not RLS for embedding tables
+4. Benchmark with realistic data volumes (100K+ embeddings) before production
 
-**Phase mapping:** Foundation phase - must be correct from day one. Cannot be retrofitted.
+**Detection:** Add query performance monitoring in Wave 1. Alert if any vector query exceeds 500ms.
 
-**Confidence:** HIGH - CVE-2024-10976 documented by PostgreSQL, bypass patterns confirmed by Bytebase and multiple security researchers.
+**Wave assignment:** Wave 1 (RAG Infrastructure) - must be solved before any embedding work.
+
+**Severity:** CRITICAL
 
 **Sources:**
-- [PostgreSQL CVE-2024-10976](https://www.postgresql.org/support/security/CVE-2024-10976/)
-- [Bytebase: Common Postgres RLS Footguns](https://www.bytebase.com/blog/postgres-row-level-security-footguns/)
-- [Multi-Tenant Leakage: When RLS Fails](https://medium.com/@instatunnel/multi-tenant-leakage-when-row-level-security-fails-in-saas-da25f40c788c)
+- [PostgreSQL RLS Footguns](https://www.bytebase.com/blog/postgres-row-level-security-footguns/)
+- [Implementing RLS in Vector DBs for RAG](https://medium.com/@michael.hannecke/implementing-row-level-security-in-vector-dbs-for-rag-applications-fdbccb63d464)
 
 ---
 
-### Pitfall 2: LLM Prompt Injection and Cross-Tenant Data Leakage
+### CRIT-02: GDPR Article 17 vs Immutable RIU Conflict
 
-**What goes wrong:** AI features inadvertently include data from multiple tenants in prompts, or malicious users craft inputs that extract other tenants' data through prompt injection. In multi-tenant LLM serving, even caching can leak data across tenants ("PROMPTPEEK" attack).
+**What goes wrong:** The existing `RiskIntelligenceUnit` model is explicitly designed as **immutable** (no `updatedAt` field, corrections go on Case). GDPR Article 17 "Right to Erasure" requires deletion of personal data. These requirements fundamentally conflict.
 
-**Why it happens:**
-- AI features are often added late, bolted on without security review
-- Prompt templates pull from multiple data sources without tenant filtering
-- Shared LLM caches (for cost/performance) create side-channel leakage
-- Developers focus on AI functionality, not AI security
-- RAG systems index cross-tenant data without proper isolation
+**Why it happens:** Compliance systems require immutable audit trails (SOC 2, HIPAA). Privacy regulations require data deletion. The current architecture prioritizes audit immutability without a deletion strategy.
+
+**Existing code pattern:**
+```prisma
+/// RiskIntelligenceUnit represents an immutable intake record
+/// RIUs are IMMUTABLE after creation - corrections go on the Case, not the RIU.
+/// NO updatedAt field - emphasizes immutability of intake content.
+model RiskIntelligenceUnit {
+  id                   String   @id @default(uuid())
+  // ...reporterEmail, reporterPhone, details - all PII fields
+  // NO updatedAt - emphasizes immutability
+}
+```
 
 **Consequences:**
-- Cross-tenant PHI exposure (HIPAA violation)
-- Competitive intelligence leakage
-- Regulatory fines (EU AI Act requires strict data governance, enforcement begins 2026)
-- Model manipulation through injected instructions
+- GDPR violation fines (up to 4% of global revenue)
+- Legal liability for failure to process deletion requests
+- Reputational damage
 
-**Warning signs:**
-- AI prompts include `findMany()` without tenant filter
-- Single vector database without tenant partitioning
-- No prompt logging/audit trail
-- AI responses reference entities user shouldn't access
-- Shared embedding cache across tenants
+**Prevention - The CRAB Model (Cryptographic Shredding):**
+1. **Never truly delete** the RIU record (maintains audit integrity)
+2. Implement **cryptographic shredding**:
+   - Encrypt PII fields (`reporterName`, `reporterEmail`, `reporterPhone`, `details`) with per-record keys
+   - Store keys in separate key vault with tenant+RIU mapping
+   - On deletion request: destroy the encryption key, making data unrecoverable
+3. Add schema fields:
+   ```prisma
+   model RiskIntelligenceUnit {
+     // Existing fields...
+     piiEncryptionKeyId    String?   @map("pii_encryption_key_id")
+     piiPurgedAt           DateTime? @map("pii_purged_at")
+     piiPurgedReason       String?   @map("pii_purged_reason")
+     // Structural fields (category, date, status) remain for analytics
+   }
+   ```
+4. Purge replaces PII with `[REDACTED - GDPR Request #{id}]` maintaining record structure
+5. Audit log captures: who requested, when processed, what was purged (not content)
 
-**Prevention:**
-1. **Tenant isolation in AI pipeline** - Every data fetch for AI context MUST include `organizationId` filter (already in SECURITY-GUARDRAILS.md)
-2. **Per-tenant vector indices** - Don't share pgvector/Pinecone indices across tenants
-3. **Prompt sanitization** - Strip or escape user input before inclusion in prompts
-4. **AI interaction logging** - Log all prompts and responses (without raw PHI) for audit
-5. **Rate limiting per tenant** - Prevent prompt injection enumeration attacks
-6. **Output validation** - Check AI responses don't include unexpected entity references
+**Detection:** Add GDPR compliance dashboard tracking:
+- Pending deletion requests
+- Average processing time
+- Purged record count by month
 
-**Phase mapping:** AI integration phase - must be designed in from the start of AI features, not retrofitted.
+**Wave assignment:** Wave 2 (Data Layer) - must be solved before any EU customer onboarding.
 
-**Confidence:** HIGH - PROMPTPEEK attack documented in research, SaaS AI breaches widely reported in 2025.
+**Severity:** CRITICAL
 
 **Sources:**
-- [LLM Security Risks in 2026: Prompt Injection, RAG, and Shadow AI](https://sombrainc.com/blog/llm-security-risks-2026)
-- [SaaS Security in an AI-Driven World](https://medium.com/@jennyastor03/saas-security-in-an-ai-driven-world-pitfalls-solutions-for-2026-b13eb3501d51)
-- [LLM Security: 4 Critical Security Risks in 2026](https://www.clickittech.com/ai/llm-security/)
+- [Right to be Forgotten vs Audit Trail](https://axiom.co/blog/the-right-to-be-forgotten-vs-audit-trail-mandates)
+- [How Immutable Ledgers Impact GDPR](https://www.serverion.com/uncategorized/how-immutable-ledgers-impact-gdpr-compliance/)
 
 ---
 
-### Pitfall 3: Migration Data Corruption and Compliance Loss
+### CRIT-03: Event Handler Race Conditions in Multi-Tenant Automation
 
-**What goes wrong:** Migrating 1,500+ customers from legacy systems (current Ethico platform, NAVEX, Case IQ, EQS) results in data corruption, lost audit trails, or broken entity relationships. Customers lose access to historical compliance data needed for audits.
+**What goes wrong:** The existing `EventEmitter2` system (100+ event handlers across modules) processes events asynchronously without guaranteed ordering. When adding automation rules that react to events (e.g., "create case when disclosure threshold exceeded"), race conditions cause:
+- Duplicate cases created from same disclosure
+- Rules evaluated against stale data
+- Tenant A's rule accidentally triggered by Tenant B's event
 
-**Why it happens:**
-- Legacy data formats clash with modern schemas (causes 45% of migration failures)
-- Questionnaire-based discovery vs. engineering-led discovery (150% timeline overruns)
-- Compliance requirements ignored during transformation
-- One-size-fits-all migration scripts for diverse source systems
-- Insufficient validation of migrated data integrity
+**Why it happens:** Current event emission pattern in codebase:
+```typescript
+// From relay.service.ts and dozens of other services
+this.eventEmitter.emit('case.message.sent', {
+  organizationId,
+  caseId: dto.caseId,
+  messageId: message.id,
+  actorUserId: userId,
+  direction: 'outbound',
+});
+```
+Multiple handlers subscribe. No transaction boundary. No idempotency keys. No tenant isolation guarantee in handler execution.
+
+**Existing handlers (100+ across modules):**
+- `apps/backend/src/modules/notifications/listeners/case.listener.ts`
+- `apps/backend/src/modules/audit/handlers/case-audit.handler.ts`
+- `apps/backend/src/modules/search/handlers/case-indexing.handler.ts`
+- `apps/backend/src/modules/workflow/engine/workflow-engine.service.ts`
+- ...and 96 more files with `@OnEvent` or `emit(`
 
 **Consequences:**
-- Audit failures (SOX, HIPAA compliance gaps)
-- Lost case history (legal liability)
-- Customer churn at critical moment
-- 2-3x cost to remediate post-migration
+- Data corruption (duplicate records)
+- Tenant data leakage (rule from Org A sees Org B data)
+- Inconsistent state (case created but rule not logged)
 
 **Warning signs:**
-- Migration scripts don't preserve `source_system` and `source_record_id`
-- No validation suite comparing source/target record counts
-- Missing audit trail for migration operations
-- Rushing migration testing to meet deadline
-- Single pilot customer before mass migration
+- Duplicate entries in `ThresholdTriggerLog`
+- Cases created without corresponding disclosure
+- Audit logs showing out-of-order operations
 
 **Prevention:**
-1. **Migration-ready schema from day one** - Every entity has `source_system`, `source_record_id`, `migrated_at` (already specified in platform vision)
-2. **Per-source-system adapters** - Dedicated migration code for NAVEX, EQS, Case IQ, legacy Ethico
-3. **Validation framework** - Automated comparison of record counts, relationship integrity, required fields
-4. **Staged rollout** - 3-5 pilot customers, then batched rollout with rollback capability
-5. **Audit trail for migration** - Log every transformation decision for compliance evidence
-6. **GRC integration from start** - 93% of orgs fail to embed GRC strategy before migration
+1. **Idempotency keys** on all automation triggers:
+   ```typescript
+   await this.prisma.thresholdTriggerLog.upsert({
+     where: { idempotencyKey: `${disclosureId}-${ruleId}` },
+     create: { /* ... */ },
+     update: {} // No-op if exists
+   });
+   ```
+2. **Transactional outbox pattern** for critical automations:
+   - Write event to `automation_outbox` table in same transaction as source change
+   - Background processor reads outbox and executes rules
+   - Guarantees at-least-once delivery with ordering
+3. **Explicit tenant context** in every event payload AND handler validation:
+   ```typescript
+   @OnEvent('disclosure.submitted')
+   async handleDisclosure(event: DisclosureEvent) {
+     // CRITICAL: Validate tenant context matches rule's tenant
+     if (rule.organizationId !== event.organizationId) {
+       this.logger.error(`Tenant mismatch: rule ${rule.id} vs event ${event.organizationId}`);
+       return;
+     }
+   }
+   ```
+4. Use existing `@nestjs/bullmq` infrastructure (already in codebase at `jobs.module.ts`) with:
+   - Job deduplication by `jobId: ${entityId}-${ruleType}`
+   - Tenant-specific queues or job metadata
 
-**Phase mapping:** Migration phase - but schema decisions in foundation phase affect migration success.
+**Detection:** Add event tracing:
+- Log correlation IDs through event chains
+- Monitor for duplicate `jobId` attempts in BullMQ
+- Alert on tenant mismatch in handlers
 
-**Confidence:** HIGH - 73% of migrations struggle per Gartner/Kanerika analysis, healthcare-specific risks well documented.
+**Wave assignment:** Wave 3 (Automation Engine) - foundational before any rule execution.
+
+**Severity:** CRITICAL
 
 **Sources:**
-- [What 500+ Enterprise Reviews Reveal About Data Migration Failures](https://medium.com/@kanerika/what-500-enterprise-software-reviews-reveal-about-data-migration-failures-5878a3b6624a)
-- [Governance Failures Disrupt Cloud Migration](https://betanews.com/article/governance-failures-disrupt-cloud-migration-plans/)
-- [Cloud Migration Risks in 2025](https://www.itconvergence.com/blog/cloud-migration-risks-in-2025-turning-compliance-and-security-challenges-into-resilience)
+- [Race Conditions in Event-Driven Architecture](https://event-driven.io/en/dealing_with_race_conditions_in_eda_using_read_models/)
+- [NestJS Event-Driven Architecture](https://dev.to/geampiere/event-driven-architecture-in-nestjs-ccj)
 
 ---
 
-### Pitfall 4: HIPAA Compliance as Afterthought
+### CRIT-04: Embedding Model Lock-in Without Migration Path
 
-**What goes wrong:** Healthcare compliance platform builds features first, then tries to retrofit HIPAA compliance. PHI is cached in logs, transmitted to vendors without BAAs, or exposed through analytics/marketing integrations.
+**What goes wrong:** Choosing an embedding model (e.g., `text-embedding-3-small` at 1536 dimensions) and storing vectors in pgvector creates a hard dependency. Changing models later requires:
+- Dropping all vector columns/indexes
+- Re-embedding entire corpus
+- Coordinated downtime
 
-**Why it happens:**
-- Developers treat HIPAA as checkbox, not continuous process
-- BAA gaps with third-party services (LLM APIs, analytics, error tracking)
-- PHI accidentally logged in error messages or debug output
-- Access controls too permissive during development
-- Minor integrations (analytics pixels) transmit PHI unintentionally
+**Why it happens:** pgvector requires dimension declaration at table creation:
+```sql
+embedding vector(1536)  -- Locked to this dimension forever
+```
+Different embedding models have different dimensions (OpenAI: 1536/3072, Cohere: 1024, local models: varies).
 
 **Consequences:**
-- Breach notification requirements (540+ organizations reported breaches in 2023 affecting 112M people)
-- Fines ($750k example for missing BAA alone)
-- Customer trust destruction
-- Competitive disadvantage in healthcare market
-
-**Warning signs:**
-- AI/LLM vendor hasn't signed BAA
-- Error logging includes request bodies with PHI
-- "Admin" roles have access to all data "just in case"
-- Analytics integration added without privacy review
-- No PHI inventory documenting where PHI flows
+- Cannot adopt better models without migration
+- Vendor lock-in to embedding provider
+- Performance degradation from suboptimal model choice
 
 **Prevention:**
-1. **BAA before integration** - No vendor integration without signed BAA (especially Claude API - verify Anthropic's healthcare BAA status)
-2. **PHI inventory** - Document every system/service that touches PHI
-3. **No PHI in logs** - Sanitize all log output, use correlation IDs instead of PHI
-4. **Minimum necessary access** - Role-based access with least privilege, no "admin just in case"
-5. **Privacy-by-design** - Security and privacy integrated from development start
-6. **Regular audits** - HIPAA compliance isn't one-time; continuous monitoring required
+1. **Embedding abstraction layer**:
+   ```typescript
+   interface EmbeddingService {
+     embed(text: string): Promise<number[]>;
+     getDimension(): number;
+     getModelId(): string;
+   }
+   ```
+2. **Store model metadata** with every embedding:
+   ```prisma
+   model CaseEmbedding {
+     modelId           String   @map("model_id")
+     modelVersion      String   @map("model_version")
+     embeddingDimension Int     @map("embedding_dimension")
+   }
+   ```
+3. **Lazy migration strategy**: When model changes, embeddings are re-computed on next access (stale embeddings flagged for background re-processing)
+4. **Separate tables per model generation** with graceful fallback to old embeddings during migration
 
-**Phase mapping:** Every phase - HIPAA compliance must be continuous, not a phase.
+**Wave assignment:** Wave 1 (RAG Infrastructure) - design decision before first embedding.
 
-**Confidence:** HIGH - HIPAA requirements well-documented, breach statistics from HHS OCR.
-
-**Sources:**
-- [How to Build HIPAA-Compliant Application: Best Practices 2026](https://mobidev.biz/blog/hipaa-compliant-software-development-checklist)
-- [HIPAA Journal: Compliance for Software Development](https://www.hipaajournal.com/hipaa-compliance-for-software-development/)
-- [HIPAA Compliant AI Software Development](https://www.ninetwothree.co/blog/hipaa-compliant-ai-software-development)
+**Severity:** CRITICAL
 
 ---
 
-### Pitfall 5: Deadline-Driven Security Shortcuts
+## High Severity Pitfalls
 
-**What goes wrong:** Q1 deadline pressure leads to deliberate technical debt in security areas - "we'll fix it after launch." These shortcuts become permanent, multiplying into systemic vulnerabilities.
+Mistakes that cause significant rework or service degradation.
 
-**Why it happens:**
-- Significant time pressure (Q1 deadline with 1,500 customer migration)
-- Security testing perceived as slow
-- "Quick and easy" solutions chosen over "first time right"
-- Assumption that post-launch remediation is feasible
+### HIGH-01: Materialized View Refresh Blocking Multi-Tenant Analytics
+
+**What goes wrong:** Adding materialized views for analytics dashboards (Case counts by category, SLA metrics, etc.) causes refresh operations to block reads or consume excessive resources during business hours.
+
+**Why it happens:** PostgreSQL's `REFRESH MATERIALIZED VIEW`:
+- Standard refresh: **Exclusive lock** - blocks all reads until complete
+- Concurrent refresh: **Requires unique index**, slower, still resource-intensive
+- Multi-tenant data: Refreshing for ALL tenants when only one changed
+
+**Existing analytics infrastructure (from `analytics.module.ts`):**
+- `MyWorkModule` - Unified task queue
+- `DashboardModule` - Widget configuration
+- `ReportModule` - Saved reports
+- No materialized views currently, but adding fact tables will introduce this risk
 
 **Consequences:**
-- Quick fixes become permanent (debt compounds)
-- 20-40% productivity loss from accumulated debt (McKinsey)
-- Security vulnerabilities in production
-- Costlier remediation (2-3x vs. doing it right initially)
+- Dashboard timeouts during refresh
+- Database CPU spikes affecting production queries
+- User-visible latency during business hours
 
 **Warning signs:**
-- Skipping security tests to meet sprint deadline
-- "TODO: add proper validation" comments in code
-- Auth guards missing on new endpoints
-- Tenant isolation tests commented out
-- Pre-commit hooks disabled "temporarily"
+- Dashboard queries timing out at specific times
+- Lock wait events in pg_stat_activity
+- Database CPU pegged during refresh jobs
 
 **Prevention:**
-1. **Security as non-negotiable** - Security guardrails aren't optional, even under pressure (SECURITY-GUARDRAILS.md is MANDATORY)
-2. **Scope reduction over quality reduction** - Cut features, not security
-3. **Automated security gates** - Pre-commit hooks, CI/CD security scans that block deployment
-4. **Explicit debt tracking** - If debt is taken, document it with remediation timeline
-5. **Phase-appropriate shortcuts** - Some debt is acceptable in MVP, security debt is not
+1. **Tenant-scoped refresh triggers**: Only refresh views when tenant's data changes
+2. **Incremental aggregation tables** instead of materialized views:
+   ```sql
+   -- Instead of REFRESH MATERIALIZED VIEW, use INSERT ON CONFLICT
+   INSERT INTO case_daily_stats (organization_id, date, category_id, count)
+   SELECT organization_id, DATE(created_at), primary_category_id, COUNT(*)
+   FROM cases
+   WHERE created_at >= $1 AND organization_id = $2
+   GROUP BY 1, 2, 3
+   ON CONFLICT (organization_id, date, category_id)
+   DO UPDATE SET count = EXCLUDED.count;
+   ```
+3. **Stagger refresh by tenant** during off-hours with existing BullMQ infrastructure
+4. **Real-time aggregation for small datasets** (< 10K records), materialized for large
 
-**Phase mapping:** Every phase - deadline pressure affects all phases.
+**Detection:** Monitor refresh duration and lock wait times per view.
 
-**Confidence:** HIGH - Well-documented pattern in software development literature.
+**Wave assignment:** Wave 4 (Analytics Intelligence) - before dashboard optimization.
+
+**Severity:** HIGH
 
 **Sources:**
-- [How to Manage Technical Debt in 2025](https://vfunction.com/blog/how-to-manage-technical-debt/)
-- [The True Cost of Technical Debt 2025](https://www.stepsoftware.com/the-true-cost-of-technical-debt-and-how-it-leaders-are-tackling-it-in-2025/)
-- [Kong: Roadmap for Reducing Technical Debt 2025](https://konghq.com/blog/learning-center/reducing-technical-debt)
+- [PostgreSQL Materialized Views](https://stormatics.tech/blogs/postgresql-materialized-views-when-caching-your-query-results-makes-sense)
+- [Refreshing Materialized Views](https://dohost.us/index.php/2025/10/26/refreshing-a-materialized-view-refresh-materialized-view-concurrently-vs-non-concurrently/)
 
 ---
 
-## Moderate Pitfalls
+### HIGH-02: Rules Engine Evaluation Order Unpredictability
 
-Mistakes that cause delays, rework, or technical debt but are recoverable.
+**What goes wrong:** Adding a rules/automation engine to existing CRUD without explicit priority handling causes:
+- Multiple rules firing on same event with conflicting actions
+- Rule A depends on Rule B's output but executes first
+- Same disclosure triggers 5 different case creation rules
 
-### Pitfall 6: Connection Pool Tenant Context Contamination
+**Why it happens:** Current `ThresholdRule` schema has `priority: Int` but no enforcement mechanism:
+```prisma
+model ThresholdRule {
+  id              String                @id @default(uuid())
+  organizationId  String                @map("organization_id")
+  priority        Int                   @default(0)  // No enforcement!
+  // ...
+}
+```
+Rules evaluated in arbitrary order from database query.
 
-**What goes wrong:** Connection pooling (PgBouncer, Prisma pool) reuses connections without resetting tenant session variables. Tenant A's context persists into Tenant B's request.
-
-**Why it happens:**
-- Connection pooling is standard for performance
-- Session variables don't automatically reset between pool checkouts
-- Works correctly in single-tenant testing, fails in production
+**Consequences:**
+- Unpredictable automation behavior
+- Support tickets from confused users
+- Data inconsistency from conflicting rule actions
 
 **Prevention:**
-1. **Reset tenant context on every request** - Middleware sets `SET LOCAL app.current_organization` before any query
-2. **Use `SET LOCAL` not `SET`** - `SET LOCAL` is transaction-scoped, safer than session-scoped `SET`
-3. **Verify in integration tests** - Test rapid multi-tenant requests on same pool
+1. **Explicit rule execution phases**:
+   ```typescript
+   enum RulePhase {
+     VALIDATION = 1,   // Check conditions, block if invalid
+     ENRICHMENT = 2,   // Add data, don't create entities
+     ACTION = 3,       // Create cases, send notifications
+     NOTIFICATION = 4  // Final alerts after all changes
+   }
+   ```
+2. **First-match-wins for mutually exclusive actions**:
+   ```typescript
+   // Only first matching CREATE_CASE rule executes
+   const createCaseRules = rules.filter(r => r.action === 'CREATE_CASE');
+   const firstMatch = createCaseRules.find(r => evaluateConditions(r, disclosure));
+   if (firstMatch) {
+     await executeRule(firstMatch);
+     // Skip remaining CREATE_CASE rules
+   }
+   ```
+3. **Rule conflict detection** at save time - warn if rules overlap
+4. **Dry-run mode** showing which rules WOULD fire before saving
 
-**Phase mapping:** Foundation phase - must be in place before multi-tenant testing.
+**Detection:** Log all rule evaluations with sequence numbers. Alert on multiple CREATE_CASE rules firing for same disclosure.
 
-**Confidence:** HIGH - Documented connection pool contamination pattern.
+**Wave assignment:** Wave 3 (Automation Engine).
+
+**Severity:** HIGH
+
+---
+
+### HIGH-03: Cross-Case Pattern Detection False Positives
+
+**What goes wrong:** Pattern detection (identifying repeat offenders, related cases) generates excessive false positives when:
+- Fuzzy name matching too aggressive ("John Smith" matches 500 people)
+- Organizational structure not considered (same department != same pattern)
+- Time windows too wide (incident from 5 years ago surfaces)
+
+**Why it happens:** Current `ConflictMatchingService` uses string similarity without context:
+```typescript
+// From conflict-detection.service.spec.ts
+const mockSelfDealingConflict: DetectedConflict = {
+  conflictType: ConflictType.SELF_DEALING,
+  severity: ConflictSeverity.HIGH,
+  summary: 'Prior disclosure to "Acme Corp" found (85% match)',
+  matchConfidence: 85,
+  // ...
+};
+```
+No tuning for compliance-specific patterns.
+
+**Consequences:**
+- Alert fatigue - investigators ignore all pattern alerts
+- Real patterns missed in noise
+- Wasted investigation time on false leads
+
+**Prevention:**
+1. **Confidence thresholds by match type**:
+   ```typescript
+   const CONFIDENCE_THRESHOLDS = {
+     EXACT_MATCH: 95,      // Name + email + employee ID
+     STRONG_MATCH: 85,     // Name + department + time window
+     WEAK_MATCH: 70,       // Name similarity only
+     PATTERN_ALERT: 60     // Multiple weak signals
+   };
+   ```
+2. **Time-decay weighting**: Recent matches score higher than old ones
+3. **Exclusion management**: Already reviewed matches don't re-alert (existing `ConflictExclusionService`)
+4. **Department/BU scoping**: Pattern only alerts within same org unit by default
+5. **Feedback loop**: Track investigator accept/dismiss rates to tune thresholds
+
+**Detection:** Dashboard showing:
+- Pattern alert acceptance rate
+- Average time to dismiss false positives
+- Threshold hit distribution
+
+**Wave assignment:** Wave 4 (Analytics Intelligence).
+
+**Severity:** HIGH
 
 **Sources:**
-- [Multi-Tenant Leakage: When RLS Fails](https://instatunnel.my/blog/multi-tenant-leakage-when-row-level-security-fails-in-saas)
+- [Compliance Case Management](https://www.sanctionscanner.com/blog/what-is-aml-case-management-for-compliance-1294)
+- [Duplicate Detection Pitfalls](https://community.dynamics.com/blogs/post/?postid=142687c4-3102-4ebe-b24c-a923f24ab868)
 
 ---
 
-### Pitfall 7: Cache Key Pollution
+### HIGH-04: Rolling Campaign Triggers + HRIS Sync Race
 
-**What goes wrong:** Cache keys don't include tenant ID, causing cross-tenant data exposure through Redis or in-memory caches.
+**What goes wrong:** Campaigns with rolling triggers (e.g., "send disclosure request on hire date anniversary") depend on HRIS sync events. When HRIS sync and campaign evaluation run concurrently:
+- New employee gets campaign before Person record fully created
+- Termination not reflected - terminated employee receives campaign
+- Manager hierarchy incomplete - wrong approver notified
 
-**Why it happens:**
-- Caching added for performance without security review
-- Copy-paste of single-tenant caching patterns
-- Works in development (single tenant), fails in production
+**Why it happens:** Current `HrisSyncService` emits `hris.sync.completed` AFTER all employees processed:
+```typescript
+// From hris-sync.service.ts
+this.emitEvent('hris.sync.completed', {
+  organizationId,
+  userId,
+  result: { /* ... */ },
+});
+```
+But individual employee updates happen during sync. Campaign scheduler queries database during sync window.
+
+**Consequences:**
+- Campaigns sent to wrong people
+- Compliance gaps (terminated employee disclosures not requested)
+- Approval workflows broken
 
 **Prevention:**
-1. **Tenant-prefixed cache keys always** - `org:{organizationId}:entity:{id}` pattern (specified in SECURITY-GUARDRAILS.md)
-2. **Code review checklist item** - Every cache operation checked for tenant prefix
-3. **Automated detection** - Static analysis for cache keys without tenant component
+1. **Sync completion fence**: Campaign triggers wait for sync to fully complete
+2. **Employee state machine**: Track sync status per employee
+   ```prisma
+   model Employee {
+     syncState  EmployeeSyncState @default(PENDING)
+     syncedAt   DateTime?
+   }
+   ```
+3. **Campaign eligibility includes sync check**:
+   ```typescript
+   const eligibleEmployees = await prisma.employee.findMany({
+     where: {
+       organizationId,
+       syncState: 'SYNCED',
+       syncedAt: { gte: lastSyncStart }
+     }
+   });
+   ```
+4. **Idempotent campaign assignments**: Same employee can't be assigned twice to same campaign (existing `CampaignAssignment` unique constraint)
 
-**Phase mapping:** Foundation phase - caching patterns established early.
+**Detection:** Alert if campaign assignment fails due to missing Person record.
 
-**Confidence:** HIGH - Standard multi-tenant security pattern.
+**Wave assignment:** Wave 3 (Automation Engine) - tied to campaign automation work.
+
+**Severity:** HIGH
 
 ---
 
-### Pitfall 8: AI Rate Limit Exhaustion Under Load
+### HIGH-05: PWA Service Worker Cache Invalidation
 
-**What goes wrong:** Production load exceeds Anthropic API rate limits, causing degraded service or outages. Enterprise doesn't plan for scale or understand token-bucket vs. fixed-window rate limiting.
+**What goes wrong:** Adding PWA/offline support to existing Next.js frontend with:
+- Stale data served after backend updates
+- Mixed cache versions causing hydration errors
+- Confidential data persisted in browser cache inappropriately
 
-**Why it happens:**
-- Development uses minimal API calls, production scales unexpectedly
-- Misunderstanding of rate limit structure (RPM, TPM, daily quotas)
-- No caching of repeated AI operations
-- No graceful degradation when limits hit
+**Why it happens:** Service worker lifecycle is independent of app deployment. Old service worker continues serving cached pages until all tabs closed. Multi-tenant data requires careful cache scoping.
+
+**Consequences:**
+- Users see outdated information (wrong case status)
+- React hydration mismatches causing blank screens
+- Security issue: Tenant A data in cache accessible after logout
 
 **Prevention:**
-1. **Understand rate limit tiers** - Anthropic uses token-bucket algorithm; plan capacity per tier
-2. **Prompt caching** - Cached tokens don't count toward ITPM limits (5-10x throughput improvement)
-3. **Request batching** - Combine related queries where possible
-4. **Graceful degradation** - Queue AI requests, show loading state, don't block critical flows
-5. **Monitor usage daily** - Track token consumption against limits
-6. **Plan tier upgrades** - Request higher limits before peak periods (enterprise minimum ~$50k)
+1. **Tenant-scoped cache namespaces**:
+   ```typescript
+   const CACHE_NAME = `ethico-${organizationId}-v${BUILD_ID}`;
+   ```
+2. **API responses never cached** - only static assets
+3. **Forced service worker update** on version change with user prompt
+4. **Cache clearing on logout**:
+   ```typescript
+   async function logout() {
+     await caches.delete(CACHE_NAME);
+     await navigator.serviceWorker.getRegistrations()
+       .then(regs => regs.forEach(r => r.unregister()));
+   }
+   ```
+5. **Network-first strategy** for all authenticated routes
 
-**Phase mapping:** AI integration phase - must be considered during AI feature design.
+**Detection:** Monitor for hydration errors in error tracking. Alert on cache hit ratio anomalies.
 
-**Confidence:** HIGH - Anthropic documentation confirmed.
+**Wave assignment:** Wave 5 (User Experience).
+
+**Severity:** HIGH
 
 **Sources:**
-- [Anthropic Rate Limits Documentation](https://platform.claude.com/docs/en/api/rate-limits)
-- [Claude API Rate Limits for Enterprise](https://amitkoth.com/claude-api-rate-limits-enterprise/)
+- [Next.js 16 PWA with Offline Support](https://blog.logrocket.com/nextjs-16-pwa-offline-support/)
+- [Next.js PWA Offline Capability](https://adropincalm.com/blog/nextjs-offline-service-worker/)
 
 ---
 
-### Pitfall 9: Audit Trail Gaps
+### HIGH-06: Anonymous Relay Metadata Leakage
 
-**What goes wrong:** Audit logging is inconsistent - some mutations logged, others not. Compliance auditors can't reconstruct what happened to a case, who accessed it, when.
+**What goes wrong:** The existing `MessageRelayService` implements "Chinese Wall" isolation but metadata can leak identity:
+- Email notification timing reveals message patterns
+- IP addresses logged in access code lookups
+- Browser fingerprinting in status check pages
 
-**Why it happens:**
-- Audit logging added incrementally, not systematically
-- Performance concerns lead to selective logging
-- Different developers implement logging differently
-- System actions (cron jobs, AI) not logged like user actions
+**Why it happens:** Current implementation focuses on content isolation but not metadata:
+```typescript
+// From relay.service.ts - notification sent immediately
+private async queueReporterNotification(
+  organizationId: string,
+  reporterEmail: string,
+  accessCode: string | null,
+  caseReference: string,
+): Promise<void> {
+  // Email queued immediately - reveals investigator activity timing
+  await this.emailQueue.add('send-notification', jobData, { /* ... */ });
+}
+```
+
+**Consequences:**
+- Reporter anonymity compromised through side channels
+- Legal liability for whistleblower retaliation
+- Regulatory non-compliance (EU Whistleblowing Directive)
 
 **Prevention:**
-1. **Unified AUDIT_LOG table** - Single pattern for all mutations (already in platform vision)
-2. **Natural language action descriptions** - "Sarah assigned case to John" not just action codes
-3. **Mandatory logging decorator** - TypeScript decorator that enforces logging for all mutations
-4. **Log system and AI actions** - Actor type includes 'USER', 'SYSTEM', 'AI'
-5. **Test audit completeness** - E2E tests verify audit entries created for all operations
+1. **Notification batching**: Don't send email immediately - batch notifications at random intervals (1-6 hours)
+2. **IP address stripping**: Never log IP for anonymous access code lookups
+3. **Consistent response timing**: All status check requests take same time (prevent timing attacks)
+4. **Metadata stripping on uploads**: Remove EXIF, document properties from attachments
+5. **TOR/VPN friendly**: Don't block common anonymization tools
 
-**Phase mapping:** Foundation phase - audit infrastructure must be in place before feature development.
+**Detection:** Security audit of all anonymous endpoints for metadata leakage.
 
-**Confidence:** HIGH - Compliance requirement, pattern defined in platform docs.
+**Wave assignment:** Wave 2 (Data Layer) - during anonymous relay enhancement.
+
+**Severity:** HIGH
+
+**Sources:**
+- [Security in Whistleblowing](https://www.navex.com/en-us/blog/article/security-in-whistleblowing-matters/)
+- [Anonymous Whistleblower Best Practices](https://www.v-comply.com/blog/anonymous-whistleblower/)
 
 ---
 
-### Pitfall 10: RIU Immutability Violations
+## Medium Severity Pitfalls
 
-**What goes wrong:** Risk Intelligence Units (RIUs) are supposed to be immutable records of what was reported. Developers add update endpoints or allow field changes, destroying audit integrity.
+Mistakes that cause delays, technical debt, or user friction.
 
-**Why it happens:**
-- "Just let users fix typos" requests
-- Confusion between RIU (immutable input) and Case (mutable work container)
-- HubSpot Contact/Deal pattern not understood by all developers
+### MED-01: RAG Chunking Strategy Misalignment
+
+**What goes wrong:** Treating compliance documents same as general text causes:
+- Legal clauses split across chunks (meaning lost)
+- Section headers separated from content
+- Cross-references broken
+
+**Why it happens:** Default chunking (500 tokens, 50 overlap) ignores document structure.
 
 **Prevention:**
-1. **No UPDATE endpoint for RIU content fields** - API design enforces immutability
-2. **Schema-level protection** - Database trigger prevents updates to immutable fields
-3. **Corrections go on Case** - If intake categorization was wrong, Case has corrected value; RIU preserves original
-4. **Team education** - Document the HubSpot parallel clearly (RIU=Contact, Case=Deal)
+1. **Structure-aware chunking** for policies:
+   - Chunk by section/subsection
+   - Include parent headers in each chunk
+   - Preserve cross-reference context
+2. **Entity-specific chunking**:
+   - Cases: Chunk by activity/note, not token count
+   - Investigations: Keep interview Q&A together
+   - Policies: Section-based
 
-**Phase mapping:** Foundation phase - entity model decisions.
+**Wave assignment:** Wave 1 (RAG Infrastructure).
 
-**Confidence:** HIGH - Core platform architecture decision.
+**Severity:** MEDIUM
+
+**Sources:**
+- [RAG Guide 2025](https://medium.com/@illyism/chatgpt-rag-guide-2025-build-reliable-ai-with-retrieval-0f881a4714af)
 
 ---
 
-## Minor Pitfalls
+### MED-02: AI Action Undo State Explosion
 
-Mistakes that cause annoyance or minor rework but are easily fixable.
+**What goes wrong:** The existing `ActionExecutorService` supports undo, but complex multi-step automations create undo chains that:
+- Require reverting multiple database changes
+- Can't undo external side effects (emails sent)
+- State explosion from branching undo paths
 
-### Pitfall 11: Search Index Tenant Leakage
-
-**What goes wrong:** Elasticsearch indices not properly scoped by tenant, search returns results from other organizations.
+**Existing code (from `ai.module.ts`):**
+```typescript
+// Actions
+ActionCatalog,
+ActionExecutorService,  // Has undo capability
+```
 
 **Prevention:**
-- Tenant-prefixed index names: `org_{organizationId}_{type}` (specified in SECURITY-GUARDRAILS.md)
-- All search queries include tenant filter
-- Index creation validates tenant scope
+1. **Undo scope boundaries**: Only undo within single transaction
+2. **No undo for external effects**: Clearly mark non-undoable actions
+3. **Undo TTL**: Undo only available for 5 minutes after action
+4. **Compensation actions** instead of rollback where possible
 
-**Phase mapping:** Search feature phase.
+**Wave assignment:** Wave 3 (Automation Engine).
+
+**Severity:** MEDIUM
 
 ---
 
-### Pitfall 12: Inconsistent Error Messages Leaking Information
+### MED-03: Embedding Regeneration Thundering Herd
 
-**What goes wrong:** Error messages reveal whether a resource exists (404 "Not found" vs. 403 "Forbidden"), enabling enumeration attacks.
+**What goes wrong:** When embedding model changes or documents updated in bulk, all embeddings regenerate simultaneously, causing:
+- API rate limits hit
+- Database write contention
+- Memory exhaustion
 
 **Prevention:**
-- Always return 404 for resources user can't access (don't leak existence)
-- Generic error messages in production, detailed in logs only
-- Error message review in security checklist
+1. **Staggered regeneration** with exponential backoff
+2. **Priority queue**: Active cases before archived
+3. **Rate limiting per tenant** at embedding service level
+4. **Background job with progress tracking** using existing BullMQ infrastructure
 
-**Phase mapping:** All phases - API design pattern.
+**Wave assignment:** Wave 1 (RAG Infrastructure).
+
+**Severity:** MEDIUM
 
 ---
 
-### Pitfall 13: JWT Token Bloat
+### MED-04: Dashboard Widget Query N+1
 
-**What goes wrong:** Too much data in JWT tokens makes them large, slow, and exposes unnecessary information.
+**What goes wrong:** Adding AI-powered dashboard widgets that load multiple data sources causes:
+- N+1 queries when loading widget grid
+- Slow initial dashboard render
+- Database connection pool exhaustion
+
+**Existing infrastructure (from common/dataloader):**
+```typescript
+// DataLoader pattern already in codebase
+```
 
 **Prevention:**
-- Minimal claims: `sub`, `organizationId`, `role`, `sessionId`, `exp`
-- No PII beyond what's strictly needed
-- No internal system details
-- Computed permissions, not full permission list
+1. **DataLoader pattern** (already in codebase at `common/dataloader`)
+2. **Widget data prefetch** - single query loads all widget data
+3. **Widget-level caching** with tenant-scoped keys
+4. **Progressive loading** - critical widgets first, AI widgets lazy
 
-**Phase mapping:** Auth foundation phase.
+**Wave assignment:** Wave 4 (Analytics Intelligence).
+
+**Severity:** MEDIUM
 
 ---
 
-### Pitfall 14: Operator vs. Client User Confusion
+### MED-05: Test Coverage Regression During Intelligence Features
 
-**What goes wrong:** System doesn't properly distinguish Ethico operators (multi-tenant access) from client users (single-tenant access), leading to permission errors or data exposure.
+**What goes wrong:** Adding 70 new capabilities without proportional test coverage causes:
+- Regressions in existing functionality
+- Untestable AI-dependent code
+- Integration gaps between modules
+
+**Current state:** Multiple test files exist but coverage may not be enforced at merge time.
 
 **Prevention:**
-- `isOperator` flag in JWT token for Ethico staff
-- Separate permission checks for operator context
-- Clear UI distinction between operator and client views
-- Audit logging distinguishes operator actions
+1. **AI service mocking strategy**: Define mock responses for all AI operations
+2. **Coverage gate in CI**: No merge if coverage drops below 80%
+3. **Integration test for each automation rule**
+4. **Snapshot testing for AI prompts**
 
-**Phase mapping:** Auth/multi-tenancy phase.
+**Wave assignment:** All waves - continuous enforcement.
+
+**Severity:** MEDIUM
 
 ---
 
-## Healthcare-Specific Pitfalls
+### MED-06: Context Loader Performance Degradation
 
-### Pitfall 15: PHI in AI Prompts Without Consent
+**What goes wrong:** The existing `ContextLoaderService` loads hierarchical context (platform > org > team > user > entity). Adding RAG context compounds this:
+- Multiple database queries per AI request
+- Context too large for token limits
+- Inconsistent context between requests
 
-**What goes wrong:** AI features process PHI without proper consent documentation, violating HIPAA's minimum necessary standard.
+**Existing services (from `ai.module.ts`):**
+```typescript
+// Context sub-services
+ContextCacheService,
+HierarchyLoaderService,
+PromptBuilderService,
+ContextLoaderService,
+```
 
 **Prevention:**
-- Document what PHI is included in AI prompts
-- Ensure BAA with AI provider covers this use
-- Implement consent tracking for AI-assisted features
-- Allow customers to disable AI features if needed
+1. **Context budget allocation**: Reserve tokens for each context level
+2. **Smart context selection**: Only include relevant context, not everything
+3. **Context caching with invalidation**: Use existing `ContextCacheService`
+4. **Async context loading**: Don't block on full context assembly
 
-**Phase mapping:** AI integration phase.
+**Wave assignment:** Wave 1 (RAG Infrastructure).
 
----
-
-### Pitfall 16: Breach Notification Timeline Failure
-
-**What goes wrong:** Platform doesn't have infrastructure to detect breaches quickly, missing HIPAA's 60-day notification requirement.
-
-**Prevention:**
-- Real-time monitoring for anomalous access patterns
-- Automated alerts for potential breaches
-- Documented incident response procedure
-- Breach notification feature in platform
-
-**Phase mapping:** Security monitoring phase.
+**Severity:** MEDIUM
 
 ---
 
-## Phase-Specific Warning Matrix
+## Phase-Specific Warning Summary
 
-| Phase Topic | Likely Pitfall | Severity | Mitigation |
-|-------------|---------------|----------|------------|
-| Foundation/Auth | RLS false confidence | CRITICAL | Test with non-superuser accounts, defense in depth |
-| Foundation/Auth | Connection pool contamination | MODERATE | SET LOCAL on every request |
-| Foundation/Data Model | RIU immutability violations | MODERATE | No update endpoints, schema triggers |
-| Foundation/Caching | Cache key pollution | MODERATE | Tenant-prefix all keys |
-| AI Integration | Cross-tenant prompt data | CRITICAL | Tenant filter in all data fetches for AI |
-| AI Integration | Rate limit exhaustion | MODERATE | Caching, batching, graceful degradation |
-| AI Integration | Missing BAA with AI vendor | CRITICAL | Verify BAA before integration |
-| Migration | Data corruption | CRITICAL | Validation framework, staged rollout |
-| Migration | Lost audit trails | MODERATE | Preserve source_system, source_record_id |
-| All Phases | Deadline-driven shortcuts | CRITICAL | Security as non-negotiable gate |
-| All Phases | Audit trail gaps | MODERATE | Mandatory logging decorator |
-| All Phases | HIPAA violations | CRITICAL | Privacy-by-design, continuous compliance |
+| Wave | Primary Pitfalls | Required Mitigation |
+|------|-----------------|---------------------|
+| Wave 1: RAG Infrastructure | CRIT-01 (pgvector+RLS), CRIT-04 (model lock-in), MED-01, MED-03, MED-06 | Separate embedding tables, model abstraction, performance benchmarks |
+| Wave 2: Data Layer | CRIT-02 (GDPR+immutable), HIGH-06 (metadata leakage) | Cryptographic shredding design, metadata audit |
+| Wave 3: Automation | CRIT-03 (race conditions), HIGH-02 (rule ordering), HIGH-04 (HRIS race), MED-02 | Idempotency keys, transactional outbox, rule phases |
+| Wave 4: Analytics | HIGH-01 (materialized views), HIGH-03 (false positives), MED-04 | Incremental aggregation, confidence thresholds |
+| Wave 5: UX | HIGH-05 (PWA cache) | Tenant-scoped caches, network-first strategy |
+| Wave 6: Quality | MED-05 (test regression) | Coverage gates, AI mocking strategy |
 
 ---
 
-## Q1 Deadline-Specific Risks
+## Integration Risk Matrix: Existing Modules
 
-Given the Q1 deadline with 1,500 customer migration, these pitfalls have elevated probability:
+The existing 42 modules create specific integration risks when adding intelligence features:
 
-1. **Security shortcuts "to be fixed later"** - Pre-commit hooks disabled, tests skipped
-2. **Migration without adequate validation** - Rushing customer onboarding
-3. **AI features without tenant isolation** - Adding differentiating features quickly
-4. **Insufficient testing with real data volumes** - Works in dev, fails in production
-5. **HIPAA compliance as checkbox** - Claiming compliance without continuous verification
-
-**Recommended mitigations for deadline pressure:**
-- Scope reduction over quality reduction
-- Automated security gates that cannot be bypassed
-- Phased customer migration (pilots first)
-- MVP feature set that's secure over complete feature set that's vulnerable
-
----
-
-## Verification Checklist for Development
-
-Before any PR merge:
-
-- [ ] Tenant isolation test added for new entities
-- [ ] Cache keys include tenant prefix
-- [ ] AI prompts verified single-tenant
-- [ ] Audit logging for all mutations
-- [ ] Error messages don't leak information
-- [ ] RIU immutability preserved (no update to content fields)
-- [ ] No PHI in logs or error messages
-- [ ] Rate limiting on AI endpoints
-- [ ] BAA verified for any new vendor integration
+| Existing Module | Intelligence Feature | Integration Risk | Mitigation |
+|----------------|---------------------|------------------|------------|
+| `ai.module.ts` | RAG pipeline | Context size explosion | Token budgeting |
+| `events.module.ts` | Automation triggers | Race conditions | Idempotency + outbox |
+| `workflow.module.ts` | AI-driven transitions | State machine conflicts | Lock + validate |
+| `campaigns.module.ts` | Rolling triggers | HRIS sync race | Completion fence |
+| `hris.module.ts` | Employee-based rules | Partial sync state | Sync state tracking |
+| `messaging.module.ts` | AI-assisted replies | Metadata leakage | Timing obfuscation |
+| `disclosures.module.ts` | Conflict detection | False positive flood | Threshold tuning |
+| `analytics.module.ts` | AI dashboards | N+1 queries | DataLoader pattern |
+| `search.module.ts` | Vector search | RLS performance | Separate tables |
 
 ---
 
-## Sources Summary
+## Quick Reference Checklist
 
-### Multi-Tenant Security
-- [PostgreSQL CVE-2024-10976](https://www.postgresql.org/support/security/CVE-2024-10976/)
-- [Bytebase: Postgres RLS Footguns](https://www.bytebase.com/blog/postgres-row-level-security-footguns/)
-- [Multi-Tenant Leakage](https://instatunnel.my/blog/multi-tenant-leakage-when-row-level-security-fails-in-saas)
-- [2025 Breaches Recap and 2026 Outlook](https://checkred.com/resources/blog/a-recap-of-2025-breaches-and-an-outlook-for-2026-security-priorities/)
+Before starting each wave, verify:
 
-### LLM/AI Security
-- [LLM Security Risks 2026](https://sombrainc.com/blog/llm-security-risks-2026)
-- [SaaS Security in AI-Driven World](https://medium.com/@jennyastor03/saas-security-in-an-ai-driven-world-pitfalls-solutions-for-2026-b13eb3501d51)
-- [Anthropic Rate Limits](https://platform.claude.com/docs/en/api/rate-limits)
+**Wave 1 (RAG):**
+- [ ] Embedding table schema separates vector from RLS-protected tables
+- [ ] Embedding model abstraction in place
+- [ ] Performance benchmarks with 100K+ embeddings defined
+- [ ] Chunking strategy documented per entity type
+- [ ] Context budget allocation defined
 
-### Migration
-- [500+ Enterprise Reviews on Migration Failures](https://medium.com/@kanerika/what-500-enterprise-software-reviews-reveal-about-data-migration-failures-5878a3b6624a)
-- [Governance Failures in Migration](https://betanews.com/article/governance-failures-disrupt-cloud-migration-plans/)
+**Wave 2 (Data Layer):**
+- [ ] GDPR deletion strategy documented and approved by legal
+- [ ] Cryptographic shredding implementation planned
+- [ ] Anonymous endpoint metadata audit complete
+- [ ] Notification batching design approved
 
-### HIPAA/Healthcare
-- [HIPAA-Compliant Application Development 2026](https://mobidev.biz/blog/hipaa-compliant-software-development-checklist)
-- [HIPAA Journal: Software Development](https://www.hipaajournal.com/hipaa-compliance-for-software-development/)
+**Wave 3 (Automation):**
+- [ ] Idempotency key pattern defined for all event handlers
+- [ ] Rule execution phases documented
+- [ ] HRIS sync fence mechanism designed
+- [ ] Transactional outbox schema ready
 
-### Technical Debt
-- [Managing Technical Debt 2025](https://vfunction.com/blog/how-to-manage-technical-debt/)
-- [True Cost of Technical Debt](https://www.stepsoftware.com/the-true-cost-of-technical-debt-and-how-it-leaders-are-tackling-it-in-2025/)
+**Wave 4 (Analytics):**
+- [ ] Aggregation strategy chosen (incremental vs materialized)
+- [ ] Pattern detection confidence thresholds defined
+- [ ] Feedback loop mechanism for false positives designed
+- [ ] Widget data loading strategy documented
+
+**Wave 5 (UX):**
+- [ ] Service worker cache invalidation strategy approved
+- [ ] Tenant cache isolation verified
+- [ ] Logout cache clearing tested
+- [ ] Offline data scope defined (what CAN be cached)
+
+**Wave 6 (Quality):**
+- [ ] AI mock strategy documented
+- [ ] Coverage thresholds enforced in CI
+- [ ] Integration test for each automation rule
+- [ ] Regression test suite for existing features
 
 ---
 
-*End of Domain Pitfalls Document*
+## Sources
+
+### PostgreSQL & Vector Search
+- [PostgreSQL RLS Documentation](https://www.postgresql.org/docs/current/ddl-rowsecurity.html)
+- [Common Postgres RLS Footguns](https://www.bytebase.com/blog/postgres-row-level-security-footguns/)
+- [Postgres RLS Implementation Guide](https://www.permit.io/blog/postgres-rls-implementation-guide)
+- [RLS in Vector DBs for RAG](https://medium.com/@michael.hannecke/implementing-row-level-security-in-vector-dbs-for-rag-applications-fdbccb63d464)
+- [RAG with Permissions (Supabase)](https://supabase.com/docs/guides/ai/rag-with-permissions)
+- [PostgreSQL Materialized Views](https://stormatics.tech/blogs/postgresql-materialized-views-when-caching-your-query-results-makes-sense)
+
+### GDPR & Compliance
+- [Right to be Forgotten vs Audit Trail](https://axiom.co/blog/the-right-to-be-forgotten-vs-audit-trail-mandates)
+- [Immutable Ledgers and GDPR](https://www.serverion.com/uncategorized/how-immutable-ledgers-impact-gdpr-compliance/)
+- [GDPR Right to Erasure Guide](https://jetico.com/blog/how-right-erasure-applied-under-gdpr-complete-guide-organizational-compliance/)
+
+### Event-Driven Architecture
+- [Race Conditions in EDA](https://event-driven.io/en/dealing_with_race_conditions_in_eda_using_read_models/)
+- [Event-Driven Architecture in NestJS](https://dev.to/geampiere/event-driven-architecture-in-nestjs-ccj)
+- [NestJS EventEmitter Module](https://docs.nestjs.com/techniques/events)
+
+### RAG & Embeddings
+- [PostgreSQL + pgVector RAG Pipeline](https://medium.com/@lakshitagangola123/postgresql-pgvector-spring-ai-your-first-production-ready-rag-pipeline-2025-edition-5aa921bdfec6)
+- [RAG Best Practices for Database Integration](https://blog.dreamfactory.com/rag-for-sql-server-mysql-postgres-best-practices-for-secure-ai-database-integration)
+- [RAG Guide 2025](https://medium.com/@illyism/chatgpt-rag-guide-2025-build-reliable-ai-with-retrieval-0f881a4714af)
+
+### PWA & Offline
+- [Next.js 16 PWA with Offline Support](https://blog.logrocket.com/nextjs-16-pwa-offline-support/)
+- [Next.js PWA Offline Capability](https://adropincalm.com/blog/nextjs-offline-service-worker/)
+- [Building Offline-First Next.js Apps](https://github.com/vercel/next.js/discussions/82498)
+
+### Whistleblower Systems
+- [Security in Whistleblowing](https://www.navex.com/en-us/blog/article/security-in-whistleblowing-matters/)
+- [Anonymous Whistleblower Best Practices](https://www.v-comply.com/blog/anonymous-whistleblower/)
+- [Building Anonymous Disclosure Portals](https://riskonnect.com/governance-risk-compliance/building-a-discreet-online-portal-for-anonymous-disclosures-and-whistleblowing/)
+
+### Case Management & Pattern Detection
+- [Compliance Case Management](https://www.sanctionscanner.com/blog/what-is-aml-case-management-for-compliance-1294)
+- [Duplicate Detection Challenges](https://community.dynamics.com/blogs/post/?postid=142687c4-3102-4ebe-b24c-a923f24ab868)
+
+---
+
+*End of Domain Pitfalls Document - v2.0 Intelligence Layer*
