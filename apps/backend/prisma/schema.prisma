@@ -4059,6 +4059,7 @@ enum AuditEntityType {
   MILESTONE
   MILESTONE_ITEM
   PROJECT_TASK
+  RULE
 
   @@map("audit_entity_type")
 }
