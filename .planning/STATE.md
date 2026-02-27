@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-02-24)
 ## Current Position
 
 Phase: 40 of 51 (Rules Engine Foundation)
-Plan: 2 of 8 in current phase (40-01, 40-02 complete)
+Plan: 4 of 8 in current phase (40-01, 40-02, 40-04 complete)
 Status: In progress
-Last activity: 2026-02-27 - Completed 40-01-PLAN.md (RulesModule with CRUD) and 40-02-PLAN.md (RulesEngineService, operators, actions)
+Last activity: 2026-02-27 - Completed 40-04-PLAN.md (RoundRobinTeamAction)
 
 Progress: [====================..........] 77% (39/51 phases complete across all milestones)
 
@@ -54,6 +54,8 @@ Progress: [====================..........] 77% (39/51 phases complete across all
 - Rules with execution logs soft-deleted: preserve audit trail by deactivating instead of deleting (40-01)
 - Fresh engine per evaluation: RulesEngineService creates new Engine instance per evaluate() for tenant isolation (40-02)
 - Forward-compatible actions: AssignUserAction/AssignTeamAction emit events without direct schema update since Case lacks assignedToId/assignedTeamId (40-02)
+- Team membership via Employee: RoundRobinTeamAction matches User email to Employee.teamId for team membership since User lacks teamId (40-04)
+- Round-robin tracking via RuleExecutionLog: No separate state table; leverage existing audit trail for last-assigned tracking (40-04)
 
 ### Blockers
 
@@ -74,6 +76,6 @@ Phases needing deeper research during planning:
 ## Session Continuity
 
 Last session: 2026-02-27
-Stopped at: Completed 40-02-PLAN.md (RulesEngineService with custom operators and action executors)
+Stopped at: Completed 40-04-PLAN.md (RoundRobinTeamAction)
 Resume file: None
-Next action: Continue Phase 40 execution (40-03 through 40-08)
+Next action: Continue Phase 40 execution (40-03, 40-05 through 40-08)
