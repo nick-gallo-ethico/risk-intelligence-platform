@@ -26,6 +26,7 @@ import {
   Database,
   Boxes,
   Workflow,
+  GitBranch,
   ChevronLeft,
   Menu,
   X,
@@ -91,6 +92,7 @@ const settingsNavigation: NavSection[] = [
     title: "Tools",
     items: [
       { title: "Workflows", href: "/settings/workflows", icon: Workflow },
+      { title: "Routing Rules", href: "/settings/rules", icon: GitBranch },
     ],
   },
 ];
