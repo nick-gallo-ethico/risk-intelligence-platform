@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-02-24)
 ## Current Position
 
 Phase: 40 of 51 (Rules Engine Foundation)
-Plan: 6 of 8 in current phase (40-01 through 40-06 complete)
+Plan: 7 of 8 in current phase (40-01 through 40-07 complete)
 Status: In progress
-Last activity: 2026-02-27 - Completed 40-06-PLAN.md (RuleTesterService)
+Last activity: 2026-02-27 - Completed 40-07-PLAN.md (Rules Management UI)
 
 Progress: [====================..........] 77% (39/51 phases complete across all milestones)
 
@@ -62,6 +62,8 @@ Progress: [====================..........] 77% (39/51 phases complete across all
 - Facts structure dual format: Both flat keys (severity) and nested objects (case.severity) for flexible rule authoring (40-03)
 - Test results persisted in rule: RuleTesterService stores results in rule.testResults JSON field for later retrieval without re-running (40-06)
 - Sample collection limits: First 10 matched + first 10 unmatched cases, capped at 20 total samples (40-06)
+- Condition builder single level: UI supports ALL/ANY toggle at top level, not nested conditions (40-07)
+- Action params inline: Action parameters rendered inline in ActionSelector component (40-07)
 
 ### Blockers
 
@@ -82,6 +84,6 @@ Phases needing deeper research during planning:
 ## Session Continuity
 
 Last session: 2026-02-27
-Stopped at: Completed 40-06-PLAN.md (RuleTesterService)
+Stopped at: Completed 40-07-PLAN.md (Rules Management UI)
 Resume file: None
-Next action: Continue Phase 40 execution (40-07 through 40-08)
+Next action: Continue Phase 40 execution (40-08)
