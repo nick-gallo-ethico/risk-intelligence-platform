@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-02-24)
 ## Current Position
 
 Phase: 40 of 51 (Rules Engine Foundation)
-Plan: 5 of 8 in current phase (40-01, 40-02, 40-04, 40-05 complete)
+Plan: 6 of 8 in current phase (40-01 through 40-06 complete)
 Status: In progress
-Last activity: 2026-02-27 - Completed 40-05-PLAN.md (InvestigationStatusListener)
+Last activity: 2026-02-27 - Completed 40-06-PLAN.md (RuleTesterService)
 
 Progress: [====================..........] 77% (39/51 phases complete across all milestones)
 
@@ -58,6 +58,10 @@ Progress: [====================..........] 77% (39/51 phases complete across all
 - Round-robin tracking via RuleExecutionLog: No separate state table; leverage existing audit trail for last-assigned tracking (40-04)
 - Investigation status derivation flags for review: CaseStatus lacks PENDING_REVIEW, so InvestigationStatusListener emits event + audit log instead of changing status (40-05)
 - Only CLOSED investigation status triggers derivation: InvestigationStatus enum has CLOSED as only terminal status (40-05)
+- Proxy assignment check via Investigation: CaseRoutingListener checks Investigation.primaryInvestigatorId since Case lacks assignedToId (40-03)
+- Facts structure dual format: Both flat keys (severity) and nested objects (case.severity) for flexible rule authoring (40-03)
+- Test results persisted in rule: RuleTesterService stores results in rule.testResults JSON field for later retrieval without re-running (40-06)
+- Sample collection limits: First 10 matched + first 10 unmatched cases, capped at 20 total samples (40-06)
 
 ### Blockers
 
@@ -78,6 +82,6 @@ Phases needing deeper research during planning:
 ## Session Continuity
 
 Last session: 2026-02-27
-Stopped at: Completed 40-05-PLAN.md (InvestigationStatusListener)
+Stopped at: Completed 40-06-PLAN.md (RuleTesterService)
 Resume file: None
-Next action: Continue Phase 40 execution (40-03, 40-06 through 40-08)
+Next action: Continue Phase 40 execution (40-07 through 40-08)
