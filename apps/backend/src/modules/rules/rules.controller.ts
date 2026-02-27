@@ -21,7 +21,11 @@ import {
   UserRole,
 } from "../../common/decorators";
 import { RulesService } from "./rules.service";
-import { CreateRuleDto, UpdateRuleDto } from "./dto";
+import {
+  RuleTesterService,
+  TestRuleOptions,
+} from "./testing/rule-tester.service";
+import { CreateRuleDto, UpdateRuleDto, TestRuleDto } from "./dto";
 
 interface AuthenticatedUser {
   id: string;
@@ -44,7 +48,10 @@ interface AuthenticatedUser {
 @UseGuards(JwtAuthGuard, TenantGuard, RolesGuard)
 @Roles(UserRole.SYSTEM_ADMIN, UserRole.COMPLIANCE_OFFICER)
 export class RulesController {
-  constructor(private readonly rulesService: RulesService) {}
+  constructor(
+    private readonly rulesService: RulesService,
+    private readonly ruleTesterService: RuleTesterService,
+  ) {}
 
   /**
    * Create a new rule definition.
@@ -136,6 +143,55 @@ export class RulesController {
     @TenantId() organizationId: string,
   ) {
     return this.rulesService.deactivate(id, organizationId);
+  }
+
+  /**
+   * Test a rule against historical cases (dry run).
+   *
+   * This is a DRY RUN - no actions are executed.
+   * Returns match rate, sample matches, and predicted assignments.
+   *
+   * Test results are saved to the rule definition for later review.
+   */
+  @Post(":id/test")
+  async testRule(
+    @Param("id", ParseUUIDPipe) id: string,
+    @Body() dto: TestRuleDto,
+    @TenantId() organizationId: string,
+  ) {
+    const options: TestRuleOptions = {
+      limit: dto.limit,
+      dateFrom: dto.dateFrom,
+      categoryIds: dto.categoryIds,
+      severities: dto.severities,
+    };
+
+    return this.ruleTesterService.testAndSaveResults(
+      id,
+      organizationId,
+      options,
+    );
+  }
+
+  /**
+   * Get test results for a rule (from last test run).
+   *
+   * Returns the stored test results without re-running the test.
+   */
+  @Get(":id/test-results")
+  async getTestResults(
+    @Param("id", ParseUUIDPipe) id: string,
+    @TenantId() organizationId: string,
+  ) {
+    const rule = await this.rulesService.findOne(id, organizationId);
+    if (!rule) {
+      throw new NotFoundException(`Rule ${id} not found`);
+    }
+
+    return {
+      lastTestedAt: rule.lastTestedAt,
+      testResults: rule.testResults,
+    };
   }
 
   /**

@@ -11,6 +11,14 @@ import { RulesController } from "./rules.controller";
 import { RulesEngineService } from "./engine/rules-engine.service";
 import { AssignUserAction } from "./engine/actions/assign-user.action";
 import { AssignTeamAction } from "./engine/actions/assign-team.action";
+import { RoundRobinTeamAction } from "./engine/actions/round-robin-team.action";
+
+// Listener providers
+import { CaseRoutingListener } from "./listeners/case-routing.listener";
+import { InvestigationStatusListener } from "./listeners/investigation-status.listener";
+
+// Testing providers
+import { RuleTesterService } from "./testing/rule-tester.service";
 
 /**
  * RulesModule provides the rules engine for automated case routing and actions.
@@ -38,6 +46,12 @@ import { AssignTeamAction } from "./engine/actions/assign-team.action";
     RulesEngineService,
     AssignUserAction,
     AssignTeamAction,
+    RoundRobinTeamAction,
+    // Listeners
+    CaseRoutingListener,
+    InvestigationStatusListener,
+    // Testing
+    RuleTesterService,
   ],
   controllers: [RulesController],
   exports: [RulesService, RulesEngineService],

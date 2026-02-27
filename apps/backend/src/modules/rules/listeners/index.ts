@@ -5,3 +5,4 @@
  * trigger rule evaluation and action execution.
  */
 export * from "./case-routing.listener";
+export * from "./investigation-status.listener";
