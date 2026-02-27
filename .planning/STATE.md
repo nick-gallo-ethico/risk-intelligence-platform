@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-02-24)
 ## Current Position
 
 Phase: 40 of 51 (Rules Engine Foundation)
-Plan: 2 of 8 in current phase (40-02 complete)
+Plan: 2 of 8 in current phase (40-01, 40-02 complete)
 Status: In progress
-Last activity: 2026-02-27 - Completed 40-02-PLAN.md (RulesEngineService, operators, actions)
+Last activity: 2026-02-27 - Completed 40-01-PLAN.md (RulesModule with CRUD) and 40-02-PLAN.md (RulesEngineService, operators, actions)
 
 Progress: [====================..........] 77% (39/51 phases complete across all milestones)
 
@@ -50,6 +50,8 @@ Progress: [====================..........] 77% (39/51 phases complete across all
 - GDPR vs immutable RIUs: cryptographic shredding pattern (CRIT-02)
 - Event handlers: idempotency keys + transactional outbox (CRIT-03)
 - Phase numbering: continues from 40 (v1.2 ended at Phase 39)
+- json-rules-engine conditions format: {all: [...], any: [...]} structure for rule conditions (40-01)
+- Rules with execution logs soft-deleted: preserve audit trail by deactivating instead of deleting (40-01)
 - Fresh engine per evaluation: RulesEngineService creates new Engine instance per evaluate() for tenant isolation (40-02)
 - Forward-compatible actions: AssignUserAction/AssignTeamAction emit events without direct schema update since Case lacks assignedToId/assignedTeamId (40-02)
 
