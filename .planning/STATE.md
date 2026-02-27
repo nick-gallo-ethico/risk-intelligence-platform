@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-02-24)
 ## Current Position
 
 Phase: 40 of 51 (Rules Engine Foundation)
-Plan: 4 of 8 in current phase (40-01, 40-02, 40-04 complete)
+Plan: 5 of 8 in current phase (40-01, 40-02, 40-04, 40-05 complete)
 Status: In progress
-Last activity: 2026-02-27 - Completed 40-04-PLAN.md (RoundRobinTeamAction)
+Last activity: 2026-02-27 - Completed 40-05-PLAN.md (InvestigationStatusListener)
 
 Progress: [====================..........] 77% (39/51 phases complete across all milestones)
 
@@ -56,6 +56,8 @@ Progress: [====================..........] 77% (39/51 phases complete across all
 - Forward-compatible actions: AssignUserAction/AssignTeamAction emit events without direct schema update since Case lacks assignedToId/assignedTeamId (40-02)
 - Team membership via Employee: RoundRobinTeamAction matches User email to Employee.teamId for team membership since User lacks teamId (40-04)
 - Round-robin tracking via RuleExecutionLog: No separate state table; leverage existing audit trail for last-assigned tracking (40-04)
+- Investigation status derivation flags for review: CaseStatus lacks PENDING_REVIEW, so InvestigationStatusListener emits event + audit log instead of changing status (40-05)
+- Only CLOSED investigation status triggers derivation: InvestigationStatus enum has CLOSED as only terminal status (40-05)
 
 ### Blockers
 
@@ -76,6 +78,6 @@ Phases needing deeper research during planning:
 ## Session Continuity
 
 Last session: 2026-02-27
-Stopped at: Completed 40-04-PLAN.md (RoundRobinTeamAction)
+Stopped at: Completed 40-05-PLAN.md (InvestigationStatusListener)
 Resume file: None
-Next action: Continue Phase 40 execution (40-03, 40-05 through 40-08)
+Next action: Continue Phase 40 execution (40-03, 40-06 through 40-08)
