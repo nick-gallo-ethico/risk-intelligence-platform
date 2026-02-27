@@ -57,6 +57,16 @@ export type RuleTriggerEvent =
   | "riu.released";
 
 /**
+ * Case details included in test samples.
+ */
+export interface RuleTestSampleCaseDetails {
+  severity: string;
+  categoryName: string | null;
+  locationName: string | null;
+  createdAt: Date;
+}
+
+/**
  * Sample case data from rule testing.
  */
 export interface RuleTestSample {
@@ -65,6 +75,7 @@ export interface RuleTestSample {
   wouldMatch: boolean;
   currentAssignee: string | null;
   predictedAssignee: string | null;
+  caseDetails: RuleTestSampleCaseDetails;
 }
 
 /**
