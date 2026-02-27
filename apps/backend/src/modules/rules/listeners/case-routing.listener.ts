@@ -51,20 +51,22 @@ export class CaseRoutingListener {
         select: {
           id: true,
           referenceNumber: true,
-          // Check investigations for primary investigator as proxy for "assigned"
-          // until assignedToId field is added to Case model
-          investigations: {
-            where: { status: { not: "CLOSED" } },
-            select: { primaryInvestigatorId: true },
-            take: 1,
-          },
         },
       });
 
+      // Check investigations for primary investigator as proxy for "assigned"
+      // until assignedToId field is added to Case model
+      const activeInvestigation = await this.prisma.investigation.findFirst({
+        where: {
+          caseId: event.caseId,
+          status: { not: "CLOSED" },
+          primaryInvestigatorId: { not: null },
+        },
+        select: { primaryInvestigatorId: true },
+      });
+
       // If case has any active investigation with a primary investigator, consider it assigned
-      const hasAssignment = existingCase?.investigations?.some(
-        (inv) => inv.primaryInvestigatorId,
-      );
+      const hasAssignment = !!activeInvestigation?.primaryInvestigatorId;
 
       if (hasAssignment) {
         this.logger.debug(

@@ -61,6 +61,7 @@ export class RulesModule implements OnModuleInit {
     private readonly rulesEngine: RulesEngineService,
     private readonly assignUserAction: AssignUserAction,
     private readonly assignTeamAction: AssignTeamAction,
+    private readonly roundRobinTeamAction: RoundRobinTeamAction,
   ) {}
 
   /**
@@ -70,5 +71,6 @@ export class RulesModule implements OnModuleInit {
   onModuleInit() {
     this.rulesEngine.registerActionExecutor(this.assignUserAction);
     this.rulesEngine.registerActionExecutor(this.assignTeamAction);
+    this.rulesEngine.registerActionExecutor(this.roundRobinTeamAction);
   }
 }
