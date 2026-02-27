@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import { io, Socket } from "socket.io-client";
 import {
   Sparkles,
@@ -475,7 +475,9 @@ export function AiChatPanel({
               <p className="text-sm font-medium text-red-800 dark:text-red-200">
                 AI Service Unavailable
               </p>
-              <p className="text-sm text-red-600 dark:text-red-400 mt-1">{error}</p>
+              <p className="text-sm text-red-600 dark:text-red-400 mt-1">
+                {error}
+              </p>
               <Button
                 variant="outline"
                 size="sm"
@@ -579,6 +581,134 @@ export function AiChatPanel({
 }
 
 /**
+ * Simple markdown-to-JSX renderer for AI chat messages.
+ * Handles headings, bold, bullets, and paragraphs without heavy dependencies.
+ */
+function renderMarkdown(text: string): React.ReactNode[] {
+  const lines = text.split("\n");
+  const elements: React.ReactNode[] = [];
+  let key = 0;
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+
+    // Skip empty lines (they create paragraph breaks naturally via spacing)
+    if (line.trim() === "") {
+      continue;
+    }
+
+    // Headings
+    const headingMatch = line.match(/^(#{1,3})\s+(.+)$/);
+    if (headingMatch) {
+      const level = headingMatch[1].length;
+      const content = renderInline(headingMatch[2]);
+      if (level === 1) {
+        elements.push(
+          <h3 key={key++} className="font-bold text-sm mt-2 mb-1">
+            {content}
+          </h3>,
+        );
+      } else if (level === 2) {
+        elements.push(
+          <h4 key={key++} className="font-semibold text-sm mt-2 mb-1">
+            {content}
+          </h4>,
+        );
+      } else {
+        elements.push(
+          <h4 key={key++} className="font-medium text-sm mt-1 mb-0.5">
+            {content}
+          </h4>,
+        );
+      }
+      continue;
+    }
+
+    // Bullet points
+    const bulletMatch = line.match(/^[\s]*[-*]\s+(.+)$/);
+    if (bulletMatch) {
+      elements.push(
+        <div key={key++} className="flex gap-1.5 ml-1">
+          <span className="text-muted-foreground mt-0.5">•</span>
+          <span>{renderInline(bulletMatch[1])}</span>
+        </div>,
+      );
+      continue;
+    }
+
+    // Numbered list
+    const numberedMatch = line.match(/^(\d+)\.\s+(.+)$/);
+    if (numberedMatch) {
+      elements.push(
+        <div key={key++} className="flex gap-1.5 ml-1">
+          <span className="text-muted-foreground">{numberedMatch[1]}.</span>
+          <span>{renderInline(numberedMatch[2])}</span>
+        </div>,
+      );
+      continue;
+    }
+
+    // Horizontal rule
+    if (line.match(/^---+$/)) {
+      elements.push(<hr key={key++} className="my-2 border-border/50" />);
+      continue;
+    }
+
+    // Regular paragraph
+    elements.push(
+      <p key={key++} className="mb-1">
+        {renderInline(line)}
+      </p>,
+    );
+  }
+
+  return elements;
+}
+
+/**
+ * Render inline markdown (bold, italic, code).
+ */
+function renderInline(text: string): React.ReactNode {
+  // Process **bold**, *italic*, and `code` inline
+  const parts: React.ReactNode[] = [];
+  let remaining = text;
+  let partKey = 0;
+
+  while (remaining.length > 0) {
+    // Bold: **text** (using [\s\S] instead of /s flag for ES5 compatibility)
+    const boldMatch = remaining.match(/^([\s\S]*?)\*\*(.+?)\*\*([\s\S]*)/);
+    if (boldMatch) {
+      if (boldMatch[1]) parts.push(boldMatch[1]);
+      parts.push(<strong key={`b${partKey++}`}>{boldMatch[2]}</strong>);
+      remaining = boldMatch[3];
+      continue;
+    }
+
+    // Code: `text` (using [\s\S] instead of /s flag for ES5 compatibility)
+    const codeMatch = remaining.match(/^([\s\S]*?)`(.+?)`([\s\S]*)/);
+    if (codeMatch) {
+      if (codeMatch[1]) parts.push(codeMatch[1]);
+      parts.push(
+        <code
+          key={`c${partKey++}`}
+          className="px-1 py-0.5 bg-background/50 rounded text-xs font-mono"
+        >
+          {codeMatch[2]}
+        </code>,
+      );
+      remaining = codeMatch[3];
+      continue;
+    }
+
+    // No more inline formatting
+    parts.push(remaining);
+    break;
+  }
+
+  return parts.length === 1 ? parts[0] : <>{parts}</>;
+}
+
+/**
  * Individual message bubble component
  */
 function MessageBubble({ message }: { message: ChatMessage }) {
@@ -623,18 +753,22 @@ function MessageBubble({ message }: { message: ChatMessage }) {
       </div>
       <div
         className={cn(
-          "max-w-[85%] px-3 py-2 rounded-lg text-sm",
+          "min-w-0 max-w-[85%] px-3 py-2 rounded-lg text-sm overflow-hidden",
           isUser
             ? "bg-blue-600 text-white rounded-br-sm"
             : "bg-muted text-foreground rounded-bl-sm",
         )}
       >
-        <p className="whitespace-pre-wrap break-words">
-          {message.content}
-          {message.isStreaming && (
-            <span className="inline-block w-1 h-4 ml-0.5 bg-current animate-pulse" />
-          )}
-        </p>
+        {isUser ? (
+          <p className="whitespace-pre-wrap break-words">{message.content}</p>
+        ) : (
+          <div className="break-words overflow-wrap-anywhere">
+            {renderMarkdown(message.content)}
+            {message.isStreaming && (
+              <span className="inline-block w-1 h-4 ml-0.5 bg-current animate-pulse" />
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

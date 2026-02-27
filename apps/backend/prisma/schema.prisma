@@ -121,6 +121,8 @@ model Organization {
   workflowTemplates          WorkflowTemplate[]
   knowledgeBaseArticles      KnowledgeBaseArticle[]
   supportTickets             SupportTicket[]
+  ruleDefinitions            RuleDefinition[]
+  ruleExecutionLogs          RuleExecutionLog[]
 
   @@index([slug])
   @@index([isActive])
@@ -208,6 +210,7 @@ model User {
   userDashboardConfigs              UserDashboardConfig[]
   userDataTablesCreated             UserDataTable[]            @relation("UserDataTableCreatedBy")
   supportTickets                    SupportTicket[]            @relation("SupportTicketUser")
+  ruleDefinitionsCreated            RuleDefinition[]           @relation("RuleDefinitionCreatedBy")
   organization                      Organization               @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@unique([organizationId, email])
@@ -5503,4 +5506,54 @@ model SupportTicket {
   @@index([organizationId, userId])
   @@index([organizationId, status])
   @@map("support_tickets")
+}
+
+/// RuleDefinition stores configurable automation rules for case routing, assignment, and actions.
+/// Uses json-rules-engine compatible condition format for evaluation.
+/// Rules are tenant-scoped and can be activated/deactivated independently.
+model RuleDefinition {
+  id            String             @id @default(uuid())
+  organizationId String            @map("organization_id")
+  name          String
+  description   String?
+  priority      Int                @default(100) // Lower = higher priority
+  isActive      Boolean            @default(false) @map("is_active")
+  triggerEvent  String             @map("trigger_event") // e.g., "case.created", "case.updated"
+  conditions    Json               // json-rules-engine compatible format: { all: [...] } or { any: [...] }
+  actions       Json               // Array of { type: string, params: Record<string, unknown> }
+  lastTestedAt  DateTime?          @map("last_tested_at")
+  testResults   Json?              @map("test_results")
+  createdAt     DateTime           @default(now()) @map("created_at")
+  updatedAt     DateTime           @updatedAt @map("updated_at")
+  createdById   String             @map("created_by_id")
+  executionLogs RuleExecutionLog[]
+  createdBy     User               @relation("RuleDefinitionCreatedBy", fields: [createdById], references: [id])
+  organization  Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, isActive])
+  @@index([organizationId, triggerEvent])
+  @@map("rule_definitions")
+}
+
+/// RuleExecutionLog records each rule evaluation for audit and debugging.
+/// Captures the facts snapshot, match result, actions taken, and execution time.
+model RuleExecutionLog {
+  id              String         @id @default(uuid())
+  organizationId  String         @map("organization_id")
+  ruleId          String         @map("rule_id")
+  entityType      String         @map("entity_type") // e.g., "CASE", "INVESTIGATION"
+  entityId        String         @map("entity_id")
+  facts           Json           // Snapshot of facts at evaluation time
+  matched         Boolean
+  actionsTaken    Json?          @map("actions_taken")
+  executionTimeMs Int            @map("execution_time_ms")
+  errorMessage    String?        @map("error_message")
+  executedAt      DateTime       @default(now()) @map("executed_at")
+  organization    Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  rule            RuleDefinition @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, executedAt])
+  @@index([organizationId, ruleId])
+  @@index([organizationId, entityType, entityId])
+  @@map("rule_execution_logs")
 }

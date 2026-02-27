@@ -132,18 +132,18 @@ Decimal phases appear between their surrounding integers in numeric order.
 4. Admin can preview/test rules against historical cases before activating
 5. System logs all rule executions with outcome for audit trail
 
-**Plans**: TBD
+**Plans:** 8 plans in 4 waves
 
 Plans:
 
-- [ ] 40-01: RuleDefinition + RuleExecutionLog Prisma models, RulesModule, DTOs
-- [ ] 40-02: RulesEngineService with json-rules-engine integration, condition/action types
-- [ ] 40-03: Routing rule evaluation on case.created event, assignment actions
-- [ ] 40-04: Round-robin assignment strategy with team distribution tracking
-- [ ] 40-05: Case status auto-derivation from investigation states via event listeners
-- [ ] 40-06: Rule preview/testing service with historical data simulation
-- [ ] 40-07: Rules management UI (list, create, edit, test, activate)
-- [ ] 40-08: Verification checkpoint with demo data
+- [ ] 40-01-PLAN.md - RuleDefinition + RuleExecutionLog Prisma models, RulesModule, DTOs
+- [ ] 40-02-PLAN.md - RulesEngineService with json-rules-engine integration, condition/action types
+- [ ] 40-03-PLAN.md - Routing rule evaluation on case.created event, assignment actions
+- [ ] 40-04-PLAN.md - Round-robin assignment strategy with team distribution tracking
+- [ ] 40-05-PLAN.md - Case status auto-derivation from investigation states via event listeners
+- [ ] 40-06-PLAN.md - Rule preview/testing service with historical data simulation
+- [ ] 40-07-PLAN.md - Rules management UI (list, create, edit, test, activate)
+- [ ] 40-08-PLAN.md - Verification checkpoint with demo data
 
 ### Phase 41: SLA Monitoring & Escalation
 
@@ -345,6 +345,7 @@ Plans:
 **Success Criteria** (what must be TRUE):
 
 **Employee Portal:**
+
 1. Manager sees Team Compliance Dashboard with outstanding disclosures/attestations per direct report
 2. Manager can submit proxy report on behalf of employee with proper attribution
 3. Manager can send bulk reminders to non-compliant team members
@@ -353,18 +354,9 @@ Plans:
 6. Employee can export their disclosure history
 7. Session idle timeout warning modal (configurable countdown before auto-logout)
 
-**Operator Console:**
-8. Operator sees AI-suggested follow-up questions during intake based on category
-9. Mandatory directive acknowledgment gate blocks RIU submission until directives reviewed
-10. QA manager sees operator quality metrics dashboard (QA return rate, average review time)
-11. Category selection dynamically loads category-specific intake questions
-12. Opening/closing statement management for operator scripts
+**Operator Console:** 8. Operator sees AI-suggested follow-up questions during intake based on category 9. Mandatory directive acknowledgment gate blocks RIU submission until directives reviewed 10. QA manager sees operator quality metrics dashboard (QA return rate, average review time) 11. Category selection dynamically loads category-specific intake questions 12. Opening/closing statement management for operator scripts
 
-**Ethics Portal:**
-13. Crisis escalation banner displayed prominently (configurable per tenant, not dismissible)
-14. Emergency hotline phone number configurable per tenant and displayed on landing
-15. Multi-language auto-detection (URL param > user preference > browser header > HRIS > default)
-16. Program transparency display with anonymized statistics (configurable by admin)
+**Ethics Portal:** 13. Crisis escalation banner displayed prominently (configurable per tenant, not dismissible) 14. Emergency hotline phone number configurable per tenant and displayed on landing 15. Multi-language auto-detection (URL param > user preference > browser header > HRIS > default) 16. Program transparency display with anonymized statistics (configurable by admin)
 
 **Plans**: TBD
 
@@ -474,69 +466,69 @@ Plans:
 **Execution Order:**
 Phases execute in numeric order: 40 -> 41 -> 42 -> ... -> 51
 
-| Phase | Milestone | Plans Complete | Status | Completed |
-|-------|-----------|----------------|--------|-----------|
-| 1. Foundation Infrastructure | v1.0 | 9/9 | Complete | 2026-02-02 |
-| 2. Demo Tenant & Seed Data | v1.0 | 7/7 | Complete | 2026-02-03 |
-| 3. Authentication & SSO | v1.0 | 8/8 | Complete | 2026-02-03 |
-| 4. Core Entities | v1.0 | 10/10 | Complete | 2026-02-03 |
-| 5. AI Infrastructure | v1.0 | 11/11 | Complete | 2026-02-03 |
-| 6. Case Management | v1.0 | 11/17 | Complete | 2026-02-04 |
-| 7. Notifications & Email | v1.0 | 8/8 | Complete | 2026-02-04 |
-| 8. Portals | v1.0 | 17/17 | Complete | 2026-02-04 |
-| 9. Campaigns & Disclosures | v1.0 | 17/17 | Complete | 2026-02-04 |
-| 10. Policy Management | v1.0 | 11/11 | Complete | 2026-02-05 |
-| 11. Analytics & Reporting | v1.0 | 21/21 | Complete | 2026-02-05 |
-| 11.1. Frontend Navigation (INSERTED) | v1.0 | 6/6 | Complete | 2026-02-05 |
-| 12. Internal Operations Portal | v1.0 | 19/19 | Complete | 2026-02-06 |
-| 13. HubSpot-Style Saved Views | v1.0 | 15/15 | Complete | 2026-02-07 |
-| 13.1. Saved Views Fixes (INSERTED) | v1.0 | 1/1 | Complete | 2026-02-09 |
-| 14. Critical Bug Fixes & Navigation | v1.0 | 5/5 | Complete | 2026-02-09 |
-| 14.1. Data & Config Fixes (INSERTED) | v1.0 | 4/4 | Complete | 2026-02-09 |
-| 14.2. Case Creation & Search (INSERTED) | v1.0 | 3/3 | Complete | 2026-02-10 |
-| 15. Case Detail Page Overhaul | v1.0 | 11/11 | Complete | 2026-02-11 |
-| 16. AI Integration Fix | v1.0 | 8/8 | Complete | 2026-02-11 |
-| 17. Campaigns Hub | v1.0 | 4/4 | Complete | 2026-02-11 |
-| 18. Reports & Data Management | v1.0 | 9/9 | Complete | 2026-02-11 |
-| 19. Workflow Engine UI | v1.0 | 7/7 | Complete | 2026-02-11 |
-| 20. Settings Overhaul (HubSpot) | v1.0 | 6/6 | Complete | 2026-02-12 |
-| 21. Project Management (Monday.com) | v1.0 | 10/10 | Complete | 2026-02-12 |
-| 22. Dark Mode & Theme | v1.2 | 15/15 | Complete | 2026-02-18 |
-| 23. Help & Support System | v1.2 | 5/5 | Complete | 2026-02-13 |
-| 24. Policy Content & Seed Data | v1.0 | 3/3 | Complete | 2026-02-12 |
-| 25. Case & Investigation Redesign | v1.0 | 6/6 | Complete | 2026-02-13 |
-| 25.1. Case Detail Vision Revision | v1.2 | 10/10 | Complete | 2026-02-17 |
-| 26. Emergency Fixes | v1.1 | 2/2 | Complete | 2026-02-14 |
-| 27. Security Hardening | v1.1 | 4/4 | Complete | 2026-02-14 |
-| 28. Production Readiness | v1.1 | 5/5 | Complete | 2026-02-14 |
-| 29. Error Handling & Reliability | v1.1 | 5/5 | Complete | 2026-02-14 |
-| 30. Test Coverage Foundation | v1.1 | 5/5 | Complete | 2026-02-15 |
-| 31. Code Quality & Performance | v1.1 | 22/22 | Complete | 2026-02-15 |
-| 32. Security & SOC 2 Fixes | v1.2 | 8/8 | Complete | 2026-02-16 |
-| 33. Slop Cleanup & Production Readiness | v1.2 | 10/10 | Complete | 2026-02-17 |
-| 34. Performance & Scalability | v1.2 | 5/5 | Complete | 2026-02-18 |
-| 35. Code Quality & Architecture | v1.2 | 6/6 | Complete | 2026-02-18 |
-| 36. Test Coverage Expansion | v1.2 | 13/13 | Complete | 2026-02-19 |
-| 37. Critical Integration Fixes | v1.2 | 1/1 | Complete | 2026-02-19 |
-| 38. Dark Mode Gap Closure | v1.2 | 13/13 | Complete | 2026-02-20 |
-| 39. Frontend Test Repair | v1.2 | 5/5 | Complete | 2026-02-20 |
-| 40. Rules Engine Foundation | v2.0 | 0/8 | Not started | - |
-| 41. SLA Monitoring & Escalation | v2.0 | 0/6 | Not started | - |
-| 42. Anonymous Communication Relay | v2.0 | 0/8 | Not started | - |
-| 43. RAG Infrastructure | v2.0 | 0/8 | Not started | - |
-| 44. Employee Chatbot | v2.0 | 0/10 | Not started | - |
-| 45. Enhanced AI Features | v2.0 | 0/9 | Not started | - |
-| 46. Disclosure Automation Foundation | v2.0 | 0/10 | Not started | - |
-| 47. External Parties & GT&E | v2.0 | 0/7 | Not started | - |
-| 48. Portal Completeness | v2.0 | 0/15 | Not started | - |
-| 49. PWA & Push Notifications | v2.0 | 0/7 | Not started | - |
-| 50. Analytics & Data Compliance | v2.0 | 0/9 | Not started | - |
-| 51. Enterprise Branding & Deployment | v2.0 | 0/9 | Not started | - |
+| Phase                                   | Milestone | Plans Complete | Status      | Completed  |
+| --------------------------------------- | --------- | -------------- | ----------- | ---------- |
+| 1. Foundation Infrastructure            | v1.0      | 9/9            | Complete    | 2026-02-02 |
+| 2. Demo Tenant & Seed Data              | v1.0      | 7/7            | Complete    | 2026-02-03 |
+| 3. Authentication & SSO                 | v1.0      | 8/8            | Complete    | 2026-02-03 |
+| 4. Core Entities                        | v1.0      | 10/10          | Complete    | 2026-02-03 |
+| 5. AI Infrastructure                    | v1.0      | 11/11          | Complete    | 2026-02-03 |
+| 6. Case Management                      | v1.0      | 11/17          | Complete    | 2026-02-04 |
+| 7. Notifications & Email                | v1.0      | 8/8            | Complete    | 2026-02-04 |
+| 8. Portals                              | v1.0      | 17/17          | Complete    | 2026-02-04 |
+| 9. Campaigns & Disclosures              | v1.0      | 17/17          | Complete    | 2026-02-04 |
+| 10. Policy Management                   | v1.0      | 11/11          | Complete    | 2026-02-05 |
+| 11. Analytics & Reporting               | v1.0      | 21/21          | Complete    | 2026-02-05 |
+| 11.1. Frontend Navigation (INSERTED)    | v1.0      | 6/6            | Complete    | 2026-02-05 |
+| 12. Internal Operations Portal          | v1.0      | 19/19          | Complete    | 2026-02-06 |
+| 13. HubSpot-Style Saved Views           | v1.0      | 15/15          | Complete    | 2026-02-07 |
+| 13.1. Saved Views Fixes (INSERTED)      | v1.0      | 1/1            | Complete    | 2026-02-09 |
+| 14. Critical Bug Fixes & Navigation     | v1.0      | 5/5            | Complete    | 2026-02-09 |
+| 14.1. Data & Config Fixes (INSERTED)    | v1.0      | 4/4            | Complete    | 2026-02-09 |
+| 14.2. Case Creation & Search (INSERTED) | v1.0      | 3/3            | Complete    | 2026-02-10 |
+| 15. Case Detail Page Overhaul           | v1.0      | 11/11          | Complete    | 2026-02-11 |
+| 16. AI Integration Fix                  | v1.0      | 8/8            | Complete    | 2026-02-11 |
+| 17. Campaigns Hub                       | v1.0      | 4/4            | Complete    | 2026-02-11 |
+| 18. Reports & Data Management           | v1.0      | 9/9            | Complete    | 2026-02-11 |
+| 19. Workflow Engine UI                  | v1.0      | 7/7            | Complete    | 2026-02-11 |
+| 20. Settings Overhaul (HubSpot)         | v1.0      | 6/6            | Complete    | 2026-02-12 |
+| 21. Project Management (Monday.com)     | v1.0      | 10/10          | Complete    | 2026-02-12 |
+| 22. Dark Mode & Theme                   | v1.2      | 15/15          | Complete    | 2026-02-18 |
+| 23. Help & Support System               | v1.2      | 5/5            | Complete    | 2026-02-13 |
+| 24. Policy Content & Seed Data          | v1.0      | 3/3            | Complete    | 2026-02-12 |
+| 25. Case & Investigation Redesign       | v1.0      | 6/6            | Complete    | 2026-02-13 |
+| 25.1. Case Detail Vision Revision       | v1.2      | 10/10          | Complete    | 2026-02-17 |
+| 26. Emergency Fixes                     | v1.1      | 2/2            | Complete    | 2026-02-14 |
+| 27. Security Hardening                  | v1.1      | 4/4            | Complete    | 2026-02-14 |
+| 28. Production Readiness                | v1.1      | 5/5            | Complete    | 2026-02-14 |
+| 29. Error Handling & Reliability        | v1.1      | 5/5            | Complete    | 2026-02-14 |
+| 30. Test Coverage Foundation            | v1.1      | 5/5            | Complete    | 2026-02-15 |
+| 31. Code Quality & Performance          | v1.1      | 22/22          | Complete    | 2026-02-15 |
+| 32. Security & SOC 2 Fixes              | v1.2      | 8/8            | Complete    | 2026-02-16 |
+| 33. Slop Cleanup & Production Readiness | v1.2      | 10/10          | Complete    | 2026-02-17 |
+| 34. Performance & Scalability           | v1.2      | 5/5            | Complete    | 2026-02-18 |
+| 35. Code Quality & Architecture         | v1.2      | 6/6            | Complete    | 2026-02-18 |
+| 36. Test Coverage Expansion             | v1.2      | 13/13          | Complete    | 2026-02-19 |
+| 37. Critical Integration Fixes          | v1.2      | 1/1            | Complete    | 2026-02-19 |
+| 38. Dark Mode Gap Closure               | v1.2      | 13/13          | Complete    | 2026-02-20 |
+| 39. Frontend Test Repair                | v1.2      | 5/5            | Complete    | 2026-02-20 |
+| 40. Rules Engine Foundation             | v2.0      | 0/8            | Planned     | -          |
+| 41. SLA Monitoring & Escalation         | v2.0      | 0/6            | Not started | -          |
+| 42. Anonymous Communication Relay       | v2.0      | 0/8            | Not started | -          |
+| 43. RAG Infrastructure                  | v2.0      | 0/8            | Not started | -          |
+| 44. Employee Chatbot                    | v2.0      | 0/10           | Not started | -          |
+| 45. Enhanced AI Features                | v2.0      | 0/9            | Not started | -          |
+| 46. Disclosure Automation Foundation    | v2.0      | 0/10           | Not started | -          |
+| 47. External Parties & GT&E             | v2.0      | 0/7            | Not started | -          |
+| 48. Portal Completeness                 | v2.0      | 0/15           | Not started | -          |
+| 49. PWA & Push Notifications            | v2.0      | 0/7            | Not started | -          |
+| 50. Analytics & Data Compliance         | v2.0      | 0/9            | Not started | -          |
+| 51. Enterprise Branding & Deployment    | v2.0      | 0/9            | Not started | -          |
 
 ---
 
 _Roadmap created: 2026-02-02_
-_Updated: 2026-02-24 (v2.0 milestone phases 40-51 added)_
+_Updated: 2026-02-24 (Phase 40 planned with 8 plans)_
 _Total phases: 51 (+ decimal insertions)_
 _Total plans: 300+ completed across v1.0, v1.1, v1.2; 106 planned for v2.0_
 _Total requirements: 262 (v1.0-v1.2) + 83 (v2.0) = 345_
