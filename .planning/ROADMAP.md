@@ -157,16 +157,16 @@ Plans:
 3. Admin can configure escalation triggers (e.g., "if HIGH severity and unassigned >4hrs, escalate to CCO")
 4. Escalation rules integrate with existing rules engine and notification system
 
-**Plans**: TBD
+**Plans:** 6 plans in 5 waves
 
 Plans:
 
-- [ ] 41-01: SLA configuration model, SlaMonitoringService with BullMQ scheduled checks
-- [ ] 41-02: SLA warning notifications at configurable thresholds (default 80%)
-- [ ] 41-03: SLA breach detection and notification with case status update
-- [ ] 41-04: EscalationRule model and EscalationService with trigger evaluation
-- [ ] 41-05: Admin UI for SLA and escalation configuration
-- [ ] 41-06: Verification checkpoint with demo scenarios
+- [ ] 41-01-PLAN.md - SLA configuration model, CaseSlaConfig type, SlaConfigService
+- [ ] 41-02-PLAN.md - CaseSlaTrackerService with warning notifications at 80% threshold
+- [ ] 41-03-PLAN.md - SLA breach and critical detection with escalation notifications
+- [ ] 41-04-PLAN.md - EscalationService, EscalationTriggerListener, EscalateToRoleAction
+- [ ] 41-05-PLAN.md - Admin UI for SLA thresholds and escalation rules link
+- [ ] 41-06-PLAN.md - Verification checkpoint with demo data and E2E testing
 
 ### Phase 42: Anonymous Communication Relay
 
@@ -390,17 +390,17 @@ Plans:
 3. Offline form submission queuing (submits when connectivity restored)
 4. Tenant-scoped service worker caches (no cross-tenant data leakage)
 
-**Plans**: TBD
+**Plans**: 7 plans
 
 Plans:
 
-- [ ] 49-01: PWA manifest.json and app icons for ethics portal
-- [ ] 49-02: Service worker with @serwist/next, tenant-scoped cache names
-- [ ] 49-03: PushSubscription model and WebPushService backend
-- [ ] 49-04: Push notification triggers for case status, campaigns, SLA
-- [ ] 49-05: Offline form submission queue with IndexedDB (dexie)
-- [ ] 49-06: Network-first strategy for authenticated routes, cache clearing on logout
-- [ ] 49-07: Verification checkpoint with offline/online tests
+- [ ] 49-01-PLAN.md - Add PushSubscription model and PUSH channel to schema
+- [ ] 49-02-PLAN.md - WebPushService and PushSubscription API (backend)
+- [ ] 49-03-PLAN.md - Push subscription client library and React hook (frontend)
+- [ ] 49-04-PLAN.md - Push notification triggers for case status, SLA, campaigns
+- [ ] 49-05-PLAN.md - Custom service worker with push handling and tenant caching
+- [ ] 49-06-PLAN.md - Auth integration and notification settings UI
+- [ ] 49-07-PLAN.md - Database migration, tests, and verification checkpoint
 
 ### Phase 50: Analytics & Data Compliance
 
