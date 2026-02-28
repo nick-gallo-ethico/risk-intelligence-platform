@@ -183,7 +183,7 @@ Plans:
 6. Message thread displays in ethics portal status page with read receipts
 7. All relay messages logged to audit trail with sender/receiver roles (not identities for anonymous)
 
-**Plans**: TBD
+**Plans:** 9 plans in 3 waves
 
 Plans:
 
@@ -325,7 +325,7 @@ Plans:
 3. Currency conversion with daily exchange rates for multi-currency GT&E
 4. Location-specific disclosure rules (state/country thresholds for government officials)
 
-**Plans**: TBD
+**Plans:** 9 plans in 3 waves
 
 Plans:
 
@@ -358,7 +358,7 @@ Plans:
 
 **Ethics Portal:** 13. Crisis escalation banner displayed prominently (configurable per tenant, not dismissible) 14. Emergency hotline phone number configurable per tenant and displayed on landing 15. Multi-language auto-detection (URL param > user preference > browser header > HRIS > default) 16. Program transparency display with anonymized statistics (configurable by admin)
 
-**Plans**: TBD
+**Plans:** 9 plans in 3 waves
 
 Plans:
 
@@ -447,19 +447,19 @@ Plans:
 7. Custom CSS injection for enterprise branding
 8. Terraform IaC for Azure infrastructure (App Service, PostgreSQL, Redis, Blob Storage, Search)
 
-**Plans**: TBD
+**Plans:** 9 plans in 3 waves
 
 Plans:
 
-- [ ] 51-01: Custom domain SSL routing with Azure Front Door
-- [ ] 51-02: Custom font upload and tenant font selection
-- [ ] 51-03: Hero image upload for ethics portal
-- [ ] 51-04: Custom email sender domain configuration (SPF, DKIM)
-- [ ] 51-05: "Powered by Ethico" removal toggle
-- [ ] 51-06: Footer HTML customization
-- [ ] 51-07: Custom CSS injection with sanitization
-- [ ] 51-08: Terraform modules for Azure infrastructure
-- [ ] 51-09: Verification checkpoint and deployment guide
+- [ ] 51-01-PLAN.md — Schema extension with 7 new branding fields
+- [ ] 51-02-PLAN.md — Custom font upload with magic byte validation
+- [ ] 51-03-PLAN.md — Hero image upload for ethics portal
+- [ ] 51-04-PLAN.md — Custom email sender domain configuration (SPF, DKIM)
+- [ ] 51-05-PLAN.md — "Powered by Ethico" removal toggle
+- [ ] 51-06-PLAN.md — Footer HTML customization with sanitization
+- [ ] 51-07-PLAN.md — Custom CSS injection with css-tree sanitization
+- [ ] 51-08-PLAN.md — Custom domain SSL and Terraform Front Door module
+- [ ] 51-09-PLAN.md — Terraform IaC modules and verification checkpoint
 
 ## Progress
 
@@ -523,12 +523,12 @@ Phases execute in numeric order: 40 -> 41 -> 42 -> ... -> 51
 | 48. Portal Completeness                 | v2.0      | 0/15           | Not started | -          |
 | 49. PWA & Push Notifications            | v2.0      | 0/7            | Not started | -          |
 | 50. Analytics & Data Compliance         | v2.0      | 0/9            | Planned     | -          |
-| 51. Enterprise Branding & Deployment    | v2.0      | 0/9            | Not started | -          |
+| 51. Enterprise Branding & Deployment    | v2.0      | 0/9            | Planned     | -          |
 
 ---
 
 _Roadmap created: 2026-02-02_
-_Updated: 2026-02-28 (Phase 50 planned with 9 plans in 4 waves)_
+_Updated: 2026-02-28 (Phase 51 planned with 9 plans in 3 waves)_
 _Total phases: 51 (+ decimal insertions)_
 _Total plans: 300+ completed across v1.0, v1.1, v1.2; 106 planned for v2.0_
 _Total requirements: 262 (v1.0-v1.2) + 83 (v2.0) = 345_
