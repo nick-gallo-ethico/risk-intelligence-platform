@@ -298,20 +298,20 @@ Plans:
 7. Admin can set up proxy delegation (delegate authority with scope and validity period)
 8. Campaign can be paused and resumed by admin
 
-**Plans**: TBD
+**Plans**: 10 plans in 4 waves
 
 Plans:
 
-- [ ] 46-01: RollingCampaignService with HRIS event triggers via hris.sync.completed listener
-- [ ] 46-02: HRIS sync completion fence to prevent race conditions
-- [ ] 46-03: Auto-clear and auto-reject rule configuration and evaluation
-- [ ] 46-04: Bulk disclosure operations (approve/reject up to 100)
-- [ ] 46-05: Condition reminder scheduling at 14/7/3/1 days
-- [ ] 46-06: Multi-stage approval workflow for disclosures (up to 4 stages)
-- [ ] 46-07: Proxy delegation model and service with scope and validity
-- [ ] 46-08: Campaign pause/resume functionality
-- [ ] 46-09: Rolling campaign UI and configuration
-- [ ] 46-10: Verification checkpoint
+- [ ] 46-01-PLAN.md - RollingCampaignConfig model, RollingCampaignService, HRIS event listener
+- [ ] 46-02-PLAN.md - HRIS sync completion fence to prevent race conditions
+- [ ] 46-03-PLAN.md - Auto-clear and auto-reject rule configuration and evaluation
+- [ ] 46-04-PLAN.md - Bulk disclosure operations (approve/reject up to 100)
+- [ ] 46-05-PLAN.md - Condition reminder scheduling at 14/7/3/1 days
+- [ ] 46-06-PLAN.md - Multi-stage approval workflow for disclosures (up to 4 stages)
+- [ ] 46-07-PLAN.md - Proxy delegation model and service with scope and validity
+- [ ] 46-08-PLAN.md - Campaign pause/resume functionality
+- [ ] 46-09-PLAN.md - Rolling campaign UI and configuration
+- [ ] 46-10-PLAN.md - Verification checkpoint with demo data
 
 ### Phase 47: External Parties & GT&E
 
