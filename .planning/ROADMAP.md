@@ -240,20 +240,20 @@ Plans:
 9. Full chatbot transcript stored for audit with conversation entity linkage
 10. FAQ database with curated answers that chatbot references before RAG fallback
 
-**Plans**: TBD
+**Plans**: 10 plans in 6 waves
 
 Plans:
 
-- [ ] 44-01: EmployeeChatbotAgent with PolicySearchSkill, CaseStatusSkill, DisclosureGuideSkill
-- [ ] 44-02: FAQ model and FAQ management service with priority over RAG
-- [ ] 44-03: Confidence-tiered response formatting (High/Medium/Low)
-- [ ] 44-04: One-click escalation to compliance team (creates async inquiry)
-- [ ] 44-05: Consent capture modal and session tracking
-- [ ] 44-06: Case status lookup via access code (anonymous-safe)
-- [ ] 44-07: Floating chatbot widget component for Ethics Portal
-- [ ] 44-08: Floating chatbot widget for Employee Portal (authenticated context)
-- [ ] 44-09: Chatbot transcript storage with conversation entity linkage
-- [ ] 44-10: FAQ management UI and verification checkpoint
+- [ ] 44-01-PLAN.md — FaqEntry + ChatbotConsentLog Prisma models, ChatbotModule
+- [ ] 44-02-PLAN.md — FaqService with full-text search, ConsentService with append-only logging
+- [ ] 44-03-PLAN.md — EmployeeChatbotAgent extending BaseAgent, system prompt template
+- [ ] 44-04-PLAN.md — FaqMatchSkill and PolicySearchSkill with confidence tiers
+- [ ] 44-05-PLAN.md — CaseStatusSkill with rate-limited access code lookup
+- [ ] 44-06-PLAN.md — EscalateSkill with ChatbotInquiry model for one-click escalation
+- [ ] 44-07-PLAN.md — ChatbotGateway for anonymous + authenticated WebSocket
+- [ ] 44-08-PLAN.md — ChatbotWidget with useChatbot hook, ConsentDialog, animations
+- [ ] 44-09-PLAN.md — Portal integration (Ethics + Employee layouts)
+- [ ] 44-10-PLAN.md — ChatbotController, FAQ endpoints, demo seed data
 
 ### Phase 45: Enhanced AI Features
 
