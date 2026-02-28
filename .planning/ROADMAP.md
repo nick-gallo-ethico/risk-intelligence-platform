@@ -417,19 +417,19 @@ Plans:
 6. Configurable data retention policies (auto-archive after N days/months/years)
 7. Document/attachment virus scan integration (ClamAV or Azure Defender)
 
-**Plans**: TBD
+**Plans:** 9 plans in 4 waves
 
 Plans:
 
-- [ ] 50-01: Fact table models (FACT_RIU_DAILY, FACT_CASE_DAILY, FACT_CAMPAIGN_DAILY)
-- [ ] 50-02: Event-driven incremental aggregation + nightly reconciliation jobs
-- [ ] 50-03: Dashboard widget builder with drag-and-drop layouts
-- [ ] 50-04: Scheduled report delivery service with email cron
-- [ ] 50-05: Peer benchmarking pipeline (anonymized aggregation)
-- [ ] 50-06: GDPR cryptographic shredding service (piiEncryptionKeyId, purge workflow)
-- [ ] 50-07: Data retention policy configuration and auto-archive jobs
-- [ ] 50-08: Virus scan integration for document uploads
-- [ ] 50-09: Verification checkpoint
+- [ ] 50-01-PLAN.md - Fact table Prisma models (FactCaseDaily, FactRiuDaily, FactCampaignDaily)
+- [ ] 50-02-PLAN.md - Event-driven incremental aggregation + nightly reconciliation
+- [ ] 50-03-PLAN.md - Dashboard widget builder with react-grid-layout drag-and-drop
+- [ ] 50-04-PLAN.md - Scheduled report delivery service with email cron
+- [ ] 50-05-PLAN.md - Peer benchmarking pipeline (anonymized aggregation, 5+ org threshold)
+- [ ] 50-06-PLAN.md - GDPR cryptographic shredding service (AES-256-GCM, Azure Key Vault)
+- [ ] 50-07-PLAN.md - Data retention policy configuration and auto-archive jobs
+- [ ] 50-08-PLAN.md - Virus scan integration with ClamAV
+- [ ] 50-09-PLAN.md - Verification checkpoint with demo data
 
 ### Phase 51: Enterprise Branding & Deployment
 
@@ -522,13 +522,13 @@ Phases execute in numeric order: 40 -> 41 -> 42 -> ... -> 51
 | 47. External Parties & GT&E             | v2.0      | 0/7            | Not started | -          |
 | 48. Portal Completeness                 | v2.0      | 0/15           | Not started | -          |
 | 49. PWA & Push Notifications            | v2.0      | 0/7            | Not started | -          |
-| 50. Analytics & Data Compliance         | v2.0      | 0/9            | Not started | -          |
+| 50. Analytics & Data Compliance         | v2.0      | 0/9            | Planned     | -          |
 | 51. Enterprise Branding & Deployment    | v2.0      | 0/9            | Not started | -          |
 
 ---
 
 _Roadmap created: 2026-02-02_
-_Updated: 2026-02-24 (Phase 40 planned with 8 plans)_
+_Updated: 2026-02-28 (Phase 50 planned with 9 plans in 4 waves)_
 _Total phases: 51 (+ decimal insertions)_
 _Total plans: 300+ completed across v1.0, v1.1, v1.2; 106 planned for v2.0_
 _Total requirements: 262 (v1.0-v1.2) + 83 (v2.0) = 345_
