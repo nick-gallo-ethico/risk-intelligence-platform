@@ -209,18 +209,18 @@ Plans:
 4. Semantic search returns relevant document chunks with similarity scores, filtered by tenant
 5. Embedding model abstraction layer supports swapping providers without re-indexing schema changes
 
-**Plans**: TBD
+**Plans**: 8 plans in 4 waves
 
 Plans:
 
-- [ ] 43-01: pgvector extension, DocumentEmbedding table with explicit organizationId
-- [ ] 43-02: EmbeddingService abstraction with Voyage AI provider
-- [ ] 43-03: Document chunking strategies (section-based for policies, activity-based for cases)
-- [ ] 43-04: VectorStoreService with similarity search and tenant filtering
-- [ ] 43-05: Knowledge base document upload with chunk/embed pipeline
-- [ ] 43-06: Policy auto-embedding on publish via event listener
-- [ ] 43-07: Hybrid search combining Elasticsearch keyword + pgvector semantic
-- [ ] 43-08: Verification checkpoint with performance benchmarks (100K+ embeddings)
+- [ ] 43-01-PLAN.md — pgvector extension, DocumentEmbedding table with explicit organizationId
+- [ ] 43-02-PLAN.md — EmbeddingService abstraction with Voyage AI provider
+- [ ] 43-03-PLAN.md — Document chunking strategies (section-based for policies, activity-based for cases)
+- [ ] 43-04-PLAN.md — VectorStoreService with similarity search and tenant filtering
+- [ ] 43-05-PLAN.md — Knowledge base document upload with chunk/embed pipeline
+- [ ] 43-06-PLAN.md — Policy auto-embedding on publish via event listener
+- [ ] 43-07-PLAN.md — Hybrid search combining Elasticsearch keyword + pgvector semantic
+- [ ] 43-08-PLAN.md — Verification checkpoint with performance benchmarks
 
 ### Phase 44: Employee Chatbot
 
@@ -268,19 +268,19 @@ Plans:
 4. AI trend identification surfaces statistical changes (e.g., "Harassment reports up 40% in Manufacturing")
 5. One-click escalation from chatbot creates async inquiry for compliance team
 
-**Plans**: TBD
+**Plans:** 9 plans in 5 waves
 
 Plans:
 
-- [ ] 45-01: Note cleanup preview component with before/after diff view
-- [ ] 45-02: PatternDetectionModule with repeat subject detection via PersonCaseAssociation queries
-- [ ] 45-03: PatternAlert model and nightly pattern detection job (BullMQ per tenant)
-- [ ] 45-04: Real-time repeat subject alert on case creation
-- [ ] 45-05: Pattern-based escalation rule integration with rules engine
-- [ ] 45-06: AI trend identification service with statistical change detection
-- [ ] 45-07: Trend dashboard widget showing category/location changes
-- [ ] 45-08: Pattern alert dashboard with accept/dismiss tracking
-- [ ] 45-09: Verification checkpoint
+- [ ] 45-01-PLAN.md - Note cleanup diff component with word-level before/after view
+- [ ] 45-02-PLAN.md - PatternAlert model and PatternAlertService with deduplication
+- [ ] 45-03-PLAN.md - Nightly pattern detection BullMQ processor per tenant
+- [ ] 45-04-PLAN.md - Real-time pattern alert listener on case creation
+- [ ] 45-05-PLAN.md - Pattern-based escalation rule operators and action
+- [ ] 45-06-PLAN.md - TrendAnalysisService with period-over-period statistics
+- [ ] 45-07-PLAN.md - Trend dashboard widget with visual indicators
+- [ ] 45-08-PLAN.md - Pattern alert dashboard with acknowledge/dismiss workflow
+- [ ] 45-09-PLAN.md - Verification checkpoint with demo data
 
 ### Phase 46: Disclosure Automation Foundation
 
