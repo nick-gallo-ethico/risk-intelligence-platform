@@ -26,6 +26,9 @@ import {
   SsoProvider,
   UserRole,
   PasswordPolicyDto,
+  RelaySettingsDto,
+  UpdateRelaySettingsDto,
+  ReporterVisibilityLevel,
 } from "./dto";
 
 /** Cache TTL in milliseconds (5 minutes) */
@@ -56,6 +59,15 @@ const DEFAULT_SECURITY_SETTINGS = {
   mfaRequiredRoles: [UserRole.SYSTEM_ADMIN, UserRole.CCO] as UserRole[],
   sessionTimeoutMinutes: 60,
   passwordPolicy: DEFAULT_PASSWORD_POLICY,
+};
+
+/** Default relay settings for anonymous communication */
+const DEFAULT_RELAY_SETTINGS: RelaySettingsDto = {
+  reporterVisibilityLevel: ReporterVisibilityLevel.STANDARD,
+  enableMessaging: true,
+  autoNotifyOnMessage: true,
+  notificationDelayMinHours: 1,
+  notificationDelayMaxHours: 6,
 };
 
 /**
@@ -500,6 +512,97 @@ export class OrganizationService {
     this.logger.log(`Updated security settings for: ${organizationId}`);
 
     return this.getSettings(organizationId);
+  }
+
+  /**
+   * Get relay settings for anonymous communication.
+   *
+   * Relay settings control how the platform communicates with anonymous
+   * reporters, including visibility levels and notification timing.
+   *
+   * @param organizationId - Organization ID
+   * @returns Current relay settings
+   */
+  async getRelaySettings(organizationId: string): Promise<RelaySettingsDto> {
+    const org = await this.prisma.organization.findUnique({
+      where: { id: organizationId },
+      select: { settings: true },
+    });
+
+    if (!org) {
+      throw new NotFoundException("Organization not found");
+    }
+
+    const settings = (org.settings as Record<string, unknown>) || {};
+
+    return {
+      reporterVisibilityLevel:
+        (settings.reporterVisibilityLevel as ReporterVisibilityLevel) ||
+        DEFAULT_RELAY_SETTINGS.reporterVisibilityLevel,
+      enableMessaging: settings.enableMessaging !== false, // default true
+      autoNotifyOnMessage: settings.autoNotifyOnMessage !== false, // default true
+      notificationDelayMinHours:
+        (settings.notificationDelayMinHours as number) ??
+        DEFAULT_RELAY_SETTINGS.notificationDelayMinHours,
+      notificationDelayMaxHours:
+        (settings.notificationDelayMaxHours as number) ??
+        DEFAULT_RELAY_SETTINGS.notificationDelayMaxHours,
+    };
+  }
+
+  /**
+   * Update relay settings for anonymous communication.
+   *
+   * @param organizationId - Organization ID
+   * @param dto - Relay settings update data
+   * @returns Updated relay settings
+   */
+  async updateRelaySettings(
+    organizationId: string,
+    dto: UpdateRelaySettingsDto,
+  ): Promise<RelaySettingsDto> {
+    const org = await this.prisma.organization.findUnique({
+      where: { id: organizationId },
+      select: { settings: true },
+    });
+
+    if (!org) {
+      throw new NotFoundException("Organization not found");
+    }
+
+    const currentSettings = (org.settings as Record<string, unknown>) || {};
+
+    // Merge relay settings into existing settings
+    const newSettings: Record<string, unknown> = {
+      ...currentSettings,
+      ...(dto.reporterVisibilityLevel !== undefined && {
+        reporterVisibilityLevel: dto.reporterVisibilityLevel,
+      }),
+      ...(dto.enableMessaging !== undefined && {
+        enableMessaging: dto.enableMessaging,
+      }),
+      ...(dto.autoNotifyOnMessage !== undefined && {
+        autoNotifyOnMessage: dto.autoNotifyOnMessage,
+      }),
+      ...(dto.notificationDelayMinHours !== undefined && {
+        notificationDelayMinHours: dto.notificationDelayMinHours,
+      }),
+      ...(dto.notificationDelayMaxHours !== undefined && {
+        notificationDelayMaxHours: dto.notificationDelayMaxHours,
+      }),
+    };
+
+    await this.prisma.organization.update({
+      where: { id: organizationId },
+      data: { settings: newSettings as Prisma.InputJsonValue },
+    });
+
+    // Invalidate cache
+    await this.invalidateCache(organizationId);
+
+    this.logger.log(`Updated relay settings for: ${organizationId}`);
+
+    return this.getRelaySettings(organizationId);
   }
 
   // Private Helper Methods
