@@ -104,7 +104,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 **Milestone Goal:** Close all gaps between PRD specifications and the built platform across 6 waves, transforming it from a solid CRUD system into the "AI-first HubSpot for Compliance" described in the PRDs.
 
-- [ ] **Phase 40: Rules Engine Foundation** - Auto-routing rules, round-robin assignment, status auto-derivation, rule testing
+- [x] **Phase 40: Rules Engine Foundation** - Auto-routing rules, round-robin assignment, status auto-derivation, rule testing
 - [ ] **Phase 41: SLA Monitoring & Escalation** - SLA warnings/breaches, escalation triggers, configurable timeouts
 - [ ] **Phase 42: Anonymous Communication Relay** - Chinese Wall messaging, access codes, reporter visibility levels
 - [ ] **Phase 43: RAG Infrastructure** - pgvector embeddings, document chunking, semantic search, embedding abstraction
@@ -136,14 +136,14 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 Plans:
 
-- [ ] 40-01-PLAN.md - RuleDefinition + RuleExecutionLog Prisma models, RulesModule, DTOs
-- [ ] 40-02-PLAN.md - RulesEngineService with json-rules-engine integration, condition/action types
-- [ ] 40-03-PLAN.md - Routing rule evaluation on case.created event, assignment actions
-- [ ] 40-04-PLAN.md - Round-robin assignment strategy with team distribution tracking
-- [ ] 40-05-PLAN.md - Case status auto-derivation from investigation states via event listeners
-- [ ] 40-06-PLAN.md - Rule preview/testing service with historical data simulation
-- [ ] 40-07-PLAN.md - Rules management UI (list, create, edit, test, activate)
-- [ ] 40-08-PLAN.md - Verification checkpoint with demo data
+- [x] 40-01-PLAN.md - RuleDefinition + RuleExecutionLog Prisma models, RulesModule, DTOs
+- [x] 40-02-PLAN.md - RulesEngineService with json-rules-engine integration, condition/action types
+- [x] 40-03-PLAN.md - Routing rule evaluation on case.created event, assignment actions
+- [x] 40-04-PLAN.md - Round-robin assignment strategy with team distribution tracking
+- [x] 40-05-PLAN.md - Case status auto-derivation from investigation states via event listeners
+- [x] 40-06-PLAN.md - Rule preview/testing service with historical data simulation
+- [x] 40-07-PLAN.md - Rules management UI (list, create, edit, test, activate)
+- [x] 40-08-PLAN.md - Verification checkpoint with demo data
 
 ### Phase 41: SLA Monitoring & Escalation
 
@@ -258,15 +258,15 @@ Plans:
 ### Phase 45: Enhanced AI Features
 
 **Goal**: Deliver advanced AI capabilities - note cleanup with preview, cross-case pattern detection, trend identification, and pattern-based escalation.
-**Depends on**: Phase 43 (RAG), Phase 40 (rules engine), Phase 44 (chatbot escalation)
-**Requirements**: AIEX-01, AIEX-02, AIEX-03, AIEX-04, AIEX-05
+**Depends on**: Phase 40 (rules engine)
+**Requirements**: AIEX-01, AIEX-02, AIEX-03, AIEX-04 (AIEX-05 deferred to Phase 44 completion)
 **Success Criteria** (what must be TRUE):
 
 1. Note cleanup tool shows before/after preview (bullet points to formal narrative)
 2. Cross-case pattern detection alerts when same subject appears in 3+ cases
 3. Pattern-based escalation combines rules engine with detection (e.g., "5+ cases in 90 days = auto-escalate")
 4. AI trend identification surfaces statistical changes (e.g., "Harassment reports up 40% in Manufacturing")
-5. One-click escalation from chatbot creates async inquiry for compliance team
+5. ~~One-click escalation from chatbot creates async inquiry for compliance team~~ **DEFERRED** — requires Phase 44 (Employee Chatbot). Will be delivered as part of Phase 44 execution (44-06: EscalateSkill).
 
 **Plans:** 9 plans in 5 waves
 
@@ -512,7 +512,7 @@ Phases execute in numeric order: 40 -> 41 -> 42 -> ... -> 51
 | 37. Critical Integration Fixes          | v1.2      | 1/1            | Complete    | 2026-02-19 |
 | 38. Dark Mode Gap Closure               | v1.2      | 13/13          | Complete    | 2026-02-20 |
 | 39. Frontend Test Repair                | v1.2      | 5/5            | Complete    | 2026-02-20 |
-| 40. Rules Engine Foundation             | v2.0      | 0/8            | Planned     | -          |
+| 40. Rules Engine Foundation             | v2.0      | 8/8            | Complete    | 2026-03-02 |
 | 41. SLA Monitoring & Escalation         | v2.0      | 0/6            | Not started | -          |
 | 42. Anonymous Communication Relay       | v2.0      | 0/8            | Not started | -          |
 | 43. RAG Infrastructure                  | v2.0      | 0/8            | Not started | -          |
