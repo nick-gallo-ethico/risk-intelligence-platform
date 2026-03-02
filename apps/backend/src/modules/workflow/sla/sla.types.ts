@@ -56,3 +56,64 @@ export interface SlaCheckResult {
   /** Count of new breaches detected */
   breaches: number;
 }
+
+/**
+ * Case-level SLA configuration stored per organization.
+ *
+ * Organizations can customize:
+ * - Default SLA days for cases
+ * - Warning/critical thresholds
+ * - Per-severity and per-category overrides
+ */
+export interface CaseSlaConfig {
+  /** Whether case SLA monitoring is enabled (default: true) */
+  enabled: boolean;
+
+  /** Default SLA days for cases (default: 14) */
+  defaultDays: number;
+
+  /** Warning threshold percentage (default: 80 per RULE-03) */
+  warningThresholdPercent: number;
+
+  /** Hours after breach to trigger critical escalation (default: 48) */
+  criticalThresholdHours: number;
+
+  /** Per-severity SLA days override (HIGH=7, MEDIUM=14, LOW=30) */
+  severityOverrides?: {
+    HIGH?: number;
+    MEDIUM?: number;
+    LOW?: number;
+  };
+
+  /** Per-category SLA days override (categoryId -> days) */
+  categoryOverrides?: Record<string, number>;
+}
+
+/** Default case SLA configuration */
+export const DEFAULT_CASE_SLA_CONFIG: CaseSlaConfig = {
+  enabled: true,
+  defaultDays: 14,
+  warningThresholdPercent: 80,
+  criticalThresholdHours: 48,
+  severityOverrides: {
+    HIGH: 7,
+    MEDIUM: 14,
+    LOW: 30,
+  },
+};
+
+/** SLA status type for cases */
+export type CaseSlaStatus = "on_track" | "warning" | "breached" | "critical";
+
+/**
+ * State tracked per case for SLA deduplication.
+ * Stored in Case.slaState JSON field.
+ */
+export interface CaseSlaState {
+  /** Last calculated SLA status */
+  lastStatus: CaseSlaStatus;
+  /** When last notification was sent */
+  lastNotifiedAt: Date | null;
+  /** Type of last notification sent */
+  lastNotificationType: "warning" | "breach" | "critical" | null;
+}
