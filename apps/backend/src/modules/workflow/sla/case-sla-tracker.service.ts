@@ -9,7 +9,11 @@ import {
   SlaCheckResult,
   DEFAULT_CASE_SLA_CONFIG,
 } from "./sla.types";
-import { SlaWarningEvent } from "../../events/events/sla.events";
+import {
+  SlaWarningEvent,
+  SlaBreachedEvent,
+  SlaCriticalEvent,
+} from "../../events/events/sla.events";
 import { Prisma } from "@prisma/client";
 
 /**
@@ -19,6 +23,8 @@ import { Prisma } from "@prisma/client";
  * - Check all active cases across all organizations for SLA status
  * - Calculate SLA status based on org-level configuration
  * - Emit sla.warning events when cases reach 80% threshold
+ * - Emit sla.breached events when cases exceed due date
+ * - Emit sla.critical events when cases are 48+ hours past due
  * - Track SLA state to prevent duplicate notifications
  *
  * SLA Status Levels:
@@ -58,6 +64,7 @@ export class CaseSlaTrackerService {
     let totalChecked = 0;
     let warnings = 0;
     let breaches = 0;
+    let criticals = 0;
 
     for (const org of orgs) {
       const config = this.parseConfig(org.caseSlaConfig);
@@ -69,9 +76,10 @@ export class CaseSlaTrackerService {
       totalChecked += result.checked;
       warnings += result.warnings;
       breaches += result.breaches;
+      criticals += result.criticals ?? 0;
     }
 
-    return { checked: totalChecked, warnings, breaches };
+    return { checked: totalChecked, warnings, breaches, criticals };
   }
 
   /**
@@ -110,6 +118,7 @@ export class CaseSlaTrackerService {
 
     let warnings = 0;
     let breaches = 0;
+    let criticals = 0;
 
     for (const caseRecord of cases) {
       try {
@@ -131,10 +140,11 @@ export class CaseSlaTrackerService {
         const currentState =
           caseRecord.slaState as unknown as CaseSlaState | null;
 
+        // Get assignee from first open investigation
+        const assigneeId = caseRecord.investigations[0]?.primaryInvestigatorId;
+
         // Check for warning transition
         if (this.shouldEmitWarning(currentState, calc)) {
-          const assigneeId =
-            caseRecord.investigations[0]?.primaryInvestigatorId;
           if (assigneeId) {
             this.emitWarningEvent(
               organizationId,
@@ -147,9 +157,44 @@ export class CaseSlaTrackerService {
           }
         }
 
-        // Check for breach transition
+        // Check for breach transition (on_track/warning -> breached)
         if (this.shouldEmitBreach(currentState, calc)) {
-          breaches++;
+          if (assigneeId) {
+            const supervisor = await this.findSupervisor(
+              organizationId,
+              assigneeId,
+            );
+            this.emitBreachEvent(
+              organizationId,
+              caseRecord,
+              assigneeId,
+              supervisor?.id,
+              calc,
+            );
+            breaches++;
+          }
+        }
+
+        // Check for critical transition (any -> critical)
+        if (this.shouldEmitCritical(currentState, calc)) {
+          if (assigneeId) {
+            const supervisor = await this.findSupervisor(
+              organizationId,
+              assigneeId,
+            );
+            const cco = await this.findComplianceOfficer(organizationId);
+            if (cco) {
+              this.emitCriticalEvent(
+                organizationId,
+                caseRecord,
+                assigneeId,
+                supervisor?.id,
+                cco.id,
+                calc,
+              );
+              criticals++;
+            }
+          }
         }
 
         // Update case SLA state if changed
@@ -163,7 +208,7 @@ export class CaseSlaTrackerService {
       }
     }
 
-    return { checked: cases.length, warnings, breaches };
+    return { checked: cases.length, warnings, breaches, criticals };
   }
 
   /**
@@ -226,22 +271,43 @@ export class CaseSlaTrackerService {
   }
 
   /**
-   * Determine if breach occurred (for tracking, not event emission yet).
+   * Determine if breach event should be emitted.
+   * Only emit on TRANSITION from warning/on_track to breached.
+   * Note: Critical is a separate event, not a breach.
    *
    * @param currentState - The case's current SLA state
    * @param calc - The new SLA calculation
-   * @returns true if breach transition occurred
+   * @returns true if breach event should be emitted
    */
   private shouldEmitBreach(
     currentState: CaseSlaState | null,
     calc: SlaCalculation,
   ): boolean {
-    if (calc.status !== "breached" && calc.status !== "critical") return false;
-    if (!currentState) return true; // First check
+    // Only emit for breached status (not critical - that's separate)
+    if (calc.status !== "breached") return false;
+    if (!currentState) return true; // First check while breached
+    // Only emit on transition TO breached (not if already breached/critical)
     return (
-      currentState.lastStatus !== "breached" &&
-      currentState.lastStatus !== "critical"
+      currentState.lastStatus === "on_track" ||
+      currentState.lastStatus === "warning"
     );
+  }
+
+  /**
+   * Determine if critical event should be emitted.
+   * Only emit on TRANSITION to critical from any other status.
+   *
+   * @param currentState - The case's current SLA state
+   * @param calc - The new SLA calculation
+   * @returns true if critical event should be emitted
+   */
+  private shouldEmitCritical(
+    currentState: CaseSlaState | null,
+    calc: SlaCalculation,
+  ): boolean {
+    if (calc.status !== "critical") return false;
+    if (!currentState) return true; // First check while critical
+    return currentState.lastStatus !== "critical"; // Any transition TO critical
   }
 
   /**
@@ -319,6 +385,141 @@ export class CaseSlaTrackerService {
       }),
     );
     this.logger.debug(`Emitted SLA warning for case ${caseRecord.id}`);
+  }
+
+  /**
+   * Emit SLA breach event for notification handling.
+   * Notifies assignee and supervisor.
+   *
+   * @param organizationId - The organization ID
+   * @param caseRecord - The case data
+   * @param assigneeId - The current assignee's user ID
+   * @param supervisorId - The supervisor's user ID (if available)
+   * @param calc - The SLA calculation result
+   */
+  private emitBreachEvent(
+    organizationId: string,
+    caseRecord: { id: string; referenceNumber: string },
+    assigneeId: string,
+    supervisorId: string | undefined,
+    calc: SlaCalculation,
+  ): void {
+    this.eventEmitter.emit(
+      SlaBreachedEvent.eventName,
+      new SlaBreachedEvent({
+        organizationId,
+        actorType: "SYSTEM",
+        caseId: caseRecord.id,
+        referenceNumber: caseRecord.referenceNumber,
+        assigneeId,
+        supervisorId,
+        hoursOverdue: Math.abs(calc.remainingHours),
+      }),
+    );
+    this.logger.debug(
+      `Emitted SLA breach for case ${caseRecord.id}: ${Math.abs(calc.remainingHours).toFixed(1)}h overdue`,
+    );
+  }
+
+  /**
+   * Emit SLA critical event for notification handling.
+   * Notifies assignee, supervisor, and compliance officer.
+   *
+   * @param organizationId - The organization ID
+   * @param caseRecord - The case data
+   * @param assigneeId - The current assignee's user ID
+   * @param supervisorId - The supervisor's user ID (if available)
+   * @param complianceOfficerId - The compliance officer's user ID
+   * @param calc - The SLA calculation result
+   */
+  private emitCriticalEvent(
+    organizationId: string,
+    caseRecord: { id: string; referenceNumber: string },
+    assigneeId: string,
+    supervisorId: string | undefined,
+    complianceOfficerId: string,
+    calc: SlaCalculation,
+  ): void {
+    this.eventEmitter.emit(
+      SlaCriticalEvent.eventName,
+      new SlaCriticalEvent({
+        organizationId,
+        actorType: "SYSTEM",
+        caseId: caseRecord.id,
+        referenceNumber: caseRecord.referenceNumber,
+        assigneeId,
+        supervisorId,
+        complianceOfficerId,
+        hoursOverdue: Math.abs(calc.remainingHours),
+      }),
+    );
+    this.logger.debug(
+      `Emitted SLA critical for case ${caseRecord.id}: ${Math.abs(calc.remainingHours).toFixed(1)}h overdue`,
+    );
+  }
+
+  /**
+   * Find the supervisor of an assignee via Employee manager chain.
+   * Links User to Employee via email, then follows managerId.
+   *
+   * @param organizationId - The organization ID
+   * @param userId - The assignee's user ID
+   * @returns Supervisor's user ID, or null if not found
+   */
+  private async findSupervisor(
+    organizationId: string,
+    userId: string,
+  ): Promise<{ id: string } | null> {
+    // Get user's email to match with Employee
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { email: true },
+    });
+    if (!user) return null;
+
+    // Find employee by email and get their manager
+    const employee = await this.prisma.employee.findFirst({
+      where: {
+        organizationId,
+        email: user.email,
+      },
+      select: {
+        manager: {
+          select: { email: true },
+        },
+      },
+    });
+    if (!employee?.manager?.email) return null;
+
+    // Find user with manager's email
+    const supervisor = await this.prisma.user.findFirst({
+      where: {
+        organizationId,
+        email: employee.manager.email,
+        isActive: true,
+      },
+      select: { id: true },
+    });
+    return supervisor;
+  }
+
+  /**
+   * Find the compliance officer for an organization.
+   *
+   * @param organizationId - The organization ID
+   * @returns Compliance officer's user ID, or null if not found
+   */
+  private async findComplianceOfficer(
+    organizationId: string,
+  ): Promise<{ id: string } | null> {
+    return this.prisma.user.findFirst({
+      where: {
+        organizationId,
+        role: "COMPLIANCE_OFFICER",
+        isActive: true,
+      },
+      select: { id: true },
+    });
   }
 
   /**
