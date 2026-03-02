@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-02-24)
 ## Current Position
 
 Phase: 41 of 51 (SLA Monitoring & Escalation)
-Plan: Not started
-Status: Ready to plan
-Last activity: 2026-03-02 - Completed Phase 40 (Rules Engine Foundation) - all 8 plans, checkpoint approved
+Plan: 1 of 6 complete
+Status: In progress
+Last activity: 2026-03-02 - Completed 41-01-PLAN.md (Case SLA Config Model)
 
 Progress: [=====================.........] 78% (40/51 phases complete across all milestones)
 
@@ -64,6 +64,9 @@ Progress: [=====================.........] 78% (40/51 phases complete across all
 - Sample collection limits: First 10 matched + first 10 unmatched cases, capped at 20 total samples (40-06)
 - Condition builder single level: UI supports ALL/ANY toggle at top level, not nested conditions (40-07)
 - Action params inline: Action parameters rendered inline in ActionSelector component (40-07)
+- SLA config stored in Organization.caseSlaConfig JSON field: simpler than separate table, can migrate later if reporting needs grow (41-01)
+- Case SLA deduplication via CaseSlaState: track lastStatus and lastNotifiedAt in Case.slaState to prevent notification spam (41-01)
+- Category overrides take precedence over severity overrides in SLA calculation (41-01)
 
 ### Blockers
 
@@ -84,6 +87,6 @@ Phases needing deeper research during planning:
 ## Session Continuity
 
 Last session: 2026-03-02
-Stopped at: Completed Phase 40 (Rules Engine Foundation)
+Stopped at: Completed 41-01-PLAN.md (Case SLA Configuration Model)
 Resume file: None
-Next action: Plan and execute Phase 41 (SLA Monitoring & Escalation)
+Next action: Execute 41-02-PLAN.md (CaseSlaTrackerService)
