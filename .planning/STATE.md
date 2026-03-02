@@ -12,7 +12,7 @@ See: .planning/PROJECT.md (updated 2026-02-24)
 Phase: 42 of 51 (Anonymous Communication Relay)
 Plan: 2 of 6 complete
 Status: In progress
-Last activity: 2026-03-02 - Completed 42-02-PLAN.md (Reporter Email Templates)
+Last activity: 2026-03-02 - Completed 42-01-PLAN.md (Delayed Notification Service & Relay Settings)
 
 Progress: [=====================.........] 80% (41/51 phases complete across all milestones)
 
@@ -78,6 +78,9 @@ Progress: [=====================.........] 80% (41/51 phases complete across all
 - Reporter templates use existing MJML partial pattern (card sections, mj-class styles) (42-02)
 - Message notification intentionally excludes all content for privacy (42-02)
 - Template ID constants exported via templates/index.ts for type-safe usage (42-02)
+- crypto.randomInt for secure random delays: Use Node.js crypto module, not Math.random, for timing attack prevention (42-01)
+- Relay settings stored in Organization.settings JSON: consistent with SLA config pattern (42-01)
+- Default reporter visibility STANDARD: messages visible but no investigator names (42-01)
 
 ### Blockers
 
@@ -98,6 +101,6 @@ Phases needing deeper research during planning:
 ## Session Continuity
 
 Last session: 2026-03-02
-Stopped at: Completed 42-02-PLAN.md (Reporter Email Templates)
+Stopped at: Completed 42-01-PLAN.md (Delayed Notification Service & Relay Settings)
 Resume file: None
 Next action: Continue Phase 42 execution (42-03-PLAN.md)
