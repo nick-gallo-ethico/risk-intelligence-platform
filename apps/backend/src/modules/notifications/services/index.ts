@@ -62,3 +62,7 @@ export type {
   GroupedDigestItem,
   CompiledDigest,
 } from "./digest.service";
+
+// Delayed notifications for anonymous reporters (42-01)
+export { DelayedNotificationService } from "./delayed-notification.service";
+export type { ReporterNotificationData } from "../dto/reporter-notification.dto";

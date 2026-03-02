@@ -42,6 +42,7 @@ import { DeliveryDispatcherService } from "./services/delivery-dispatcher.servic
 import { NotificationService } from "./services/notification.service";
 import { DigestService } from "./services/digest.service";
 import { DeliveryTrackerService } from "./services/delivery-tracker.service";
+import { DelayedNotificationService } from "./services/delayed-notification.service";
 
 // Gateway (07-05)
 import { NotificationGateway } from "./gateways/notification.gateway";
@@ -103,6 +104,9 @@ import { WorkflowEventListener } from "./listeners/workflow.listener";
     // Delivery tracking (07-07)
     DeliveryTrackerService,
 
+    // Delayed notifications for anonymous reporters (42-01)
+    DelayedNotificationService,
+
     // Event listeners (07-04)
     CaseEventListener,
     SlaEventListener,
@@ -139,6 +143,9 @@ import { WorkflowEventListener } from "./listeners/workflow.listener";
 
     // Delivery tracking
     DeliveryTrackerService,
+
+    // Delayed notifications for anonymous reporters (42-01)
+    DelayedNotificationService,
 
     // MailerModule for EmailProcessor in JobsModule
     MailerModule,
