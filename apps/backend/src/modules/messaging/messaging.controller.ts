@@ -31,6 +31,7 @@ import {
   UnreadCountDto,
   PiiCheckResultDto,
 } from "./dto";
+import { VisibilityFilteredMessageDto } from "./dto/visibility-filtered-message.dto";
 
 /**
  * MessagingController - Authenticated endpoints for investigators
@@ -175,14 +176,20 @@ export class PublicMessagingController {
     summary: "Get messages for reporter",
     description:
       "Retrieve messages via access code. " +
-      "Automatically marks outbound (to reporter) messages as read.",
+      "Automatically marks outbound (to reporter) messages as read. " +
+      "Message content is filtered based on organization visibility settings.",
   })
-  @ApiResponse({ status: 200, type: MessagesListDto })
+  @ApiResponse({
+    status: 200,
+    description: "Visibility-filtered messages list",
+    type: VisibilityFilteredMessageDto,
+    isArray: true,
+  })
   @ApiResponse({ status: 404, description: "Invalid access code" })
   async getMessages(
     @Param("caseId") caseId: string,
     @Query("accessCode") accessCode: string,
-  ): Promise<MessagesListDto> {
+  ): Promise<{ messages: VisibilityFilteredMessageDto[]; totalCount: number }> {
     // Validate access code format
     if (!accessCode || !/^[A-Z0-9]{12,20}$/.test(accessCode)) {
       throw new BadRequestException("Invalid access code format");

@@ -22,6 +22,9 @@ import {
   PiiDetectionResult,
 } from "./pii-detection.service";
 import { AuditService } from "../audit/audit.service";
+import { OrganizationService } from "../organization/organization.service";
+import { ReporterVisibilityLevel } from "../organization/dto/relay-settings.dto";
+import { VisibilityFilteredMessageDto } from "./dto/visibility-filtered-message.dto";
 import { EMAIL_QUEUE_NAME } from "../jobs/queues/email.queue";
 import { EmailJobData } from "../jobs/types";
 
@@ -116,6 +119,7 @@ export class MessageRelayService {
     private readonly eventEmitter: EventEmitter2,
     @InjectQueue(EMAIL_QUEUE_NAME) private readonly emailQueue: Queue,
     private readonly auditService: AuditService,
+    private readonly organizationService: OrganizationService,
   ) {}
 
   /**
@@ -405,11 +409,14 @@ export class MessageRelayService {
   /**
    * Get messages for reporter view via access code.
    * Marks unread OUTBOUND messages as read.
+   * Applies visibility level filtering based on organization settings.
    *
    * @param accessCode - Access code for authentication
-   * @returns Messages in reporter view format
+   * @returns Messages in visibility-filtered format
    */
-  async getMessagesForReporter(accessCode: string): Promise<MessageView[]> {
+  async getMessagesForReporter(
+    accessCode: string,
+  ): Promise<VisibilityFilteredMessageDto[]> {
     // Find RIU by access code
     const riu = await this.prisma.riskIntelligenceUnit.findFirst({
       where: { anonymousAccessCode: accessCode },
@@ -431,10 +438,22 @@ export class MessageRelayService {
       return [];
     }
 
-    // Get all messages
+    // Get visibility level from organization settings
+    const relaySettings = await this.organizationService.getRelaySettings(
+      riu.organizationId,
+    );
+
+    // Get all messages with sender info for TRANSPARENT level
     const messages = await this.prisma.caseMessage.findMany({
       where: { caseId: linkedCaseId },
       orderBy: { createdAt: "asc" },
+      include: {
+        createdBy:
+          relaySettings.reporterVisibilityLevel ===
+          ReporterVisibilityLevel.TRANSPARENT
+            ? { select: { firstName: true } }
+            : false,
+      },
     });
 
     // Mark outbound (TO reporter) messages as read
@@ -455,16 +474,91 @@ export class MessageRelayService {
       });
     }
 
-    return messages.map((m) => ({
-      id: m.id,
-      direction: m.direction.toLowerCase() as "inbound" | "outbound",
-      content: m.content,
-      subject: m.subject,
-      createdAt: m.createdAt,
-      isRead: m.isRead || unreadOutboundIds.includes(m.id),
-      readAt: m.readAt,
-      senderType: m.senderType,
-    }));
+    // Apply visibility filtering to each message
+    return messages.map((m) => {
+      // Get investigator name for TRANSPARENT level (outbound messages only)
+      const investigatorName =
+        m.direction === MessageDirection.OUTBOUND && m.createdBy
+          ? (m.createdBy as { firstName: string }).firstName
+          : undefined;
+
+      return this.filterMessageByVisibility(
+        {
+          ...m,
+          isRead: m.isRead || unreadOutboundIds.includes(m.id),
+        },
+        relaySettings.reporterVisibilityLevel ||
+          ReporterVisibilityLevel.STANDARD,
+        investigatorName,
+      );
+    });
+  }
+
+  /**
+   * Filter message view based on visibility level.
+   * Higher levels expose more information.
+   *
+   * Visibility levels (ordered least to most transparent):
+   * - MINIMAL: content, direction only
+   * - STANDARD: + isRead, relative readAt ('read')
+   * - DETAILED: + exact readAt timestamp
+   * - TRANSPARENT: + investigator first name
+   *
+   * @param message - Case message to filter
+   * @param visibilityLevel - Organization's visibility level setting
+   * @param investigatorName - Investigator first name (for TRANSPARENT level)
+   * @returns Filtered message view
+   */
+  private filterMessageByVisibility(
+    message: CaseMessage & { isRead: boolean },
+    visibilityLevel: ReporterVisibilityLevel,
+    investigatorName?: string,
+  ): VisibilityFilteredMessageDto {
+    const base: VisibilityFilteredMessageDto = {
+      id: message.id,
+      direction: message.direction.toLowerCase() as "inbound" | "outbound",
+      content: message.content,
+      subject: message.subject,
+      createdAt: message.createdAt,
+    };
+
+    switch (visibilityLevel) {
+      case ReporterVisibilityLevel.MINIMAL:
+        // Minimum info: just content and direction
+        return base;
+
+      case ReporterVisibilityLevel.STANDARD:
+        // Add read status with relative indicator
+        return {
+          ...base,
+          isRead: message.isRead,
+          readAt: message.readAt ? "read" : undefined,
+        };
+
+      case ReporterVisibilityLevel.DETAILED:
+        // Add exact timestamps
+        return {
+          ...base,
+          isRead: message.isRead,
+          readAt: message.readAt,
+        };
+
+      case ReporterVisibilityLevel.TRANSPARENT:
+        // Full transparency including investigator name
+        return {
+          ...base,
+          isRead: message.isRead,
+          readAt: message.readAt,
+          // Only include sender name for outbound (from investigator) messages
+          senderName:
+            message.direction === MessageDirection.OUTBOUND
+              ? investigatorName
+              : undefined,
+        };
+
+      default:
+        return base;
+    }
   }
 
   /**

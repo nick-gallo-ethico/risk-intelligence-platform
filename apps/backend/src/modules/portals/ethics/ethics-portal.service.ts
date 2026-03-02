@@ -498,6 +498,7 @@ export class EthicsPortalService {
 
   /**
    * Get messages for a report by access code.
+   * Handles visibility-filtered messages and converts readAt to Date|null format.
    *
    * @param accessCode - 12-character access code
    * @returns Messages
@@ -510,7 +511,14 @@ export class EthicsPortalService {
       direction: m.direction,
       content: m.content,
       createdAt: m.createdAt,
-      readAt: m.readAt ?? null,
+      // Convert readAt: STANDARD returns "read" string, DETAILED+ returns Date
+      // For Message interface, we need Date|null
+      readAt:
+        m.readAt instanceof Date
+          ? m.readAt
+          : typeof m.readAt === "string" && m.readAt !== "read"
+            ? new Date(m.readAt)
+            : null,
     }));
   }
 

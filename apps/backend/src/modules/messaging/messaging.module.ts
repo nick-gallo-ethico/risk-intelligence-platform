@@ -2,6 +2,7 @@ import { Module } from "@nestjs/common";
 import { BullModule } from "@nestjs/bullmq";
 import { PrismaModule } from "../prisma/prisma.module";
 import { AuditModule } from "../audit/audit.module";
+import { OrganizationModule } from "../organization/organization.module";
 import { EMAIL_QUEUE_NAME } from "../jobs/queues/email.queue";
 import {
   MessagingController,
@@ -22,6 +23,7 @@ import { PiiDetectionService } from "./pii-detection.service";
  * - Authenticated endpoints for investigators
  * - Public endpoints for anonymous reporters (access code auth)
  * - Email notification queue for reporter alerts
+ * - Visibility level filtering based on organization settings
  *
  * Exports:
  * - MessageRelayService - For sending messages from other modules
@@ -31,6 +33,7 @@ import { PiiDetectionService } from "./pii-detection.service";
   imports: [
     PrismaModule,
     AuditModule,
+    OrganizationModule,
     BullModule.registerQueue({
       name: EMAIL_QUEUE_NAME,
     }),

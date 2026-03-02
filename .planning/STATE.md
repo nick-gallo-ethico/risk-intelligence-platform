@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-02-24)
 ## Current Position
 
 Phase: 42 of 51 (Anonymous Communication Relay)
-Plan: 3 of 6 complete
+Plan: 4 of 6 complete
 Status: In progress
-Last activity: 2026-03-02 - Completed 42-03-PLAN.md (Access Code Email Wiring)
+Last activity: 2026-03-02 - Completed 42-04-PLAN.md (Notification Delivery Wiring)
 
 Progress: [=====================.........] 80% (41/51 phases complete across all milestones)
 
@@ -83,6 +83,8 @@ Progress: [=====================.........] 80% (41/51 phases complete across all
 - Default reporter visibility STANDARD: messages visible but no investigator names (42-01)
 - RIU event includes tenantSlug fetched at emit time: avoid duplicate DB call in listener (42-03)
 - Email failure isolation: notification failures logged but not rethrown to avoid failing RIU creation (42-03)
+- Only outbound direction messages trigger reporter notification (42-04)
+- Notification failures logged but don't crash message send (42-04)
 
 ### Blockers
 
@@ -103,6 +105,6 @@ Phases needing deeper research during planning:
 ## Session Continuity
 
 Last session: 2026-03-02
-Stopped at: Completed 42-03-PLAN.md (Access Code Email Wiring)
+Stopped at: Completed 42-04-PLAN.md (Notification Delivery Wiring)
 Resume file: None
-Next action: Continue Phase 42 execution (42-04-PLAN.md)
+Next action: Continue Phase 42 execution (42-05-PLAN.md)
