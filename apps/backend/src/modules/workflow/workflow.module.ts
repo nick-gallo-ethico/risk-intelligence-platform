@@ -5,6 +5,7 @@ import { WorkflowService } from "./workflow.service";
 import { WorkflowController } from "./workflow.controller";
 import { SlaTrackerService } from "./sla/sla-tracker.service";
 import { SlaSchedulerService } from "./sla/sla-scheduler.service";
+import { SlaConfigService } from "./sla/sla-config.service";
 import { AssignmentRulesService } from "./assignment/assignment-rules.service";
 import { RoundRobinStrategy } from "./assignment/strategies/round-robin.strategy";
 import { LeastLoadedStrategy } from "./assignment/strategies/least-loaded.strategy";
@@ -17,6 +18,7 @@ import { GeographicStrategy } from "./assignment/strategies/geographic.strategy"
  * - Configurable workflow templates with stages and transitions
  * - Workflow instances that track entity progress
  * - Stage-level and workflow-level SLA tracking (every 5 minutes)
+ * - Case-level SLA configuration per organization
  * - Auto-assignment with pluggable strategies (round-robin, least-loaded, geographic)
  * - Event-driven architecture for audit and notification integration
  *
@@ -24,6 +26,7 @@ import { GeographicStrategy } from "./assignment/strategies/geographic.strategy"
  * - WorkflowEngineService: For starting/transitioning workflows from other modules
  * - WorkflowService: For template management
  * - SlaTrackerService: For SLA status calculations and updates
+ * - SlaConfigService: For organization-level SLA configuration
  * - AssignmentRulesService: For auto-assignment based on rules
  */
 @Module({
@@ -35,6 +38,7 @@ import { GeographicStrategy } from "./assignment/strategies/geographic.strategy"
     // SLA tracking
     SlaTrackerService,
     SlaSchedulerService,
+    SlaConfigService,
     // Assignment strategies
     RoundRobinStrategy,
     LeastLoadedStrategy,
@@ -46,6 +50,7 @@ import { GeographicStrategy } from "./assignment/strategies/geographic.strategy"
     WorkflowEngineService,
     WorkflowService,
     SlaTrackerService,
+    SlaConfigService,
     AssignmentRulesService,
   ],
 })

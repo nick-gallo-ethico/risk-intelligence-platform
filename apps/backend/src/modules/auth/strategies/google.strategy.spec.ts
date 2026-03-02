@@ -43,6 +43,7 @@ describe("GoogleStrategy", () => {
       slug: "google-test",
       isActive: true,
       settings: {},
+      caseSlaConfig: null,
       defaultLanguage: "en",
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -407,8 +408,7 @@ describe("GoogleStrategy", () => {
         ],
       }).compile();
 
-      const unconfiguredStrategy =
-        module.get<GoogleStrategy>(GoogleStrategy);
+      const unconfiguredStrategy = module.get<GoogleStrategy>(GoogleStrategy);
       const mockDone = jest.fn();
       const profile = createMockProfile();
 

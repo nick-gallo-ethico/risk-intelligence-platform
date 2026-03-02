@@ -47,6 +47,7 @@ describe("SamlStrategy", () => {
       slug: mockTenant,
       isActive: true,
       settings: {},
+      caseSlaConfig: null,
       defaultLanguage: "en",
       createdAt: new Date(),
       updatedAt: new Date(),

@@ -44,6 +44,7 @@ describe("AzureAdStrategy", () => {
       slug: "azure-test",
       isActive: true,
       settings: {},
+      caseSlaConfig: null,
       defaultLanguage: "en",
       createdAt: new Date(),
       updatedAt: new Date(),
@@ -378,8 +379,7 @@ describe("AzureAdStrategy", () => {
         ],
       }).compile();
 
-      const unconfiguredStrategy =
-        module.get<AzureAdStrategy>(AzureAdStrategy);
+      const unconfiguredStrategy = module.get<AzureAdStrategy>(AzureAdStrategy);
       const mockDone = jest.fn();
       const profile = createMockProfile();
 
