@@ -12,9 +12,9 @@ Requirements for closing all PRD gaps. Each maps to roadmap phases starting at P
 
 - [x] **RULE-01**: Admin can create routing rules that auto-assign new cases to users/teams based on location, category, or severity
 - [x] **RULE-02**: Admin can configure round-robin assignment distribution across a team
-- [ ] **RULE-03**: System monitors case SLAs and sends warning notification at 80% of target duration
-- [ ] **RULE-04**: System sends breach notification when case SLA is exceeded
-- [ ] **RULE-05**: Admin can configure escalation triggers (e.g., "if HIGH severity and unassigned >4hrs, escalate to CCO")
+- [x] **RULE-03**: System monitors case SLAs and sends warning notification at 80% of target duration
+- [x] **RULE-04**: System sends breach notification when case SLA is exceeded
+- [x] **RULE-05**: Admin can configure escalation triggers (e.g., "if HIGH severity and unassigned >4hrs, escalate to CCO")
 - [x] **RULE-06**: Case status auto-derives from investigation states (e.g., all investigations closed = case moves to review)
 - [x] **RULE-07**: Admin can preview/test rules against historical data before activating
 - [x] **RULE-08**: System logs all rule executions with outcome for audit trail
@@ -183,9 +183,9 @@ Requirements for closing all PRD gaps. Each maps to roadmap phases starting at P
 | ----------- | -------- | -------- |
 | RULE-01     | Phase 40 | Complete |
 | RULE-02     | Phase 40 | Complete |
-| RULE-03     | Phase 41 | Pending  |
-| RULE-04     | Phase 41 | Pending  |
-| RULE-05     | Phase 41 | Pending  |
+| RULE-03     | Phase 41 | Complete |
+| RULE-04     | Phase 41 | Complete |
+| RULE-05     | Phase 41 | Complete |
 | RULE-06     | Phase 40 | Complete |
 | RULE-07     | Phase 40 | Complete |
 | RULE-08     | Phase 40 | Complete |
