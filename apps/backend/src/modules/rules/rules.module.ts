@@ -12,10 +12,15 @@ import { RulesEngineService } from "./engine/rules-engine.service";
 import { AssignUserAction } from "./engine/actions/assign-user.action";
 import { AssignTeamAction } from "./engine/actions/assign-team.action";
 import { RoundRobinTeamAction } from "./engine/actions/round-robin-team.action";
+import { EscalateToRoleAction } from "./engine/actions/escalate-to-role.action";
 
 // Listener providers
 import { CaseRoutingListener } from "./listeners/case-routing.listener";
 import { InvestigationStatusListener } from "./listeners/investigation-status.listener";
+
+// Escalation providers
+import { EscalationService } from "./escalation/escalation.service";
+import { EscalationTriggerListener } from "./escalation/escalation-trigger.listener";
 
 // Testing providers
 import { RuleTesterService } from "./testing/rule-tester.service";
@@ -47,14 +52,18 @@ import { RuleTesterService } from "./testing/rule-tester.service";
     AssignUserAction,
     AssignTeamAction,
     RoundRobinTeamAction,
+    EscalateToRoleAction,
     // Listeners
     CaseRoutingListener,
     InvestigationStatusListener,
+    // Escalation
+    EscalationService,
+    EscalationTriggerListener,
     // Testing
     RuleTesterService,
   ],
   controllers: [RulesController],
-  exports: [RulesService, RulesEngineService],
+  exports: [RulesService, RulesEngineService, EscalationService],
 })
 export class RulesModule implements OnModuleInit {
   constructor(
@@ -62,6 +71,7 @@ export class RulesModule implements OnModuleInit {
     private readonly assignUserAction: AssignUserAction,
     private readonly assignTeamAction: AssignTeamAction,
     private readonly roundRobinTeamAction: RoundRobinTeamAction,
+    private readonly escalateToRoleAction: EscalateToRoleAction,
   ) {}
 
   /**
@@ -72,5 +82,6 @@ export class RulesModule implements OnModuleInit {
     this.rulesEngine.registerActionExecutor(this.assignUserAction);
     this.rulesEngine.registerActionExecutor(this.assignTeamAction);
     this.rulesEngine.registerActionExecutor(this.roundRobinTeamAction);
+    this.rulesEngine.registerActionExecutor(this.escalateToRoleAction);
   }
 }
