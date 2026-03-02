@@ -6,6 +6,7 @@ import { WorkflowController } from "./workflow.controller";
 import { SlaTrackerService } from "./sla/sla-tracker.service";
 import { SlaSchedulerService } from "./sla/sla-scheduler.service";
 import { SlaConfigService } from "./sla/sla-config.service";
+import { SlaConfigController } from "./sla/sla-config.controller";
 import { CaseSlaTrackerService } from "./sla/case-sla-tracker.service";
 import { AssignmentRulesService } from "./assignment/assignment-rules.service";
 import { RoundRobinStrategy } from "./assignment/strategies/round-robin.strategy";
@@ -48,7 +49,7 @@ import { GeographicStrategy } from "./assignment/strategies/geographic.strategy"
     GeographicStrategy,
     AssignmentRulesService,
   ],
-  controllers: [WorkflowController],
+  controllers: [WorkflowController, SlaConfigController],
   exports: [
     WorkflowEngineService,
     WorkflowService,
