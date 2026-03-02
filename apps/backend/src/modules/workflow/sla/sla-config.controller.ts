@@ -8,13 +8,13 @@ import { UpdateCaseSlaConfigDto } from "./dto/sla-config.dto";
  * SlaConfigController provides REST endpoints for managing case SLA configuration.
  *
  * Endpoints:
- * - GET /api/sla/config - Get current SLA configuration for the organization
- * - PATCH /api/sla/config - Update SLA configuration (partial update)
- * - POST /api/sla/config/reset - Reset to default configuration
+ * - GET /sla/config - Get current SLA configuration for the organization
+ * - PATCH /sla/config - Update SLA configuration (partial update)
+ * - POST /sla/config/reset - Reset to default configuration
  *
  * All endpoints require SYSTEM_ADMIN or COMPLIANCE_OFFICER role.
  */
-@Controller("api/sla")
+@Controller("sla")
 @UseGuards(JwtAuthGuard, TenantGuard, RolesGuard)
 export class SlaConfigController {
   constructor(private readonly slaConfigService: SlaConfigService) {}
