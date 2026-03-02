@@ -7,6 +7,9 @@ import {
 } from "@nestjs/common";
 import { EventEmitter2 } from "@nestjs/event-emitter";
 import { PrismaService } from "../prisma/prisma.service";
+import { OrganizationService } from "../organization/organization.service";
+import { ReporterVisibilityLevel } from "../organization/dto/relay-settings.dto";
+import { VisibilityFilteredStatusDto } from "../messaging/dto/visibility-filtered-message.dto";
 import { customAlphabet } from "nanoid";
 import {
   RiuStatusResponseDto,
@@ -39,6 +42,7 @@ export class RiuAccessService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly eventEmitter: EventEmitter2,
+    private readonly organizationService: OrganizationService,
   ) {}
 
   /**
@@ -131,6 +135,140 @@ export class RiuAccessService {
       caseLinked: riu.caseAssociations.length > 0,
       caseReferenceNumber: riu.caseAssociations[0]?.case?.referenceNumber,
     };
+  }
+
+  /**
+   * Get visibility-filtered status for reporter.
+   * Applies tenant-configured visibility levels to control what information is shown.
+   *
+   * PUBLIC endpoint - no authentication required.
+   *
+   * @param accessCode - The 12-character access code
+   * @returns Visibility-filtered status information
+   * @throws NotFoundException if access code is invalid
+   */
+  async getStatusForReporter(
+    accessCode: string,
+  ): Promise<VisibilityFilteredStatusDto> {
+    // First, get basic RIU info
+    const riu = await this.prisma.riskIntelligenceUnit.findFirst({
+      where: { anonymousAccessCode: accessCode },
+      select: {
+        id: true,
+        organizationId: true,
+        referenceNumber: true,
+        status: true,
+        createdAt: true,
+      },
+    });
+
+    if (!riu) {
+      throw new NotFoundException("Invalid access code");
+    }
+
+    // Get visibility level from organization settings
+    const relaySettings = await this.organizationService.getRelaySettings(
+      riu.organizationId,
+    );
+    const visibilityLevel =
+      relaySettings.reporterVisibilityLevel || ReporterVisibilityLevel.STANDARD;
+
+    // Get linked case info
+    const caseAssociation = await this.prisma.riuCaseAssociation.findFirst({
+      where: {
+        riuId: riu.id,
+        associationType: "PRIMARY",
+      },
+      select: {
+        caseId: true,
+        case: {
+          select: {
+            referenceNumber: true,
+            status: true,
+            updatedAt: true,
+            // For TRANSPARENT level - get investigator first name
+            investigations: {
+              where: {
+                status: { notIn: ["CLOSED", "ON_HOLD"] },
+              },
+              select: {
+                primaryInvestigator: {
+                  select: { firstName: true },
+                },
+              },
+              take: 1,
+            },
+          },
+        },
+      },
+    });
+
+    const caseRecord = caseAssociation?.case;
+
+    // Build base status (available at all levels)
+    const baseStatus: VisibilityFilteredStatusDto = {
+      referenceNumber: caseRecord?.referenceNumber || riu.referenceNumber,
+      status: caseRecord?.status || riu.status,
+      statusLabel: this.getStatusLabel(caseRecord?.status || riu.status),
+      lastUpdated: caseRecord?.updatedAt || riu.createdAt,
+      canMessage:
+        relaySettings.enableMessaging !== false &&
+        caseRecord?.status !== "CLOSED",
+    };
+
+    // MINIMAL level - return only base status
+    if (visibilityLevel === ReporterVisibilityLevel.MINIMAL) {
+      return baseStatus;
+    }
+
+    // STANDARD and above - add message counts and description
+    let inboundUnread = 0;
+
+    if (caseAssociation?.caseId) {
+      inboundUnread = await this.prisma.caseMessage.count({
+        where: {
+          caseId: caseAssociation.caseId,
+          direction: "OUTBOUND", // Messages TO reporter = unread for them
+          isRead: false,
+        },
+      });
+    }
+
+    baseStatus.hasUnreadMessages = inboundUnread > 0;
+    baseStatus.unreadCount = inboundUnread;
+    baseStatus.statusDescription = this.getStatusDescription(
+      caseRecord?.status || riu.status,
+    );
+
+    // TRANSPARENT level - include investigator name
+    if (visibilityLevel === ReporterVisibilityLevel.TRANSPARENT) {
+      const investigator = caseRecord?.investigations?.[0]?.primaryInvestigator;
+      if (investigator) {
+        baseStatus.investigatorName = investigator.firstName;
+      }
+    }
+
+    return baseStatus;
+  }
+
+  /**
+   * Get human-readable status label.
+   */
+  private getStatusLabel(status: string): string {
+    const labels: Record<string, string> = {
+      PENDING_QA: "Under Review",
+      IN_QA: "Under Review",
+      QA_REJECTED: "Information Needed",
+      RELEASED: "In Progress",
+      LINKED: "Assigned",
+      OPEN: "In Progress",
+      IN_PROGRESS: "In Progress",
+      PENDING_REVIEW: "Under Review",
+      CLOSED: "Closed",
+      RECEIVED: "Received",
+      COMPLETED: "Completed",
+    };
+    return labels[status] || "Processing";
   }
 
   /**

@@ -11,6 +11,7 @@ import {
 import { RiuQueryService } from "./services/riu-query.service";
 import { RiuFormDataService } from "./services/riu-form-data.service";
 import { RiuUpdateService } from "./services/riu-update.service";
+import { OrganizationModule } from "../organization/organization.module";
 
 /**
  * RIU (Risk Intelligence Unit) Module
@@ -33,8 +34,12 @@ import { RiuUpdateService } from "./services/riu-update.service";
  * Controllers:
  * - RiusController: Authenticated endpoints for RIU operations
  * - RiuAccessController: Public endpoints for anonymous status check and messaging
+ *
+ * Dependencies:
+ * - OrganizationModule: For relay settings (visibility level filtering)
  */
 @Module({
+  imports: [OrganizationModule],
   controllers: [RiusController, RiuAccessController],
   providers: [
     RiusService,
