@@ -18,7 +18,15 @@
  * @see OrganizationService for business logic
  */
 
-import { Controller, Get, Put, Body, UseGuards, Logger } from "@nestjs/common";
+import {
+  Controller,
+  Get,
+  Put,
+  Patch,
+  Body,
+  UseGuards,
+  Logger,
+} from "@nestjs/common";
 import {
   ApiTags,
   ApiOperation,
@@ -40,6 +48,8 @@ import {
   UpdateBrandingSettingsDto,
   UpdateNotificationSettingsDto,
   UpdateSecuritySettingsDto,
+  RelaySettingsDto,
+  UpdateRelaySettingsDto,
 } from "./dto";
 
 /**
@@ -272,5 +282,77 @@ export class OrganizationController {
       `User ${user.id} updating security settings for: ${organizationId}`,
     );
     return this.organizationService.updateSecuritySettings(organizationId, dto);
+  }
+
+  /**
+   * GET /api/v1/organization/relay-settings
+   * Get relay settings for anonymous communication.
+   *
+   * Returns settings that control how anonymous reporters
+   * interact with the platform, including visibility levels
+   * and notification timing.
+   *
+   * Requires SYSTEM_ADMIN or COMPLIANCE_OFFICER role.
+   *
+   * @example GET /api/v1/organization/relay-settings
+   */
+  @Get("relay-settings")
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.SYSTEM_ADMIN, UserRole.COMPLIANCE_OFFICER)
+  @ApiOperation({
+    summary: "Get relay settings",
+    description:
+      "Returns anonymous communication relay settings including visibility level and notification timing",
+  })
+  @ApiResponse({
+    status: 200,
+    description: "Relay settings",
+    type: RelaySettingsDto,
+  })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  @ApiResponse({ status: 403, description: "Forbidden - requires admin role" })
+  @ApiResponse({ status: 404, description: "Organization not found" })
+  async getRelaySettings(
+    @TenantId() organizationId: string,
+  ): Promise<RelaySettingsDto> {
+    this.logger.debug(`Getting relay settings for: ${organizationId}`);
+    return this.organizationService.getRelaySettings(organizationId);
+  }
+
+  /**
+   * PATCH /api/v1/organization/relay-settings
+   * Update relay settings for anonymous communication.
+   *
+   * Requires SYSTEM_ADMIN or COMPLIANCE_OFFICER role.
+   *
+   * @example PATCH /api/v1/organization/relay-settings
+   *          Body: { reporterVisibilityLevel: "STANDARD", autoNotifyOnMessage: true }
+   */
+  @Patch("relay-settings")
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.SYSTEM_ADMIN, UserRole.COMPLIANCE_OFFICER)
+  @ApiOperation({
+    summary: "Update relay settings",
+    description:
+      "Updates anonymous communication relay settings (visibility level, messaging, notifications)",
+  })
+  @ApiResponse({
+    status: 200,
+    description: "Updated relay settings",
+    type: RelaySettingsDto,
+  })
+  @ApiResponse({ status: 400, description: "Validation error" })
+  @ApiResponse({ status: 401, description: "Unauthorized" })
+  @ApiResponse({ status: 403, description: "Forbidden - requires admin role" })
+  @ApiResponse({ status: 404, description: "Organization not found" })
+  async updateRelaySettings(
+    @TenantId() organizationId: string,
+    @CurrentUser() user: JwtUser,
+    @Body() dto: UpdateRelaySettingsDto,
+  ): Promise<RelaySettingsDto> {
+    this.logger.log(
+      `User ${user.id} updating relay settings for: ${organizationId}`,
+    );
+    return this.organizationService.updateRelaySettings(organizationId, dto);
   }
 }
