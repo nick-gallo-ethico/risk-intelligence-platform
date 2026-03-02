@@ -120,6 +120,12 @@ export class RiusService {
       organizationId,
     });
 
+    // Fetch org slug for event payload (needed for portal URL in access code email)
+    const org = await this.prisma.organization.findUnique({
+      where: { id: organizationId },
+      select: { slug: true },
+    });
+
     this.emitEvent("riu.created", {
       organizationId,
       actorUserId: userId,
@@ -129,6 +135,11 @@ export class RiusService {
       sourceChannel: riu.sourceChannel,
       categoryId: riu.categoryId,
       severity: riu.severity,
+      // Fields for anonymous communication relay (42-03)
+      reporterEmail: riu.reporterEmail,
+      anonymousAccessCode: riu.anonymousAccessCode,
+      reporterType: riu.reporterType,
+      tenantSlug: org?.slug || "",
     });
 
     return riu;
