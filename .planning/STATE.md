@@ -9,10 +9,10 @@ See: .planning/PROJECT.md (updated 2026-02-24)
 
 ## Current Position
 
-Phase: 41 of 51 (SLA Monitoring & Escalation)
-Plan: 6 of 6 complete
-Status: Phase complete
-Last activity: 2026-03-02 - Completed 41-06-PLAN.md (Verification Checkpoint with Demo Data)
+Phase: 42 of 51 (Anonymous Communication Relay)
+Plan: 2 of 6 complete
+Status: In progress
+Last activity: 2026-03-02 - Completed 42-02-PLAN.md (Reporter Email Templates)
 
 Progress: [=====================.........] 80% (41/51 phases complete across all milestones)
 
@@ -35,7 +35,7 @@ Progress: [=====================.........] 80% (41/51 phases complete across all
 | Wave                      | Phases | Focus                                | Status      |
 | ------------------------- | ------ | ------------------------------------ | ----------- |
 | 1 - Rules & Automation    | 40-41  | Auto-routing, SLA, escalation        | Complete    |
-| 2 - Anonymous Relay       | 42     | Chinese Wall messaging               | Not started |
+| 2 - Anonymous Relay       | 42     | Chinese Wall messaging               | In progress |
 | 3 - AI Intelligence       | 43-45  | RAG, chatbot, pattern detection      | Not started |
 | 4 - Disclosure Automation | 46-47  | Rolling campaigns, external parties  | Not started |
 | 5 - Portal Completeness   | 48     | Manager, employee, operator features | Not started |
@@ -75,6 +75,9 @@ Progress: [=====================.........] 80% (41/51 phases complete across all
 - EscalateToRoleAction emits event: Case lacks escalatedTo field, so emit case.escalated for downstream handling (41-04)
 - SLA settings placed in Account Management section of settings navigation (41-05)
 - Escalation rules managed via Rules Engine link rather than separate UI (41-05)
+- Reporter templates use existing MJML partial pattern (card sections, mj-class styles) (42-02)
+- Message notification intentionally excludes all content for privacy (42-02)
+- Template ID constants exported via templates/index.ts for type-safe usage (42-02)
 
 ### Blockers
 
@@ -95,6 +98,6 @@ Phases needing deeper research during planning:
 ## Session Continuity
 
 Last session: 2026-03-02
-Stopped at: Completed Phase 41 (SLA Monitoring & Escalation) - 41-06-PLAN.md (Verification Checkpoint)
+Stopped at: Completed 42-02-PLAN.md (Reporter Email Templates)
 Resume file: None
-Next action: Plan or execute Phase 42 (Anonymous Communication Relay)
+Next action: Continue Phase 42 execution (42-03-PLAN.md)
