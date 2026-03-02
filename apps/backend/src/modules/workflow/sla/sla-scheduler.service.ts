@@ -1,19 +1,29 @@
 import { Injectable, Logger, OnModuleInit } from "@nestjs/common";
 import { Cron, CronExpression } from "@nestjs/schedule";
 import { SlaTrackerService } from "./sla-tracker.service";
+import { CaseSlaTrackerService } from "./case-sla-tracker.service";
 import { SlaCheckResult } from "./sla.types";
 
 /**
- * SlaSchedulerService runs periodic SLA checks.
+ * Combined SLA check result for both workflow instances and cases.
+ */
+export interface CombinedSlaCheckResult {
+  workflows: SlaCheckResult;
+  cases: SlaCheckResult;
+}
+
+/**
+ * SlaSchedulerService runs periodic SLA checks for both workflow instances and cases.
  *
  * Per CONTEXT.md: "SLA checks every 5min"
  *
  * Responsibilities:
  * - Run SLA checks on a 5-minute schedule via @Cron decorator
+ * - Check both workflow instances (via SlaTrackerService) and cases (via CaseSlaTrackerService)
  * - Prevent concurrent runs with a running flag
  * - Provide manual trigger for testing/admin use
  *
- * The scheduler delegates all SLA logic to SlaTrackerService.
+ * The scheduler delegates all SLA logic to the tracker services.
  * This service only manages the timing and execution.
  */
 @Injectable()
@@ -23,7 +33,10 @@ export class SlaSchedulerService implements OnModuleInit {
   /** Flag to prevent concurrent SLA check runs */
   private isRunning = false;
 
-  constructor(private readonly slaTracker: SlaTrackerService) {}
+  constructor(
+    private readonly slaTracker: SlaTrackerService,
+    private readonly caseSlaTracker: CaseSlaTrackerService,
+  ) {}
 
   /**
    * Called when the module initializes.
@@ -36,13 +49,17 @@ export class SlaSchedulerService implements OnModuleInit {
   /**
    * Scheduled SLA check that runs every 5 minutes.
    *
+   * Checks both:
+   * - Workflow instances (for workflow-level SLA)
+   * - Cases (for case-level SLA per organization config)
+   *
    * Per CONTEXT.md:
    * - At Risk (80%): Notify assignee
    * - Breached: Notify both, escalate visibility
-   * - Critically Breached (24h+): Executive notification
+   * - Critically Breached (48h+): Compliance officer notification
    *
    * The actual notifications are triggered via events emitted
-   * by SlaTrackerService - this method just orchestrates timing.
+   * by the tracker services - this method just orchestrates timing.
    */
   @Cron(CronExpression.EVERY_5_MINUTES)
   async handleSlaCheck(): Promise<void> {
@@ -57,12 +74,18 @@ export class SlaSchedulerService implements OnModuleInit {
     this.logger.log("Starting scheduled SLA check");
 
     try {
-      const result = await this.slaTracker.updateAllSlaStatuses();
+      // Check workflow instances
+      const workflowResult = await this.slaTracker.updateAllSlaStatuses();
+
+      // Check cases
+      const caseResult = await this.caseSlaTracker.checkAllCaseSlas();
+
       const durationMs = Date.now() - startTime;
 
       this.logger.log(
         `SLA check completed in ${durationMs}ms: ` +
-          `${result.checked} checked, ${result.warnings} warnings, ${result.breaches} breaches`,
+          `workflows: ${workflowResult.checked} checked, ${workflowResult.warnings} warnings, ${workflowResult.breaches} breaches | ` +
+          `cases: ${caseResult.checked} checked, ${caseResult.warnings} warnings, ${caseResult.breaches} breaches`,
       );
     } catch (error) {
       this.logger.error(
@@ -75,18 +98,22 @@ export class SlaSchedulerService implements OnModuleInit {
   }
 
   /**
-   * Manually trigger an SLA check.
+   * Manually trigger an SLA check for both workflows and cases.
    *
    * Useful for:
    * - Admin testing
    * - After bulk imports
    * - Debugging SLA issues
    *
-   * @returns SLA check result summary
+   * @returns Combined SLA check result summary
    */
-  async runNow(): Promise<SlaCheckResult> {
+  async runNow(): Promise<CombinedSlaCheckResult> {
     this.logger.log("Manual SLA check triggered");
-    return this.slaTracker.updateAllSlaStatuses();
+
+    const workflows = await this.slaTracker.updateAllSlaStatuses();
+    const cases = await this.caseSlaTracker.checkAllCaseSlas();
+
+    return { workflows, cases };
   }
 
   /**
