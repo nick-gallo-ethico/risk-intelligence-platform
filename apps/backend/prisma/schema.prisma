@@ -14,6 +14,8 @@ model Organization {
   name                       String
   slug                       String                           @unique
   settings                   Json                             @default("{}")
+  /// Case-level SLA configuration (CaseSlaConfig JSON schema)
+  caseSlaConfig              Json?                            @map("case_sla_config")
   defaultLanguage            String                           @default("en") @map("default_language")
   isActive                   Boolean                          @default(true) @map("is_active")
   createdAt                  DateTime                         @default(now()) @map("created_at")
@@ -362,6 +364,10 @@ model Case {
   qaNotes                   String?                  @map("qa_notes")
   demoUserSessionId         String?                  @map("demo_user_session_id")
   isBaseData                Boolean                  @default(false) @map("is_base_data")
+  /// SLA tracking state (lastStatus, lastNotifiedAt, lastNotificationType)
+  slaState                  Json?                    @map("sla_state")
+  /// Calculated SLA due date based on org configuration
+  slaDueDate                DateTime?                @map("sla_due_date")
   createdAt                 DateTime                 @default(now()) @map("created_at")
   updatedAt                 DateTime                 @updatedAt @map("updated_at")
   createdById               String                   @map("created_by_id")
