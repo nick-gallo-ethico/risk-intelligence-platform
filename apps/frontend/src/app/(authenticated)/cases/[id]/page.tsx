@@ -33,6 +33,7 @@ import { CaseWorkflowPanel } from "@/components/cases/case-workflow-panel";
 import { TasksCard, type CaseTask } from "@/components/cases/tasks-card";
 import { RemediationStatusCard } from "@/components/cases/remediation-status-card";
 import { AiChatPanel } from "@/components/cases/ai-chat-panel";
+import { InvestigatorComposer } from "@/components/cases/case-messaging";
 import { AssignModal } from "@/components/cases/assign-modal";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { StatusChangeModal } from "@/components/cases/status-change-modal";
@@ -441,14 +442,23 @@ function CaseDetailPageContent() {
           <RelatedPoliciesCard caseId={caseData.id} />
           {/* 6. Connected Documents */}
           <ConnectedDocumentsCard caseId={caseData.id} />
-          {/* 7. Tasks (NEW - per spec Section 17.3) */}
+          {/* 7. Reporter Communication (Phase 42 - Anonymous Relay) */}
+          <InvestigatorComposer
+            caseId={caseData.id}
+            canMessage={
+              caseData.status !== "CLOSED" &&
+              (!!caseData.reporterEmail || caseData.reporterAnonymous)
+            }
+            onMessageSent={fetchCase}
+          />
+          {/* 8. Tasks (NEW - per spec Section 17.3) */}
           <TasksCard
             caseId={caseData.id}
             tasks={caseTasks}
             onCreateTask={() => setTaskModalOpen(true)}
             onToggleComplete={handleToggleTaskComplete}
           />
-          {/* 8. Remediation Status (NEW - per spec Section 17.4) */}
+          {/* 9. Remediation Status (NEW - per spec Section 17.4) */}
           <RemediationStatusCard
             caseId={caseData.id}
             totalActions={remediationStats.totalActions}
@@ -456,7 +466,7 @@ function CaseDetailPageContent() {
             nextAction={remediationStats.nextAction}
             onViewPlan={handleViewRemediationPlan}
           />
-          {/* 9. AI Assistant button at bottom */}
+          {/* 10. AI Assistant button at bottom */}
           <div className="pt-2">
             <Button
               variant="outline"
