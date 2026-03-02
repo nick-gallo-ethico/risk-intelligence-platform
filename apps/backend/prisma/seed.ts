@@ -36,6 +36,7 @@ import { seedPhase19 } from "./seeders/acme-phase-19";
 import { seedPhase21 } from "./seeders/acme-phase-21";
 import { seedPhase23 } from "./seeders/acme-phase-23";
 import { seedAcmePhase40 } from "./seeders/acme-phase-40";
+import { seedAcmePhase41 } from "./seeders/acme-phase-41";
 
 const prisma = new PrismaClient();
 
@@ -341,6 +342,9 @@ async function main() {
 
   // Phase 40: Rules Engine Foundation (routing rules and execution logs)
   await seedAcmePhase40();
+
+  // Phase 41: SLA Monitoring & Escalation (SLA config, test cases, escalation rules)
+  await seedAcmePhase41();
 
   // ========================================
   // Calculate Demo Metrics
