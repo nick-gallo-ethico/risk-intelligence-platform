@@ -5,14 +5,14 @@
 See: .planning/PROJECT.md (updated 2026-02-24)
 
 **Core value:** Users can manage their entire compliance workflow in one AI-assisted platform
-**Current focus:** Phase 43 - RAG Infrastructure (v2.0)
+**Current focus:** Phase 42 - Anonymous Communication Relay (v2.0)
 
 ## Current Position
 
-Phase: 42 of 51 (Anonymous Communication Relay) - COMPLETE
-Plan: 6 of 6 complete
-Status: Phase complete
-Last activity: 2026-03-02 - Completed 42-06-PLAN.md (Investigator Message Composition UI)
+Phase: 42 of 51 (Anonymous Communication Relay)
+Plan: 7 of 8 complete
+Status: In progress
+Last activity: 2026-03-02 - Completed 42-07-PLAN.md (Relay Settings Admin UI)
 
 Progress: [======================........] 82% (42/51 phases complete across all milestones)
 
@@ -28,14 +28,14 @@ Progress: [======================........] 82% (42/51 phases complete across all
 
 **Goal:** Close all 83 PRD gaps across 6 waves. Transform from CRUD to intelligent platform.
 **Phases:** 40-51 (12 phases, 106 planned plans)
-**Status:** Phases 40-42 complete, starting Phase 43
+**Status:** Phases 40-41 complete, Phase 42 in progress (7/8 plans)
 
 **Wave Summary:**
 
 | Wave                      | Phases | Focus                                | Status      |
 | ------------------------- | ------ | ------------------------------------ | ----------- |
 | 1 - Rules & Automation    | 40-41  | Auto-routing, SLA, escalation        | Complete    |
-| 2 - Anonymous Relay       | 42     | Chinese Wall messaging               | Complete    |
+| 2 - Anonymous Relay       | 42     | Chinese Wall messaging               | In progress |
 | 3 - AI Intelligence       | 43-45  | RAG, chatbot, pattern detection      | Not started |
 | 4 - Disclosure Automation | 46-47  | Rolling campaigns, external parties  | Not started |
 | 5 - Portal Completeness   | 48     | Manager, employee, operator features | Not started |
@@ -91,6 +91,7 @@ Progress: [======================........] 82% (42/51 phases complete across all
 - Per-warning PII acknowledgment: Each PII warning requires individual checkbox before send allowed (42-06)
 - Compact sidebar messaging format: InvestigatorComposer uses card format for right sidebar placement (42-06)
 - canMessage logic: case.status !== CLOSED AND (has reporterEmail OR reporterAnonymous) (42-06)
+- RelaySettingsSection manages own data via react-query: self-contained component pattern for settings sections (42-07)
 
 ### Blockers
 
@@ -111,6 +112,6 @@ Phases needing deeper research during planning:
 ## Session Continuity
 
 Last session: 2026-03-02
-Stopped at: Completed 42-06-PLAN.md (Investigator Message Composition UI) - Phase 42 Complete
+Stopped at: Completed 42-07-PLAN.md (Relay Settings Admin UI)
 Resume file: None
-Next action: Start Phase 43 - RAG Infrastructure
+Next action: Execute 42-08-PLAN.md (Reporter Inbox UI)
