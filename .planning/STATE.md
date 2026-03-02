@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-02-24)
 ## Current Position
 
 Phase: 42 of 51 (Anonymous Communication Relay)
-Plan: 4 of 6 complete
+Plan: 5 of 6 complete
 Status: In progress
-Last activity: 2026-03-02 - Completed 42-04-PLAN.md (Notification Delivery Wiring)
+Last activity: 2026-03-02 - Completed 42-05-PLAN.md (Visibility Level Filtering)
 
 Progress: [=====================.........] 80% (41/51 phases complete across all milestones)
 
@@ -85,6 +85,9 @@ Progress: [=====================.........] 80% (41/51 phases complete across all
 - Email failure isolation: notification failures logged but not rethrown to avoid failing RIU creation (42-03)
 - Only outbound direction messages trigger reporter notification (42-04)
 - Notification failures logged but don't crash message send (42-04)
+- readAt dual format in visibility filtering: STANDARD returns "read" string, DETAILED+ returns Date (42-05)
+- Investigator name only exposed for OUTBOUND messages at TRANSPARENT level (42-05)
+- Separate queries for RIU and case association to resolve TypeScript inference issues (42-05)
 
 ### Blockers
 
@@ -105,6 +108,6 @@ Phases needing deeper research during planning:
 ## Session Continuity
 
 Last session: 2026-03-02
-Stopped at: Completed 42-04-PLAN.md (Notification Delivery Wiring)
+Stopped at: Completed 42-05-PLAN.md (Visibility Level Filtering)
 Resume file: None
-Next action: Continue Phase 42 execution (42-05-PLAN.md)
+Next action: Continue Phase 42 execution (42-06-PLAN.md)
