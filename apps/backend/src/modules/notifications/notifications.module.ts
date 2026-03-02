@@ -30,6 +30,7 @@ import { ConfigModule, ConfigService } from "@nestjs/config";
 import { MailerModule } from "@nestjs-modules/mailer";
 import { PrismaModule } from "../prisma/prisma.module";
 import { AuthModule } from "../auth/auth.module";
+import { OrganizationModule } from "../organization/organization.module";
 import { EMAIL_QUEUE_NAME } from "../jobs/queues/email.queue";
 import { mailerConfig } from "./mailer.config";
 
@@ -54,6 +55,8 @@ import { PreferencesController } from "./controllers/preferences.controller";
 
 // Event listeners
 import { CaseEventListener } from "./listeners/case.listener";
+import { CaseMessageSentListener } from "./listeners/case-message.listener";
+import { RiuCreatedListener } from "./listeners/riu.listener";
 import { SlaEventListener } from "./listeners/sla.listener";
 import { WorkflowEventListener } from "./listeners/workflow.listener";
 
@@ -63,6 +66,8 @@ import { WorkflowEventListener } from "./listeners/workflow.listener";
     ConfigModule,
     // AuthModule for JwtService (WebSocket authentication)
     AuthModule,
+    // OrganizationModule for relay settings (42-03)
+    OrganizationModule,
     // ScheduleModule for digest cron scheduling (07-06)
     ScheduleModule.forRoot(),
     // Cache module for preference caching (5-minute TTL default)
@@ -111,6 +116,12 @@ import { WorkflowEventListener } from "./listeners/workflow.listener";
     CaseEventListener,
     SlaEventListener,
     WorkflowEventListener,
+
+    // RIU event listeners (42-03)
+    RiuCreatedListener,
+
+    // Case message event listeners (42-04)
+    CaseMessageSentListener,
   ],
   controllers: [
     // Webhook controller for email provider callbacks (07-07)

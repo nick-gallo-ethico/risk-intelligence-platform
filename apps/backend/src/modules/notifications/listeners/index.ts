@@ -5,5 +5,7 @@
  */
 
 export { CaseEventListener } from "./case.listener";
+export { CaseMessageSentListener } from "./case-message.listener";
+export { RiuCreatedListener } from "./riu.listener";
 export { SlaEventListener } from "./sla.listener";
 export { WorkflowEventListener } from "./workflow.listener";
