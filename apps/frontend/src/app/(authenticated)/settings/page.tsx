@@ -18,6 +18,7 @@ import {
   ArrowUpDown,
   Settings,
   ChevronRight,
+  Clock,
 } from "lucide-react";
 import {
   Card,
@@ -111,6 +112,12 @@ export default function SettingsPage() {
           title: "AI Settings",
           description: "Configure AI features, prompts, and automation rules",
           href: "/settings/ai",
+        },
+        {
+          icon: Clock,
+          title: "SLA Configuration",
+          description: "Configure case SLA thresholds and escalation rules",
+          href: "/settings/sla",
         },
       ],
     },
