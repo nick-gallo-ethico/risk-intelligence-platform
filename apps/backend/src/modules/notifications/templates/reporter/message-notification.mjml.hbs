@@ -1,0 +1,76 @@
+{{!--
+  Message Notification Email Template
+
+  Sent to reporter when investigator sends a new message.
+  Notifies reporter to log in and check their messages.
+
+  Expected context:
+  - referenceNumber: The case/RIU reference number (e.g., "CASE-2024-00123")
+  - portalUrl: Full URL to ethics portal status/messaging page
+  - hasAccessCode: Boolean indicating if reporter has access code on file
+  - org: Organization object with name and branding
+
+  CRITICAL SECURITY NOTES:
+  - This email DOES NOT include message content for privacy/security
+  - Reporter must authenticate with access code to view the actual message
+  - This email is sent with random delay (1-6hr) to prevent timing attacks
+  - Never include investigator names, message previews, or sensitive details
+--}}
+<mj-section mj-class="card">
+  <mj-column>
+    {{!-- Header --}}
+    <mj-text mj-class="heading-md" align="center" padding-bottom="8px">
+      New Message Available
+    </mj-text>
+
+    <mj-text mj-class="text-body" padding-top="16px" padding-bottom="16px">
+      You have a new message regarding your report:
+    </mj-text>
+
+    <mj-text mj-class="heading-lg" align="center" padding="16px 0">
+      Reference: {{referenceNumber}}
+    </mj-text>
+
+    <mj-divider mj-class="divider" />
+
+    <mj-text mj-class="text-body" padding-bottom="16px">
+      To view the message and respond, please log in using your access code.
+    </mj-text>
+
+    {{#if hasAccessCode}}
+    {{!-- Reporter has access code on file --}}
+    <mj-button mj-class="btn-primary"
+               href="{{portalUrl}}"
+               padding-top="24px">
+      View Message
+    </mj-button>
+    {{else}}
+    {{!-- Reporter may have lost access code --}}
+    <mj-section mj-class="alert-warning" border-radius="6px">
+      <mj-column>
+        <mj-text mj-class="text-body" padding="0">
+          Please use the access code provided in your original confirmation
+          email to view messages.
+        </mj-text>
+      </mj-column>
+    </mj-section>
+    {{/if}}
+
+    <mj-divider mj-class="divider" padding="24px 0" />
+
+    {{!-- Security notice about content exclusion --}}
+    <mj-section mj-class="alert-info" border-radius="6px">
+      <mj-column>
+        <mj-text mj-class="text-small" padding="0">
+          <strong>Security Notice:</strong>
+          For your protection, message content is not included in this email.
+          You must log in with your access code to view the full message.
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <mj-text mj-class="text-small" padding-top="16px" padding-bottom="8px">
+      If you did not submit a report, please disregard this email.
+    </mj-text>
+  </mj-column>
+</mj-section>
