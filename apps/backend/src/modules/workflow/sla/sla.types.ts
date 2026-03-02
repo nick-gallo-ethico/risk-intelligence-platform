@@ -55,6 +55,9 @@ export interface SlaCheckResult {
 
   /** Count of new breaches detected */
   breaches: number;
+
+  /** Count of critical escalations (48h+ overdue) */
+  criticals?: number;
 }
 
 /**
