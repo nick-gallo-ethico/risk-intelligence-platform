@@ -1,0 +1,75 @@
+{{!--
+  Access Code Email Template
+
+  Sent to reporter when RIU is created (if email provided).
+  Enables reporter to check status and communicate securely with investigator.
+
+  Expected context:
+  - referenceNumber: The case/RIU reference number (e.g., "CASE-2024-00123")
+  - accessCode: 12-character alphanumeric access code
+  - portalUrl: Full URL to ethics portal status check page
+  - org: Organization object with name and branding
+
+  CRITICAL SECURITY NOTES:
+  - This email is sent with random delay (1-6hr) to prevent timing attacks
+  - Access code grants full access to report status and messaging
+  - Never include report content or allegation details in this email
+--}}
+<mj-section mj-class="card">
+  <mj-column>
+    {{!-- Header --}}
+    <mj-text mj-class="heading-md" align="center" padding-bottom="8px">
+      Your Report Access Code
+    </mj-text>
+
+    <mj-text mj-class="text-body" padding-top="16px" padding-bottom="16px">
+      Thank you for submitting your report. Your reference number is:
+    </mj-text>
+
+    <mj-text mj-class="heading-lg" align="center" padding="16px 0">
+      {{referenceNumber}}
+    </mj-text>
+
+    <mj-divider mj-class="divider" />
+
+    {{!-- Access code section --}}
+    <mj-text mj-class="text-body" padding-bottom="16px">
+      To check the status of your report or communicate securely with the
+      investigator, use this access code:
+    </mj-text>
+
+    <mj-text font-size="32px"
+             font-family="'Courier New', Courier, monospace"
+             font-weight="700"
+             color="{{default org.branding.primaryColor '#2563eb'}}"
+             align="center"
+             letter-spacing="4px"
+             padding="24px 0">
+      {{accessCode}}
+    </mj-text>
+
+    {{!-- CTA Button --}}
+    <mj-button mj-class="btn-primary"
+               href="{{portalUrl}}"
+               padding-top="24px">
+      Check Report Status
+    </mj-button>
+
+    <mj-divider mj-class="divider" padding="24px 0" />
+
+    {{!-- Security notice --}}
+    <mj-section mj-class="alert-info" border-radius="6px">
+      <mj-column>
+        <mj-text mj-class="text-small" padding="0">
+          <strong>Important Security Notice:</strong>
+          Keep this access code secure. Anyone with this code can view your
+          report status and communicate with the investigator.
+        </mj-text>
+      </mj-column>
+    </mj-section>
+
+    <mj-text mj-class="text-small" padding-top="16px" padding-bottom="8px">
+      If you did not submit a report, please disregard this email.
+    </mj-text>
+  </mj-column>
+</mj-section>
