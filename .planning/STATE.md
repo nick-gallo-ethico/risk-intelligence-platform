@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-02-24)
 ## Current Position
 
 Phase: 41 of 51 (SLA Monitoring & Escalation)
-Plan: 4 of 6 complete
+Plan: 5 of 6 complete
 Status: In progress
-Last activity: 2026-03-02 - Completed 41-04-PLAN.md (Escalation Rules and Trigger Listener)
+Last activity: 2026-03-02 - Completed 41-05-PLAN.md (Admin UI for SLA and Escalation Configuration)
 
 Progress: [=====================.........] 78% (40/51 phases complete across all milestones)
 
@@ -73,6 +73,8 @@ Progress: [=====================.........] 78% (40/51 phases complete across all
 - Critical events require CCO: silently skip if no COMPLIANCE_OFFICER role user found in org (41-03)
 - Escalation rules stored as RuleDefinitions: reuse existing rule infrastructure with SLA trigger events (41-04)
 - EscalateToRoleAction emits event: Case lacks escalatedTo field, so emit case.escalated for downstream handling (41-04)
+- SLA settings placed in Account Management section of settings navigation (41-05)
+- Escalation rules managed via Rules Engine link rather than separate UI (41-05)
 
 ### Blockers
 
@@ -93,6 +95,6 @@ Phases needing deeper research during planning:
 ## Session Continuity
 
 Last session: 2026-03-02
-Stopped at: Completed 41-04-PLAN.md (Escalation Rules and Trigger Listener)
+Stopped at: Completed 41-05-PLAN.md (Admin UI for SLA and Escalation Configuration)
 Resume file: None
-Next action: Execute 41-05-PLAN.md (Investigation SLA Tracking)
+Next action: Execute 41-06-PLAN.md (SLA Dashboard Widgets)
