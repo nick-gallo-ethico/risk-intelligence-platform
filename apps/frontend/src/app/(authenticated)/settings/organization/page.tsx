@@ -1,23 +1,24 @@
-'use client';
+"use client";
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Settings, ArrowLeft } from 'lucide-react';
-import Link from 'next/link';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Settings, ArrowLeft } from "lucide-react";
+import Link from "next/link";
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Skeleton } from '@/components/ui/skeleton';
-import { OrganizationGeneralSettings } from '@/components/settings/organization-general-settings';
-import { OrganizationBrandingSettings } from '@/components/settings/organization-branding-settings';
-import { OrganizationNotificationSettings } from '@/components/settings/organization-notification-settings';
-import { OrganizationSecuritySettings } from '@/components/settings/organization-security-settings';
-import { organizationApi } from '@/services/organization';
-import { toast } from 'sonner';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Skeleton } from "@/components/ui/skeleton";
+import { OrganizationGeneralSettings } from "@/components/settings/organization-general-settings";
+import { OrganizationBrandingSettings } from "@/components/settings/organization-branding-settings";
+import { OrganizationNotificationSettings } from "@/components/settings/organization-notification-settings";
+import { OrganizationSecuritySettings } from "@/components/settings/organization-security-settings";
+import { RelaySettingsSection } from "./relay-settings";
+import { organizationApi } from "@/services/organization";
+import { toast } from "sonner";
 import type {
   UpdateOrganizationDto,
   UpdateBrandingDto,
   UpdateNotificationSettingsDto,
   UpdateSecuritySettingsDto,
-} from '@/types/organization';
+} from "@/types/organization";
 
 /**
  * Organization Settings Page
@@ -27,6 +28,7 @@ import type {
  * - Branding: Logo, colors, branding mode (Standard/Co-branded/White Label)
  * - Notifications: Digest settings, quiet hours, enforced categories
  * - Security: MFA requirements, session timeout, password policy, SSO config
+ * - Anonymous Relay: Reporter visibility levels, messaging settings
  *
  * Access restricted to SYSTEM_ADMIN role.
  */
@@ -39,7 +41,7 @@ export default function OrganizationSettingsPage() {
     isLoading,
     error,
   } = useQuery({
-    queryKey: ['organization-settings'],
+    queryKey: ["organization-settings"],
     queryFn: organizationApi.getSettings,
   });
 
@@ -48,25 +50,24 @@ export default function OrganizationSettingsPage() {
     mutationFn: (dto: UpdateOrganizationDto) =>
       organizationApi.updateGeneral(dto),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['organization-settings'] });
-      toast.success('General settings saved');
+      queryClient.invalidateQueries({ queryKey: ["organization-settings"] });
+      toast.success("General settings saved");
     },
     onError: (error) => {
-      console.error('Failed to save general settings:', error);
-      toast.error('Failed to save settings. Please try again.');
+      console.error("Failed to save general settings:", error);
+      toast.error("Failed to save settings. Please try again.");
     },
   });
 
   const updateBrandingMutation = useMutation({
-    mutationFn: (dto: UpdateBrandingDto) =>
-      organizationApi.updateBranding(dto),
+    mutationFn: (dto: UpdateBrandingDto) => organizationApi.updateBranding(dto),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['organization-settings'] });
-      toast.success('Branding settings saved');
+      queryClient.invalidateQueries({ queryKey: ["organization-settings"] });
+      toast.success("Branding settings saved");
     },
     onError: (error) => {
-      console.error('Failed to save branding settings:', error);
-      toast.error('Failed to save branding. Please try again.');
+      console.error("Failed to save branding settings:", error);
+      toast.error("Failed to save branding. Please try again.");
     },
   });
 
@@ -74,12 +75,12 @@ export default function OrganizationSettingsPage() {
     mutationFn: (dto: UpdateNotificationSettingsDto) =>
       organizationApi.updateNotificationSettings(dto),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['organization-settings'] });
-      toast.success('Notification settings saved');
+      queryClient.invalidateQueries({ queryKey: ["organization-settings"] });
+      toast.success("Notification settings saved");
     },
     onError: (error) => {
-      console.error('Failed to save notification settings:', error);
-      toast.error('Failed to save notification settings. Please try again.');
+      console.error("Failed to save notification settings:", error);
+      toast.error("Failed to save notification settings. Please try again.");
     },
   });
 
@@ -87,40 +88,40 @@ export default function OrganizationSettingsPage() {
     mutationFn: (dto: UpdateSecuritySettingsDto) =>
       organizationApi.updateSecuritySettings(dto),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['organization-settings'] });
-      toast.success('Security settings saved');
+      queryClient.invalidateQueries({ queryKey: ["organization-settings"] });
+      toast.success("Security settings saved");
     },
     onError: (error) => {
-      console.error('Failed to save security settings:', error);
-      toast.error('Failed to save security settings. Please try again.');
+      console.error("Failed to save security settings:", error);
+      toast.error("Failed to save security settings. Please try again.");
     },
   });
 
   // Logo and favicon upload handlers
   const handleUploadLogo = async (file: File) => {
     const result = await organizationApi.uploadLogo(file);
-    queryClient.invalidateQueries({ queryKey: ['organization-settings'] });
-    toast.success('Logo uploaded');
+    queryClient.invalidateQueries({ queryKey: ["organization-settings"] });
+    toast.success("Logo uploaded");
     return result;
   };
 
   const handleUploadFavicon = async (file: File) => {
     const result = await organizationApi.uploadFavicon(file);
-    queryClient.invalidateQueries({ queryKey: ['organization-settings'] });
-    toast.success('Favicon uploaded');
+    queryClient.invalidateQueries({ queryKey: ["organization-settings"] });
+    toast.success("Favicon uploaded");
     return result;
   };
 
   const handleDeleteLogo = async () => {
     await organizationApi.deleteLogo();
-    queryClient.invalidateQueries({ queryKey: ['organization-settings'] });
-    toast.success('Logo removed');
+    queryClient.invalidateQueries({ queryKey: ["organization-settings"] });
+    toast.success("Logo removed");
   };
 
   const handleDeleteFavicon = async () => {
     await organizationApi.deleteFavicon();
-    queryClient.invalidateQueries({ queryKey: ['organization-settings'] });
-    toast.success('Favicon removed');
+    queryClient.invalidateQueries({ queryKey: ["organization-settings"] });
+    toast.success("Favicon removed");
   };
 
   // Loading state
@@ -159,17 +160,19 @@ export default function OrganizationSettingsPage() {
       <div>
         <h1 className="text-2xl font-semibold">Organization Settings</h1>
         <p className="text-muted-foreground">
-          Configure your organization&apos;s appearance, notifications, and security
+          Configure your organization&apos;s appearance, notifications, and
+          security
         </p>
       </div>
 
       {/* Tabbed Interface */}
       <Tabs defaultValue="general" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:inline-flex">
+        <TabsList className="grid w-full grid-cols-5 lg:w-auto lg:inline-flex">
           <TabsTrigger value="general">General</TabsTrigger>
           <TabsTrigger value="branding">Branding</TabsTrigger>
           <TabsTrigger value="notifications">Notifications</TabsTrigger>
           <TabsTrigger value="security">Security</TabsTrigger>
+          <TabsTrigger value="relay">Anonymous Relay</TabsTrigger>
         </TabsList>
 
         <TabsContent value="general">
@@ -214,6 +217,10 @@ export default function OrganizationSettingsPage() {
             }}
             isSaving={updateSecurityMutation.isPending}
           />
+        </TabsContent>
+
+        <TabsContent value="relay">
+          <RelaySettingsSection />
         </TabsContent>
       </Tabs>
     </div>
