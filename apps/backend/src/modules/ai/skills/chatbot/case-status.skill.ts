@@ -86,7 +86,7 @@ export function caseStatusSkill(
 
     async execute(
       input: CaseStatusInput,
-      context: SkillContext,
+      _context: SkillContext,
     ): Promise<SkillResult<CaseStatusOutput>> {
       try {
         // Use a default IP if not provided (socket connection should provide this)

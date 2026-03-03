@@ -24,10 +24,12 @@ import { translateSkill } from "./platform/translate.skill";
 import { faqMatchSkill } from "./chatbot/faq-match.skill";
 import { policySearchSkill } from "./chatbot/policy-search.skill";
 import { caseStatusSkill } from "./chatbot/case-status.skill";
+import { escalateSkill } from "./chatbot/escalate.skill";
 
 // Chatbot skill dependencies (optional to avoid circular deps)
 import { FaqService } from "../../chatbot/services/faq.service";
 import { CaseStatusService } from "../../chatbot/services/case-status.service";
+import { EscalationService } from "../../chatbot/services/escalation.service";
 import { VectorStoreService } from "../../embeddings/services/vector-store.service";
 import { EmbeddingService } from "../../embeddings/services/embedding.service";
 
@@ -89,6 +91,7 @@ export class SkillRegistry implements OnModuleInit {
     // Chatbot skill dependencies - optional to avoid circular deps
     @Optional() private readonly faqService?: FaqService,
     @Optional() private readonly caseStatusService?: CaseStatusService,
+    @Optional() private readonly escalationService?: EscalationService,
     @Optional() private readonly vectorStore?: VectorStoreService,
     @Optional() private readonly embeddingService?: EmbeddingService,
   ) {}
@@ -178,6 +181,18 @@ export class SkillRegistry implements OnModuleInit {
     } else {
       this.logger.debug(
         "Skipping case-status skill - CaseStatusService not available",
+      );
+    }
+
+    // escalate skill requires EscalationService
+    if (this.escalationService) {
+      this.registerSkill(
+        escalateSkill(this.escalationService) as SkillDefinition,
+      );
+      this.logger.debug("Registered escalate skill");
+    } else {
+      this.logger.debug(
+        "Skipping escalate skill - EscalationService not available",
       );
     }
   }
