@@ -46,7 +46,7 @@ completed: 2026-02-14
 
 ## Accomplishments
 
-- Old Anthropic API key (sk-ant-api03-M3cl...) revoked in Anthropic Console
+- Old Anthropic API key (sk-ant-api03-[REDACTED]...) revoked in Anthropic Console
 - New API key generated and stored in .env
 - Verified .env remains gitignored (not tracked by git)
 - Verified new key format is valid (sk-ant- prefix)
@@ -68,7 +68,7 @@ This plan involved no code commits (only .env modification which is gitignored):
 ## Decisions Made
 
 - API key rotation handled as two-step process: human dashboard action + automated .env update
-- Old key prefix (sk-ant-api03-M3cl) replaced with new key prefix (sk-ant-api03-Yg8E)
+- Old key prefix (sk-ant-api03-[REDACTED]) replaced with new key prefix (sk-ant-api03-[REDACTED])
 
 ## Deviations from Plan
 
@@ -92,7 +92,7 @@ apps/backend/.env
 $ grep -q "^ANTHROPIC_API_KEY=sk-ant-" apps/backend/.env
 Key format valid
 
-$ grep -c "sk-ant-api03-M3cl" apps/backend/.env
+$ grep -c "sk-ant-api03-[OLD_PREFIX]" apps/backend/.env
 0
 Old key not found (expected)
 ```

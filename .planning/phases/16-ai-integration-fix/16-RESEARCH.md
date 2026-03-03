@@ -402,7 +402,7 @@ Frontend (doesn't exist yet):
    - Recommendation: Use the seeded demo organization/user from DemoModule as fallback context
 
 3. **Does the API key in .env actually work?**
-   - `.env` contains what appears to be a real key: `sk-ant-api03-M3cl-...`
+   - `.env` contains what appears to be a real key: `sk-ant-api03-[REDACTED]...`
    - Model is set to `claude-3-5-haiku-latest` (fast, cheap -- good for dev)
    - Cannot verify without making an API call
    - Recommendation: First plan task should test API connectivity with a simple health check
@@ -500,7 +500,7 @@ Frontend (doesn't exist yet):
 
 | Item              | Status | Value                                         |
 | ----------------- | ------ | --------------------------------------------- |
-| ANTHROPIC_API_KEY | SET    | `sk-ant-api03-M3cl-...` (appears real)        |
+| ANTHROPIC_API_KEY | SET    | `sk-ant-api03-[REDACTED]...` (appears real)   |
 | AI_DEFAULT_MODEL  | SET    | `claude-3-5-haiku-latest`                     |
 | REDIS_URL         | EMPTY  | Rate limiting disabled                        |
 | CORS_ORIGIN       | SET    | `http://localhost:3000,http://localhost:5173` |
