@@ -1,7 +1,11 @@
 import { Test, TestingModule } from "@nestjs/testing";
 import { SegmentConverterService } from "./segment-converter.service";
 import { TargetingMode } from "../dto/campaign-targeting.dto";
-import { SegmentLogic, SegmentField, SegmentOperator } from "../dto/segment-criteria.dto";
+import {
+  SegmentLogic,
+  SegmentField,
+  SegmentOperator,
+} from "../dto/segment-criteria.dto";
 
 describe("SegmentConverterService", () => {
   let service: SegmentConverterService;

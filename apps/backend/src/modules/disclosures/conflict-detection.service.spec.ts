@@ -1,8 +1,5 @@
 import { Test, TestingModule } from "@nestjs/testing";
-import {
-  NotFoundException,
-  BadRequestException,
-} from "@nestjs/common";
+import { NotFoundException, BadRequestException } from "@nestjs/common";
 import { EventEmitter2 } from "@nestjs/event-emitter";
 import { ConflictDetectionService } from "./conflict-detection.service";
 import { PrismaService } from "../prisma/prisma.service";
@@ -242,7 +239,9 @@ describe("ConflictDetectionService", () => {
 
   describe("detectConflicts()", () => {
     beforeEach(() => {
-      mockPrisma.riuDisclosureExtension.findUnique.mockResolvedValue(mockDisclosure);
+      mockPrisma.riuDisclosureExtension.findUnique.mockResolvedValue(
+        mockDisclosure,
+      );
       mockPrisma.conflictAlert.create.mockImplementation((args: any) => ({
         ...args.data,
         id: `alert-${Math.random().toString(36).slice(2)}`,
@@ -290,8 +289,12 @@ describe("ConflictDetectionService", () => {
         ...mockDisclosure,
         relatedPersonName: null, // Only check company
       };
-      mockPrisma.riuDisclosureExtension.findUnique.mockResolvedValue(singleEntityDisclosure);
-      mockMatchingService.checkSelfDealing.mockResolvedValue([mockSelfDealingConflict]);
+      mockPrisma.riuDisclosureExtension.findUnique.mockResolvedValue(
+        singleEntityDisclosure,
+      );
+      mockMatchingService.checkSelfDealing.mockResolvedValue([
+        mockSelfDealingConflict,
+      ]);
 
       // Act
       const result = await service.detectConflicts(
@@ -313,8 +316,12 @@ describe("ConflictDetectionService", () => {
         ...mockDisclosure,
         relatedCompany: null, // Only check person name
       };
-      mockPrisma.riuDisclosureExtension.findUnique.mockResolvedValue(personOnlyDisclosure);
-      mockMatchingService.checkHrisMatch.mockResolvedValue([mockHrisMatchConflict]);
+      mockPrisma.riuDisclosureExtension.findUnique.mockResolvedValue(
+        personOnlyDisclosure,
+      );
+      mockMatchingService.checkHrisMatch.mockResolvedValue([
+        mockHrisMatchConflict,
+      ]);
 
       // Act
       const result = await service.detectConflicts(
@@ -335,8 +342,12 @@ describe("ConflictDetectionService", () => {
         ...mockDisclosure,
         relatedPersonName: null,
       };
-      mockPrisma.riuDisclosureExtension.findUnique.mockResolvedValue(singleEntityDisclosure);
-      mockMatchingService.checkPriorCases.mockResolvedValue([mockPriorCaseConflict]);
+      mockPrisma.riuDisclosureExtension.findUnique.mockResolvedValue(
+        singleEntityDisclosure,
+      );
+      mockMatchingService.checkPriorCases.mockResolvedValue([
+        mockPriorCaseConflict,
+      ]);
 
       // Act
       const result = await service.detectConflicts(
@@ -347,7 +358,9 @@ describe("ConflictDetectionService", () => {
 
       // Assert
       expect(result.conflictCount).toBe(1);
-      expect(result.conflicts[0].conflictType).toBe(ConflictType.PRIOR_CASE_HISTORY);
+      expect(result.conflicts[0].conflictType).toBe(
+        ConflictType.PRIOR_CASE_HISTORY,
+      );
       expect(result.conflicts[0].matchDetails.caseContext).toBeDefined();
     });
 
@@ -357,7 +370,9 @@ describe("ConflictDetectionService", () => {
         ...mockDisclosure,
         relatedPersonName: null,
       };
-      mockPrisma.riuDisclosureExtension.findUnique.mockResolvedValue(singleEntityDisclosure);
+      mockPrisma.riuDisclosureExtension.findUnique.mockResolvedValue(
+        singleEntityDisclosure,
+      );
       mockMatchingService.checkRelationshipPatterns.mockResolvedValue([
         mockRelationshipPatternConflict,
       ]);
@@ -371,7 +386,9 @@ describe("ConflictDetectionService", () => {
 
       // Assert
       expect(result.conflictCount).toBe(1);
-      expect(result.conflicts[0].conflictType).toBe(ConflictType.RELATIONSHIP_PATTERN);
+      expect(result.conflicts[0].conflictType).toBe(
+        ConflictType.RELATIONSHIP_PATTERN,
+      );
     });
 
     it("should detect multiple conflicts in single disclosure", async () => {
@@ -380,10 +397,18 @@ describe("ConflictDetectionService", () => {
         ...mockDisclosure,
         relatedPersonName: null,
       };
-      mockPrisma.riuDisclosureExtension.findUnique.mockResolvedValue(singleEntityDisclosure);
-      mockMatchingService.checkSelfDealing.mockResolvedValue([mockSelfDealingConflict]);
-      mockMatchingService.checkHrisMatch.mockResolvedValue([mockHrisMatchConflict]);
-      mockMatchingService.checkPriorCases.mockResolvedValue([mockPriorCaseConflict]);
+      mockPrisma.riuDisclosureExtension.findUnique.mockResolvedValue(
+        singleEntityDisclosure,
+      );
+      mockMatchingService.checkSelfDealing.mockResolvedValue([
+        mockSelfDealingConflict,
+      ]);
+      mockMatchingService.checkHrisMatch.mockResolvedValue([
+        mockHrisMatchConflict,
+      ]);
+      mockMatchingService.checkPriorCases.mockResolvedValue([
+        mockPriorCaseConflict,
+      ]);
 
       // Act
       const result = await service.detectConflicts(
@@ -406,8 +431,12 @@ describe("ConflictDetectionService", () => {
         ...mockDisclosure,
         relatedPersonName: null,
       };
-      mockPrisma.riuDisclosureExtension.findUnique.mockResolvedValue(singleEntityDisclosure);
-      mockMatchingService.checkSelfDealing.mockResolvedValue([mockSelfDealingConflict]);
+      mockPrisma.riuDisclosureExtension.findUnique.mockResolvedValue(
+        singleEntityDisclosure,
+      );
+      mockMatchingService.checkSelfDealing.mockResolvedValue([
+        mockSelfDealingConflict,
+      ]);
 
       // Act
       await service.detectConflicts(mockDisclosureId, mockPersonId, mockOrgId);
@@ -430,8 +459,12 @@ describe("ConflictDetectionService", () => {
         ...mockDisclosure,
         relatedPersonName: null,
       };
-      mockPrisma.riuDisclosureExtension.findUnique.mockResolvedValue(singleEntityDisclosure);
-      mockMatchingService.checkSelfDealing.mockResolvedValue([mockSelfDealingConflict]);
+      mockPrisma.riuDisclosureExtension.findUnique.mockResolvedValue(
+        singleEntityDisclosure,
+      );
+      mockMatchingService.checkSelfDealing.mockResolvedValue([
+        mockSelfDealingConflict,
+      ]);
       mockExclusionService.isExcluded.mockResolvedValue({
         excluded: true,
         exclusionId: "exclusion-123",
@@ -460,7 +493,12 @@ describe("ConflictDetectionService", () => {
       };
 
       // Act
-      await service.detectConflicts(mockDisclosureId, mockPersonId, mockOrgId, customConfig);
+      await service.detectConflicts(
+        mockDisclosureId,
+        mockPersonId,
+        mockOrgId,
+        customConfig,
+      );
 
       // Assert
       expect(mockMatchingService.checkSelfDealing).toHaveBeenCalledWith(
@@ -902,7 +940,10 @@ describe("ConflictDetectionService", () => {
 
     it("should return paginated results", async () => {
       // Act
-      const result = await service.findAlerts(mockOrgId, { page: 1, pageSize: 10 });
+      const result = await service.findAlerts(mockOrgId, {
+        page: 1,
+        pageSize: 10,
+      });
 
       // Assert
       expect(result.items).toHaveLength(1);
@@ -953,7 +994,9 @@ describe("ConflictDetectionService", () => {
       expect(mockPrisma.conflictAlert.findMany).toHaveBeenCalledWith(
         expect.objectContaining({
           where: expect.objectContaining({
-            severity: { in: [ConflictSeverity.HIGH, ConflictSeverity.CRITICAL] },
+            severity: {
+              in: [ConflictSeverity.HIGH, ConflictSeverity.CRITICAL],
+            },
           }),
         }),
       );
@@ -1106,7 +1149,10 @@ describe("ConflictDetectionService", () => {
       mockMatchingService.calculateSimilarity.mockReturnValue(85);
 
       // Act
-      const result = service.calculateSimilarity("Acme Corp", "Acme Corporation");
+      const result = service.calculateSimilarity(
+        "Acme Corp",
+        "Acme Corporation",
+      );
 
       // Assert
       expect(mockMatchingService.calculateSimilarity).toHaveBeenCalledWith(
@@ -1122,7 +1168,9 @@ describe("ConflictDetectionService", () => {
   describe("tenant isolation", () => {
     it("should always include organizationId in disclosure queries", async () => {
       // Arrange
-      mockPrisma.riuDisclosureExtension.findUnique.mockResolvedValue(mockDisclosure);
+      mockPrisma.riuDisclosureExtension.findUnique.mockResolvedValue(
+        mockDisclosure,
+      );
 
       // Act
       await service.detectConflicts(mockDisclosureId, mockPersonId, mockOrgId);
