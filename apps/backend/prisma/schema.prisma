@@ -127,6 +127,8 @@ model Organization {
   ruleExecutionLogs          RuleExecutionLog[]
   documentEmbeddings         DocumentEmbedding[]
   knowledgeBaseDocuments     KnowledgeBaseDocument[]
+  faqEntries                 FaqEntry[]
+  chatbotConsentLogs         ChatbotConsentLog[]
 
   @@index([slug])
   @@index([isActive])
@@ -5624,4 +5626,59 @@ model RuleExecutionLog {
   @@index([organizationId, ruleId])
   @@index([organizationId, entityType, entityId])
   @@map("rule_execution_logs")
+}
+
+/// FaqEntry stores FAQ items for chatbot priority matching.
+/// FAQs are matched first before falling back to RAG search.
+/// Supports vector search on questions via questionVector field.
+model FaqEntry {
+  id              String                       @id @default(uuid())
+  organizationId  String                       @map("organization_id")
+  question        String
+  questionVector  Unsupported("vector(1024)")? @map("question_vector")
+  answer          String
+  relatedPolicies Json?                        @map("related_policies")
+  category        String?
+  tags            String[]                     @default([])
+  priority        Int                          @default(0)
+  status          FaqStatus                    @default(ACTIVE)
+  viewCount       Int                          @default(0) @map("view_count")
+  helpfulCount    Int                          @default(0) @map("helpful_count")
+  createdById     String                       @map("created_by_id")
+  updatedById     String?                      @map("updated_by_id")
+  createdAt       DateTime                     @default(now()) @map("created_at")
+  updatedAt       DateTime                     @updatedAt @map("updated_at")
+  organization    Organization                 @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, status])
+  @@index([organizationId, category])
+  @@map("faq_entries")
+}
+
+/// FAQ entry status for lifecycle management.
+enum FaqStatus {
+  ACTIVE
+  DRAFT
+  ARCHIVED
+}
+
+/// ChatbotConsentLog records GDPR-compliant consent for chatbot interactions.
+/// CRITICAL: This table is append-only - records are NEVER updated or deleted.
+/// Used for audit trails and compliance reporting.
+model ChatbotConsentLog {
+  id               String       @id @default(uuid())
+  organizationId   String       @map("organization_id")
+  sessionId        String       @map("session_id")
+  consentType      String       @map("consent_type")
+  consentVersion   String       @map("consent_version")
+  consentTextShown String       @map("consent_text_shown")
+  consentGiven     Boolean      @map("consent_given")
+  ipAddress        String?      @map("ip_address")
+  userAgent        String?      @map("user_agent")
+  capturedAt       DateTime     @default(now()) @map("captured_at")
+  organization     Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, sessionId])
+  @@index([sessionId, capturedAt])
+  @@map("chatbot_consent_logs")
 }
