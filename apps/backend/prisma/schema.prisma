@@ -125,6 +125,7 @@ model Organization {
   supportTickets             SupportTicket[]
   ruleDefinitions            RuleDefinition[]
   ruleExecutionLogs          RuleExecutionLog[]
+  documentEmbeddings         DocumentEmbedding[]
 
   @@index([slug])
   @@index([isActive])
@@ -2875,6 +2876,36 @@ model PolicyCaseAssociation {
   @@index([organizationId, caseId])
   @@index([organizationId, linkType])
   @@map("policy_case_associations")
+}
+
+/// SourceType for document embeddings - identifies the source entity type.
+enum EmbeddingSourceType {
+  POLICY_VERSION
+  KNOWLEDGE_BASE
+  CASE
+  INVESTIGATION
+}
+
+/// DocumentEmbedding stores chunked document embeddings for semantic search.
+/// CRITICAL: This table does NOT use RLS - all queries MUST filter by organizationId explicitly.
+/// This is because pgvector similarity queries don't work reliably with RLS.
+model DocumentEmbedding {
+  id             String              @id @default(uuid())
+  organizationId String              @map("organization_id")
+  sourceType     EmbeddingSourceType @map("source_type")
+  sourceId       String              @map("source_id")
+  chunkIndex     Int                 @map("chunk_index")
+  chunkText      String              @map("chunk_text")
+  chunkMetadata  Json                @default("{}") @map("chunk_metadata")
+  embedding      Unsupported("vector(1024)")
+  modelVersion   String              @map("model_version")
+  createdAt      DateTime            @default(now()) @map("created_at")
+
+  organization   Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([sourceType, sourceId, chunkIndex])
+  @@index([organizationId, sourceType])
+  @@map("document_embeddings")
 }
 
 /// MigrationJob tracks a single data import operation from competitor systems.
