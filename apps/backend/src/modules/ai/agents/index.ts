@@ -3,3 +3,4 @@ export * from "./agent.registry";
 export * from "./investigation.agent";
 export * from "./case.agent";
 export * from "./compliance-manager.agent";
+export * from "./employee-chatbot.agent";

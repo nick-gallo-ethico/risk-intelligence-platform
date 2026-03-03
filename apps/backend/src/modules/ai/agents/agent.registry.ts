@@ -11,6 +11,7 @@ import { BaseAgent, AgentContext } from "./base.agent";
 import { InvestigationAgent } from "./investigation.agent";
 import { CaseAgent } from "./case.agent";
 import { ComplianceManagerAgent } from "./compliance-manager.agent";
+import { EmployeeChatbotAgent } from "./employee-chatbot.agent";
 
 /**
  * Type for agent class constructors.
@@ -103,6 +104,7 @@ export class AgentRegistry implements OnModuleInit {
     this.registerAgentType("investigation", InvestigationAgent);
     this.registerAgentType("case", CaseAgent);
     this.registerAgentType("compliance-manager", ComplianceManagerAgent);
+    this.registerAgentType("employee-chatbot", EmployeeChatbotAgent);
 
     this.logger.log(`Registered ${this.agents.size} agent types`);
   }
@@ -192,6 +194,8 @@ export class AgentRegistry implements OnModuleInit {
         return "investigation";
       case "case":
         return "case";
+      case "chatbot":
+        return "employee-chatbot";
       case "campaign":
       case "policy":
       case "report":
