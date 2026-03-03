@@ -98,10 +98,7 @@ export class VoyageProvider implements EmbeddingProvider, OnModuleInit {
       }
 
       // Validate response dimensions match expected
-      if (
-        embeddings.length > 0 &&
-        embeddings[0].length !== this.dimensions
-      ) {
+      if (embeddings.length > 0 && embeddings[0].length !== this.dimensions) {
         this.logger.warn(
           `Embedding dimensions mismatch: expected ${this.dimensions}, got ${embeddings[0].length}`,
         );

@@ -9,10 +9,10 @@ See: .planning/PROJECT.md (updated 2026-02-24)
 
 ## Current Position
 
-Phase: 42 of 51 (Anonymous Communication Relay)
-Plan: 8 of 8 complete
-Status: Phase complete
-Last activity: 2026-03-03 - Completed 42-08-PLAN.md (Verification Checkpoint with Demo Data)
+Phase: 43 of 51 (RAG Infrastructure)
+Plan: 1 of 8 complete
+Status: In progress
+Last activity: 2026-03-03 - Completed 43-01-PLAN.md (DocumentEmbedding Schema)
 
 Progress: [======================........] 82% (42/51 phases complete across all milestones)
 
@@ -36,7 +36,7 @@ Progress: [======================........] 82% (42/51 phases complete across all
 | ------------------------- | ------ | ------------------------------------ | ----------- |
 | 1 - Rules & Automation    | 40-41  | Auto-routing, SLA, escalation        | Complete    |
 | 2 - Anonymous Relay       | 42     | Chinese Wall messaging               | Complete    |
-| 3 - AI Intelligence       | 43-45  | RAG, chatbot, pattern detection      | Not started |
+| 3 - AI Intelligence       | 43-45  | RAG, chatbot, pattern detection      | In progress |
 | 4 - Disclosure Automation | 46-47  | Rolling campaigns, external parties  | Not started |
 | 5 - Portal Completeness   | 48     | Manager, employee, operator features | Not started |
 | 6 - Infrastructure        | 49-51  | PWA, analytics, branding             | Not started |
@@ -91,6 +91,10 @@ Progress: [======================........] 82% (42/51 phases complete across all
 - Compact sidebar messaging format: InvestigatorComposer uses card format for right sidebar placement (42-06)
 - canMessage logic: case.status !== CLOSED AND (has reporterEmail OR reporterAnonymous) (42-06)
 - RelaySettingsSection manages own data via react-query: self-contained component pattern for settings sections (42-07)
+- NO RLS on document_embeddings table: pgvector similarity queries don't work reliably with RLS, explicit WHERE required (43-01)
+- vector(1024) dimensions for Voyage AI voyage-3 model (43-01)
+- HNSW index parameters: m=16, ef_construction=64 for production quality (43-01)
+- TEXT type for IDs in document_embeddings to match existing schema patterns (43-01)
 
 ### Blockers
 
@@ -111,6 +115,6 @@ Phases needing deeper research during planning:
 ## Session Continuity
 
 Last session: 2026-03-03
-Stopped at: Completed Phase 42 (Anonymous Communication Relay) - 42-08-PLAN.md (Verification Checkpoint)
+Stopped at: Completed 43-01-PLAN.md (DocumentEmbedding Schema)
 Resume file: None
-Next action: Plan or execute Phase 43 (RAG Infrastructure)
+Next action: Execute 43-02-PLAN.md (Embedding Service)
