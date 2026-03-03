@@ -107,7 +107,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 40: Rules Engine Foundation** - Auto-routing rules, round-robin assignment, status auto-derivation, rule testing
 - [x] **Phase 41: SLA Monitoring & Escalation** - SLA warnings/breaches, escalation triggers, configurable timeouts
 - [x] **Phase 42: Anonymous Communication Relay** - Chinese Wall messaging, access codes, reporter visibility levels
-- [ ] **Phase 43: RAG Infrastructure** - pgvector embeddings, document chunking, semantic search, embedding abstraction
+- [x] **Phase 43: RAG Infrastructure** - pgvector embeddings, document chunking, semantic search, embedding abstraction
 - [ ] **Phase 44: Employee Chatbot** - Floating widget, policy Q&A with citations, confidence tiers, FAQ database
 - [ ] **Phase 45: Enhanced AI Features** - Note cleanup preview, pattern detection alerts, trend identification
 - [ ] **Phase 46: Disclosure Automation Foundation** - Rolling campaigns, auto-clear/reject rules, bulk operations, proxy delegation
@@ -213,14 +213,14 @@ Plans:
 
 Plans:
 
-- [ ] 43-01-PLAN.md — pgvector extension, DocumentEmbedding table with explicit organizationId
-- [ ] 43-02-PLAN.md — EmbeddingService abstraction with Voyage AI provider
-- [ ] 43-03-PLAN.md — Document chunking strategies (section-based for policies, activity-based for cases)
-- [ ] 43-04-PLAN.md — VectorStoreService with similarity search and tenant filtering
-- [ ] 43-05-PLAN.md — Knowledge base document upload with chunk/embed pipeline
-- [ ] 43-06-PLAN.md — Policy auto-embedding on publish via event listener
-- [ ] 43-07-PLAN.md — Hybrid search combining Elasticsearch keyword + pgvector semantic
-- [ ] 43-08-PLAN.md — Verification checkpoint with performance benchmarks
+- [x] 43-01-PLAN.md — pgvector extension, DocumentEmbedding table with explicit organizationId
+- [x] 43-02-PLAN.md — EmbeddingService abstraction with Voyage AI provider
+- [x] 43-03-PLAN.md — Document chunking strategies (section-based for policies, activity-based for cases)
+- [x] 43-04-PLAN.md — VectorStoreService with similarity search and tenant filtering
+- [x] 43-05-PLAN.md — Knowledge base document upload with chunk/embed pipeline
+- [x] 43-06-PLAN.md — Policy auto-embedding on publish via event listener
+- [x] 43-07-PLAN.md — Hybrid search combining Elasticsearch keyword + pgvector semantic
+- [x] 43-08-PLAN.md — Verification checkpoint with performance benchmarks
 
 ### Phase 44: Employee Chatbot
 
@@ -515,7 +515,7 @@ Phases execute in numeric order: 40 -> 41 -> 42 -> ... -> 51
 | 40. Rules Engine Foundation             | v2.0      | 8/8            | Complete    | 2026-03-02 |
 | 41. SLA Monitoring & Escalation         | v2.0      | 6/6            | Complete    | 2026-03-02 |
 | 42. Anonymous Communication Relay       | v2.0      | 8/8            | Complete    | 2026-03-03 |
-| 43. RAG Infrastructure                  | v2.0      | 0/8            | Not started | -          |
+| 43. RAG Infrastructure                  | v2.0      | 8/8            | Complete    | 2026-03-03 |
 | 44. Employee Chatbot                    | v2.0      | 0/10           | Not started | -          |
 | 45. Enhanced AI Features                | v2.0      | 0/9            | Not started | -          |
 | 46. Disclosure Automation Foundation    | v2.0      | 0/10           | Not started | -          |
@@ -528,7 +528,7 @@ Phases execute in numeric order: 40 -> 41 -> 42 -> ... -> 51
 ---
 
 _Roadmap created: 2026-02-02_
-_Updated: 2026-03-03 (Phase 42 complete - Anonymous Communication Relay)_
+_Updated: 2026-03-03 (Phase 43 complete - RAG Infrastructure)_
 _Total phases: 51 (+ decimal insertions)_
 _Total plans: 300+ completed across v1.0, v1.1, v1.2; 106 planned for v2.0_
 _Total requirements: 262 (v1.0-v1.2) + 83 (v2.0) = 345_

@@ -32,11 +32,11 @@ Requirements for closing all PRD gaps. Each maps to roadmap phases starting at P
 
 ### AI Intelligence Layer — RAG Foundation
 
-- [ ] **RAG-01**: pgvector extension enabled with separate DocumentEmbedding table (explicit organizationId, not RLS-dependent for vector queries)
-- [ ] **RAG-02**: Admin can upload knowledge base documents (PDF, DOCX, TXT) that are chunked and embedded
-- [ ] **RAG-03**: Policy documents auto-embed on publish (chunked by section)
-- [ ] **RAG-04**: Semantic search returns relevant document chunks with similarity scores, filtered by tenant
-- [ ] **RAG-05**: Embedding model abstraction layer supports swapping providers without re-indexing schema changes
+- [x] **RAG-01**: pgvector extension enabled with separate DocumentEmbedding table (explicit organizationId, not RLS-dependent for vector queries)
+- [x] **RAG-02**: Admin can upload knowledge base documents (PDF, DOCX, TXT) that are chunked and embedded
+- [x] **RAG-03**: Policy documents auto-embed on publish (chunked by section)
+- [x] **RAG-04**: Semantic search returns relevant document chunks with similarity scores, filtered by tenant
+- [x] **RAG-05**: Embedding model abstraction layer supports swapping providers without re-indexing schema changes
 
 ### AI Intelligence Layer — Chatbot
 
