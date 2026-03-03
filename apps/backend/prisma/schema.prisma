@@ -126,6 +126,7 @@ model Organization {
   ruleDefinitions            RuleDefinition[]
   ruleExecutionLogs          RuleExecutionLog[]
   documentEmbeddings         DocumentEmbedding[]
+  knowledgeBaseDocuments     KnowledgeBaseDocument[]
 
   @@index([slug])
   @@index([isActive])
@@ -214,6 +215,7 @@ model User {
   userDataTablesCreated             UserDataTable[]            @relation("UserDataTableCreatedBy")
   supportTickets                    SupportTicket[]            @relation("SupportTicketUser")
   ruleDefinitionsCreated            RuleDefinition[]           @relation("RuleDefinitionCreatedBy")
+  knowledgeBaseDocsCreated          KnowledgeBaseDocument[]    @relation("KnowledgeBaseDocCreatedBy")
   organization                      Organization               @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@unique([organizationId, email])
@@ -2906,6 +2908,34 @@ model DocumentEmbedding {
   @@unique([sourceType, sourceId, chunkIndex])
   @@index([organizationId, sourceType])
   @@map("document_embeddings")
+}
+
+/// KnowledgeBaseDocument stores metadata for uploaded knowledge base files.
+/// These documents are chunked and embedded for semantic search by the AI chatbot.
+model KnowledgeBaseDocument {
+  id             String   @id @default(uuid())
+  organizationId String   @map("organization_id")
+  title          String
+  description    String?
+  category       String?
+  fileName       String   @map("file_name")
+  fileType       String   @map("file_type")
+  fileSize       Int      @map("file_size")
+  storagePath    String   @map("storage_path")
+  status         String   @default("PENDING")
+  chunkCount     Int      @default(0) @map("chunk_count")
+  errorMessage   String?  @map("error_message")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+  createdById    String   @map("created_by_id")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdBy    User         @relation("KnowledgeBaseDocCreatedBy", fields: [createdById], references: [id])
+
+  @@index([organizationId])
+  @@index([organizationId, status])
+  @@index([organizationId, category])
+  @@map("knowledge_base_documents")
 }
 
 /// MigrationJob tracks a single data import operation from competitor systems.
