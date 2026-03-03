@@ -1,4 +1,4 @@
-import { Injectable, Logger, OnModuleInit } from "@nestjs/common";
+import { Injectable, Logger, OnModuleInit, Optional } from "@nestjs/common";
 import {
   SkillDefinition,
   SkillScope,
@@ -19,6 +19,17 @@ import { summarizeSkill } from "./platform/summarize.skill";
 import { categorySuggestSkill } from "./platform/category-suggest.skill";
 import { riskScoreSkill } from "./platform/risk-score.skill";
 import { translateSkill } from "./platform/translate.skill";
+
+// Import chatbot skills
+import { faqMatchSkill } from "./chatbot/faq-match.skill";
+import { policySearchSkill } from "./chatbot/policy-search.skill";
+import { caseStatusSkill } from "./chatbot/case-status.skill";
+
+// Chatbot skill dependencies (optional to avoid circular deps)
+import { FaqService } from "../../chatbot/services/faq.service";
+import { CaseStatusService } from "../../chatbot/services/case-status.service";
+import { VectorStoreService } from "../../embeddings/services/vector-store.service";
+import { EmbeddingService } from "../../embeddings/services/embedding.service";
 
 // TODO: Register triage skill when disclosures module integration is ready
 // The triage skill (./triage.skill.ts) is complete but requires:
@@ -75,6 +86,11 @@ export class SkillRegistry implements OnModuleInit {
     private readonly rateLimiter: AiRateLimiterService,
     private readonly promptService: PromptService,
     private readonly contextLoader: ContextLoaderService,
+    // Chatbot skill dependencies - optional to avoid circular deps
+    @Optional() private readonly faqService?: FaqService,
+    @Optional() private readonly caseStatusService?: CaseStatusService,
+    @Optional() private readonly vectorStore?: VectorStoreService,
+    @Optional() private readonly embeddingService?: EmbeddingService,
   ) {}
 
   onModuleInit() {
@@ -116,7 +132,54 @@ export class SkillRegistry implements OnModuleInit {
       ) as SkillDefinition,
     );
 
+    // Register chatbot skills if dependencies are available
+    this.registerChatbotSkills();
+
     this.logger.log(`Registered ${this.skills.size} skills`);
+  }
+
+  /**
+   * Register chatbot skills for FAQ matching, policy search, and case status.
+   * Skills only registered if required dependencies are available.
+   * This avoids hard circular dependencies between AI and Chatbot modules.
+   */
+  private registerChatbotSkills(): void {
+    // faq-match skill requires FaqService
+    if (this.faqService) {
+      this.registerSkill(faqMatchSkill(this.faqService) as SkillDefinition);
+      this.logger.debug("Registered faq-match skill");
+    } else {
+      this.logger.debug("Skipping faq-match skill - FaqService not available");
+    }
+
+    // policy-search skill requires FaqService, VectorStore, and EmbeddingService
+    if (this.faqService && this.vectorStore && this.embeddingService) {
+      this.registerSkill(
+        policySearchSkill(
+          this.faqService,
+          this.vectorStore,
+          this.embeddingService,
+          this.providerRegistry,
+        ) as SkillDefinition,
+      );
+      this.logger.debug("Registered policy-search skill");
+    } else {
+      this.logger.debug(
+        "Skipping policy-search skill - VectorStoreService or EmbeddingService not available",
+      );
+    }
+
+    // case-status skill requires CaseStatusService
+    if (this.caseStatusService) {
+      this.registerSkill(
+        caseStatusSkill(this.caseStatusService) as SkillDefinition,
+      );
+      this.logger.debug("Registered case-status skill");
+    } else {
+      this.logger.debug(
+        "Skipping case-status skill - CaseStatusService not available",
+      );
+    }
   }
 
   /**

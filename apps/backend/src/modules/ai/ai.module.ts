@@ -1,9 +1,11 @@
-import { Module } from "@nestjs/common";
+import { Module, forwardRef } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 import { CacheModule } from "@nestjs/cache-manager";
 import { PrismaModule } from "../prisma/prisma.module";
 import { EventsModule } from "../events/events.module";
 import { AuthModule } from "../auth/auth.module";
+import { ChatbotModule } from "../chatbot/chatbot.module";
+import { EmbeddingsModule } from "../embeddings/embeddings.module";
 
 // Services
 import { AiClientService } from "./services/ai-client.service";
@@ -63,6 +65,10 @@ import { AiController } from "./ai.controller";
     CacheModule.register({
       ttl: 300000, // 5 minutes default (in ms)
     }),
+    // Chatbot module for FaqService (chatbot skills)
+    forwardRef(() => ChatbotModule),
+    // Embeddings module for VectorStoreService and EmbeddingService (policy-search skill)
+    forwardRef(() => EmbeddingsModule),
   ],
   controllers: [AiController],
   providers: [
