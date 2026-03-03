@@ -129,6 +129,7 @@ model Organization {
   knowledgeBaseDocuments     KnowledgeBaseDocument[]
   faqEntries                 FaqEntry[]
   chatbotConsentLogs         ChatbotConsentLog[]
+  chatbotInquiries           ChatbotInquiry[]
 
   @@index([slug])
   @@index([isActive])
@@ -218,6 +219,7 @@ model User {
   supportTickets                    SupportTicket[]            @relation("SupportTicketUser")
   ruleDefinitionsCreated            RuleDefinition[]           @relation("RuleDefinitionCreatedBy")
   knowledgeBaseDocsCreated          KnowledgeBaseDocument[]    @relation("KnowledgeBaseDocCreatedBy")
+  assignedInquiries                 ChatbotInquiry[]           @relation("InquiryAssignee")
   organization                      Organization               @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@unique([organizationId, email])
@@ -5681,4 +5683,52 @@ model ChatbotConsentLog {
   @@index([organizationId, sessionId])
   @@index([sessionId, capturedAt])
   @@map("chatbot_consent_logs")
+}
+
+/// ChatbotInquiry represents an escalated conversation from the chatbot.
+/// Created when user requests to speak with compliance team or chatbot
+/// cannot confidently answer a question.
+model ChatbotInquiry {
+  id                  String              @id @default(uuid())
+  organizationId      String              @map("organization_id")
+  sessionId           String              @map("session_id")
+  conversationId      String?             @map("conversation_id")
+  userId              String?             @map("user_id")
+  userEmail           String?             @map("user_email")
+  question            String
+  conversationHistory Json?               @map("conversation_history")
+  category            String?
+  priority            InquiryPriority     @default(NORMAL)
+  status              InquiryStatus       @default(PENDING)
+  assignedToId        String?             @map("assigned_to_id")
+  assignedAt          DateTime?           @map("assigned_at")
+  resolvedAt          DateTime?           @map("resolved_at")
+  resolution          String?
+  createdAt           DateTime            @default(now()) @map("created_at")
+  updatedAt           DateTime            @updatedAt @map("updated_at")
+
+  organization        Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  assignedTo          User?               @relation("InquiryAssignee", fields: [assignedToId], references: [id])
+
+  @@index([organizationId, status])
+  @@index([organizationId, assignedToId])
+  @@index([sessionId])
+  @@map("chatbot_inquiries")
+}
+
+/// Priority level for chatbot inquiries.
+enum InquiryPriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
+/// Status workflow for chatbot inquiries.
+enum InquiryStatus {
+  PENDING     // Awaiting assignment
+  ASSIGNED    // Assigned to compliance team member
+  IN_PROGRESS // Being worked on
+  RESOLVED    // Answered and closed
+  ARCHIVED    // Archived
 }
