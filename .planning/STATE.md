@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-02-24)
 ## Current Position
 
 Phase: 44 of 51 (Employee Chatbot)
-Plan: 3 of 10 complete
+Plan: 4 of 10 complete
 Status: In progress
-Last activity: 2026-03-03 - Completed 44-02-PLAN.md (FAQ and Consent Services)
+Last activity: 2026-03-03 - Completed 44-04-PLAN.md (Chatbot Skills)
 
 Progress: [========================......] 84% (43/51 phases complete across all milestones)
 
@@ -28,7 +28,7 @@ Progress: [========================......] 84% (43/51 phases complete across all
 
 **Goal:** Close all 83 PRD gaps across 6 waves. Transform from CRUD to intelligent platform.
 **Phases:** 40-51 (12 phases, 106 planned plans)
-**Status:** Phases 40-43 complete, Phase 44 in progress (3/10 plans)
+**Status:** Phases 40-43 complete, Phase 44 in progress (4/10 plans)
 
 **Wave Summary:**
 
@@ -117,11 +117,15 @@ Progress: [========================......] 84% (43/51 phases complete across all
 - FaqStatus enum (ACTIVE, DRAFT, ARCHIVED) for FAQ lifecycle (44-01)
 - PostgreSQL plainto_tsquery for automatic query sanitization in FAQ matching (44-02)
 - Priority boost formula: ts_rank + (priority \* 0.1) for FAQ ordering (44-02)
-- 24-hour consent validity period (CONSENT_VALIDITY_MS = 24 _ 60 _ 60 \* 1000) (44-02)
+- 24-hour consent validity period (CONSENT*VALIDITY_MS = 24 * 60 \_ 60 \* 1000) (44-02)
 - Fire-and-forget view count increment to avoid blocking FAQ search (44-02)
 - EmployeeChatbotAgent defaultSkills: faq-match, policy-search, case-status, disclosure-guide (44-03)
 - System prompt confidence tiers: >85% direct, 50-85% clarifying, <50% escalate (44-03)
 - Agent entity type mapping: 'chatbot' -> 'employee-chatbot' in AgentRegistry (44-03)
+- ConfidenceTier thresholds: HIGH >=85%, MEDIUM >=50%, LOW <50% (44-04)
+- FAQ-first search strategy: check FaqService before RAG fallback (44-04)
+- @Optional() injection for chatbot skills to avoid circular dependencies (44-04)
+- forwardRef() for AiModule importing ChatbotModule and EmbeddingsModule (44-04)
 
 ### Blockers
 
@@ -141,6 +145,6 @@ Phases needing deeper research during planning:
 ## Session Continuity
 
 Last session: 2026-03-03
-Stopped at: Completed 44-02-PLAN.md (FAQ and Consent Services)
+Stopped at: Completed 44-04-PLAN.md (Chatbot Skills)
 Resume file: None
-Next action: Continue with 44-04-PLAN.md (Chatbot Skills)
+Next action: Continue with 44-05-PLAN.md or next available plan
