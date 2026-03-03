@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-02-24)
 ## Current Position
 
 Phase: 43 of 51 (RAG Infrastructure)
-Plan: 6 of 8 complete (43-05 also complete)
+Plan: 7 of 8 complete
 Status: In progress
-Last activity: 2026-03-03 - Completed 43-05-PLAN.md (Knowledge Base Upload)
+Last activity: 2026-03-03 - Completed 43-07-PLAN.md (Hybrid Search Service)
 
 Progress: [======================........] 82% (42/51 phases complete across all milestones)
 
@@ -108,6 +108,10 @@ Progress: [======================........] 82% (42/51 phases complete across all
 - Embedding failures logged but not propagated: publish always succeeds (43-06)
 - Policy metadata (title, category, version) enriched into chunk metadata (43-06)
 - reEmbedAllPolicies() skips RETIRED policies to avoid unnecessary work (43-06)
+- RRF K=60: Standard value for reciprocal rank fusion smoothing (43-07)
+- Parallel execution: Keyword and semantic searches run concurrently via Promise.all (43-07)
+- Method indicator: Hybrid search results marked as keyword, semantic, or both (43-07)
+- Configurable weights: keywordWeight and semanticWeight for tuning hybrid search (43-07)
 
 ### Blockers
 
@@ -128,6 +132,6 @@ Phases needing deeper research during planning:
 ## Session Continuity
 
 Last session: 2026-03-03
-Stopped at: Completed 43-05-PLAN.md (Knowledge Base Upload)
+Stopped at: Completed 43-07-PLAN.md (Hybrid Search Service)
 Resume file: None
-Next action: Execute 43-07-PLAN.md (RAG Service Integration)
+Next action: Execute 43-08-PLAN.md (RAG Service Integration)
