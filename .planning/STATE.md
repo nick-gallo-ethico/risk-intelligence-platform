@@ -5,14 +5,14 @@
 See: .planning/PROJECT.md (updated 2026-02-24)
 
 **Core value:** Users can manage their entire compliance workflow in one AI-assisted platform
-**Current focus:** Phase 42 - Anonymous Communication Relay (v2.0)
+**Current focus:** Phase 43 - RAG Infrastructure (v2.0)
 
 ## Current Position
 
 Phase: 42 of 51 (Anonymous Communication Relay)
-Plan: 7 of 8 complete
-Status: In progress
-Last activity: 2026-03-02 - Completed 42-07-PLAN.md (Relay Settings Admin UI)
+Plan: 8 of 8 complete
+Status: Phase complete
+Last activity: 2026-03-03 - Completed 42-08-PLAN.md (Verification Checkpoint with Demo Data)
 
 Progress: [======================........] 82% (42/51 phases complete across all milestones)
 
@@ -28,14 +28,14 @@ Progress: [======================........] 82% (42/51 phases complete across all
 
 **Goal:** Close all 83 PRD gaps across 6 waves. Transform from CRUD to intelligent platform.
 **Phases:** 40-51 (12 phases, 106 planned plans)
-**Status:** Phases 40-41 complete, Phase 42 in progress (7/8 plans)
+**Status:** Phases 40-42 complete, starting Phase 43
 
 **Wave Summary:**
 
 | Wave                      | Phases | Focus                                | Status      |
 | ------------------------- | ------ | ------------------------------------ | ----------- |
 | 1 - Rules & Automation    | 40-41  | Auto-routing, SLA, escalation        | Complete    |
-| 2 - Anonymous Relay       | 42     | Chinese Wall messaging               | In progress |
+| 2 - Anonymous Relay       | 42     | Chinese Wall messaging               | Complete    |
 | 3 - AI Intelligence       | 43-45  | RAG, chatbot, pattern detection      | Not started |
 | 4 - Disclosure Automation | 46-47  | Rolling campaigns, external parties  | Not started |
 | 5 - Portal Completeness   | 48     | Manager, employee, operator features | Not started |
@@ -87,7 +87,6 @@ Progress: [======================........] 82% (42/51 phases complete across all
 - Notification failures logged but don't crash message send (42-04)
 - readAt dual format in visibility filtering: STANDARD returns "read" string, DETAILED+ returns Date (42-05)
 - Investigator name only exposed for OUTBOUND messages at TRANSPARENT level (42-05)
-- Separate queries for RIU and case association to resolve TypeScript inference issues (42-05)
 - Per-warning PII acknowledgment: Each PII warning requires individual checkbox before send allowed (42-06)
 - Compact sidebar messaging format: InvestigatorComposer uses card format for right sidebar placement (42-06)
 - canMessage logic: case.status !== CLOSED AND (has reporterEmail OR reporterAnonymous) (42-06)
@@ -111,7 +110,7 @@ Phases needing deeper research during planning:
 
 ## Session Continuity
 
-Last session: 2026-03-02
-Stopped at: Completed 42-07-PLAN.md (Relay Settings Admin UI)
+Last session: 2026-03-03
+Stopped at: Completed Phase 42 (Anonymous Communication Relay) - 42-08-PLAN.md (Verification Checkpoint)
 Resume file: None
-Next action: Execute 42-08-PLAN.md (Reporter Inbox UI)
+Next action: Plan or execute Phase 43 (RAG Infrastructure)

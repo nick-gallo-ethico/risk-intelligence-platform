@@ -22,13 +22,13 @@ Requirements for closing all PRD gaps. Each maps to roadmap phases starting at P
 
 ### Anonymous Communication Relay
 
-- [ ] **RELAY-01**: Investigator can send message to anonymous reporter via Chinese Wall relay (PII stripped)
-- [ ] **RELAY-02**: Anonymous reporter can reply to investigator messages via ethics portal using access code
-- [ ] **RELAY-03**: System sends email notification to reporter (if email provided) when new message available, with random 1-6hr delay to prevent timing attacks
-- [ ] **RELAY-04**: Access code is emailed to reporter on RIU creation (if email provided)
-- [ ] **RELAY-05**: Admin can configure reporter visibility levels per tenant (Minimal, Standard, Detailed, Transparent)
-- [ ] **RELAY-06**: Message thread displays in ethics portal status page with read receipts
-- [ ] **RELAY-07**: All relay messages logged to audit trail with sender/receiver roles (not identities for anonymous)
+- [x] **RELAY-01**: Investigator can send message to anonymous reporter via Chinese Wall relay (PII stripped)
+- [x] **RELAY-02**: Anonymous reporter can reply to investigator messages via ethics portal using access code
+- [x] **RELAY-03**: System sends email notification to reporter (if email provided) when new message available, with random 1-6hr delay to prevent timing attacks
+- [x] **RELAY-04**: Access code is emailed to reporter on RIU creation (if email provided)
+- [x] **RELAY-05**: Admin can configure reporter visibility levels per tenant (Minimal, Standard, Detailed, Transparent)
+- [x] **RELAY-06**: Message thread displays in ethics portal status page with read receipts
+- [x] **RELAY-07**: All relay messages logged to audit trail with sender/receiver roles (not identities for anonymous)
 
 ### AI Intelligence Layer — RAG Foundation
 
@@ -190,13 +190,13 @@ Requirements for closing all PRD gaps. Each maps to roadmap phases starting at P
 | RULE-07     | Phase 40 | Complete |
 | RULE-08     | Phase 40 | Complete |
 | RULE-09     | Phase 40 | Complete |
-| RELAY-01    | Phase 42 | Pending  |
-| RELAY-02    | Phase 42 | Pending  |
-| RELAY-03    | Phase 42 | Pending  |
-| RELAY-04    | Phase 42 | Pending  |
-| RELAY-05    | Phase 42 | Pending  |
-| RELAY-06    | Phase 42 | Pending  |
-| RELAY-07    | Phase 42 | Pending  |
+| RELAY-01    | Phase 42 | Complete |
+| RELAY-02    | Phase 42 | Complete |
+| RELAY-03    | Phase 42 | Complete |
+| RELAY-04    | Phase 42 | Complete |
+| RELAY-05    | Phase 42 | Complete |
+| RELAY-06    | Phase 42 | Complete |
+| RELAY-07    | Phase 42 | Complete |
 | RAG-01      | Phase 43 | Pending  |
 | RAG-02      | Phase 43 | Pending  |
 | RAG-03      | Phase 43 | Pending  |
