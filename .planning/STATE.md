@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-02-24)
 ## Current Position
 
 Phase: 43 of 51 (RAG Infrastructure)
-Plan: 3 of 8 complete
+Plan: 4 of 8 complete
 Status: In progress
-Last activity: 2026-03-03 - Completed 43-03-PLAN.md (Document Chunking Strategies)
+Last activity: 2026-03-03 - Completed 43-04-PLAN.md (VectorStore Service)
 
 Progress: [======================........] 82% (42/51 phases complete across all milestones)
 
@@ -98,6 +98,9 @@ Progress: [======================........] 82% (42/51 phases complete across all
 - Default chunk size 1500 chars (~400 tokens) for optimal embedding quality (43-03)
 - 10% overlap (150 chars) for context continuity across chunks (43-03)
 - Multiple header detection patterns for section-based chunking (43-03)
+- pgvector toSql() for vector serialization in Prisma raw queries (43-04)
+- Cosine distance to similarity: similarity = 1 - (distance / 2) maps [0,2] to [0,1] (43-04)
+- Atomic upsert via delete+insert: ensures no orphaned chunks during re-embedding (43-04)
 
 ### Blockers
 
@@ -118,6 +121,6 @@ Phases needing deeper research during planning:
 ## Session Continuity
 
 Last session: 2026-03-03
-Stopped at: Completed 43-03-PLAN.md (Document Chunking Strategies)
+Stopped at: Completed 43-04-PLAN.md (VectorStore Service)
 Resume file: None
-Next action: Execute 43-04-PLAN.md (VectorStore Service)
+Next action: Execute 43-05-PLAN.md (RAGService Integration)
