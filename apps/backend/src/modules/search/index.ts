@@ -8,6 +8,7 @@ export {
   EntityTypeResult,
   UnifiedSearchHit,
 } from "./unified-search.service";
+export { HybridSearchService } from "./hybrid-search.service";
 export { IndexingService } from "./indexing";
 export { PermissionFilterService, PermissionContext } from "./query";
 export * from "./dto";

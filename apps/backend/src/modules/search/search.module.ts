@@ -3,6 +3,7 @@ import { ElasticsearchModule } from "@nestjs/elasticsearch";
 import { ConfigService } from "@nestjs/config";
 import { SearchService } from "./search.service";
 import { UnifiedSearchService } from "./unified-search.service";
+import { HybridSearchService } from "./hybrid-search.service";
 import { IndexingService } from "./indexing/indexing.service";
 import { PolicyIndexer } from "./indexing/indexers";
 import { PermissionFilterService } from "./query/permission-filter.service";
@@ -10,6 +11,7 @@ import { CaseIndexingHandler } from "./handlers/case-indexing.handler";
 import { SearchController } from "./search.controller";
 import { PrismaModule } from "../prisma/prisma.module";
 import { JobsModule } from "../jobs/jobs.module";
+import { EmbeddingsModule } from "../embeddings/embeddings.module";
 
 /**
  * SearchModule provides Elasticsearch-powered search for the platform.
@@ -42,10 +44,12 @@ import { JobsModule } from "../jobs/jobs.module";
     }),
     PrismaModule,
     forwardRef(() => JobsModule), // Circular dependency with JobsModule
+    EmbeddingsModule, // For HybridSearchService
   ],
   providers: [
     SearchService,
     UnifiedSearchService,
+    HybridSearchService,
     IndexingService,
     PolicyIndexer,
     PermissionFilterService,
@@ -55,6 +59,7 @@ import { JobsModule } from "../jobs/jobs.module";
   exports: [
     SearchService,
     UnifiedSearchService,
+    HybridSearchService,
     IndexingService,
     PolicyIndexer,
   ],
