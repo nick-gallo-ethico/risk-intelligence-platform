@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-02-24)
 ## Current Position
 
 Phase: 43 of 51 (RAG Infrastructure)
-Plan: 6 of 8 complete
+Plan: 6 of 8 complete (43-05 also complete)
 Status: In progress
-Last activity: 2026-03-03 - Completed 43-06-PLAN.md (Policy Auto-Embedding)
+Last activity: 2026-03-03 - Completed 43-05-PLAN.md (Knowledge Base Upload)
 
 Progress: [======================........] 82% (42/51 phases complete across all milestones)
 
@@ -101,6 +101,9 @@ Progress: [======================........] 82% (42/51 phases complete across all
 - pgvector toSql() for vector serialization in Prisma raw queries (43-04)
 - Cosine distance to similarity: similarity = 1 - (distance / 2) maps [0,2] to [0,1] (43-04)
 - Atomic upsert via delete+insert: ensures no orphaned chunks during re-embedding (43-04)
+- Direct StorageProvider injection for knowledge base: avoid Attachment records by using STORAGE_PROVIDER token directly (43-05)
+- BullMQ embedding queue registered in both EmbeddingsModule and JobsModule: allows service to add jobs and processor to consume them (43-05)
+- 50MB file limit for knowledge base uploads (43-05)
 - PolicyEmbeddingListener uses async: true to not block publish flow (43-06)
 - Embedding failures logged but not propagated: publish always succeeds (43-06)
 - Policy metadata (title, category, version) enriched into chunk metadata (43-06)
@@ -125,6 +128,6 @@ Phases needing deeper research during planning:
 ## Session Continuity
 
 Last session: 2026-03-03
-Stopped at: Completed 43-06-PLAN.md (Policy Auto-Embedding)
+Stopped at: Completed 43-05-PLAN.md (Knowledge Base Upload)
 Resume file: None
-Next action: Execute 43-07-PLAN.md or 43-08-PLAN.md
+Next action: Execute 43-07-PLAN.md (RAG Service Integration)
