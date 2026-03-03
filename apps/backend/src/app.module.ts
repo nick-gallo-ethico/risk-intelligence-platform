@@ -49,6 +49,7 @@ import { OperationsModule } from "./modules/operations/operations.module";
 import { HelpModule } from "./modules/help/help.module";
 import { RulesModule } from "./modules/rules/rules.module";
 import { EmbeddingsModule } from "./modules/embeddings/embeddings.module";
+import { ChatbotModule } from "./modules/chatbot/chatbot.module";
 import { FeatureFlagsModule } from "./modules/feature-flags/feature-flags.module";
 import { MetricsModule } from "./modules/metrics/metrics.module";
 import { SentryModule } from "./modules/sentry/sentry.module";
@@ -130,6 +131,7 @@ import { AppConfigModule } from "./config/config.module";
     HelpModule, // Knowledge base articles and support tickets (Phase 23)
     RulesModule, // Rules engine for automated case routing and actions (Phase 40)
     EmbeddingsModule, // RAG infrastructure - embeddings, chunking, vector search (Phase 43)
+    ChatbotModule, // Employee chatbot - FAQ matching, consent tracking (Phase 44)
     HealthModule,
   ],
   controllers: [],
