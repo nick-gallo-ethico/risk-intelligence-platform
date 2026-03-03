@@ -162,7 +162,8 @@ export class FaqService {
         question: dto.question,
         answer: dto.answer,
         relatedPolicies:
-          (dto.relatedPolicies as unknown as Prisma.InputJsonValue) ?? undefined,
+          (dto.relatedPolicies as unknown as Prisma.InputJsonValue) ??
+          undefined,
         category: dto.category,
         tags: dto.tags || [],
         priority: dto.priority ?? 0,
