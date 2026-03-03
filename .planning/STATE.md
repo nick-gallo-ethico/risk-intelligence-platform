@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-02-24)
 ## Current Position
 
 Phase: 43 of 51 (RAG Infrastructure)
-Plan: 1 of 8 complete
+Plan: 3 of 8 complete
 Status: In progress
-Last activity: 2026-03-03 - Completed 43-01-PLAN.md (DocumentEmbedding Schema)
+Last activity: 2026-03-03 - Completed 43-03-PLAN.md (Document Chunking Strategies)
 
 Progress: [======================........] 82% (42/51 phases complete across all milestones)
 
@@ -95,6 +95,9 @@ Progress: [======================........] 82% (42/51 phases complete across all
 - vector(1024) dimensions for Voyage AI voyage-3 model (43-01)
 - HNSW index parameters: m=16, ef_construction=64 for production quality (43-01)
 - TEXT type for IDs in document_embeddings to match existing schema patterns (43-01)
+- Default chunk size 1500 chars (~400 tokens) for optimal embedding quality (43-03)
+- 10% overlap (150 chars) for context continuity across chunks (43-03)
+- Multiple header detection patterns for section-based chunking (43-03)
 
 ### Blockers
 
@@ -115,6 +118,6 @@ Phases needing deeper research during planning:
 ## Session Continuity
 
 Last session: 2026-03-03
-Stopped at: Completed 43-01-PLAN.md (DocumentEmbedding Schema)
+Stopped at: Completed 43-03-PLAN.md (Document Chunking Strategies)
 Resume file: None
-Next action: Execute 43-02-PLAN.md (Embedding Service)
+Next action: Execute 43-04-PLAN.md (VectorStore Service)
