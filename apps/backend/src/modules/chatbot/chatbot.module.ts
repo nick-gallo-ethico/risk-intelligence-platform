@@ -1,24 +1,29 @@
 import { Module } from "@nestjs/common";
 import { PrismaModule } from "../prisma/prisma.module";
+import { FaqService } from "./services/faq.service";
+import { ConsentService } from "./services/consent.service";
 
 /**
- * ChatbotModule provides FAQ priority matching and GDPR-compliant consent tracking
- * for the employee chatbot feature.
+ * ChatbotModule provides FAQ management and consent tracking for the employee chatbot.
  *
- * Data layer includes:
- * - FaqEntry: FAQ items matched before RAG search
- * - ChatbotConsentLog: GDPR-compliant consent audit trail
+ * Features:
+ * - FAQ entry CRUD with priority-based full-text search matching
+ * - GDPR-compliant consent logging (append-only audit trail)
+ * - Session-based consent tracking with 24-hour validity
+ *
+ * Integrated with:
+ * - EmployeeChatbotAgent (uses FAQ for priority answers before RAG)
+ * - Ethics Portal (anonymous consent capture)
+ * - Employee Portal (authenticated consent capture)
  *
  * Subsequent plans will add:
- * - FaqService: FAQ CRUD and vector search
- * - ConsentService: Consent recording and verification
- * - ChatbotController: API endpoints
+ * - ChatbotController: API endpoints (44-10)
  * - ChatbotService: Conversation orchestration
  */
 @Module({
   imports: [PrismaModule],
   controllers: [],
-  providers: [],
-  exports: [],
+  providers: [FaqService, ConsentService],
+  exports: [FaqService, ConsentService],
 })
 export class ChatbotModule {}
