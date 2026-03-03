@@ -16,8 +16,12 @@ import { AiProcessor } from "./processors/ai.processor";
 import { EmailProcessor } from "./processors/email.processor";
 import { ExportProcessor } from "./processors/export.processor";
 import { IndexingProcessor } from "./processors/indexing.processor";
+import { EmbeddingProcessor } from "./processors/embedding.processor";
 import { SearchModule } from "../search/search.module";
 import { NotificationsModule } from "../notifications/notifications.module";
+import { EmbeddingsModule } from "../embeddings/embeddings.module";
+
+const EMBEDDING_QUEUE_NAME = "embedding";
 
 /**
  * Jobs Module
@@ -95,8 +99,26 @@ import { NotificationsModule } from "../notifications/notifications.module";
 
     // NotificationsModule provides DeliveryTrackerService and MailerModule for EmailProcessor
     forwardRef(() => NotificationsModule),
+
+    // EmbeddingsModule provides KnowledgeBaseService for EmbeddingProcessor
+    forwardRef(() => EmbeddingsModule),
+
+    // Register embedding queue
+    BullModule.registerQueue({ name: EMBEDDING_QUEUE_NAME }),
+
+    // Bull Board for embedding queue monitoring
+    BullBoardModule.forFeature({
+      name: EMBEDDING_QUEUE_NAME,
+      adapter: BullMQAdapter,
+    }),
   ],
-  providers: [AiProcessor, EmailProcessor, ExportProcessor, IndexingProcessor],
+  providers: [
+    AiProcessor,
+    EmailProcessor,
+    ExportProcessor,
+    IndexingProcessor,
+    EmbeddingProcessor,
+  ],
   exports: [BullModule],
 })
 export class JobsModule {}
