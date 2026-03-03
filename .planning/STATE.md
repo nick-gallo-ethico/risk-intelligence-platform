@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-02-24)
 ## Current Position
 
 Phase: 44 of 51 (Employee Chatbot)
-Plan: 4 of 10 complete
+Plan: 5 of 10 complete
 Status: In progress
-Last activity: 2026-03-03 - Completed 44-04-PLAN.md (Chatbot Skills)
+Last activity: 2026-03-03 - Completed 44-05-PLAN.md (CaseStatusSkill)
 
 Progress: [========================......] 84% (43/51 phases complete across all milestones)
 
@@ -28,7 +28,7 @@ Progress: [========================......] 84% (43/51 phases complete across all
 
 **Goal:** Close all 83 PRD gaps across 6 waves. Transform from CRUD to intelligent platform.
 **Phases:** 40-51 (12 phases, 106 planned plans)
-**Status:** Phases 40-43 complete, Phase 44 in progress (4/10 plans)
+**Status:** Phases 40-43 complete, Phase 44 in progress (5/10 plans)
 
 **Wave Summary:**
 
@@ -126,6 +126,9 @@ Progress: [========================......] 84% (43/51 phases complete across all
 - FAQ-first search strategy: check FaqService before RAG fallback (44-04)
 - @Optional() injection for chatbot skills to avoid circular dependencies (44-04)
 - forwardRef() for AiModule importing ChatbotModule and EmbeddingsModule (44-04)
+- Case status rate limit: 5 attempts per IP per 15 minutes for access code lookups (44-05)
+- IP masking in logs: last octet (IPv4) or segment (IPv6) for privacy (44-05)
+- New messages check: CaseMessage.OUTBOUND with isRead=false indicates unread (44-05)
 
 ### Blockers
 
@@ -145,6 +148,6 @@ Phases needing deeper research during planning:
 ## Session Continuity
 
 Last session: 2026-03-03
-Stopped at: Completed 44-04-PLAN.md (Chatbot Skills)
+Stopped at: Completed 44-05-PLAN.md (CaseStatusSkill)
 Resume file: None
-Next action: Continue with 44-05-PLAN.md or next available plan
+Next action: Continue with 44-06-PLAN.md (Escalation Skill)
