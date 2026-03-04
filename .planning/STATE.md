@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-02-24)
 ## Current Position
 
 Phase: 44 of 51 (Employee Chatbot)
-Plan: 5 of 10 complete
+Plan: 7 of 10 complete
 Status: In progress
-Last activity: 2026-03-03 - Completed 44-05-PLAN.md (CaseStatusSkill)
+Last activity: 2026-03-04 - Completed 44-07-PLAN.md (ChatbotGateway)
 
 Progress: [========================......] 84% (43/51 phases complete across all milestones)
 
@@ -28,7 +28,7 @@ Progress: [========================......] 84% (43/51 phases complete across all
 
 **Goal:** Close all 83 PRD gaps across 6 waves. Transform from CRUD to intelligent platform.
 **Phases:** 40-51 (12 phases, 106 planned plans)
-**Status:** Phases 40-43 complete, Phase 44 in progress (5/10 plans)
+**Status:** Phases 40-43 complete, Phase 44 in progress (7/10 plans)
 
 **Wave Summary:**
 
@@ -129,6 +129,10 @@ Progress: [========================......] 84% (43/51 phases complete across all
 - Case status rate limit: 5 attempts per IP per 15 minutes for access code lookups (44-05)
 - IP masking in logs: last octet (IPv4) or segment (IPv6) for privacy (44-05)
 - New messages check: CaseMessage.OUTBOUND with isRead=false indicates unread (44-05)
+- ChatbotGateway uses /chatbot namespace separate from /ai for unauthenticated access (44-07)
+- Anonymous WebSocket connections use tenant slug query param for org lookup (44-07)
+- Session ID format: anonymous:{uuid} for anonymous, auth:{userId} for authenticated (44-07)
+- Consent check required before chat for anonymous users only (44-07)
 
 ### Blockers
 
@@ -147,7 +151,7 @@ Phases needing deeper research during planning:
 
 ## Session Continuity
 
-Last session: 2026-03-03
-Stopped at: Completed 44-05-PLAN.md (CaseStatusSkill)
+Last session: 2026-03-04
+Stopped at: Completed 44-07-PLAN.md (ChatbotGateway)
 Resume file: None
-Next action: Continue with 44-06-PLAN.md (Escalation Skill)
+Next action: Continue with 44-08-PLAN.md (Frontend Widget)
