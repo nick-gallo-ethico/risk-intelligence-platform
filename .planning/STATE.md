@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-02-24)
 ## Current Position
 
 Phase: 44 of 51 (Employee Chatbot)
-Plan: 7 of 10 complete
+Plan: 9 of 10 complete
 Status: In progress
-Last activity: 2026-03-04 - Completed 44-07-PLAN.md (ChatbotGateway)
+Last activity: 2026-03-04 - Completed 44-09-PLAN.md (Portal Widget Integration)
 
 Progress: [========================......] 84% (43/51 phases complete across all milestones)
 
@@ -28,7 +28,7 @@ Progress: [========================......] 84% (43/51 phases complete across all
 
 **Goal:** Close all 83 PRD gaps across 6 waves. Transform from CRUD to intelligent platform.
 **Phases:** 40-51 (12 phases, 106 planned plans)
-**Status:** Phases 40-43 complete, Phase 44 in progress (7/10 plans)
+**Status:** Phases 40-43 complete, Phase 44 in progress (9/10 plans)
 
 **Wave Summary:**
 
@@ -133,6 +133,9 @@ Progress: [========================......] 84% (43/51 phases complete across all
 - Anonymous WebSocket connections use tenant slug query param for org lookup (44-07)
 - Session ID format: anonymous:{uuid} for anonymous, auth:{userId} for authenticated (44-07)
 - Consent check required before chat for anonymous users only (44-07)
+- Stub ChatbotWidget created in 44-09 for TypeScript compilation while 44-08 runs in parallel (44-09)
+- Ethics Portal chatbot controlled by config.features.chatbotEnabled flag (44-09)
+- EmployeeChatbotWrapper pattern bridges auth context to ChatbotWidget (44-09)
 
 ### Blockers
 
@@ -152,6 +155,6 @@ Phases needing deeper research during planning:
 ## Session Continuity
 
 Last session: 2026-03-04
-Stopped at: Completed 44-07-PLAN.md (ChatbotGateway)
+Stopped at: Completed 44-09-PLAN.md (Portal Widget Integration)
 Resume file: None
-Next action: Continue with 44-08-PLAN.md (Frontend Widget)
+Next action: Continue with 44-10-PLAN.md (if exists)
