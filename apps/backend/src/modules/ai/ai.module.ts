@@ -35,6 +35,7 @@ import { ActionExecutorService } from "./actions/action-executor.service";
 
 // API Layer
 import { AiGateway } from "./ai.gateway";
+import { ChatbotGateway } from "./chatbot.gateway";
 import { AiController } from "./ai.controller";
 
 /**
@@ -51,10 +52,12 @@ import { AiController } from "./ai.controller";
  *
  * API Layer:
  * - AiController: REST endpoints at /api/v1/ai/*
- * - AiGateway: WebSocket gateway at /ai namespace
+ * - AiGateway: WebSocket gateway at /ai namespace (authenticated)
+ * - ChatbotGateway: WebSocket gateway at /chatbot namespace (anonymous + authenticated)
  *
  * @see AiController for REST endpoints
  * @see AiGateway for WebSocket streaming
+ * @see ChatbotGateway for employee chatbot WebSocket
  */
 @Module({
   imports: [
@@ -99,8 +102,9 @@ import { AiController } from "./ai.controller";
     ActionCatalog,
     ActionExecutorService,
 
-    // WebSocket Gateway
+    // WebSocket Gateways
     AiGateway,
+    ChatbotGateway,
   ],
   exports: [
     // Services for use by other modules
