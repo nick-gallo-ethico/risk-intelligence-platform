@@ -136,6 +136,10 @@ Progress: [========================......] 84% (43/51 phases complete across all
 - Stub ChatbotWidget created in 44-09 for TypeScript compilation while 44-08 runs in parallel (44-09)
 - Ethics Portal chatbot controlled by config.features.chatbotEnabled flag (44-09)
 - EmployeeChatbotWrapper pattern bridges auth context to ChatbotWidget (44-09)
+- useChatbot hook manages WebSocket connection to /chatbot namespace (44-08)
+- Anonymous mode via tenantSlug query param, authenticated via JWT auth (44-08)
+- Message streaming via text_delta events with accumulation pattern (44-08)
+- WebSocket connection lazy: only connect when panel is open via enabled prop (44-08)
 
 ### Blockers
 
