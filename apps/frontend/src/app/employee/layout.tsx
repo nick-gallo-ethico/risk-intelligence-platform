@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 /**
  * Employee Portal Layout
@@ -10,20 +10,16 @@
  * - Passes employee profile context to children
  */
 
-import { useEffect } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
-import Link from 'next/link';
-import {
-  Home,
-  CheckSquare,
-  History,
-  FileText,
-} from 'lucide-react';
-import { useAuth } from '@/contexts/auth-context';
-import { EmployeeProvider, useEmployee } from '@/contexts/employee-context';
-import { EmployeeHeader } from '@/components/employee/employee-header';
-import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
+import { useEffect } from "react";
+import { useRouter, usePathname } from "next/navigation";
+import Link from "next/link";
+import { Home, CheckSquare, History, FileText } from "lucide-react";
+import { useAuth } from "@/contexts/auth-context";
+import { EmployeeProvider, useEmployee } from "@/contexts/employee-context";
+import { EmployeeHeader } from "@/components/employee/employee-header";
+import { ChatbotWidget } from "@/components/chatbot";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 /**
  * Navigation item configuration.
@@ -50,26 +46,27 @@ function SidebarNav({
       <ul className="space-y-1">
         {items.map((item) => {
           const isActive =
-            item.href === '/employee'
-              ? pathname === '/employee' && !pathname.includes('?')
-              : pathname.startsWith(item.href) || pathname.includes(`tab=${item.href.split('=')[1]}`);
+            item.href === "/employee"
+              ? pathname === "/employee" && !pathname.includes("?")
+              : pathname.startsWith(item.href) ||
+                pathname.includes(`tab=${item.href.split("=")[1]}`);
 
           return (
             <li key={item.href}>
               <Link
                 href={item.href}
                 className={cn(
-                  'flex items-center gap-3 px-3 py-2 rounded-md transition-colors',
+                  "flex items-center gap-3 px-3 py-2 rounded-md transition-colors",
                   isActive
-                    ? 'bg-primary text-primary-foreground'
-                    : 'hover:bg-muted text-foreground'
+                    ? "bg-primary text-primary-foreground"
+                    : "hover:bg-muted text-foreground",
                 )}
               >
                 <item.icon className="h-5 w-5" />
                 <span className="flex-1">{item.label}</span>
                 {item.badge !== undefined && item.badge > 0 && (
                   <Badge
-                    variant={isActive ? 'secondary' : 'default'}
+                    variant={isActive ? "secondary" : "default"}
                     className="ml-auto"
                   >
                     {item.badge}
@@ -99,26 +96,26 @@ function BottomNav({
       <ul className="flex justify-around items-center h-16">
         {items.map((item) => {
           const isActive =
-            item.href === '/employee'
-              ? pathname === '/employee'
-              : pathname.includes(`tab=${item.href.split('=')[1]}`);
+            item.href === "/employee"
+              ? pathname === "/employee"
+              : pathname.includes(`tab=${item.href.split("=")[1]}`);
 
           return (
             <li key={item.href} className="flex-1">
               <Link
                 href={item.href}
                 className={cn(
-                  'flex flex-col items-center justify-center h-full gap-1 transition-colors relative',
+                  "flex flex-col items-center justify-center h-full gap-1 transition-colors relative",
                   isActive
-                    ? 'text-primary'
-                    : 'text-muted-foreground hover:text-foreground'
+                    ? "text-primary"
+                    : "text-muted-foreground hover:text-foreground",
                 )}
               >
                 <div className="relative">
                   <item.icon className="h-5 w-5" />
                   {item.badge !== undefined && item.badge > 0 && (
                     <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-[10px] rounded-full h-4 w-4 flex items-center justify-center">
-                      {item.badge > 9 ? '9+' : item.badge}
+                      {item.badge > 9 ? "9+" : item.badge}
                     </span>
                   )}
                 </div>
@@ -130,6 +127,17 @@ function BottomNav({
       </ul>
     </nav>
   );
+}
+
+/**
+ * Chatbot wrapper that gets token from auth context.
+ */
+function EmployeeChatbotWrapper() {
+  const { accessToken } = useAuth();
+
+  if (!accessToken) return null;
+
+  return <ChatbotWidget token={accessToken} />;
 }
 
 /**
@@ -150,25 +158,21 @@ function LoadingState() {
 /**
  * Inner layout component that uses employee context.
  */
-function EmployeeLayoutInner({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+function EmployeeLayoutInner({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { profile, isLoading: profileLoading } = useEmployee();
 
   // Build navigation items with badge counts
   const navItems: NavItem[] = [
-    { href: '/employee', icon: Home, label: 'Dashboard' },
+    { href: "/employee", icon: Home, label: "Dashboard" },
     {
-      href: '/employee?tab=tasks',
+      href: "/employee?tab=tasks",
       icon: CheckSquare,
-      label: 'Tasks',
+      label: "Tasks",
       badge: profile?.pendingTaskCount,
     },
-    { href: '/employee?tab=history', icon: History, label: 'History' },
-    { href: '/employee?tab=policies', icon: FileText, label: 'Policies' },
+    { href: "/employee?tab=history", icon: History, label: "History" },
+    { href: "/employee?tab=policies", icon: FileText, label: "Policies" },
   ];
 
   return (
@@ -179,16 +183,17 @@ function EmployeeLayoutInner({
       {/* Main content area with sidebar */}
       <div className="flex-1 flex">
         {/* Desktop sidebar */}
-        <SidebarNav items={navItems} pathname={pathname ?? ''} />
+        <SidebarNav items={navItems} pathname={pathname ?? ""} />
 
         {/* Main content */}
-        <main className="flex-1 overflow-y-auto pb-20 md:pb-0">
-          {children}
-        </main>
+        <main className="flex-1 overflow-y-auto pb-20 md:pb-0">{children}</main>
       </div>
 
       {/* Mobile bottom nav */}
-      <BottomNav items={navItems} pathname={pathname ?? ''} />
+      <BottomNav items={navItems} pathname={pathname ?? ""} />
+
+      {/* Chatbot Widget - Authenticated mode */}
+      <EmployeeChatbotWrapper />
     </div>
   );
 }
@@ -205,7 +210,7 @@ export default function EmployeeLayout({
   // Redirect to login if not authenticated
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
-      const returnUrl = encodeURIComponent(pathname || '/employee');
+      const returnUrl = encodeURIComponent(pathname || "/employee");
       router.push(`/login?returnUrl=${returnUrl}`);
     }
   }, [authLoading, isAuthenticated, router, pathname]);
