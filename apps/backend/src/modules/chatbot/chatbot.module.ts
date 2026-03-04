@@ -1,5 +1,6 @@
 import { Module } from "@nestjs/common";
 import { PrismaModule } from "../prisma/prisma.module";
+import { ChatbotController } from "./chatbot.controller";
 import { FaqService } from "./services/faq.service";
 import { ConsentService } from "./services/consent.service";
 import { CaseStatusService } from "./services/case-status.service";
@@ -15,6 +16,7 @@ import { EscalationService } from "./services/escalation.service";
  * - Session-based consent tracking with 24-hour validity
  * - Rate-limited case status lookup via anonymous access codes
  * - Escalation to compliance team with conversation context
+ * - REST API endpoints for FAQ and inquiry management
  *
  * Integrated with:
  * - EmployeeChatbotAgent (uses FAQ for priority answers before RAG)
@@ -22,14 +24,10 @@ import { EscalationService } from "./services/escalation.service";
  * - EscalateSkill (compliance team escalation)
  * - Ethics Portal (anonymous consent capture, status checks)
  * - Employee Portal (authenticated consent capture)
- *
- * Subsequent plans will add:
- * - ChatbotController: API endpoints (44-10)
- * - ChatbotService: Conversation orchestration
  */
 @Module({
   imports: [PrismaModule],
-  controllers: [],
+  controllers: [ChatbotController],
   providers: [FaqService, ConsentService, CaseStatusService, EscalationService],
   exports: [FaqService, ConsentService, CaseStatusService, EscalationService],
 })
