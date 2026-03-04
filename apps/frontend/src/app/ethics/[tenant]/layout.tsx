@@ -1,12 +1,13 @@
-'use client';
+"use client";
 
-import { Suspense } from 'react';
-import { TenantThemeProvider } from '@/components/ethics/tenant-theme-provider';
-import { EthicsHeader } from '@/components/ethics/ethics-header';
-import { EthicsFooter } from '@/components/ethics/ethics-footer';
-import { ThemeSkeleton } from '@/components/ethics/theme-skeleton';
-import { useTenantBranding } from '@/hooks/useTenantBranding';
-import { useEthicsPortalConfig } from '@/hooks/useEthicsPortalConfig';
+import { Suspense } from "react";
+import { TenantThemeProvider } from "@/components/ethics/tenant-theme-provider";
+import { EthicsHeader } from "@/components/ethics/ethics-header";
+import { EthicsFooter } from "@/components/ethics/ethics-footer";
+import { ThemeSkeleton } from "@/components/ethics/theme-skeleton";
+import { ChatbotWidget } from "@/components/chatbot";
+import { useTenantBranding } from "@/hooks/useTenantBranding";
+import { useEthicsPortalConfig } from "@/hooks/useEthicsPortalConfig";
 
 interface EthicsLayoutProps {
   /** Child components (page content) */
@@ -78,6 +79,11 @@ function EthicsLayoutContent({
 
       {/* Footer */}
       <EthicsFooter branding={branding} tenantSlug={tenantSlug} />
+
+      {/* Chatbot Widget - Anonymous mode for Ethics Portal */}
+      {config?.features.chatbotEnabled && (
+        <ChatbotWidget tenantSlug={tenantSlug} />
+      )}
     </div>
   );
 }
