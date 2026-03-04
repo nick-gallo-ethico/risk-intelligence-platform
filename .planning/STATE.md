@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-24)
 
 **Core value:** Users can manage their entire compliance workflow in one AI-assisted platform
-**Current focus:** Phase 44 - Employee Chatbot (v2.0)
+**Current focus:** Phase 44 - Employee Chatbot COMPLETE, ready for Phase 45 (v2.0)
 
 ## Current Position
 
 Phase: 44 of 51 (Employee Chatbot)
-Plan: 9 of 10 complete
-Status: In progress
-Last activity: 2026-03-04 - Completed 44-09-PLAN.md (Portal Widget Integration)
+Plan: 10 of 10 complete
+Status: Phase complete
+Last activity: 2026-03-04 - Completed 44-10-PLAN.md (FAQ Management Endpoints & Demo Seed Data)
 
-Progress: [========================......] 84% (43/51 phases complete across all milestones)
+Progress: [=========================.....] 86% (44/51 phases complete across all milestones)
 
 ## Shipped Milestones
 
@@ -28,18 +28,18 @@ Progress: [========================......] 84% (43/51 phases complete across all
 
 **Goal:** Close all 83 PRD gaps across 6 waves. Transform from CRUD to intelligent platform.
 **Phases:** 40-51 (12 phases, 106 planned plans)
-**Status:** Phases 40-43 complete, Phase 44 in progress (9/10 plans)
+**Status:** Phases 40-44 complete, ready for Phase 45
 
 **Wave Summary:**
 
-| Wave                      | Phases | Focus                                | Status      |
-| ------------------------- | ------ | ------------------------------------ | ----------- |
-| 1 - Rules & Automation    | 40-41  | Auto-routing, SLA, escalation        | Complete    |
-| 2 - Anonymous Relay       | 42     | Chinese Wall messaging               | Complete    |
-| 3 - AI Intelligence       | 43-45  | RAG, chatbot, pattern detection      | In progress |
-| 4 - Disclosure Automation | 46-47  | Rolling campaigns, external parties  | Not started |
-| 5 - Portal Completeness   | 48     | Manager, employee, operator features | Not started |
-| 6 - Infrastructure        | 49-51  | PWA, analytics, branding             | Not started |
+| Wave                      | Phases | Focus                                | Status                    |
+| ------------------------- | ------ | ------------------------------------ | ------------------------- |
+| 1 - Rules & Automation    | 40-41  | Auto-routing, SLA, escalation        | Complete                  |
+| 2 - Anonymous Relay       | 42     | Chinese Wall messaging               | Complete                  |
+| 3 - AI Intelligence       | 43-45  | RAG, chatbot, pattern detection      | In progress (44 complete) |
+| 4 - Disclosure Automation | 46-47  | Rolling campaigns, external parties  | Not started               |
+| 5 - Portal Completeness   | 48     | Manager, employee, operator features | Not started               |
+| 6 - Infrastructure        | 49-51  | PWA, analytics, branding             | Not started               |
 
 ## Accumulated Context
 
@@ -140,6 +140,10 @@ Progress: [========================......] 84% (43/51 phases complete across all
 - Anonymous mode via tenantSlug query param, authenticated via JWT auth (44-08)
 - Message streaming via text_delta events with accumulation pattern (44-08)
 - WebSocket connection lazy: only connect when panel is open via enabled prop (44-08)
+- ChatbotController path 'chatbot' with api/v1 global prefix for /api/v1/chatbot/\* routes (44-10)
+- FAQ helpful endpoint allows any authenticated user (not role-restricted) for feedback collection (44-10)
+- Inquiry DTOs use @prisma/client enums directly for type safety (44-10)
+- Seed orchestrator is seed.ts (not seed.orchestrator.ts) - Phase 44 registered after Phase 42 (44-10)
 
 ### Blockers
 
@@ -159,6 +163,6 @@ Phases needing deeper research during planning:
 ## Session Continuity
 
 Last session: 2026-03-04
-Stopped at: Completed 44-09-PLAN.md (Portal Widget Integration)
+Stopped at: Completed 44-10-PLAN.md (FAQ Management Endpoints & Demo Seed Data) - Phase 44 COMPLETE
 Resume file: None
-Next action: Continue with 44-10-PLAN.md (if exists)
+Next action: Begin Phase 45 planning (Pattern Detection)
