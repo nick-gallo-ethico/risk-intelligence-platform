@@ -38,6 +38,7 @@ import { seedPhase23 } from "./seeders/acme-phase-23";
 import { seedAcmePhase40 } from "./seeders/acme-phase-40";
 import { seedAcmePhase41 } from "./seeders/acme-phase-41";
 import { seedAcmePhase42 } from "./seeders/acme-phase-42";
+import { seedAcmePhase44 } from "./seeders/acme-phase-44";
 
 const prisma = new PrismaClient();
 
@@ -349,6 +350,9 @@ async function main() {
 
   // Phase 42: Anonymous Communication Relay (relay settings, message threads)
   await seedAcmePhase42();
+
+  // Phase 44: Employee Chatbot (FAQ entries for chatbot priority matching)
+  await seedAcmePhase44();
 
   // ========================================
   // Calculate Demo Metrics
