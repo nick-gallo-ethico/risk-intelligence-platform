@@ -108,7 +108,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 41: SLA Monitoring & Escalation** - SLA warnings/breaches, escalation triggers, configurable timeouts
 - [x] **Phase 42: Anonymous Communication Relay** - Chinese Wall messaging, access codes, reporter visibility levels
 - [x] **Phase 43: RAG Infrastructure** - pgvector embeddings, document chunking, semantic search, embedding abstraction
-- [ ] **Phase 44: Employee Chatbot** - Floating widget, policy Q&A with citations, confidence tiers, FAQ database
+- [x] **Phase 44: Employee Chatbot** - Floating widget, policy Q&A with citations, confidence tiers, FAQ database
 - [ ] **Phase 45: Enhanced AI Features** - Note cleanup preview, pattern detection alerts, trend identification
 - [ ] **Phase 46: Disclosure Automation Foundation** - Rolling campaigns, auto-clear/reject rules, bulk operations, proxy delegation
 - [ ] **Phase 47: External Parties & GT&E** - External party entity, gift aggregation, currency conversion, location rules
@@ -244,16 +244,16 @@ Plans:
 
 Plans:
 
-- [ ] 44-01-PLAN.md — FaqEntry + ChatbotConsentLog Prisma models, ChatbotModule
-- [ ] 44-02-PLAN.md — FaqService with full-text search, ConsentService with append-only logging
-- [ ] 44-03-PLAN.md — EmployeeChatbotAgent extending BaseAgent, system prompt template
-- [ ] 44-04-PLAN.md — FaqMatchSkill and PolicySearchSkill with confidence tiers
-- [ ] 44-05-PLAN.md — CaseStatusSkill with rate-limited access code lookup
-- [ ] 44-06-PLAN.md — EscalateSkill with ChatbotInquiry model for one-click escalation
-- [ ] 44-07-PLAN.md — ChatbotGateway for anonymous + authenticated WebSocket
-- [ ] 44-08-PLAN.md — ChatbotWidget with useChatbot hook, ConsentDialog, animations
-- [ ] 44-09-PLAN.md — Portal integration (Ethics + Employee layouts)
-- [ ] 44-10-PLAN.md — ChatbotController, FAQ endpoints, demo seed data
+- [x] 44-01-PLAN.md — FaqEntry + ChatbotConsentLog Prisma models, ChatbotModule
+- [x] 44-02-PLAN.md — FaqService with full-text search, ConsentService with append-only logging
+- [x] 44-03-PLAN.md — EmployeeChatbotAgent extending BaseAgent, system prompt template
+- [x] 44-04-PLAN.md — FaqMatchSkill and PolicySearchSkill with confidence tiers
+- [x] 44-05-PLAN.md — CaseStatusSkill with rate-limited access code lookup
+- [x] 44-06-PLAN.md — EscalateSkill with ChatbotInquiry model for one-click escalation
+- [x] 44-07-PLAN.md — ChatbotGateway for anonymous + authenticated WebSocket
+- [x] 44-08-PLAN.md — ChatbotWidget with useChatbot hook, ConsentDialog, animations
+- [x] 44-09-PLAN.md — Portal integration (Ethics + Employee layouts)
+- [x] 44-10-PLAN.md — ChatbotController, FAQ endpoints, demo seed data
 
 ### Phase 45: Enhanced AI Features
 

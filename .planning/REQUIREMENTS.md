@@ -40,16 +40,16 @@ Requirements for closing all PRD gaps. Each maps to roadmap phases starting at P
 
 ### AI Intelligence Layer — Chatbot
 
-- [ ] **CHAT-01**: Floating chatbot widget available on Ethics Portal (no login required)
-- [ ] **CHAT-02**: Floating chatbot widget available on Employee Portal (authenticated)
-- [ ] **CHAT-03**: Chatbot answers policy questions with specific section citations and links
-- [ ] **CHAT-04**: High confidence responses (>85%) show direct answer with source
-- [ ] **CHAT-05**: Medium confidence responses (50-85%) show clarifying questions with confidence indicator
-- [ ] **CHAT-06**: Low confidence responses (<50%) offer one-click escalation to compliance team
-- [ ] **CHAT-07**: Chatbot can check case status via access code (anonymous reporters)
-- [ ] **CHAT-08**: Consent capture before first chatbot interaction per session
-- [ ] **CHAT-09**: Full chatbot transcript stored for audit with conversation entity linkage
-- [ ] **CHAT-10**: FAQ database with curated answers that chatbot references before RAG fallback
+- [x] **CHAT-01**: Floating chatbot widget available on Ethics Portal (no login required)
+- [x] **CHAT-02**: Floating chatbot widget available on Employee Portal (authenticated)
+- [x] **CHAT-03**: Chatbot answers policy questions with specific section citations and links
+- [x] **CHAT-04**: High confidence responses (>85%) show direct answer with source
+- [x] **CHAT-05**: Medium confidence responses (50-85%) show clarifying questions with confidence indicator
+- [x] **CHAT-06**: Low confidence responses (<50%) offer one-click escalation to compliance team
+- [x] **CHAT-07**: Chatbot can check case status via access code (anonymous reporters)
+- [x] **CHAT-08**: Consent capture before first chatbot interaction per session
+- [x] **CHAT-09**: Full chatbot transcript stored for audit with conversation entity linkage
+- [x] **CHAT-10**: FAQ database with curated answers that chatbot references before RAG fallback
 
 ### AI Intelligence Layer — Enhanced AI Features
 
@@ -197,21 +197,21 @@ Requirements for closing all PRD gaps. Each maps to roadmap phases starting at P
 | RELAY-05    | Phase 42 | Complete |
 | RELAY-06    | Phase 42 | Complete |
 | RELAY-07    | Phase 42 | Complete |
-| RAG-01      | Phase 43 | Pending  |
-| RAG-02      | Phase 43 | Pending  |
-| RAG-03      | Phase 43 | Pending  |
-| RAG-04      | Phase 43 | Pending  |
-| RAG-05      | Phase 43 | Pending  |
-| CHAT-01     | Phase 44 | Pending  |
-| CHAT-02     | Phase 44 | Pending  |
-| CHAT-03     | Phase 44 | Pending  |
-| CHAT-04     | Phase 44 | Pending  |
-| CHAT-05     | Phase 44 | Pending  |
-| CHAT-06     | Phase 44 | Pending  |
-| CHAT-07     | Phase 44 | Pending  |
-| CHAT-08     | Phase 44 | Pending  |
-| CHAT-09     | Phase 44 | Pending  |
-| CHAT-10     | Phase 44 | Pending  |
+| RAG-01      | Phase 43 | Complete |
+| RAG-02      | Phase 43 | Complete |
+| RAG-03      | Phase 43 | Complete |
+| RAG-04      | Phase 43 | Complete |
+| RAG-05      | Phase 43 | Complete |
+| CHAT-01     | Phase 44 | Complete |
+| CHAT-02     | Phase 44 | Complete |
+| CHAT-03     | Phase 44 | Complete |
+| CHAT-04     | Phase 44 | Complete |
+| CHAT-05     | Phase 44 | Complete |
+| CHAT-06     | Phase 44 | Complete |
+| CHAT-07     | Phase 44 | Complete |
+| CHAT-08     | Phase 44 | Complete |
+| CHAT-09     | Phase 44 | Complete |
+| CHAT-10     | Phase 44 | Complete |
 | AIEX-01     | Phase 45 | Pending  |
 | AIEX-02     | Phase 45 | Pending  |
 | AIEX-03     | Phase 45 | Pending  |
@@ -274,4 +274,4 @@ Requirements for closing all PRD gaps. Each maps to roadmap phases starting at P
 ---
 
 _Requirements defined: 2026-02-24_
-_Last updated: 2026-02-24 after roadmap creation_
+_Last updated: 2026-03-04 after Phase 44 completion_

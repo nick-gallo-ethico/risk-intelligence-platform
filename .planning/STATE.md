@@ -153,7 +153,6 @@ None currently.
 
 Phases needing deeper research during planning:
 
-- Phase 44 (Chatbot): Confidence threshold tuning, escalation UX
 - Phase 50 (Analytics): Fact table granularity, reconciliation scheduling
 
 ### Schema Gaps Identified
